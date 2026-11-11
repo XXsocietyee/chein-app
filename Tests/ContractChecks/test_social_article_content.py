@@ -14,7 +14,7 @@ class SocialArticleContentChecks(unittest.TestCase):
         guide = self.read('App/SocialGuideViews.swift')
         self.assertEqual(guide.count('SocialArticleContentView(contents: contents)'), 1)
         for token in ['if id <= 0', 'reader.information(id: id)', 'requestKey: "information-\\(id)"',
-                      'if row.isRemoved', 'Text("social.guide.noContent")']:
+                      'if row.isRemoved', 'CYEmptyState(systemImage: "doc.text", "social.guide.noContent")']:
             self.assertIn(token, guide)
         screen = self.read('App/SocialAccountComponents.swift')
         for token in ['loadedKey != key || busy', 'try Task.checkCancellation()',
@@ -41,8 +41,8 @@ class SocialArticleContentChecks(unittest.TestCase):
         view = self.read('App/SocialArticleContentView.swift')
         for token in ['Text(verbatim: run.text)', 'Text(verbatim: marker)', '.textSelection(.enabled)',
                       '.fixedSize(horizontal: false, vertical: true)', '.accessibilityAddTraits(.isHeader)',
-                      '.accessibilityElement(children: .combine)', 'Text("social.guide.noContent")',
-                      'Text("social.article.limited")', 'min(depth, 4)']:
+                      '.accessibilityElement(children: .combine)', 'CYEmptyState(systemImage: "doc.text", "social.guide.noContent")',
+                      'CYStatusChip("social.article.limited", tone: .neutral, systemImage: "scissors")', 'min(depth, 4)']:
             self.assertIn(token, view)
         for token in ['Link(', 'Button(', 'NavigationLink', 'openURL', 'WebView', 'WKWebView',
                       'AsyncImage', 'Image(', 'URLSession', '.task', 'AttributedString(markdown:', '.lineLimit(']:

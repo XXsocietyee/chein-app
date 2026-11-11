@@ -521,6 +521,8 @@ struct ProjectEditReviewView: View {
                 ProjectEditPreparedNodesView(value: .init(payload: confirmation.payload))
                 ProjectStoryImagePreparedReferences(payload: confirmation.payload)
                 ProjectStoryAudioPreparedReferences(payload: confirmation.payload)
+                ProjectEditPreparedPayloadView(payload: confirmation.payload)
+                Section { Text("projectPrepared.draftContext").font(.footnote).foregroundStyle(.secondary) }
                 Section("projectEdit.basics") {
                     row("projectEdit.name", confirmation.draft.name)
                     row("projectEdit.subtitle", confirmation.draft.subtitle)

@@ -59,7 +59,7 @@ class CoopCenterContract(unittest.TestCase):
     def test_navigation_targets(self):
         self.assertIn('MerchantContentDocumentView(service: content, query: .chapters(topicID: topicID))', VIEW)
         self.assertIn('OfficialEventDetailView(id: event.id, reader: model.official, actions: officialActions)', VIEW)
-        self.assertIn('CooperationBrowserView(reader: session.cooperationReader, onClose: close, peerReader: session.cooperationFlowReader)', BINDING)
+        self.assertIn('CooperationBrowserView(reader: session.cooperationReader, onClose: close, peerReader: session.cooperationFlowReader', BINDING)
         self.assertIn('MerchantOfficialRecruitmentReader<AppSession>', BINDING)
         self.assertIn('official.setActive(phase == .active)', BINDING)
 

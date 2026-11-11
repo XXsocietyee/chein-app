@@ -33,5 +33,5 @@ class Contract(unittest.TestCase):
   for v in cat.values():self.assertEqual(set(v['localizations']),{'en','zh-Hans'})
   for p,n in [('CoreTests/MerchantNPCFieldDraftTests.swift',14),('AppUnitTests/MerchantNPCFieldSessionTests.swift',21),('AppUITests/MerchantNPCFieldFlowTests.swift',5)]:self.assertEqual((R/'Tests'/p).read_text().count('func test'),n)
  def test_existing_fixture_no_save(self):
-  ui=(R/'Tests/AppUITests/MerchantNPCFieldFlowTests.swift').read_text();self.assertIn('--uitesting-merchant-operations-fixture',ui);self.assertNotIn('merchant.operations.confirm',ui)
+  ui=(R/'Tests/AppUITests/MerchantNPCFieldFlowTests.swift').read_text();self.assertIn('--uitesting-merchant-operations-fixture',ui);self.assertFalse(any(confirm in ui for confirm in ['"merchant.operations.confirm"','merchant.operations.confirmExample','merchant.operations.confirm.save']))  # reaches review and cancels; never taps a confirm/save
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -19,7 +19,7 @@ class ClubMemberPageContracts(unittest.TestCase):
 
     def test_enroll_copy_matches_mini_program(self):
         view = read('App/ClubEnrollmentView.swift')
-        for key in ['club.enroll.escrow', 'club.enroll.emptyTeamsHint']:
+        for key in ['club.enroll.escrow', 'club.enroll.emptyTeams']:
             self.assertIn(f'"{key}"', view)
         self.assertEqual(zh(self.catalog, 'club.enroll.escrow'), '报名费由平台担保托管')
         self.assertEqual(zh(self.catalog, 'club.enroll.emptyTeams'), '还没有城市定向团')
@@ -59,7 +59,7 @@ class ClubMemberPageContracts(unittest.TestCase):
         self.assertIn('testRefundedOrUnknownStepLightsNothing', read('Tests/CoreTests/ClubCheckinRailTests.swift'))
     def test_edit_admin_note_and_locked_settings(self):
         view = read('App/ClubOperationsViews.swift')
-        self.assertIn('if !isCreate && !isOwner { Text("club.ops.adminNote")', view)
+        self.assertIn('if !isOwner { Text("club.ops.adminNote")', view)
         self.assertIn('lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")', view)
         self.assertEqual(zh(self.catalog, 'club.ops.adminNote'), '你是管理员 · 只能改展示信息')
         self.assertEqual(zh(self.catalog, 'club.ops.locked.title'), '只有主理人能改经营配置')

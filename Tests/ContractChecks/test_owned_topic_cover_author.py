@@ -21,7 +21,8 @@ class OwnedCoverAuthorContracts(unittest.TestCase):
   self.assertIn('ownedTopicCoverConfigurationRevision() == revision',root)
  def test_picker_reuses_sanitized_selected_only_adapter(self):
   view=self.read('App/OwnedTopicCoverAuthorView.swift')
-  for token in ['RetainedNativeImagePicker: OwnedTopicCoverSelecting','selectionApproval:','permitsNativePicker','RetainedImageSanitizer.sanitize(bytes)','renderedAsset == review.command.asset','flow.claimUpload(original)']:self.assertIn(token,view)
+  for token in ['RetainedNativeImagePicker: OwnedTopicCoverSelecting','selectionApproval:','RetainedImageSanitizer.sanitize(bytes)','renderedAsset == review.command.asset','flow.claimUpload(original)']:self.assertIn(token,view)
+  self.assertIn('permitsNativePicker',self.read('Core/OwnedTopicCoverAuthorFlow.swift'))  # the approval check lives in the flow now
   for absent in ['PHPhotoLibrary','URLSession','AsyncImage','Data(contentsOf:']:self.assertNotIn(absent,view)
  def test_journal_keeps_original_unknown_command_and_local_receipt_recovery(self):
   flow=self.read('Core/OwnedTopicCoverAuthorFlow.swift');journal=self.read('Core/OwnedTopicCoverJournal.swift')

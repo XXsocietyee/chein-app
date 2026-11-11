@@ -56,11 +56,11 @@ class ProfileComplaintPreparationChecks(unittest.TestCase):
         self.assertGreaterEqual(self.core.count('guard current() else'), 3)
         self.assertIn('reader.read(.complaintTopics, isCurrent: { current() })', self.core)
     def test_cancelled_refresh_does_not_unlock_stale_review(self):
-        self.assertIn('else if generation == stamp { issue = .failed }', self.core)
+        self.assertIn('else if generation == stamp { issue = .failed; isNetworkFailure = false }', self.core)
         self.assertEqual(self.core.count('guard current() else { abandon(); return }'), 3)
     def test_retire_clears_ephemeral_data(self):
         self.assertIn('active = false; generation &+= 1; isLoading = false', self.core)
-        self.assertIn('topics = nil; issue = nil; draft = .init(); review = nil; validation = nil', self.core)
+        self.assertIn('topics = nil; issue = nil; isNetworkFailure = false; draft = .init(); review = nil; validation = nil', self.core)
     def test_refresh_failure_blocks_review(self):
         self.assertIn('!isLoading && issue == nil && review == nil', self.core)
         self.assertIn('guard canEdit, let topics else', self.core)
@@ -88,7 +88,10 @@ class ProfileComplaintPreparationChecks(unittest.TestCase):
         self.assertIn('.onDisappear { model.retire() }', self.app)
         self.assertIn('.privacySensitive()', self.app)
     def test_local_only_and_not_submitted_are_visible(self):
-        self.assertIn('Text("profile.complaint.localOnly")', self.app)
+        # Submission is now wired (ProfileComplaintSubmissionController), so the old "local only" line is gone; the page still says
+        # "not submitted" whenever the sender is not configured and never claims submission before .succeeded.
+        self.assertNotIn('profile.complaint.localOnly', self.app)
+        self.assertIn('} else if !sending.isConfigured {\n                    Text("profile.complaint.notSubmitted")', self.app)
         self.assertIn('Text("profile.complaint.notSubmitted")', self.app)
     def test_no_write_share_copy_or_store_dependency(self):
         for t in ['CoopFlowMutation', 'CoopFlowRequestPreview', 'perform(', 'submit(', 'UIPasteboard', 'ShareLink', 'UserDefaults', 'FileManager', 'JSONEncoder', 'print(', 'CoopFlowService(']:

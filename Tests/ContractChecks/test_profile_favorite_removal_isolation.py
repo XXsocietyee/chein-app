@@ -14,7 +14,13 @@ class FavoriteRemovalIsolationTests(unittest.TestCase):
         self.assertIn(declaration, read("App/AppCompositionRoot.swift"))
         import re
         for path in (ROOT / "App").glob("*.swift"):
+            if path.name == "AppCompositionRoot.swift":
+                continue
             self.assertIsNone(re.search(r"\.profileFavoriteRemovalAccesses\s*=", path.read_text()), str(path))
+        # The only production assignment is the root's own init, and only inside the production-gates branch.
+        root = read("App/AppCompositionRoot.swift")
+        self.assertEqual(len(re.findall(r"\.profileFavoriteRemovalAccesses\s*=", root)), 1)
+        self.assertIn("if productionGatesEnabled {\n            self.profileFavoriteRemovalAccesses = { [gates] context, scope in\n                gates.profileFavoriteRemoval(context, scope: scope)", root)
     def test_settings_prerequisite_hooks_incorporated(self):
         source = read("App/SettingsView.swift")
         for token in ("@State private var favoritesOwner = ProfileSettingsFavoritesOwner()", "ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)", "ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner)", "ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner)"):

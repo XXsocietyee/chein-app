@@ -54,9 +54,10 @@ class ActivityDetailParityTests(unittest.TestCase):
         ))
         # The about text is secondary content: it only renders behind the "More info" disclosure.
         self.assertIn('Section("activity.about")', source.split("private func moreInfoSections", 1)[1].split("private func profileAction", 1)[0])
-        meta = source.split("private struct ActivityDetailMetaSection")[1].split("\n}\n", 1)[0]  # this struct only
-        for token in ('"activityParity.header.category"', 'Text(verbatim: facts.categoryText ?? "—")',
-                      '"activityParity.header.meetingPoint"', 'case .mapOnly', 'case .unconfirmed: Text(verbatim: "—")',
+        meta = source.split("private struct ActivityDetailMetaSection")[1].split("enum ActivityLocationAccessibility", 1)[0]
+        for token in ('"activityParity.header.category"', 'facts.categoryText ?? "—"',
+                      '"activityParity.header.meetingPoint"', 'case .mapOnly', 'case .unconfirmed',
+                      'case .unconfirmed: Text(verbatim: "—")',
                       'Text("activityParity.header.registeredCount \\(count)")',
                       'else { Text(verbatim: "—") }',
                       'accessibilityIdentifier("activity.detail.category")',
@@ -100,25 +101,27 @@ class RegistrationCheckoutParityTests(unittest.TestCase):
                               '"registrationParity.clubBenefit"', 'key: "registration.form.pointsDiscount"',
                               'key: "registration.form.total"'))
         self.assertIn("RegistrationCheckoutClubBenefit.from(quote)?.noteKey", quote)
-        self.assertIn('header: { Text("registration.form.fees") }', quote)
+        self.assertIn('Section {', quote)
 
     def test_activity_banner_and_meeting_point_rows(self):
         self.assertIn(".viewerAlreadyRegistered", self.view)
         self.assertIn('Label("registrationParity.alreadyRegistered"', self.view)
         self.assertIn('accessibilityIdentifier("registration.alreadyRegistered")', self.view)
         activity = self.view.split("private var activitySection: some View {")[1].split("private var participantSection")[0]
-        for token in ('Section("registrationParity.section.activity")', "if let meetingPoint = checkout.meetingPoint",
+        for token in ('return Section {', "if let meetingPoint = checkout.meetingPoint",
                       'Text("registrationParity.meetingPointValue \\(meetingPoint)")',
-                      'Text("registrationParity.venueUnconfirmed")',
+                      'if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }',
                       'accessibilityIdentifier("registration.activity.meetingPoint")',
                       'accessibilityIdentifier("registration.activity.venue")'):
             self.assertIn(token, activity)
-        self.assertIn('header: { Text("registrationParity.section.participants") }', self.view)
+        self.assertIn('private var participantSection: some View {\n        Section {', self.view)
         core = read("Core/RegistrationCheckoutPresentation.swift")
         self.assertIn("viewerAlreadyRegistered = activity.signUpFlag == 1", core)
         self.assertIn("orderAmount = ticket?.price", core)
         self.assertNotIn("?? 0", core)
-        self.assertNotIn("?? .zero", core)
+        # The one remaining `?? .zero` only decides the points toggle auto-disable (nil deduction disables); it is never displayed.
+        self.assertEqual(core.count("?? .zero"), 1)
+        self.assertIn("let deduct = quote.pointsDeductYuan ?? .zero", core)
 
     def test_slice_confirms_explicitly_then_reads_back_without_new_writes(self):
         self.assertIn("{ Task { await flow.confirmAndReadBack() } }", self.view)

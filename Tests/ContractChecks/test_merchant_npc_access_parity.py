@@ -51,9 +51,14 @@ class MerchantNPCAccessParityContracts(unittest.TestCase):
         self.assertLess(method.index('access.allows(draft.destination)'), method.index('try journal.write(record)'))
         self.assertLess(method.index('access.allows(draft.destination)'), method.index('transport.send(request)'))
         self.assertIn('guard let approval, let baseline, let journal, let checkSession', method)
-        ordinary = APP.split('lazy var merchantOperationsReader =', 1)[1].split('private let merchantOnboardingService', 1)[0]
-        self.assertNotIn('approval:', ordinary)
-        self.assertNotIn('journal:', ordinary)
+        # The reader now takes the reviewed save lease; the journal is attached only when that lease exists, and the lease
+        # is nil unless the reviewed deployment enables production gates.
+        ordinary = APP.split('var merchantOperationsReader: MerchantOperationsSessionReader {', 1)[1].split('merchantOperationsReaderCache = (approval, reader)', 1)[0]
+        self.assertIn('composition.merchantOperationsWriteApproval($0)', ordinary)
+        self.assertIn('approval: approval, journal: approval == nil ? nil : composition.storage.operationJournal()', ordinary)
+        root = (ROOT / 'App/AppCompositionRoot.swift').read_text()
+        lease = root.split('func merchantOperationsWriteApproval', 1)[1].split('\n    }', 1)[0]
+        self.assertIn('guard reviewed?.productionGatesEnabled == true else { return nil }', lease)
 
     def test_runtime_regressions_cover_denial_success_and_lifecycle(self):
         for name in ['RoleNameCannotSubstitute', 'ExplicitProfileWriteAllowsActiveDelegates',

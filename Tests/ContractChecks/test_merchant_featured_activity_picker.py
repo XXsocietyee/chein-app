@@ -62,7 +62,7 @@ class MerchantFeaturedActivityPickerContracts(unittest.TestCase):
     def test_frozen_review_and_unique_bilingual_keys(self):
         source = self.read('App/MerchantOperationsEditor.swift')
         self.assertIn('MerchantFeaturedActivityPicker(document: model)', source)
-        self.assertIn('confirmation.draft, value.featuredType == 1, let id = value.featuredID', source)
+        self.assertIn('confirmation.draft, value.featuredType == 1, let id = value.featuredID, id > 0', source)
         self.assertIn('merchant.featuredPicker.finalValidation', source)
         fragment = json.loads(self.read('Resources/MerchantFeaturedActivityLocalizations.fragment.json'))
         self.assertEqual(len(fragment), 13)

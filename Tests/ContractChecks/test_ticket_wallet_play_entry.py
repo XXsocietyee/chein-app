@@ -80,7 +80,10 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
         for forbidden in ['URLSession', 'api/', 'requestWhenInUseAuthorization', 'startSession(', 'PlayExperienceCoordinator(', 'OrderLifecycleCoordinator(', 'purchaseKind ==', 'hasPrefix(']:
             self.assertNotIn(forbidden, self.detail)
         self.assertIn('OrderLifecycleView(id: id, coordinator: lifecycleCoordinator)', self.screen)
-        self.assertIn('Text("ticketWallet.noCode")', self.screen)
+        # The em-dash noCode placeholder is gone: the pass code is now only presented on explicit action for a ready ticket, via the injected factory.
+        self.assertIn('if ticket.status == .ready {', self.screen)
+        self.assertIn('.accessibilityIdentifier("ticketWallet.present.open")', self.screen)
+        self.assertNotIn('ticketWallet.noCode', self.screen)
 
 
 if __name__ == '__main__':

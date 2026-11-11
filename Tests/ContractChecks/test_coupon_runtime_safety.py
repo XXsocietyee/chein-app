@@ -21,7 +21,11 @@ class CouponRuntimeSafetyTests(unittest.TestCase):
  def test_default_off_separate_capabilities_and_clone_forwarding(self):
   s=self.read('App/AppCompositionRoot.swift')
   for name,kind in [('couponReadApproval','CouponManagementReadApproval'),('couponWriteApproval','CouponManagementWriteApproval')]:
-   self.assertEqual(s.count(f'{name}: @escaping @MainActor (RuntimeDependencyContext) -> {kind}? = {{ _ in nil }}'),2)
+   # The transport clone keeps a closed `{ _ in nil }` default; the root's optional parameter defaults to nil and resolves closed unless production gates are enabled.
+   self.assertEqual(s.count(f'{name}: @escaping @MainActor (RuntimeDependencyContext) -> {kind}? = {{ _ in nil }}'),1)
+   self.assertIn(f'{name}: (@MainActor (RuntimeDependencyContext) -> {kind}?)? = nil',s)
+   self.assertIn(f'self.{name} = {name} ?? (productionGatesEnabled ? {{ [gates] in gates.', s)
+   self.assertIn(': { _ in nil })', s)
    self.assertIn(f'{name}: {name}',s)
   self.assertIn('func sendConfirmed(',s)
   self.assertIn('try authorization.consume(request',s)

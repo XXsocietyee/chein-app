@@ -84,6 +84,7 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
             ProjectChapterAtmosphere.canSubmit($0) ? ProjectChapterAtmosphere.selected(in: $0) : nil
         } : nil
         Section("projectChapterAtmosphere.title") {
+            Text("projectChapterAtmosphere.hint").font(.footnote).foregroundStyle(.secondary)
             ScrollView(.horizontal) {
                 HStack(spacing: 10) {
                     ForEach(ProjectChapterAtmosphere.allCases) { preset in

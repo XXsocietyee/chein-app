@@ -27,6 +27,7 @@ import Combine
             }
             Section("creatorRoot.roleViews") {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled("roleViews") }, set: { model.draft.advanced.setRoleViewsEnabled($0) }))
+                Text("creatorRoot.roleViewsLimit").font(.footnote).foregroundStyle(.secondary)
                 if model.draft.advanced.enabled("roleViews") {
                     ForEach(["A", "B"], id: \.self) { role in NavigationLink { TemplateRoleViewEditor(model: model, role: role) } label: { HStack { Text("creatorRoot.roleLabel"); Text(verbatim: role) } } }
                 }

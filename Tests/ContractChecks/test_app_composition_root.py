@@ -18,9 +18,10 @@ class AppCompositionRootContracts(unittest.TestCase):
         session = self.text('App/AppSession.swift')
         root = self.text('App/AppCompositionRoot.swift')
         self.assertNotIn('URLSessionTransport()', session)
-        self.assertNotIn('ResponseLimitedHTTPTransport(', session)
+        # Only the two IM media-preview transports exist in the session and both stay closed unless their capability is permitted.
+        self.assertEqual(session.count('ResponseLimitedHTTPTransport('), session.count('ResponseLimitedHTTPTransport(enabled: factory.permits('))
         self.assertIn('let transport=compositionTransport', session)
-        self.assertIn('transportOverride: runtimeHTTPTransport', session)
+        self.assertIn('else { transport = runtimeHTTPTransport; chatTransport = nil }', session)
         self.assertEqual(session.count('let transport = scopedTransport(transport)'), 4)
         self.assertIn('transport: scopedTransport(transport)', session)
         for marker in ['request.httpMethod == "POST"', 'url.query == nil', 'url.fragment == nil',

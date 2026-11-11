@@ -17,11 +17,13 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("struct QuestifyCardButtonStyle: ButtonStyle", source)
         self.assertIn("accessibilityReduceMotion", source)
         self.assertIn("@propertyWrapper", source)
-        self.assertIn("configuration.isPressed && !reduceMotion", source)
-        self.assertIn("reduceMotion ? nil", source)
+        # The scale/dim response moved to the shared kit modifier; the style still feeds it the pressed state and reduce-motion.
+        self.assertIn("cyPressEffect(configuration.isPressed && isEnabled, reduceMotion: reduceMotion)", source)
+        kit = app("DesignSystem/CYMotion.swift")
+        self.assertIn("pressed && !reduceMotion ? scale : 1", kit)
+        self.assertIn("reduceMotion ? CYMotion.reduced", kit)
         self.assertIn("duration: 0.12", source)
         self.assertIn("duration: 0.24, bounce: 0.08", source)
-        self.assertIn("value: configuration.isPressed", source)
         self.assertIn("minHeight: 44", source)
         for forbidden in ("DragGesture", "Task.sleep", "asyncAfter", "repeatForever", "sensoryFeedback"):
             self.assertNotIn(forbidden, source)
@@ -142,9 +144,13 @@ class NativeDesignMotionGuards(unittest.TestCase):
 
     def test_source_price_and_read_only_disclosures_remain(self):
         home = app("HomeFeedView.swift")
-        self.assertIn('Text("homeFeed.currencyUnknown")', home)
-        self.assertIn("amount >= 0", home)
+        # Unknown price renders an em dash (never 0 or a derived currency); the amount helper lives in QuestifyImageEntityCard.
+        card = app("QuestifyImageEntityCard.swift")
+        self.assertIn('?? "—"', home)
+        self.assertIn("guard let value, value >= 0 else { return nil }", card)
         self.assertNotIn(".currency(code:", home)
+        self.assertNotIn(".currency(code:", card)
+        self.assertIn("public var currencyCode: String? { nil }", (ROOT / "Core/HomeFeedContracts.swift").read_text())
         self.assertIn('Text("ticketWallet.readOnly")', app("TicketWalletView.swift"))
         self.assertIn('Text("ticketWallet.noCode")', app("TicketWalletDetailView.swift"))
 

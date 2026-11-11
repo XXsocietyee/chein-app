@@ -28,4 +28,4 @@ class SaleDateWiring(unittest.TestCase):
             key = 'projectEdit.' + suffix
             for language in ['en','zh-Hans']:
                 self.assertEqual(catalog[key]['localizations'][language]['stringUnit']['value'], source[key][language])
-        self.assertIn('do not currently control', source['projectEdit.saleStoredOnly']['en'])
+        self.assertIn("don't limit when tickets can be bought", source['projectEdit.saleStoredOnly']['en'])

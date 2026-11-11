@@ -53,16 +53,16 @@
   "merchant.featuredPicker.originalRetained": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "原主推未出现在已加载活动中，仍会保留，直到你明确应用新选择。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The original featured item is not in the loaded activities. It stays unchanged until you apply another choice."
+          "value": "Your current featured item stays until you pick another."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前主推会保留，直到你选择新的。"
         }
       }
     }

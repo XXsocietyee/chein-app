@@ -47,7 +47,8 @@ class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
         self.assertIn('publicMerchant.image', view)
         self.assertNotIn('AsyncImage', view)
         self.assertIn('key == captured, gate.accepts', view)
-        self.assertIn('.onDisappear { gate.invalidate()', view)
+        self.assertIn('.onDisappear { isVisible = false; retire(); presentation.endHost() }', view)
+        self.assertIn('private func retire() {\n        gate.invalidate();', view)
     def test_normal_search_and_permission_checked_workbench_entries(self):
         self.assertIn('MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)', self.read('App/GlobalSearchView.swift'))
         self.assertIn('publicMerchant: session.publicMerchantHomeContext', self.read('App/SessionGlobalSearchView.swift'))
@@ -68,12 +69,15 @@ class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
     def test_redemption_request_exactness_and_message_preservation(self):
         text = self.read('Core/CityNodeRedemption.swift')
         self.assertIn('.form("api/verify/citynode/redeem", ["code": value])', text)
-        result = text.split('public struct CityNodeRedemptionResult')[1].split('public struct CityNodeRedemptionReview')[0]
-        self.assertIn('redeemed = code == 200', result)
-        self.assertIn('message = text', result)
+        # The typed outcome moved to CityNodeRedemptionOutcome.swift: success needs an exact target/message match, everything else is UNKNOWN.
+        outcome = self.read('Core/CityNodeRedemptionOutcome.swift')
+        result = outcome.split('public struct CityNodeRedemptionResult')[1].split('private static let notRedeemed')[0]
+        self.assertIn('if code == 200 {', result)
+        self.assertIn('self.outcome = outcome; self.message = message; self.unverifiedServerMessage = unverifiedServerMessage', result)
+        self.assertIn('Even a decodable 400/401/403/500 business envelope is NOT a generic rollback receipt.', result)
         self.assertNotIn('trimmingCharacters', result)
         self.assertNotIn('mbText', result)
-        self.assertIn('Text(verbatim: result.message)', self.read('App/CityNodeRedeemView.swift'))
+        self.assertIn('Text(verbatim: shown(result.message))', self.read('App/CityNodeRedeemView.swift'))
     def test_dormant_default_and_before_dispatch_access_locks(self):
         service = self.read('Core/MerchantBusinessService.swift')
         self.assertIn('testingMutationTransport: (any MerchantBusinessTestTransport)? = nil', service)
@@ -84,8 +88,11 @@ class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
         self.assertLess(confirm.index('service.access'), confirm.index('journal.reserve'))
         self.assertLess(confirm.index('access.merchantID == frozen.merchantID'), confirm.index('journal.reserve'))
         self.assertLess(confirm.index('journal.reserve'), confirm.index('service.verificationEnvelope'))
-        self.assertIn('target: "redemption"', text)
-        self.assertIn('reserved == nil ? errorKey(error) : "merchant.cityRedeem.unknown"', confirm)
+        self.assertIn('target: review.code.correlationTarget?.journalTarget ?? "redemption"', text)
+        # After a reservation any failure stays UNKNOWN (locked pending); only an unreserved failure shows a plain error key.
+        self.assertIn('pendingScope = pendingKind(target); result = .unknown()', confirm)
+        self.assertIn('if let target = reserved {', confirm)
+        self.assertIn('failure = errorKey(error)', confirm.split('} else {\n                if error as? MerchantBusinessFailure == .journal')[1])
         self.assertNotIn('journal.complete', text.split('public func invalidate')[1].split('public func confirm')[0])
         self.assertNotIn('URLSession', text)
     def test_native_presentation_avoids_scanner_dialog_stacking(self):
@@ -97,7 +104,7 @@ class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
         self.assertIn('phase != .active { clear() }', text)
         self.assertIn('codeFocused = false', text)
         self.assertIn('.onDisappear { visible = false; clear() }', text)
-        self.assertIn('.disabled(!model.coordinator.isAvailable', text)
+        self.assertIn('.disabled(!model.isAvailable || model.blocksAllTargets', text)
     def test_bilingual_catalog_additions(self):
         entries = json.loads(self.read('docs/merchant-discovery-redemption-localizations.json'))
         catalog = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']

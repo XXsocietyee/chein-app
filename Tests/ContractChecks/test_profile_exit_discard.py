@@ -69,16 +69,17 @@ class ProfileExitDiscardContracts(unittest.TestCase):
         self.assertIn('func retireReload() { reloadContextRevision &+= 1; cancelReload(); cancelExit() }', view())
         self.assertIn('@Published var draft = ProfileEditDraft() { didSet {', view())
         self.assertIn('avatarPreview = nil }; retireReload() } }', view())
-        self.assertIn('func retireAvatar() { cancelExit();', view())
-        for token in ['.onChange(of: sessionRevision) { _, _ in model.retireReload() }',
-                      'if phase != .active { model.retireReload(); model.retireAvatar() }',
-                      '.onChange(of: showPreferences) { _, _ in model.cancelExit() }']:
+        self.assertIn('private func retireAvatarResources() { retirePreferencePicker(); retireSavedReturn(); cancelExit();', view())
+        for token in ['.onChange(of: sessionRevision) { _, _ in model.retireSavedReturn(); model.retireReload() }',
+                      'if phase != .active { model.retireReload(); model.suspendForBackground() }',
+                      '.onChange(of: model.preferencePicker?.id) { _, _ in model.cancelExit() }']:
             self.assertIn(token, view())
 
     def test_committed_exit_blocks_queued_operations_and_reset_is_terminal(self):
-        for signature in ['func load() async {', 'func requestReload() async {',
-                          'func prepare() async {', 'func save(_ value: ProfileEditConfirmation) async {']:
-            self.assertIn(signature + '\n        guard !exitCommitted else { return }', view())
+        for signature in ['func load() async {', 'func requestReload() async {', 'func prepare() async {']:
+            self.assertIn(signature + '\n        retireSavedReturn()\n        guard !exitCommitted else { return }', view())
+        save = section('func save(_ value: ProfileEditConfirmation) async', 'let mayReturn')
+        self.assertIn('retireSavedReturn()\n        guard !exitCommitted else { return nil }', save)
         reset = section('func resetAndLoad() async {', 'func load() async {')
         guard = 'guard !exitCommitted, !Task.isCancelled else { return }'
         self.assertIn(guard, reset)
@@ -96,7 +97,9 @@ class ProfileExitDiscardContracts(unittest.TestCase):
                       '.accessibilityIdentifier("profile.exitDiscard.back")',
                       '.accessibilityIdentifier("profile.exitDiscard.confirm")']:
             self.assertIn(token, view())
-        self.assertEqual(view().count('dismiss()'), 2)
+        # back/confirm exits plus the post-save fallback when no onSaved handler is supplied.
+        self.assertEqual(view().count('dismiss()'), 3)
+        self.assertIn('if let onSaved { onSaved() } else { dismiss() }', view())
 
     def test_dialog_cancel_and_system_dismissal_retain_draft(self):
         self.assertIn('Button("action.cancel", role: .cancel) { model.cancelExit() }', view())

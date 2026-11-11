@@ -27,7 +27,7 @@ class IMHistoryBridgeContracts(unittest.TestCase):
                      'ContentDraftContextFence.matches(self.currentRuntimeDependencyContext, context)', 'isAvailable: available',
                      '!factory.routes([.imSend]).isEmpty', 'currentMessageMediaIdentity']:
             self.assertIn(text, source)
-        for path in ['App/AccountView.swift', 'App/ClubChatEntryView.swift']:
+        for path in ['App/SessionMessagingEntry.swift', 'App/ClubChatEntryView.swift']:
             self.assertIn('.id(session.messagingViewIdentity)', self.read(path))
         for path in ['App/MessagingComponents.swift', 'App/MessagingHistoryView.swift', 'App/MessagingMessageDetailView.swift']:
             self.assertIn('reader.identity', self.read(path))

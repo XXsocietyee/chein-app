@@ -58,7 +58,7 @@ class ExactOwnShelfRepair(unittest.TestCase):
         ui=read('App/TemplateAuthoringMineView.swift')
         for call in ['coordinator.prepareShelf(', 'coordinator.confirmShelf(', 'coordinator.loadMine()', 'coordinator.leaveShelfScreen()']:
             self.assertIn(call,ui)
-        self.assertIn('value.templateID.rawValue',ui)
+        self.assertIn('coordinator.prepareShelf(templateID: id, action: action)',ui)
         self.assertNotIn('PublishingService',ui)
     def test_review_requires_fresh_identity_and_no_title_reconciliation(self):
         core=read('Core/TemplateAuthoringCoordinator.swift')
@@ -92,7 +92,10 @@ class ExactOwnShelfRepair(unittest.TestCase):
         if ROOT != HOST:
             self.assertFalse((ROOT/'App/DiscoveryTemplateBrowserView.swift').exists())
             self.assertFalse((ROOT/'App/SessionHomeFeedView.swift').exists())
-        self.assertIn('templateAuthor.existingEditUnavailable',read('App/TemplateAuthoringMineView.swift'))
+        # The own shelf offers no edit-existing action (rows only open member/configuration/consent views or publish/delete review);
+        # the old inline "editing unavailable" note is no longer rendered.
+        self.assertNotIn('existingEdit',read('App/TemplateAuthoringMineView.swift'))
+        self.assertNotIn('coordinator.edit',read('App/TemplateAuthoringMineView.swift'))
     def test_fake_and_ui_tests_are_authored(self):
         core=read('Tests/CoreTests/TemplateAuthoringHTTPTests.swift')
         self.assertIn('class HTTP: HTTPTransport',core)
