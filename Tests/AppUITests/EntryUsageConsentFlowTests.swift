@@ -20,10 +20,11 @@ final class EntryUsageConsentFlowTests: XCTestCase {
         let decline = app.buttons["authEntry.gate.decline"]
         if !decline.isHittable { app.swipeUp() }
         decline.tap()
-        let publish = app.tabBars.buttons["Publish"]
-        XCTAssertTrue(publish.waitForExistence(timeout: 10))
-        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Home", "Roam", "Publish", "Clubs", "Me"])
-        app.tabBars.buttons["Me"].tap()
+        let explore = app.tabBars.buttons["Explore"]
+        XCTAssertTrue(explore.waitForExistence(timeout: 10))
+        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Explore", "Roam", "Clubs", "Passport"])
+        XCTAssertFalse(app.tabBars.buttons["Publish"].exists)
+        app.tabBars.buttons["Passport"].tap()
         let player = app.buttons["welcome.player"]
         XCTAssertTrue(player.waitForExistence(timeout: 5)); player.tap()
         XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout: 5))
@@ -37,7 +38,7 @@ final class EntryUsageConsentFlowTests: XCTestCase {
         XCTAssertTrue(decline.waitForExistence(timeout: 10))
         if !decline.isHittable { app.swipeUp() }
         decline.tap()
-        app.tabBars.buttons["Me"].tap()
+        app.tabBars.buttons["Passport"].tap()
         app.buttons["welcome.player"].tap()
         let review = app.buttons["authEntry.gate.review"]
         XCTAssertTrue(review.waitForExistence(timeout: 5)); review.tap()

@@ -32,14 +32,20 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(browse.waitForExistence(timeout:10))
         if !browse.isHittable { app.swipeUp() }
         browse.tap()
-        // Mini-program consumer tab bar: 首页 · 漫游 · 发布 · 俱乐部 · 我的; activities live inside Home.
-        let publish=app.tabBars.buttons["Publish"]
-        XCTAssertTrue(publish.waitForExistence(timeout:10))
-        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Home","Roam","Publish","Clubs","Me"])
+        // Four-tab player bar (W1-1): Explore · Roam · Clubs · Passport. Publish is an Explore "+" (hidden for a guest, who has no publishing session); templates stay reachable from the More menu.
+        let explore=app.tabBars.buttons["Explore"]
+        XCTAssertTrue(explore.waitForExistence(timeout:10))
+        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Explore","Roam","Clubs","Passport"])
+        XCTAssertFalse(app.tabBars.buttons["Publish"].exists)
         XCTAssertFalse(app.tabBars.buttons["Activities"].exists)
-        publish.tap()
+        XCTAssertFalse(app.buttons["homeFeed.openCreate"].exists)
+        let more=app.buttons["homeFeed.moreMenu"]
+        XCTAssertTrue(more.waitForExistence(timeout:5)); more.tap()
+        let templates=app.buttons["homeFeed.openTemplates"]
+        XCTAssertTrue(templates.waitForExistence(timeout:5)); templates.tap()
         XCTAssertTrue(app.navigationBars["Templates"].waitForExistence(timeout:5))
-        let account=app.tabBars.buttons["Me"]
+        closeTopSheet()
+        let account=app.tabBars.buttons["Passport"]
         XCTAssertTrue(account.exists);account.tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
         XCTAssertFalse(app.buttons["welcome.merchant"].exists)

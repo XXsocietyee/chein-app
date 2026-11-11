@@ -5,6 +5,8 @@ import SwiftUI
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var nativeHomeReturnSelection: NativeHomeReturnSelectionCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
+    /// W1-4: true when hosted as the Passport tab root (adds the actions + stamp grid, renames the title).
+    var showsPassportOverview = false
     @Environment(\.merchantRootModeSwitch) private var merchantRootModeSwitch
     @Environment(\.themeDomain) private var themeDomain
     @EnvironmentObject private var session: AppSession
@@ -16,6 +18,8 @@ import SwiftUI
     @State private var settingsGuideHandoff = SettingsGuideHandoff()
     @State private var showsTickets=false
     @State private var showsTicketPass=false
+    @State private var showsPassportWallet=false
+    @State private var showsPassportMessages=false
     @State private var opensWalletAfterPass=false
     @State private var showsCooperation=false
     @State private var confirmsLogout=false
@@ -28,6 +32,10 @@ import SwiftUI
         NavigationStack {
             Form {
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true }, refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
+                if showsPassportOverview {
+                    PassportOverviewSection(reader: session.roamExperienceReader, onOpenTickets: { showsTicketPass = true },
+                                            onOpenWallet: { showsPassportWallet = true }, onOpenMessages: { showsPassportMessages = true })
+                }
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
                 if let invoice = session.makeInvoiceLaunchPresentation() {
                     NavigationLink {
@@ -173,7 +181,7 @@ import SwiftUI
             .listSectionSpacing(CYSpacing.xl)
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
-            .appNavigationTitle("account.title")
+            .appNavigationTitle(showsPassportOverview ? "tabBar.passport" : "account.title")
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
@@ -183,6 +191,8 @@ import SwiftUI
                     .accessibilityLabel(Text("settings.title"))
                 }
             }
+            .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope) }
+            .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session) }
             .navigationDestination(isPresented:$showsMerchantApplication) {
                 MerchantOnboardingView(session:session,coordinator:session.merchantOnboardingCoordinator)
             }

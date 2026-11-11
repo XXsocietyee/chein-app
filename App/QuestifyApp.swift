@@ -286,15 +286,6 @@ struct SessionRootView: View {
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
     }
 
-    @ViewBuilder private var publishTab: some View {
-                    NavigationStack {
-                        DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
-                            publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) })
-                    }
-                        .id(session.templateAuthoringViewIdentity)
-                        .tabItem { rootTabLabel(.publish) }.tag(RootTab.publish)
-    }
-
     @ViewBuilder private var clubTab: some View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
@@ -303,7 +294,7 @@ struct SessionRootView: View {
 
     @ViewBuilder private var mineTab: some View {
                     Group {
-                        if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
+                        if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
     }
@@ -312,13 +303,13 @@ struct SessionRootView: View {
                 TabView(selection:$selectedTab) {
                     homeTab
                     roamTab
-                    publishTab
                     clubTab
                     mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .cyHaptic(.selection, trigger: selectedTab)
+                .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } } // Publish is no player tab (W1-1)
                 .roleTheme(.player)
     }
 
@@ -328,7 +319,7 @@ struct SessionRootView: View {
                 if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {
                     SessionMerchantRootContainerView(session: session, coordinator: merchantRootCoordinator, access: access, onReturnToConsumer: { destination in
                         merchantRootCoordinator.switchToConsumerMode()
-                        if let destination { selectedTab = destination }
+                        if let destination { selectedTab = destination.isPlayerTab ? destination : .home }
                     })
                 } else {
                 playerTabs
@@ -341,6 +332,10 @@ struct SessionRootView: View {
     private func chain0<V: View>(_ v: V) -> some View {
         v
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
+        .onChange(of: session.pendingDeepLink, initial: true) { _, _ in
+            // W3-6: chein:// links resolve in one presentation, the owning root tab.
+            if let link = session.consumeDeepLink() { selectedTab = link.rootTab }
+        }
         .onChange(of: session.account?.id) { _, accountID in
             merchantRootCoordinator.handleSessionChange(accountID: accountID, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision)
         }
@@ -479,7 +474,7 @@ struct SessionRootView: View {
 
 
     private func rootTabLabel(_ tab: RootTab) -> some View {
-        Label(LocalizedStringKey(tab.titleKey), systemImage: tab.systemImage)
+        Label(LocalizedStringKey(tab.playerTitleKey), systemImage: tab.playerSystemImage)
     }
 }
 

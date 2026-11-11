@@ -7,7 +7,7 @@ import UIKit
 //
 // Source of truth (mini-program):
 //   - `custom-tab-bar/` is an EMPTY shim; the real bar is `components/tabBar` (`CONSUMER_LIST` / `MERCHANT_LIST`).
-//   - Player order: 首页 / 漫游 / 发布 / 俱乐部 / 我的  ->  RootTab .home .roam .publish .club .mine (Core/RootTab.swift)
+//   - Player order (W1-1): Explore / Roam / Clubs / Passport -> RootTab.playerTabs (.home .roam .club .mine); Publish is an Explore "+" entry
 //   - Merchant order: 工作台 / 营销 / 模板 / 合作 / 我的 -> RootTabBarParity.merchantTabs (Core/HomeSearchTabParity.swift)
 //   Both lists already exist natively with the same count/order/titles (QuestifyApp.swift TabView and
 //   SessionMerchantRootContainerView), so NO tab structure change is needed. What was missing is the bar
@@ -29,11 +29,11 @@ enum CYDomainTabIcons {
     /// icon_f4 (club / group), icon_f5 (me). Matches `RootTab.systemImage` for the idle glyph.
     static func player(_ tab: RootTab) -> CYDomainTabIcon {
         switch tab {
-        case .home: return CYDomainTabIcon(idle: "house", selected: "house.fill")
+        case .home: return CYDomainTabIcon(idle: "sparkles", selected: "sparkles")
         case .roam: return CYDomainTabIcon(idle: "map", selected: "map.fill")
         case .publish: return CYDomainTabIcon(idle: "plus.square", selected: "plus.square.fill")
         case .club: return CYDomainTabIcon(idle: "person.3", selected: "person.3.fill")
-        case .mine: return CYDomainTabIcon(idle: "person.crop.circle", selected: "person.crop.circle.fill")
+        case .mine: return CYDomainTabIcon(idle: "book.closed", selected: "book.closed.fill")
         }
     }
 
@@ -55,13 +55,13 @@ enum CYDomainTabIcons {
 
     /// Localisation key for the tab title (existing catalog keys `tabBar.*` / `tabBar.merchant.*`).
     static func titleKey(for tab: RootTab, domain: ThemeDomain) -> String {
-        guard domain == .merchant else { return tab.titleKey }
+        guard domain == .merchant else { return tab.playerTitleKey }
         switch tab {
         case .home: return "tabBar.merchant.workbench"
         case .roam: return "tabBar.merchant.marketing"
         case .publish: return "tabBar.merchant.templates"
         case .club: return "tabBar.merchant.cooperation"
-        case .mine: return tab.titleKey
+        case .mine: return tab.titleKey // merchant bar keeps 我的
         }
     }
 }
@@ -164,7 +164,7 @@ private struct CYDomainTabBarPreview: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            ForEach(RootTab.allCases, id: \.self) { tab in
+            ForEach(domain == .merchant ? RootTab.allCases : RootTab.playerTabs, id: \.self) { tab in
                 Text(verbatim: "Tab \(tab.rawValue + 1)")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .cyDomainPageBackground()

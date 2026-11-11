@@ -1,0 +1,37 @@
+[
+  {
+    "key": "tabBar.explore",
+    "en": "Explore",
+    "zh-Hans": "发现"
+  },
+  {
+    "key": "tabBar.passport",
+    "en": "Passport",
+    "zh-Hans": "护照"
+  },
+  {
+    "key": "homeFeed.create",
+    "en": "Create",
+    "zh-Hans": "创作"
+  },
+  {
+    "key": "passport.stamps.title",
+    "en": "Stamps",
+    "zh-Hans": "印章"
+  },
+  {
+    "key": "passport.stamps.count %lld %lld",
+    "en": "%lld of %lld",
+    "zh-Hans": "%lld / %lld"
+  },
+  {
+    "key": "passport.stamp.earned",
+    "en": "Earned stamp",
+    "zh-Hans": "已获得的印章"
+  },
+  {
+    "key": "passport.stamp.locked",
+    "en": "Locked stamp",
+    "zh-Hans": "未解锁的印章"
+  }
+]

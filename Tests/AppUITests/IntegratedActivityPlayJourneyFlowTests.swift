@@ -236,7 +236,7 @@ import XCTest
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
         assertOrderRowMayMeetButNotCrossNavigationBoundary()
-        tab("Me", app); tap("profile.open.orders", app)
+        tab("Passport", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
         XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
@@ -283,7 +283,7 @@ import XCTest
         XCTAssertTrue(app.staticTexts["Synthetic manual place"].waitForExistence(timeout: 5))
         wait(app) { $0.ledger.count == 11 }
         XCTAssertFalse(app.alerts.firstMatch.exists)
-        tab("Home", app)
+        tab("Explore", app)
         XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
         let exampleViewport = CGRect(x: 4, y: 174, width: 412, height: 526)
         XCTAssertTrue(activityPlayRowFits(CGRect(x: 20, y: 640, width: 380, height: 50), viewport: exampleViewport))
@@ -305,7 +305,7 @@ import XCTest
 
     func testNormalRootOwnedShelfPaginationAndDetailWithoutMutation() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Me", app); tap("account.templateAuthoring", app)
+        tab("Passport", app); tap("account.templateAuthoring", app)
         XCTAssertTrue(app.buttons["templateAuthor.openEditor"].exists)
         tap("templateAuthor.openMine", app)
         XCTAssertTrue(app.staticTexts["Owner 7 template 1"].waitForExistence(timeout: 5))
