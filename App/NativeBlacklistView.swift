@@ -104,6 +104,9 @@ import SwiftUI
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("blacklist.original")
+                    Text(verbatim: "\(original.peerID)\n\(original.expectedBlockID)\n\(original.requestID.uuidString)")
+                        .font(.footnote.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                        .accessibilityIdentifier("blacklist.originalIdentity")
                     CYPillButton("blacklist.recover", style: .secondary, tableName: "NativeBlacklist") {
                         performPresented { await flow.recover() }
                     }
@@ -128,6 +131,13 @@ import SwiftUI
                         systemImage: result.outcome == "APPLIED" ? "checkmark" : "xmark"
                     )
                     .accessibilityIdentifier("blacklist.outcome")
+                    text("blacklist.historical")
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: "\(result.peerID)\n\(result.requestID)")
+                        .font(.footnote.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                        .accessibilityIdentifier("blacklist.resultIdentity")
                     if let current = flow.current {
                         CYStatusChip(
                             verbatim: localized(current.blocked ? "blacklist.currentBlocked" : "blacklist.currentUnblocked"),
@@ -207,6 +217,9 @@ import SwiftUI
                                 .accessibilityIdentifier("blacklist.exactPeer")
                         }
                         .frame(minHeight: CYSpacing.minTouchTarget)
+                        Text(verbatim: "\(review.expectedBlockID)\n\(review.requestID.uuidString)")
+                            .font(.footnote.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                            .accessibilityIdentifier("blacklist.reviewIdentity")
                         text("blacklist.confirmImpact")
                             .font(CYTypography.body)
                             .foregroundStyle(palette.textSecondary)

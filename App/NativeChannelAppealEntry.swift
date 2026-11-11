@@ -22,6 +22,10 @@ import SwiftUI
                 if flow.hasPending {
                     Section {
                         Label { Text("recovery.pending", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "clock.arrow.circlepath") }
+                        Text("recovery.explanation", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                        if let requestID = flow.requestID {
+                            LabeledContent { Text(verbatim: requestID).textSelection(.enabled) } label: { Text("recovery.requestID", tableName: "NativeChannelAppealDetails") }
+                        }
                         if flow.canRecover {
                             Button { Task { await flow.refresh() } } label: { Text("recovery.readOriginal", tableName: "NativeChannelAppealDetails") }
                         }
@@ -49,8 +53,13 @@ import SwiftUI
                                 Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(CYColor.dangerText)
                             }
                             Spacer(minLength: 8)
+                            Text("input.limit", tableName: "NativeChannelAppealDetails").foregroundStyle(.secondary)
                             Text(verbatim: "\(explanationCount)/500").monospacedDigit().foregroundStyle(explanationCount > 500 ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
                         }.font(.footnote)
+                        Text("input.explanation", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                        if explanationCount == 0 {
+                            Text("input.required", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                        }
                     } header: { Text("input.title", tableName: "NativeChannelAppealDetails") }
                     Section {
                         if flow.canSubmit {
@@ -81,6 +90,7 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         // Pull to refresh replaces the refresh row; the same read-only refresh runs.
         .refreshable { if flow.isCurrent, !reading { await flow.refresh() } }
+        .accessibilityAction(named: Text("refresh.action", tableName: "NativeChannelAppealDetails")) { if flow.isCurrent, !reading { Task { await flow.refresh() } } }
         .task { await flow.activate() }
         .onDisappear { retryConfirmation = false; flow.deactivate() }
         .onChange(of: scenePhase) { _, phase in
@@ -99,6 +109,7 @@ import SwiftUI
                 Text(LocalizedStringKey(NativeChannelAppealPresentation.statusTitleKey(flow.appealStatus)), tableName: "NativeChannelAppealDetails")
                     .font(.headline).accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("channel.appeal.currentStatus")
+                LabeledContent { Text(verbatim: flow.appealStatus).textSelection(.enabled) } label: { Text("progress.serverStatus", tableName: "NativeChannelAppealDetails") }
             }
             if reading {
                 HStack(alignment: .top, spacing: 12) {
@@ -106,14 +117,20 @@ import SwiftUI
                     Text(flow.state == .submitting ? "progress.submitting" : "progress.reading", tableName: "NativeChannelAppealDetails")
                 }.accessibilityElement(children: .combine)
             }
+            LabeledContent { Text(verbatim: flow.notice.actionID).textSelection(.enabled) } label: { Text("progress.actionID", tableName: "NativeChannelAppealDetails") }
             if !flow.actionReason.isEmpty { Text(verbatim: flow.actionReason) }
             if !flow.deadline.isEmpty { LabeledContent { Text(verbatim: flow.deadline) } label: { Text("progress.deadline", tableName: "NativeChannelAppealDetails") } }
             if !flow.decisionReason.isEmpty { Text(verbatim: flow.decisionReason).textSelection(.enabled) }
             if flow.state == .applied {
                 Label { Text("result.confirmed", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "checkmark.circle") }
+                Text("result.acceptedNotReversed", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                Text("result.currentSeparate", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
             }
             if flow.currentReadFailed {
                 Text("progress.currentReadFailed", tableName: "NativeChannelAppealDetails")
+            }
+            if flow.locatorUnavailable {
+                Text("locator.unavailable", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
             }
             if flow.state == .unavailable {
                 Text("source.unavailable", tableName: "NativeChannelAppealDetails")
@@ -121,6 +138,7 @@ import SwiftUI
             if ["UPHELD", "REVERSED", "WITHDRAWN"].contains(flow.appealStatus) {
                 Text("status.closed", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
             }
+            Text("refresh.readOnly", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
         } header: { Text("progress.title", tableName: "NativeChannelAppealDetails") }
     }
     @ViewBuilder private var appealDetailsSection: some View {
@@ -132,6 +150,9 @@ import SwiftUI
                 originalFact("withdrawnAt", details.withdrawnAt)
                 originalFact("dueAt", details.dueAt)
                 originalFact("slaDueAt", details.slaDueAt)
+                if [details.reason, details.submittedAt, details.decidedAt, details.withdrawnAt, details.dueAt, details.slaDueAt].contains(where: { $0 == nil }) {
+                    Text("unknown", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                }
             } header: { Text("facts", tableName: "NativeChannelAppealDetails") }
             Section {
                 if let count = details.evidenceCount {
@@ -147,7 +168,13 @@ import SwiftUI
                         if let count = item.attachmentCount {
                             LabeledContent { Text(verbatim: String(count)) } label: { Text("attachmentReferences", tableName: "NativeChannelAppealDetails") }
                         }
-                        if item.text == nil && item.messageIDs.isEmpty && item.attachmentCount == nil { Text(verbatim: "—") }
+                        if !item.messageIDs.isEmpty || item.attachmentCount != nil {
+                            Text("attachmentsNotOpened", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                        }
+                        if item.text == nil && item.messageIDs.isEmpty && item.attachmentCount == nil {
+                            Text(verbatim: "—")
+                            Text("unsupportedEvidence", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                        }
                     }
                 }
                 if details.evidenceUnavailable { Text("evidenceUnavailable", tableName: "NativeChannelAppealDetails") }
@@ -157,7 +184,8 @@ import SwiftUI
                 ForEach(details.timeline) { item in
                     VStack(alignment: .leading, spacing: Theme.Space.s1) {
                         if let event = item.event { Text(verbatim: event).font(.subheadline) }
-                        Text(verbatim: item.at ?? "—").font(.footnote).foregroundStyle(.secondary)
+                        LabeledContent { Text(verbatim: item.at ?? "—") } label: { Text("eventAt", tableName: "NativeChannelAppealDetails") }
+                            .font(.footnote).foregroundStyle(.secondary)
                         if let reason = item.reason { Text(verbatim: reason) }
                     }
                 }
@@ -176,9 +204,16 @@ import SwiftUI
             Section {
                 fact("channel.actionFacts.type", facts.type)
                 fact("channel.actionFacts.status", facts.status)
+                fact("channel.actionFacts.reasonCode", facts.reasonCode)
+                fact("channel.actionFacts.scopeType", facts.scopeType)
+                fact("channel.actionFacts.scopeID", facts.scopeID)
                 fact("channel.actionFacts.startsAt", facts.startsAt)
                 fact("channel.actionFacts.expiresAt", facts.expiresAt)
                 fact("channel.actionFacts.durationSeconds", facts.durationSeconds.map { String($0) })
+                Text("channel.actionFacts.noTrustedCountdown", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                if [facts.type, facts.status, facts.reasonCode, facts.scopeType, facts.scopeID, facts.startsAt, facts.expiresAt].contains(where: { $0 == nil }) || facts.durationSeconds == nil {
+                    Text("channel.actionFacts.unknown", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                }
             } header: {
                 Text("channel.actionFacts.title", tableName: "NativeChannelAppealDetails")
             }
