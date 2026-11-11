@@ -7898,8 +7898,6 @@ extension AppSession: ClubReading {
     func clubDirectory(name:String?) async throws -> [ClubRecord] { try await clubReader.clubDirectory(name:name) }
     func clubDetail(id:Int) async throws -> ClubRecord { try await clubReader.clubDetail(id:id) }
     func clubMembers(id:Int) async throws -> ClubMemberDirectory { try await clubReader.clubMembers(id:id) }
-    func clubHomeBody() async throws -> Data? { try await clubReader.clubHomeBody() }
-    func clubDetailBody(id:Int) async throws -> Data? { try await clubReader.clubDetailBody(id:id) }
 }
 
 @MainActor private struct UnconfiguredRegistrationBackend:RegistrationCoordinatingService {
