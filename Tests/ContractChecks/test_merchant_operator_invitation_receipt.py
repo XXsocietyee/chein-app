@@ -28,24 +28,24 @@ PROTECTED = dict(zip(
         'Core/MerchantBusinessQuery.swift',
     ),
     (
-        '4695496ea387604f10c7749f270780472f8a9a39fc20fd712def1b12a7a37b0b',
-        '906e62610186c515532f1e19898f9ae56bb97652216064415d152978ca4e1c93',
-        '632a5653e3186a41d954c4fd4e01a3928d6c797ad64f08b36624fa8dd97ae5c2',
+        '2141671b1fe6da81de32dcd7f40071e4e8bfbfb6c934548ba542e023f3f8bfce',
+        '3d7a307c21d3890bb8aef1fa131b1b9253fdbd3db1adadd7e63d53e352a1e700',
+        '24352f4019e22956fd93dc5cec145311cf964b7165421d1bd3dca32d0043b240',
         'c816c7b91d2fd7ed32c518d34211bb74058b1f721bccc595bced0f6c5d0437f1',
-        'e76217e54f944e4caebb100691d2f99e13255fedeec75bf83f19004606c832f2',
+        '768b7d5d89e76c82d101e39bb0d8ef5ec630d3c1a22942bb821ebc04f92cfa52',
         '9941adcfc5d46e1c68b874e16cc85abb31caa8f79aca0a3f419bb78f656c930e',
         '2e1600e8664aff0741dc1c6261d7c480c829db8ec332e567af9ff00019c3b8b7',
-        '6c6b0948f358b64fe039c9dbdcefed01ed33d7f97207444185dfdc227be7ba7b',
-        '7a4720def304cac5beebc94221fdb55995a00b28a80d56e20d0e7ef964f86424',
-        'd6a39320f8978fc5179ce615bf9335a510dd2f3280901e093f2d0187bbb65187',
-        'aff601f64622ef1286026eaa9646a6f1b8ebf8f468677a165e0d2a0e1eeb8724',
-        '5ca27eb42ef395d7c65bf99af7211c196a7d20f67ac7c66277edfc200f17e8b0',
-        'cd18cfd3b2e690d5a1a9b1dba436966401675ea512c58337c9618735bf5ff53c',
+        'c6028dae0842db90bb50919ff6be7b9f28c2b0247f1ae956edab35b641bec820',
+        '56369d2a0b10fd15d2bb635f332398c4f3c5658fefa13ea4994c237b0da1b806',
+        'ec91f00be448e650443505911569af248b882d1957308fc37ac82f2d24551e9d',
+        'ddfba73b970761eba6643e9a09d2149aea768857ed5dbfae3bb79831d5483a64',
+        '183020530922f840aa98cd99ccd902b6a26626400853db42501431c9c591af20',
+        'fcb95a514f2cd1b2c5486913d66c1617b1a4fc9d9167abb373f7cad4fe54c5f3',
         '9a61ab40aa3c1af4dc7ec7c26993dc55a176ca21d33c050566daa7060e5ee88a',
-        'a9ac2f899420fb357103d38cfb78da51a4ca63420fc37e599562ffc05357deb2',
-        '2b515c95b92e424e05c32ac13f52a28ec46730bfe17953b4ce113eb1a92a6c72',
-        'daa5370b8fe932c520afbcb89e05af85efdc717b525afac464b5d8662832253e',
-        '8ae347444e61e6d14ad9b981701a0d73f5c6bdad9c52c31a22220a720d25de49',
+        'f7be800bfe6fb7e8ae2e7e589f7f79ef0fe0f4b11fcd5d679e7b6de02fdd88ae',
+        'bade879eba8a7c69f40341443ba8315340959b6a4d20912a86f8536ca6f3d4bf',
+        'b2767c9e3f36e8880de12ae1206252c6dcd59f7668b97ba0c16d9f61898120e2',
+        'f05b7a2a5b9a141731ff5486fd02ed7905c5a9394a5104cfa40b02e2f064c9ef',
     ),
 ))
 
@@ -108,7 +108,7 @@ class OperatorInvitationReceiptContracts(unittest.TestCase):
         self.assertIn('current == access && current.role == "MERCHANT_OWNER" && current.canManageOperators',self.core)
         self.assertIn('.utf8.elementsEqual((access.name ?? "").utf8)',self.core)
     def test_retirement_clears_only_exact_receipt_and_never_touches_journal(self):
-        retire=self.coord[self.coord.index('    public func retireOperatorInvitation'):self.coord.index('    private func set')]
+        retire=self.coord[self.coord.index('    public func retireOperatorInvitation'):self.coord.index('    /// Production desk save.')]
         self.assertIn('presentation.id == id',retire);self.assertIn('let ownsReceipt = presentation.matches(receipt)',retire)
         self.assertIn('if ownsReceipt { receipt = nil }',retire)
         for text in ['journal.', 'isLocked =','requestID','await ']:self.assertNotIn(text,retire)

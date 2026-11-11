@@ -197,6 +197,10 @@ struct MerchantSettlementStatementCard: View {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+            if !statement.hasCompleteDetailContract {
+                Text("merchant.settlementOverview.detailIncomplete", tableName: "MerchantSettlementOverview")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("merchant.settlementOverview.batchStatement")

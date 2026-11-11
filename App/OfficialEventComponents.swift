@@ -176,6 +176,7 @@ struct OfficialEventCard: View {
                     Label("official.informationIncomplete", systemImage: "exclamationmark.triangle")
                         .fontWeight(.semibold)
                     if let reason = event.recruitmentWarningReason { Text(verbatim: reason) }
+                    else { Text("official.informationReasonUnknown") }
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)

@@ -26,7 +26,9 @@ class RoamExportDeliverySourceTests(unittest.TestCase):
         self.assertIn('publishedIdentity', self.lease)
         self.assertIn('publishedForeground', self.lease)
         self.assertIn('deliveryContext.publish()', self.view)
-        self.assertIn('.onChange(of: tools.identity)', self.view)
+        # Identity changes arrive through RoamPrivatePageScope (storageKey + epoch of tools.identity).
+        self.assertIn('.onChange(of: RoamPrivatePageScope(tools)) { _, _ in\n            deliveryContext.publish()', self.view)
+        self.assertIn('storageKey = identity?.scope.storageKey; epoch = identity?.epoch', (ROOT / 'App/RoamPassportPrivateToolsViews.swift').read_text())
         self.assertIn('.onChange(of: scenePhase)', self.view)
         self.assertIn('testOffMainWriteReadsPublishedFactsWithoutWaiting', self.tests)
         self.assertIn('model.revokeDelivery()', self.view)

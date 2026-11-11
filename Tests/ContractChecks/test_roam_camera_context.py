@@ -11,6 +11,7 @@ class RoamCameraContextTests(unittest.TestCase):
         self.map = (ROOT / 'App/QuestifyDensityMap.swift').read_text()
         self.core = (ROOT / 'Core/RoamReading.swift').read_text()
         self.results = self.host.split('private var results: some View {', 1)[1].split('// Both map members', 1)[0]
+        self.list = self.results  # results + resultsList + roamMap helpers share one slice
 
     def test_loading_error_and_empty_states_do_not_unmount_results(self):
         body = self.host.split('var body: some View {', 1)[1].split('private var controls:', 1)[0]
@@ -19,10 +20,13 @@ class RoamCameraContextTests(unittest.TestCase):
         for phase in ['else if loading', 'else if let issue', 'else if visibleItems.isEmpty']:
             self.assertNotIn(phase, body)
         self.assertIn('results', body)
-        map_row = self.results.split('if showsMap, let scope = cameraScope {', 1)[1].split('if loading || loadedKey', 1)[0]
-        self.assertIn('RoamMapView(area: scope.area, items: renderedItems', map_row)
-        self.assertNotIn('contains(where:', map_row)
-        self.assertIn('.id(scope)', map_row)
+        # Map-first restyle: the map is built by roamMap(...) inside the mapMode branch, outside the loading/error list.
+        map_row = self.results.split('if mapMode, let scope = cameraScope {', 1)[1].split('resultsList(renderedKey:', 1)[0]
+        self.assertIn('roamMap(scope: scope, key: renderedKey, items: renderedItems)', map_row)
+        helper = self.host.split('private func roamMap(', 1)[1].split('private func resultsList(', 1)[0]
+        self.assertIn('RoamMapView(area: scope.area, items: items', helper)
+        self.assertNotIn('contains(where:', map_row + helper)
+        self.assertIn('}).id(scope)', helper)
 
     def test_camera_scope_excludes_data_query_while_retaining_full_session_and_area(self):
         scope = self.core.split('public struct RoamMapCameraScope:', 1)[1].split('/// Construct from the live', 1)[0]
@@ -39,8 +43,8 @@ class RoamCameraContextTests(unittest.TestCase):
         for method in ['startLoad()', 'load() async']:
             body = self.host.split('private func ' + method + ' {', 1)[1].split('\n    }', 1)[0]
             self.assertLess(body.index('loadedKey = nil'), body.index('readOwner.'))
-        self.assertIn('selected = nil; items = []; issue = nil; loadedKey = nil', self.host)
-        self.assertIn('items = RoamMapItem.unique(result); loadedKey = key', self.host)
+        self.assertIn('selected = nil; items = []; phase = .idle; loadedKey = nil', self.host)
+        self.assertIn('items = RoamMapItem.unique(result); phase = .loaded(()); loadedKey = key', self.host)
         for forbidden in ['cachedItems', 'previousItems', 'UserDefaults', 'AppStorage']:
             self.assertNotIn(forbidden, self.host)
 
@@ -50,7 +54,9 @@ class RoamCameraContextTests(unittest.TestCase):
                       'key == presentationKey, loadedKey == key.request',
                       '!loading, issue == nil, snapshot == visibleItems', 'visibleItems.contains(item)']:
             self.assertIn(value, self.host)
-        self.assertEqual(self.host.count('select(item, key: renderedKey, snapshot: renderedItems)'), 2)
+        # One call from the list rows and one from the map's onSelect helper, both with the rendered key + snapshot.
+        self.assertEqual(self.host.count('select(item, key: renderedKey, snapshot: renderedItems)'), 1)
+        self.assertEqual(self.host.count('select(item, key: key, snapshot: items)'), 1)
         self.assertIn('RequestKey(readerID: ObjectIdentifier(reader)', self.host)
         self.assertIn('guard operation == generation, key == requestKey else { return }', self.host)
 
@@ -62,13 +68,13 @@ class RoamCameraContextTests(unittest.TestCase):
         self.assertIn('.onChange(of: snapshot) { _, _ in closeExpansion() }', self.map)
         self.assertIn('currentFocusInput = value', self.map)
         # Even an identical pin response must invalidate actions from the old read.
-        self.assertIn('interactionID: AnyHashable(renderedKey)', self.host)
+        self.assertIn('interactionID: AnyHashable(key)', self.host)
         self.assertIn('let interactionID: AnyHashable?', self.map)
         self.assertIn('.onChange(of: interactionID) { _, _ in closeExpansion() }', self.map)
         self.assertIn('interactionID: interactionID', (ROOT / 'App/RoamMapView.swift').read_text())
 
     def test_all_statuses_and_reload_routes_remain_accessible(self):
-        for value in ['ProgressView("roam.loading")', 'RoamStatusView(issue: issue)',
+        for value in ['CYSkeleton().accessibilityIdentifier("roam.loading")', 'RoamStatusView(issue: issue)',
                       '.accessibilityIdentifier("roam.empty")', 'Label("roam.noCoordinates"',
                       'ForEach(visibleItems)', '.refreshable { await load() }']:
             self.assertIn(value, self.results)

@@ -73,8 +73,9 @@ class ClubProfileChoiceOwnerContracts(unittest.TestCase):
                       'expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)']:
             self.assertIn(token, live)
         self.assertIn('.onChange(of: profileChoiceContext)', self.host)
-        self.assertIn('if phase != .active { profileChoice.close() }', self.host)
-        self.assertIn('.onDisappear {\n            profileChoice.close()', self.host)
+        self.assertIn('if phase != .active { _ = preserveDraftBeforeLeaving();', self.host)
+        self.assertIn('profileChoice.close(); profileMedia.retire() } }', self.host)
+        self.assertIn('.onDisappear {\n            _ = preserveDraftBeforeLeaving()\n            profileChoice.close()', self.host)
 
     def test_only_current_apply_assigns_the_parent_local_draft(self):
         owner = span(self.view, 'struct ClubProfileChoicePresentationOwner:', 'private struct ClubProfileChoiceEditor:')

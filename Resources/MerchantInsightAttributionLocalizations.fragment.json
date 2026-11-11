@@ -87,16 +87,16 @@
   "merchant.insightAttribution.empty": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "服务器明确返回本期到店、打卡和核销均为0。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The response reports zero visitors, check-ins and redemptions in its reporting window."
+          "value": "No visits, check-ins or redemptions in this period."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这段时间没有到店、打卡和核销。"
         }
       }
     }
@@ -104,16 +104,16 @@
   "merchant.insightAttribution.unavailable": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "归因三项数据未完整返回，暂不显示为0。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The three attribution counts are incomplete; unavailable values are not shown as zero."
+          "value": "Visit data isn't complete yet."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "基础数据暂未完整返回。"
         }
       }
     }
@@ -172,16 +172,16 @@
   "merchant.insightAttribution.splitUnavailable": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "新客与回头客人数暂未完整返回。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The new and returning visitor counts are incomplete."
+          "value": "New and returning counts aren't available yet."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "新客与回头客暂未返回。"
         }
       }
     }

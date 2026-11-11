@@ -53,8 +53,11 @@ class MerchantOperatorRolePresentationContracts(unittest.TestCase):
         core, app = self.read(CORE), self.read(APP)
         self.assertIn('description?.titleKey ?? "merchant.operatorRole.unknown.title"', core)
         self.assertIn('description?.detailKey ?? "merchant.operatorRole.unknown.detail"', core)
-        self.assertIn('if entry.description == nil', app)
-        self.assertIn('permissionCode(entry.code)', app)
+        # Restyle: the raw-code disclosure is gone from the row; unknown codes still render the unknown
+        # title/detail explanation, and the literal code stays in the row's accessibility identifier.
+        self.assertIn('Text(LocalizedStringKey(entry.titleKey))', app)
+        self.assertIn('Text(LocalizedStringKey(entry.detailKey))', app)
+        self.assertIn('"merchant.operatorRole.permission." + entry.code', app)
         self.assertIn('Text(verbatim: code)', app)
         self.assertIn('merchant.operatorRole.emptyCode', app)
 
@@ -71,8 +74,7 @@ class MerchantOperatorRolePresentationContracts(unittest.TestCase):
         source = self.read(APP)
         for snippet in ['.font(.subheadline.bold())', '.font(.footnote)',
                         '.accessibilityElement(children: .combine)',
-                        '.accessibilityIdentifier("merchant.operatorRole.permission." + entry.code)',
-                        'DisclosureGroup("merchant.operatorRole.codes")']:
+                        '.accessibilityIdentifier("merchant.operatorRole.permission." + entry.code)']:
             self.assertIn(snippet, source)
         self.assertNotIn('.lineLimit(', source)
         self.assertNotIn('.frame(height:', source)

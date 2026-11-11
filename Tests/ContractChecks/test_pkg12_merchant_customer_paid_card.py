@@ -41,11 +41,11 @@ class MerchantCustomerPaidCardContracts(unittest.TestCase):
             'LabeledContent("merchant.business.field.paidAmount")',
             "switch paidCardState {",
             "case .amount(let text):",
-            "Text(verbatim: text).monospacedDigit()",
+            "Text(verbatim: text).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)",
             "case .unknown:",
             'Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")',
             "case .permissionHidden:",
-            'Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)',
+            'Text("merchant.business.sensitiveUnavailable").foregroundStyle(CYColor.textTertiary)',
             'Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")',
             '.accessibilityIdentifier("merchant.customerDetail.paidCard")',
         ]:

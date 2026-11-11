@@ -19,9 +19,10 @@ class EntityCardReferenceTests(unittest.TestCase):
         self.assertEqual(source.count('.environment(\\.colorScheme,.dark)'), 1)
         self.assertNotIn('.environment(\\.colorScheme', source.split('        .background {', 1)[1])
     def test_club_and_topic_use_shared_entity_component(self):
-        for filename in ['ClubComponents.swift','TopicBrowserView.swift','HomeFeedView.swift']:
+        # ClubRow is now the mini-program club card (P/021) with its own cover/logo layout; topics and home keep the shared card.
+        for filename in ['TopicBrowserView.swift','HomeFeedView.swift']:
             self.assertIn('QuestifyImageEntityCard(', (ROOT/'App'/filename).read_text())
         club=(ROOT/'App/ClubComponents.swift').read_text()
-        self.assertIn('imageSource:club.cover',club)
+        self.assertIn('QuestifyCardArtwork.safeURL(club.cover)',club)
         self.assertIn('club.memberCount',club)
         self.assertNotIn('Image("',club)

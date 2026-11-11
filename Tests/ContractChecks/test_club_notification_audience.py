@@ -47,8 +47,9 @@ class ClubNotificationAudienceContracts(unittest.TestCase):
         for token in ['case .integer(let value)', 'value >= 0', 'count = value', 'count = nil', 'enabled']:
             self.assertIn(token, project)
         self.assertNotIn('?? 0', project.split('let count: Int?', 1)[1])
-        self.assertIn('else { Text("club.gov.unknownValue")', self.view)
-        self.assertIn('LabeledContent("club.gov.field.totalCount", value: String(count))', self.view)
+        # Restyle: a missing count renders an em dash (never 0); a real count uses the existing people string.
+        self.assertIn('if let count = option.count {\n            ClubOpsJoinNotifyCopy.people(count)', self.view)
+        self.assertIn('Text(verbatim: "—")', self.view)
 
     def test_permission_and_exact_scope_are_proved_before_choices(self):
         project = span(self.view, 'static func project(', 'func load(_ permit:')
@@ -98,7 +99,7 @@ class ClubNotificationAudienceContracts(unittest.TestCase):
         self.assertIn('@ObservedObject var model: ClubNotificationAudienceReadModel', self.view)
         for token in ['.task(id: AudienceTrigger(', '.onAppear { audienceVisible = true }',
                       'if phase != .active { notificationAudience.leave(audienceContext) }',
-                      '.onDisappear { audienceVisible = false; notificationAudience.leave(audienceContext)',
+                      'audienceVisible = false; notificationAudience.leave(audienceContext)',
                       'isCurrent: { audienceIsCurrent && audienceContext == expected }']:
             self.assertIn(token, self.host)
         for token in ['.sheet(', '@StateObject', '.onDisappear']:
@@ -107,16 +108,16 @@ class ClubNotificationAudienceContracts(unittest.TestCase):
     def test_normal_form_uses_existing_local_binding_and_review_pipeline(self):
         self.assertIn('selection: textBinding("audienceType")', self.host)
         self.assertIn('(route.operation != .sendNotification || key != "audienceType")', self.host)
-        self.assertIn('|| !notificationAudienceReady).accessibilityIdentifier("club.gov.prepare")', self.host)
+        self.assertIn('!notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")', self.host)
         self.assertIn('draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview()', self.host)
         self.assertIn('try await coordinator.prepare(draft.command())', self.host)
         self.assertIn('try await coordinator.confirm(review)', self.host)
-        self.assertIn('if selection != option.id { selection = option.id }', self.view)
+        self.assertIn('if selection != option.id {\n                            selection = option.id', self.view)
 
     def test_rows_use_current_stamp_and_borderless_hit_regions(self):
         for token in ['guard canEdit(), isCurrent(), model.canSelect(option.id, snapshotID: snapshot, permit: permit, access: access)',
                       '.disabled(!canEdit() || !option.enabled)', '.contentShape(Rectangle())',
-                      '.buttonStyle(.borderless).accessibilityElement(children: .contain)',
+                      '.buttonStyle(.cyPressable)', '.buttonStyle(.borderless)',
                       'Task { await model.load(permit, access: access, isCurrent: isCurrent) }']:
             self.assertIn(token, self.view)
 

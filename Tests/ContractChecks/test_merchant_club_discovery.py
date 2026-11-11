@@ -97,18 +97,23 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         source = self.read('App/ClubHomeView.swift')
         self.assertIn('if !discoveryScope.isMerchantViewer, let operations = management?.operations', source)
         self.assertIn('''if !discoveryScope.isMerchantViewer {
-                    clubSection("club.owned"''', source)
-        self.assertIn('clubSection("club.joined", rows: home.joined', source)
-        self.assertIn('rows: locality.nearby(home.nearby, in: discoveryScope)', source)
-        self.assertIn('ClubDetailView(id: club.id, reader: reader', source)
+                        NavigationLink {
+                            ClubOwnedView(''', source)
+        self.assertIn('CYListRow("club.owned", trailing: .chevron)', source)
+        self.assertIn('clubRows(home.joined, identifier: "club.home.joined", section: .joined)', source)
+        self.assertIn('let nearby = locality.nearby(home.nearby, in: discoveryScope)', source)
+        # Merchant viewers get the locality list only: the owned/joined list is in the non-merchant branch.
+        self.assertIn('if discoveryScope.isMerchantViewer {\n                    localityStatus\n                    merchantNearbySection(nearby)', source)
+        self.assertIn('ClubDetailView(id: id, reader: reader', source)
         self.assertIn('if let topicDestination, event.id > 0', source)
 
     def test_locality_failure_is_inline_with_retry_not_an_empty_list(self):
         source = self.read('App/ClubHomeView.swift')
-        for marker in ['club.locality.loadingHint', 'club.locality.unavailableHint', 'club.home.locality.retry',
-                       'club.locality.ready', 'club.locality.empty']:
+        for marker in ['club.locality.loading', 'club.locality.unavailable', 'club.home.locality.retry',
+                       'club.locality.ready', 'club.tab.empty.merchant']:
             self.assertIn(marker, source)
-        self.assertIn('Button("action.retry") { Task { await loadLocality() } }', source)
+        self.assertIn('actionTitle: "action.retry"', source)
+        self.assertIn(') { Task { await loadLocality() } }', source)
 
     def test_bilingual_fragment_is_merged_without_empty_strings(self):
         fragment = json.loads(self.read('Resources/MerchantClubDiscoveryLocalizations.fragment.json'))

@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 class ClubNavigationAcknowledgementChecks(unittest.TestCase):
     def test_root_then_single_tap_then_destination_acknowledgement(self):
         s = (ROOT/'Tests/AppUITests/ClubGovernanceFlowTests.swift').read_text()
-        helper = s.split('private func open(', 1)[1].split('private func fact(', 1)[0]
+        helper = s.split('private func open(', 1)[1].split('private func openWorkspace(', 1)[0]
         self.assertLess(helper.index('root.waitForExistence(timeout: 5)'), helper.index('revealFixtureElement'))
         self.assertLess(helper.index('button.tap()'), helper.index('destination.waitForExistence(timeout: 5)'))
         self.assertEqual(helper.count('button.tap()'), 1)

@@ -388,7 +388,8 @@ import SwiftUI
         if mapLayers.shows(.cityPlaces) { failure(value.nodeFailure, layer: "searchMap.cityNodes") }
         if !mapLayers.isEmpty && (!mapLayers.shows(.activities) || pagination.rows.isEmpty) && (!mapLayers.shows(.cityPlaces) || value.nodes.isEmpty)
                     && (!mapLayers.shows(.activities) || value.activityFailure == nil) && (!mapLayers.shows(.cityPlaces) || value.nodeFailure == nil) {
-            CYEmptyState(systemImage: "mappin.slash", LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"))
+            CYEmptyState(systemImage: "mappin.slash", LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"),
+                         detail: mapLayers.shows(.activities) && pagination.nextPage != nil ? LocalizedStringKey("mapPagination.filteredPage") : nil)
         }
         if mapLayers.shows(.activities) {
             Text("searchMap.kind.activity").font(.headline).accessibilityAddTraits(.isHeader)
@@ -447,6 +448,8 @@ import SwiftUI
         } else if let failure = pagination.failure {
             VStack(alignment: .leading, spacing: 8) {
                 Label(LocalizedStringKey(failure == .unauthorized ? "searchMap.partialSignIn" : "mapPagination.failed"), systemImage: "exclamationmark.circle")
+                Text("mapPagination.retained").font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 if failure == .unauthorized, let onSignIn {
                     Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44)
                 } else {

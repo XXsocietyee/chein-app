@@ -53,13 +53,14 @@ class UpgradeDraftSourceContract(unittest.TestCase):
 
     def test_sheet_waits_for_the_save_and_keeps_the_comparison_sections(self):
         sheet = text("App/WorkshopModUpgradeSheetView.swift")
-        for marker in ["版本与能力差异对比", "新增能力", "移除能力", "保持不变能力", "升级保障与重审规则", "买方显式确认", "workshop.upgrade.confirmToggle"]:
+        for marker in ["workshopUpgrade.diffTitle", "workshopUpgrade.added", "workshopUpgrade.removed", "workshopUpgrade.unchanged",
+                       "workshopUpgrade.rulesTitle", "workshopUpgrade.confirmTitle", "workshop.upgrade.confirmToggle"]:
             self.assertIn(marker, sheet)
         submit = sheet.split("private func submitUpgradeDraft()", 1)[1]
         self.assertLess(submit.index("try onConfirmDraft(request)"), submit.index("confirmedRequestId = request.requestId"))
         self.assertIn("guard confirmedRequestId == nil else { return }", submit)
-        self.assertIn("本机保存未接通，未保存升级草稿。", submit)
-        self.assertIn("升级草稿未能保存，现有版本与场次保持不变。", submit)
+        self.assertIn('errorNotice = "workshopUpgrade.error.unavailable"', submit)
+        self.assertIn('errorNotice = "workshopUpgrade.error.failed"', submit)
         self.assertNotIn("URLSession", code("App/WorkshopModUpgradeSheetView.swift"))
 
     def test_store_and_flow_are_local_and_fail_closed(self):
@@ -147,7 +148,8 @@ class UpgradeDraftSourceContract(unittest.TestCase):
         self.assertIn("case invalid, staleLease, stalePresentation, saveFailed, conflict, revoked, unavailable", text("Core/WorkshopUpgradeDraftStore.swift"))
         submit = text("App/WorkshopModUpgradeSheetView.swift").split("private func submitUpgradeDraft()", 1)[1]
         unavailable = submit.split("catch WorkshopUpgradeDraftIssue.unavailable", 1)[1].split("} catch {", 1)[0]
-        self.assertIn("本机保存未接通，未保存升级草稿。", unavailable)
+        # Copy moved to the catalog key (zh: 暂时无法保存升级草稿。); the draft is still not confirmed.
+        self.assertIn('errorNotice = "workshopUpgrade.error.unavailable"', unavailable)
         self.assertNotIn("confirmedRequestId = request.requestId", unavailable)
         self.assertNotIn("URLSession", code("App/WorkshopPurchasedUpgradeEntry.swift"))
         self.assertEqual(text("App/WorkshopPurchasedLibraryView.swift").count("makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }"), 3)

@@ -148,7 +148,9 @@ import SwiftUI
             if insight.facts["lowSample"].isTrue { Text("merchantMarketing.lowSample") }
             CYListRow("merchantMarketing.checkins", trailing: .value(value(insight.facts["checkin"]["total"].integer)))
             CYListRow("merchantMarketing.redemptionRate", trailing: .value(percent(insight.facts["checkin"]["redeemRate"].decimal)))
+            Text("merchant.insightAttribution.redemptionScope").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             CYListRow("merchantMarketing.repeatRate", trailing: .value(percent(insight.facts["checkin"]["repeatRate"].decimal)))
+            Text("merchant.insightAttribution.repeatScope").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             CYListRow("merchantMarketing.wait", trailing: .value(value(insight.facts["checkin"]["avgWaitMinutes"].integer)))
             CYListRow("merchantMarketing.members", trailing: .value(value(insight.facts["crowd"]["members"].integer)))
             CYListRow("merchantMarketing.offers", trailing: .value(value(insight.facts["supply"]["activeOffers"].integer)))

@@ -74,7 +74,8 @@ class SettingsNativeSourceChecks(unittest.TestCase):
 
     def test_existing_settings_remains_only_owner_of_language(self):
         source = (ROOT/'App/SettingsView.swift').read_text()
-        self.assertIn('@AppStorage("preferences.language")', source)
+        self.assertIn('@AppStorage(AppLanguage.storageKey)', source)
+        self.assertIn('"preferences.language"', (ROOT/'Core/AppPreferences.swift').read_text())
         self.assertIn('RegionalLaunchConfiguration.language(storedLanguage)', source)
         self.assertIn('SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)', source)
         self.assertNotIn('market: language', source)

@@ -44,8 +44,7 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertNotIn('if !privateList {', browser)
         self.assertIn('private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }', browser)
         self.assertIn('let visible = query.visible(rows)', browser)
-        self.assertIn('Label(LocalizedStringKey(query.emptyTitleKey), systemImage: "sparkles")', browser)
-        self.assertIn('Text(LocalizedStringKey(query.emptyDetailKey))', browser)
+        self.assertIn('CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))', browser)
         model = read("Core/OfficialEventContracts.swift")
         self.assertIn('.init(bucket: bucket, keyword: bucket.isSearchable ? keyword : "")', model)
         self.assertIn('var isSearchable: Bool { self != .mine }', model)
@@ -83,7 +82,11 @@ class OfficialSourceChecks(unittest.TestCase):
         # Active keys live in the app catalog; the historical module snapshot is
         # still checked byte-for-value below for every pre-existing entry.
         catalog = json.loads(read("Resources/Localizable.xcstrings"))["strings"]
-        ignored = {"official.issue", "official.browser", "official.filter", "official.event.", "official.detail.content", "official.participationState", "official.mission.", "official.invite.", "official.inbox.content", "official.broadcast.", "official.published.content", "official.stats.content", "official.fixture.guest", "official.fixture.account", "official.bucket.", "official.organizer.content", "official.organizer.denied", "official.organizer.error", "official.organizer.loading", "official.organizer.formError", "official.organizer.recovery", "official.organizer.result", "official.organizer.header", "official.organizer.resume.reason", "official.detail.cta.roam"}
+        # Accessibility identifiers (OfficialMineAccessibility / OfficialOrganizer snapshot ids), not catalog keys.
+        identifiers = {"official.published.loading", "official.published.empty", "official.published.empty.events",
+                       "official.published.empty.broadcasts", "official.published.error", "official.published.unknown",
+                       "official.organizer.empty", "official.organizer.unknown"}
+        ignored = identifiers | {"official.issue", "official.browser", "official.filter", "official.event.", "official.detail.content", "official.participationState", "official.mission.", "official.invite.", "official.inbox.content", "official.broadcast.", "official.published.content", "official.stats.content", "official.fixture.guest", "official.fixture.account", "official.bucket.", "official.organizer.content", "official.organizer.denied", "official.organizer.error", "official.organizer.loading", "official.organizer.formError", "official.organizer.recovery", "official.organizer.result", "official.organizer.header", "official.organizer.resume.reason", "official.detail.cta.roam"}
         literals = set()
         for directory in ["App", "Core"]:
             for path in (ROOT / directory).glob("Official*.swift"):

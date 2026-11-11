@@ -15,8 +15,10 @@ class SearchMapDatePresetContractTests(unittest.TestCase):
     def test_shipping_sheet_uses_draft_helper_and_shows_shortcuts_for_global_and_city(self):
         self.assertIn('@State private var dateDraft: SearchMapDateFilterDraft', self.sheet)
         dates = self.sheet.split('Section("searchMap.dates") {', 1)[1].split('TextField("searchMap.startDate"', 1)[0]
-        self.assertLess(dates.index('Button("mapDatePreset.today")'), dates.index('if applyCityOptions != nil'))
+        # Shortcuts come first and are not gated by applyCityOptions: the same buttons serve global and city.
         self.assertLess(dates.index('Button("mapDatePreset.tomorrow")'), dates.index('if applyCityOptions != nil'))
+        self.assertLess(dates.index('Button("mapDatePreset.today")'), dates.index('Button("mapDatePreset.tomorrow")'))
+        self.assertLess(dates.index('Button("mapDatePreset.tomorrow")'), dates.index('Text("mapDatePreset.disclosure")'))
         self.assertEqual(dates.count('Button("mapDatePreset.today")'), 1)
         self.assertEqual(dates.count('Button("mapDatePreset.tomorrow")'), 1)
         self.assertIn('Text("globalDatePreset.disclosure")', dates)

@@ -48,16 +48,16 @@ import QuestifyCore
             .sheet(isPresented: $show) {
                 if join {
                     CYConfirmSheet(
-                        title: String(localized: "club.action.join"),
-                        message: ChannelCopy.text("城瘾跑团", "City Run Club", locale: locale) + "\n" + String(localized: "club.action.confirm.join"),
-                        confirmTitle: String(localized: "club.action.join"),
+                        title: String(localized: LocalizedStringResource("club.action.join", locale: locale)),
+                        message: ChannelCopy.text("城瘾跑团", "City Run Club", locale: locale) + "\n" + String(localized: LocalizedStringResource("club.action.confirm.join", locale: locale)),
+                        confirmTitle: String(localized: LocalizedStringResource("club.action.join", locale: locale)),
                         isDestructive: false
                     ) { show = false }
                 } else {
                 CYConfirmSheet(
                     title: ChannelCopy.text("退出「城瘾跑团」？", "Leave “City Run Club”?", locale: locale),
-                    message: String(localized: "club.action.confirm.leave"),
-                    confirmTitle: String(localized: "club.action.leave"),
+                    message: String(localized: LocalizedStringResource("club.action.confirm.leave", locale: locale)),
+                    confirmTitle: String(localized: LocalizedStringResource("club.action.leave", locale: locale)),
                     isDestructive: true,
                     consequences: ClubLeaveConsequences.rows(locale: locale)
                 ) { show = false }

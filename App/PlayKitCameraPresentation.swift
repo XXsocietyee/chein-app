@@ -27,6 +27,7 @@ import PhotosUI
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Button("playkitCamera.openOverlay") { purpose = true }.disabled(!cameraEnabled || !active || authorizing)
+            Text("playkitCamera.screenSpaceOnly").font(.footnote).foregroundStyle(.secondary)
             if !cameraEnabled { Text("playkitCamera.configGate").font(.footnote) }
             if failed { Text("playkitCamera.failedFallback").font(.footnote) }
             if authorizing { ProgressView("playkitCamera.authorizing") }

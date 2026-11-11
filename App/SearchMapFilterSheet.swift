@@ -74,6 +74,13 @@ import SwiftUI
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePreset.today")
                     Button("mapDatePreset.tomorrow") { selectDatePreset(.tomorrow) }
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePreset.tomorrow")
+                    if applyCityOptions != nil {
+                        Text("mapDatePreset.disclosure").font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text("globalDatePreset.disclosure").font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     TextField("searchMap.startDate", text: $dateDraft.startDate).accessibilityIdentifier("searchMap.filter.start")
                     Button("mapDatePicker.start") { openDatePicker(.start) }
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.start")

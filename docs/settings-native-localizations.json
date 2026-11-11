@@ -46,18 +46,18 @@
   },
   {
     "key": "settingsNative.sound.loadFailed",
-    "en": "Sound preferences could not be loaded. Existing stored data has not been replaced.",
-    "zh-Hans": "声音偏好读取失败，原有数据未被覆盖。"
+    "en": "Sound settings didn't load.",
+    "zh-Hans": "声音设置没加载出来。"
   },
   {
     "key": "settingsNative.sound.saveFailed",
-    "en": "The change could not be saved. Your previous preference is still shown.",
-    "zh-Hans": "更改未能保存，仍显示之前的偏好。"
+    "en": "That change wasn't saved.",
+    "zh-Hans": "更改未能保存。"
   },
   {
     "key": "settingsNative.loading",
     "en": "Loading…",
-    "zh-Hans": "正在读取…"
+    "zh-Hans": "加载中…"
   },
   {
     "key": "settingsNative.retry",
@@ -116,8 +116,8 @@
   },
   {
     "key": "settingsNative.legal.pendingSourceText",
-    "en": "The app privacy policy is missing from the source. No substitute text is shown.",
-    "zh-Hans": "源应用尚未提供 App 隐私政策正文，此处不展示替代文本。"
+    "en": "This document hasn't been published yet.",
+    "zh-Hans": "该文档尚未发布。"
   },
   {
     "key": "settingsNative.legal.regionalTextNotProvided",
@@ -126,8 +126,8 @@
   },
   {
     "key": "settingsNative.legal.missingMarket",
-    "en": "The app market could not be determined, so no regional legal document is selected.",
-    "zh-Hans": "无法确定应用运营市场，暂不选择地区法律文档。"
+    "en": "Your region couldn't be determined, so no document is shown.",
+    "zh-Hans": "无法确定你所在的地区，暂不显示文档。"
   },
   {
     "key": "settingsNative.about.title",
@@ -166,12 +166,12 @@
   },
   {
     "key": "settingsNative.about.playerCodeUnavailable",
-    "en": "Player code not generated yet",
-    "zh-Hans": "玩家个人码待生成"
+    "en": "Your QR code isn't ready yet",
+    "zh-Hans": "个人二维码还未生成"
   },
   {
     "key": "settingsNative.about.playerCodeHint",
-    "en": "Your Questify identity code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready.",
+    "en": "Your 城瘾 identity code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready.",
     "zh-Hans": "你的城瘾身份码，用来在活动现场亮明身份。这项功能还在开通中，开通后会自动出现在这里。"
   },
   {
@@ -186,8 +186,8 @@
   },
   {
     "key": "settingsNative.about.contactUnavailable",
-    "en": "A contact for this market has not been provided",
-    "zh-Hans": "尚未提供此市场的联系方式"
+    "en": "—",
+    "zh-Hans": "—"
   },
   {
     "key": "settingsNative.privacy.title",
@@ -196,8 +196,8 @@
   },
   {
     "key": "settingsNative.blocked.unavailable",
-    "en": "Not available right now",
-    "zh-Hans": "暂不可用"
+    "en": "Not in the app yet",
+    "zh-Hans": "App 内暂不支持"
   },
   {
     "key": "settingsNative.blocked.locationConsent.title",
@@ -206,8 +206,8 @@
   },
   {
     "key": "settingsNative.blocked.locationConsent.message",
-    "en": "Location-consent withdrawal is not connected in this native build. No permission or consent changes can be made on this screen.",
-    "zh-Hans": "此原生版本尚未接入定位同意撤回流程，无法在此更改权限或同意记录。"
+    "en": "Location consent can't be changed in the app yet.",
+    "zh-Hans": "暂不能在 App 内更改定位授权。"
   },
   {
     "key": "settingsNative.blocked.marketingConsent.title",
@@ -216,8 +216,8 @@
   },
   {
     "key": "settingsNative.blocked.marketingConsent.message",
-    "en": "Marketing preferences require current server records for each merchant and channel. They are not connected here; no on/off state or saved consent is assumed.",
-    "zh-Hans": "营销偏好需要读取各商家、各渠道的服务器记录。此处尚未接入，不推定开关状态或已保存的同意。"
+    "en": "Marketing preferences can't be changed in the app yet.",
+    "zh-Hans": "暂不能在 App 内更改营销偏好。"
   },
   {
     "key": "settingsNative.blocked.accountDeletion.title",
@@ -226,8 +226,8 @@
   },
   {
     "key": "settingsNative.blocked.accountDeletion.message",
-    "en": "Account cancellation is not connected here. You can read the source notice, but this screen cannot submit or cancel an account-deletion request.",
-    "zh-Hans": "此处尚未接入账号注销流程。可以阅读源文档，但无法提交或撤销注销申请。"
+    "en": "Account cancellation can't be requested in the app yet. Read the cancellation notice to see how it works.",
+    "zh-Hans": "暂不能在 App 内申请注销账号。可先阅读注销须知了解流程。"
   },
   {
     "key": "settingsNative.attribution.title",
@@ -236,7 +236,7 @@
   },
   {
     "key": "settingsNative.attribution.context",
-    "en": "Credits for artwork used in Questify.",
+    "en": "Credits for artwork used in 城瘾.",
     "zh-Hans": "城瘾所用素材的署名。"
   },
   {

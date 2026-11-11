@@ -12,12 +12,14 @@ class ClubHostApplicationMaterialsContracts(unittest.TestCase):
 
     def test_normal_existing_host_apply_owns_the_material_model(self):
         self.assertIn('@StateObject private var hostMaterials = ClubHostApplicationMaterials()', self.form)
-        self.assertIn('if route.operation == .hostApply {\n                    ClubHostApplicationMaterialsRows(', self.form)
+        # The 资质/案例图 picker is intentionally unmounted until an upload path exists; the model still owns the gate.
+        self.assertNotIn('ClubHostApplicationMaterialsRows(', self.form)
+        self.assertIn('so the picker stays hidden until uploads exist (ClubHostApplicationMaterialsRows)', self.form)
         self.assertIn('(route.operation != .hostApply || key != "certImages")', self.form)
 
     def test_only_host_pending_materials_gate_review_and_prepare(self):
-        self.assertIn('|| !hostMaterialsReady || !notificationAudienceReady).accessibilityIdentifier("club.gov.prepare")', self.form)
-        self.assertIn('guard roleAssignmentReady && seriesScheduleReady && seriesLeadReady && hostMaterialsReady else', self.form)
+        self.assertIn('!hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")', self.form)
+        self.assertIn('roleAssignmentReady && seriesScheduleReady && seriesLeadReady && hostMaterialsReady && notificationAudienceReady,', self.form)
         self.assertIn('route.operation != .hostApply || (hostMaterials.isCurrent(hostMaterialsContext, allowed: { hostMaterialsAllowed }) && !hostMaterials.blocksSubmission)', self.form)
 
     def test_no_uploader_request_or_fabricated_reference(self):
@@ -112,7 +114,8 @@ class ClubHostApplicationMaterialsContracts(unittest.TestCase):
         self.assertIn('hostVisible = false; retire(expected, attachment: expectedAttachment)', self.source)
         self.assertIn('.onAppear { activateHostMaterials(appearing: true) }', self.form)
         self.assertIn('.onDisappear { hostMaterials.hide() }', self.form)
-        self.assertIn('hostMaterialAttachment != nil && hostMaterials.attachment == hostMaterialAttachment', self.form)
+        self.assertIn('if let attachment = hostMaterials.attachment {', self.form)
+        self.assertIn('ClubHostApplicationMaterialsLifetime { hostMaterials.depart(context, attachment: attachment) }', self.form)
         self.assertIn('(hostVisible || presentation != nil)', self.source)
 
 if __name__ == '__main__': unittest.main()

@@ -92,6 +92,7 @@ import SwiftUI
                     if let expiry = metadata.expiresAtText { LabeledContent("merchant.operatorInvite.expires", value: expiry) }
                     if metadata.hasValidReceipt {
                         Text("merchant.operatorInvite.warning").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.operatorInvite.memoryLifetime").font(.footnote).foregroundStyle(.secondary)
                         if let code = model.visibleCode {
                             Text(verbatim: code).font(.system(.body, design: .monospaced))
                                 .textSelection(.enabled).privacySensitive()

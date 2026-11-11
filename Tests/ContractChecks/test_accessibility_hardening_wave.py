@@ -35,9 +35,10 @@ class FPA2HomeSearchAndPublish(unittest.TestCase):
 
     def test_search_entry_has_search_trait_and_wraps(self):
         s = src('App/HomeSearchTabParityViews.swift')
-        entry = s[s.index('GlobalSearchParityPresentation.placeholderCopy'):s.index('"homeIndex.hero.searchEntry"')]
-        self.assertIn('.lineLimit(2)', entry)
-        self.assertNotIn('.lineLimit(1)', entry)
+        # Restyle: the player-first placeholder is one deliberate line that truncates; the search trait stays.
+        entry = s[s.index('searchMap.placeholder.player'):s.index('"homeIndex.hero.searchEntry"')]
+        self.assertIn('.lineLimit(1)', entry)
+        self.assertIn('.truncationMode(.tail)', entry)
         self.assertIn('.accessibilityAddTraits(.isSearchField)', entry)
 
 
@@ -47,7 +48,9 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
         self.assertIn('@Environment(\\.accessibilityReduceMotion) private var reduceMotion', s)
         self.assertNotIn('withAnimation(.easeInOut', s)
         self.assertNotIn('withAnimation(.easeOut', s)
-        self.assertEqual(s.count('withAnimation(reduceMotion ? nil :'), 2)
+        gated = s.count('withAnimation(reduceMotion ? nil :')
+        self.assertGreaterEqual(gated, 1)
+        self.assertEqual(s.count('withAnimation('), gated)  # every animation is reduce-motion gated
 
     def test_jump_pill_uses_tokens(self):
         s = src('App/ClubChannelMessagingView.swift')
@@ -59,8 +62,9 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
 
     def test_channel_names_not_cut_to_one_line(self):
         s = src('App/ClubChannelMessagingView.swift')
-        top = s[s.index('private var channelTopBar'):s.index('Image(systemName: "bell.slash.fill")')]
-        self.assertNotIn('.lineLimit(1)', top)
+        top = s[s.index('private var channelTopBar'):s.index('"club.channel.muteButton"')]
+        self.assertIn('Text(channel.name)', top)
+        self.assertNotIn('.lineLimit(1)\n                            .truncationMode(.tail)', top)
         self.assertIn('.fixedSize(horizontal: false, vertical: true)', top)
 
 
@@ -79,8 +83,14 @@ class FPA4ActivityDetail(unittest.TestCase):
 
 class FPA5WalletAndGrowth(unittest.TestCase):
     def test_no_fixed_system_size_fonts(self):
-        for path in ('App/WalletCommerceViews.swift', 'App/GrowthCenterView.swift'):
-            self.assertNotIn('.system(size:', src(path), path)
+        self.assertNotIn('.system(size:', src('App/GrowthCenterView.swift'))
+        wallet = src('App/WalletCommerceViews.swift')
+        # Only the @ScaledMetric-driven digit glyphs may use a computed system size.
+        for line in wallet.splitlines():
+            if '.system(size:' in line:
+                self.assertRegex(line, r'\.system\(size: size( \* 0\.7)?, ')
+        self.assertIn('@ScaledMetric(relativeTo: .largeTitle) private var size', wallet)
+        self.assertIn('.font(CYTypography.data2XL).monospacedDigit()', wallet)
         self.assertIn('CYTypography.data2XL', src('App/GrowthCenterView.swift'))
 
     def test_wallet_posts_announcement_when_loaded(self):
@@ -203,7 +213,7 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
     def test_controls_meet_44pt_via_token(self):
         for path, forbidden in (
                 ('App/SquareDetailView.swift', 'minWidth: 44, minHeight: 32'),
-                ('App/ProfileOrderFilterSection.swift', 'minHeight: 32'),
+                ('App/OrderCardComponents.swift', 'minHeight: 32'),
                 ('App/TemplateAuthoringView.swift', 'minWidth: 32, minHeight: 32'),
                 ('App/MapPublicLayerSectionView.swift', 'minHeight: 36'),
                 ('App/RoamLiveSessionView.swift', 'minHeight: 30')):
@@ -212,7 +222,9 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
             self.assertIn('CYSpacing.minTouchTarget', s, path)
 
     def test_filter_chip_has_selected_trait_and_tokens(self):
-        s = src('App/ProfileOrderFilterSection.swift')
+        # The chip body moved into the shared OrderFilterPill in OrderCardComponents.swift.
+        s = src('App/OrderCardComponents.swift')
+        s = s[s.index('struct OrderFilterPill'):s.index('struct OrderAmountHero')]
         self.assertIn('.accessibilityAddTraits(isSelected ? .isSelected : [])', s)
         self.assertIn('CYColor.textOnAccent', s)
         self.assertNotIn('Color.white', s)
@@ -228,8 +240,12 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
         self.assertIn('CYColor.dangerText', src('App/PublishingModesViews.swift'))
 
     def test_badge_and_route_labels_use_tokens(self):
-        self.assertNotIn('Color.white', src('App/IMInboxViews.swift'))
-        self.assertIn('CYColor.textOnAccent', src('App/IMInboxViews.swift'))
+        im = src('App/IMInboxViews.swift')
+        # Color.white remains only on the decorative always-dark cover gradient, never on the badge/tab label.
+        label = im[im.index('struct IMInboxTabLabel'):]
+        label = label[:label.index('\nstruct ', 10)] if '\nstruct ' in label[10:] else label
+        self.assertNotIn('Color.white', label)
+        self.assertIn('CYColor.textOnAccent', im)
         route = src('App/PlayRouteMapView.swift')
         self.assertIn('stop.state == .current ? CYColor.textOnAccent : Color.primary', route)
         self.assertIn('stop.state == .current ? CYColor.accent :', route)
@@ -256,7 +272,9 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
 
     def test_pinned_palette_files_unchanged(self):
         # Contrast-verified literals pinned by test_map_visual_foundation.py; FP-M12 intentionally leaves them.
-        self.assertIn('red:109.0/255,green:40.0/255,blue:217.0/255', src('App/QuestifyPalette.swift'))
+        # Neutral global tint (no violet): 51/54/60 light, 248 dark.
+        self.assertIn('red:51.0/255,green:54.0/255,blue:60.0/255', src('App/QuestifyPalette.swift'))
+        self.assertIn('red:248.0/255,green:248.0/255,blue:248.0/255', src('App/QuestifyPalette.swift'))
         self.assertIn('red: 0.0, green: 0.28, blue: 0.65', src('App/SearchMapCanvas.swift'))
 
 

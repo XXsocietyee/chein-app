@@ -43,7 +43,7 @@ class ClubRefundVisibleTapChecks(unittest.TestCase):
         source = (ROOT / 'App/ClubOwnerRefundFixtureView.swift').read_text()
         self.assertTrue(source.startswith('#if DEBUG'))
         self.assertIn('.safeAreaInset(edge: .bottom)', source)
-        self.assertIn('VStack(spacing: 8)', source)
+        self.assertIn('VStack(spacing: CYSpacing.sm)', source)
         self.assertNotIn('ToolbarItemGroup', source)
         self.assertNotIn('dynamicTypeSize', source)
         self.assertNotIn('minimumScaleFactor', source)

@@ -28,8 +28,8 @@
     "zh-Hans": "梦境相册"
   },
   "projectEdit.rich.albumHint": {
-    "en": "Use 1–6 existing image references. Captions allow 80 characters; the album title allows 20.",
-    "zh-Hans": "使用 1–6 个已有图片引用。每张配文最多 80 字，相册名最多 20 字。"
+    "en": "Use 1–6 images. Captions up to 80 characters; album name up to 20.",
+    "zh-Hans": "使用 1–6 张图片。每张配文最多 80 字，相册名最多 20 字。"
   },
   "projectEdit.rich.albumTitle": {
     "en": "Album title",
@@ -96,8 +96,8 @@
     "zh-Hans": "需要到达地点"
   },
   "projectEdit.rich.media": {
-    "en": "Media reference",
-    "zh-Hans": "媒体引用"
+    "en": "Media link",
+    "zh-Hans": "媒体链接"
   },
   "projectEdit.rich.mood": {
     "en": "Atmosphere",
@@ -108,16 +108,16 @@
     "zh-Hans": "节点叙事"
   },
   "projectEdit.rich.narrativeHint": {
-    "en": "Narrative text can be up to 200 characters. Questions and answers share an ID; the delivery part needs a reward line. Node and NPC IDs are verified.",
-    "zh-Hans": "叙事正文最多 200 字。问答使用同一编号；领取段必须有奖励正文。节点和 NPC 编号会经过校验。"
+    "en": "Text can be up to 200 characters. A question and its answer share a code; the reward part needs reward text.",
+    "zh-Hans": "正文最多 200 字。问答使用同一编号；领取段须填写奖励正文。"
   },
   "projectEdit.rich.nodeNarrative": {
     "en": "Attach text to a node",
     "zh-Hans": "将正文关联到节点"
   },
   "projectEdit.rich.npcID": {
-    "en": "Speaker NPC ID (optional)",
-    "zh-Hans": "说话 NPC ID（可选）"
+    "en": "Speaking character (optional)",
+    "zh-Hans": "说话角色（选填）"
   },
   "projectEdit.rich.opening": {
     "en": "Opening chapter",
@@ -128,8 +128,8 @@
     "zh-Hans": "条件规则"
   },
   "projectEdit.rich.questionID": {
-    "en": "Question pair ID",
-    "zh-Hans": "问答配对标识"
+    "en": "Question pair code",
+    "zh-Hans": "问答配对编号"
   },
   "projectEdit.rich.removeCondition": {
     "en": "Remove condition",
@@ -140,12 +140,12 @@
     "zh-Hans": "删除图片"
   },
   "projectEdit.rich.savedNodeHint": {
-    "en": "Use the ID of an existing saved node.",
-    "zh-Hans": "填写已保存节点的 ID。"
+    "en": "Choose a stop that's already saved.",
+    "zh-Hans": "选择已保存的地点。"
   },
   "projectEdit.rich.savedNodeID": {
-    "en": "Saved node ID",
-    "zh-Hans": "已保存节点 ID"
+    "en": "Saved stop",
+    "zh-Hans": "已保存的地点"
   },
   "projectEdit.rich.selectNode": {
     "en": "Select a node",
@@ -156,8 +156,8 @@
     "zh-Hans": "说话者"
   },
   "projectEdit.rich.stateHint": {
-    "en": "Use a registered clue, relation or counter key, or a supported system variable. Values range from −99 to 99.",
-    "zh-Hans": "使用已登记的 clue、relation、counter 状态键或支持的系统变量。数值范围为 −99 至 99。"
+    "en": "Use a clue, relation or counter you've set up. Values from −99 to 99.",
+    "zh-Hans": "使用已设置的线索、关系或计数，数值范围 −99 至 99。"
   },
   "projectEdit.rich.stateValue": {
     "en": "Comparison value",
@@ -168,20 +168,20 @@
     "zh-Hans": "状态变量"
   },
   "projectEdit.rich.storyGameHint": {
-    "en": "A story game needs a saved template and no coordinates. Arrival-based templates are still verified.",
-    "zh-Hans": "故事玩法必须绑定已有模板且不含坐标。到达类模板仍需校验。"
+    "en": "A story game uses a saved template and has no location.",
+    "zh-Hans": "故事玩法需选用已保存的模板，且不设地点。"
   },
   "projectEdit.rich.tag": {
     "en": "Tag key",
     "zh-Hans": "标签键"
   },
   "projectEdit.rich.tagHint": {
-    "en": "Use tag.name with a lowercase named key.",
-    "zh-Hans": "使用 tag.name 格式的小写具名键。"
+    "en": "Use a lowercase tag name, e.g. tag.found_key.",
+    "zh-Hans": "使用小写标签名，例如 tag.found_key。"
   },
   "projectEdit.rich.tagThoughtHint": {
-    "en": "Use tag.name or thought.name.done.",
-    "zh-Hans": "使用 tag.name 或 thought.name.done。"
+    "en": "Use a tag (tag.name) or a thought (thought.name.done).",
+    "zh-Hans": "使用标签（tag.name）或念头（thought.name.done）。"
   },
   "projectEdit.rich.targetNode": {
     "en": "Narrative node",

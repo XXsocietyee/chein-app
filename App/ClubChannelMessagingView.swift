@@ -353,8 +353,8 @@ public struct ClubChannelMessagingView: View {
                         Text(channel.name)
                             .font(CYTypography.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if channel.isReadOnlyAnnouncement {
                         Text(copy("公告 · 只读", "Announcement · read only"))

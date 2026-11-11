@@ -41,8 +41,8 @@
   },
   {
     "key": "orderLifecycle.hardOff",
-    "en": "Payments, cancellations, refunds, code issuance and redemption are unavailable in this native build.",
-    "zh-Hans": "此原生版本暂不支持支付、取消、退款、出码及核销。"
+    "en": "Payment, cancellation, refunds and entry codes aren't in the app yet.",
+    "zh-Hans": "App 内暂不支持支付、取消、退款和入场码。"
   },
   {
     "key": "orderLifecycle.actions",
@@ -296,8 +296,8 @@
   },
   {
     "key": "orderLifecycle.verification.preview",
-    "en": "Offline receipt preview",
-    "zh-Hans": "离线回执预览"
+    "en": "Entry record",
+    "zh-Hans": "核验记录"
   },
   {
     "key": "orderLifecycle.verification.reportedRedeemed",

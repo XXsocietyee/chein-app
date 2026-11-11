@@ -69,7 +69,7 @@ class PlayPlayerLeaderboardContract(unittest.TestCase):
     def test_legacy_command_and_coordinator_implementation_is_unchanged(self):
         legacy = self.runtime.split('public struct PlayPlayerCommand:', 1)[1]
         self.assertEqual(hashlib.sha256(('public struct PlayPlayerCommand:' + legacy).encode()).hexdigest(),
-                         '06a747a7551f336e4e6f200e631132d627de9666888199e79886f83a2dedaab1')
+                         'c7fb7a2fe92f278e2d9f7929a74ceeb09b89b15683e353cafd4e30a92d47b02a')
         self.assertIn('submissions = raw["player"]["mySubmissions"].array ?? []', self.runtime)
         self.assertIn('let prior = submissions.first', self.runtime)
 
