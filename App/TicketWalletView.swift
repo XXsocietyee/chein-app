@@ -231,7 +231,7 @@ private struct TicketWalletRow: View {
     }
     private var hasStub: Bool {
         (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
-            || (ticket.statusHintKey != nil && ticket.action == .detail) || showsPendingOrderAction
+            || ticket.action != .detail || (ticket.statusHintKey != nil && ticket.action == .detail) || showsPendingOrderAction
     }
     var body: some View {
         let dimmed = ticket.status == .cancelled || ticket.status == .expired
@@ -268,6 +268,12 @@ private struct TicketWalletRow: View {
                             icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
                             .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
+                    }
+                    if ticket.action != .detail {
+                        Label { Text(LocalizedStringKey(ticket.sourceNoticeKey)).fixedSize(horizontal: false, vertical: true) }
+                            icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("ticketWallet.sourceNotice.\(ticket.id)")
                     }
                     if let hint = ticket.statusHintKey, ticket.action == .detail {
                         Text(LocalizedStringKey(hint)).font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textPrimary)

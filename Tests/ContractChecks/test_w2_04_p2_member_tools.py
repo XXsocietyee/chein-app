@@ -25,10 +25,11 @@ class W204P2MemberToolsChecks(unittest.TestCase):
 
     def test_wallet_notices_are_display_only(self):
         # The restyled card names the state through the status badge and the schedule-sync/status-hint lines; the
-        # per-row source-notice strip is gone (sourceNoticeKey stays a Core presentation helper, unmounted).
+        # per-row source-notice strip is mounted again for rows that do not open (cancelled/expired/unknown/payment).
         self.assertIn('TicketWalletStatusBadge(status: ticket.status)', self.wallet)
         self.assertIn('Text("ticketWallet.p2.notice.scheduleSync")', self.wallet)
-        self.assertNotIn('sourceNoticeKey', self.wallet)
+        self.assertIn('Text(LocalizedStringKey(ticket.sourceNoticeKey))', self.wallet)
+        self.assertIn('if ticket.action != .detail {', self.wallet)
         self.assertNotIn('"ticketWallet.action." + ticket.action.rawValue', self.wallet)
         for token in ['URLSession', 'Task {', 'func pay', 'TeamCoordinator']:
             self.assertNotIn(token, self.notice)

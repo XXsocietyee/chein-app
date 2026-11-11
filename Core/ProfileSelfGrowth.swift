@@ -36,6 +36,7 @@ public struct ProfileSelfGrowthContext: Hashable {
     public var isAuthenticated: Bool { matches && reader.isAuthenticated }
     public var isConfigured: Bool { matches && reader.isConfigured }
     public var isOfflineExample: Bool { reader.isOfflineExample }
+    public var offersLeaderboard: Bool { reader.offersLeaderboard }
     public func overview() async throws -> GrowthCenterOverview { try await read { try await reader.overview() } }
     public func leaderboard(query: GrowthBoardQuery) async throws -> GrowthLeaderboard {
         try await read { try await reader.leaderboard(query: query) }

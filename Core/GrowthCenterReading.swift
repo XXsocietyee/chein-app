@@ -24,7 +24,10 @@ public struct GrowthCenterReadSession: Equatable {
     var isOfflineExample: Bool { get }
     func overview() async throws -> GrowthCenterOverview
     func leaderboard(query: GrowthBoardQuery) async throws -> GrowthLeaderboard
+    /// Capability absent => the leaderboard entry is hidden. Defaults to shown for readers without a route map.
+    var offersLeaderboard: Bool { get }
 }
+public extension GrowthCenterReading { var offersLeaderboard: Bool { true } }
 @MainActor public final class GrowthCenterSessionReader: GrowthCenterReading {
     private let service: GrowthCenterService?
     private let currentSession: () -> GrowthCenterReadSession?
@@ -39,6 +42,7 @@ public struct GrowthCenterReadSession: Equatable {
     public var isAuthenticated: Bool { currentSession() != nil }
     public var isConfigured: Bool { service != nil }
     public var isOfflineExample: Bool { false }
+    public var offersLeaderboard: Bool { service?.offersLeaderboard ?? false }
     public init(service: GrowthCenterService?, currentSession: @escaping () -> GrowthCenterReadSession?, onUnauthorized: @escaping (GrowthCenterReadSession) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
         snapshot = currentSession()

@@ -9,6 +9,8 @@ import SwiftUI
     @State private var continuationCoordinator = HomeContinuationCoordinator()
     @State private var continuationCards:[HomeIndexParityPresentation.ContinuationCard]=[]
     @State private var continuationReadAvailability:HomeContinuationReadAvailability = .unauthenticated
+    @State private var todayTicket:HomeTodayCandidate?=nil
+    @State private var showsTodayTickets=false
     @State private var showsGlobalSearch=false
     @State private var showsTemplates=false
     @State private var showsSquare=false
@@ -20,6 +22,10 @@ import SwiftUI
         navigationRoot
         .id(session.homeFeedReader.scope)
         .task(id:session.playerJourneyReader.scope) { await reloadContinuationCards() }
+        .task(id:session.ticketWalletReader.scope) { await reloadTodayTicket() }
+        .sheet(isPresented:$showsTodayTickets) {
+            TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTodayTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope)
+        }
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }
         .onChange(of:session.officialEventReader.scope) { _,_ in showsOfficialEvents=false }
         .onChange(of:session.sessionRevision) { _,_ in resetForSessionRevisionChange() }
@@ -70,6 +76,8 @@ import SwiftUI
                 onActionBanner: handleActionBanner,
                 onContinuation: handleContinuation,
                 onRetryContinuation: { Task { await reloadContinuationCards() } },
+                todayTicket: todayTicket,
+                onOpenTodayTicket: { showsTodayTickets=true },
                 onStartRoam: onStartRoam
             ) { router.pushHome($0) }
                 .toolbar {
@@ -204,6 +212,17 @@ import SwiftUI
                 await reloadContinuationCards()
             }
         }
+    }
+    /// Ticket-within-24h from the wallet read. Not configured, signed out, failed or cancelled => nil (card stays "start a roam").
+    /// There is no club-event input: the club home read carries id/title/cover/clubId with no start date, so "today" is unknown.
+    private func reloadTodayTicket() async {
+        let reader = session.ticketWalletReader
+        guard reader.isConfigured, reader.isAuthenticated else { todayTicket = nil; return }
+        do {
+            let snapshot = try await reader.ticketWallet()
+            guard !Task.isCancelled else { return }
+            todayTicket = HomeTodayCandidate.nextTicket(from: snapshot.tickets, now: Date())
+        } catch is CancellationError { return } catch { todayTicket = nil }
     }
     private func reloadContinuationCards() async {
         let reader = session.playerJourneyReader

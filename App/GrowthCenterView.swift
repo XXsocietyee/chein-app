@@ -125,9 +125,11 @@ extension EnvironmentValues {
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
                 else { GrowthCenterIssueView(issue: issue, retry: reload) }
             }
-            NavigationLink { GrowthLeaderboardView(reader: reader) } label: {
-                Label("growth.board.link", systemImage: "list.number")
-            }.frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
+            if reader.offersLeaderboard {
+                NavigationLink { GrowthLeaderboardView(reader: reader) } label: {
+                    Label("growth.board.link", systemImage: "list.number")
+                }.frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
+            }
         }
     }
     private func growthHeader(_ key: LocalizedStringKey) -> some View {
