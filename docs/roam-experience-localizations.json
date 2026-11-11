@@ -1,8 +1,8 @@
 [
   {
     "key": "roam.experience.offline",
-    "en": "Example content. No real journey, reward or photo.",
-    "zh-Hans": "示例内容，不代表真实行程、奖励或照片。"
+    "en": "Example content",
+    "zh-Hans": "示例内容"
   },
   {
     "key": "roam.experience.readOnly",
@@ -11,13 +11,13 @@
   },
   {
     "key": "roam.experience.historyUnreadable",
-    "en": "Your roaming records could not be read. They have not been replaced.",
-    "zh-Hans": "漫游记录读不出来，原记录未被覆盖"
+    "en": "Your roam history couldn't be loaded.",
+    "zh-Hans": "漫游记录加载失败。"
   },
   {
     "key": "roam.experience.readFailed",
-    "en": "This information could not be read. Try again.",
-    "zh-Hans": "暂时无法读取，请重试"
+    "en": "This didn't load. Try again.",
+    "zh-Hans": "加载失败，请重试。"
   },
   {
     "key": "roam.experience.noTrack",
@@ -31,18 +31,18 @@
   },
   {
     "key": "roam.experience.distance",
-    "en": "Recorded distance",
-    "zh-Hans": "已记录里程"
+    "en": "Total distance",
+    "zh-Hans": "总距离"
   },
   {
     "key": "roam.experience.duration",
-    "en": "Recorded duration",
-    "zh-Hans": "已记录时长"
+    "en": "Duration",
+    "zh-Hans": "时长"
   },
   {
     "key": "roam.experience.shops",
-    "en": "Recorded shops",
-    "zh-Hans": "已记录店铺"
+    "en": "Shops visited",
+    "zh-Hans": "探店"
   },
   {
     "key": "roam.experience.statsUnknown",
@@ -111,8 +111,8 @@
   },
   {
     "key": "roam.experience.liveHint",
-    "en": "Starting a journey isn't available right now. We don't collect or simulate your location on this screen.",
-    "zh-Hans": "暂不支持开始漫游。本页不会采集或模拟你的位置。"
+    "en": "Starting a walk isn't open yet. We don't collect or simulate your location on this screen.",
+    "zh-Hans": "还不能在这里开始漫游。本页不会采集或模拟你的位置。"
   },
   {
     "key": "roam.experience.tileMemory",
@@ -151,13 +151,13 @@
   },
   {
     "key": "roam.experience.historyEmpty",
-    "en": "No roaming records yet",
-    "zh-Hans": "还没有漫游记录"
+    "en": "Your first stamp is waiting",
+    "zh-Hans": "第一枚章在等你"
   },
   {
     "key": "roam.experience.historyEmptyHint",
-    "en": "This device keeps up to 50 settled journeys. Other devices and Flutter history are not imported automatically.",
-    "zh-Hans": "本机最多保留50次已结算漫游，不会自动导入其他设备或Flutter的记录"
+    "en": "Go out for your first roam.",
+    "zh-Hans": "出发第一次漫游吧。"
   },
   {
     "key": "roam.experience.trips",
@@ -186,8 +186,8 @@
   },
   {
     "key": "roam.experience.recordedPlaces",
-    "en": "Recorded places",
-    "zh-Hans": "已记录地点"
+    "en": "Places lit up",
+    "zh-Hans": "点亮地点"
   },
   {
     "key": "roam.experience.savedPhotoReferences",
@@ -206,8 +206,8 @@
   },
   {
     "key": "roam.experience.recordMissingHint",
-    "en": "This is different from a read error. Only the latest 50 local journeys are kept.",
-    "zh-Hans": "这与读取失败不同，本地仅保留最近50次行程"
+    "en": "Go back to your roam history.",
+    "zh-Hans": "返回漫游记录看看。"
   },
   {
     "key": "roam.experience.session",
@@ -236,8 +236,8 @@
   },
   {
     "key": "roam.experience.activeHint",
-    "en": "Location tracking is still unavailable. Checking this record does not resume the journey.",
-    "zh-Hans": "定位追踪暂不可用，核对记录不会恢复漫游"
+    "en": "This roam isn't finished. Checking doesn't resume it.",
+    "zh-Hans": "这次漫游还没结束，核对不会继续漫游。"
   },
   {
     "key": "roam.experience.sessionNotFound",
@@ -251,8 +251,8 @@
   },
   {
     "key": "roam.experience.incompleteHint",
-    "en": "The journey is marked finished, but its full reward receipt is not available. Check again later.",
-    "zh-Hans": "行程已标记结束，但完整奖励回执尚不可用，请稍后再核对"
+    "en": "This roam has ended, but its rewards aren't confirmed yet. Check again later.",
+    "zh-Hans": "这次漫游已结束，奖励还没确认，请稍后再核对。"
   },
   {
     "key": "roam.experience.settled",
@@ -276,18 +276,18 @@
   },
   {
     "key": "roam.experience.recoveryNoTrack",
-    "en": "This record has no route or duration, so it isn't added to your journeys.",
-    "zh-Hans": "此记录不含轨迹和时长，不会添加到你的行程"
+    "en": "This record has no route or time, so it isn't added to your history.",
+    "zh-Hans": "这条记录没有路线和时长，不会计入漫游记录。"
   },
   {
     "key": "roam.experience.albumEmpty",
-    "en": "No visible stamps yet",
-    "zh-Hans": "暂无可显示的邮票"
+    "en": "Your first stamp is waiting",
+    "zh-Hans": "第一枚章在等你"
   },
   {
     "key": "roam.experience.albumEmptyHint",
-    "en": "A stamp appears in your album once it's been successfully collected.",
-    "zh-Hans": "邮票成功入册后才会显示"
+    "en": "Take a photo with the stamp camera to start your album.",
+    "zh-Hans": "用集邮相机拍一张，开始你的集邮册。"
   },
   {
     "key": "roam.experience.sampleArt",
@@ -301,8 +301,8 @@
   },
   {
     "key": "roam.experience.imageUnavailable",
-    "en": "Stamp image unavailable",
-    "zh-Hans": "邮票图片暂不可用"
+    "en": "Image didn't load",
+    "zh-Hans": "图片没加载出来"
   },
   {
     "key": "roam.experience.stampImage",
@@ -321,8 +321,8 @@
   },
   {
     "key": "roam.experience.caption",
-    "en": "Write a caption, up to 30 UTF-16 units",
-    "zh-Hans": "写下配文，最多30个UTF-16单位"
+    "en": "Add a caption (up to 30 characters)",
+    "zh-Hans": "写一句配文（最多 30 字）"
   },
   {
     "key": "roam.experience.remaining",
@@ -347,12 +347,12 @@
   {
     "key": "roam.experience.captionEmpty",
     "en": "No caption",
-    "zh-Hans": "暂无配文"
+    "zh-Hans": "没有配文"
   },
   {
     "key": "roam.experience.mediaUnavailable",
-    "en": "Camera, uploads and exchanges are unavailable",
-    "zh-Hans": "拍摄、上传和换票暂不可用"
+    "en": "Camera, uploads and exchanges aren't open yet",
+    "zh-Hans": "拍摄、上传和换票还没开放"
   },
   {
     "key": "roam.experience.stampHint",
