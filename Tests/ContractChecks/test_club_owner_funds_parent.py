@@ -65,7 +65,8 @@ class ClubOwnerFundsParentContracts(unittest.TestCase):
         self.assertIn('workflow.contactIsCurrent else { return }',self.owner)
     def test_no_financial_command_or_new_request_is_added(self):
         for value in ['.send(','.confirm(','.prepare(', 'URLSession','transport.send','grant(', 'refund(', 'withdraw(']: self.assertNotIn(value,self.owner)
-        self.assertIn('if value.amountsKnown',self.row)
+        self.assertIn('if !value.amountsKnown { Text("wallet.amountsUnknown")',self.row)  # unknown amounts say so
+        self.assertIn('amount: value.amountsKnown ? amount(value.withdrawable, currency: value.currency) : "—"',self.row)
         self.assertIn('workflow.loadedScope == context.reader?.scope',self.row)
     def test_authored_cases_cover_normal_and_interrupted_return(self):
         tests=(ROOT/'Tests/AppUnitTests/ClubOwnerFundsFlowTests.swift').read_text()
