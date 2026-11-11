@@ -139,6 +139,8 @@ private struct PassportRollingCount: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    /// Glass circle scales with the glyph (Dynamic Type) so the icon never outgrows it.
+    @ScaledMetric(relativeTo: .title3) private var actionCircle: CGFloat = 56
 
     /// One foil colour pair per stamp (by index), so a collection reads as distinct seals.
     private static let foils: [(Color, Color)] = [
@@ -173,8 +175,9 @@ private struct PassportRollingCount: View {
             VStack(spacing: CYSpacing.xs) {
                 Image(systemName: symbol)
                     .font(.title3)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1) // glyph stops growing before three circles stop fitting in a row
                     .foregroundStyle(palette.textPrimary)
-                    .frame(width: 56, height: 56)
+                    .frame(width: min(actionCircle, 84), height: min(actionCircle, 84))
                     .background {
                         if reduceTransparency { Circle().fill(palette.bgElevated) }
                         else { Circle().fill(.ultraThinMaterial).overlay(Circle().fill(palette.bgGlass.opacity(0.55))) }
@@ -185,6 +188,8 @@ private struct PassportRollingCount: View {
                     .font(CYTypography.meta)
                     .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
+                    .lineLimit(typeSize.isAccessibilitySize ? 3 : 2)
+                    .minimumScaleFactor(0.8)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
