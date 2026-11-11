@@ -36,7 +36,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             ClubCommunityFeedView(context: community, identity: reader.clubIdentity)
         } else {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
-                       load: { try await reader.clubHome() }) { home in
+                       load: { try await loadTab() }) { loaded in
+            let home = loaded.home
+            let page = loaded.page
             List {
                 Section {
                     CYHeroHeader(screenTitle)
@@ -60,11 +62,19 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         }
                     }
                 }
+                // Core page model facts: shown only when the server sent `leaderStatus`; counts it omitted stay an em dash.
+                if let page, !discoveryScope.isMerchantViewer, page.leader != .hidden {
+                    Section {
+                        Text("club.tab.leaderQuota \(page.leader.ownedCount.text) \(page.leader.maxOwned.text)")
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("clubTab.leaderQuota")
+                    }
+                }
                 // Mini-program club tab is one list: created → joined → nearby (merchants: nearby only), no group headers.
                 let nearby = locality.nearby(home.nearby, in: discoveryScope)
                 if discoveryScope.isMerchantViewer {
                     localityStatus
-                    merchantNearbySection(nearby)
+                    merchantNearbySection(nearby, page: page)
                 } else if ClubTabPresentation.isEmpty(home, nearby: nearby, merchant: false) {
                     Section { playerEmpty }
                 } else {
@@ -72,12 +82,12 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         // 你的俱乐部 (row cards), then 发现 (photo cards with the inline Join pill).
                         if !home.owned.isEmpty || !home.joined.isEmpty {
                             clubSectionHeader("club.home.yours")
-                            clubRows(home.owned, identifier: "club.home.owned", section: .owned)
-                            clubRows(home.joined, identifier: "club.home.joined", section: .joined)
+                            clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)
+                            clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)
                         }
                         if !nearby.isEmpty {
                             clubSectionHeader("club.home.discover")
-                            clubRows(nearby, identifier: "club.home.nearby", section: .nearby)
+                            clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
                         }
                     }
                 }
@@ -110,13 +120,13 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                     ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
                         if let topicDestination, event.id > 0 {
-                            NavigationLink { topicDestination(event.id) } label: { eventRow(event) }
+                            NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }
                                 .accessibilityIdentifier("club.event.\(event.id)")
                         } else if let onTopicDestination {
-                            Button { onTopicDestination(event.id) } label: { eventRow(event) }
+                            Button { onTopicDestination(event.id) } label: { eventRow(event, page: page) }
                                 .buttonStyle(.cyPressable)
                                 .accessibilityIdentifier("club.event.\(event.id)")
-                        } else { eventRow(event) }
+                        } else { eventRow(event, page: page) }
                     }
                 }
             }
@@ -132,6 +142,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
         .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
         .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
+        .environment(\.clubEditDetailBody, { id in try await reader.clubDetailBody(id: id) })
         .task(id: discoveryScope) {
             if locality.phase(in: discoveryScope) != .ready { await loadLocality() }
         }
@@ -166,7 +177,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             EmptyView()
         }
     }
-    private func merchantNearbySection(_ rows: [ClubRecord]) -> some View {
+    private func merchantNearbySection(_ rows: [ClubRecord], page: ClubTabPageModel?) -> some View {
         Section {
             if rows.isEmpty {
                 CYEmptyState(
@@ -175,7 +186,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     messageIdentifier: "club.home.nearby.empty"
                 )
             }
-            clubRows(rows, identifier: "club.home.nearby", section: .nearby)
+            clubRows(rows, identifier: "club.home.nearby", section: .nearby, page: page)
         } header: {
             if locality.phase(in: discoveryScope) == .ready {
                 Text("club.locality.ready")
@@ -203,7 +214,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             .accessibilityAddTraits(.isHeader)
     }
     @ViewBuilder private func clubRows(_ rows: [ClubRecord], identifier: String,
-                                       section: ClubTabPresentation.Section) -> some View {
+                                       section: ClubTabPresentation.Section, page: ClubTabPageModel?) -> some View {
         ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
             let action = club.cardAction(viewerIsMerchant: discoveryScope.isMerchantViewer)
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -217,7 +228,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                                   seed: "\(club.id)", action: action, onOpen: { openedClubID = club.id },
                                   identifier: identifier + ".\(club.id)")
                 }
-                ClubTabTagLine(club: club, section: section)
+                ClubTabTagLine(club: club, section: section,
+                               topicCount: section == .nearby ? nil : page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)
             }
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowSeparator(.hidden)
@@ -230,15 +242,32 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             .filter { !$0.isEmpty }.joined(separator: " · ")
         return place.isEmpty ? nil : place
     }
-    private func eventRow(_ event: ClubHomeEvent) -> some View {
+    private func eventRow(_ event: ClubHomeEvent, page: ClubTabPageModel?) -> some View {
         let title = event.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        return Group {
-            if title.isEmpty {
-                CYListRow("club.untitledEvent", trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
-            } else {
-                CYListRow(verbatim: title, trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+        let signups = page?.events.first { $0.id == event.id }?.signupCount
+        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Group {
+                if title.isEmpty {
+                    CYListRow("club.untitledEvent", trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+                } else {
+                    CYListRow(verbatim: title, trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+                }
+            }
+            .accessibilityElement(children: .combine)
+            if let signups {
+                Text("club.tab.eventSignups \(signups.text)")
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("club.event.signups.\(event.id)")
             }
         }
-        .accessibilityElement(children: .combine)
+    }
+    /// Home facts plus the Core page model over the raw body. A reader without a raw body (capability off) yields no
+    /// page model, so the tab renders exactly as before; a body that is not a usable home stays hidden too.
+    private func loadTab() async throws -> ClubTabLoaded {
+        async let body = reader.clubHomeBodyIfAvailable()
+        let home = try await reader.clubHome()
+        let raw = await body
+        let page = raw.map { ClubTabPageModel.project(homeBody: $0, merchant: discoveryScope.isMerchantViewer) }
+        return ClubTabLoaded(home: home, page: page.flatMap { $0.phase == .ready || $0.phase == .empty ? $0 : nil })
     }
 }
