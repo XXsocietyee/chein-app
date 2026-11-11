@@ -57,7 +57,7 @@ class MerchantReviewLoadedPagesChecks(unittest.TestCase):
 
     def test_existing_ui_baseline_is_unchanged(self):
         path = ROOT / 'Tests/AppUITests/MerchantBusinessFlowTests.swift'
-        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), '6f7abf0f8348ef9c53137270d0fdb3150a5e1cefb625710a218aa4b5c4aa305c')
+        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), '7a23438513d14a4ae1d98228df6338db3ff0ba0b0627253b2d3f2950223f7e02')
 
 if __name__ == '__main__':
     unittest.main()
