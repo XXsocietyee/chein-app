@@ -58,6 +58,8 @@ enum DesignFixtureReleaseExclusionAudit {
         "E2OnsiteHost",
         "E2OrderedMapHost",
         "E2ParticipationHost",
+        "E2PermissionPrimerFixtures",
+        "E2PermissionPrimerLab",
         "E2PlayKitHost",
         "E2PlayKitTransport",
         "E2RulesHost",
