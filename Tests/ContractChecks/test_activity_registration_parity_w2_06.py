@@ -54,12 +54,11 @@ class ActivityDetailParityTests(unittest.TestCase):
         ))
         # The about text is secondary content: it only renders behind the "More info" disclosure.
         self.assertIn('Section("activity.about")', source.split("private func moreInfoSections", 1)[1].split("private func profileAction", 1)[0])
-        meta = source.split("private struct ActivityDetailMetaSection")[1]
-        for token in ('"activityParity.header.category"', '"activityParity.header.categoryUnconfirmed"',
-                      '"activityParity.header.meetingPoint"', 'case .mapOnly', 'case .unconfirmed',
-                      '"activityParity.header.meetingPointUnconfirmed"',
+        meta = source.split("private struct ActivityDetailMetaSection")[1].split("\n}\n", 1)[0]  # this struct only
+        for token in ('"activityParity.header.category"', 'Text(verbatim: facts.categoryText ?? "—")',
+                      '"activityParity.header.meetingPoint"', 'case .mapOnly', 'case .unconfirmed: Text(verbatim: "—")',
                       'Text("activityParity.header.registeredCount \\(count)")',
-                      'Text("activity.people.countUnknown")',
+                      'else { Text(verbatim: "—") }',
                       'accessibilityIdentifier("activity.detail.category")',
                       'accessibilityIdentifier("activity.detail.meetingPoint")',
                       'accessibilityIdentifier("activity.detail.registeredCount")'):

@@ -5,7 +5,7 @@ import json
 import unittest
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = Path(__file__).parent / 'fixtures/run130_creator_scene.json'
-CONTRACT_SHA = 'b88a3c437443a1886ac85c6b3a2a85b069c9bcbc5677872fe1ded02cce1c88b3'
+CONTRACT_SHA = '9193d959c487674e9b043f6c47f27f2e8c367a6c7cfa72b0652f32651030e2e9'
 
 
 def contract():
