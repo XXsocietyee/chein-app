@@ -61,6 +61,8 @@ import SwiftUI
                         Text("settingsNative.legal.effectiveDate")
                         Text(verbatim: document.effectiveDate)
                     }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
+                    Text("settingsNative.legal.noAcceptance").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("settingsNative.legal.noAcceptance")
                 }
             }
             .frame(maxWidth: 720, alignment: .leading).padding(CYSpacing.pageHorizontal)
