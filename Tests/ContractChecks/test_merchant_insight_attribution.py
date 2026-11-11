@@ -18,7 +18,7 @@ class MerchantInsightAttributionContracts(unittest.TestCase):
             self.assertIn('percent(insight.facts["checkin"]["' + key + '"].decimal)', source)
         self.assertIn('merchant.insightAttribution.redemptionScope', source)
         self.assertIn('merchant.insightAttribution.repeatScope', source)
-        self.assertIn('LabeledContent("merchantMarketing.window", value: MerchantInsightAttribution(insight.facts).window ?? "—")', source)
+        self.assertIn('CYListRow("merchantMarketing.window", trailing: .value(MerchantInsightAttribution(insight.facts).window ?? "—"))', source)
 
     def test_projection_never_recomputes_rates_or_supplies_a_window(self):
         source = self.read('Core/MerchantInsightAttribution.swift')

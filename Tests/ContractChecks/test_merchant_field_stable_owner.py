@@ -17,7 +17,10 @@ class MerchantFieldStableOwnerContract(unittest.TestCase):
         for kind in ['Store','NPC']:
             source=(ROOT/f'App/Merchant{kind}FieldEntry.swift').read_text()
             modifier=source.split('/// Owned by the stable editor')[1].split('@MainActor private struct')[0]
-            for token in ['content.background','.sheet(item: presentation.presentationBinding())','.id(presentation.session?.id)', '.onChange(of: document.revision)','.onChange(of: document.coordinator.draftIdentity)','.onChange(of: document.coordinator.reader.scope)','.onChange(of: editable)','.onChange(of: scenePhase)','.onDisappear { presentation.deactivate() }']:self.assertIn(token,modifier)
+            for token in ['content.background','.sheet(item: presentation.presentationBinding())','.id(presentation.session?.id)', '.onChange(of: document.revision)','.onChange(of: document.coordinator.draftIdentity)','.onChange(of: document.coordinator.reader.scope)','.onChange(of: editable)','.onChange(of: scenePhase)']:self.assertIn(token,modifier)
+            # The store editor tracks visibility separately from scene phase; NPC keeps the direct deactivate.
+            tail='.onDisappear { presentation.viewDisappeared() }' if kind=='Store' else '.onDisappear { presentation.deactivate() }'
+            self.assertIn(tail,modifier)
     def test_original_confirmations_remain(self):
         for kind in ['Store','NPC']:
             source=(ROOT/f'App/Merchant{kind}FieldEntry.swift').read_text()
