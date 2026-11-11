@@ -42,7 +42,7 @@ import XCTest
         XCTAssertEqual(code.value as? String, "123456")
         tap("auth.channels.phoneSignIn")
         XCTAssertTrue(app.tabBars.buttons[chinese ? "护照" : "Passport"].waitForExistence(timeout: 8), app.debugDescription); app.tabBars.buttons[chinese ? "护照" : "Passport"].tap()
-        tap("account.merchant"); tap("merchant.content.open"); tap("merchant.content.entry.recruiting"); tap("couponManagement.marketing.entry")
+        app.buttons[chinese ? "设置" : "Settings"].tap(); tap("account.merchant"); tap("merchant.content.open"); tap("merchant.content.entry.recruiting"); tap("couponManagement.marketing.entry")
         XCTAssertTrue(app.buttons["couponManagement.definition.710"].waitForExistence(timeout: 5))
     }
     func enterDraft(expectReview: Bool = true) {

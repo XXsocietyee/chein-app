@@ -321,7 +321,7 @@ import XCTest
 
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Passport", app); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
+        tab("Passport", app); app.buttons["Settings"].tap(); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
         tap("templateAuthor.shelf.loadMore", app); tap("templateOwnerConfig.open.111", app)
         let answer = app.textFields["templateAuthor.field.questionAnswer"]
         XCTAssertTrue(revealFixtureElement(answer, in: app, requiresHittable: false)); XCTAssertEqual(answer.value as? String, "Synthetic owner answer")

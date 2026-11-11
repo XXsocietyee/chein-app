@@ -305,7 +305,7 @@ import XCTest
 
     func testNormalRootOwnedShelfPaginationAndDetailWithoutMutation() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Passport", app); tap("account.templateAuthoring", app)
+        tab("Passport", app); app.buttons["Settings"].tap(); tap("account.templateAuthoring", app)
         XCTAssertTrue(app.buttons["templateAuthor.openEditor"].exists)
         tap("templateAuthor.openMine", app)
         XCTAssertTrue(app.staticTexts["Owner 7 template 1"].waitForExistence(timeout: 5))
