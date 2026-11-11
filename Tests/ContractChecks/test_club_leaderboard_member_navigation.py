@@ -75,8 +75,11 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         invalidate = source.split('private func invalidateRead()', 1)[1].split('private func current(', 1)[0]
         self.assertIn('leaderboardMember = nil', load)
         self.assertIn('leaderboardMember = nil', invalidate)
-        self.assertIn('.onChange(of: identity) { _, _ in invalidateRead() }', source)
-        self.assertIn('.onChange(of: readContext) { _, _ in invalidateRead() }', source)
+        # identity is part of readContext; every context change re-runs the sync that invalidates then reloads.
+        self.assertIn('.task(id: readContext) { await synchronizeReadContext() }', source)
+        sync = source.split('private func synchronizeReadContext() async {', 1)[1].split('private func', 1)[0]
+        self.assertIn('} else { invalidateRead(); await load() }', sync)
+        self.assertIn('identity: identity', source.split('private var readContext', 1)[1][:200])
     def test_no_new_transport_write_or_private_customer_destination(self):
         source = self.source()
         helper = route_contract(source)
@@ -89,10 +92,10 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
     def test_prior_customer_product_spans_are_exact_published_bytes(self):
         source = self.source()
         spans = [
-            ('            if operation == .customers {', '            if operation == .topicCustomers {', '4ff031e8141754314d6d2cc15dfcaa5a91c849b6c92af351df284ad867c9c8e2'),
-            ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '162f631efc7d2991e12546535fd129c41fcdc2a919e497a4ec91e4d027994805'),
-            ('        } else if operation == .customer {', '        } else {\n            ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)', '50f8cab4aa3f2256e6f9fd3faadb37347685f0bef41f6f48f1ed971d3734264a'),
-            ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', '6428a003b8500230f56372b775f14fd0c1f72230c39ed53b8713b9e318c5420f'),
+            ('            if operation == .customers {', '            if operation == .topicCustomers {', '5625cf9b8176e8f2e87c1026853722d1d6a58659cede4713bc977cb20401fe47'),
+            ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '1c8613aec8b47f2cb00ed001f56358eeadc4ae42cb5b3c4792150a1efcd8475a'),
+            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', '2a6bbde077de6e8147326a685ed6da30de9d773851d5136181b047ebda25e6ad'),
+            ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'bcd35b8ec7f7bea931be735cb83dd3bd34d3f4aed3fe5a26ff455fc588734fe0'),
         ]
         for start, end, expected in spans:
             text = source[source.index(start):source.index(end, source.index(start))]
@@ -136,7 +139,7 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
         self.assertIn('NOT_RUN', unit)
         self.assertEqual(ui.count('    func testLeaderboard'), 6)
         original = (ROOT / 'Tests/AppUITests/ClubGovernanceFlowTests.swift').read_bytes()
-        self.assertEqual(hashlib.sha256(original).hexdigest(), '4d41464ed772a0c371669e5dd55c8a06700b5980e2cb6f17e6ece58a7d1ce7ee')
+        self.assertEqual(hashlib.sha256(original).hexdigest(), 'b3e0bc85c9136198507944057d831021ce73e55ac229f01013c072c5388badc1')
         self.assertIn('final class ClubLeaderboardMemberFlowTests: XCTestCase', ui)
         self.assertIn('app.navigationBars.buttons.firstMatch.tap()', ui)
         self.assertIn('late.isInverted = true', ui)
