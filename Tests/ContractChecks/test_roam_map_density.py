@@ -21,9 +21,11 @@ class RoamMapDensityContracts(unittest.TestCase):
     def test_only_map_is_fixed_height_member_choices_remain_in_outer_list(self):
         self.assertIn('mapHeight: 270, initialSpan: 0.045', self.adapter)
         self.assertNotIn('.frame(height: 270)', self.host)
-        self.assertIn('}.frame(height: mapHeight)', self.density)
-        self.assertLess(self.density.index('}.frame(height: mapHeight)'), self.density.index('if !expanded.isEmpty'))
-        self.assertIn('return List {', self.host)
+        # The map is the only fixed-height member (full-bleed hosts opt in via fillsHeight); choices stay below it.
+        fixed = '}.frame(minHeight: mapHeight).frame(maxHeight: fillsHeight ? .infinity : mapHeight)'
+        self.assertIn(fixed, self.density)
+        self.assertLess(self.density.index(fixed), self.density.index('if !expanded.isEmpty'))
+        self.assertIn('private func resultsList(renderedKey: PresentationKey, renderedItems: [RoamMapItem]) -> some View {\n        List {', self.host)
         self.assertIn('ForEach(visibleItems)', self.host)
         self.assertIn('fixedSize(horizontal: false, vertical: true)', self.density)
         self.assertIn('}.buttonStyle(.plain).frame(minHeight: 44)', self.density)
@@ -36,7 +38,8 @@ class RoamMapDensityContracts(unittest.TestCase):
                       '!loading, issue == nil, snapshot == visibleItems', 'visibleItems.contains(item)',
                       '.onChange(of: requestKey) { _, _ in selected = nil }']:
             self.assertIn(value, self.host)
-        self.assertEqual(self.host.count('select(item, key: renderedKey, snapshot: renderedItems)'), 2)
+        self.assertEqual(self.host.count('select(item, key: renderedKey, snapshot: renderedItems)'), 1)  # list rows
+        self.assertEqual(self.host.count('select(item, key: key, snapshot: items)'), 1)  # map onSelect helper
         for entry in ['startLoad()', 'load() async']:
             body = self.host.split('private func '+entry+' {',1)[1].split('\n    }',1)[0]
             self.assertLess(body.index('loadedKey = nil'), body.index('readOwner.'))
