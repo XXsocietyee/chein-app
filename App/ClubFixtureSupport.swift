@@ -72,6 +72,10 @@ struct ClubFixtureRootView: View {
             .environment(\.clubEnrollmentProfile, ClubEnrollmentProfileContext(reader: profileReader, squareReader: squareReader))
             .id(reader.clubIdentity)
         }
+        // Same role-root styling the app applies: the domain decides palette, scheme and page ground together,
+        // so the fixture host never draws domain-palette text on a system-scheme background.
+        .themeDomain(reader.clubDiscoveryScope.isMerchantViewer ? .merchant : .player)
+        .cyScreenStyle()
     }
 
 }

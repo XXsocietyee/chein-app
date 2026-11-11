@@ -131,7 +131,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 }
             }
             .listStyle(.plain)
-            .cyGroupedSurface()
+            // Ground and text must come from the same palette. `cyGroupedSurface` painted the scheme-adaptive page colour
+            // while hero/row text read the domain palette, so a host whose system scheme differed from its domain
+            // drew white titles on light grey.
+            .scrollContentBackground(.hidden)
+            .cyDomainPageBackground()
         }
         }
         }
