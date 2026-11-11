@@ -15,15 +15,16 @@ class RoamSharePhotoSaveSourceTests(unittest.TestCase):
         self.state = (ROOT / 'Core/RoamSharePhotoSaveState.swift').read_text()
 
     def test_only_prepared_image_enters_direct_save_and_share(self):
-        self.assertRegex(self.view, r'if let image, renderedRecord == record, renderedIncludeRoute == includeRoute,\s+renderedOwner == RoamHistoryLiveOwner\(reader: reader\)')
+        self.assertRegex(self.view, r'if let image = machine.image, renderedRecord == record, renderedIncludeRoute == includeRoute,\s+renderedOwner == RoamHistoryLiveOwner\(reader: reader\)')
         self.assertIn('photoSaveControls(image)', self.view)
         self.assertIn('photoSave.save(image, selection: selection)', self.view)
-        self.assertIn('ShareLink(item: Image(uiImage: image)', self.view)
+        self.assertIn('beginSystemShare(image)', self.view)
+        self.assertNotIn('ShareLink(', self.view)
 
     def test_route_privacy_projection_is_still_used_for_preview_and_render(self):
-        self.assertIn('ImageRenderer(content: card.frame', self.view)
+        self.assertIn('CYShareCardRenderer.render(renderContent, style: renderStyle)', self.view)
         self.assertIn('RoamShareRoutePrivacy.sketch(for: record)', self.view)
-        self.assertIn('if includeRoute { privateRoute }', self.view)
+        self.assertIn('silhouette: includeRoute ? sketch.track.map { CGPoint(x: $0.x, y: $0.y) } : []', self.view)
         self.assertIn('@State private var includeRoute = false', self.view)
         self.assertNotIn('record.pois', self.view)
         self.assertNotIn('record.track.enumerated()', self.view)
@@ -38,7 +39,9 @@ class RoamSharePhotoSaveSourceTests(unittest.TestCase):
 
     def test_card_context_and_dismissal_cancel_pending_permission(self):
         self.assertIn('photoSave.invalidate()', self.view)
-        self.assertIn('.onDisappear { invalidateImage() }', self.view)
+        # Dismissal is owned by the native lifetime controller (confirmed departure only), plus the explicit Done button.
+        self.assertIn('presentation.retire(); invalidateImage(); dismiss()', self.view)
+        self.assertIn('RoamShareNativeLifetime(presentation: presentation)', self.view)
         self.assertIn('.onChange(of: record)', self.view)
         self.assertIn('.onChange(of: RoamHistoryLiveOwner(reader: reader))', self.view)
         self.assertIn('onChange(of: includeRoute)', self.view)
@@ -81,7 +84,7 @@ class RoamSharePhotoSaveSourceTests(unittest.TestCase):
         for key in ['photoPermissionDenied', 'photoPermissionRestricted', 'photoSaveUnavailable', 'photoSaveSourceChanged', 'photoSaveFailed', 'retrySavePhotos', 'savedPhotos']:
             self.assertIn('roam.share.' + key, self.view)
         self.assertIn('if phase == .permissionDenied, !photoSave.inFlight', self.view)
-        self.assertIn('Button("roam.share.openPhotoSettings")', self.view)
+        self.assertIn('CYPillButton("roam.share.openPhotoSettings", style: .secondary) {\n                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }', self.view)
         self.assertNotIn('UIApplication.shared.open', self.model)
 
     def test_add_only_usage_description_and_localization_fragments_exist(self):
