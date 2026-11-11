@@ -34,7 +34,7 @@ class NonCashRewardSliceChecks(unittest.TestCase):
         self.assertIn('if appearance.end(model: model) { presenting = false; merchantNavigation.cancel() }', detail)
         self.assertIn('if viewPresentation === appearance', detail)
         self.assertNotIn('model.endPresentation()', detail)
-        self.assertIn('private func scheduleRefresh(presentation: NonCashRewardReadLifetime?) {\n        presenting = false', detail)
+        self.assertIn('private func scheduleRefresh(presentation: NonCashRewardReadLifetime?) {\n        guard let presentation, presentation.isActive, model.presentation === presentation else { return }\n        presenting = false', detail)
         self.assertNotIn('.sheet', rows)
         self.assertNotIn('@State', rows)
         self.assertNotIn('.onDisappear', rows)

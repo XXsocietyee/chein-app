@@ -47,11 +47,17 @@ MISSING_FIELDS = [
 ]
 
 
+UNRELATED_KEYS = {"ui.cloud05.admission.more"}
+
+
 def catalog_values():
     values = set()
     for path in (ROOT / "Resources").glob("*.xcstrings"):
         document = json.loads(path.read_text(encoding="utf-8"))
-        for entry in (document.get("strings") or {}).values():
+        for key, entry in (document.get("strings") or {}).items():
+            # An unrelated admission-menu key now shares the words "更多操作"; it is not a square-detail key.
+            if key in UNRELATED_KEYS:
+                continue
             for node in (entry.get("localizations") or {}).values():
                 value = (node.get("stringUnit") or {}).get("value")
                 if isinstance(value, str):

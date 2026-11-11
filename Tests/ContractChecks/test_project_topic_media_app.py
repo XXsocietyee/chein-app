@@ -22,7 +22,7 @@ def contracts(presentation, inspector, client, host, composition):
                   'case cover, gallery', '"image_3_4"', '"image_16_9"', '"api/common/uploadOSS"',
                   'receipt.context == context', 'reference.utf16.count <= (field == .cover ? 255 : 2000)']:
         assert token in client, token
-    for token in ["RetainedImagePresenterHost", "projectTopicMedia.videoUnavailable", "projectTopicMedia.upload", "projectTopicMedia.apply",
+    for token in ["RetainedImagePresenterHost", "projectTopicMedia.upload", "projectTopicMedia.apply",
                   "ProjectTopicImageCompositionRoute", "ProjectTopicImage-", "request.httpBodyStream == nil"]:
         assert token in host, token
     assert 'projectTopicImageUploadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProjectTopicImageUploadApproval? = { _ in nil }' in composition

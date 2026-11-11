@@ -11,9 +11,10 @@ class RoamShareRoutePrivacySourceTests(unittest.TestCase):
         self.math = (ROOT / 'Core/RoamExperienceMath.swift').read_text().split('public enum RoamShareRoutePrivacy {', 1)[1]
 
     def test_preview_and_export_use_same_card(self):
-        self.assertIn('                card\n', self.view)
-        self.assertIn('ImageRenderer(content: card.frame', self.view)
-        self.assertIn('if includeRoute { privateRoute }', self.view)
+        # The composer now renders one `cardContent` (the same value the preview row presents) via the shared renderer.
+        self.assertIn('let renderContent = cardContent', self.view)
+        self.assertIn('CYShareCardRenderer.render(renderContent, style: renderStyle)', self.view)
+        self.assertIn('silhouette: includeRoute ? sketch.track.map { CGPoint(x: $0.x, y: $0.y) } : []', self.view)
         self.assertIn('RoamShareRoutePrivacy.sketch(for: record)', self.view)
         self.assertNotIn('RoamRouteSketchView(record:', self.view)
 
@@ -21,17 +22,17 @@ class RoamShareRoutePrivacySourceTests(unittest.TestCase):
         self.assertIn('RoamRouteSketch(track: clippedTrack(record.track), places: [])', self.math)
         self.assertNotIn('record.pois', self.view)
         self.assertNotIn('record.track.enumerated()', self.view)
-        self.assertIn('sketch.track.enumerated()', self.view)
+        self.assertIn('sketch.track.map { CGPoint(x: $0.x, y: $0.y) }', self.view)
 
     def test_export_binds_full_record_and_current_choice(self):
-        self.assertIn('if let image, renderedRecord == record, renderedIncludeRoute == includeRoute {', self.view)
-        self.assertIn('renderedRecord = image == nil ? nil : record', self.view)
-        self.assertIn('renderedIncludeRoute = includeRoute', self.view)
+        self.assertIn('if let image = machine.image, renderedRecord == record, renderedIncludeRoute == includeRoute,', self.view)
+        self.assertIn('renderedRecord = rendered == nil ? nil : renderRecord', self.view)
+        self.assertIn('renderedIncludeRoute = renderRoute', self.view)
 
     def test_owner_record_change_and_dismissal_invalidate_export(self):
-        self.assertIn('.onChange(of: record) { _, _ in includeRoute = false; invalidateImage() }', self.view)
-        self.assertIn('.onDisappear { invalidateImage() }', self.view)
-        self.assertIn('image = nil; renderedRecord = nil; renderingFailed = false', self.view)
+        self.assertIn('.onChange(of: record) { _, _ in includeRoute = false; includePlace = false; channelPolicy.reset(); invalidateImage() }', self.view)
+        self.assertIn('presentation.retire(); invalidateImage(); dismiss()', self.view)
+        self.assertIn('renderedRecord = nil; renderedOwner = nil', self.view)
 
     def test_route_opt_in_remains_default_off(self):
         self.assertIn('@State private var includeRoute = false', self.view)

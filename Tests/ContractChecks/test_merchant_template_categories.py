@@ -107,10 +107,10 @@ class MerchantTemplateCategoryChecks(unittest.TestCase):
         tests = read('Tests/AppUITests/MerchantTemplateCategoryFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', tests)), 3)
         for text in ['merchant.categories.cancel', 'merchant.categories.apply', 'merchant.categories.reload',
-                     'merchant.operations.confirm.cancel', 'merchant.operations.exampleSaved', 'app.alerts.buttons["merchant.operations.keepEditing"].tap()', 'app.alerts.buttons["merchant.operations.discardReload"].tap()']:
+                     'merchant.operations.confirm.cancel', 'merchant.operations.exampleSaved', 'app.alerts.buttons["merchant.operations.keepEditing"].firstMatch.tap()', 'app.alerts.buttons["merchant.operations.discardReload"].firstMatch.tap()']:
             self.assertIn(text, tests)
-        self.assertIn('app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)', tests)
-        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)', tests)
+        self.assertIn('app.alerts.buttons["merchant.operations.keepEditing"].firstMatch.waitForExistence(timeout: 5)', tests)
+        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].firstMatch.waitForExistence(timeout: 5)', tests)
 
 
 if __name__ == '__main__': unittest.main()

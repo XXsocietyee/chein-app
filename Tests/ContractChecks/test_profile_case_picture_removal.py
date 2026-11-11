@@ -16,22 +16,25 @@ class ProfileCasePictureRemovalContracts(unittest.TestCase):
         self.assertIn('public var removesCasePictures: Bool',s)
         self.assertIn('removesCasePictures: Bool = false',s)
         self.assertIn('removesCasePictures = draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0',s)
-        self.assertIn('casePics = removesCasePictures ? "" : snapshot.casePics',s)
+        # A reviewed partial subset may now replace the bytes; otherwise the original bytes are kept verbatim.
+        self.assertIn('casePics = removesCasePictures ? "" : (casePictureSubset?.wireValue ?? snapshot.casePics)',s)
         keys=section('Core/ProfileEditContracts.swift','public struct ProfileEditPayload','public struct ProfileEditSession').split('enum CodingKeys:',1)[1].split('public init',1)[0]
         self.assertNotIn('removesCasePictures',keys)
         self.assertIn('case name, introduction, avatar, wechat, casePics, tagIds',keys)
     def test_noop_and_dirty_state_use_the_effective_all_image_proposal(self):
         s=section('Core/ProfileEditContracts.swift','public func hasChanges','public var isValid')
         self.assertIn('ordinary.removesCasePictures = false',s)
-        self.assertIn('let picturesChanged = removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0',s)
+        self.assertIn('let picturesChanged = (removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)',s)
+        self.assertIn('|| casePictureSubset?.hasChanges == true',s)
+        self.assertIn('ordinary.casePictureSubset = nil',s)
         self.assertIn('|| contactQRChanged || picturesChanged',s)
         view=read('App/ProfileEditView.swift')
         self.assertIn('|| (draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)',view)
         self.assertIn('&& lhs.removesCasePictures == rhs.removesCasePictures',view)
     def test_intent_survives_normalization_avatar_staging_discard_and_fingerprint(self):
         s=read('Core/ProfileEditContracts.swift')
-        self.assertEqual(s.count('removesContactQR: removesContactQR, removesCasePictures: removesCasePictures)'),2)
-        self.assertIn('removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures)',read('App/ProfileEditView.swift'))
+        self.assertEqual(s.count('removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset)'),2)
+        self.assertIn('removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures, casePictureSubset: draft.casePictureSubset)',read('App/ProfileEditView.swift'))
         self.assertIn('if value.removesCasePictures { parts.append("remove-case-pictures") }',read('Core/ProfileAvatarUpload.swift'))
     def test_confirmation_requires_correct_field_and_original_bytes_or_empty(self):
         s=section('App/ProfileEditView.swift','func confirmTextEdit','func ownsAvatarScope')
@@ -50,19 +53,22 @@ class ProfileCasePictureRemovalContracts(unittest.TestCase):
         self.assertLess(s.index('retireTextEdit()'),s.index('var next = draft'));self.assertNotIn('await ',s)
     def test_review_and_final_prewrite_reject_byte_exact_image_drift(self):
         s=read('Core/ProfileEditCoordinator.swift')
-        self.assertIn('!draft.removesCasePictures || latest.casePics.utf8.elementsEqual(original.casePics.utf8)',s)
-        self.assertIn('!value.payload.removesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8)',s)
+        self.assertIn('!(draft.removesCasePictures || draft.casePictureSubset?.hasChanges == true) || latest.casePics.utf8.elementsEqual(original.casePics.utf8)',s)
+        self.assertIn('!value.payload.changesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8)',s)
         self.assertIn('if unresolved.acknowledged && matches',s)
         self.assertIn('messageKey = "profile.edit.readbackUnconfirmed"',s)
         self.assertIn('&& casePics == snapshot.casePics',read('Core/ProfileEditContracts.swift'))
     def test_sheet_clear_keep_cancel_are_local_and_need_no_reader_or_upload(self):
         s=read('App/ProfileCasePictureRemovalEditor.swift')
         for token in ['@State private var removes: Bool','_removes = State(initialValue: edit.draft.removesCasePictures)',
-                      'Button("profile.caseRemoval.restore") { removes = false }',
+                      'Button("profile.caseRemoval.restore") { removes = false; retainedIndices = originalIndices }',
                       'Button("profile.caseRemoval.remove", role: .destructive) { removes = true }',
-                      'Button("action.cancel", role: .cancel, action: cancel)','Button("profile.fieldEdit.apply") { confirm(removes) }']:
+                      'Button("action.cancel", role: .cancel, action: cancel)','Button("profile.fieldEdit.apply") {', 'else { confirm(removes) }']:
             self.assertIn(token,s)
-        for token in ['model.draft','NativeMediaGallery','RetainedPublicImage','URLSession','AsyncImage','PhotosPicker','TextField(','.upload(','.save(']:self.assertNotIn(token,s)
+        # Position selection now shows an optional read-only preview via the injected public-image reader (nil by default).
+        self.assertIn('reader: (any RetainedPublicImageReading)? = nil',s)
+        self.assertIn('NativeMediaGalleryEntry(sources: ProfileCasePortfolio(casePics: edit.snapshot.casePics).images',s)
+        for token in ['model.draft','URLSession','AsyncImage','PhotosPicker','TextField(','.upload(','.save(']:self.assertNotIn(token,s)
     def test_empty_state_has_no_destructive_action_and_total_count_is_visible(self):
         s=read('App/ProfileCasePictureRemovalEditor.swift')
         self.assertIn('LabeledContent("profile.caseRemoval.count", value: String(imageCount))',s)
@@ -80,7 +86,8 @@ class ProfileCasePictureRemovalContracts(unittest.TestCase):
         s=read('App/ProfileTextFieldEditor.swift')
         self.assertIn('if edit.draft.removesCasePictures {',s)
         self.assertIn('Text("profile.caseRemoval.staged").accessibilityIdentifier("profile.caseRemoval.stagedInDescription")',s)
-        self.assertIn('} else {\n                    ProfileCasePortfolioSection(casePics: edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)',s)
+        # With a staged subset the gallery shows the staged bytes only while they still match the snapshot; otherwise the original.
+        self.assertIn('} else {\n                    ProfileCasePortfolioSection(casePics: edit.draft.casePictureSubset.flatMap { $0.matches(source: edit.snapshot.casePics) ? $0.wireValue : nil } ?? edit.snapshot.casePics',s)
     def test_synthetic_fixture_persists_casePics_and_keeps_invalid_image_origins(self):
         s=read('Core/ProfileEditSyntheticFixtures.swift')
         for token in ['if scenario == .portfolioImages || scenario == .caseRemoval', 'https://profile-fixture.invalid/one.jpg;https://profile-fixture.invalid/two.jpg',

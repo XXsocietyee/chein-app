@@ -42,8 +42,8 @@ class ProjectRemoteImmutableFixtureChecks(unittest.TestCase):
         self.assertIn('public let payload: [String: ProjectEditJSON]', self.store)
         self.assertNotIn('public var payload:', self.store)
         self.assertEqual(self.fields, ['operationID', 'ownerKey', 'identity', 'payload',
-                                      'dispatchStarted', 'baseline', 'completedTopicID',
-                                      'serverAcknowledged', 'bundleAcknowledgment'])
+                                      'dispatchStarted', 'serverRequest', 'serverRequestCommitted', 'postProcessing',
+                                      'baseline', 'completedTopicID', 'serverAcknowledged', 'bundleAcknowledgment'])
         self.assertTrue(reconstruction_is_complete(self.tests, self.fields))
 
     def test_both_unicode_exact_record_cas_boundaries_and_original_assertions_remain(self):
@@ -61,7 +61,7 @@ class ProjectRemoteImmutableFixtureChecks(unittest.TestCase):
             'XCTAssertTrue(ProjectEditLocalStore.exactPending(try XCTUnwrap(store.pending(session: session, identity: replacement.identity)), replacement))',
         ]:
             self.assertIn(original, body)
-        self.assertEqual(len(re.findall(r'\bfunc test\w+\(', self.tests)), 11)
+        self.assertEqual(len(re.findall(r'\bfunc test\w+\(', self.tests)), 20)
 
     def test_old_illegal_mutation_and_dropped_acknowledgment_field_fail_the_same_check(self):
         body = replacement_body(self.tests)

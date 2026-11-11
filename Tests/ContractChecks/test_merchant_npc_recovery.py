@@ -16,12 +16,14 @@ class MerchantNPCRecoveryContracts(unittest.TestCase):
         cls.policy = cls.app.split('@MainActor struct MerchantNPCRecoveryView:', 1)[0]
 
     def test_projection_is_read_only_and_does_not_replace_retry_authority(self):
-        self.assertIn('guard isCurrent, grants().chatAllowed, let requestID else', self.projection)
-        for token in ['attempts >= 3', 'reply?.canRetry == true || failure == .unknownOutcome', 'retryAt > now', 'ceil(seconds)']:
+        # A closed game-dispatch denial now also blocks the projection (stricter than before).
+        self.assertIn('guard gameDispatchDenial == nil, isCurrent, grants().chatAllowed, let requestID else', self.projection)
+        for token in ['attempts >= 3', '!outcomeAllowsRetry', 'retryAt > now', 'ceil(seconds)']:
             self.assertIn(token, self.projection)
         for forbidden in ['requestID =', 'retryAt =', 'attempts +=', 'await ', 'run()', 'send(', 'Task']:
             self.assertNotIn(forbidden, self.projection)
-        self.assertIn('attempts < 3 && (retryAt ?? .distantPast) <= Date()', self.core)
+        self.assertIn('attempts < 3 && (retryAt ?? .distantPast) <= Date() && outcomeAllowsRetry', self.core)
+        self.assertIn('if let reply { return reply.canRetry }\n        return failure == .unknownOutcome', self.core)
 
     def test_current_owner_and_authority_are_checked_at_confirmation(self):
         for token in ['expected.owner == ObjectIdentifier(coordinator)', 'expected.scope == coordinator.scope',
@@ -85,7 +87,7 @@ class MerchantNPCRecoveryContracts(unittest.TestCase):
 
     def test_read_only_projection_distinguishes_cap_from_wait_and_unknown(self):
         for token in ['.waitingForReply', '.stoppingLocalWait', '.attemptLimitReached', '.cooldown(seconds:',
-                      '.retryAvailable', 'outcomeUnknown: failure == .unknownOutcome']:
+                      '.retryAvailable', 'outcomeUnknown: reply?.hasUnknownOutcome == true || failure == .unknownOutcome']:
             self.assertIn(token, self.projection)
 
     def test_authored_regressions_cover_same_id_attempts_and_lifecycle(self):

@@ -35,7 +35,7 @@ class MerchantAftercareDecisionContracts(unittest.TestCase):
             self.assertIn('.onChange(of: '+value+') { _, _ in retireAftercareDecision() }', self.source)
         self.assertIn('.onDisappear { retireAftercareDecision() }', self.source)
         self.assertIn('.onChange(of: confirmAftercareDecision) { _, showing in if !showing { pendingAftercareDecision = nil } }', self.source)
-        review=self.source.split('Button("merchant.business.reviewDraft") {',1)[1].split('}.accessibilityIdentifier',1)[0]
+        review=self.source.split('Button(unchangedRole == nil ? "merchant.business.reviewDraft" : "merchant.done") {',1)[1].split('onReview(mutation)',1)[0]
         self.assertLess(review.index('retireAftercareDecision()'),review.index('makeMutation()'))
     def test_apply_and_cancel_leave_evidence_and_requests_untouched(self):
         apply=self.source.split('private func applyAftercareDecision(',1)[1].split('private func makeMutation()',1)[0]
