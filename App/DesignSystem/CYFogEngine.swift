@@ -1,72 +1,14 @@
 import SwiftUI
 
-// Fog-of-war presentation stages (spec: /Users/fanning/chengyin-refs/specs/roam-fog-engine.md, stages 2 and 3, UI side only).
-// Everything here draws from fixture or injected data: no location, no Core types, no live reveal. The Core model
-// (geohash bitmaps, FogCoverageReading in Core) lands separately; these types are the view-side stand-ins and carry
-// a CY prefix so they never collide with it.
+// Fog-of-war presentation pieces (spec: /Users/fanning/chengyin-refs/specs/roam-fog-engine.md, stages 2 and 3).
+// The mask and the overlay layer now live in App/FogOverlayLayer.swift (Core `FogMask`); `RevealChoreographer` adapts
+// Core reveal events onto `CYRevealChoreographer` below, and `CYFogCoverageReading` is the badge's view-side reading
+// (`CYFogCoverageReading(_ core:)` maps Core `FogCoverageReading`).
 
 // MARK: - Data
 
-/// One fog cell on the fixture grid (column, row), north-west origin.
+/// Opaque slot key for one in-flight cell (`RevealChoreographer` maps it back to a Core `FogRenderCell`).
 struct CYFogPoint: Hashable { let x: Int; let y: Int }
-
-/// Alpha mask of revealed ground. `alpha` is 8-bit (255 confirmed, 128 pending, 0 hidden); `image` is the same data as a
-/// premultiplied-black RGBA image for `destinationOut`. `pendingRects` are normalized rects for the hatch pass.
-struct CYFogMask: Equatable {
-    let width: Int
-    let height: Int
-    let alpha: [UInt8]
-    let pendingRects: [CGRect]
-    let revision: Int
-    let image: CGImage?
-    static func == (a: CYFogMask, b: CYFogMask) -> Bool { a.revision == b.revision && a.width == b.width && a.height == b.height }
-}
-
-enum CYFogMaskRasterizer {
-    static let maxSide = 512
-
-    /// Builds the mask for a `cols` x `rows` grid. Each cell is `cellPx` pixels square (clamped so the long side <= 512).
-    /// `soften` runs one 3x3 box pass for the cloud-like roll-off (skip it under Low Power).
-    static func rasterize(confirmed: Set<CYFogPoint>, pending: Set<CYFogPoint>, cols: Int, rows: Int,
-                          cellPx: Int = 8, soften: Bool = true, revision: Int) -> CYFogMask {
-        let px = max(1, min(cellPx, maxSide / max(cols, rows, 1)))
-        let w = cols * px, h = rows * px
-        var a = [UInt8](repeating: 0, count: w * h)
-        func fill(_ p: CYFogPoint, _ v: UInt8) {
-            guard p.x >= 0, p.y >= 0, p.x < cols, p.y < rows else { return }
-            for y in (p.y * px)..<((p.y + 1) * px) { for x in (p.x * px)..<((p.x + 1) * px) { a[y * w + x] = v } }
-        }
-        for p in pending.subtracting(confirmed) { fill(p, 128) }
-        for p in confirmed { fill(p, 255) }
-        if soften { a = boxBlur(a, w: w, h: h) }
-        let rects = pending.subtracting(confirmed).map {
-            CGRect(x: CGFloat($0.x) / CGFloat(cols), y: CGFloat($0.y) / CGFloat(rows), width: 1 / CGFloat(cols), height: 1 / CGFloat(rows))
-        }
-        return CYFogMask(width: w, height: h, alpha: a, pendingRects: rects, revision: revision, image: makeImage(a, w: w, h: h))
-    }
-
-    private static func boxBlur(_ src: [UInt8], w: Int, h: Int) -> [UInt8] {
-        var out = src
-        guard w > 2, h > 2 else { return out }
-        for y in 1..<(h - 1) {
-            for x in 1..<(w - 1) {
-                var sum = 0
-                for dy in -1...1 { for dx in -1...1 { sum += Int(src[(y + dy) * w + (x + dx)]) } }
-                out[y * w + x] = UInt8(sum / 9)
-            }
-        }
-        return out
-    }
-
-    private static func makeImage(_ alpha: [UInt8], w: Int, h: Int) -> CGImage? {
-        var rgba = [UInt8](repeating: 0, count: w * h * 4)
-        for i in 0..<(w * h) { rgba[i * 4 + 3] = alpha[i] }   // premultiplied black: only alpha carries data
-        guard let provider = CGDataProvider(data: Data(rgba) as CFData) else { return nil }
-        return CGImage(width: w, height: h, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: w * 4,
-                       space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
-                       provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent)
-    }
-}
 
 // MARK: - Coverage reading
 
@@ -153,61 +95,5 @@ struct CYRevealChoreographer {
         let done = active.filter { now >= $0.start + $0.duration }
         active.removeAll { now >= $0.start + $0.duration }
         return done.map(\.cell)
-    }
-}
-
-// MARK: - Overlay
-
-/// Pure draw: dark scrim (spec token: grey at 0.35 over the basemap, stronger here for the fixture map), the mask cut out
-/// with `destinationOut`, a hatch over unconfirmed cells (state is never colour-only), and in-flight radial wipes.
-/// No state, no location. One Canvas; ticks only while wipes are in flight.
-struct CYFogOverlayLayer: View {
-    let mask: CYFogMask
-    var grid: (cols: Int, rows: Int)
-    var wipes: [CYRevealChoreographer.Keyframe] = []
-    var scrimOpacity: Double = 0.62
-    var clock: () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
-
-    var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: wipes.isEmpty)) { _ in
-            let now = clock()
-            Canvas(opaque: false, rendersAsynchronously: false) { ctx, size in
-                let rect = CGRect(origin: .zero, size: size)
-                ctx.drawLayer { layer in
-                    layer.fill(Path(rect), with: .color(Color(red: 0.5, green: 0.52, blue: 0.56).opacity(scrimOpacity)))
-                    layer.blendMode = .destinationOut
-                    if let image = mask.image { layer.draw(layer.resolve(Image(decorative: image, scale: 1)), in: rect) }
-                    for k in wipes {
-                        let p = CYRevealChoreographer.progress(k, at: now)
-                        guard p > 0 else { continue }
-                        let cw = size.width / CGFloat(grid.cols), ch = size.height / CGFloat(grid.rows)
-                        let cell = CGRect(x: CGFloat(k.cell.x) * cw, y: CGFloat(k.cell.y) * ch, width: cw, height: ch)
-                        let center = CGPoint(x: k.origin.x * size.width, y: k.origin.y * size.height)
-                        let r = hypot(cw, ch) * CGFloat(p) * 1.6
-                        var inner = layer
-                        inner.clip(to: Path(cell))
-                        inner.fill(Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2)),
-                                   with: .radialGradient(Gradient(colors: [.black, .black, .black.opacity(0)]), center: center, startRadius: 0, endRadius: max(r, 1)))
-                    }
-                }
-                var hatch = Path()
-                for n in mask.pendingRects {
-                    let c = CGRect(x: n.minX * size.width, y: n.minY * size.height, width: n.width * size.width, height: n.height * size.height)
-                    var x = c.minX - c.height
-                    while x < c.maxX {
-                        hatch.move(to: CGPoint(x: x, y: c.maxY)); hatch.addLine(to: CGPoint(x: x + c.height, y: c.minY)); x += 6
-                    }
-                }
-                var clipped = ctx
-                var clip = Path(); for n in mask.pendingRects {
-                    clip.addRect(CGRect(x: n.minX * size.width, y: n.minY * size.height, width: n.width * size.width, height: n.height * size.height))
-                }
-                clipped.clip(to: clip)
-                clipped.stroke(hatch, with: .color(Color.white.opacity(0.35)), lineWidth: 1)
-            }
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-        .accessibilityIdentifier("roam.fog.layer")
     }
 }
