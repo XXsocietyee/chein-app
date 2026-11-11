@@ -22,6 +22,9 @@ import Foundation
     var lookedUp: [String] = []
     var lastOriginal: String?
     var timeOutSend = false
+    /// A timed-out send may commit after the first automatic receipt query. While false the
+    /// receipt reports a typed NOT_FOUND, like the server before the original commit is visible.
+    var receiptReady = true
     var status = 200
     var responseBytes: Data?
     var beforeReply: (() -> Void)?
@@ -58,7 +61,14 @@ import Foundation
             data = message(key)
         case "send-receipt":
             let key = try XCTUnwrap(f["client_message_id"]); lookedUp.append(key)
-            data = key == lastOriginal ? ["found":true, "message":message(key)] : ["found":false]
+            if key == lastOriginal && receiptReady {
+                let intent = try MessageTextIntent(conversationID: 9, content: "original body", clientMessageID: key)
+                data = ["found":true, "state":"APPLIED", "message":message(key),
+                    "original_send_proof":["operation":"SEND", "request_id":key, "actor_member_id":"3", "conversation_id":"9",
+                        "message_id":"8", "request_hash":try XCTUnwrap(NativeChannelOriginalSendDigest.requestHash(intent))]]
+            } else {
+                data = ["found":false, "state":"NOT_FOUND"]
+            }
         default: throw APIError.invalidRequest
         }
         return (try JSONSerialization.data(withJSONObject: ["code":200,"data":data]), 200)
@@ -121,11 +131,13 @@ import Foundation
         let text = try XCTUnwrap(flow.makeTextCoordinator(history: flow.history)); text.activate()
         let sent = await text.sendNew("original body")
         XCTAssertTrue(sent); XCTAssertEqual(h.wire.sent.count, 1)
+        // Acknowledgement does not refresh history; the page does that on change. Do the same read here.
+        await flow.history.load()
         XCTAssertEqual(flow.history.history.messages.first?.content, "original body")
         XCTAssertEqual(flow.wire.snapshot(for: try XCTUnwrap(flow.history.history.messages.first))?.version, 1)
     }
     func testTimeoutThenNormalRemountUsesSameOriginalJournalAndReceiptNotSecondSend() async throws {
-        let h = try MessageHostHarness(); h.wire.timeOutSend = true
+        let h = try MessageHostHarness(); h.wire.timeOutSend = true; h.wire.receiptReady = false
         let first = try h.make(); await first.coordinator.activate()
         let text = try XCTUnwrap(first.makeTextCoordinator(history: first.history)); text.activate()
         let unknown = await text.sendNew("original body"); XCTAssertFalse(unknown)
@@ -134,8 +146,10 @@ import Foundation
         let fresh = try h.make(); await fresh.coordinator.activate()
         let recovered = try XCTUnwrap(fresh.makeTextCoordinator(history: fresh.history)); recovered.activate()
         XCTAssertEqual(h.storage.rows, originalBytes)
+        h.wire.receiptReady = true
         let found = await recovered.checkReceipt(); XCTAssertTrue(found)
-        XCTAssertEqual(h.wire.sent, [key]); XCTAssertEqual(h.wire.lookedUp, [key])
+        // One send. Reads: the automatic post-timeout query (not found yet), then the remount check.
+        XCTAssertEqual(h.wire.sent, [key]); XCTAssertEqual(h.wire.lookedUp, [key, key])
     }
     func testRecognizedHistory401RetiresHostBeforeCancelledDeliveryAndBlocksNormalRemount() async throws {
         let h = try MessageHostHarness(), first = try h.make(); h.wire.status = 401
