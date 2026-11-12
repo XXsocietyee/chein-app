@@ -242,6 +242,14 @@ struct MessagingHistoryView: View {
     private var transcript: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.sm) {
+                // Mini-program chat-hero: the conversation name sits large under the bar.
+                if conversation != nil {
+                    MessagingConversationName(conversation: conversation)
+                        .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                        .lineLimit(2).padding(.bottom, CYSpacing.xs)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("messaging.history.hero")
+                }
                 if history.hasMore {
                     if isLoadingEarlier {
                         ChatHistoryLoading(labelKey: "messaging.loadingEarlier", identifier: "messaging.history.loadingEarlier", fills: false)
@@ -392,6 +400,31 @@ private struct MessagingBubble: View {
     /// Received messages show a small avatar beside the bubble; only groups add the sender name.
     private var isGroup: Bool { conversation?.kind == .group }
     var body: some View {
+        if conversation?.kind == .system && !isOwn { noticeCard } else { bubbleRow }
+    }
+    /// Mini-program system notice: full-width card (icon, title, body, time) instead of a narrow bubble.
+    private var noticeCard: some View {
+        HStack(alignment: .top, spacing: Theme.Space.s3) {
+            Image(systemName: "bell.fill").font(.body).foregroundStyle(CYColor.textSecondary)
+                .frame(width: 36, height: 36).background(Circle().fill(CYColor.bgElevated)).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Theme.Space.s1) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("messaging.system").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Spacer(minLength: 4)
+                    let stamp = ChatDisplay.stamp(message.createdAt)
+                    Text(verbatim: stamp).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                }
+                MessagingMessageContent(message: message).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(CYSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CYColor.bgElevated.opacity(0.6), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("messaging.openDetail"))
+    }
+    private var bubbleRow: some View {
         HStack(alignment: .bottom, spacing: Theme.Space.s2) {
             if !isOwn {
                 // Avatar sits beside the last bubble of a run; earlier ones keep the column empty.
