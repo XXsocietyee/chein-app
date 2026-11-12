@@ -17,7 +17,9 @@ import SwiftUI
             } header: { Text("social.guide.modes") }
             SocialGuideTemplateSection(reader: templateReader)
             Section {
-                SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
+                SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { decoded in
+                    // PlayGuideInformationListPage keeps only usable rows; an all-unusable list is the empty phase.
+                    let rows = decoded.filter(\.isUsable)
                     if rows.isEmpty {
                         CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", detail: "guideXcx.docsEmptyDetail", messageIdentifier: "social.guide.docsEmpty")
                             .frame(maxWidth: .infinity).listRowBackground(Color.clear)
@@ -48,13 +50,27 @@ import SwiftUI
             if id <= 0 { CYEmptyState(systemImage: "link", "social.incompleteLink") }
             else {
                 SocialReadScreen(reader: reader, requestKey: "information-\(id)", load: { try await reader.information(id: id) }) { row in
-                    if row.isRemoved { CYEmptyState(systemImage: "doc", "social.guide.removed") }
-                    else {
-                        SocialInformationCover(id: row.id, title: row.title, created: SocialText.nonempty(row.createTime))
+                    // subpackageA/pages/infomationdetail: removed, mismatched, or blank documents never render as an article.
+                    let page = InformationDetailPageModel(readCapabilityPresent: true, path: InformationDetailPageModel.contractPath,
+                                                          requestedID: id, outcome: .article(row))
+                    switch page.phase {
+                    case .ready(let article):
+                        SocialInformationCover(id: article.id, title: article.title, created: page.createTimeDisplay)
                             .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
-                        if let summary = row.summary { Text(verbatim: summary).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).listRowBackground(Color.clear) }
-                        if let contents = row.contents { SocialArticleContentView(contents: contents) }
-                        else { CYEmptyState(systemImage: "doc.text", "social.guide.noContent") }
+                        if let summary = article.summary { Text(verbatim: summary).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).listRowBackground(Color.clear) }
+                        if let contents = article.contents, page.bodyKey == nil { SocialArticleContentView(contents: contents) }
+                        else { CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InformationDetailPageModel.Copy.noContent)) }
+                    case .empty(.removed):
+                        CYEmptyState(systemImage: "doc", LocalizedStringKey(InformationDetailPageModel.Copy.removed))
+                            .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
+                    case .empty(.incompleteLink):
+                        CYEmptyState(systemImage: "link", LocalizedStringKey(InformationDetailPageModel.Copy.incompleteLink))
+                            .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
+                    case .unknown:
+                        CYEmptyState(systemImage: "questionmark.folder", LocalizedStringKey(InformationDetailPageModel.Copy.unknown))
+                            .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
+                    case .loading, .error, nil:
+                        EmptyView()
                     }
                 }
             }

@@ -243844,6 +243844,482 @@
           }
         }
       }
+    },
+    "official.card.participantsUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "— joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—参与"
+          }
+        }
+      }
+    },
+    "official.detailPage.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some details for this event are not available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分活动信息暂未取回"
+          }
+        }
+      }
+    },
+    "official.inbox.capacityUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity —"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承接名额 —"
+          }
+        }
+      }
+    },
+    "official.organizer.counts %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockers %1$@ · Risks %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻断项 %1$@ · 风险项 %2$@"
+          }
+        }
+      }
+    },
+    "official.organizer.emptyNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This event's state wasn't returned. Pull to refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有读到这场活动的状态，请下拉刷新"
+          }
+        }
+      }
+    },
+    "official.organizer.unknownNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some console facts aren't confirmed yet; affected actions stay off."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分控制台信息待确认，相关操作已停用"
+          }
+        }
+      }
+    },
+    "searchMap.unknownResults": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some result types didn't load, so these counts aren't final."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分类型的结果没有取回，数量待确认"
+          }
+        }
+      }
+    },
+    "informationDetail.state.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This document can't be shown right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这篇文档暂时无法显示"
+          }
+        }
+      }
+    },
+    "team.join.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No team found for this invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到这支队伍"
+          }
+        }
+      }
+    },
+    "team.join.emptyDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask the person who invited you to send the link again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请让邀请你的人重新发送邀请链接"
+          }
+        }
+      }
+    },
+    "publisherPricing.missingTopic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic information is missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少主题信息"
+          }
+        }
+      }
+    },
+    "publisherPricing.missingTopicDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This link doesn't include a topic, so the final price can't be confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前链接没有携带主题参数，无法确认终价。"
+          }
+        }
+      }
+    },
+    "publisherPricing.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pricing couldn't be loaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定价信息加载失败"
+          }
+        }
+      }
+    },
+    "publisherPricing.stalePreview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The latest pricing hasn't been fetched yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新定价暂未取回"
+          }
+        }
+      }
+    },
+    "publisherPricing.recalculateFloor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recalculate the floor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新计算地板"
+          }
+        }
+      }
+    },
+    "publisherPricing.costFloor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cost floor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成本地板"
+          }
+        }
+      }
+    },
+    "publisherPricing.floorIncludes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform rate, the organizer's estimated guarantee, revenue-share ratios, and fixed costs are included; the final price can't be lower than this."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台率、发起人预估保底、分成型比例和固定成本已计入；终价不可低于此值。"
+          }
+        }
+      }
+    },
+    "publisherPricing.floorShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Floor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地板"
+          }
+        }
+      }
+    },
+    "publisherPricing.marginNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whatever the final price exceeds the cost floor by is the organizer's gross margin; the settlement guarantee only activates for merchants actually redeemed in this session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终价高出成本地板的部分就是发起人毛利；结算保底只按本场真实核销商家数激活。"
+          }
+        }
+      }
+    },
+    "publisherPricing.phaseBlockedDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic isn't in the pricing phase yet: once recruiting ends and the partner lineup is locked, you can confirm the final price and submit it for sales review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题还没进入定价阶段：招募结束、合作阵容锁定后，才能确认终价并提交开售审核。"
+          }
+        }
+      }
+    },
+    "publisherPricing.phaseBlockedShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic isn't in the pricing phase yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题还没进入定价阶段"
+          }
+        }
+      }
+    },
+    "publisherPricing.confirmFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final price couldn't be confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终价确认失败"
+          }
+        }
+      }
+    },
+    "publisherPricing.incomplete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pricing information is incomplete. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定价信息不完整，请稍后重试"
+          }
+        }
+      }
+    },
+    "publisherPricing.confirmRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmation failed. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认失败，请重试"
+          }
+        }
+      }
+    },
+    "publisherPricing.confirmedAwaitingReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final price confirmed. Waiting for sales review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终价已确认，请等待开售审核"
+          }
+        }
+      }
+    },
+    "publisherPricing.network": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network error. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常，请稍后重试"
+          }
+        }
+      }
+    },
+    "publisherPricing.lineupLocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The lineup is locked. Open a partner to see their settlement terms for this topic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阵容已锁定，点开可查该合作方在本主题中的结算条款。"
+          }
+        }
+      }
+    },
+    "publisherPricing.partnerLocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The lineup is locked. These are this partner's settlement terms for this topic."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阵容已锁定，以下为该合作方在本主题中的结算条款。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

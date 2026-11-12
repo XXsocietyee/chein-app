@@ -34,6 +34,7 @@ import SwiftUI
     @State private var viewportSelection = SearchMapViewportSelection()
     @State private var viewportPresentationID = UUID()
     @State private var viewportFailed = false
+    @State private var showsAllResults = false
     @AccessibilityFocusState private var selectionFocused: Bool
     @State private var gate = SearchMapQueryGate()
     @State private var categoryGate = SearchMapQueryGate()
@@ -64,6 +65,12 @@ import SwiftUI
               area: area, visibilityRevision: mapLayers.revision, pins: pins, presentationID: viewportPresentationID,
               activities: mapLayers.shows(.activities) && visibleCityResults != nil ? pagination.rows : [],
               cityPlaces: mapLayers.shows(.cityPlaces) ? visibleCityResults?.nodes ?? [] : [])
+    }
+    /// Capsule phase from the explorer's own rows; it never reads by itself.
+    private var resultCapsule: SearchMapResultCapsule {
+        let rows = visibleCityResults == nil ? [] : pagination.rows
+        return .resolve(loading: loading, failed: visibleCityResults?.activityFailure != nil,
+                        rows: rows.count, listOnly: rows.filter { !$0.hasValidCoordinates }.count)
     }
     var body: some View {
         ScrollViewReader { scroll in
@@ -103,6 +110,13 @@ import SwiftUI
                         }
                     }
                     if let selectedPin, pins.filter({ $0.id == selectedPin }).count == 1 { selectedPlaceSummary(selectedPin, area: area) }
+                    // Mini-program result capsule under the map (pages/searchmap): 全部 N 个结果 opens the sheet.
+                    if mode == .city, reader.isConfigured, mapLayers.shows(.activities), loading || visibleCityResults != nil {
+                        SearchMapResultsCapsuleView(state: resultCapsule, retry: { startLoad() },
+                                                    open: { showsAllResults = true })
+                            .frame(maxWidth: .infinity)
+                            .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    }
                 }
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
                 else if area == nil { CYEmptyState(systemImage: "mappin.and.ellipse", "searchMap.areaRequired") }
@@ -134,6 +148,15 @@ import SwiftUI
         }
         }
         .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
+        .sheet(isPresented: $showsAllResults) {
+            let renderedContext = pinSelectionContext
+            SearchMapAllResultsSheet(rows: visibleCityResults == nil ? [] : pagination.rows, loading: loading,
+                                     failed: visibleCityResults?.activityFailure != nil,
+                                     refreshing: refresh.isLoading, refreshFailed: refresh.retainedActivities,
+                                     offline: reader.isOfflineExample, retry: { startLoad() },
+                                     open: { row in showsAllResults = false; openLayerActivity(row, rendered: renderedContext) })
+                .presentationDetents([.medium, .large])
+        }
         .navigationDestination(item: $layerNavigation) { route in
             if route.readerID == ObjectIdentifier(reader), route.scope == reader.scope, reader.isConfigured {
                 switch route.target {
