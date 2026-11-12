@@ -217,9 +217,13 @@ struct MessagingMessageDetailView: View {
                 NavigationStack {
                     List {
                         Section { CYHeroHeader("im.full.reviewResult") }.e1HeroRow()
+                        // Mini-program 「生成时记录」: 审核任务 # / 业务 # first, then the outcome as recorded.
+                        if let task = result.taskID { CYListRow("mpd.review.task", trailing: .value("#" + task)) { CYRowIcon(systemImage: "number") } }
+                        if let business = result.businessID { CYListRow("mpd.review.business", trailing: .value("#" + business)) { CYRowIcon(systemImage: "tag") } }
                         messageFact("messaging.card.outcome", result.outcome, symbol: "flag")
                         messageFact("messaging.card.reason", result.reason, symbol: "text.quote")
                         messageFact("messaging.card.followUp", result.followUp, symbol: "arrow.turn.down.right")
+                        IMReviewCurrentRecordSection(taskID: result.taskID)
                     }
                     .listStyle(.insetGrouped)
                     .cyGroupedSurface()

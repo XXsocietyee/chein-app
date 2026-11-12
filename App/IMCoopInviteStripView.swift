@@ -40,6 +40,7 @@ import SwiftUI
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
+            if direction == .received { IMInviteReminderToggle() }
             Spacer(minLength: CYSpacing.sm)
             Picker(copy("邀请方向", "Invite direction"), selection: $direction) {
                 Text(verbatim: copy("收到", "Received")).tag(CooperationDirection.received)

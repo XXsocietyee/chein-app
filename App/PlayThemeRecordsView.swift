@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 我的游玩记录 and 本局结果 (mini-program `cy-theme-records`). Read-only; 再玩一次 is not offered.
+/// 我的游玩记录 and 本局结果 (mini-program `cy-theme-records`). Read-only; 再玩一次 shows only when a replay binding is injected.
 @MainActor struct PlayThemeRecordsView: View {
     @Bindable var model: PlayThemeRecordsCoordinator
     var title: String?
@@ -29,6 +29,7 @@ import SwiftUI
                 }
                     .disabled(model.busy).accessibilityIdentifier("playx.themeRecords.more")
             }
+            PlayThemeReplayButton()
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)

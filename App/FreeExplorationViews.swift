@@ -5,10 +5,19 @@ import SwiftUI
 @MainActor struct FreeExplorationCardBrowser: View {
     let snapshot: PlaySnapshot
     @Binding var packOpen: Bool
+    /// 切换章节 (mini-program mode 2): nil shows every chapter's stores.
+    var chapterFilter: Int? = nil
+    /// `productType` other than 2 skips the pack (mini-program `skipPack`).
+    var skipsPack = false
     let onSelect: (Int) -> Void
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var tearing = false
+    @State private var dealt = 0
+    @State private var dealing = false
     var body: some View {
         if let presentation = FreeExplorationPresentation(snapshot: snapshot) {
+            let stores = presentation.stores.filter { chapterFilter == nil || $0.chapterID == chapterFilter }
             VStack(alignment: .leading, spacing: 20) {
                 Text("playFree.title").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("playFree.pass")
                 if let title = snapshot.result.topicName { CYHeroHeader(verbatim: title, subtitle: snapshot.result.topicDescription) }
@@ -31,20 +40,29 @@ import SwiftUI
                 if let expiry = snapshot.result.expiresAt { LabeledContent("play.expiresAt") { Text(verbatim: expiry) } }
                 if let note = snapshot.result.timeNote { Text(verbatim: note).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                 if snapshot.availability == .registrationRequired { Text("playFree.registrationRequired") }
-                else if !packOpen && !presentation.stores.isEmpty {
-                    Button { packOpen = true } label: {
+                else if !packOpen && !skipsPack && !presentation.stores.isEmpty {
+                    // Foil pack printed with the topic name (x-fix7 P-6). Tap tears it open: a short shake and
+                    // burst, then the store cards are dealt one by one. Reduce Motion: opens at once.
+                    Button { openPack(count: presentation.stores.count) } label: {
                         VStack(spacing: 18) {
                             Image(systemName: "rectangle.stack.fill").font(.largeTitle).foregroundStyle(CYColor.textSecondary)
-                            Text("playFree.pack.open").font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                                .symbolEffect(.bounce, value: tearing)
+                            Text(verbatim: snapshot.result.topicName ?? "").font(CYTypography.sectionTitle).cyLookTitle()
+                                .foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).lineLimit(2)
+                            Text("playFree.pack.open").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                         }.frame(maxWidth: .infinity, minHeight: 200)
                             .padding(CYSpacing.xl)
                             .background { CYCoverArt(seed: snapshot.result.topicName ?? "pack", symbol: "rectangle.stack.fill", cornerRadius: CYRadius.xl) }
-                    }.buttonStyle(.plain).accessibilityIdentifier("playFree.pack.open")
+                            .rotationEffect(.degrees(tearing && !reduceMotion ? -2.5 : 0))
+                            .scaleEffect(tearing && !reduceMotion ? 1.06 : 1)
+                            .opacity(tearing ? 0 : 1)
+                    }.buttonStyle(.plain).disabled(tearing).accessibilityIdentifier("playFree.pack.open")
+                    .sensoryFeedback(.impact(weight: .heavy), trigger: tearing)
                 } else {
                     CYSectionHeader("playFree.stores")
-                    if presentation.stores.isEmpty { CYEmptyState(systemImage: "storefront", "playFree.stores.empty") }
+                    if stores.isEmpty { CYEmptyState(systemImage: "storefront", "playFree.stores.empty") }
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: typeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
-                        ForEach(presentation.stores) { node in
+                        ForEach(Array(stores.enumerated()), id: \.element.id) { index, node in
                             Button { onSelect(node.id) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Image(systemName: "storefront.fill").font(.title).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
@@ -55,6 +73,9 @@ import SwiftUI
                                 }.frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
                                     .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                             }.buttonStyle(.plain).accessibilityIdentifier("playFree.store.\(node.id)")
+                            .opacity(!dealing || index < dealt ? 1 : 0)
+                            .offset(y: !dealing || index < dealt ? 0 : 40)
+                            .rotationEffect(.degrees(!dealing || index < dealt ? 0 : (index.isMultiple(of: 2) ? -6 : 6)))
                         }
                     }
                 }
@@ -62,6 +83,24 @@ import SwiftUI
         }
     }
 }
+extension FreeExplorationCardBrowser {
+    private func openPack(count: Int) {
+        guard !tearing else { return }
+        if reduceMotion { dealt = count; packOpen = true; return }
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.45)) { tearing = true }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(320))
+            dealt = 0; dealing = true
+            withAnimation(CYMotion.standard) { packOpen = true }
+            for index in 0..<count {
+                try? await Task.sleep(for: .milliseconds(70))
+                withAnimation(CYMotion.entrance) { dealt = index + 1 }
+            }
+            tearing = false; dealing = false
+        }
+    }
+}
+
 struct FreeExplorationStoreName: View {
     let name: String?
     var body: some View {
@@ -78,6 +117,13 @@ struct FreeExplorationStoreName: View {
     var rewardCollectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
     @State private var selectedStore: Int?
     @State private var packOpen = false
+    @State private var chapterFilter: Int?
+    @State private var showChapterPicker = false
+    @State private var showEmergencyHelp = false
+    @Environment(\.playThemePresentationReader) private var themeReader
+    private var themeFacts: PlayThemePresentationFacts? {
+        model.snapshot?.result.topicID.flatMap { themeReader?.facts(topicID: $0) }
+    }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -85,7 +131,8 @@ struct FreeExplorationStoreName: View {
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 if !model.available { CYEmptyState(systemImage: "nosign", "playx.disabled") }
                 if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
-                    FreeExplorationCardBrowser(snapshot: snapshot, packOpen: $packOpen) { id in
+                    FreeExplorationCardBrowser(snapshot: snapshot, packOpen: $packOpen, chapterFilter: chapterFilter,
+                                               skipsPack: themeFacts?.skipsCardPack == true) { id in
                         guard model.hasCurrentMediaSnapshot, model.snapshot == snapshot, model.gameplayMode == .freeExploration else { return }
                         selectedStore = id
                     }
@@ -121,10 +168,24 @@ struct FreeExplorationStoreName: View {
                     .disabled(!model.available || model.phase == .submitting || model.phase == .loading)
                     .accessibilityIdentifier("playFree.refresh")
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                // Mini-program mode 2 keeps 切换章节 in the tools layer (the old bottom-bar left key).
+                PlayToolsMenu(showsChapters: (model.snapshot?.result.chapters.count ?? 0) > 1, showsEmergency: model.snapshot != nil,
+                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true })
+            }
         }
+        .sheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
+        .sheet(isPresented: $showChapterPicker) {
+            if let snapshot = model.snapshot {
+                PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
+                    withAnimation(CYMotion.standard) { chapterFilter = picked; packOpen = true }
+                }
+            }
+        }
+        .cyThemeLook(themeFacts?.look)
         .accessibilityIdentifier("playFree.overview")
             .navigationDestination(item: $selectedStore) { id in storeDestination(id) }
-            .onChange(of: model.identity) { _, _ in selectedStore = nil; packOpen = false }
+            .onChange(of: model.identity) { _, _ in selectedStore = nil; packOpen = false; chapterFilter = nil }
             .onChange(of: model.gameplayMode) { _, mode in if mode != nil && mode != .freeExploration { selectedStore = nil; packOpen = false } }
     }
 }

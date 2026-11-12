@@ -228,7 +228,10 @@ struct NPCChatDataPresentation: Identifiable {
             .cyGroupedSurface()
             .cyHeroScreen()
             .searchable(text: $query, prompt: "npcData.search")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } }
+                ToolbarItem(placement: .primaryAction) { NPCChatDataExportButton(data: coordinator.data) }
+            }
             .confirmationDialog(Text("npcLogDelete.confirmTitle", tableName: "NPCChatLogDeletion"), isPresented: Binding(
                 get: { coordinator.deletion == .confirming && model.deletionIntent == nil },
                 set: { if !$0 { model.cancelDeletion() } }

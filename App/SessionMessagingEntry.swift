@@ -32,6 +32,7 @@ import SwiftUI
             squareDestination: { close in AnyView(SessionSquareBrowserView(session: session, onClose: close, onSignIn: close)) },
             predictionEntry: { AnyView(SessionMerchantPredictionEntry(session: session)) })
             .id(session.messagingViewIdentity)
+            .environment(\.imReportProgressDestination, { AnyView(SquareReportProgressView(session: session)) })
             // Friends and report results share one … menu so the trailing toolbar stays short.
             // Both stay reachable even when the conversation/history reader is unavailable.
             .toolbar {

@@ -18,6 +18,8 @@ extension PlayKitScreen {
             }
         }
         CYPillButton("playkit.coin.flip", systemImage: "circle.circle") { prepare("FLIP_COIN") }.disabled(!enabled)
+            // 摇一摇抛硬币: same action as the button, which stays as the fallback.
+            .cyOnShake(enabled: enabled) { prepare("FLIP_COIN") }
     }
     @ViewBuilder var diceFaces: some View {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
@@ -36,6 +38,7 @@ extension PlayKitScreen {
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }
         if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array, faces.indices.contains(pip - 1), let task = faces[pip - 1].text { Text(verbatim: task) }
         CYPillButton("playkit.dice.roll", systemImage: "dice") { prepare("ROLL_DICE") }.disabled(!enabled)
+            .cyOnShake(enabled: enabled) { prepare("ROLL_DICE") }
     }
     @ViewBuilder var randomDeck: some View {
         if let name = raw["deckName"].text { Text(verbatim: name).font(.title2.bold()) }

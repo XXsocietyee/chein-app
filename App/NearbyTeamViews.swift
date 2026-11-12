@@ -307,6 +307,7 @@ import SwiftUI
                 }
             default: EmptyView()
             }
+            NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
         }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
