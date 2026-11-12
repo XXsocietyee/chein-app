@@ -33,7 +33,7 @@ struct WaveTodayFixture: View {
             try? await Task.sleep(for: .seconds(1))
             while !Task.isCancelled {
                 taps += 1
-                await wave.simulateTap(at: CGPoint(x: 280, y: 70), waveOn: cyWaveAllowed(reduceMotion: reduceMotion), reduceMotion: reduceMotion)
+                await wave.simulateTap(at: CGPoint(x: 280, y: 70), waveOn: cyLightAllowed(reduceMotion: reduceMotion), reduceMotion: reduceMotion)
                 try? await Task.sleep(for: .seconds(2.6))
             }
         }
