@@ -28,7 +28,7 @@ final class CloudL5IMSquareTests: XCTestCase {
 
     func testFailedSendDoesNotResendUntilReceiptSaysMissing() {
         var transcript = IMSendTranscript()
-        let payload = IMOutgoingPayload(clientMessageID: "im_9", kind: .text("hello"))
+        let payload = IMReceiptSendPayload(clientMessageID: "im_9", kind: .text("hello"))
         let receipt = transcript.start(owner: "4", conversation: "7", payload: payload)
         XCTAssertEqual(transcript.sendCount, 1)
         XCTAssertNil(transcript.start(owner: "4", conversation: "7", payload: payload))
@@ -55,7 +55,7 @@ final class CloudL5IMSquareTests: XCTestCase {
 
     func testFoundReceiptMergesAndNeverSends() {
         var transcript = IMSendTranscript()
-        let card = IMOutgoingPayload(clientMessageID: "im_card", kind: .card("{\"cardType\":\"location\"}"))
+        let card = IMReceiptSendPayload(clientMessageID: "im_card", kind: .card("{\"cardType\":\"location\"}"))
         let receipt = transcript.start(owner: "4", conversation: "7", payload: card)!
         XCTAssertEqual(card.content, "[卡片]")
         XCTAssertEqual(card.messageType, 3)
@@ -70,7 +70,7 @@ final class CloudL5IMSquareTests: XCTestCase {
 
     func testStaleReceiptCannotSendOrMerge() {
         var transcript = IMSendTranscript()
-        let payload = IMOutgoingPayload(clientMessageID: "im_2", kind: .text("a"))
+        let payload = IMReceiptSendPayload(clientMessageID: "im_2", kind: .text("a"))
         let receipt = transcript.start(owner: "1", conversation: "1", payload: payload)!
         transcript.invalidate()
         transcript.finish(receipt: receipt, accepted: false, serverID: nil)
@@ -282,15 +282,15 @@ final class CloudL5IMSquareTests: XCTestCase {
     }
 
     func testShareFollowDraftsActivityAndRouteMap() {
-        let hidden = SquareShareCard.build(.init(id: "9", audience: "FOLLOWERS", status: "1", contents: "秘密", pics: "https://example.com/a.jpg", picList: nil))
-        XCTAssertEqual(hidden.path, SquareShareCard.genericPath)
+        let hidden = SquareL5ShareCard.build(.init(id: "9", audience: "FOLLOWERS", status: "1", contents: "秘密", pics: "https://example.com/a.jpg", picList: nil))
+        XCTAssertEqual(hidden.path, SquareL5ShareCard.genericPath)
         XCTAssertNil(hidden.imageURL)
-        let shared = SquareShareCard.build(.init(id: "9", audience: nil, status: nil, contents: "  城墙  夜跑  ", pics: "https://example.com/a.jpg;not-a-url", picList: nil))
+        let shared = SquareL5ShareCard.build(.init(id: "9", audience: nil, status: nil, contents: "  城墙  夜跑  ", pics: "https://example.com/a.jpg;not-a-url", picList: nil))
         XCTAssertEqual(shared.title, "城墙 夜跑")
         XCTAssertEqual(shared.path, "/pages/square/detail/index?id=9")
         XCTAssertEqual(shared.imageURL, "https://example.com/a.jpg")
         let long = String(repeating: "城", count: 30)
-        XCTAssertEqual(SquareShareCard.build(.init(id: "1", audience: "public", status: "1", contents: long, pics: nil, picList: nil)).title.count, 29)
+        XCTAssertEqual(SquareL5ShareCard.build(.init(id: "1", audience: "public", status: "1", contents: long, pics: nil, picList: nil)).title.count, 29)
         XCTAssertNil(SquareFollowWrite.toggle(memberID: 8, isFollowing: true, inFlight: true))
         let unfollow = SquareFollowWrite.toggle(memberID: 8, isFollowing: true, inFlight: false)
         XCTAssertEqual(unfollow?.follow, 0)

@@ -21,7 +21,7 @@ public enum IMSendReceiptMerge {
     }
 }
 
-public struct IMOutgoingPayload: Equatable {
+public struct IMReceiptSendPayload: Equatable {
     public enum Kind: Equatable {
         case text(String)
         case card(String)
@@ -63,10 +63,10 @@ public enum IMLocalSendState: Equatable {
 
 public struct IMLocalSend: Equatable {
     public let temporaryID: String
-    public let payload: IMOutgoingPayload
+    public let payload: IMReceiptSendPayload
     public var state: IMLocalSendState
 
-    public init(temporaryID: String, payload: IMOutgoingPayload, state: IMLocalSendState) {
+    public init(temporaryID: String, payload: IMReceiptSendPayload, state: IMLocalSendState) {
         self.temporaryID = temporaryID
         self.payload = payload
         self.state = state
@@ -86,7 +86,7 @@ public enum IMReceiptNext: Equatable {
     /// Replace the optimistic row with the server message. Do not send.
     case merge(serverID: String)
     /// Explicit retry after a real miss. Same client id, same payload.
-    case sendOriginal(IMOutgoingPayload)
+    case sendOriginal(IMReceiptSendPayload)
     /// Stay where you are. Do not send.
     case hold
 }
@@ -103,7 +103,7 @@ public struct IMSendTranscript: Equatable {
     public mutating func invalidate() { ledger.invalidate() }
 
     /// First send. Stores the id, then counts one `POST api/im/send`. A second start for the same id does nothing.
-    public mutating func start(owner: String, conversation: String, payload: IMOutgoingPayload) -> IMSendRecoveryLedger.Receipt? {
+    public mutating func start(owner: String, conversation: String, payload: IMReceiptSendPayload) -> IMSendRecoveryLedger.Receipt? {
         guard !locals.contains(where: { $0.payload.clientMessageID == payload.clientMessageID }) else { return nil }
         guard let receipt = ledger.begin(owner: owner, conversation: conversation, id: payload.clientMessageID) else { return nil }
         locals.append(IMLocalSend(temporaryID: "tmp_\(payload.clientMessageID)", payload: payload, state: .sending))

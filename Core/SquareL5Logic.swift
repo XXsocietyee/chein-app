@@ -2,7 +2,7 @@ import Foundation
 
 /// `pages/square/utils/square-share.js`. A forward card is built only for a public published post.
 /// Anything else falls back to the generic feed card, with no body and no image.
-public enum SquareShareCard {
+public enum SquareL5ShareCard {
     public static let genericTitle = "城瘾Hub"
     public static let genericPath = "/pages/talent/list/index?tab=feed"
     public static let titleLimit = 28
