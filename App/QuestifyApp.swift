@@ -350,6 +350,7 @@ struct SessionRootView: View {
 
     private func chain0<V: View>(_ v: V) -> some View {
         v
+        .modifier(CloudB3RootModifier(session: session))
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
         .environment(presentation)
         .onChange(of: session.pendingDeepLink, initial: true) { _, _ in

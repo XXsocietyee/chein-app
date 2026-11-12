@@ -56,6 +56,11 @@ public final class ProfileSessionReader: ProfileReading {
     public func profileParticipants() async throws -> [ProfileParticipant] {
         try await read { service, token in try await service.participants(token: token) }
     }
+
+    /// Same `POST api/user/address/list` as `profileParticipants()`. `total` stays nil when the payload omits it.
+    public func profileParticipantListFacts() async throws -> ProfileParticipantListFacts {
+        try await read { service, token in try await service.participantListFacts(token: token) }
+    }
     public func profileParticipant(id: Int) async throws -> ProfileParticipant {
         try await read { service, token in try await service.participant(id: id, token: token) }
     }

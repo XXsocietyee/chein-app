@@ -17,6 +17,20 @@ public struct SocialAccountService {
         let rows: Rows<SocialInformation> = try await read("api/common/infomation_list", token: token, body: false)
         return rows.rows.filter(\.isUsable)
     }
+    /// Same bodyless `POST api/common/infomation_list`. The decoded list drops envelope `total`;
+    /// this returns the bytes and status so `PlayGuideInformationListPage.project` can classify them.
+    public func informationListReceipt(token: String? = nil) async throws -> CloudB3RawBody {
+        if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
+        try Task.checkCancellation()
+        let request = try AuthRequestBuilder.makeFormRequest(
+            url: configuration.baseURL.appendingPathComponent("api/common/infomation_list"),
+            fields: [:], token: token, includesBody: false)
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        let envelope = try? JSONDecoder().decode(SocialValue.self, from: data)
+        if status == 401 || envelope?["code"].integer == 401 { throw APIError.unauthorized }
+        return CloudB3RawBody(body: data, status: status)
+    }
     public func information(id: Int, token: String? = nil) async throws -> SocialInformation {
         guard id > 0 else { throw APIError.invalidRequest }
         let result: InformationDetail = try await read("api/common/infomation_detail", fields: ["id": String(id)], token: token, missingData: InformationDetail(value: .removed))
