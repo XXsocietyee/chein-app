@@ -37,16 +37,32 @@ import SwiftUI
         revision &+= 1
     }
 }
+/// pages/mylike display marks taken from `AccountCollectionFavoritesPageModel` (unknown is an em dash, never 0 or 未知).
+enum AccountCollectionFavoritesDisplay {
+    static let unknownMark = AccountCollectionFavoritesPageModel.unknownMark
+}
 @MainActor final class AccountCollectionPostsScreenModel: ObservableObject {
     @Published private var revision: UInt64 = 0
     let state = AccountCollectionPostsModel()
-    func invalidate() { state.invalidate(); revision &+= 1 }
+    /// First-page body, kept only to classify it through `AccountCollectionFavoritesPageModel`. Never persisted or logged.
+    private var firstPayload: Data?
+    private var firstPageSize = 10
+    func invalidate() { state.invalidate(); firstPayload = nil; revision &+= 1 }
     func cancelPending() { state.cancelPending(); revision &+= 1 }
+    /// pages/mylike phase for the first page (loading / empty / error / unknown / ready). Nil before a body arrived
+    /// or when the reader supplies no raw body (fixtures); the decoded rows then decide.
+    var pagePhase: AccountCollectionFavoritesPostsState? {
+        guard let firstPayload else { return nil }
+        return AccountCollectionFavoritesPageModel.resolvePosts(loading: false, payload: firstPayload, failure: nil, pageSize: firstPageSize)
+    }
     func refresh(reader: any AccountCollectionReading, pageSize: Int) async {
         let scope = reader.scope
+        firstPayload = nil; firstPageSize = pageSize
         revision &+= 1
-        await state.refresh(scope: scope, currentScope: { reader.scope }) {
-            try await reader.favoritePosts(pageNumber: 1, pageSize: pageSize)
+        await state.refresh(scope: scope, currentScope: { reader.scope }) { [weak self] in
+            let page = try await reader.favoritePosts(pageNumber: 1, pageSize: pageSize)
+            self?.firstPayload = page.rawPayload
+            return page
         }
         revision &+= 1
     }

@@ -14,6 +14,7 @@ struct ProfileParticipantsView: View {
     @State private var recoveryVisible = false
     @State private var recoveryGeneration: UInt64 = 0
     @State private var recoveryIssue: ParticipantScreenIssue?
+    @State private var deletedNotice: UUID?
     /// WIRE-2: mini-program pages/address "select" mode. When a sign-up caller supplies this, a row tap hands back
     /// the participant id instead of opening the detail. Nil (every current call site) keeps the list as before.
     private let onSelect: ((Int) -> Void)?
@@ -44,68 +45,76 @@ struct ProfileParticipantsView: View {
                 }
             }
         } else {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participants",
-                          load: {
-                              snapshotIdentity = nil
-                              let identity = reader.identity, revision = refreshID
-                              let rows = try await reader.profileParticipants()
-                              guard !Task.isCancelled, reader.identity == identity, refreshID == revision else { throw CancellationError() }
-                              snapshotIdentity = identity
-                              return rows
-                          }) { participants in
-            let page = ProfileParticipantListCoordinator.project(list: .success(ProfileParticipantListFacts(rows: participants, total: nil)))
-            if page.phase == .empty {
-                ProfileEmptyState(title: "profile.participants.empty", hint: "profile.participants.emptyHint", symbol: "person.2", identifier: "profile.participants.empty")
-            } else {
-                List {
+        ProfileParticipantListBody(reader: reader, refreshID: refreshID, onSnapshot: { snapshotIdentity = $0 }) { page in
+            List {
+                if let deletedNotice {
+                    // Source danger-confirm step three: the result card, not a passing toast.
                     Section {
-                        ForEach(participants) { participant in
-                            let rowLabel = HStack(spacing: CYSpacing.md) {
-                                Text(verbatim: String(participant.fullName.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
-                                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                    .frame(width: 44, height: 44)
-                                    .background(Circle().fill(CYColor.bgRaised))
-                                    .overlay { if participant.fullName.trimmingCharacters(in: .whitespaces).isEmpty { Image(systemName: "person.fill").foregroundStyle(CYColor.textTertiary) } }
-                                    .accessibilityHidden(true)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                                    else { Text(verbatim: participant.fullName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                                    // Blank phone shows the model's em dash, never an empty line.
-                                    if let card = page.cards.first(where: { $0.id == participant.id }) { Text(verbatim: card.phoneText).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
-                                    // Mini-program pages/address row caption: 用于报名联系和到场核验.
-                                    Text("profile.participants.rowPurpose").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                                }
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                if onSelect != nil { Image(systemName: "circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true) }
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Label("participant.list.deletedTitle", systemImage: "checkmark.circle.fill")
+                                .font(CYTypography.cardTitle).foregroundStyle(CYColor.successText)
+                            Text("participant.list.deletedDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("participant.list.deleted")
+                        .id(deletedNotice)
+                    }
+                    .transition(.opacity)
+                }
+                Section {
+                    ForEach(page.cards) { card in
+                        let name = card.fullName.trimmingCharacters(in: .whitespaces)
+                        let rowLabel = HStack(spacing: CYSpacing.md) {
+                            Text(verbatim: String(name.prefix(1)).uppercased())
+                                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                .frame(width: 44, height: 44)
+                                .background(Circle().fill(CYColor.bgRaised))
+                                .overlay { if name.isEmpty { Image(systemName: "person.fill").foregroundStyle(CYColor.textTertiary) } }
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 4) {
+                                if card.fullName.isEmpty { Text("profile.participants.unnamed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                                else { Text(verbatim: card.fullName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                                // Blank phone shows the model's em dash, never an empty line.
+                                Text(verbatim: card.phoneText).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                                // Mini-program pages/address row caption: 用于报名联系和到场核验.
+                                Text("profile.participants.rowPurpose").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                             }
-                            .padding(.vertical, 4)
-                            Group {
-                                if let onSelect {
-                                    Button { onSelect(participant.id) } label: { rowLabel }.buttonStyle(.plain)
-                                } else {
-                                    NavigationLink { ProfileParticipantDetailView(id: participant.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
-                                }
-                            }.accessibilityIdentifier("profile.participant.\(participant.id)")
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                if let coordinator, coordinator.canPrepare, reader.identity != nil {
-                                    // Direct list entry only opens the existing review/confirm flows; nothing is written here.
-                                    Button("participant.form.delete", role: .destructive) { deleting = ParticipantRowTarget(id: participant.id) }
-                                        .accessibilityIdentifier("participant.list.delete.\(participant.id)")
-                                    Button("participant.form.edit") { editing = ParticipantRowTarget(id: participant.id) }
-                                        .tint(CYColor.accent).accessibilityIdentifier("participant.list.edit.\(participant.id)")
-                                }
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            if onSelect != nil { Image(systemName: "circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true) }
+                        }
+                        .padding(.vertical, 4)
+                        Group {
+                            if let onSelect {
+                                Button { onSelect(card.id) } label: { rowLabel }.buttonStyle(.plain)
+                            } else {
+                                NavigationLink { ProfileParticipantDetailView(id: card.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
+                            }
+                        }.accessibilityIdentifier("profile.participant.\(card.id)")
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            if let coordinator, coordinator.canPrepare, reader.identity != nil {
+                                // Direct list entry only opens the existing review/confirm flows; nothing is written here.
+                                Button("participant.form.delete", role: .destructive) { deleting = ParticipantRowTarget(id: card.id) }
+                                    .accessibilityIdentifier("participant.list.delete.\(card.id)")
+                                Button("participant.form.edit") { editing = ParticipantRowTarget(id: card.id) }
+                                    .tint(CYColor.accent).accessibilityIdentifier("participant.list.edit.\(card.id)")
                             }
                         }
                     }
+                } footer: {
+                    // Table total only when the reader exposes it; the row count is never shown in its place.
+                    if reader is ProfileParticipantListFactsReading {
+                        Text("profile.participants.total \(page.totalText)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            .accessibilityIdentifier("profile.participants.total")
+                    }
                 }
-                .listStyle(.insetGrouped)
-                .cyGroupedSurface()
             }
+            .listStyle(.insetGrouped)
+            .cyGroupedSurface()
+            .cyAnimation(CYMotion.standard, value: deletedNotice)
         }
         }
         }
-        .id(refreshID)
         .appNavigationTitle("profile.participants.title")
         // Mini-program pages/address pins 新增参与人信息 as the page's primary action.
         .questifyBottomAction {
@@ -127,19 +136,19 @@ struct ProfileParticipantsView: View {
             if let recoveryIdentity { coordinator?.discardReadback(expectedIdentity: recoveryIdentity) }
             recoveryIdentity = nil; snapshotIdentity = nil
         }
-        .sheet(isPresented: $showsCreate, onDismiss: { refreshID = UUID() }) {
+        .sheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) {
             if let coordinator {
                 NavigationStack { ParticipantFormView(reader: reader, coordinator: coordinator) }
             }
         }
-        .sheet(item: $editing, onDismiss: { refreshID = UUID() }) { target in
+        .sheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in
             if let coordinator {
                 NavigationStack { ParticipantFormView(id: target.id, reader: reader, coordinator: coordinator) }
             }
         }
         .sheet(item: $deleting, onDismiss: { refreshID = UUID() }) { target in
             if let coordinator {
-                NavigationStack { ParticipantListDeleteView(id: target.id, reader: reader, coordinator: coordinator) }
+                NavigationStack { ParticipantListDeleteView(id: target.id, reader: reader, coordinator: coordinator) { deletedNotice = UUID() } }
             }
         }
     }
@@ -147,14 +156,154 @@ struct ProfileParticipantsView: View {
 
 private struct ParticipantRowTarget: Identifiable { let id: Int }
 
+/// Blank participant text is unknown (em dash, U+2014), never "Not provided" or an empty line.
+enum ProfileParticipantDisplay {
+    static func text(_ raw: String) -> String {
+        raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? ProfileParticipantListPage.unknownMark : raw
+    }
+}
+
+/// Binding stub for Cursor: a reader that also returns the list `total` (`ProfileService.participantListFacts`).
+/// No reader conforms yet, so the list wraps `profileParticipants()` rows with an unknown total and the total footer stays hidden.
+@MainActor protocol ProfileParticipantListFactsReading {
+    func profileParticipantListFacts() async throws -> ProfileParticipantListFacts
+}
+
+/// pages/address list body. Reads `ProfileParticipantListCoordinator` so a refresh keeps the retained list
+/// (source `refreshing` float), a first-load failure is an error (not an empty list), and malformed is unknown.
+@MainActor private struct ProfileParticipantListBody<Ready: View>: View {
+    let reader: any ProfileReading
+    let refreshID: UUID
+    let onSnapshot: (ProfileReadIdentity?) -> Void
+    let ready: (ProfileParticipantListPage) -> Ready
+    @State private var result: Result<ProfileParticipantListFacts, Error>?
+    @State private var retained: ProfileParticipantListFacts?
+    @State private var retainedIdentity: ProfileReadIdentity?
+    @State private var generation: UInt64 = 0
+    @State private var loadOwner = ManualMapReadTaskOwner()
+
+    init(reader: any ProfileReading, refreshID: UUID, onSnapshot: @escaping (ProfileReadIdentity?) -> Void,
+         @ViewBuilder ready: @escaping (ProfileParticipantListPage) -> Ready) {
+        self.reader = reader; self.refreshID = refreshID; self.onSnapshot = onSnapshot; self.ready = ready
+    }
+
+    private var page: ProfileParticipantListPage {
+        ProfileParticipantListCoordinator.project(list: result, retained: retainedIdentity == reader.identity ? retained : nil)
+    }
+
+    var body: some View {
+        let page = page
+        CYLoadSlot(isLoading: reader.isConfigured && page.phase == .loading, label: "profile.loading",
+                   identifier: "profile.participants.loading", announces: true) {
+            ZStack(alignment: .top) {
+                switch page.phase {
+                case .loading:
+                    Color.clear
+                case .empty:
+                    ProfileEmptyState(title: "profile.participants.empty", hint: "profile.participants.emptyHint", symbol: "person.2", identifier: "profile.participants.empty")
+                case .error:
+                    failure
+                case .unknown:
+                    CYEmptyState(systemImage: "questionmark.circle", "profile.participants.unknown", detail: "profile.retryHint",
+                                 messageIdentifier: "profile.participants.unknown", actionTitle: "action.retry",
+                                 actionIdentifier: "profile.participants.retry", kind: .failure) { loadOwner.start { await reload() } }
+                case .ready:
+                    ready(page)
+                }
+                if page.isRefreshing {
+                    // Source: 正在更新参与人信息… floats over the kept list while a newer read runs.
+                    CYStatusChip("profile.participants.refreshing", tone: .neutral, systemImage: "arrow.triangle.2.circlepath")
+                        .padding(.top, CYSpacing.sm)
+                        .accessibilityIdentifier("profile.participants.refreshing")
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .cyAnimation(CYMotion.standard, value: page.isRefreshing)
+        }
+        .overlay {
+            if !reader.isConfigured {
+                CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: "profile.participants.unavailable")
+            }
+        }
+        .refreshable { await loadOwner.run { await reload() } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload() } }
+                    .disabled(page.phase == .loading || page.isRefreshing || !reader.isConfigured || reader.identity == nil)
+                    .accessibilityIdentifier("profile.participants.refresh")
+            }
+        }
+        .task(id: ProfileParticipantListLoadKey(identity: reader.identity, refreshID: refreshID)) {
+            loadOwner.activate(); await loadOwner.run { await reload() }
+        }
+        .onDisappear { loadOwner.deactivate(); generation &+= 1 }
+    }
+
+    @ViewBuilder private var failure: some View {
+        if case .failure(let error)? = result, Self.isSignIn(error) {
+            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.signInRequired", detail: "auth.expired",
+                         messageIdentifier: "profile.participants.signIn")
+        } else {
+            CYEmptyState(systemImage: "exclamationmark.triangle", "profile.participants.loadFailed",
+                         detail: LocalizedStringKey(Self.failureDetailKey(result)),
+                         messageIdentifier: "profile.participants.error", actionTitle: "action.retry",
+                         actionIdentifier: "profile.participants.retry", kind: .failure) { loadOwner.start { await reload() } }
+        }
+    }
+
+    private static func isSignIn(_ error: Error) -> Bool {
+        error as? APIError == .unauthorized || (error as? ProfileReadFailure)?.isUnauthorized == true
+    }
+
+    /// Source fallbacks: network 网络异常，请重试; abnormal status 服务暂不可用，请稍后重试; otherwise 参与人信息加载失败.
+    private static func failureDetailKey(_ result: Result<ProfileParticipantListFacts, Error>?) -> String {
+        guard case .failure(let error)? = result else { return "profile.retryHint" }
+        if error is URLError { return "profile.participants.network" }
+        if let api = error as? APIError, case .httpStatus = api { return "profile.participants.serviceUnavailable" }
+        return "profile.retryHint"
+    }
+
+    private func reload() async {
+        generation &+= 1
+        let request = generation, identity = reader.identity
+        if case .success(let facts)? = result { retained = facts; retainedIdentity = identity }
+        if retainedIdentity != identity { retained = nil; retainedIdentity = nil }
+        result = nil
+        onSnapshot(retained == nil ? nil : identity)
+        guard reader.isConfigured, identity != nil else { return }
+        do {
+            let facts: ProfileParticipantListFacts
+            if let factsReader = reader as? any ProfileParticipantListFactsReading {
+                facts = try await factsReader.profileParticipantListFacts()
+            } else {
+                facts = ProfileParticipantListFacts(rows: try await reader.profileParticipants(), total: nil)
+            }
+            guard generation == request, !Task.isCancelled, reader.identity == identity else { return }
+            result = .success(facts); retained = facts; retainedIdentity = identity
+            onSnapshot(identity)
+        } catch {
+            guard generation == request, !Task.isCancelled, reader.identity == identity else { return }
+            result = .failure(error)
+            if retained == nil { onSnapshot(nil) }
+        }
+    }
+}
+
+private struct ProfileParticipantListLoadKey: Hashable {
+    let identity: ProfileReadIdentity?
+    let refreshID: UUID
+}
+
 /// List-initiated delete: loads the row, shows it, and requires the existing confirmation
 /// alert. Cancel writes nothing; an unknown outcome offers readback only (no resend).
 @MainActor
 struct ParticipantListDeleteView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: ParticipantFormModel
-    init(id: Int, reader: any ProfileReading, coordinator: ParticipantMutationCoordinator) {
+    private let onDeleted: (() -> Void)?
+    init(id: Int, reader: any ProfileReading, coordinator: ParticipantMutationCoordinator, onDeleted: (() -> Void)? = nil) {
         _model = StateObject(wrappedValue: ParticipantFormModel(id: id, reader: reader, coordinator: coordinator))
+        self.onDeleted = onDeleted
     }
     var body: some View {
         Group {
@@ -167,8 +316,8 @@ struct ParticipantListDeleteView: View {
             } else {
                 Form {
                     Section("profile.participants.contact") {
-                        Text(verbatim: model.draft.fullName)
-                        Text(verbatim: model.draft.mobilePhone).foregroundStyle(.secondary)
+                        Text(verbatim: ProfileParticipantDisplay.text(model.draft.fullName))
+                        Text(verbatim: ProfileParticipantDisplay.text(model.draft.mobilePhone)).foregroundStyle(.secondary)
                     }
                     Section {
                         Button("participant.form.delete", role: .destructive) { model.prepareDelete() }
@@ -188,13 +337,16 @@ struct ParticipantListDeleteView: View {
             }
         }
         .interactiveDismissDisabled(model.busy)
-        .alert("participant.form.confirmDelete", isPresented: $model.showConfirmation) {
-            Button("participant.form.delete", role: .destructive) {
-                Task { if await model.confirmMutation() { dismiss() } }
+        // Mini-program cy-danger-confirm (utils/danger-actions.js): what, why, irreversible, what stays.
+        .alert("participant.list.deleteTitle", isPresented: $model.showConfirmation) {
+            Button("participant.list.deleteConfirm", role: .destructive) {
+                Task { if await model.confirmMutation() { onDeleted?(); dismiss() } }
             }
+            .accessibilityIdentifier("participant.list.delete.confirm")
             Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
         } message: {
-            Text(verbatim: model.confirmationSummary + "\n") + Text("participant.form.confirmDeleteHint")
+            Text(verbatim: model.confirmationSummary + "\n\n") + Text("participant.list.deleteBody") + Text(verbatim: "\n")
+                + Text("participant.list.deleteIrreversible") + Text(verbatim: "\n") + Text("participant.list.deleteKeepsRegistration")
         }
         .task(id: model.reader.identity) { await model.load() }
         .onDisappear { model.disappear() }
@@ -222,13 +374,12 @@ struct ProfileParticipantDetailView: View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participant.detail", load: { try await reader.profileParticipant(id: id) }) { participant in
             List {
                 Section("profile.participants.contact") {
+                    // Blank name or phone is unknown: em dash, never an invented value.
                     LabeledContent("profile.participants.name") {
-                        if participant.fullName.isEmpty { Text("profile.valueUnknown") }
-                        else { Text(verbatim: participant.fullName).textSelection(.enabled) }
+                        Text(verbatim: ProfileParticipantDisplay.text(participant.fullName)).textSelection(.enabled)
                     }
                     LabeledContent("profile.participants.phone") {
-                        if participant.mobilePhone.isEmpty { Text("profile.valueUnknown") }
-                        else { Text(verbatim: participant.mobilePhone).textSelection(.enabled) }
+                        Text(verbatim: ProfileParticipantDisplay.text(participant.mobilePhone)).monospacedDigit().textSelection(.enabled)
                     }
                 }
                 if !participant.oneLineAddress.isEmpty {

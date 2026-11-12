@@ -60,13 +60,13 @@ import QuestifyCore
                 Button {
                     showingDice = true
                 } label: {
-                    Label(W8Text.t("掷骰练习", "Dice roller"), systemImage: "dice")
+                    Label("characterCard.dice", systemImage: "dice")
                 }
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("characterSheet.diceRoller")
 
                 if !card.attributes.isEmpty {
-                    Button(isEditing ? W8Text.t("完成", "Done") : W8Text.t("调整", "Adjust")) {
+                    Button(LocalizedStringKey(isEditing ? "characterCard.done" : "characterCard.adjust")) {
                         toggleEditing()
                     }
                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -118,7 +118,7 @@ import QuestifyCore
     private func pendingChangesCard(_ draft: CharacterSheetDraft) -> some View {
         CYCard(variant: .accentTint) {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text(W8Text.t("本机预览的调整", "Adjustments previewed on this device"))
+                Text("characterCard.preview")
                     .font(CYTypography.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                 ForEach(draft.changes) { change in
@@ -141,12 +141,12 @@ import QuestifyCore
                         .accessibilityIdentifier("characterSheet.saveUnavailable")
                 }
                 HStack(spacing: CYSpacing.md) {
-                    Button(W8Text.t("还原", "Reset")) {
+                    Button("characterCard.reset") {
                         self.draft?.reset()
                         saveAttempted = false
                     }
                     .buttonStyle(.cySecondary(fullWidth: true))
-                    Button(W8Text.t("保存", "Save")) { saveAttempted = true }
+                    Button("characterCard.save") { saveAttempted = true }
                         .buttonStyle(.cyPrimary(fullWidth: true))
                         .accessibilityIdentifier("characterSheet.save")
                 }

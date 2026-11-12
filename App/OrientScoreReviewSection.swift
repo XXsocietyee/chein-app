@@ -23,16 +23,16 @@ import QuestifyCore
     var body: some View {
         CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Picker(W8Text.t("类型", "Type"), selection: $kind) {
-                    Text(W8Text.t("计分申诉", "Score appeal")).tag(OrientScoreReviewModel.Kind.appeal)
-                    Text(W8Text.t("成绩争议", "Score dispute")).tag(OrientScoreReviewModel.Kind.dispute)
+                Picker("orientScore.review.kind", selection: $kind) {
+                    Text("orientScore.review.appeal").tag(OrientScoreReviewModel.Kind.appeal)
+                    Text("orientScore.review.dispute").tag(OrientScoreReviewModel.Kind.dispute)
                 }
                 .pickerStyle(.segmented)
-                TextField(W8Text.t("说明理由（最多 500 字）", "Explain why (up to 500 characters)"), text: $reason, axis: .vertical)
+                TextField("orientScore.review.reason", text: $reason, axis: .vertical)
                     .lineLimit(3...6)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("orientScore.review.reason")
-                Button(W8Text.t("提交前确认", "Review before sending")) { model.review(kind: kind, reason: reason) }
+                Button("orientScore.review.begin") { model.review(kind: kind, reason: reason) }
                     .buttonStyle(.cySecondary(fullWidth: true))
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("orientScore.review.begin")
@@ -40,14 +40,14 @@ import QuestifyCore
             }
         }
         .confirmationDialog(
-            W8Text.t("确认提交？", "Send this?"),
+            Text("orientScore.review.confirmTitle"),
             isPresented: Binding(
                 get: { if case .awaitingConfirmation = model.state { return true } else { return false } },
                 set: { if !$0 { model.cancel() } }),
             titleVisibility: .visible
         ) {
-            Button(W8Text.t("确认提交", "Send")) { Task { await model.confirm() } }
-            Button(W8Text.t("取消", "Cancel"), role: .cancel) { model.cancel() }
+            Button("orientScore.review.send") { Task { await model.confirm() } }
+            Button("action.cancel", role: .cancel) { model.cancel() }
         }
     }
 
@@ -56,7 +56,7 @@ import QuestifyCore
         case .submitting:
             ProgressView().accessibilityIdentifier("orientScore.review.submitting")
         case .submitted:
-            Label(W8Text.t("已提交，等待服务器处理", "Sent. The server will review it."), systemImage: "checkmark.circle.fill")
+            Label("orientScore.review.submitted", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(CYColor.successText)
                 .accessibilityIdentifier("orientScore.review.submitted")
         case .failed(let message):
@@ -64,7 +64,7 @@ import QuestifyCore
                 .foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("orientScore.review.failed")
         case .unavailable:
-            Label(W8Text.t("暂未开放：申诉和争议暂时只能在对局记录中提交。", "Not available yet: appeals and disputes can only be sent from the round record for now."),
+            Label("orientScore.review.unavailable",
                   systemImage: "exclamationmark.circle")
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("orientScore.review.unavailable")

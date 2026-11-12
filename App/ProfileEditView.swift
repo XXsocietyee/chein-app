@@ -528,8 +528,9 @@ struct ProfileEditView: View {
     private let onSaved: (() -> Void)?
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
-    private var selectedPreferences: [Int] {
-        model.draft.routePreferenceIDs ?? (model.coordinator.snapshot?.tagIds ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+    /// Nil when the stored `tagIds` is unreadable: the count is then an em dash, never a stand-in 0.
+    private var selectedPreferences: [Int]? {
+        model.draft.routePreferenceIDs ?? ProfilePreferenceRemoval.parse(model.coordinator.snapshot?.tagIds ?? "")
     }
     init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, currentReviewReader: ProfileCurrentReviewReader? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, savedMedia: ProfileSavedMediaReaders? = nil, onSaved: (() -> Void)? = nil) {
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
@@ -582,7 +583,7 @@ struct ProfileEditView: View {
                         model.beginTextEdit(.contactQR)
                     }.disabled(!model.canBeginTextEdit)
                     Section("context.preferences.title") {
-                        LabeledContent("context.preferences.selected", value: String(selectedPreferences.count))
+                        LabeledContent("context.preferences.selected", value: selectedPreferences.map { String($0.count) } ?? "—")
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
                             .disabled(!model.canBeginTextEdit)
                             .accessibilityIdentifier("profile.preferenceRemoval.open")

@@ -30,8 +30,8 @@ struct ParticipantManagementDetailView: View {
                 List {
                     Section { CYHeroHeader("profile.participants.detail") }.e1HeroRow()
                     Section("profile.participants.contact") {
-                        LabeledContent("profile.participants.name") { Text(verbatim: model.draft.fullName).textSelection(.enabled) }
-                        LabeledContent("profile.participants.phone") { Text(verbatim: model.draft.mobilePhone).textSelection(.enabled) }
+                        LabeledContent("profile.participants.name") { Text(verbatim: ProfileParticipantDisplay.text(model.draft.fullName)).textSelection(.enabled) }
+                        LabeledContent("profile.participants.phone") { Text(verbatim: ProfileParticipantDisplay.text(model.draft.mobilePhone)).monospacedDigit().textSelection(.enabled) }
                     }
                     if let province = model.draft.province, !province.isEmpty {
                         Section("profile.participants.savedAddress") {

@@ -19,6 +19,17 @@ import QuestifyCore
         self.loader = loader
     }
 
+    /// `OrientScorePage` over the same state: capability present, so nothing here is hidden. Unknown numbers are an em dash.
+    var page: OrientScorePage {
+        switch state {
+        case .loading: return .bind(clientCapabilityPresent: true, loading: true)
+        case .empty: return .bind(clientCapabilityPresent: true, roundPresent: false)
+        case .failed: return .bind(clientCapabilityPresent: true, failed: true)
+        case .ready: return OrientScorePage(clientCapabilityPresent: true, serverFactPresent: true, phase: readyFacts.map { OrientScorePage.Phase.ready($0) } ?? .unknown)
+        }
+    }
+    private var readyFacts: OrientScorePage.Facts?
+
     func load() async {
         generation += 1
         let stamp = generation
@@ -26,6 +37,7 @@ import QuestifyCore
         do {
             let score = try await loader()
             guard stamp == generation else { return }
+            readyFacts = score.map(OrientScorePage.facts(from:))
             state = score.map { .ready(OrientScorePresentation.summary(from: $0)) } ?? .empty
         } catch is CancellationError {
             return
@@ -54,15 +66,15 @@ import QuestifyCore
                 .padding(.vertical, CYSpacing.lg)
         }
         .background(CYColor.bgPage)
-        .navigationTitle(W8Text.t("本局计分", "Round score"))
+        .navigationTitle(Text("orientScore.title"))
         .task { await model.load() }
         .refreshable { await model.load() }
     }
 
     @ViewBuilder private var content: some View {
-        switch model.state {
-        case .loading:
-            ProgressView(W8Text.t("计分加载中", "Loading score"))
+        switch model.page.phase {
+        case .loading?, nil:
+            CYLoadingState("orientScore.loading", messageIdentifier: "orientScore.loading")
                 .frame(maxWidth: .infinity, minHeight: 240)
                 .accessibilityIdentifier("orientScore.loading")
         case .empty:
@@ -102,6 +114,8 @@ import QuestifyCore
 @available(macOS 14.0, *)
 @MainActor struct OrientScoreReadyContent: View {
     let summary: OrientScoreSummary
+    /// `OrientScorePage.Facts` for the same score: total, settlement, and timeline numbers (em dash when unknown).
+    var facts: OrientScorePage.Facts? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
@@ -109,11 +123,10 @@ import QuestifyCore
             dimensionsCard
             settlementCard
             timelineCard
-            reviewsCard(title: W8Text.t("计分申诉", "Score appeals"), emptyText: W8Text.t("暂无计分申诉", "No score appeals"), rows: summary.appeals)
-            reviewsCard(title: W8Text.t("成绩争议", "Score disputes"), emptyText: W8Text.t("暂无成绩争议", "No score disputes"), rows: summary.disputes)
+            reviewsCard(title: "orientScore.appeals", emptyText: "orientScore.appeals.empty", rows: summary.appeals)
+            reviewsCard(title: "orientScore.disputes", emptyText: "orientScore.disputes.empty", rows: summary.disputes)
             CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
-                Text(W8Text.t("申诉、争议和结算暂时只能在对局记录中提交；这里只显示结果，不会替你提交。",
-                              "Appeals, disputes and settlement can only be submitted from the round record for now. This screen only shows results and never submits for you."))
+                Text("orientScore.readOnly")
                     .font(CYTypography.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -125,8 +138,9 @@ import QuestifyCore
         CYCard(variant: .elevated) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(summary.phase).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                Text(summary.total)
+                Text(verbatim: facts?.totalText ?? summary.total)
                     .font(CYTypography.data2XL)
+                    .contentTransition(.numericText())
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityLabel(summary.totalAccessibility)
                 Text(W8Text.t("对局 \(summary.sessionID)", "Round \(summary.sessionID)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
@@ -140,7 +154,7 @@ import QuestifyCore
     private var dimensionsCard: some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(W8Text.t("得分构成", "Score breakdown")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("orientScore.breakdown").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 ForEach(summary.dimensions) { row in
                     HStack {
                         Text(row.label).font(CYTypography.bodyMedium)
@@ -179,9 +193,9 @@ import QuestifyCore
     private var timelineCard: some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(W8Text.t("计分时间线", "Score timeline")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("orientScore.timeline").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 if summary.timeline.isEmpty {
-                    Text(W8Text.t("还没有计分记录", "No score entries yet")).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("orientScore.timeline.empty").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }
                 ForEach(summary.timeline) { row in
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
@@ -190,27 +204,33 @@ import QuestifyCore
                             Spacer(minLength: CYSpacing.md)
                             Text(row.delta).font(CYTypography.bodyMedium.monospacedDigit())
                         }
-                        Text(W8Text.t("累计 \(row.running)", "Running total \(row.running)")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("orientScore.running \(runningText(row))").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         if !row.reason.isEmpty { Text(row.reason).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                         Text(row.nodeID.map { W8Text.t("流水 \(row.entryID) · 节点 \($0)", "Entry \(row.entryID) · node \($0)") } ?? W8Text.t("流水 \(row.entryID)", "Entry \(row.entryID)"))
                             .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         if let reversed = row.reversesEntryID {
-                            Text(W8Text.t("冲正原流水 \(reversed)", "Reverses entry \(reversed)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            Text("orientScore.reverses \(String(reversed))").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         }
                         if row.appealPending {
-                            Text(W8Text.t("申诉待处理", "Appeal pending")).font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                            Text("orientScore.appealPending").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
                         }
                     }
                     .foregroundStyle(CYColor.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(row.accessibilitySummary + (row.appealPending ? W8Text.t("，申诉待处理", ", appeal pending") : ""))
+                    .accessibilityLabel(Text(verbatim: row.accessibilitySummary) + (row.appealPending ? Text("orientScore.appealPending.spoken") : Text(verbatim: "")))
                 }
             }
         }
     }
 
-    private func reviewsCard(title: String, emptyText: String, rows: [OrientScoreReviewRow]) -> some View {
+    /// Running total from the page facts when present; a missing running total is an em dash, never summed from the delta.
+    private func runningText(_ row: OrientScoreTimelineRow) -> String {
+        guard let facts else { return row.running }
+        return facts.timeline.first(where: { $0.entryID == row.entryID })?.runningText ?? OrientScorePage.unknownDisplay
+    }
+
+    private func reviewsCard(title: LocalizedStringKey, emptyText: LocalizedStringKey, rows: [OrientScoreReviewRow]) -> some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
@@ -222,12 +242,34 @@ import QuestifyCore
                         Text(row.statusText).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
                         Text(row.reason).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         if let note = row.note {
-                            Text(W8Text.t("处理说明：\(note)", "Resolution note: \(note)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            Text("orientScore.resolution \(note)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         }
                     }
                     .accessibilityElement(children: .combine)
                 }
             }
+        }
+    }
+}
+
+/// Binding stub for Cursor: composition that can read this player's own round score for a topic/activity
+/// (`OrientSessionService.current` to pick the session, then `.score`). Nothing conforms yet, so the entry
+/// below stays hidden (capability absent => hidden). It never syncs, settles, appeals, or disputes.
+@MainActor protocol OrientScoreEntryProviding {
+    /// Nil hides the entry. The loader returns nil when the player has no round of their own here.
+    func orientScoreLoader(topicID: Int, activityID: Int) -> (() async throws -> OrientSessionScore?)?
+}
+
+/// subpackageMember/orient-score entry from the participation/activity detail (source `participation-result-entry`).
+@available(macOS 14.0, *)
+@MainActor struct OrientScoreEntryLink: View {
+    let loader: () async throws -> OrientSessionScore?
+    var body: some View {
+        Section {
+            NavigationLink { OrientScoreView(model: OrientScoreModel(loader: loader)) } label: {
+                CYListRow("orientScore.title", trailing: .none) { CYRowIcon(systemImage: "list.number") }
+            }
+            .accessibilityIdentifier("activity.openOrientScore")
         }
     }
 }
