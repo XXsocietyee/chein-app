@@ -36,3 +36,11 @@ Branch `ui/cloud-clubops` from `origin/ui/main` `72d2eb9ec498de21ded7cf9215f2638
 - `WalletPayoutCapability.isOn = false`.
 - DEBUG fixtures were not referenced from production views.
 - Accessibility identifiers already on these screens were kept.
+
+## Follow-up on the same branch
+
+- Notify preview reads `ClubNotifyPage.previewRecipient`. A known count, including 0, stays the people line. Unknown is an em dash.
+- `docs/release/ui-strings-pages-club-customer-detail-index.json` is restored so the customer-detail page-ready check can load it. Each row names table `ClubOpsCustomer`. The four `club.customerDetail.page.*` keys are in that catalog in EN and zh-Hans.
+- `docs/release/ui-strings-subpackageA-pages-assetcenter-analysis-index.json` is restored so the analysis page-ready check can load it. Those keys were already in the wallet catalogs.
+- `test_club_ops_customer.ClubOpsCustomerCatalog.test_every_table_key_used_in_swift_exists` still fails on the pre-existing dead constants `clubOps.customers.unknown` and `clubOps.customers.unknownLabel` (`docs/release/receipts/contract-backlog-1.md`). Those rows were not added.
+- Swift and Xcode are not installed here, so there is no `xcodebuild` or simulator run.

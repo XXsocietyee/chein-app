@@ -50,10 +50,14 @@ struct ClubOpsNotifyContentFields: View {
 struct ClubOpsNotifyPreviewSummary: View {
     let value: ClubGovernanceValue
     var body: some View {
-        if let count = ClubOpsNotifyPresentation.previewCount(value) {
+        let recipient = ClubNotifyPage.previewRecipient(value)
+        if let count = recipient.literal {
             LabeledContent { ClubOpsJoinNotifyCopy.people(count).monospacedDigit() } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.title") }
                 .accessibilityIdentifier("clubOpsJN.notify.preview")
             if count == 0 { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.empty").font(.footnote).foregroundStyle(.secondary) }
+        } else {
+            LabeledContent { Text(verbatim: recipient.displayText).monospacedDigit() } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.title") }
+                .accessibilityIdentifier("clubOpsJN.notify.preview")
         }
     }
 }
