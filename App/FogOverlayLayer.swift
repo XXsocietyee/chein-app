@@ -259,7 +259,8 @@ struct FogOverlayLayer: View {
         self.wipes = wipes; self.softEdgeRadius = softEdgeRadius; self.shimmer = shimmer; self.clock = clock
     }
 
-    private static let warm = Color(red: 1.0, green: 0.78, blue: 0.45)
+    /// Lantern gold (CYNight.lantern): the fog edge is the one place light shows on the map.
+    private static let warm = CYNight.lantern
 
     var body: some View {
         Group {
@@ -303,8 +304,8 @@ struct FogOverlayLayer: View {
                 }
             }
             if style.frontierGlow, let glow = images?.glow {
-                // Breathes slowly (+-15 %) unless motion is reduced; `shimmer` is false then.
-                let breath = shimmer ? 1 + 0.15 * sin(now * 1.6) : 1
+                // Breathes on a 2.2 s cycle (+-15 %) unless motion is reduced; `shimmer` is false then (static edge).
+                let breath = shimmer ? 1 + 0.15 * sin(now * 2 * .pi / 2.2) : 1
                 if let bloom = images?.bloom {
                     ctx.drawLayer { layer in
                         layer.clip(to: Path(windowRect))
