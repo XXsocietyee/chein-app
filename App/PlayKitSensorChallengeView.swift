@@ -28,6 +28,7 @@ import SwiftUI
 
     var body: some View {
         VStack(spacing: 20) {
+            kicker
             Text(LocalizedStringKey("playkit.sensor.purpose." + kind.rawValue))
                 .font(.callout).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("playkit.sensor.purpose")
@@ -86,6 +87,23 @@ import SwiftUI
         .accessibilityIdentifier("playkit.sensor." + kind.rawValue)
     }
 
+    /// The mini-program's one-line goal above each sensor board.
+    @ViewBuilder private var kicker: some View {
+        Group {
+            switch kind {
+            case .ballShake:
+                Text("playkit.ball.kicker \(stage.ball.goal)")
+                if stage.ball.limitSeconds > 0 { Text("playkit.ball.limitLine \(decimal(stage.ball.limitSeconds))").font(CYTypography.body) }
+            case .quietHold: Text("playkit.quiet.kicker")
+            case .shout: Text("playkit.shout.kicker")
+            case .compass: Text("playkit.compass.kicker")
+            default: EmptyView()
+            }
+        }
+        .font(CYTypography.meta).foregroundStyle(.secondary)
+        .accessibilityIdentifier("playkit.sensor.kicker")
+    }
+
     @ViewBuilder private var sensorBoard: some View {
         switch kind {
         case .ballShake:
@@ -123,6 +141,7 @@ import SwiftUI
                       systemImage: level > threshold ? "waveform" : "waveform.path")
                     .foregroundStyle(color)
                 ProgressView(value: held, total: total).accessibilityLabel(Text("playkit.sensor.holdProgress"))
+                if kind == .quietHold { Text("playkit.quiet.relative").font(.footnote).foregroundStyle(.secondary) }
                 if kind == .quietHold, stage.quiet.exceeded { Text("playkit.quiet.limitReached") }
                 if kind == .shout { Text("playkit.shout.continuous").font(.footnote) }
             }

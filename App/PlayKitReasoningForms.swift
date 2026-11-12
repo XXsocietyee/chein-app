@@ -28,11 +28,19 @@ extension PlayKitScreen {
             if let attempts = segment["attempts"].integer, attempts > 0 {
                 LabeledContent("playkit.attempts") { Text(verbatim: String(attempts)) }
                 if showResult, let resultKey = PlayKitScreenProjection(kind: kind, segment: segment).reasoningResultKey {
-                    Text(LocalizedStringKey(resultKey)).accessibilityIdentifier("playkit.reasoning.result")
+                    // Not-passed feedback reads as the mini-program's tinted banner.
+                    let passed = resultKey == "playkit.result.passed"
+                    Text(LocalizedStringKey(resultKey)).font(CYTypography.bodyMedium)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(CYSpacing.md)
+                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(passed ? CYNight.tileGreen.opacity(0.45) : CYNight.tileRed.opacity(0.45)))
+                        .accessibilityIdentifier("playkit.reasoning.result")
                 }
             }
             if let cap = segment["maxAttempts"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
-            Button("playkit.review") { requestReview(action, payload, {}) }.buttonStyle(.questifyPrimary).disabled(!enabled || !valid)
+            Button(LocalizedStringKey(kind == .sort ? "playkit.sort.submit" : kind == .match ? "playkit.match.submit" : "playkit.classify.submit")) { requestReview(action, payload, {}) }
+                .buttonStyle(.questifyPrimary).disabled(!enabled || !valid)
+                .accessibilityIdentifier("playkit.submit." + kind.rawValue)
         }.onAppear { if order.isEmpty { order = items.map(\.id) } }
             .onChange(of: items.map(\.id)) { _, ids in order = ids; placement = [:] }
             .onChange(of: left.map(\.id)) { _, _ in placement = [:] }
@@ -50,7 +58,7 @@ extension PlayKitScreen {
         Text("playkit.sort.instructions").font(.footnote)
         ForEach(Array(order.enumerated()), id: \.element) { index, id in
             HStack {
-                Text(verbatim: String(index + 1)).monospacedDigit()
+                Text(verbatim: String(index + 1)).font(CYTypography.cardTitle.italic()).monospacedDigit().foregroundStyle(.secondary)
                 Text(verbatim: items.first { $0.id == id }?.label ?? id).frame(maxWidth: .infinity, alignment: .leading)
                 Button { move(index, -1) } label: { Image(systemName: "arrow.up") }.accessibilityLabel(Text("playkit.sort.up")).disabled(!enabled || index == 0)
                 Button { move(index, 1) } label: { Image(systemName: "arrow.down") }.accessibilityLabel(Text("playkit.sort.down")).disabled(!enabled || index == order.count - 1)
@@ -88,7 +96,9 @@ extension PlayKitScreen {
                 ForEach(bins) { bin in Text(verbatim: bin.label).tag(bin.id) }
             } label: { Text(verbatim: item.label) }.pickerStyle(.menu).disabled(!enabled)
         }
-        LabeledContent("playkit.classify.remaining") { Text(verbatim: String(max(0, items.count - placement.count))) }
+        Text("playkit.classify.remainingLine \(max(0, items.count - placement.count))").font(CYTypography.meta).foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("playkit.classify.remaining")
     }
     private func move(_ index: Int, _ delta: Int) {
         let destination = index + delta

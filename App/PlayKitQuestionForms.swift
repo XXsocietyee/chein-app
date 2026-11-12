@@ -133,8 +133,24 @@ extension PlayKitScreen {
         if let hour = raw["revealHour"].integer, (0...23).contains(hour) { LabeledContent("playkit.predict.revealHour") { Text(verbatim: String(hour)) } }
     }
     @ViewBuilder var attempts: some View {
-        if let count = raw["attempts"].integer ?? raw["tries"].integer { LabeledContent("playkit.attempts") { Text(verbatim: String(count)) } }
-        if let cap = raw["maxTries"].integer ?? raw["maxAttempts"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
+        let used = raw["attempts"].integer ?? raw["tries"].integer
+        if let cap = raw["maxTries"].integer ?? raw["maxAttempts"].integer, cap > 0 {
+            // Mini-program "还能错 ●●●": one dot per remaining try.
+            let left = max(0, cap - (used ?? 0))
+            HStack(spacing: CYSpacing.xs) {
+                Text("playkit.triesLeft").font(CYTypography.meta).foregroundStyle(.secondary)
+                if cap <= 10 {
+                    ForEach(0..<cap, id: \.self) { index in
+                        Circle().fill(index < left ? Color.primary : Color.secondary.opacity(0.3)).frame(width: 8, height: 8)
+                    }
+                } else { Text(verbatim: "\(left) / \(cap)").font(CYTypography.meta).monospacedDigit() }
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("playkit.triesLeft"))
+            .accessibilityValue(Text(verbatim: "\(left) / \(cap)"))
+            .accessibilityIdentifier("playkit.triesLeft")
+        } else if let used { LabeledContent("playkit.attempts") { Text(verbatim: String(used)) } }
     }
     private func toggle(_ id: String, multi: Bool) {
         if multi { if selected.contains(id) { selected.remove(id) } else { selected.insert(id) } }

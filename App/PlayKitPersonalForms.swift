@@ -37,6 +37,9 @@ extension PlayKitScreen {
     }
     @ViewBuilder var noteForm: some View {
         let limit = PlayKitShortMessageLimit.resolve(raw["maxLength"])
+        if (raw["previous"].array ?? []).contains(where: { !($0["text"].text ?? "").isEmpty }) {
+            Text("playkit.note.previousLabel").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        }
         ForEach(Array((raw["previous"].array ?? []).enumerated()), id: \.offset) { _, note in
             if let value = note["text"].text, !value.isEmpty {
                 CYInfoCard {
@@ -45,11 +48,22 @@ extension PlayKitScreen {
                 }
             }
         }
-        ForEach(Array((raw["presets"].array ?? []).enumerated()), id: \.offset) { _, value in
-            if let preset = value.text { CYChoiceRow(label: preset, selected: text == preset, enabled: enabled) { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } }
-        }
         TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).cyField().disabled(!enabled)
         Text(verbatim: "\(text.utf16.count) / \(limit)").font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity, alignment: .trailing)
+        // Preset lines sit under the field as small chips, as in the mini-program.
+        let presets = (raw["presets"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
+        if !presets.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: CYSpacing.sm) {
+                    ForEach(Array(presets.enumerated()), id: \.offset) { _, preset in
+                        Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: { Text(verbatim: preset).font(CYTypography.label) }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                            .disabled(!enabled)
+                            .accessibilityAddTraits(text == preset ? .isSelected : [])
+                    }
+                }
+            }.frame(maxWidth: .infinity)
+        }
         Text("playkit.note.audience").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         submitButton("SUBMIT_NOTE", payload: ["text": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
@@ -61,7 +75,11 @@ extension PlayKitScreen {
         if let note = raw["shotNote"].text, !note.isEmpty { Text(verbatim: note).font(.title3) }
         if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame) }
         if let prior = raw["lastUrl"].text, !prior.isEmpty { artwork(prior) }
-        if raw["degraded"].bool != true, raw["passed"].bool != true, raw["flagged"].bool != true, (raw["tries"].integer ?? 0) > 0, let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason) }
+        if raw["degraded"].bool != true, raw["passed"].bool != true, raw["flagged"].bool != true, (raw["tries"].integer ?? 0) > 0 {
+            // Mini-program retry state: a short headline, then the reviewer's reason.
+            Text("playkit.photo.retryTitle").font(CYTypography.cardTitle).frame(maxWidth: .infinity)
+            if let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
+        }
         if let used = raw["tries"].integer, let cap = raw["maxTries"].integer, cap > 0 {
             LabeledContent("playkit.photo.remaining") { Text(verbatim: String(max(0, cap - used))) }
         }

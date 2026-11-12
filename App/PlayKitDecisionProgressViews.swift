@@ -4,6 +4,7 @@ extension PlayKitScreen {
     @ViewBuilder var coinFace: some View {
         let side = (raw["side"].text ?? "").uppercased()
         let key = ["HEADS", "H", "正面"].contains(side) ? "heads" : ["TAILS", "T", "反面"].contains(side) ? "tails" : ""
+        Text("playkit.coin.kicker").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
         Image(systemName: key.isEmpty ? "circle.dashed" : "circle.inset.filled").resizable().scaledToFit().frame(width: 100, height: 100).frame(maxWidth: .infinity).accessibilityHidden(true)
         if !key.isEmpty {
             Text(verbatim: raw[key]["label"].text ?? side).font(.largeTitle.bold()).frame(maxWidth: .infinity)
@@ -20,10 +21,12 @@ extension PlayKitScreen {
         CYPillButton("playkit.coin.flip", systemImage: "circle.circle") { prepare("FLIP_COIN") }.disabled(!enabled)
             // 摇一摇抛硬币: same action as the button, which stays as the fallback.
             .cyOnShake(enabled: enabled) { prepare("FLIP_COIN") }
+        if enabled { shakeHint("playkit.coin.shakeHint") }
     }
     @ViewBuilder var diceFaces: some View {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
         let d20 = raw["mode"].text == "d20"
+        if !d20 { Text("playkit.dice.kicker").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
         HStack {
             ForEach(Array(values.enumerated()), id: \.offset) { _, value in
                 if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").resizable().scaledToFit().frame(width: 72, height: 72).accessibilityLabel(Text(verbatim: String(value))) }
@@ -32,13 +35,27 @@ extension PlayKitScreen {
         }.frame(maxWidth: .infinity)
         if values.isEmpty { Text("playkit.dice.waiting") }
         if let action = raw["action"].text, !action.isEmpty { Text(verbatim: action) }
-        if let total = projection.diceTotal { LabeledContent("playkit.dice.total") { Text(verbatim: String(total)).accessibilityIdentifier("playkit.dice.total") } }
+        if let total = projection.diceTotal {
+            // Big total, then "5 + 4" under it, as the mini-program shows after a roll.
+            VStack(spacing: CYSpacing.xs) {
+                Text(verbatim: String(total)).font(CYTypography.display).monospacedDigit()
+                    .accessibilityLabel(Text("playkit.dice.total")).accessibilityValue(Text(verbatim: String(total)))
+                    .accessibilityIdentifier("playkit.dice.total")
+                if values.count > 1 {
+                    Text("playkit.dice.sumLine \(values.map(String.init).joined(separator: " + "))").font(CYTypography.meta).foregroundStyle(.secondary)
+                }
+            }.frame(maxWidth: .infinity)
+        }
         if let kept = raw["kept"].integer { LabeledContent("playkit.dice.kept") { Text(verbatim: String(kept)) } }
         if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)) } }
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }
         if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array, faces.indices.contains(pip - 1), let task = faces[pip - 1].text { Text(verbatim: task) }
         CYPillButton("playkit.dice.roll", systemImage: "dice") { prepare("ROLL_DICE") }.disabled(!enabled)
             .cyOnShake(enabled: enabled) { prepare("ROLL_DICE") }
+        if enabled { shakeHint("playkit.coin.shakeHint") }
+    }
+    func shakeHint(_ key: LocalizedStringKey) -> some View {
+        Label(key, systemImage: "iphone.gen3.radiowaves.left.and.right").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
     }
     @ViewBuilder var randomDeck: some View {
         if let name = raw["deckName"].text { Text(verbatim: name).font(.title2.bold()) }

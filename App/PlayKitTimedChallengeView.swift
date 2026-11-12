@@ -28,6 +28,12 @@ import SwiftUI
             CYHeroHeader(LocalizedStringKey("playkit.kind." + kind.rawValue))
             if kind == .reaction { reactionStage }
             else { timedStage }
+            if kind == .stopwatch || kind == .reaction {
+                // Mini-program footnote: a device reading for fun; backgrounding interrupts the local clock.
+                Text("playkit.challenge.localNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("playkit.challenge.localNotice")
+            }
             if timing.phase == .interrupted || reaction.phase == .interrupted {
                 CYStatusChip("playkit.challenge.interrupted", tone: .warning, systemImage: "pause.circle")
             }
@@ -70,7 +76,13 @@ import SwiftUI
         if seconds > 0 { LabeledContent("playkit.challenge.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(seconds, locale: locale)).monospacedDigit() } }
         if kind == .stopwatch, let tolerance = segment["toleranceMs"].integer { LabeledContent("playkit.stopwatch.tolerance") { Text(verbatim: PlayTimedDisplayLocalization.tolerance(tolerance, locale: locale)) } }
         if kind == .typeIn {
-            Text(verbatim: segment["target"].text ?? "").font(.title2.monospaced()).textSelection(.disabled)
+            Text(verbatim: segment["target"].text ?? "").font(.title2.monospaced().bold()).textSelection(.disabled)
+                .frame(maxWidth: .infinity).padding(CYSpacing.lg)
+                .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
+            if seconds > 0 {
+                Text("playkit.type.goalLine \(PlayTimedDisplayLocalization.seconds(seconds, locale: locale))")
+                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
+            }
             Text(segment["caseSensitive"].bool == true ? "playkit.type.caseSensitive" : "playkit.type.caseInsensitive").font(.footnote)
             TextField("playkit.type.input", text: $input, axis: .vertical)
                 .textFieldStyle(.roundedBorder).textInputAutocapitalization(.never).autocorrectionDisabled()
