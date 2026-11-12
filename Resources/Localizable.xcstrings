@@ -258435,6 +258435,22 @@
           }
         }
       }
+    },
+    "participant.list.editShort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

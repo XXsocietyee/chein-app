@@ -84,13 +84,31 @@ struct ProfileParticipantsView: View {
                             if onSelect != nil { Image(systemName: "circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true) }
                         }
                         .padding(.vertical, 4)
-                        Group {
-                            if let onSelect {
-                                Button { onSelect(card.id) } label: { rowLabel }.buttonStyle(.plain)
-                            } else {
-                                NavigationLink { ProfileParticipantDetailView(id: card.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
+                        HStack(spacing: CYSpacing.sm) {
+                            Group {
+                                if let onSelect {
+                                    Button { onSelect(card.id) } label: { rowLabel }.buttonStyle(.plain)
+                                } else {
+                                    NavigationLink { ProfileParticipantDetailView(id: card.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
+                                }
+                            }.accessibilityIdentifier("profile.participant.\(card.id)")
+                            // Mini-program pages/address row: 编辑 and × stay visible beside each participant.
+                            if onSelect == nil, let coordinator, coordinator.canPrepare, reader.identity != nil {
+                                Button { editing = ParticipantRowTarget(id: card.id) } label: {
+                                    Text("participant.list.editShort").font(CYTypography.meta).underline().foregroundStyle(CYColor.textSecondary)
+                                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityIdentifier("participant.list.editInline.\(card.id)")
+                                Button { deleting = ParticipantRowTarget(id: card.id) } label: {
+                                    Image(systemName: "xmark").foregroundStyle(CYColor.textTertiary)
+                                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel(Text("participant.form.delete"))
+                                .accessibilityIdentifier("participant.list.deleteInline.\(card.id)")
                             }
-                        }.accessibilityIdentifier("profile.participant.\(card.id)")
+                        }
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             if let coordinator, coordinator.canPrepare, reader.identity != nil {
                                 // Direct list entry only opens the existing review/confirm flows; nothing is written here.
