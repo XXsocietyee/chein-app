@@ -105,7 +105,9 @@ import SwiftUI
                     if let selectedPin, pins.filter({ $0.id == selectedPin }).count == 1 { selectedPlaceSummary(selectedPin, area: area) }
                 }
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
-                else if area == nil { CYEmptyState(systemImage: "mappin.and.ellipse", "searchMap.areaRequired") }
+                else if area == nil {
+                    CYEmptyState(systemImage: "location.slash", "searchMap.areaRequired", messageIdentifier: "searchMap.areaRequired", kind: .location)
+                }
                 else if loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("searchMap.loading")).accessibilityIdentifier("searchMap.loading") }
                 else if let issue { SearchMapIssue(key: issue) { startLoad() } }
                 if let result = visibleCityResults { cityContent(result) }
@@ -389,7 +391,8 @@ import SwiftUI
         if !mapLayers.isEmpty && (!mapLayers.shows(.activities) || pagination.rows.isEmpty) && (!mapLayers.shows(.cityPlaces) || value.nodes.isEmpty)
                     && (!mapLayers.shows(.activities) || value.activityFailure == nil) && (!mapLayers.shows(.cityPlaces) || value.nodeFailure == nil) {
             CYEmptyState(systemImage: "mappin.slash", LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"),
-                         detail: mapLayers.shows(.activities) && pagination.nextPage != nil ? LocalizedStringKey("mapPagination.filteredPage") : nil)
+                         detail: mapLayers.shows(.activities) && pagination.nextPage != nil ? LocalizedStringKey("mapPagination.filteredPage") : nil,
+                         kind: .search)
         }
         if mapLayers.shows(.activities) {
             Text("searchMap.kind.activity").font(.headline).accessibilityAddTraits(.isHeader)
@@ -470,7 +473,7 @@ import SwiftUI
         else if value.city.manualInputRequired || value.cityFailed {
             Text(LocalizedStringKey(value.city.worthRetrying ? "searchMap.cityRateLimited" : "searchMap.cityManual")).font(.footnote)
         }
-        if value.nodes.isEmpty { CYEmptyState(systemImage: "mappin.slash", "searchMap.empty") }
+        if value.nodes.isEmpty { CYEmptyState(systemImage: "mappin.slash", "searchMap.empty", messageIdentifier: "searchMap.nearby.empty", kind: .search) }
         ForEach(Array(value.nodes.enumerated()), id: \.offset) { _, node in
             NavigationLink {
                 if let area { nearbyDetail(node, area: area) }

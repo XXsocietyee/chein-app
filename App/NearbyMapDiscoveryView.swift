@@ -196,7 +196,11 @@ struct NearbyMapDiscoveryControls: View {
                 Text("nearby.map.places", tableName: "NearbyMapDiscovery").tag(NearbyMapDiscoveryLayer.place)
                 Text("nearby.map.shops", tableName: "NearbyMapDiscovery").tag(NearbyMapDiscoveryLayer.shop)
             } label: { Text("nearby.map.layers", tableName: "NearbyMapDiscovery") }
-                .pickerStyle(.segmented).accessibilityIdentifier("nearby.discovery.layers")
+                .pickerStyle(.segmented)
+                .padding(4)
+                .background(Capsule(style: .continuous).fill(CYNight.glassFill))
+                .overlay(Capsule(style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                .accessibilityIdentifier("nearby.discovery.layers")
             if filter.layer == .place || filter.layer == .shop {
                 let options = NearbyMapDiscoveryFilter.options(items: items, layer: filter.layer)
                 if filter.tag.isEmpty || options.contains(filter.tag) {
@@ -248,12 +252,14 @@ struct NearbyMapDiscoveryStatusView: View {
             .font(CYTypography.label).foregroundStyle(CYColor.warningText)
             if let issue { RoamStatusView(issue: issue, retry: retry) }
         case .unavailable:
-            Group {
-                if events { Text("nearby.map.eventsUnavailable", tableName: "NearbyMapDiscovery") }
-                else { Text("nearby.map.poisUnavailable", tableName: "NearbyMapDiscovery") }
-            }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            CYEmptyState(
+                systemImage: "wifi.slash",
+                LocalizedStringKey(events ? "nearby.map.eventsUnavailable" : "nearby.map.poisUnavailable"),
+                tableName: "NearbyMapDiscovery",
+                kind: .offline
+            )
         case .waiting:
-            Text("nearby.map.areaRequired", tableName: "NearbyMapDiscovery").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            CYEmptyState(systemImage: "location.slash", "nearby.map.areaRequired", tableName: "NearbyMapDiscovery", kind: .location)
         case .loaded: EmptyView()
         }
     }

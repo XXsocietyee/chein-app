@@ -25,6 +25,7 @@ import SwiftUI
     /// Loading-to-content choreography (docs/release/motion-spec-loading.md): timed skeleton + first-screen stagger.
     @State private var skeletonShown = false
     @State private var stagger = CYStaggerGate()
+    @QuestifyReduceMotion private var reduceMotion
     /// The skeleton is being held for its minimum time after the results arrived.
     private var holdingSkeleton: Bool { skeletonShown && !loading }
     private var issue: String? { phase.failure }
@@ -69,8 +70,7 @@ import SwiftUI
                         .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
                 }
                 .padding(.leading, CYSpacing.md).padding(.trailing, 4)
-                .background(CYColor.bgElevated, in: Capsule())
-                .overlay { Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
+                .searchNightPill()
                 .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                 if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
@@ -224,8 +224,7 @@ import SwiftUI
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
                                 .lineLimit(1).minimumScaleFactor(0.85)
                                 .frame(maxWidth: .infinity, minHeight: 44)
-                                .background(Capsule(style: .continuous).fill(CYColor.bgElevated))
-                                .overlay { Capsule(style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
+                                .searchNightPill()
                                 .contentShape(Capsule())
                         }.buttonStyle(.plain).disabled(!reader.isConfigured)
                             .accessibilityIdentifier("searchMap.recommended.\(index)")
@@ -340,7 +339,7 @@ import SwiftUI
                 Label("searchMap.citySearch", systemImage: "location.north.line")
                     .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: 52)
-                    .background(CYColor.bgElevated, in: Capsule())
+                    .searchNightPill()
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
@@ -418,7 +417,7 @@ import SwiftUI
         let visible = value.rows.filter { !(hidesMerchants && $0.kind == .merchant) && (selectedKind == nil || $0.kind == selectedKind) }
         Section {
             if value.showsEmptyState(for: selectedKind, isLoading: loading) {
-                CYEmptyStateView(systemImage: "magnifyingglass", title: "searchMap.empty")
+                CYEmptyState(systemImage: "magnifyingglass", "searchMap.empty", messageIdentifier: "searchMap.empty", kind: .search)
             }
             ForEach(Array(visible.enumerated()), id: \.element.id) { index, row in
                 NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }
@@ -431,11 +430,11 @@ import SwiftUI
     }
     private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind
-        return Button { withAnimation(.snappy) { selectedKind = kind } } label: {
+        return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
             title.font(CYTypography.bodyMedium).lineLimit(1)
-                .foregroundStyle(selected ? CYColor.bgPage : CYColor.textPrimary)
+                .foregroundStyle(selected ? Color.white : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                .background(Capsule(style: .continuous).fill(selected ? CYColor.textPrimary : CYColor.bgElevated))
+                .searchNightPill(selected: selected)
         }
         .buttonStyle(.plain).cyHaptic(.selection, trigger: selectedKind)
         .accessibilityAddTraits(selected ? .isSelected : [])
