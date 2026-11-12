@@ -86,3 +86,62 @@ import FoundationNetworking
         return .acknowledged(operationID: operationID, teamID: teamID)
     }
 }
+
+/// `POST /api/team/command` plus query and cancel. The 32-hex request id is kept until
+/// a 2xx or 4xx answer. Transport failure, 5xx, and a malformed body stay on that id.
+public enum TeamCommandTerminal: Equatable {
+    case applied(Int)
+    case rejected(Int)
+    case unknown
+}
+
+@MainActor public final class TeamCommandWriter {
+    public static let paths: Set<String> = ["api/team/command", "api/team/command/query", "api/team/command/cancel"]
+    public let approval: OperationEndpointApproval
+    private let configuration: APIConfiguration
+    private let transport: any HTTPTransport
+    private var savedRequestIDs: [String: String] = [:]
+
+    public init(approval: OperationEndpointApproval, configuration: APIConfiguration, transport: any HTTPTransport) throws {
+        guard approval.baseURL == configuration.baseURL, Self.paths.isSubset(of: approval.paths) else {
+            throw APIError.invalidConfiguration
+        }
+        self.approval = approval
+        self.configuration = configuration
+        self.transport = transport
+    }
+
+    public func savedRequestID(for key: String) -> String? { savedRequestIDs[key] }
+
+    public func submit(key: String, path: String, fields: [String: String]) async -> TeamCommandTerminal {
+        guard Self.paths.contains(path), !key.isEmpty else { return .unknown }
+        let requestID = savedRequestIDs[key] ?? Self.hexIdentifier()
+        savedRequestIDs[key] = requestID
+        var body = fields
+        body["requestId"] = requestID
+        guard let encoded = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return .unknown }
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.httpBody = encoded
+        let status: Int
+        do { (_, status) = try await transport.send(request) }
+        catch { return .unknown }
+        if (200..<300).contains(status) {
+            savedRequestIDs[key] = nil
+            return .applied(status)
+        }
+        if (400..<500).contains(status) {
+            savedRequestIDs[key] = nil
+            return .rejected(status)
+        }
+        return .unknown
+    }
+
+    private static func hexIdentifier() -> String {
+        UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+    }
+}

@@ -868,6 +868,13 @@ final class AppSession: ObservableObject {
     private var communityService: ClubCommunityService {
         resolvedClubCommunityService(fallback: dormantCommunityService)
     }
+    private func clubCommunityWriteServiceOrDormant() -> ClubCommunityService {
+        if let context = currentRuntimeDependencyContext,
+           let writer = composition.clubCommunityWriteService(baseURL: context.baseURL, transport: runtimeHTTPTransport) {
+            return writer
+        }
+        return dormantCommunityService
+    }
     var clubCommunityRuntimeContext: RuntimeDependencyContext? { currentRuntimeDependencyContext }
     var clubCommunityRuntimeTransport: any HTTPTransport { scopedTransport(clubCommunityTransportOverride) }
     func currentClubCommunitySession() throws -> ClubCommunitySession { try currentCommunitySession() }
@@ -886,7 +893,7 @@ final class AppSession: ObservableObject {
         }
     }
     private lazy var communityCoordinator = ClubCommunityCoordinator(
-        service: dormantCommunityService,
+        service: clubCommunityWriteServiceOrDormant(),
         currentSession: { [weak self] in
             guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
         },
@@ -1314,9 +1321,10 @@ final class AppSession: ObservableObject {
               let recovery = try? composition.storage.playRecovery.make(session: captured, scope: scope,
                 regionalConfiguration: regional, storageScope: storageScope),
               current() == captured else { return nil }
-        // The normal root admits only progress reads. Durable recovery does not grant writes.
-        let api = PlayExperienceService(configuration: configuration, transport: factory.transport,
-            enabled: factory.accepted?.play.intersection([.reads]) ?? [])
+        // Durable recovery does not grant writes. The player lease does, when it was constructed.
+        let playerPlay = currentRuntimeDependencyContext.flatMap { composition.playerWriteGrant($0)?.play } != nil
+        let enabled = playerPlay ? (factory.accepted?.play ?? []) : (factory.accepted?.play.intersection([.reads]) ?? [])
+        let api = PlayExperienceService(configuration: configuration, transport: factory.transport, enabled: enabled)
         let coordinator = PlayExperienceCoordinator(scope: scope, service: api,
             recovery: recovery, pausedStorage: recovery,
             currentSession: { current() == captured ? captured : nil },
@@ -7214,7 +7222,8 @@ final class AppSession: ObservableObject {
     private func prepareDoorRuntime() {
         guard retainedDoorQueue == nil, let configuration = regionalConfiguration?.apiConfiguration, let namespace = storageScope?.service,
               let directory = safetyDirectory("DoorReferralSafety/" + namespace) else { return }
-        let service = DoorReferralService(configuration: configuration, transport: runtimeHTTPTransport, scanEnabled: false, bindingEnabled: false,
+        let service = DoorReferralService(configuration: configuration, transport: runtimeHTTPTransport,
+            scanEnabled: composition.reviewed?.playerWritesEnabled == true, bindingEnabled: false,
             currentSession: { [weak self] in self?.doorReferralSession ?? DoorReferralSession(accountID: nil, epoch: UUID(), token: nil, restored: false) })
         retainedDoorQueue = DoorReferralQueue(store: DoorReferralFileStore(url: directory.appendingPathComponent("referrals-v1.json")), service: service,
             currentSession: { [weak self] in self?.doorReferralSession ?? DoorReferralSession(accountID: nil, epoch: UUID(), token: nil, restored: false) })
@@ -7371,7 +7380,9 @@ final class AppSession: ObservableObject {
             clubManagementService=ClubManagementService(configuration:configuration,transport:transport)
             clubOperationsService=ClubOperationsService(configuration:configuration,transport:transport)
             clubGovernanceService=ClubGovernanceService(configuration:configuration,transport:transport)
-            profileEditService=ProfileEditService(configuration:configuration,transport:transport)
+            let avatarDispatch: (any ProfileAvatarDispatching)? = composition.reviewed?.playerWritesEnabled == true
+                ? ReviewedProfileAvatarDispatch { try await transport.send($0) } : nil
+            profileEditService=ProfileEditService(configuration:configuration,transport:transport,avatarTransport:avatarDispatch)
             clubActionService=ClubActionService(configuration:configuration,transport:transport)
             roamService=RoamService(configuration:configuration,transport:transport.scopedForManualMap(roamMapSelection))
             roamExperienceService=RoamExperienceService(configuration:configuration,transport:transport)

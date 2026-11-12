@@ -6,17 +6,17 @@ import FoundationNetworking
 
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 993)
-        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 608)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 996)
+        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 622)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 385)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 374)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.liveInProductionCount
                 + ChinaReviewedRouteCapability.newBackendOnlyCount
                 + ChinaReviewedRouteCapability.missingCount,
             ChinaReviewedRouteCapability.callSiteCount
         )
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 658)
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 672)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.productionBackendCommit,
             "014fc0d83afe9f53cf4a8b1f9544bcf634e9ce6c"
@@ -55,7 +55,7 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
         let china = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
         let fixture = try XCTUnwrap(URL(string: "https://example.test/native"))
         let hidden = [
-            "/api/map/public-layers", "/api/play/help", "/api/login",
+            "/api/map/public-layers", "/api/login",
             "/api/withdrawal/create", "/api/fund/preflight/bank-withdrawal",
             "/api/cart/list", "/api/product/info", "/api/registration/pay", "/api/registration/pay/app",
             "/api/pay/create", "/api/approved-topic-release/v1/prepare"
@@ -81,7 +81,9 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
         XCTAssertFalse(paid.showsRoute("/api/withdrawal/create"))
         XCTAssertFalse(paid.showsRoute("/api/cart/list"))
         XCTAssertFalse(paid.showsRoute("/api/registration/pay"))
-        XCTAssertFalse(paid.showsRoute("/api/play/help"))
+        XCTAssertTrue(paid.showsRoute("/api/play/help"))
+        XCTAssertTrue(paid.showsRoute("/api/team/command"))
+        XCTAssertTrue(paid.showsRoute("/api/friend/request"))
         XCTAssertTrue(paid.showsRoute("/api/activity/list"))
         XCTAssertTrue(paid.showsRoute("/api/withdrawal/list"))
         XCTAssertTrue(paid.showsRoute("/api/login/phone"))
@@ -99,10 +101,12 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     }
 
     func testMissingAndNewBackendRoutesStayDark() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/play/help"), .missing)
-        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/help"))
-        XCTAssertNil(ChinaReviewedRouteCapability.hidingCapability(for: "/api/play/help"))
-        XCTAssertTrue(ChinaReviewedRouteCapability.isHiddenFromChinaReviewed("/api/play/help"))
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/play/help"), .liveInProduction)
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/help"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/help/receipt"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/team/command"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/team/command/query"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/team/command/cancel"))
         XCTAssertNil(ChinaReviewedRouteCapability.mark(for: "/api/author-write/receipt"))
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/author-write/receipt"))
     }

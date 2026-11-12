@@ -16,6 +16,9 @@ struct ReviewedAppDeployment {
     /// Reviewed production gate bundle (account deletion, legal catalog, Apple+SMS sign-in,
     /// wallet history/overview reads, and orders/addresses/favorites/coupons leases).
     let productionGatesEnabled: Bool
+    /// Owner approval 2026-11-12: non-money player writes on the shipped China composition.
+    /// Payment, payout, withdrawal, virtual goods, merchant/coop writes, and password login stay off.
+    let playerWritesEnabled: Bool
     /// Safe opt-in for test backends whose `/api/userInfo` projection omits `role` after `/api/auth/login/phone`.
     let allowLoginRoleFallbackOnRolelessUserInfo: Bool
     var appleSignInApproved: Bool {
@@ -42,6 +45,7 @@ struct ReviewedAppDeployment {
          nativeChannelAppeals: NativeChannelAppealPolicyStore? = nil,
          accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource? = nil,
          productionGatesEnabled: Bool = false,
+         playerWritesEnabled: Bool = false,
          allowLoginRoleFallbackOnRolelessUserInfo: Bool = false) throws {
         regional = try RegionalConfiguration(market: market, baseURL: baseURL,
             approvedBaseURLs: approvedBaseURLs, verifiedCapabilities: verifiedCapabilities)
@@ -51,6 +55,7 @@ struct ReviewedAppDeployment {
         self.nativeChannelAppeals = nativeChannelAppeals
         self.accountDeregistrationOriginalSource = accountDeregistrationOriginalSource
         self.productionGatesEnabled = productionGatesEnabled
+        self.playerWritesEnabled = playerWritesEnabled
         self.allowLoginRoleFallbackOnRolelessUserInfo = allowLoginRoleFallbackOnRolelessUserInfo
     }
 }
@@ -583,6 +588,34 @@ extension KeychainTokenStore: AppTokenStorage {}
                 gates.roamLive(context)
             }
         }
+        let grantPlayerWrites: Bool
+        if case .reviewed(let reviewed) = deployment, reviewed.playerWritesEnabled, reviewed.regional.market == .china {
+            grantPlayerWrites = true
+        } else {
+            grantPlayerWrites = false
+        }
+        productionGateLeases.notePlayerWrites(grantPlayerWrites)
+        if grantPlayerWrites {
+            clubOrdinaryAdmissionApproval = { [gates] context in gates.playerWriters(context)?.clubAdmission }
+            nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
+            nativeChannelTextSendApproval = { [gates] context in gates.playerWriters(context)?.channelTextSend }
+            nativeChannelTextReceiptApproval = { [gates] context in gates.playerWriters(context)?.channelTextReceipt }
+        }
+    }
+
+    /// Club post/comment writes for the player grant. The read composition stays read-only.
+    func clubCommunityWriteService(baseURL: URL, transport: any HTTPTransport) -> ClubCommunityService? {
+        guard reviewed?.playerWritesEnabled == true, reviewed?.regional.market == .china else { return nil }
+        return ClubCommunityService(dormantBaseURL: baseURL, transport: transport, grant: .reviewedInjection)
+    }
+
+    func playerWriteGrant(_ context: RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? {
+        productionGateLeases.playerWriters(context)
+    }
+
+    func teamCommandWriter(context: RuntimeDependencyContext, transport: any HTTPTransport) -> TeamCommandWriter? {
+        guard let approval = playerWriteGrant(context)?.team, let api = reviewed?.regional.apiConfiguration else { return nil }
+        return try? TeamCommandWriter(approval: approval, configuration: api, transport: transport)
     }
     var reviewed: ReviewedAppDeployment? {
         if case .reviewed(let value) = deployment { return value }; return nil
@@ -664,6 +697,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.clubPostOriginalApproval = clubPostOriginalApproval
         transport.clubCommentOriginalApproval = clubCommentOriginalApproval
         transport.clubOrdinaryAdmissionApproval = clubOrdinaryAdmissionApproval
+        transport.playerWriteGrant = { self.playerWriteGrant($0) }
         transport.clubRoleAssignmentApproval = { self.clubRoleAssignmentApproval($0) }
         transport.clubRoleRevocationApproval = { self.clubRoleRevocationApproval($0) }
         transport.clubPostImageUploadApproval = clubPostImageUploadApproval
@@ -954,6 +988,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
     }
     var current: () -> SessionIdentity? = { nil }
+    var playerWriteGrant: @MainActor (RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? = { _ in nil }
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
     var mapPublicLayerReadApproval: @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil }
@@ -1781,6 +1816,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.clubPostOriginalApproval = { self.clubPostOriginalApproval($0) }
         transport.clubCommentOriginalApproval = { self.clubCommentOriginalApproval($0) }
         transport.clubOrdinaryAdmissionApproval = { self.clubOrdinaryAdmissionApproval($0) }
+        transport.playerWriteGrant = { self.playerWriteGrant($0) }
         transport.clubRoleAssignmentApproval = { self.clubRoleAssignmentApproval($0) }
         transport.clubRoleRevocationApproval = { self.clubRoleRevocationApproval($0) }
         transport.clubPostImageUploadApproval = { self.clubPostImageUploadApproval($0, $1) }
@@ -2522,6 +2558,26 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
 
 
+    /// Community readback and friend reads carry a query. The early query gate must not drop them.
+    private func admitsPlayerWriteQuery(_ request: URLRequest, baseURL: URL) -> Bool {
+        guard deployment?.playerWritesEnabled == true, deployment?.regional.market == .china,
+              let url = request.url, url.fragment == nil else { return false }
+        let base = baseURL.path.hasSuffix("/") ? String(baseURL.path.dropLast()) : baseURL.path
+        let path = url.path
+        guard path == base || path.hasPrefix(base + "/") else { return false }
+        let relative = String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/")
+    }
+
+    private func signedInRuntime(_ captured: SessionIdentity) -> RuntimeDependencyContext? {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role,
+              let token = captured.token,
+              let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                namespace: deployment.storageScope.service, token: token, role: role) else { return nil }
+        return RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+    }
+
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         if merchantDeskAnchorOnly {
             guard let scope = merchantDeskAnchorScope else { throw APIError.notConfigured }
@@ -2590,7 +2646,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || officialPublicEventReadSelection.admitsEarly(request, baseURL: api.baseURL, namespace: deployment.storageScope.service, granted: deployment.regional.market == .china && deployment.reads.contains(.officialPublicEventCatalogAndDetail)) || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || officialPublicEventReadSelection.admitsEarly(request, baseURL: api.baseURL, namespace: deployment.storageScope.service, granted: deployment.regional.market == .china && deployment.reads.contains(.officialPublicEventCatalogAndDetail)) || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         // The canonical `api/template/myinfo` id read satisfies both the reviewed merchant baseline route and the owned-shelf
         // detail route. When this viewer holds a matching shelf read approval the shelf route is the specific claim and is
@@ -3512,6 +3568,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
+        } else if deployment.playerWritesEnabled, deployment.regional.market == .china,
+                  let context = signedInRuntime(captured),
+                  let grant = playerWriteGrant(context),
+                  ReviewedProductionFormMutationRoute.acceptsPlayerWrite(request, baseURL: api.baseURL, token: captured.token, context: context, grant: grant) {
+            guard captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
                   captured.isPublicTemplateViewer,
@@ -3548,6 +3609,36 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard current() == captured, !Task.isCancelled, readApprovalStillValid?() != false else { throw CancellationError() }
             throw error
         }
+    }
+}
+
+/// Writers the shipped China composition constructs. Admission is `ReviewedProductionFormMutationRoute`.
+struct ReviewedPlayerWriteGrant {
+    let imSend: OperationEndpointApproval
+    let clubAdmission: ClubOrdinaryAdmissionApproval
+    let clubCommunity: OperationEndpointApproval
+    let square: OperationEndpointApproval
+    let profile: OperationEndpointApproval
+    let avatar: ProfileAvatarApproval
+    let registration: OperationEndpointApproval
+    let team: OperationEndpointApproval
+    let play: OperationEndpointApproval
+    let roamExtras: OperationEndpointApproval
+    let likes: OperationEndpointApproval
+    let reports: OperationEndpointApproval
+    let friends: NativeFriendApproval
+    let channelTextSend: NativeChannelTextApproval
+    let channelTextReceipt: NativeChannelTextApproval
+}
+
+/// Checked avatar upload. The ordinary profile transport is not an implicit avatar capability.
+@MainActor final class ReviewedProfileAvatarDispatch: ProfileAvatarDispatching {
+    var isConfigured: Bool { true }
+    private let sendRequest: (URLRequest) async throws -> (Data, Int)
+    init(sendRequest: @escaping (URLRequest) async throws -> (Data, Int)) { self.sendRequest = sendRequest }
+    func send(_ request: URLRequest, authorization: ProfileAvatarDispatchAuthorization) async throws -> (Data, Int) {
+        try authorization.forward(request) {}
+        return try await sendRequest(request)
     }
 }
 
@@ -4211,6 +4302,105 @@ private enum ReviewedProductionFormMutationRoute {
         guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else { return false }
         return canonical.httpBody == body
     }
+
+    /// Admits one owner-approved player write when that writer was constructed for this viewer.
+    @MainActor static func acceptsPlayerWrite(_ request: URLRequest, baseURL: URL, token: String?,
+                                              context: RuntimeDependencyContext, grant: ReviewedPlayerWriteGrant) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              let url = request.url, url.fragment == nil, url.user == nil, url.password == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let method = request.httpMethod else { return false }
+        let relative = relativePath(url, baseURL: baseURL)
+        if method != "GET", url.query != nil { return false }
+        guard !relative.isEmpty, !ReleaseMoneyWriteSwitch.blocks("/" + relative),
+              ChinaReviewedRouteCapability.forcedOff("/" + relative) == nil else { return false }
+        if relative == "api/roam/presence" || relative == "api/roam/presence-visibility" { return false }
+        if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
+        if relative == "api/registration/create" {
+            return method == "POST" && grant.registration.paths.contains(relative) && freeRegistrationBody(request)
+        }
+        if let channel = NativeChannelTextRoute(request: request, baseURL: baseURL) {
+            let approval = channel.operation == .send ? grant.channelTextSend : grant.channelTextReceipt
+            let path = channel.operation == .send ? "api/im/send" : "api/im/send-receipt"
+            return grant.imSend.paths.contains(path) && approval.matches(context, operation: channel.operation, conversationID: channel.conversationID)
+        }
+        if grant.clubAdmission.allowsWrites, grant.clubAdmission.matches(context),
+           (ClubOrdinaryAdmissionRoute.accepts(request, baseURL: baseURL) || simpleClubMembership(request, baseURL: baseURL)) {
+            return true
+        }
+        if relative.hasPrefix("api/v1/community/"), grant.square.paths.contains(where: { $0.hasPrefix("api/v1/community/") }) {
+            if method == "GET" { return request.httpBody == nil || request.httpBody?.isEmpty == true }
+            guard ["POST", "PATCH", "DELETE"].contains(method) else { return false }
+            if relative == "api/v1/community/notification-preferences" { return true }
+            return stableCommunityRequestID(request)
+        }
+        if method == "GET" { return covers(relative, grant.friends.endpoint) }
+        guard method == "POST", request.httpBody?.isEmpty == false else { return false }
+        if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
+            return covers(relative, grant.team) && teamRequestID(request)
+        }
+        return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
+            || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
+            || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
+    }
+
+    private static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
+        if approval.paths.contains(relative) { return true }
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        return approval.paths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+    }
+
+    /// A create with `payChannel` or a positive amount is a payment step and stays closed.
+    private static func freeRegistrationBody(_ request: URLRequest) -> Bool {
+        guard let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              object["payChannel"] == nil else { return false }
+        for key in ["payAmount", "price", "amount", "payableAmount"] {
+            if let number = object[key] as? NSNumber, number.doubleValue > 0 { return false }
+        }
+        return true
+    }
+
+    private static func stableCommunityRequestID(_ request: URLRequest) -> Bool {
+        guard let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        for key in ["requestId", "clientRequestId", "uploadRequestId", "request_id"] {
+            if let value = object[key] as? String, !value.isEmpty { return true }
+        }
+        return false
+    }
+
+    private static func teamRequestID(_ request: URLRequest) -> Bool {
+        guard let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let value = object["requestId"] as? String, value.count == 32,
+              value.allSatisfy({ ("0"..."9").contains($0) || ("a"..."f").contains($0) }) else { return false }
+        return true
+    }
+
+    private static func simpleClubMembership(_ request: URLRequest, baseURL: URL) -> Bool {
+        guard request.httpMethod == "POST",
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let url = request.url, let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let id = object["id"] as? NSNumber, id.intValue > 0 else { return false }
+        let join = url == baseURL.appendingPathComponent("api/club/join")
+        let quit = url == baseURL.appendingPathComponent("api/club/quit")
+        guard join || quit else { return false }
+        let keys = Set(object.keys)
+        if quit { return keys == ["id"] }
+        if keys == ["id"] { return true }
+        guard keys == ["id", "joinMessage"], let message = object["joinMessage"] as? String, !message.isEmpty else { return false }
+        return true
+    }
+
+    private static func relativePath(_ url: URL, baseURL: URL) -> String {
+        let base = baseURL.path.hasSuffix("/") ? String(baseURL.path.dropLast()) : baseURL.path
+        let path = url.path
+        guard path == base || path.hasPrefix(base + "/") else { return "" }
+        return String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    }
 }
 
 @MainActor private final class ReviewedProductionGateLeases {
@@ -4236,6 +4426,86 @@ private enum ReviewedProductionFormMutationRoute {
     private var merchantOperationsWriteByContext: [String: OperationEndpointApproval] = [:]
     private var nearbyTeamWriteByContext: [String: OperationEndpointApproval] = [:]
     private var cityVoucherIssueByContext: [String: VerificationCodeApproval] = [:]
+    private var playerWritesEnabled = false
+    private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
+    private var playConfigurationByContext: [String: RuntimeDependencyConfiguration] = [:]
+
+    // player-write-paths-begin
+    static let imPaths: Set<String> = ["api/im/send", "api/im/send-receipt"]
+    static let clubCommunityPaths: Set<String> = [
+        "api/club/post/create", "api/club/post/update", "api/club/post/like", "api/club/post/report",
+        "api/club/post/delete", "api/club/post/comment/create", "api/club/post/comment/delete",
+        "api/club/post/comment/report", "api/club/post/repost", "api/club/post/repost/undo"
+    ]
+    static let squarePaths: Set<String> = [
+        "api/v1/community/guidelines/active", "api/v1/community/guidelines/ack", "api/v1/community/media/register",
+        "api/v1/community/drafts", "api/v1/community/posts", "api/v1/community/reports", "api/v1/community/appeals",
+        "api/v1/community/capabilities"
+    ]
+    static let profilePaths: Set<String> = ["api/user/update", "api/common/uploadOSS"]
+    static let registrationPaths: Set<String> = ["api/registration/create"]
+    static let teamCommandPaths: Set<String> = ["api/team/command", "api/team/command/query", "api/team/command/cancel"]
+    static let playPaths: Set<String> = [
+        "api/play/arrive", "api/play/answer", "api/play/checkin", "api/play/photo", "api/play/sensor-result",
+        "api/play/puzzle/reveal", "api/play/action-context", "api/play/action-receipt", "api/play/help",
+        "api/play/help/receipt", "api/play/help/advanced/receipt", "api/play/advanced/start", "api/play/advanced/action",
+        "api/topic/chapter/finish", "api/play/run-session/save", "api/play/journey/opening/complete",
+        "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
+        "api/play/orient/session/prepare", "api/play/orient/session/receipt",
+        "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state"
+    ]
+    static let roamExtraPaths: Set<String> = [
+        "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",
+        "api/roam/shop/visit", "api/roam/poi/discover", "api/roam/reveal", "api/roam/share/snapshot",
+        "api/roam/passport/record", "api/city/nodes/{}/favorite", "api/city/nodes/{}/complete"
+    ]
+    static let likePaths: Set<String> = ["api/topic/like", "api/comment/like", "api/creativesquare/like"]
+    static let reportPaths: Set<String> = [
+        "api/v1/community/reports", "api/v1/community/appeals", "api/comment/report", "api/topic/report",
+        "api/template/report", "api/creativesquare/report", "api/im/report", "api/club/post/report",
+        "api/club/post/comment/report", "api/club/governance/cases/report", "api/club/governance/cases/appeal"
+    ]
+    static let playCapabilities: Set<PlayExperienceCapability> = [
+        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening
+    ]
+    // player-write-paths-end
+
+    func notePlayerWrites(_ enabled: Bool) { playerWritesEnabled = enabled }
+
+    func playerWriters(_ context: RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? {
+        guard playerWritesEnabled, context.market == .china, context.role == "player" || context.role == "club" else { return nil }
+        let key = contextKey(context)
+        if let existing = playerWritersByContext[key] { return existing }
+        guard let grant = makePlayerGrant(context) else { return nil }
+        playerWritersByContext[key] = grant
+        return grant
+    }
+
+    private func makePlayerGrant(_ context: RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? {
+        let expires = Date().addingTimeInterval(3600)
+        guard let im = makeEndpoint(context, paths: Self.imPaths),
+              let clubCommunity = makeEndpoint(context, paths: Self.clubCommunityPaths),
+              let square = makeEndpoint(context, paths: Self.squarePaths),
+              let profile = makeEndpoint(context, paths: Self.profilePaths),
+              let registration = makeEndpoint(context, paths: Self.registrationPaths),
+              let team = makeEndpoint(context, paths: Self.teamCommandPaths),
+              let play = makeEndpoint(context, paths: Self.playPaths),
+              let roamExtras = makeEndpoint(context, paths: Self.roamExtraPaths),
+              let likes = makeEndpoint(context, paths: Self.likePaths),
+              let reports = makeEndpoint(context, paths: Self.reportPaths),
+              let friendEndpoints = makeEndpoint(context, paths: NativeFriendApproval.readPaths.union(NativeFriendApproval.writePaths)),
+              let friends = try? NativeFriendApproval(endpoint: friendEndpoints, expiresAt: expires),
+              let avatar = try? ProfileAvatarApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+                  accountID: context.session.accountID, approvedOrigins: [context.baseURL.absoluteString], nativePicker: true),
+              let clubAdmission = try? ClubOrdinaryAdmissionApproval(context: context, allowsWrites: true),
+              let channelTextSend = try? NativeChannelTextApproval(context: context, operation: .send, conversationIDs: [],
+                  expiresAt: expires, allowsAnyPositiveConversation: true),
+              let channelTextReceipt = try? NativeChannelTextApproval(context: context, operation: .receipt, conversationIDs: [],
+                  expiresAt: expires, allowsAnyPositiveConversation: true) else { return nil }
+        return ReviewedPlayerWriteGrant(imSend: im, clubAdmission: clubAdmission, clubCommunity: clubCommunity, square: square,
+            profile: profile, avatar: avatar, registration: registration, team: team, play: play, roamExtras: roamExtras,
+            likes: likes, reports: reports, friends: friends, channelTextSend: channelTextSend, channelTextReceipt: channelTextReceipt)
+    }
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {
         "\(context.market.rawValue)|\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
@@ -4494,9 +4764,21 @@ private enum ReviewedProductionFormMutationRoute {
             accountID: context.session.accountID, routes: imRoutes
         )
         return NativeRuntimeDependencies(
+            configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
             orderLifecycleConfiguration: orderConfiguration
         )
+    }
+
+    private func playConfiguration(_ context: RuntimeDependencyContext) -> RuntimeDependencyConfiguration? {
+        guard playerWritesEnabled, context.role == "player" || context.role == "club",
+              let endpoints = makeEndpoint(context, paths: Self.playPaths) else { return nil }
+        let key = contextKey(context)
+        if let existing = playConfigurationByContext[key] { return existing }
+        let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
+            playReadApprovalID: UUID())
+        playConfigurationByContext[key] = configuration
+        return configuration
     }
 }

@@ -42,6 +42,7 @@ Base: `origin/rc/20261108`. Facts come from files in this repo; verification num
 | `WalletPayoutCapability` | off (reported) |
 | Password login | not compiled into Release (`app-store-pack.md`) |
 | Payment / payout / withdrawal | off |
+| Non-money player writes | on for the shipped China composition only, owner approval 2026-11-12. Each writer is constructed by `ReviewedProductionGateLeases` and admitted by `ReviewedProductionFormMutationRoute`. Password login, merchant/coop writes, roam presence, and the four money switches stay off. See `launch-scope-matrix.md` and `receipts/cloud-w1.md`. |
 | Fog live reveal (`PersonalFogFeature.liveRevealEnabled`, location capability) | off (`roam-fog/location-permission-copy.md`) |
 | Closed-by-default tests | green (reported) |
 

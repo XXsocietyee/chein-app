@@ -153,7 +153,9 @@ Families with the most NEW-BACKEND-ONLY paths (prefix of three segments):
 | Bank withdrawal | Withdrawal paths in `BankWithdrawalAdapter` are PROD-SERVED. | `makeBankWithdrawalContext` returns nil. No guest navigation. |
 | Virtual goods | Workshop and `/api/mod-commerce` paths are NEW-BACKEND-ONLY. | StoreKit launcher is not built. Shelf rows are not built. |
 
-No gate was turned on. `RegionalLaunchConfiguration.composition` is still `reviewed: nil`.
+No money gate was turned on. Password login, payout, withdrawal, virtual goods, and merchant/coop operator writes stay off.
+
+Owner approval 2026-11-12 (`Yes, all player writes`): the shipped China composition (`reviewedDeployment`, `playerWritesEnabled`) constructs each approved writer inside `ReviewedProductionGateLeases` and admits the matching request inside `ReviewedProductionFormMutationRoute`. A matching China build is required. The process-default `composition` stays unconfigured when the build does not admit China. Production gates alone do not turn the writers on. Unknown results stay on the caller's saved request id until a 2xx or 4xx answer. The writers are IM send and send-receipt, club join/apply/quit plus post and comment create/delete/like/report/repost, the `/api/v1/community/*` publish pipeline, profile edit and avatar, free registration, team command/query/cancel, the play loop including help and scan-entry, roam extras other than presence, likes, reports and appeals, and friends plus channel text send. Club role assign/revoke stay nil. `api/registration/create` is admitted only when the body has no `payChannel` and no positive amount; `RegistrationCoordinator.confirm` sends only a zero `payAmount` and does not set the app pay channel. `api/registration/pay`, `api/registration/cancel-refund`, withdrawal, payout, virtual goods, merchant/coop operator writes, and password login stay off. See `docs/release/receipts/cloud-w1.md`.
 
 ## Every route
 

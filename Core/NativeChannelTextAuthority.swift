@@ -14,18 +14,25 @@ public enum NativeChannelTextOperation: Equatable { case send, receipt }
     public let originalReplyWireEnabled: Bool
     public let operation: NativeChannelTextOperation
     public let conversationIDs: Set<Int>
+    /// The shipped player lease covers every positive conversation. A fixed set stays exact.
+    public let allowsAnyPositiveConversation: Bool
     public let expiresAt: Date
     public let revision = UUID()
     public private(set) var isRevoked = false
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
     public init(context: RuntimeDependencyContext, operation: NativeChannelTextOperation,
-                conversationIDs: Set<Int>, expiresAt: Date, originalReplyWireEnabled: Bool = false, originalMentionWireEnabled: Bool = false) throws {
+                conversationIDs: Set<Int>, expiresAt: Date, originalReplyWireEnabled: Bool = false, originalMentionWireEnabled: Bool = false,
+                allowsAnyPositiveConversation: Bool = false) throws {
         _ = try APIConfiguration(baseURL: context.baseURL)
         let duration = expiresAt.timeIntervalSinceNow
+        let conversationsOK = allowsAnyPositiveConversation
+            ? conversationIDs.allSatisfy { $0 > 0 }
+            : !conversationIDs.isEmpty && conversationIDs.allSatisfy { $0 > 0 }
         guard context.market == .china, context.session.accountID > 0,
               AuthRequestBuilder.isValidToken(context.session.token), !context.session.namespace.isEmpty,
-              !conversationIDs.isEmpty, conversationIDs.allSatisfy({ $0 > 0 }),
+              conversationsOK,
               duration.isFinite, duration > 0, duration <= 86_400 else { throw APIError.invalidConfiguration }
+        self.allowsAnyPositiveConversation = allowsAnyPositiveConversation
         self.originalMentionWireEnabled = originalMentionWireEnabled
         self.originalReplyWireEnabled = originalReplyWireEnabled
         self.context = context; self.operation = operation; self.conversationIDs = conversationIDs; self.expiresAt = expiresAt
@@ -42,7 +49,8 @@ public enum NativeChannelTextOperation: Equatable { case send, receipt }
     public func revoke() { isRevoked = true; expiryTask?.cancel(); expiryTask = nil }
     public func matches(_ context: RuntimeDependencyContext, operation: NativeChannelTextOperation,
                         conversationID: Int, now: Date = Date()) -> Bool {
-        !isRevoked && now < expiresAt && self.operation == operation && conversationIDs.contains(conversationID)
+        let conversationOK = allowsAnyPositiveConversation ? conversationID > 0 : conversationIDs.contains(conversationID)
+        return !isRevoked && now < expiresAt && self.operation == operation && conversationOK
             && ContentDraftContextFence.matches(self.context, context)
     }
 }
