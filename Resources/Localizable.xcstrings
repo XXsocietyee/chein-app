@@ -258275,6 +258275,86 @@
           }
         }
       }
+    },
+    "homeFeed.nearbyActivities": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearby activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近活动"
+          }
+        }
+      }
+    },
+    "homeFeed.updating.recommended": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating editor's picks…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新编辑精选…"
+          }
+        }
+      }
+    },
+    "homeFeed.updating.nearby": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating nearby activities…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新附近活动…"
+          }
+        }
+      }
+    },
+    "homeFeed.updating.upcoming": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating coming soon…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新即将上线…"
+          }
+        }
+      }
+    },
+    "homeFeed.editorsPicksFootnote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor's picks · entry conditions are on each detail page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑精选 · 参加条件以详情为准"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
