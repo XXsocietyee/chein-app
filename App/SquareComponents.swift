@@ -63,12 +63,24 @@ struct SquarePostContent: View {
     var mediaScope: UUID = UUID()
     /// The detail page shows likes and comments in its action row instead.
     var showsCounts = true
+    /// Mini `ph-avatar` T5 capsule (follow / visit profile). Empty keeps the avatar a plain image.
+    var avatarMenuItems: [CYAnchoredMenuItem] = []
+    var onAvatarPick: ((String) -> Void)? = nil
+    @State private var avatarMenuShown = false
     private static let disclosures: Set<String> = ["SPONSORED", "GIFTED", "MERCHANT_OWNER", "MERCHANT_EMPLOYEE"]
     /// Mini-program `post-head`: avatar, name, time; then the text, media and the post's own facts.
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 10) {
-                SquareAuthorAvatar(source: post.avatar)
+                if avatarMenuItems.isEmpty || onAvatarPick == nil { SquareAuthorAvatar(source: post.avatar) }
+                else {
+                    Button { avatarMenuShown = true } label: { SquareAuthorAvatar(source: post.avatar) }
+                        .buttonStyle(.cyPressable)
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityLabel(Text("avatarMenu.open", tableName: "SocialParity"))
+                        .accessibilityIdentifier("square.avatarMenu")
+                        .cyAnchoredMenu(isPresented: $avatarMenuShown, items: avatarMenuItems) { onAvatarPick?($0) }
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
                         if let name = post.nickname, !name.isEmpty { Text(verbatim: name).font(.headline) }

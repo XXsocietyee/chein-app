@@ -1712,6 +1712,15 @@ struct ClubGovernanceEventView: View {
                     Text("club.story.route").tag(ClubStoryTab.route).accessibilityIdentifier("club.story.tab.route")
                     Text("club.story.play").tag(ClubStoryTab.play).accessibilityIdentifier("club.story.tab.play")
                 }.pickerStyle(.segmented).labelsHidden().listRowBackground(Color.clear).accessibilityIdentifier("club.story.tabs")
+                // Mini topic-story `story-aigc` (P0-14): explicit generative-AI label when publishMode is ai_simple.
+                if snapshot?.value["publishMode"].string?.trimmingCharacters(in: .whitespaces).lowercased() == "ai_simple" {
+                    Label { Text("story.aigc", tableName: "SocialParity") } icon: { Image(systemName: "sparkles") }
+                        .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                        .background(Capsule().strokeBorder(CYColor.borderStrong, lineWidth: 1))
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("club.story.aigc")
+                }
                 if presentation.chapters.isEmpty {
                     ClubStoryEmptyState(title: "club.story.noChapters", detail: "club.story.noRoute")
                 } else if tab == .route {
