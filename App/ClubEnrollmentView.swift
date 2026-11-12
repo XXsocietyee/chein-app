@@ -154,7 +154,7 @@ extension EnvironmentValues {
                         Button { Task { if canRead { await reader.toggle(topicID: team.id) } } } label: {
                             teamHeader(team)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.cyPressTracked)
                         .disabled(reader.loading)
                         .accessibilityValue(Text(reader.expanded.contains(team.id) ? "club.enroll.expanded" : "club.enroll.collapsed"))
                         .accessibilityIdentifier("club.enroll.team.\(team.id)")

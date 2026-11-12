@@ -156,6 +156,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     choice = target; choosing = true
                 } else { destination = target }
             } label: { memberRow(member).cyPressTracking() }
+            .buttonStyle(.cyPressTracked)
             .accessibilityIdentifier("club.member.\(member.memberId)")
             .accessibilityHint(Text(directory.club.canGovern && matchesGovernance(reader.clubIdentity) ? "club.members" : "social.profile"))
         } else {
@@ -176,6 +177,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     .cyPressTracking()
             }
+            .buttonStyle(.cyPressTracked)
             .accessibilityLabel(reportLabel(target))
             .disabled(reportDirectory != directory || !reportSourceActive || memberReport != nil || destination != nil || choosing)
             .accessibilityIdentifier("club.memberReport.open.\(member.memberId)")

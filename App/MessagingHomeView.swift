@@ -169,7 +169,6 @@ private struct MessagingConversationListView: View {
                 directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
                 onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
         } label: { IMInboxRow(conversation: conversation) }
-        .cyPressTracking()
         .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             rowActions(for: conversation)
