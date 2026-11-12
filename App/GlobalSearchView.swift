@@ -65,12 +65,23 @@ import SwiftUI
                     TextField(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
-                    Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle") }
-                        .labelStyle(.iconOnly).buttonStyle(.borderless)
-                        .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
+                        .frame(minHeight: 44)
                 }
-                .padding(.leading, CYSpacing.md).padding(.trailing, 4)
+                .padding(.horizontal, CYSpacing.md)
                 .searchNightPill()
+                // Mini-program `search2` head: the pill field, then a separate 筛选 tile (grid icon + label).
+                .safeAreaInset(edge: .trailing, spacing: CYSpacing.sm) {
+                    Button { openFilters() } label: {
+                        Label("searchMap.filters", systemImage: "square.grid.2x2")
+                            .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                            .padding(.horizontal, CYSpacing.md)
+                            .frame(minHeight: 44)
+                            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
+                            .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    }
+                    .buttonStyle(.plain).fixedSize()
+                    .accessibilityIdentifier("searchMap.filters")
+                }
                 .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                 if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
@@ -188,27 +199,24 @@ import SwiftUI
     }
     @ViewBuilder private var suggestions: some View {
         let context = categoryRecovery.context(for: categoryOwner)
-        routesShelf
+        // Mini-program 搜索历史: outlined keyword chips with 清空 on the header line (no recent-routes shelf).
         if !history.isEmpty {
             Section {
-                ForEach(history, id: \.self) { keyword in
-                    Button { setKeyword(keyword); Task { await search() } } label: {
-                        HStack(spacing: CYSpacing.md) {
-                            Image(systemName: "clock.arrow.circlepath").font(.subheadline.weight(.semibold))
-                                .foregroundStyle(CYColor.textSecondary)
-                                .frame(width: 36, height: 36)
-                                .background(Circle().fill(CYColor.bgElevated))
-                                .accessibilityHidden(true)
-                            Text(verbatim: keyword).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineLimit(2)
-                            Spacer(minLength: 0)
-                            Image(systemName: "arrow.up.left").font(.caption.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                        }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: CYSpacing.sm) {
+                    ForEach(history, id: \.self) { keyword in
+                        Button { setKeyword(keyword); Task { await search() } } label: {
+                            Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                                .lineLimit(1).minimumScaleFactor(0.85)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .searchNightPill()
+                                .contentShape(Capsule())
+                        }.buttonStyle(.plain)
                     }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
                 }
+                .padding(.vertical, 4)
             } header: {
                 HStack {
-                    Text("searchMap.history")
+                    sectionTitle("searchMap.history")
                     Spacer()
                     Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
                         .font(CYTypography.meta).textCase(nil).buttonStyle(.borderless)
@@ -216,6 +224,7 @@ import SwiftUI
                         .accessibilityLabel(Text("searchMap.clearHistory.a11y"))
                 }
             }
+            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
         if !recommendedKeywords.isEmpty {
             Section {
@@ -281,56 +290,6 @@ import SwiftUI
         var list = (UserDefaults.standard.stringArray(forKey: globalSearchRecentRoutesKey) ?? []).filter { $0 != route.rawValue }
         list.insert(route.rawValue, at: 0)
         UserDefaults.standard.set(Array(list.prefix(4)), forKey: globalSearchRecentRoutesKey)
-    }
-    /// Routes ordered by last use (never-used ones follow), as art tiles in a horizontal shelf.
-    private var routeTiles: [MapRoute] {
-        let recent = (UserDefaults.standard.stringArray(forKey: globalSearchRecentRoutesKey) ?? []).compactMap(MapRoute.init(rawValue:))
-        var all: [MapRoute] = [.city, .nearby]
-        if publicLayers != nil { all.append(.layers) }
-        if !hidesMerchants { all.append(.shops) }
-        return recent.filter(all.contains) + all.filter { !recent.contains($0) }
-    }
-    private func routeTitle(_ route: MapRoute) -> LocalizedStringKey {
-        switch route {
-        case .city: "searchMap.citySearch"
-        case .nearby: "searchMap.nearby"
-        case .layers: "searchMap.publicLayers"
-        case .shops: "merchant.discover.title"
-        }
-    }
-    private func routeSymbol(_ route: MapRoute) -> String {
-        switch route { case .city: "location.north.line"; case .nearby: "location"; case .layers: "square.3.layers.3d"; case .shops: "storefront" }
-    }
-    @ViewBuilder private var routesShelf: some View {
-        Section {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: CYSpacing.md) {
-                    ForEach(routeTiles) { route in
-                        Button { mapRoute = route } label: {
-                            Label(routeTitle(route), systemImage: routeSymbol(route))
-                                .font(CYTypography.label).foregroundStyle(.white)
-                                .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
-                                .multilineTextAlignment(.leading)
-                                .frame(width: 168, height: 92, alignment: .bottomLeading).padding(CYSpacing.md)
-                                .background {
-                                    ZStack(alignment: .bottom) {
-                                        CYCoverArt(seed: "route-" + route.rawValue, symbol: routeSymbol(route), showsDebugLabel: false)
-                                        LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
-                                    }
-                                }
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        }
-                        .buttonStyle(CYPressScaleStyle())
-                    }
-                }
-                .padding(.horizontal, CYSpacing.lg)
-            }
-        } header: {
-            Text(LocalizedStringResource("searchMap.routes.recent", defaultValue: "Recent routes"))
-                .font(.title3.weight(.bold)).foregroundStyle(CYColor.textPrimary).textCase(nil)
-                .padding(.horizontal, CYSpacing.xs).accessibilityAddTraits(.isHeader)
-        }
-        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
     }
     /// Mini-program `search-actions__map` (在地图上找活动与主题节点) as one pill; the native nearby, layers and
     /// shop entries are demoted into a single menu row and stay reachable.
