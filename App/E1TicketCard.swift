@@ -15,6 +15,7 @@ struct E1TicketCard: View {
     @QuestifyReduceMotion private var reduceMotion
     @ScaledMetric(relativeTo: .largeTitle) private var glyph: CGFloat = 64
     @State private var sheen = 0
+    @State private var autoSheen = 0
     @State private var topHeight: CGFloat = 0
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     private let radius = CYRadius.xl
@@ -32,9 +33,9 @@ struct E1TicketCard: View {
         }
         .onPreferenceChange(E1TicketTopHeightKey.self) { topHeight = $0 }
         .background(CYColor.bgElevated)
-        .cyFoilSheen(trigger: sheen)
+        .cyFoilSheen(trigger: sheen + autoSheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
-        .overlay(shape.stroke(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
+        .cyPassFoilEdge(shape, active: ticket.status == .ready)
         .overlay(alignment: .top) {
             LinearGradient(colors: [.white.opacity(0.22), .clear], startPoint: .leading, endPoint: .trailing)
                 .frame(height: 1).padding(.horizontal, radius).allowsHitTesting(false)
@@ -45,6 +46,12 @@ struct E1TicketCard: View {
         .modifier(E1TicketTilt(enabled: interactive))
         .onTapGesture { if interactive { sheen += 1 } }
         .cyHaptic(.selection, trigger: sheen)
+        .task {
+            // The foil catches the light once when a live pass shows up (the lantern-gold hue stop travels across).
+            guard interactive, ticket.status == .ready else { return }
+            try? await Task.sleep(for: .milliseconds(500))
+            autoSheen += 1
+        }
         .accessibilityElement(children: .contain)
         .accessibilityHint(interactive ? Text(verbatim: c.t("轻点看光泽，长按拖动倾斜", "Tap for a shine, hold and drag to tilt")) : Text(verbatim: ""))
     }

@@ -10,15 +10,25 @@ import SwiftUI
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var appeared = false
+    @State private var glowTick = 0
+    @State private var checkedIn = false
+    @QuestifyReduceMotion private var reduceMotion
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.black.ignoresSafeArea()
+            // Ink ground, not pure black: the edge glow and the code tile read against it.
+            CYNight.ink0.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: CYSpacing.xl) {
                     summary
-                    tile
+                    tile.opacity(checkedIn ? 0.6 : 1)
+                    if checkedIn {
+                        Label { Text(verbatim: c.t("已入场，玩得开心", "You're in. Have fun.")) } icon: { Image(systemName: "checkmark.circle.fill") }
+                            .font(CYTypography.cardTitle).foregroundStyle(CYNight.verify)
+                            .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                            .accessibilityIdentifier("ticketWallet.present.checkedIn")
+                    }
                     Text(verbatim: c.t("亮度已调高，方便扫码。关闭后恢复。", "Brightness is raised for scanning and restored when you close."))
                         .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .multilineTextAlignment(.center)
@@ -35,6 +45,14 @@ import SwiftUI
         .cyBrightnessBoost(true)
         .privacySensitive()
         .onAppear { appeared = true }
+        .onChange(of: ticket.status) { old, new in
+            // The venue scanned this pass while it is on screen: the display edge lights green once (full-screen
+            // cover, so it hugs the corners) and the code tile steps back.
+            guard new == .verified, old != .verified else { return }
+            glowTick += 1
+            withAnimation(CYMotion.resolve(CYMotion.entrance, reduceMotion: reduceMotion)) { checkedIn = true }
+        }
+        .cyEdgeGlow(trigger: glowTick)
         .cyHaptic(.impactMedium, trigger: appeared)
         .accessibilityIdentifier("ticketWallet.present")
     }
