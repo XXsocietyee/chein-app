@@ -97,6 +97,22 @@
         }
       }
     },
+    "cityGame.board.selectHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a tile to see its details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按点位查看详情。"
+          }
+        }
+      }
+    },
     "cityGame.challenge.accepted": {
       "localizations": {
         "en": {
@@ -205,6 +221,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "挑战已暂停"
+          }
+        }
+      }
+    },
+    "cityGame.dice.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last roll"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次点数"
+          }
+        }
+      }
+    },
+    "cityGame.hud.round": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回合"
           }
         }
       }
@@ -1341,6 +1389,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "—"
+          }
+        }
+      }
+    },
+    "cityGame.verdict.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final board facts. A dash means the value was not published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "棋盘最终情况；破折号表示该数值未公布。"
+          }
+        }
+      }
+    },
+    "cityGame.verdict.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Board result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "棋盘结果"
           }
         }
       }
