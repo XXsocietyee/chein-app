@@ -129,12 +129,14 @@ import SwiftUI
                     }.accessibilityIdentifier("account.personalLocationShare")
                     ProfileComplaintPreparationLink(session: session)
                 }
+                if WelcomeView.showsMerchantChoice {
                 Section {
                     Button { showsCooperation=true } label: {
                         CYListRow("cooperation.title", trailing: .none) { CYRowIcon(systemImage: "person.2") }
                     }
                     .buttonStyle(.cyPressable)
                     .accessibilityIdentifier("account.cooperation")
+                }
                 }
                 SupportTicketReadEntry(session: session)
                 // Passport has one sign-out: Settings (settings.signOut). The legacy account page keeps its own.

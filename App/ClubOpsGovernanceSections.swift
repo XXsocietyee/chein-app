@@ -88,8 +88,22 @@ struct ClubOpsGovernanceMembersSection: View {
     let roster: ClubOpsGovernanceMembers
     let ban: (ClubOpsGovernanceMember) -> AnyView
     let transfer: (ClubOpsGovernanceMember) -> AnyView
+    var scope: ClubGovernanceScope? = nil
+    var capability: ClubOpsGovernanceCapability? = nil
+    var document: ClubGovernanceValue? = nil
+    private var page: ClubOpsGovernancePage? {
+        guard let scope, let capability else { return nil }
+        return ClubOpsGovernancePage.project(members: document, scope: scope, capability: capability, includeBans: false, includeMembers: true, includeCases: false)
+    }
+    private var countText: String? {
+        guard page?.hidden == false, let count = page?.counts?.members else { return nil }
+        return count.displayText
+    }
     var body: some View {
         Section {
+            if let text = countText {
+                Text(verbatim: text).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
+            }
             if roster.members.isEmpty {
                 ContentUnavailableView {
                     Label { ClubOpsGovernanceCopy.text("clubOpsGov.members.empty") } icon: { Image(systemName: "person.2") }
@@ -116,7 +130,19 @@ struct ClubOpsCaseSection: View {
     let list: ClubOpsCaseList
     let report: AnyView?
     let appeal: AnyView?
+    var scope: ClubGovernanceScope? = nil
+    var capability: ClubOpsGovernanceCapability? = nil
+    var document: ClubGovernanceValue? = nil
+    private var page: ClubOpsGovernancePage? {
+        guard let scope, let capability else { return nil }
+        return ClubOpsGovernancePage.project(cases: document, scope: scope, capability: capability, includeBans: false, includeMembers: false, includeCases: true)
+    }
+    private var countText: String? {
+        guard page?.hidden == false, let count = page?.counts?.cases else { return nil }
+        return count.displayText
+    }
     var body: some View {
+        Group {
         if list.appealMode {
             // Mini governance `mode=appeal` page title, reached by a viewer this club has banned.
             Section {
@@ -151,6 +177,9 @@ struct ClubOpsCaseSection: View {
         case .unknown: EmptyView()
         }
         Section {
+            if let text = countText {
+                Text(verbatim: text).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.caseCount)
+            }
             if list.rows.isEmpty {
                 ClubOpsGovernanceCopy.text("clubOpsGov.cases.empty").foregroundStyle(.secondary).accessibilityIdentifier("clubOpsGov.cases.empty")
             }
@@ -169,6 +198,7 @@ struct ClubOpsCaseSection: View {
                 }.accessibilityIdentifier("clubOpsGov.case.\(row.id)")
             }
         } header: { Text("club.gov.cases") }
+        }
     }
     static func type(_ kind: ClubOpsCaseKind) -> Text {
         switch kind {

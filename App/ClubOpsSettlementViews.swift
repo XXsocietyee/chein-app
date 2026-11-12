@@ -10,7 +10,10 @@ struct ClubOpsSettlementSummaryCard: View {
                 Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                 Group {
                     if let amount = summary.settledAmountText { Text(verbatim: amount).font(CYTypography.data2XL).monospacedDigit() }
-                    else { Text("clubOps.settlement.amountUnverified", tableName: "ClubOpsCustomer").font(CYTypography.sectionTitle) }
+                    else {
+                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(CYTypography.data2XL).monospacedDigit()
+                            .accessibilityLabel(Text("clubOps.settlement.amountUnverified", tableName: "ClubOpsCustomer"))
+                    }
                 }
                 .foregroundStyle(CYColor.textPrimary)
                 .minimumScaleFactor(0.6).lineLimit(1)

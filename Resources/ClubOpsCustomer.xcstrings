@@ -1,6 +1,30 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "club.customerDetail.page.empty": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No participation, tags, or note yet" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "还没有参与记录、标签或备注" } }
+      }
+    },
+    "club.customerDetail.page.error": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Couldn't load customer details" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "客户详情加载失败" } }
+      }
+    },
+    "club.customerDetail.page.loading": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading customer" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在加载客户" } }
+      }
+    },
+    "club.customerDetail.page.unknown": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "—" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "—" } }
+      }
+    },
     "clubOps.customer.addTag": {
       "localizations": {
         "en": {

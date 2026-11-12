@@ -7,6 +7,8 @@ import SwiftUI
     @Published private(set) var kind: CoopFlowTargetKind = .merchant
     @Published private(set) var topics: [CoopFlowOwnedTopic] = []
     @Published private(set) var candidates: [CoopFlowTargetCandidate] = []
+    /// Club member counts from CoopInviteIndexReadiness. Unknown is an em dash. Merchants are absent.
+    @Published private(set) var memberCounts: [String: CoopInviteIndexReadiness.Count] = [:]
     @Published private(set) var topicID: Int?
     @Published private(set) var selected: Set<String> = []
     @Published private(set) var topicsFailed = false
@@ -35,7 +37,7 @@ import SwiftUI
     func identityChanged() { reset() }
     private func invalidateRuns() { generation = UUID(); topicRun = nil; targetRun = nil; topicsBusy = false; targetsBusy = false }
     private func reset() {
-        invalidateRuns(); session = reader.session; topics = []; candidates = []; topicID = nil; selected = []
+        invalidateRuns(); session = reader.session; topics = []; candidates = []; memberCounts = [:]; topicID = nil; selected = []
         topicsReady = false; targetsReady = false; topicsFailed = false; targetsFailed = false; page = 1; failedPage = nil; hasMore = true
     }
     func changeKind(_ value: CoopFlowTargetKind, permit old: Permit) -> Permit? {
@@ -114,11 +116,15 @@ import SwiftUI
             guard let rows = result.rows else { throw CoopFlowFailure.malformed }
             let parsed = rows.compactMap { CoopFlowTargetCandidate(kind: value.kind, row: $0) }
             guard parsed.count == rows.count, Set(parsed.map(\.id)).count == parsed.count else { throw CoopFlowFailure.malformed }
-            candidates = parsed; selected.formIntersection(Set(parsed.map(\.id))); targetsReady = true
+            let directory = CoopInviteIndexReadiness.targets(kind: value.kind, loading: false, payload: result, failed: false)
+            guard directory.phase == .ready || directory.phase == .empty else { throw CoopFlowFailure.malformed }
+            candidates = parsed
+            memberCounts = Dictionary(uniqueKeysWithValues: directory.rows.compactMap { row in row.memberCount.map { (row.id, $0) } })
+            selected.formIntersection(Set(parsed.map(\.id))); targetsReady = true
         } catch {
             guard accepts(value), targetRun == run else { return }
             targetsFailed = true
-            if refuses(error) { candidates = []; selected = []; targetsReady = false }
+            if refuses(error) { candidates = []; memberCounts = [:]; selected = []; targetsReady = false }
         }
     }
 }
@@ -197,7 +203,7 @@ import SwiftUI
                         HStack {
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: candidate.name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                                CoopInviteTargetMeta(candidate: candidate).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                CoopInviteTargetMeta(candidate: candidate, memberCount: model.memberCounts[candidate.id]).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                             }
                             Spacer()
                             // Mini `.target-action`: "已选" chip when chosen; a check keeps it native.
@@ -385,9 +391,14 @@ import SwiftUI
 /// Source invite target meta: "{n} 位成员 · {city}" / "成员数待确认", or merchant "{types|address|开放承接}".
 struct CoopInviteTargetMeta: View {
     let candidate: CoopFlowTargetCandidate
+    /// Page-model count. Nil on a club row is an em dash, not the older "members unknown" sentence.
+    var memberCount: CoopInviteIndexReadiness.Count? = nil
     var body: some View {
         if candidate.kind == .club {
-            let members = candidate.memberCount.map { Text("cooperation.invite.members \($0)") } ?? Text("cooperation.invite.membersUnknown")
+            let members: Text = {
+                if let value = memberCount?.value { return Text("cooperation.invite.members \(value)") }
+                return Text(verbatim: memberCount?.display ?? CoopInviteIndexReadiness.unknownDisplay)
+            }()
             if let city = candidate.city { members + Text(verbatim: " · " + city) } else { members }
         } else if let meta = candidate.merchantMeta { Text(verbatim: meta) }
         else { Text("cooperation.invite.openToHost") }

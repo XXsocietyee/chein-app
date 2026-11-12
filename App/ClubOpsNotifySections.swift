@@ -50,10 +50,14 @@ struct ClubOpsNotifyContentFields: View {
 struct ClubOpsNotifyPreviewSummary: View {
     let value: ClubGovernanceValue
     var body: some View {
-        if let count = ClubOpsNotifyPresentation.previewCount(value) {
+        let recipient = ClubNotifyPage.previewRecipient(value)
+        if let count = recipient.literal {
             LabeledContent { ClubOpsJoinNotifyCopy.people(count).monospacedDigit() } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.title") }
                 .accessibilityIdentifier("clubOpsJN.notify.preview")
             if count == 0 { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.empty").font(.footnote).foregroundStyle(.secondary) }
+        } else {
+            LabeledContent { Text(verbatim: recipient.displayText).monospacedDigit() } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.title") }
+                .accessibilityIdentifier("clubOpsJN.notify.preview")
         }
     }
 }
@@ -63,21 +67,27 @@ struct ClubOpsNotifyCampaignRows: View {
     let campaign: ClubOpsNotifyCampaign
     /// Send/retry outcome line in place of the mini-program toast; nil for a plain status read.
     var outcome: ClubGovernanceMutation? = nil
+    /// Page projection. A nil count is an em dash. The older campaign still treats null as 0.
+    var delivery: ClubNotifyDeliveryPage? = nil
     var body: some View {
         if let key = outcomeKey { ClubOpsJoinNotifyCopy.text(key).font(.subheadline.weight(.semibold)).accessibilityIdentifier("clubOpsJN.notify.outcome") }
         LabeledContent { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.phase." + campaign.phase.rawValue) } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.label") }
             .accessibilityIdentifier("clubOpsJN.notify.phase")
-        row("clubOpsJN.notify.total", campaign.totalCount)
-        row("clubOpsJN.notify.success", campaign.successCount, tint: CYColor.successText)
+        row("clubOpsJN.notify.total", campaign.totalCount, projected: delivery?.total)
+        row("clubOpsJN.notify.success", campaign.successCount, projected: delivery?.success, tint: CYColor.successText)
         LabeledContent {
-            Text(campaign.pendingCount, format: .number).monospacedDigit()
+            if let pending = delivery?.pending, pending.literal == nil {
+                Text(verbatim: pending.displayText).monospacedDigit()
+            } else {
+                Text(delivery?.pending?.literal ?? campaign.pendingCount, format: .number).monospacedDigit()
+            }
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.pending")
                 if campaign.processing { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.processing").font(.caption).foregroundStyle(.secondary) }
             }
         }.accessibilityIdentifier("clubOpsJN.notify.pending")
-        row("clubOpsJN.notify.failed", campaign.failedCount, tint: CYColor.dangerText)
+        row("clubOpsJN.notify.failed", campaign.failedCount, projected: delivery?.failed, tint: CYColor.dangerText)
     }
     private var outcomeKey: String? {
         switch outcome {
@@ -91,8 +101,14 @@ struct ClubOpsNotifyCampaignRows: View {
         default: return nil
         }
     }
-    private func row(_ key: String, _ value: Int, tint: Color = .primary) -> some View {
-        LabeledContent { Text(value, format: .number).monospacedDigit().foregroundStyle(tint) } label: { ClubOpsJoinNotifyCopy.text(key) }
+    @ViewBuilder private func row(_ key: String, _ value: Int, projected: ClubNotifyCount? = nil, tint: Color = .primary) -> some View {
+        LabeledContent {
+            if let projected, projected.literal == nil {
+                Text(verbatim: projected.displayText).monospacedDigit().foregroundStyle(tint)
+            } else {
+                Text(projected?.literal ?? value, format: .number).monospacedDigit().foregroundStyle(tint)
+            }
+        } label: { ClubOpsJoinNotifyCopy.text(key) }
             .accessibilityIdentifier(key)
     }
 }
