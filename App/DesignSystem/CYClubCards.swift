@@ -54,20 +54,26 @@ struct CYClubCardTrailing: View {
     let action: CYClubCardAction
     let onJoin: () -> Void
     var joinIdentifier: String? = nil
+    /// Drives the in-place morph of the Join / Apply pill (dots, then green check). Idle for every static card.
+    var morph: CYMorphState = .idle
 
     var body: some View {
-        switch action {
-        case .join:
-            CYPillButton("club.action.join", fullWidth: false, compact: true, action: onJoin)
-                .accessibilityIdentifier(joinIdentifier ?? "club.card.join")
-        case .apply:
-            CYPillButton("club.action.apply", fullWidth: false, compact: true, action: onJoin)
-                .accessibilityIdentifier(joinIdentifier ?? "club.card.apply")
-        case .pending: CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock")
-        case .joined: CYStatusChip("club.membership.joined", tone: .success, systemImage: "checkmark")
-        case .owner: CYStatusChip("club.role.creator", tone: .info, systemImage: "crown")
-        case .none: EmptyView()
+        Group {
+            switch action {
+            case .join:
+                CYMorphButton("club.action.join", state: morph, fullWidth: false, compact: true, action: onJoin)
+                    .identifier(joinIdentifier ?? "club.card.join")
+            case .apply:
+                CYMorphButton("club.action.apply", state: morph, fullWidth: false, compact: true, action: onJoin)
+                    .identifier(joinIdentifier ?? "club.card.apply")
+            case .pending: CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock")
+            case .joined: CYStatusChip("club.membership.joined", tone: .success, systemImage: "checkmark")
+            case .owner: CYStatusChip("club.role.creator", tone: .info, systemImage: "crown")
+            case .none: EmptyView()
+            }
         }
+        .transition(.opacity.combined(with: .scale(scale: 0.9)))
+        .animation(CYMotion.reduced, value: action)
     }
 }
 

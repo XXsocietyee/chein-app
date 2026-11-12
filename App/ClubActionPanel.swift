@@ -22,6 +22,7 @@ struct ClubActionPanel: View {
     @State private var task: Task<Void, Never>? = nil
     @State private var isWorking = false
     @State private var joinMessage = ""
+    @State private var joinedAction: ClubAction? = nil
     @Environment(\.locale) private var locale
 
     private var availability: ClubActionAvailability {
@@ -102,7 +103,16 @@ struct ClubActionPanel: View {
         if action == .leave {
             button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
         } else {
-            button.buttonStyle(.cyDomainPrimary(fullWidth: true)).clipShape(Capsule())
+            // Join / Apply morph in place: dots while preparing and sending, green check on success, then the status chip.
+            CYClubJoinStage(
+                title: LocalizedStringKey(actionKey(action)),
+                settledTitle: joinedAction == .apply ? "club.membership.pending" : "club.membership.joined",
+                settledIcon: joinedAction == .apply ? "clock" : "checkmark",
+                settledTone: joinedAction == .apply ? .warning : .success,
+                state: joinedAction != nil ? .done : (isWorking ? .working : .idle),
+                seed: "club-\(club.id)", memberCount: nil, identifier: "club.action.\(action.rawValue)") { prepare(action) }
+                .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
+                .listRowBackground(Color.clear)
         }
     }
     @ViewBuilder private func stateContent(_ state: ClubActionState) -> some View {
@@ -202,6 +212,7 @@ struct ClubActionPanel: View {
             _ = await coordinator.confirm(value, onReadbackStarted: { readbackGeneration = onReadbackStarted() })
             guard operation == generation, !Task.isCancelled, coordinator.identity == value.identity else { return }
             isWorking = false; revision &+= 1
+            if value.action != .leave, case .acknowledged = coordinator.state(clubID: club.id) { joinedAction = value.action }
             if let readbackGeneration { deliverReadback(identity: value.identity, readbackGeneration: readbackGeneration) }
         }
     }
@@ -228,7 +239,7 @@ struct ClubActionPanel: View {
         // Synchronization handles old-session writes even when the view now has a new identity.
         coordinator.synchronizeSession()
         coordinator.leaveScreen(clubID: clubID ?? club.id, expectedIdentity: identity, ownerID: ownerID)
-        confirmation = nil; isWorking = false; issueKey = nil; joinMessage = ""; revision &+= 1
+        confirmation = nil; isWorking = false; issueKey = nil; joinedAction = nil; joinMessage = ""; revision &+= 1
     }
 }
 

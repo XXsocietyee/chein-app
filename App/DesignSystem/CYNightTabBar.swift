@@ -1,0 +1,72 @@
+import SwiftUI
+
+/// Sliding selection pill for the root tab bar ("胶囊先伸展，再落位"): it stretches toward the destination for 120 ms,
+/// springs into the new slot, then relaxes. Violet appears only here. It sits over the native `TabView` bar as a
+/// non-interactive, accessibility-hidden indicator, so the native tab buttons keep their taps, identifiers and VoiceOver.
+/// Reduce Motion: the pill crossfades between slots. Spec: design-wave3 §4.5.
+struct CYNightTabBar: View {
+    let selection: RootTab
+    var tabs: [RootTab] = RootTab.playerTabs
+
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    @QuestifyReduceMotion private var rm
+    @State private var landed: RootTab?
+    @State private var stretch: CGFloat = 1
+    @State private var anchor: UnitPoint = .leading
+    @State private var task: Task<Void, Never>?
+
+    private let barHeight: CGFloat = 49
+    private let pillHeight: CGFloat = 34
+
+    var body: some View {
+        GeometryReader { g in
+            if sizeClass == .compact, !tabs.isEmpty {
+                let slot = g.size.width / CGFloat(tabs.count)
+                let y = g.size.height - g.safeAreaInsets.bottom - barHeight / 2
+                ZStack(alignment: .topLeading) {
+                    if rm {
+                        ForEach(tabs, id: \.self) { tab in
+                            pill(width: slot - 20).position(x: x(tab, slot: slot), y: y).opacity(tab == selection ? 1 : 0)
+                        }
+                    } else {
+                        pill(width: slot - 20)
+                            .scaleEffect(x: stretch, anchor: anchor)
+                            .position(x: x(landed ?? selection, slot: slot), y: y)
+                    }
+                }
+                .animation(CYMotion.reduced, value: selection)
+            }
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .onChange(of: selection) { old, new in
+            guard !rm else { landed = new; return }
+            let right = (tabs.firstIndex(of: new) ?? 0) >= (tabs.firstIndex(of: old) ?? 0)
+            task?.cancel()
+            task = Task { @MainActor in
+                anchor = right ? .leading : .trailing
+                withAnimation(.easeOut(duration: CYMotion.Duration.instant)) { stretch = 1.35 }
+                try? await Task.sleep(for: .milliseconds(120))
+                if Task.isCancelled { return }
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) { landed = new }
+                try? await Task.sleep(for: .milliseconds(70))
+                if Task.isCancelled { return }
+                anchor = right ? .trailing : .leading
+                withAnimation(.spring(response: 0.34, dampingFraction: 0.62)) { stretch = 1 }
+            }
+        }
+    }
+
+    private func x(_ tab: RootTab, slot: CGFloat) -> CGFloat {
+        (CGFloat(tabs.firstIndex(of: tab) ?? 0) + 0.5) * slot
+    }
+
+    private func pill(width: CGFloat) -> some View {
+        Capsule(style: .continuous)
+            .fill(CYNight.violet.opacity(0.22))
+            .overlay(Capsule(style: .continuous).strokeBorder(CYNight.violet.opacity(0.55), lineWidth: 1))
+            .shadow(color: CYNight.violet.opacity(0.35), radius: 10)
+            .frame(width: max(width, 40), height: pillHeight)
+    }
+}

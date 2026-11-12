@@ -11,6 +11,24 @@ import SwiftUI
 /// | `clubcards-states` | every trailing state in one column: join, apply, pending, joined, owner, none (merchant) |
 /// | `clubcards-strip` | member strip: 0, unknown, 3, 5, 120 members |
 /// | `clubcards-ax` | home at accessibility Dynamic Type: footer stacks, no clipping |
+/// Card Join pill morphing in place: Join -> dots -> green check -> Joined chip. Loops once on appear.
+private struct JoinMorphCard: View {
+    @State private var morph: CYMorphState = .idle
+    @State private var joined = false
+    var body: some View {
+        VStack(spacing: CYSpacing.lg) {
+            Text(verbatim: "Synthetic: Night Market Crew").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            CYClubCardTrailing(action: joined ? .joined : .join, onJoin: { morph = .working }, joinIdentifier: "fixture.club.join", morph: morph)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task {
+            try? await Task.sleep(for: .milliseconds(600)); morph = .working
+            try? await Task.sleep(for: .milliseconds(1000)); morph = .done
+            try? await Task.sleep(for: .milliseconds(900)); joined = true
+        }
+    }
+}
+
 enum ClubCardFixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
@@ -18,6 +36,7 @@ enum ClubCardFixtures {
         case "clubcards-directory": return wrap(directory)
         case "clubcards-states": return wrap(states)
         case "clubcards-strip": return wrap(strip)
+        case "clubcards-join": return wrap(JoinMorphCard())
         case "clubcards-ax": return wrap(home.environment(\.dynamicTypeSize, .accessibility3))
         default: return nil
         }
