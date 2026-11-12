@@ -21,3 +21,16 @@ Assertions untouched; contract test test_social_article_entry_visibility strings
 
 Not verified by simulator run (code-only task); the 8 Integrated tests' xcresult trees did not embed the AX dump, so
 their attribution rests on identical failing call site, not on a dump. Re-run the 14 on the Test lane to confirm.
+
+## Round 2 (after 47971cf50 reached the app)
+The helper fix worked; the tests now fail on a second, separate cause found in ui14.xcresult (AX dump of
+IntegratedNative…testActualSettings…: app already signed in on the Explore home, no phoneSignIn button):
+AuthChannelView (e4) (a) renders the code field only after a code was sent (`smsSent || !code.isEmpty`) and
+(b) auto-submits sign-in when the sixth digit is entered (`onChange(of: code)`), removing the sign-in button.
+
+| test | cause | fix |
+|---|---|---|
+| CouponRuntimeFlowTests x5, CouponRuntimeChineseFlowTests x1 | code field absent: journey typed the code without sending one first | journey taps auth.channels.sendCode (fixture answers api/sms/send), matches the code field on any element type, types 5 digits, asserts the value, then the 6th digit |
+| IntegratedActivityPlayJourney x2, IntegratedNativeAcceptance x6 | sign-in already auto-submitted, so tap(phoneSignIn) asserted on a missing button | tap phoneSignIn only if it still exists and is enabled; the following wait on accountID/tokenStored still proves sign-in |
+Same one-line guard applied to IntegratedDenied and NonCashReward flows (identical pattern). Assertions are not removed.
+Not simulator-verified (code-only).

@@ -220,7 +220,9 @@ import XCTest
             XCTAssertFalse(app.buttons["auth.channels.sendCode"].isEnabled)
         }
         app.textFields["auth.channels.code"].tap(); app.textFields["auth.channels.code"].typeText("123456")
-        tap("auth.channels.phoneSignIn", app)
+        // The sixth digit submits automatically; tap only if that has not started yet.
+        let submit = app.buttons["auth.channels.phoneSignIn"]
+        if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn", app) }
         wait(app) { $0.accountID == owner && $0.tokenStored }
     }
     private func tab(_ title: String, _ app: XCUIApplication) {

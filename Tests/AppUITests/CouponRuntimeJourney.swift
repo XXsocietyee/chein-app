@@ -37,10 +37,17 @@ import XCTest
         skipOnboardingIfPresent(in: app)
         tap("welcome.player"); tap("auth.otherChannels")
         let phone = app.textFields["auth.channels.phone"]; XCTAssertTrue(phone.waitForExistence(timeout: 5)); phone.tap(); phone.typeText("10000000000")
-        let code = app.textFields["auth.channels.code"]; code.tap(); code.typeText("123456")
         XCTAssertEqual(phone.value as? String, "10000000000")
-        XCTAssertEqual(code.value as? String, "123456")
-        tap("auth.channels.phoneSignIn")
+        // The code field only renders after a code was sent; the fixture answers api/sms/send.
+        tap("auth.channels.sendCode")
+        let code = app.descendants(matching: .any)["auth.channels.code"]
+        XCTAssertTrue(code.waitForExistence(timeout: 5), app.debugDescription); code.tap()
+        // Five digits first so the value is observable; the sixth digit submits sign-in automatically.
+        code.typeText("12345")
+        XCTAssertEqual(code.value as? String, "12345")
+        code.typeText("6")
+        let submit = app.buttons["auth.channels.phoneSignIn"]
+        if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn") }
         XCTAssertTrue(app.tabBars.buttons[chinese ? "护照" : "Passport"].waitForExistence(timeout: 8), app.debugDescription); app.tabBars.buttons[chinese ? "护照" : "Passport"].tap()
         app.buttons[chinese ? "设置" : "Settings"].tap(); tap("account.merchant"); tap("merchant.content.open"); tap("merchant.content.entry.recruiting"); tap("couponManagement.marketing.entry")
         XCTAssertTrue(app.buttons["couponManagement.definition.710"].waitForExistence(timeout: 5))
