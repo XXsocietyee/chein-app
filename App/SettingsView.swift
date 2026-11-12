@@ -91,6 +91,7 @@ struct SettingsView: View {
                 MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
                 SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
                 NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
                 SettingsSupportSafetyEntry().environment(\.settingsTileTint, SettingsTint.teal)
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                 SettingsSignOutEntry(session: session) { dismiss() }

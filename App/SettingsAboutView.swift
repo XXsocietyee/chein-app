@@ -3,6 +3,7 @@ import UIKit
 
 /// pages/shezhi/about/index. Settings archetype: hero, fact cards, one copy action, empty personal code.
 /// Reads the same bundle facts and CN contact. Missing facts stay an em dash. No ICP, address, or legal body.
+/// The generative-AI filing number (`aigcFilingNo`) shows under the version only when the features read supplies it.
 @MainActor struct SettingsAboutView: View {
     let market: RegionalMarket?
     let appInformation: SettingsAppInformation
@@ -48,7 +49,7 @@ import UIKit
                 SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version == nil ? nil : model.version.text + " (" + model.build.text + ")",
                                 identifier: "settingsNative.about.version", systemImage: "number")
                 marketRow
-            } header: { Text("settingsNative.about.appSection") }
+            } header: { Text("settingsNative.about.appSection") } footer: { AIGCFilingNumberText() }
             .labelStyle(SettingsTileLabelStyle())
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in

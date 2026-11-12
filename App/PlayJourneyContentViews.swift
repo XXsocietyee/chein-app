@@ -20,6 +20,7 @@ import SwiftUI
                             HStack(spacing: CYSpacing.sm) { checkChips(problem) }
                             VStack(alignment: .leading, spacing: CYSpacing.sm) { checkChips(problem) }
                         }
+                        CYDiceTierStrip(tier: problem.tier)
                         DiceD20CanvasView(
                             values: model.receipt?.dice ?? [],
                             kept: model.receipt?.kept,
@@ -53,7 +54,12 @@ import SwiftUI
                             Text("journey.unknown")
                             CYPillButton("journey.recover") { try? model.prepare(.settle, recoverUnknown: true) }
                                 .disabled(!model.canRecover).accessibilityIdentifier("journey.check.recover")
-                        } else if model.receipt == nil { action(.roll) }
+                        } else if model.receipt == nil {
+                            // Mini-program 「按住摇骰，松手掷出」; a tap or a phone shake also rolls.
+                            CYHoldToRollButton(busy: model.acting) { try? model.prepare(.roll) }
+                                .disabled(model.acting || !model.available)
+                                .cyOnShake(enabled: !model.acting && model.available) { try? model.prepare(.roll) }
+                        }
                         else if model.receipt?.settled == false {
                             if model.receipt?.canReroll == true { action(.reroll, style: .secondary) }
                             action(.settle)

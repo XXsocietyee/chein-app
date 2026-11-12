@@ -16,7 +16,8 @@ struct NPCChatDataReadPresentation: Identifiable {
     var body: some View {
         let renderedIdentity = session.npcChatDataReadIdentity
         Section {
-            Button("npcData.title") {
+            // Mini-program settings row 「AI 对话记录」 (OFF-AI-DEL-01): view, export (copy) and delete.
+            Button("mpd.aiChat.title") {
                 guard scene == .active, session.npcChatDataReadIdentity == renderedIdentity else { return }
                 retire()
                 presentation = .init(identity: renderedIdentity, coordinator: session.makeNPCChatDataReadCoordinator(), consent: consentProbe?())
