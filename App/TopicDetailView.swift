@@ -86,6 +86,10 @@ struct TopicDetailView: View {
                         Text("topic.source.betaNote").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                 }
+                // Source cover `cv-btn`: 查看详情与报名 moves from the cover to the details part of the page.
+                CYPillButton("u9cde.topic.coverDetails", style: .secondary) {
+                    withAnimation { proxy.scrollTo(TopicXcxTab.details.anchor, anchor: .top) }
+                }.accessibilityIdentifier("topic.cover.details")
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
                 TopicXcxTabs(proxy: proxy)
             }

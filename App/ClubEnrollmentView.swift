@@ -128,21 +128,14 @@ extension EnvironmentValues {
                 }
             }
             if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
-                // Mini-program sub line: 「俱乐部名 · N 个团 · 报名费由平台担保托管」.
+                // Mini-program sub line: 「俱乐部名 · N 个团」 (俱乐部名 falls back to 我的俱乐部), then the escrow note.
                 Section {
-                    teamCountRow.accessibilityIdentifier("club.enroll.headerLine")
+                    subLine.accessibilityIdentifier("club.enroll.headerLine")
                     Label("club.enroll.escrow", systemImage: "lock.shield")
                         .font(CYTypography.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.enroll.escrow")
-                } header: {
-                    if let name = reader.clubName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
-                        Text(verbatim: name)
-                            .font(CYTypography.sectionTitle)
-                            .foregroundStyle(palette.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
                 }
                 if reader.teams.isEmpty {
                     CYEmptyState(systemImage: "person.3", "club.enroll.emptyTeams")
@@ -294,8 +287,9 @@ extension EnvironmentValues {
         HStack(spacing: CYSpacing.xs) {
             title(team.date, fallback: "club.enroll.dateUnknown")
             Text(verbatim: "·").accessibilityHidden(true)
-            Text("club.enroll.signups")
-            number(team.signupCount)
+            // Source team-meta: 已报名 N 人, or 已报名 — when the count is unknown.
+            if let count = team.signupCount, count >= 0 { Text("u9cde.clubEnroll.signups \(count)").monospacedDigit() }
+            else { Text("club.enroll.signups"); Text("club.enroll.unknown") }
         }
         .font(CYTypography.meta)
         .foregroundStyle(palette.textTertiary)
@@ -467,18 +461,16 @@ extension EnvironmentValues {
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
-    /// Label + count; stacks at accessibility sizes so the label never wraps against the number.
     /// The team total is a real count: 0 stays 0.
-    @ViewBuilder private var teamCountRow: some View {
-        let figure = Text(reader.teams.count, format: .number).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(palette.textPrimary)
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("club.enroll.teamCount").font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
-                figure
-            }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
-        } else {
-            LabeledContent("club.enroll.teamCount") { figure }
+    @ViewBuilder private var subLine: some View {
+        let name = reader.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        Group {
+            if name.isEmpty { Text("u9cde.clubEnroll.subLineMine \(reader.teams.count)") }
+            else { Text("u9cde.clubEnroll.subLine \(name) \(reader.teams.count)") }
         }
+        .font(CYTypography.meta).monospacedDigit()
+        .foregroundStyle(palette.textSecondary)
+        .fixedSize(horizontal: false, vertical: true)
     }
     @ViewBuilder private func title(_ text: String?, fallback: LocalizedStringKey) -> some View {
         if let text { Text(verbatim: text) } else { Text(fallback) }

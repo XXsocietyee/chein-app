@@ -12616,6 +12616,7 @@
       }
     },
     "club.detail.tab.posts": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -12626,7 +12627,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "帖子"
+            "value": "帖文"
           }
         }
       }
@@ -258272,6 +258273,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "—"
+          }
+        }
+      }
+    },
+    "u9cde.topic.coverDetails": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View details and sign up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看详情与报名"
+          }
+        }
+      }
+    },
+    "u9cde.topic.routeNote.fixed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "固定路线"
+          }
+        }
+      }
+    },
+    "u9cde.topic.routeNote.free": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No fixed route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有固定路线"
+          }
+        }
+      }
+    },
+    "u9cde.topic.routeConfiguring": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route being set up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线配置中"
+          }
+        }
+      }
+    },
+    "u9cde.clubEnroll.subLine %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$lld groups"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$lld 个团"
+          }
+        }
+      }
+    },
+    "u9cde.clubEnroll.subLineMine %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My club · %lld groups"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的俱乐部 · %lld 个团"
+          }
+        }
+      }
+    },
+    "u9cde.clubEnroll.signups %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld registered"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已报名 %lld 人"
           }
         }
       }

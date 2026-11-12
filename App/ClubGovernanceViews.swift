@@ -1308,21 +1308,21 @@ struct ClubGovernanceReadView: View {
                 } description: { Text("club.gov.hostMerchantBlocked") }
                     .listRowBackground(Color.clear)
             } else if value["accountRole"] == .string("club") {
-                Section("club.host.done.title") {
-                    LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(CYColor.successText) }
+                // Source club/apply done card: page title 成为主理人, an 已生效 chip, then the 可建俱乐部 row.
+                Section {
+                    CYStatusChip("club.host.done.active", tone: .success)
+                        .accessibilityLabel(Text("club.host.done.status")).accessibilityValue(Text("club.host.done.active"))
                     LabeledContent("club.host.done.limitLabel") {
                         Text(verbatim: ClubHostApplyPageModel(loading: false, snapshot: snapshot, capabilityGranted: access.isConfigured,
                                                               allowance: value["allowance"]).allowance.displayText)
                     }
                 }
             } else {
+                // Source club/apply intro: one large two-line title over the 成为主理人 CTA, nothing else.
                 Section {
-                    CYSectionHeader("club.host.intro.title")
-                    Label("club.host.intro.instant", systemImage: "checkmark.circle")
-                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                    Label("club.host.intro.limit", systemImage: "person.3")
-                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                }
+                    Text("club.host.intro.title").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                }.listRowBackground(Color.clear)
                 Section {
                     edit(.hostApply, role: .primary)
                 }.listRowBackground(Color.clear)

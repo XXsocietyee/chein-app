@@ -50,10 +50,20 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 CYStatusChip(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
                                              tone: club.needsApproval ? .warning : .success, systemImage: club.needsApproval ? "lock" : "checkmark.circle")
                             }
-                            ClubName(value: club.name).font(.largeTitle.weight(.bold)).foregroundStyle(.white)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("club.detail.name")
-                                .cyHeroTitleRise()
+                            // Source profile block: square club logo beside the name.
+                            HStack(alignment: .center, spacing: CYSpacing.md) {
+                                if QuestifyCardArtwork.safeURL(club.logo) != nil, !typeSize.isAccessibilitySize {
+                                    ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: false)
+                                        .frame(width: 56, height: 56)
+                                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
+                                        .accessibilityIdentifier("club.detail.logo")
+                                }
+                                ClubName(value: club.name).font(.largeTitle.weight(.bold)).foregroundStyle(.white)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("club.detail.name")
+                                    .cyHeroTitleRise()
+                            }
                         }
                         .padding(CYSpacing.lg).padding(.top, typeSize.isAccessibilitySize ? CYSpacing.lg : 120)
                         .frame(maxWidth: .infinity, minHeight: typeSize.isAccessibilitySize ? 0 : 280, alignment: .bottomLeading)

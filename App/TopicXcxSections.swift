@@ -193,8 +193,16 @@ struct TopicXcxRouteSection: View {
     let topic: TopicDetail
     var body: some View {
         Section("topicXcx.tab.route") {
+            // Source `route-note`: 固定路线 for city orienteering, 没有固定路线 for free explore.
+            Text(topic.productType == 2 ? "u9cde.topic.routeNote.free" : "u9cde.topic.routeNote.fixed")
+                .font(CYTypography.label.weight(.semibold))
+                .foregroundStyle(topic.productType == 2 ? CYColor.textSecondary : CYNight.ink0)
+                .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                .background(Capsule().fill(topic.productType == 2 ? CYNight.glassFill : CYNight.lantern))
+                .accessibilityIdentifier("topic.route.note")
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
                 VStack(alignment: .leading, spacing: 4) {
+                    Text("u9cde.topic.routeConfiguring").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                     Text("topicXcx.route.emptyTitle").foregroundStyle(.secondary)
                 }.accessibilityIdentifier("topic.route.empty")
             }
