@@ -23,6 +23,9 @@ struct CYClubMemberStrip: View {
     let seed: String
     let count: Int?
     var avatarSize: CGFloat = 28
+    /// Set together while a join avatar is flying into this strip.
+    var meSeed: String? = nil
+    var meNamespace: Namespace.ID? = nil
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
 
@@ -31,15 +34,21 @@ struct CYClubMemberStrip: View {
 
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
+            if let meSeed, let meNamespace {
+                E3Avatar(seed: meSeed, size: avatarSize)
+                    .matchedGeometryEffect(id: "club-me-\(seed)", in: meNamespace)
+                    .accessibilityHidden(true)
+            }
             if let n = known, n > 0 {
                 E3AvatarStack(seeds: (0..<min(n, 5)).map { "\(seed)-m\($0)" }, extra: n > 5 ? n - 5 : nil, size: avatarSize)
                     .accessibilityHidden(true)
-            } else {
+            } else if meSeed == nil {
                 Image(systemName: "person.2").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
             }
             Text(verbatim: text)
                 .font(CYTypography.meta).monospacedDigit()
                 .foregroundStyle(palette.textSecondary)
+                .contentTransition(.numericText())
                 // One line, never hyphen-wrapped ("12 / mem- / bers"): the parent stacks the strip above a wide pill instead.
                 .lineLimit(1).minimumScaleFactor(0.8)
                 .fixedSize(horizontal: true, vertical: true)
@@ -90,7 +99,6 @@ struct CYClubPhotoCard: View {
     let onOpen: () -> Void
     let onJoin: () -> Void
     var identifier: String? = nil
-    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -106,17 +114,9 @@ struct CYClubPhotoCard: View {
     }
 
     private var footer: some View {
-        let trailing = CYClubCardTrailing(action: action, onJoin: onJoin, joinIdentifier: identifier.map { $0 + ".join" })
-        let strip = CYClubMemberStrip(seed: seed, count: memberCount)
-        // Side by side while the strip and the pill both fit on one line; otherwise (wide pill, AX sizes) the pill drops below.
-        return ViewThatFits(in: .horizontal) {
-            if !typeSize.isAccessibilitySize {
-                HStack(alignment: .center, spacing: CYSpacing.sm) { strip; Spacer(minLength: CYSpacing.sm); trailing }
-            }
-            VStack(alignment: .leading, spacing: CYSpacing.sm) { strip; trailing }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, CYSpacing.xs)
+        CYClubCardJoinLine(action: action, seed: seed, memberCount: memberCount, onJoin: onJoin,
+                           joinIdentifier: identifier.map { $0 + ".join" })
+            .padding(.horizontal, CYSpacing.xs)
     }
 }
 
@@ -134,27 +134,16 @@ struct CYClubRowCard: View {
 
     var body: some View {
         Button(action: onOpen) {
-            let info = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Group {
-                    if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitled") }
-                    else { Text(verbatim: name) }
-                }
-                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
-                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
-                .fixedSize(horizontal: false, vertical: true)
-                CYClubMemberStrip(seed: seed, count: memberCount, avatarSize: 20)
+            let title = Group {
+                if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitled") }
+                else { Text(verbatim: name) }
             }
-            let trailing = CYClubCardTrailing(action: action, onJoin: onOpen)
-            // Logo | info | pill on one line when it fits; otherwise the pill moves under the info (always at AX sizes).
-            ViewThatFits(in: .horizontal) {
-                if !typeSize.isAccessibilitySize {
-                    HStack(alignment: .center, spacing: CYSpacing.md) { logo; info; Spacer(minLength: CYSpacing.sm); trailing }
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        HStack(alignment: .center, spacing: CYSpacing.md) { logo; info }
-                        trailing
-                    }
-                }
-                VStack(alignment: .leading, spacing: CYSpacing.md) { logo; info; trailing }
+            .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+            .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+            .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                HStack(alignment: .center, spacing: CYSpacing.md) { logo; title }
+                CYClubCardJoinLine(action: action, seed: seed, memberCount: memberCount, onJoin: onOpen, avatarSize: 20)
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -178,5 +167,83 @@ struct CYClubRowCard: View {
         .frame(width: 56, height: 56)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityHidden(true)
+    }
+}
+
+/// Strip and pill share one namespace. A join/apply -> joined/pending change flies the player's avatar
+/// into the strip and rolls the count, then the pill becomes the status chip. Already-joined cards
+/// do not invent an extra member. Reduce Motion crossfades.
+private struct CYClubCardJoinLine: View {
+    let action: CYClubCardAction
+    let seed: String
+    let memberCount: Int?
+    let onJoin: () -> Void
+    var joinIdentifier: String? = nil
+    var avatarSize: CGFloat = 28
+    var morph: CYMorphState = .idle
+
+    @Namespace private var flight
+    @State private var sourceVisible = false
+    @State private var arrived = false
+    @State private var showChip = false
+    @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var inbound: Bool { action == .joined || action == .pending }
+
+    var body: some View {
+        let shownCount = memberCount.map { $0 + ((arrived && action == .joined) ? 1 : 0) }
+        let strip = CYClubMemberStrip(
+            seed: seed, count: shownCount, avatarSize: avatarSize,
+            meSeed: arrived ? "\(seed)-me" : nil, meNamespace: flight)
+        ViewThatFits(in: .horizontal) {
+            if !typeSize.isAccessibilitySize {
+                HStack(alignment: .center, spacing: CYSpacing.sm) {
+                    strip
+                    Spacer(minLength: CYSpacing.sm)
+                    trailing
+                }
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) { strip; trailing }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onAppear { if inbound { showChip = true } }
+        .onChange(of: action) { old, new in
+            let fromPill = old == .join || old == .apply
+            let toChip = new == .joined || new == .pending
+            guard fromPill && toChip else {
+                if new == .join || new == .apply { sourceVisible = false; arrived = false; showChip = false }
+                return
+            }
+            if reduceMotion {
+                arrived = new == .joined
+                showChip = true
+                return
+            }
+            sourceVisible = true
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(30))
+                withAnimation(CYMotion.entrance) { sourceVisible = false; arrived = new == .joined }
+                try? await Task.sleep(for: .milliseconds(480))
+                withAnimation(CYMotion.reduced) { showChip = true }
+            }
+        }
+    }
+
+    @ViewBuilder private var trailing: some View {
+        if showChip {
+            CYClubCardTrailing(action: action, onJoin: onJoin, joinIdentifier: joinIdentifier, morph: morph)
+        } else {
+            CYClubCardTrailing(
+                action: inbound ? (action == .pending ? .apply : .join) : action,
+                onJoin: onJoin, joinIdentifier: joinIdentifier, morph: morph)
+                .overlay(alignment: .trailing) {
+                    if sourceVisible {
+                        E3Avatar(seed: "\(seed)-me", size: max(16, avatarSize * 0.75))
+                            .matchedGeometryEffect(id: "club-me-\(seed)", in: flight)
+                            .padding(.trailing, 4)
+                    }
+                }
+        }
     }
 }
