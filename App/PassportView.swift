@@ -239,8 +239,8 @@ private struct PassportRollingCount: View {
                 .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
         }
         }
-        // Outside the button so the zoom snapshots the seal, not the pressed label. Radius >= half the side: a true circle.
-        .cyHeroSourceInherited(index, cornerRadius: 64)
+        // Outside the button so the zoom snapshots the seal, not the pressed label. Radius = exactly half the side (a true circle): a larger radius collapses the clip to a small diamond on iOS 27 and hid the whole seal.
+        .cyHeroSourceInherited(index, cornerRadius: size / 2)
         .frame(maxWidth: .infinity, minHeight: 44)
     }
 
