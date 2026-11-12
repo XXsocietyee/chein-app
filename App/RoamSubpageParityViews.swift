@@ -36,7 +36,7 @@ struct RoamRunCardParityMeta: View {
         VStack(alignment: .leading, spacing: 8) {
             if let date = card.dateShort { Text(verbatim: date).font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
             else { Text("roamSub.w208.history.dateUnavailable").font(.caption).foregroundStyle(.secondary) }
-            HStack(spacing: 20) {
+            HStack(spacing: 0) {
                 stat(card.distanceText, "roamSub.w208.history.km")
                 stat(card.shopsText, "roamSub.w208.history.shops")
                 stat(card.timeText, "roamSub.w208.history.duration")
@@ -44,7 +44,7 @@ struct RoamRunCardParityMeta: View {
             if !card.medals.isEmpty || card.stamps > 0 {
                 HStack(spacing: 8) {
                     ForEach(Array(card.medals.enumerated()), id: \.offset) { _, medal in
-                        Image(systemName: "hexagon.fill").foregroundStyle(.tint).accessibilityLabel(Text(verbatim: medal))
+                        Image(systemName: "hexagon.fill").foregroundStyle(CYNight.lantern).accessibilityLabel(Text(verbatim: medal))
                     }
                     if card.stamps > 0 {
                         Label { Text("roamSub.w208.history.stamps \(card.stamps)") } icon: { Image(systemName: "star") }
@@ -57,9 +57,10 @@ struct RoamRunCardParityMeta: View {
     }
     private func stat(_ value: String, _ label: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: value).font(.headline.monospacedDigit())
-            Text(label).font(.caption2).foregroundStyle(.secondary)
-        }
+            Text(verbatim: value).font(.system(.headline, design: .rounded).weight(.bold).monospacedDigit())
+                .lineLimit(1).minimumScaleFactor(0.7)
+            Text(label).font(.caption2).foregroundStyle(CYColor.textSecondary)
+        }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -79,11 +80,14 @@ struct RoamRunCardParityMeta: View {
                     .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
                     .accessibilityIdentifier("roamSub.w208.history.tool.export")
             }
-        }.buttonStyle(.bordered)
+        }.buttonStyle(QuestifyCardButtonStyle())
     }
     private func tool(_ key: LocalizedStringKey, _ symbol: String) -> some View {
-        VStack(spacing: 4) { Image(systemName: symbol).accessibilityHidden(true); Text(key).font(.caption) }
-            .frame(maxWidth: .infinity, minHeight: 44)
+        VStack(spacing: 6) { Image(systemName: symbol).font(.title3).accessibilityHidden(true); Text(key).font(.caption.weight(.medium)) }
+            .foregroundStyle(CYColor.textPrimary)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: 64)
+            .cyNightGlass(cornerRadius: CYRadius.md)
     }
 }
 

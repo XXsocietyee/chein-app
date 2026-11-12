@@ -11,6 +11,7 @@ import SwiftUI
     @State private var historyRead = RoamHistoryListRead()
     @State private var liveEntry = RoamHistoryLiveEntry()
     @State private var localWalk = RoamHistoryLocalWalkState()
+    @Namespace private var hero
     var body: some View {
         let records = historyRead.records(for: reader)
         let error = historyRead.error(for: reader)
@@ -20,7 +21,11 @@ import SwiftUI
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let error {
                     if RoamHistoryErrorPresentation.resolve(error: error) == .denied {
-                        Label("roam.history.denied", systemImage: "lock").accessibilityIdentifier("roam.experience.history.denied")
+                        Label("roam.history.denied", systemImage: "lock")
+                            .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                            .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
+                            .cyNightGlass(cornerRadius: CYRadius.md)
+                            .accessibilityIdentifier("roam.experience.history.denied")
                     } else { RoamExperienceIssue(error: error, retry: load) }
                 }
                 else if !loaded { CYSkeleton().accessibilityLabel(Text("roamSub.w208.history.loading")) }
@@ -50,14 +55,15 @@ import SwiftUI
                 } else {
                     let summary = RoamHistorySummary(records)
                     // Mini-program order: total (big km, then trips and shops), tools, then run cards.
-                    RoamExperienceCard { VStack(alignment: .leading, spacing: 12) {
+                    RoamNightCard { VStack(alignment: .leading, spacing: 12) {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Group {
                                 if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
                                     Text(distance, format: .number.precision(.fractionLength(1)))
                                 } else { Text(verbatim: "—") }
                             }
-                            .font(.system(.largeTitle, design: .rounded).weight(.heavy)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .font(.system(size: 44, weight: .heavy, design: .rounded)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .contentTransition(.numericText())
                             .lineLimit(1).minimumScaleFactor(0.5)
                             Text("roam.history.km").font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
                         }
@@ -67,15 +73,21 @@ import SwiftUI
                     } }
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
                     ForEach(records) { record in
-                        NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts) } label: {
-                            RoamExperienceCard {
+                        NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero) } label: {
+                            RoamNightCard {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    RoamRunCardTitle(record: record)
+                                    HStack(alignment: .firstTextBaseline) {
+                                        RoamRunCardTitle(record: record).foregroundStyle(CYColor.textPrimary)
+                                        Spacer(minLength: 8)
+                                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                                            .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                                    }
                                     RoamRouteSketchView(record: record)
                                     RoamRunCardParityMeta(record: record)
                                 }
                             }
                         }.buttonStyle(QuestifyCardButtonStyle())
+                            .cyHeroSource(record.ts, in: hero)
                             .accessibilityLabel(record.portRunCardAccessibilityLabel)
                             .accessibilityIdentifier("roam.experience.history.record")
                     }
@@ -243,6 +255,8 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
 @MainActor struct RoamHistoryDetailView: View {
     let reader: any RoamExperienceReading
     let timestamp: Int64
+    /// Namespace of the history list the card zoomed out of; nil (live finish, share) keeps the plain push.
+    var hero: Namespace.ID? = nil
     @State private var record: RoamHistoryRecord?
     @State private var showShare = false
     @State private var selectedMedal: RoamMedalShareSelection?
@@ -263,7 +277,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let error = currentError { RoamExperienceIssue(error: error, retry: load) }
                 else if let record = currentRecord {
-                    RoamExperienceCard {
+                    RoamNightCard {
                         VStack(alignment: .leading, spacing: 18) {
                             RoamSessionParityHeader(record: record)
                             RoamSessionRouteNameText(name: RoamSessionRouteName(record)).font(.title3).bold()
@@ -282,12 +296,15 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     ForEach(medals) { medal in
                         Button { showShare = false; selectedMedal = medal } label: {
                             HStack {
-                                Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal.fill").foregroundStyle(.yellow) }
+                                Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal.fill").foregroundStyle(CYNight.lantern) }
                                 Spacer(minLength: 0)
                                 Image(systemName: "square.and.arrow.up").foregroundStyle(.secondary)
                             }
                             .frame(minHeight: 44, alignment: .leading)
+                            .padding(.horizontal, CYSpacing.lg)
+                            .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         }
+                        .buttonStyle(QuestifyCardButtonStyle())
                         .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
                         .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
                     }
@@ -308,7 +325,9 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                         .accessibilityIdentifier("roam.experience.history.missing")
                 } else { ProgressView("roam.loading") }
             }.padding()
-        }.navigationTitle("roam.experience.session")
+        }.background(CYColor.bgPage.ignoresSafeArea())
+            .modifier(RoamHistoryHeroDestination(id: timestamp, hero: hero))
+            .navigationTitle("roam.experience.session")
             .task(id: readKey) { showShare = false; selectedMedal = nil; load() }
             .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }
             .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }
@@ -330,5 +349,13 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
             guard captured == readKey else { return }
             self.error = error; loadedOwner = captured
         }
+    }
+}
+
+private struct RoamHistoryHeroDestination: ViewModifier {
+    let id: Int64
+    let hero: Namespace.ID?
+    @ViewBuilder func body(content: Content) -> some View {
+        if let hero { content.cyHeroDestination(id, in: hero) } else { content }
     }
 }
