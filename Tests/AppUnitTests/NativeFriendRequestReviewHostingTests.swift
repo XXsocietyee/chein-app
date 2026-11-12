@@ -86,7 +86,13 @@ import UIKit
         }
     }
     private func wait(_ stage: String, file: StaticString = #filePath, line: UInt = #line, _ predicate: () -> Bool) async throws {
-        for _ in 0..<150 { if predicate() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
+        // Sheet presentation and navigation pushes are delivered on run-loop turns. Task.sleep alone
+        // does not return to that loop on the iOS 27 host, so a presented sheet stays invisible to the wait.
+        for _ in 0..<150 {
+            if predicate() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTAssertTrue(predicate(), stage, file: file, line: line)
         if !predicate() { throw NativeFriendFailure.unavailable }
     }

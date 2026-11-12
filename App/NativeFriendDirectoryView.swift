@@ -124,6 +124,14 @@ import SwiftUI
         .refreshable { await flow.load() }
         .onDisappear { flow.invalidate() }
         .onChange(of: scenePhase) { _, value in if value == .active { if model.selection == nil { Task { await flow.load() } } } else { flow.invalidate() } }
+        // Always hosted outside ForEach: clearing the parent's rows cannot remove this destination.
+        // Before toolbar, so iOS 27 keeps this modifier inside the NavigationStack instead of marking it misplaced.
+        .navigationDestination(isPresented: detailBinding) {
+            if let detail = model.selection {
+                NativeFriendDirectoryDetailView(model: detail, metadataFactory: metadataFactory,
+                    removalFactory: removalFactory, publicProfile: publicProfile, progressCard: progressCard, conversation: conversation).id(detail.id)
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -143,13 +151,6 @@ import SwiftUI
                         Image(systemName: filterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                     }
                 }.disabled(flow.busy)
-            }
-        }
-        // Always hosted outside ForEach: clearing the parent's rows cannot remove this destination.
-        .navigationDestination(isPresented: detailBinding) {
-            if let detail = model.selection {
-                NativeFriendDirectoryDetailView(model: detail, metadataFactory: metadataFactory,
-                    removalFactory: removalFactory, publicProfile: publicProfile, progressCard: progressCard, conversation: conversation).id(detail.id)
             }
         }
     }
