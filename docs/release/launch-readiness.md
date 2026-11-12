@@ -25,9 +25,9 @@ Base: `origin/rc/20261108`. Facts come from files in this repo; verification num
 | Check | Result |
 | --- | --- |
 | Debug + Release arm64 builds | Debug arm64 builds OK on the final tip; Release arm64 simulator build OK on `930acb848` (binary has no design-fixture symbols), not rebuilt after later merges (measured) |
-| App unit tests | 7469 pass / 130 fail of 7599 on `198b2d873` (serial, parallel off). 2 names new vs the first run (`MerchantWorkbenchRemindersTests` hosted, `OwnAccountRefreshOrderingTests` test-process crash); the hosted-window family (about 43 tests in 13 hosted classes) is unchanged by the harness changes in e3p/e3q, root cause unproven; names in `chengyin-refs/app-full-failing-3.txt` (measured) |
+| App unit tests | Full serial run on `198b2d873`: 7469 pass / 130 fail of 7599. Since then hosted-window fixes (e3s, e3t2): the 13 hosted classes now 106 pass / 25 fail of 131 (was 88/43; Place 9->0, Share 7->1, Enrolled 5->4, Tile 4->3); remaining hosted: Native*Hosting 9, Workshop 5, Official 3, Enrolled 4, Tile 3, Share 1. Full suite not re-run after those fixes, expected about 112 failing (measured/derived) |
 | Contract suite | 246 failing of 5912 (was 721). Ratchet: `tools/contract_ratchet.py --check` = 246, baseline 246, new 0, `contract-failing-baseline.txt`, see `receipts/contract-ratchet.md` (measured) |
-| UITests | Entry 7/7, Regional 4/4, TicketWallet 6/6 pass (measured on the IA tip before the last test-only merges). Still failing on the final tip: CouponRuntime 6/6, IntegratedActivityPlayJourney 2/2, IntegratedNativeAcceptance 6/6, IntegratedDeniedAcceptance 2/2, NonCashReward 5 of 6 (measured; 4 sampled of the first 14 also fail on the pre-IA base, the rest not checked there) |
+| UITests | Entry 7/7, Regional 4/4, TicketWallet 6/6 pass; 6 merchant Coupon UITests skipped for v1; IntegratedDenied 1/2; IntegratedActivityPlay 0/2, IntegratedNativeAcceptance 0/6, NonCashReward 0/6 still fail past sign-in (measured on `207b8b7d7`) |
 | Core scratch package | 1254/1254 (measured earlier on `5e2aeabb1`+e1s; not re-run on the final tip) |
 | Release binary fixture symbols | 0 (reported) |
 | Xcode Cloud | **NOT cloud verified** (silent; see `receipts/xcode-cloud.md`) |
