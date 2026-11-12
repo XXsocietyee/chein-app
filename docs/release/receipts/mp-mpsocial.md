@@ -21,3 +21,7 @@ Not audited in depth (time): club enroll/apply/create/topic-detail/topic-story/g
 - Club director sheets (`club-director-*` broadcast/chapter/role/team/incident/recap) vs `ClubTerminalSessionView`/`ClubGovernanceViews`: unverified.
 - Club `customers`, `customer-detail`, `badges`, `checkin-detail`: operator/merchant surfaces stay behind `merchantSurfaceHiddenInV1`; not built.
 - Card/payment/payout/withdrawal surfaces in club settlement stay OFF.
+
+## APP-ONLY (owner-clarified; kept intact, not MISSING)
+- Message channel (IM), city-themed Monopoly game (`App/CityGamePanel.swift`, `Core/CityGameBoardProjection.swift`) and the improved community. Nothing in this branch touches them.
+- Floor rule: where the mini-program has an older version of the same area (IM, square), the app keeps every mini-program behaviour plus its own extras. The square gaps listed under MISSING above (avatar popover, share, route map, activity picker) remain owed for that reason.
