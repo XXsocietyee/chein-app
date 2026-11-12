@@ -206,10 +206,16 @@ struct OBWaveModifier: ViewModifier {
     func body(content: Content) -> some View {
         TimelineView(.animation(paused: start == nil)) { tl in
             let t = start.map { min(tl.date.timeIntervalSince($0) / 0.8, 1) } ?? 1
+            #if CY_METAL_SHADERS
             content.distortionEffect(
                 ShaderLibrary.cyOnboardWave(.float2(origin), .float(t), .float(amp), .float(0.09), .float2(0, 0)),
                 maxSampleOffset: CGSize(width: 14, height: 14),
-                isEnabled: t < 1 && !reduceMotion && CYLightBudget.shadersAllowed)
+                isEnabled: t < 1 && !reduceMotion && CYLightBudget.metalShadersAllowed)
+            #else
+            // No Metal Toolchain: the wave is compiled out and the onboarding light plays without the distortion.
+            let _ = t
+            content
+            #endif
         }
         .onChange(of: trigger) { _, _ in
             start = .now
