@@ -1,5 +1,6 @@
 # Polish pass pol2: Roam hub + finished history (code-only, uncompiled)
 
+SHA: 24d825a30
 Base: origin/ui/main 9ad1f1649. Branch ui/pol2. Files: RoamExperienceHubView, RoamExperienceComponents, RoamHistoryViews, RoamSubpageParityViews.
 All accessibility identifiers unchanged; no new strings; no Core/network changes.
 
