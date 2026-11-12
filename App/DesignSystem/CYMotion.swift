@@ -191,10 +191,10 @@ private struct CYHeroSource<ID: Hashable>: ViewModifier {
     @QuestifyReduceMotion private var reduceMotion
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 18.0, *), !reduceMotion {
-            // CYFoilClip: a true circle once the radius reaches half the side (an oversize continuous rounded rect is a diamond).
+            // matchedTransitionSource only accepts RoundedRectangle clips (not CYFoilClip): the .circular corner style clamps an oversize radius to a true circle (a .continuous one turns into a diamond).
             // Clear background: the source leaves no opaque placeholder behind while the destination zooms out of it.
             content.matchedTransitionSource(id: id, in: namespace) { source in
-                source.background(Color.clear).clipShape(CYFoilClip(cornerRadius: cornerRadius))
+                source.background(Color.clear).clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .circular))
             }
         } else {
             content
