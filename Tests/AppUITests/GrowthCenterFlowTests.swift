@@ -42,9 +42,9 @@ final class GrowthCenterFlowTests: XCTestCase {
     }
     func testMetricAndPeriodFiltersChangeIndependentParameters() {
         launch("slowFilters"); openBoard()
-        app.buttons["growth.board.metric"].tap(); app.buttons["Growth"].tap()
+        app.buttons["Growth"].tap()
         XCTAssertTrue(matchingText("Sample EXP North").waitForExistence(timeout: 5))
-        app.buttons["growth.board.period"].tap(); app.buttons["This week"].tap()
+        app.buttons["This week"].tap()
         XCTAssertTrue(matchingText("Sample weekly South").waitForExistence(timeout: 5))
         XCTAssertTrue(matchingText("Sample EXP North").exists)
     }
@@ -91,7 +91,7 @@ final class GrowthCenterFlowTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(board.frame.height, 44)
         board.tap()
         XCTAssertTrue(app.navigationBars["完整排行榜"].waitForExistence(timeout: 5))
-        reveal(app.buttons["growth.board.metric"])
+        reveal(app.descendants(matching: .any)["growth.board.metric"].firstMatch)
         attachFixtureScreenshot(self, app: app, name: "Growth leaderboard Chinese large text dark mode")
     }
 }

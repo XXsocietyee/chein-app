@@ -13,17 +13,20 @@ import SwiftUI
     @State private var latestReaderID: ObjectIdentifier?
     @StateObject private var model = GrowthCenterScreenModel<GrowthLeaderboard>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope, query: query) }
+    private var metricChips: some View {
+        GrowthBoardChips(title: "growth.board.metric", selection: $query.metric, options: GrowthBoardMetric.allCases) { "growth.metric." + $0.rawValue }
+            .accessibilityIdentifier("growth.board.metric")
+    }
     var body: some View {
         List {
             if reader.isOfflineExample { Text("growth.offlineExample").font(CYTypography.caption).foregroundStyle(palette.textSecondary) }
+            // Mini-program order: 周榜 / 总榜 chips first; 积分榜 / 成长榜 chips sit between the podium and the rows.
             Section {
-                Picker("growth.board.metric", selection: $query.metric) {
-                    ForEach(GrowthBoardMetric.allCases) { option in Text(LocalizedStringKey("growth.metric." + option.rawValue)).tag(option) }
-                }.pickerStyle(.segmented).accessibilityIdentifier("growth.board.metric")
-                Picker("growth.board.period", selection: $query.period) {
-                    ForEach(GrowthBoardPeriod.allCases) { option in Text(LocalizedStringKey("growth.period." + option.rawValue)).tag(option) }
-                }.pickerStyle(.segmented).accessibilityIdentifier("growth.board.period")
+                GrowthBoardChips(title: "growth.board.period", selection: $query.period, options: GrowthBoardPeriod.allCases) { "growth.period." + $0.rawValue }
+                    .accessibilityIdentifier("growth.board.period")
+                if model.value(key: key)?.list.isEmpty != false { metricChips }
             }
+            .listRowBackground(Color.clear).listRowSeparator(.hidden)
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key { CYSkeleton().accessibilityLabel(Text("growth.loading")) }
@@ -32,9 +35,6 @@ import SwiftUI
                 else { GrowthCenterIssueView(issue: issue, retry: reload) }
             }
             else if let board = model.value(key: key) {
-                if let rank = board.me.rank {
-                    Section("growth.myRank") { GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true).accessibilityIdentifier("growth.board.me.\(rank)") }
-                }
                 if board.list.isEmpty {
                     VStack(spacing: CYSpacing.md) {
                         CYEmptyState(systemImage: "list.number", "growth.board.empty")
@@ -60,12 +60,25 @@ import SwiftUI
                     }
                     .accessibilityIdentifier("growth.board.empty")
                 } else {
-                    Section("growth.board.leaders") {
+                    Section {
+                        GrowthLeaderboardPodium(entries: Array(board.list.prefix(3)), metric: board.metric)
+                        metricChips.frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    Section {
                         ForEach(Array(board.list.enumerated()), id: \.offset) { index, row in
-                            GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric, place: index < 3 ? index + 1 : nil)
-                                .accessibilityIdentifier("growth.board.row.\(index)")
+                            if index >= 3 {
+                                GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric)
+                                    .accessibilityIdentifier("growth.board.row.\(index)")
+                            }
+                        }
+                        // My own rank closes the list, highlighted, as in the mini-program.
+                        if let rank = board.me.rank {
+                            GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true)
+                                .accessibilityIdentifier("growth.board.me.\(rank)")
                         }
                     }
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
             }
         }
@@ -164,5 +177,82 @@ struct GrowthPodiumMark: View {
     var body: some View {
         Image(systemName: "medal.fill").foregroundStyle(tint)
             .accessibilityLabel(Text(label))
+    }
+}
+
+/// Mini-program chip pair (周榜 / 总榜, 积分榜 / 成长榜): capsules, the selected one solid.
+private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
+    let title: LocalizedStringKey
+    @Binding var selection: Option
+    let options: [Option]
+    let key: (Option) -> String
+    init(title: LocalizedStringKey, selection: Binding<Option>, options: [Option], key: @escaping (Option) -> String) {
+        self.title = title; self._selection = selection; self.options = options; self.key = key
+    }
+    var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            ForEach(options) { option in
+                let selected = selection == option
+                Button { selection = option } label: {
+                    Text(LocalizedStringKey(key(option)))
+                        .font(selected ? CYTypography.label.weight(.semibold) : CYTypography.label)
+                        .foregroundStyle(selected ? CYColor.textInverse : CYColor.textPrimary)
+                        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
+                        .background(selected ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+        .sensoryFeedback(.selection, trigger: selection)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(title))
+    }
+}
+
+/// Mini-program podium: 2 · 1 · 3, initial discs with a rank coin, name, score + unit. Unknown score is an em dash.
+private struct GrowthLeaderboardPodium: View {
+    let entries: [GrowthLeaderboardEntry]
+    let metric: GrowthBoardMetric
+    var body: some View {
+        HStack(alignment: .bottom, spacing: CYSpacing.md) {
+            ForEach([1, 0, 2], id: \.self) { index in
+                if index < entries.count { column(entries[index], place: index + 1) }
+                else { Color.clear.frame(maxWidth: .infinity) }
+            }
+        }
+        .padding(.vertical, CYSpacing.md)
+    }
+    private func column(_ entry: GrowthLeaderboardEntry, place: Int) -> some View {
+        let side: CGFloat = place == 1 ? 96 : 76
+        let tint: Color = place == 1 ? CYNight.lantern : place == 2 ? CYNight.lanternHot : CYNight.ember
+        let name = GrowthCenterFormatting.nonempty(entry.nickname)
+        return VStack(spacing: CYSpacing.sm) {
+            if place == 1 { Image(systemName: "star").foregroundStyle(CYNight.lantern).accessibilityHidden(true) }
+            ZStack(alignment: .bottom) {
+                Text(verbatim: name.map { String($0.prefix(1)) } ?? "—")
+                    .font(.system(size: side * 0.38, weight: .heavy)).foregroundStyle(.white)
+                    .frame(width: side, height: side)
+                    .background(CYNight.indigo, in: Circle())
+                    .overlay(Circle().strokeBorder(tint, lineWidth: 3))
+                Text(place, format: .number).font(CYTypography.label.weight(.bold)).foregroundStyle(CYNight.ink0)
+                    .frame(width: 28, height: 28).background(tint, in: Circle())
+                    .offset(y: 12)
+                    .accessibilityHidden(true)
+            }
+            .padding(.bottom, 12)
+            GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").font(CYTypography.label.weight(.semibold))
+                .foregroundStyle(CYColor.textPrimary).lineLimit(1)
+            HStack(spacing: 4) {
+                Circle().fill(tint).frame(width: 10, height: 10).accessibilityHidden(true)
+                GrowthCenterInteger(value: entry.score).font(.subheadline.weight(.bold)).monospacedDigit()
+                    .foregroundStyle(place == 1 ? CYNight.lantern : CYColor.textPrimary)
+                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(CYColor.textSecondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(place == 1 ? "growth.board.podium.first" : place == 2 ? "growth.board.podium.second" : "growth.board.podium.third"))
+        .accessibilityIdentifier("growth.board.row.\(place - 1)")
     }
 }
