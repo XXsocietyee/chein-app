@@ -52,18 +52,4 @@ import XCTest
         XCTAssertTrue(c.allowsSecondaryRootSheet)
         XCTAssertEqual(c.takeLink(now: t0, tabsVisible: true, signedIn: true), .roamGo)
     }
-
-    func testSeatLandingDoesNotWaitForSignInAndRecordsIntake() throws {
-        let c = RootPresentationCoordinator()
-        let link = CheinDeepLink.seat(token: "seat-token", activityID: 4, topicID: nil)
-        c.enqueue(link, now: t0)
-        XCTAssertEqual(c.takeLink(now: t0, tabsVisible: true, signedIn: false), link)
-        c.noteJourney(try XCTUnwrap(link.journeyIntake))
-        XCTAssertEqual(c.pendingJourney?.kind, .seat)
-        XCTAssertEqual(c.pendingJourney?.token, "seat-token")
-        XCTAssertEqual(c.pendingJourney?.activityID, 4)
-        XCTAssertNil(c.pendingLink)
-        c.clear()
-        XCTAssertNil(c.pendingJourney)
-    }
 }

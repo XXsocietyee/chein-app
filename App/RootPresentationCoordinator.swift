@@ -11,8 +11,6 @@ import Observation
     var consentActive = false
     private(set) var blockingSheets: Set<String> = []
     private(set) var pendingLink: CheinDeepLink?
-    /// Last referral, gift, or seat landing. Recording it does not claim, pay, or start a run.
-    private(set) var pendingJourney: JourneyLinkIntake?
     private var pendingSince: Date?
 
     var hasBlockingSheet: Bool { !blockingSheets.isEmpty }
@@ -26,9 +24,7 @@ import Observation
 
     func enqueue(_ link: CheinDeepLink, now: Date = Date()) { pendingLink = link; pendingSince = now }
 
-    func noteJourney(_ intake: JourneyLinkIntake) { pendingJourney = intake }
-
-    func clear() { pendingLink = nil; pendingSince = nil; pendingJourney = nil }
+    func clear() { pendingLink = nil; pendingSince = nil }
 
     /// Returns the pending link once when it can be shown, and drops it when older than `linkLifetime`.
     func takeLink(now: Date = Date(), tabsVisible: Bool, signedIn: Bool) -> CheinDeepLink? {
