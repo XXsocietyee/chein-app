@@ -64,14 +64,34 @@ import SwiftUI
                         Button("playx.preference.answerAgain") { useExisting = false }.disabled(model.phase != "ready" || model.steps.isEmpty)
                     }
                 } else {
-                    ForEach(model.steps) { step in
+                    ForEach(Array(model.steps.enumerated()), id: \.element.id) { index, step in
                         Section {
+                            // Mini-program calibration header: "装机校准 i / n", question, then option cards.
+                            Text("playx.preference.stepCount \(index + 1) \(model.steps.count)")
+                                .font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
                             Text(verbatim: step.title).font(.headline)
-                            Text(LocalizedStringKey(step.type == "discard" ? "playx.preference.discard" : "playx.choose"))
-                            Picker("playx.choose", selection: Binding(get: { model.choices[step.id] ?? "" }, set: { model.select(stepID: step.id, optionID: $0) })) {
-                                Text("playx.choose").tag("")
-                                ForEach(step.options) { option in Text(verbatim: option.text).tag(option.id) }
-                            }.disabled(model.phase != "ready").accessibilityIdentifier("playx.preference.step.\(step.id)")
+                            if step.type == "discard" { Text("playx.preference.discard").font(CYTypography.meta).foregroundStyle(.secondary) }
+                            VStack(spacing: CYSpacing.sm) {
+                                ForEach(step.options) { option in
+                                    let on = model.choices[step.id] == option.id
+                                    Button { model.select(stepID: step.id, optionID: option.id) } label: {
+                                        HStack {
+                                            Text(verbatim: option.text).font(CYTypography.body).foregroundStyle(Color.primary)
+                                            Spacer(minLength: CYSpacing.sm)
+                                            if on { Image(systemName: "checkmark.circle").accessibilityHidden(true) }
+                                        }
+                                        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 52)
+                                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(on ? CYColor.bgRaised : Color.clear))
+                                        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(on ? Color.primary.opacity(0.8) : CYNight.glassEdgeTop))
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityAddTraits(on ? .isSelected : [])
+                                    .accessibilityIdentifier("playx.preference.option.\(step.id).\(option.id)")
+                                }
+                            }
+                            .disabled(model.phase != "ready")
+                            .accessibilityIdentifier("playx.preference.step.\(step.id)")
                         }
                     }
                     CYPillButton("playx.review") { prepare(reuse: nil) }.listRowBackground(Color.clear).disabled(model.phase != "ready").accessibilityIdentifier("playx.preference.review")

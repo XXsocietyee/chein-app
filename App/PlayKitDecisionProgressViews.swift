@@ -57,12 +57,7 @@ extension PlayKitScreen {
         CYPillButton("playkit.random.draw") { prepare("DRAW") }.disabled(!enabled || count <= drawn.count)
     }
     @ViewBuilder var dailySignForm: some View {
-        if let address = raw["address"].text { Text(verbatim: address).font(.headline) }
-        ForEach(Array((raw["lines"].array ?? []).enumerated()), id: \.offset) { _, line in
-            if let value = line.text { Text(verbatim: value).font(.title2) }
-        }
-        if let signer = raw["signer"].text, !signer.isEmpty { Text(verbatim: signer).foregroundStyle(.secondary) }
-        if let date = raw["leftAt"].text, !date.isEmpty { Text(verbatim: date).font(.caption) }
+        PlayKitDailySignTicket(segment: raw)
         artwork(raw["photoUrl"].text)
         let limit = PlayKitShortMessageLimit.resolve(raw["textMax"])
         TextField("playkit.daily.message", text: textBinding(limit: limit), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
@@ -105,5 +100,69 @@ extension PlayKitScreen {
         LabeledContent("playkit.bingo.lines") { Text(verbatim: String(board.completedLines.count)) }
         if let line = raw["lineReward"].text, !line.isEmpty { LabeledContent("playkit.bingo.lineReward") { Text(verbatim: line) } }
         if let full = raw["fullReward"].text, !full.isEmpty { LabeledContent("playkit.bingo.fullReward") { Text(verbatim: full) } }
+    }
+}
+
+/// The thermal "today's city sign" ticket: header with date, departure address and serial,
+/// signer and time left, then the line left for you. Missing fields read as an em dash.
+@MainActor struct PlayKitDailySignTicket: View {
+    let segment: PlayWireValue
+    private func value(_ key: String) -> String {
+        let text = (segment[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? "—" : text
+    }
+    private var divider: some View {
+        Rectangle().fill(.clear).frame(height: 1)
+            .overlay(Line().stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 3])).foregroundStyle(CYNight.glassEdgeTop))
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack {
+                Text("playkit.daily.ticketTitle").font(CYTypography.cardTitle)
+                Spacer()
+                Text(verbatim: value("dateLabel")).font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
+            }
+            divider
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("playkit.daily.departure").font(CYTypography.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("address")).font(CYTypography.bodyMedium)
+                }
+                Spacer(minLength: CYSpacing.md)
+                VStack(alignment: .trailing, spacing: CYSpacing.xs) {
+                    Text("playkit.daily.serial").font(CYTypography.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("serialLabel")).font(CYTypography.dataXL).monospacedDigit()
+                    Text("playkit.daily.serialHint").font(CYTypography.caption).foregroundStyle(.secondary)
+                }
+            }
+            divider
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("playkit.daily.signer").font(CYTypography.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("signer")).font(CYTypography.bodyMedium)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("playkit.daily.leftAt").font(CYTypography.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("leftAt")).font(CYTypography.bodyMedium).monospacedDigit()
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+            divider
+            Text("playkit.daily.lineForYou").font(CYTypography.caption).foregroundStyle(.secondary)
+            let lines = (segment["lines"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                if lines.isEmpty { Text(verbatim: "—") }
+                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).font(CYTypography.bodyMedium) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(CYSpacing.md)
+            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.glassFill))
+        }
+        .padding(CYSpacing.lg)
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("playkit.dailySign.ticket")
+    }
+    private struct Line: Shape {
+        func path(in rect: CGRect) -> Path { var path = Path(); path.move(to: CGPoint(x: 0, y: rect.midY)); path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)); return path }
     }
 }

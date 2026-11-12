@@ -54,7 +54,13 @@ import SwiftUI
                             if let eta = node.pause["resumeEta"].text { LabeledContent("playx.player.resumeETA") { Text(verbatim: eta) } }
                             if let fallback = node.fallback["playerMessage"].text { Text(verbatim: fallback) }
                         }
-                        if let prompt = node.task["prompt"].text { Text(verbatim: prompt) }
+                        if let prompt = node.task["prompt"].text {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text("playx.player.stationTask").font(CYTypography.meta).foregroundStyle(.secondary)
+                                Text(verbatim: prompt).font(CYTypography.cardTitle)
+                            }
+                            .accessibilityElement(children: .combine)
+                        }
                         if node.task.object != nil {
                             PlayPlayerSubmissionStatusView(state: submissionReadback?.state(nodeID: node.id) ?? .unconfirmed)
                         }
@@ -76,16 +82,18 @@ import SwiftUI
                                     .disabled(!canAct)
                             }
                         }
-                        ForEach(Array((node.hint["revealedTexts"].array ?? []).enumerated()), id: \.offset) { _, hint in
-                            if let text = hint["text"].text { Text(verbatim: text) }
+                        ForEach(Array((node.hint["revealedTexts"].array ?? []).enumerated()), id: \.offset) { offset, hint in
+                            if let text = hint["text"].text { Text("playx.player.hintLine \(offset + 1) \(text)") }
                         }
                         if let level = node.hint["nextLevel"].integer, let impact = node.hint["nextImpactLabel"].text, !impact.isEmpty {
                             Button("playx.hints.request") { actionReview.prepare(.hint(nodeID: node.id), ticket: ticket) }
                                 .disabled(!canAct)
+                            Text(verbatim: impact).font(CYTypography.meta).foregroundStyle(.secondary)
                         }
                         if node.hint["revealAvailable"].bool == true, let impact = node.hint["revealImpactLabel"].text, !impact.isEmpty {
                             Button("playx.player.reveal") { actionReview.prepare(.reveal(nodeID: node.id), ticket: ticket) }
                                 .disabled(!canAct)
+                            Text(verbatim: impact).font(CYTypography.meta).foregroundStyle(.secondary)
                         }
                         if let completion = node.completionStatus { Text(verbatim: completion).font(.footnote) }
                     }
