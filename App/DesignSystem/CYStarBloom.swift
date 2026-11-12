@@ -44,14 +44,22 @@ struct CYStarBloom<S: Shape>: View {
         .accessibilityHidden(true)
     }
 
+    /// Lantern-gold arc that draws in from its centre outward with a soft bloom underneath (phase 0.45...0.70).
     private var horizon: some View {
-        Ellipse()
-            .stroke(LinearGradient(colors: [.clear, tint.opacity(0.9), .clear], startPoint: .leading, endPoint: .trailing), lineWidth: 2)
-            .frame(width: size * 4, height: size * 1.45)
-            .offset(y: size * 2.3)
-            .blur(radius: cheap ? 0 : 2)
-            .opacity(Self.clamp((phase - 0.45) / 0.25))
-            .scaleEffect(x: 0.6 + 0.4 * Self.clamp((phase - 0.45) / 0.25), y: 1)
+        let p = Self.clamp((phase - 0.45) / 0.25)
+        let arc = Ellipse().trim(from: 0.75 - 0.25 * p, to: 0.75 + 0.25 * p)
+        let gold = LinearGradient(colors: [CYNight.ember.opacity(0.0), CYNight.lantern, CYNight.lanternHot, CYNight.lantern, CYNight.ember.opacity(0.0)],
+                                  startPoint: .leading, endPoint: .trailing)
+        return ZStack {
+            if !cheap {
+                arc.stroke(gold, lineWidth: 12).blur(radius: 10).opacity(0.65)
+                arc.stroke(gold, lineWidth: 6).blur(radius: 3).opacity(0.8)
+            }
+            arc.stroke(gold, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+        }
+        .frame(width: size * 4, height: size * 1.45)
+        .offset(y: size * 2.3)
+        .opacity(p > 0 ? 1 : 0)
     }
 
     @ViewBuilder private var glow: some View {

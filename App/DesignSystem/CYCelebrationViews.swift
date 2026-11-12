@@ -240,12 +240,12 @@ private struct CYCelebrationHost: ViewModifier {
 // MARK: - Stamp slam
 
 /// Choreography 5A (specs/design-wave3.md), every beat derived from one clock so it can be checked against the table:
-///   0 ms     seal rises 40 pt and grows to 1.15 on an `ink1` paper card
+///   0 ms     seal rises 40 pt and grows to 1.15 (pressed straight onto the ground, no card)
 ///   120 ms   seal drops (impactHeavy from the engine) and squashes to 0.92, the card dips 0.985
 ///   120-420  lantern ring expands 1 to 2.4x and fades, a second thinner ring follows 60 ms later
 ///   250 ms   success haptic (the engine keeps cues 150 ms apart, so it logs at about 270 ms)
 ///   300-1100 `CYBurst`, 36 lantern particles from the seal
-///   350 ms   title and place rise 14 pt
+///   450 ms   title and place rise 18 pt from below (after the squash has settled)
 ///   600 ms   passport mini-page (top right) flips once, the count rolls on `.numericText` (a dash when unknown)
 ///   900 ms   Share pill enters (hidden when sharing is off); auto-dismiss at 2.4 s, tap anywhere to dismiss early
 /// Reduce Motion: the finished state cross-fades in, no particles, no flip.
@@ -263,7 +263,7 @@ struct CYStampSlamView: View {
     @State private var sharing = false
 
     private static let hold = 1.4
-    private static let paperSide: CGFloat = 236
+    private static let sealBox: CGFloat = 236
     private static let sealSide: CGFloat = 170
 
     var body: some View {
@@ -287,7 +287,7 @@ struct CYStampSlamView: View {
                 passport(copy, at: e)
                 if shareEnabled { sharePill(copy, at: e) }
                 if e >= 0.3 {
-                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.42), count: 36, duration: 0.8, reach: 200).ignoresSafeArea()
+                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.42), count: 48, duration: 1.4, reach: 210).ignoresSafeArea()
                 }
             }
         }
@@ -302,33 +302,31 @@ struct CYStampSlamView: View {
     private func ease(_ x: Double) -> Double { 1 - pow(1 - min(max(x, 0), 1), 3) }
     private func span(_ e: Double, _ from: Double, _ to: Double) -> Double { min(max((e - from) / (to - from), 0), 1) }
 
-    /// (scale, rise in pt, opacity) of the seal at `e` seconds.
-    private func pose(_ e: Double) -> (Double, Double, Double) {
-        if reduceMotion { return (1, 0, 1) }
-        if e < 0.12 { let u = ease(e / 0.12); return (1 + 0.15 * u, -40 * u, min(1, e / 0.06)) }
-        if e < 0.22 { let u = (e - 0.12) / 0.10; let q = u * u; return (1.15 - 0.23 * q, -40 * (1 - q), 1) }
+    /// Seal pose at `e` seconds: uniform scale, rise in pt, opacity, and the contact squash (x, y).
+    private func pose(_ e: Double) -> (scale: Double, rise: Double, opacity: Double, squash: (Double, Double)) {
+        if reduceMotion { return (1, 0, 1, (1, 1)) }
+        if e < 0.12 { let u = ease(e / 0.12); return (1 + 0.15 * u, -40 * u, min(1, e / 0.06), (1, 1)) }
+        if e < 0.22 { let u = (e - 0.12) / 0.10; let q = u * u; return (1.15 - 0.23 * q, -40 * (1 - q), 1, (1, 1)) }
         let d = e - 0.22
-        return (1 - 0.08 * exp(-7 * d) * cos(16 * d), 0, 1)
+        // Two frames (about 34 ms) of hard contact: scaleY 0.9, a little wider; then the spring settles it.
+        let squash: (Double, Double) = d < 0.034 ? (1.04, 0.9) : (1, 1)
+        return (1 - 0.08 * exp(-7 * d) * cos(16 * d), 0, 1, squash)
     }
 
     private func seal(at e: Double) -> some View {
-        let (scale, rise, opacity) = pose(e)
-        let ringA = span(e, 0.12, 0.42), ringB = span(e, 0.18, 0.48)
-        let dip = reduceMotion ? 1 : 1 - 0.015 * sin(.pi * span(e, 0.12, 0.30))
+        let p = pose(e)
+        let ringA = span(e, 0.12, 0.42), ringB = span(e, 0.18, 0.48), bleed = span(e, 0.22, 0.80)
         let landed = span(e, 0.12, 0.40)
         return ZStack {
             Circle().fill(CYNight.glow(radius: Self.sealSide / 2))
                 .frame(width: Self.sealSide * 2.6, height: Self.sealSide * 2.6)
                 .opacity(reduceMotion ? 0.8 : 0.9 * landed)
-            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-                .fill(CYNight.ink1)
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-                    .strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
-                .frame(width: Self.paperSide, height: Self.paperSide)
-                .scaleEffect(dip)
-                .shadow(color: CYNight.ink0.opacity(0.4), radius: 12, y: 6)
-                .opacity(reduceMotion ? 1 : min(1, e / 0.12))
             if !reduceMotion {
+                // Ink bleed: a soft wet halo that spreads past the seal edge and dries, then the two crisp rings.
+                Circle().fill(CYNight.lantern.opacity(0.35))
+                    .frame(width: Self.sealSide, height: Self.sealSide)
+                    .blur(radius: 9)
+                    .scaleEffect(0.95 + 0.30 * ease(bleed)).opacity(bleed > 0 ? 0.8 * (1 - bleed) : 0)
                 Circle().strokeBorder(CYNight.lantern, lineWidth: 3)
                     .frame(width: Self.sealSide, height: Self.sealSide)
                     .scaleEffect(1 + 1.4 * ease(ringA)).opacity(ringA > 0 ? 0.8 * (1 - ringA) : 0)
@@ -337,29 +335,39 @@ struct CYStampSlamView: View {
                     .scaleEffect(1 + 1.4 * ease(ringB)).opacity(ringB > 0 ? 0.5 * (1 - ringB) : 0)
             }
             sealFace
-                .scaleEffect(scale)
-                .offset(y: rise)
-                .opacity(opacity)
+                .scaleEffect(p.scale)
+                .scaleEffect(x: p.squash.0, y: p.squash.1, anchor: .bottom)
+                .offset(y: p.rise)
+                .opacity(p.opacity)
         }
-        .frame(width: Self.paperSide, height: Self.paperSide)
+        .frame(width: Self.sealBox, height: Self.sealBox)
         .animation(CYMotion.reduced, value: reduceMotion)
     }
 
+    /// A brass seal impression: serrated edge, inner ring, glyph engraved (dark cut with a light lower lip).
     private var sealFace: some View {
-        ZStack {
-            Circle().strokeBorder(CYNight.lantern, lineWidth: 6)
-            Circle().strokeBorder(CYNight.lantern.opacity(0.7), style: StrokeStyle(lineWidth: 2, dash: [2, 6])).padding(16)
-            Image(systemName: payload.symbol)
-                .font(.system(size: 64, weight: .bold))
-                .foregroundStyle(CYNight.lanternHot)
+        let s = Self.sealSide
+        return ZStack {
+            CYSerratedCircle(teeth: 36, depth: 0.035)
+                .fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern, CYNight.ember], startPoint: .topLeading, endPoint: .bottomTrailing))
+            CYSerratedCircle(teeth: 36, depth: 0.035)
+                .stroke(Color.white.opacity(0.35), lineWidth: 0.75)
+            Circle().strokeBorder(CYNight.ink0.opacity(0.55), lineWidth: 3).padding(s * 0.11)
+            Circle().strokeBorder(CYNight.ink0.opacity(0.35), style: StrokeStyle(lineWidth: 1.5, dash: [1.5, 5])).padding(s * 0.17)
+            Circle().strokeBorder(Color.white.opacity(0.30), lineWidth: 1).padding(s * 0.11 + 3)
+            ZStack {
+                Image(systemName: payload.symbol).font(.system(size: s * 0.38, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.45)).offset(x: 1, y: 1.5)
+                Image(systemName: payload.symbol).font(.system(size: s * 0.38, weight: .bold))
+                    .foregroundStyle(CYNight.ink0.opacity(0.82))
+            }
         }
-        .frame(width: Self.sealSide, height: Self.sealSide)
-        .background(Circle().fill(CYNight.lantern.opacity(0.14)))
+        .frame(width: s, height: s)
         .shadow(color: CYNight.lantern.opacity(0.35), radius: 16)
     }
 
     private func titleBlock(_ copy: CYCelebrationCopy, at e: Double) -> some View {
-        let u = reduceMotion ? 1 : ease(span(e, 0.35, 0.60))
+        let u = reduceMotion ? 1 : ease(span(e, 0.45, 0.70))
         return VStack(spacing: CYSpacing.xs) {
             Text(verbatim: copy.stampLine)
                 .font(CYTypography.sheetTitle)
@@ -369,7 +377,7 @@ struct CYStampSlamView: View {
                 Text(verbatim: place).font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.8))
             }
         }
-        .offset(y: 14 * (1 - u))
+        .offset(y: 18 * (1 - u))
         .opacity(u)
     }
 
@@ -491,8 +499,11 @@ struct CYBadgeUnlockCover: View {
                 }
                 .padding(.horizontal, CYSpacing.xxl)
                 .padding(.bottom, CYSpacing.lg)
+                if e >= 0.45 {
+                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.32), count: 40, duration: 1.8, style: .dust, reach: 190).ignoresSafeArea()
+                }
                 if e >= 1.0 {
-                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.34), count: 28, duration: 1.4, style: .dust, reach: 260).ignoresSafeArea()
+                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.32), count: 86, duration: 2.8, style: .dust, reach: 300).ignoresSafeArea()
                 }
             }
             .opacity(reduceMotion ? (shown ? 1 : 0) : 1)
@@ -520,32 +531,22 @@ struct CYBadgeUnlockCover: View {
     private func stage(at e: Double, drift: Double) -> some View {
         let phase = Self.phase(at: e)
         let cheap = !CYLightBudget.shadersAllowed || reduceTransparency
-        let land = CYStarBloom<Circle>.landScale(phase)
-        let sheen = Self.span(e, 1.4, 1.9)
+        let kind = CYBadgeKind(seed: payload.id)
+        let land = CYStarBloom<CYBadgeShape>.landScale(phase)
+        // Live foil once the medal has taken over (1400 ms); a static highlight before that and under Reduce Motion / Low Power.
+        let foil: Double? = (!reduceMotion && CYLightBudget.shadersAllowed && e >= 1.4) ? e : nil
         return ZStack {
-            CYStarBloom(shape: Circle(), phase: reduceMotion ? 1 : phase, spin: drift, size: Self.medalSide, cheap: cheap)
-            CYBadgeMedal(seed: payload.id, symbol: payload.symbol, size: Self.medalSide)
+            CYStarBloom(shape: CYBadgeShape(kind: kind), phase: reduceMotion ? 1 : phase, spin: drift, size: Self.medalSide, cheap: cheap)
+            CYCraftedMedal(kind: kind, seed: payload.id, symbol: payload.symbol, size: Self.medalSide, foilTime: foil)
                 .scaleEffect(reduceMotion ? 1 : land)
-                .opacity(reduceMotion ? 1 : CYStarBloom<Circle>.objectOpacity(phase))
-                .overlay { sheenBand(progress: sheen).clipShape(Circle()).frame(width: Self.medalSide, height: Self.medalSide).scaleEffect(land) }
+                .opacity(reduceMotion ? 1 : CYStarBloom<CYBadgeShape>.objectOpacity(phase))
         }
         .frame(height: 230)
         .accessibilityHidden(true)
     }
 
-    /// One light band that crosses the medal once (foil beat, 1400 ms). Gyro foil (`CYFoil`) takes over in B1.
-    @ViewBuilder private func sheenBand(progress: Double) -> some View {
-        if !reduceMotion, progress > 0, progress < 1 {
-            LinearGradient(colors: [.clear, CYNight.lanternHot.opacity(0.7), .clear], startPoint: .leading, endPoint: .trailing)
-                .frame(width: Self.medalSide * 0.5)
-                .rotationEffect(.degrees(20))
-                .offset(x: (progress - 0.5) * Self.medalSide * 2)
-                .blendMode(.screen)
-        }
-    }
-
     private func titleBlock(_ copy: CYCelebrationCopy, at e: Double) -> some View {
-        let u = reduceMotion ? 1 : CYStarBloom<Circle>.easeOutBack(Self.span(e, 1.1, 1.4)) * Self.span(e, 1.1, 1.3)
+        let u = reduceMotion ? 1 : CYStarBloom<CYBadgeShape>.easeOutBack(Self.span(e, 1.1, 1.4)) * Self.span(e, 1.1, 1.3)
         return VStack(spacing: CYSpacing.sm) {
             Text(verbatim: copy.badgeEyebrow)
                 .font(CYTypography.label)
@@ -760,5 +761,25 @@ struct CYRollingStat: View {
         guard !Task.isCancelled else { return }
         started = true
         withAnimation(.easeOut(duration: CYMotion.Duration.slow)) { shown = known }
+    }
+}
+
+/// Circle with a serrated (postage-stamp / seal) edge: `teeth` small notches, `depth` as a fraction of the radius.
+struct CYSerratedCircle: Shape {
+    var teeth = 36
+    var depth: CGFloat = 0.035
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let c = CGPoint(x: rect.midX, y: rect.midY)
+        let outer = min(rect.width, rect.height) / 2, inner = outer * (1 - depth)
+        let steps = teeth * 2
+        for i in 0..<steps {
+            let a = Double(i) / Double(steps) * 2 * .pi
+            let r = i % 2 == 0 ? outer : inner
+            let pt = CGPoint(x: c.x + CGFloat(cos(a)) * r, y: c.y + CGFloat(sin(a)) * r)
+            if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
+        }
+        path.closeSubpath()
+        return path
     }
 }
