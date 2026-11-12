@@ -112,7 +112,7 @@ struct CYPassportStampDetailView: View {
             .padding(CYSpacing.pageHorizontal)
             .padding(.top, CYSpacing.xxl)
         }
-        .cyDomainPageBackground()
+        .cyHeroZoomPageBackground()
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("passport.stamp.detail")
     }

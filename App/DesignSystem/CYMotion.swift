@@ -192,9 +192,9 @@ private struct CYHeroSource<ID: Hashable>: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 18.0, *), !reduceMotion {
             // matchedTransitionSource only accepts RoundedRectangle clips (not CYFoilClip): the .circular corner style clamps an oversize radius to a true circle (a .continuous one turns into a diamond).
-            // Clear background: the source leaves no opaque placeholder behind while the destination zooms out of it.
+            // No `.background` here: the configuration also applies to the resting source and replaced the seal's own fill.
             content.matchedTransitionSource(id: id, in: namespace) { source in
-                source.background(Color.clear).clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .circular))
+                source.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .circular))
             }
         } else {
             content
@@ -494,6 +494,31 @@ private struct CYHeroTitleRise: ViewModifier {
             .onAppear {
                 guard !settled else { return }
                 withAnimation(CYMotion.entrance.delay(delay)) { settled = true }
+            }
+    }
+}
+
+
+// MARK: - Zoom destination background
+
+extension View {
+    /// Page background for a zoom destination. On iOS 18 (zoom, no Reduce Motion) it starts transparent and fades in after the
+    /// zoom has opened, so the destination never lays an opaque ink rounded blob over the source page while it is still
+    /// visible. iOS 17 (plain push) and Reduce Motion get the opaque background at once: a sliding page must not be see-through.
+    func cyHeroZoomPageBackground() -> some View { modifier(CYHeroZoomPageBackground()) }
+}
+
+private struct CYHeroZoomPageBackground: ViewModifier {
+    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var settled = false
+    private var zooms: Bool { if #available(iOS 18.0, *) { return !reduceMotion } else { return false } }
+    func body(content: Content) -> some View {
+        content
+            .background(palette.bgPage.ignoresSafeArea().opacity(zooms && !settled ? 0 : 1))
+            .onAppear {
+                guard zooms, !settled else { return }
+                withAnimation(.easeOut(duration: 0.2).delay(0.3)) { settled = true }
             }
     }
 }
