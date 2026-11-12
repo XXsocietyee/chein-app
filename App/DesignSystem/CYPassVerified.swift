@@ -73,13 +73,19 @@ struct CYPassVerifiedFace: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: CYSpacing.sm) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 76, weight: .semibold))
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(CYRGB(hex: 0x127A5A).swiftUIColor, .white)
-                    .symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
-                    .shadow(color: CYNight.verify.opacity(0.5), radius: 14)
-                    .accessibilityHidden(true)
+                ZStack {
+                    CYStampSeal(index: 0, earned: true, scale: 1.6)
+                        .frame(width: 84, height: 84)
+                        .shadow(color: CYNight.lantern.opacity(landed ? 0.55 : 0), radius: 16)
+                        .scaleEffect(reduceMotion || landed ? 1 : 0.6)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 28, weight: .semibold))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(CYNight.verify, .white)
+                        .offset(x: 30, y: 28)
+                        .symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
+                }
+                .accessibilityHidden(true)
                 Text(verbatim: c.t("已入场", "You're in"))
                     .font(.system(.largeTitle, design: c.isChinese ? .default : .rounded).weight(c.isChinese ? .semibold : .heavy))
                     .foregroundStyle(.white)
