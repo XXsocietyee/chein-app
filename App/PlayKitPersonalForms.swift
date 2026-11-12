@@ -102,6 +102,7 @@ extension PlayKitScreen {
                 }
             }
         } else if let device {
+            Text("playkit.scan.scopeLine").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
             PlayKitScanInput(model: device, identity: evidenceIdentity, enabled: enabled, onDirty: { dirty = true }) { code in prepare("SUBMIT_SCAN", ["code": .string(code)]) }
         } else { Label("playkit.camera.gated", systemImage: "camera") }
     }

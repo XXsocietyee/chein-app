@@ -39,7 +39,7 @@ import SwiftUI
                 }
                 if !question.finished {
                     LabeledContent("playkit.compare.marked") { Text(verbatim: String(selection.marked.count)).monospacedDigit() }
-                    CYPillButton("playkit.review") {
+                    CYPillButton("playkit.compare.submit") {
                         do {
                             let payload = try selection.payload(question, revision: currentRevision())
                             requestReview("SUBMIT_COMPARE", payload, {})

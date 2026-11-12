@@ -58,11 +58,12 @@ extension PlayKitScreen {
         Label(key, systemImage: "iphone.gen3.radiowaves.left.and.right").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
     }
     @ViewBuilder var randomDeck: some View {
-        if let name = raw["deckName"].text { Text(verbatim: name).font(.title2.bold()) }
+        if let name = raw["deckName"].text { Text(verbatim: name).font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
         let drawn = raw["drawn"].array ?? [], count = raw["drawCount"].integer ?? 0
         ForEach(Array(drawn.enumerated()), id: \.offset) { index, card in
             VStack(alignment: .leading, spacing: 12) {
-                Text(verbatim: "\(index + 1)").font(.caption)
+                if index == drawn.count - 1 { CYStatusChip("playkit.random.thisRound", tone: .neutral).singleLine() }
+                else { Text(verbatim: "\(index + 1)").font(.caption) }
                 if let label = card["label"].text { Text(verbatim: label).font(.title2.bold()) }
                 if let content = card["content"].text { Text(verbatim: content) }
             }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
@@ -82,21 +83,58 @@ extension PlayKitScreen {
         submitButton("CLAIM_DAILY_SIGN", payload: ["text": .string(text), "photoUrl": .string(avatarURL)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
     @ViewBuilder var walkProgress: some View {
+        let goal = raw["goal"].integer.flatMap { $0 > 0 ? $0 : nil }
         if let steps = raw["todaySteps"].integer, steps >= 0 {
-            LabeledContent("playkit.walk.steps") { Text(verbatim: steps.formatted()).font(.largeTitle.monospacedDigit()) }
-            if let goal = raw["goal"].integer, goal > 0 {
-                ProgressView(value: Double(min(steps, goal)), total: Double(goal)).accessibilityLabel(Text("playkit.walk.progress"))
-                LabeledContent("playkit.walk.remaining") { Text(verbatim: max(0, goal - steps).formatted()) }
+            // Mini-program walk screen: a lantern "还差 N 步" hero, the bar with "a / b · p%", then stat tiles.
+            VStack(spacing: CYSpacing.sm) {
+                if let goal {
+                    Text("playkit.walk.remainingLabel").font(CYTypography.meta)
+                    Text(verbatim: max(0, goal - steps).formatted()).font(CYTypography.display).monospacedDigit()
+                        .accessibilityIdentifier("playkit.walk.remaining")
+                    Text("playkit.walk.stepsUnit").font(CYTypography.meta)
+                    ProgressView(value: Double(min(steps, goal)), total: Double(goal)).tint(CYNight.lantern)
+                        .accessibilityLabel(Text("playkit.walk.progress"))
+                    Text(verbatim: "\(steps.formatted()) / \(goal.formatted()) · \(min(100, steps * 100 / goal))%")
+                        .font(CYTypography.caption).monospacedDigit()
+                } else {
+                    Text(verbatim: steps.formatted()).font(CYTypography.display).monospacedDigit()
+                }
             }
-        } else { Text("playkit.walk.noReading") }
-        if let goal = raw["goal"].integer, goal > 0 { LabeledContent("playkit.walk.goal") { Text(verbatim: goal.formatted()) } }
+            .foregroundStyle(CYNight.lantern)
+            .frame(maxWidth: .infinity).padding(CYSpacing.lg)
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.lantern.opacity(0.35)))
+            HStack(spacing: CYSpacing.sm) {
+                walkTile("playkit.walk.goal", goal.map { $0.formatted() } ?? "—")
+                walkTile("playkit.walk.walked", steps.formatted())
+                walkTile("playkit.walk.co2", raw["co2Kg"].double.map { String(format: "%.2f kg", $0) } ?? "—")
+            }
+        } else {
+            Text("playkit.walk.noReading")
+            if let goal { LabeledContent("playkit.walk.goal") { Text(verbatim: goal.formatted()) } }
+        }
         // No native pedometer value substitutes for the service's WeChat encrypted proof, so there is
         // no sync button here; the reason is stated once.
         CYStatusChip("playkit.walk.providerGate", tone: .neutral, systemImage: "figure.walk")
             .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
+    func walkTile(_ title: LocalizedStringKey, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(title).font(CYTypography.caption).foregroundStyle(.secondary)
+            Text(verbatim: value).font(CYTypography.numericBody).monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.md)
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
+        .accessibilityElement(children: .combine)
+    }
     @ViewBuilder var bingoBoard: some View {
         let board = PlayKitBingoBoard(raw)
+        // Reward banner above the board: "连成一条线 · <lineReward>".
+        if let line = raw["lineReward"].text, !line.isEmpty {
+            Text("playkit.bingo.lineBanner \(line)").font(CYTypography.cardTitle)
+                .frame(maxWidth: .infinity).padding(CYSpacing.md)
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYNight.tilePink))
+                .accessibilityIdentifier("playkit.bingo.lineBanner")
+        }
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: 3), spacing: 12) {
             ForEach(0..<9, id: \.self) { index in
                 VStack(alignment: .leading, spacing: 8) {
@@ -114,8 +152,10 @@ extension PlayKitScreen {
                     .accessibilityValue(Text(board.filled.contains(index) ? "playkit.bingo.filled" : "playkit.bingo.empty"))
             }
         }
+        Text("playkit.bingo.filledCount \(board.filled.count)").font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity).accessibilityIdentifier("playkit.bingo.filledCount")
+        Text("playkit.bingo.footnote").font(CYTypography.body).foregroundStyle(.secondary).frame(maxWidth: .infinity)
         LabeledContent("playkit.bingo.lines") { Text(verbatim: String(board.completedLines.count)) }
-        if let line = raw["lineReward"].text, !line.isEmpty { LabeledContent("playkit.bingo.lineReward") { Text(verbatim: line) } }
         if let full = raw["fullReward"].text, !full.isEmpty { LabeledContent("playkit.bingo.fullReward") { Text(verbatim: full) } }
     }
 }
