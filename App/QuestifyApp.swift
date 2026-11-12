@@ -345,6 +345,9 @@ struct SessionRootView: View {
         case .ticket: deepLinkTicketPass = true // pass sheet only; the ticket wallet reader keeps its own gating
         case .clubJoin(let id): deepLinkClubID = id // club detail only; joining still needs the detail's confirmation
         case .roamGo: break
+        case .referral, .gift, .seat:
+            // Intake only. The landing does not claim a seat, claim a gift, pay, or start a run.
+            if let intake = link.journeyIntake { presentation.noteJourney(intake) }
         }
     }
 
