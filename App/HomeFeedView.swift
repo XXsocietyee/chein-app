@@ -148,7 +148,7 @@ import SwiftUI
                     .padding(.bottom, CYSpacing.jumbo)
                 }
                 .background { CYExploreGround() }
-                .searchable(text: $keyword, placement: onOpenUnifiedSearch == nil ? .automatic : .navigationBarDrawer(displayMode: .always), prompt: Text("homeFeed.search"))
+                .searchable(text: $keyword, placement: onOpenUnifiedSearch == nil ? .automatic : .navigationBarDrawer(displayMode: .automatic), prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
                 .onChange(of: query) { _, value in model.schedule(.query(value), reader: reader, permit: permit) }
