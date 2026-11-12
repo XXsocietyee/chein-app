@@ -46,3 +46,9 @@ Names: `onboarding-1` ... `onboarding-5` (EN), `onboarding-zh-1` ... `onboarding
 - `OBDragHint`: glass capsule under the disc on step 1 with a looping fingertip drag (1.8 s, trail); Reduce Motion: static.
 - Windows: continuous slow elliptical orbit (14-22 s) plus idle sway, no longer paused by scenePhase (the timeline only pauses for Reduce Motion), parallax from gyro / `--uitesting-fake-tilt` unchanged.
 - Same layout applies to `onboarding-2`...`5` and `onboarding-zh-*`; re-record all.
+
+## Round 3
+
+- Round 2 layout was never in `ui/main` (the `ui/w8` push was not merged); `ui/w8b` merges it (`238dcc533`) onto `de48d025c`. All five steps use the same `OnboardingFlow` body, so steps 2-5 get the 62 % disc.
+- Fog-cleared disc is now `OBNightMap`: indigo ground, faint rotated street grid, lantern-gold avenues (30 % under fog, 60 % revealed, soft glow), no olive/green (was the generated `CYCoverArt` hue).
+- GO hint is a glass capsule centred under the disc; the label swap is a plain fade (the spring on the whole layout was resizing the capsule mid-animation and clipping "Fog cleared"); `lineLimit(2)`, `minimumScaleFactor(0.85)`, leading padding.

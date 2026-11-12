@@ -472,10 +472,9 @@ struct FogWindow: View {
     var body: some View {
         let inner = size * 0.86
         ZStack {
-            CYCoverArt(seed: "welcome-fog-map", symbol: "map", showsDebugLabel: false, showsGlyph: false)
+            OBNightMap(lit: revealed)
                 .frame(width: inner, height: inner)
                 .clipShape(Circle())
-                .saturation(revealed ? 1 : 0.7)
             Circle()
                 .fill(RadialGradient(
                     colors: [.clear, CYNight.indigo.opacity(0.94), CYNight.ink0.opacity(0.96)],
@@ -768,11 +767,22 @@ private struct GOHoldDemo: View {
             .accessibilityAction { onComplete() }
             .accessibilityIdentifier("onboarding.demo")
             Text(done ? "onboarding.roam.done" : "onboarding.roam.prompt")
-                .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.85))
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .multilineTextAlignment(stacked ? .leading : .center)
                 .fixedSize(horizontal: false, vertical: true)
-                .contentTransition(.opacity)
+                .layoutPriority(1)
+                .id(done)
+                .transition(.opacity)
         }
-        .animation(reduceMotion ? CYMotion.reduced : OBMotion.demoSuccess, value: done)
+        // The hint lives in a glass capsule centred under the disc. The label swap is a plain fade (no spring on the
+        // layout), so the capsule never resizes mid-animation and clips the text.
+        .padding(.leading, CYSpacing.md)
+        .padding(.trailing, CYSpacing.xl)
+        .padding(.vertical, CYSpacing.xs)
+        .obGlassCapsule()
+        .animation(.easeInOut(duration: 0.2), value: done)
         .cyHaptic(.impactHeavy, trigger: done) { old, new in !old && new }
         .task {
             // Fixture capture: hold 900 ms (ticks at 200 / 400 ms), then commit.

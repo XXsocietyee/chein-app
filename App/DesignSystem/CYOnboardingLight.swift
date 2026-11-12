@@ -364,10 +364,76 @@ struct OBDragHint: View {
         }
         .padding(.horizontal, CYSpacing.lg)
         .padding(.vertical, CYSpacing.sm)
-        .background(.ultraThinMaterial, in: Capsule())
-        .background(Capsule().fill(CYNight.glassFill))
-        .overlay(Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
+        .obGlassCapsule()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(titleKey))
+    }
+}
+
+extension View {
+    /// Night glass capsule (glassFill + top-lit edge) for hints under the disc.
+    func obGlassCapsule() -> some View {
+        self
+            .background(.ultraThinMaterial, in: Capsule())
+            .background(Capsule().fill(CYNight.glassFill))
+            .overlay(Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
+    }
+}
+
+// MARK: - Night map
+
+/// The fogged city seen at night: indigo ground, a faint street grid, lantern-gold avenues. Lit = avenues at 60 %
+/// with a soft glow; unlit (under fog) = 30 %. No hue outside indigo / lantern.
+struct OBNightMap: View {
+    var lit: Bool
+    @QuestifyReduceMotion private var reduceMotion
+
+    // Avenues as unit-space polylines (x, y), smoothed with quad curves through midpoints.
+    private static let avenues: [[CGPoint]] = [
+        [.init(x: 0.02, y: 0.62), .init(x: 0.25, y: 0.55), .init(x: 0.52, y: 0.60), .init(x: 0.98, y: 0.42)],
+        [.init(x: 0.10, y: 0.08), .init(x: 0.30, y: 0.34), .init(x: 0.46, y: 0.58), .init(x: 0.58, y: 0.98)],
+        [.init(x: 0.90, y: 0.05), .init(x: 0.74, y: 0.30), .init(x: 0.66, y: 0.62), .init(x: 0.80, y: 0.96)],
+        [.init(x: 0.00, y: 0.28), .init(x: 0.34, y: 0.30), .init(x: 0.70, y: 0.26), .init(x: 1.00, y: 0.18)],
+        [.init(x: 0.18, y: 0.92), .init(x: 0.40, y: 0.80), .init(x: 0.62, y: 0.82), .init(x: 0.96, y: 0.74)],
+    ]
+
+    var body: some View {
+        ZStack {
+            LinearGradient(colors: [CYNight.indigo, CYNight.ink1], startPoint: .top, endPoint: .bottom)
+            Canvas { ctx, size in
+                // Faint grid, rotated a little so it reads as streets, not graph paper.
+                var grid = Path()
+                let step = size.width / 9
+                for i in -2...12 {
+                    let v = CGFloat(i) * step
+                    grid.move(to: CGPoint(x: v, y: -20)); grid.addLine(to: CGPoint(x: v, y: size.height + 20))
+                    grid.move(to: CGPoint(x: -20, y: v)); grid.addLine(to: CGPoint(x: size.width + 20, y: v))
+                }
+                var g = ctx
+                g.translateBy(x: size.width / 2, y: size.height / 2)
+                g.rotate(by: .degrees(-12))
+                g.translateBy(x: -size.width / 2, y: -size.height / 2)
+                g.stroke(grid, with: .color(.white.opacity(0.06)), lineWidth: 0.6)
+                // Lantern avenues: a wide soft pass, then a thin bright core.
+                for pts in Self.avenues {
+                    var path = Path()
+                    let p = pts.map { CGPoint(x: $0.x * size.width, y: $0.y * size.height) }
+                    path.move(to: p[0])
+                    for i in 1..<p.count {
+                        let mid = CGPoint(x: (p[i - 1].x + p[i].x) / 2, y: (p[i - 1].y + p[i].y) / 2)
+                        path.addQuadCurve(to: mid, control: p[i - 1])
+                    }
+                    path.addLine(to: p[p.count - 1])
+                    ctx.drawLayer { l in
+                        l.addFilter(.blur(radius: 4))
+                        l.stroke(path, with: .color(CYNight.lantern.opacity(0.5)), lineWidth: 5)
+                    }
+                    ctx.stroke(path, with: .color(CYNight.lanternHot.opacity(0.9)), lineWidth: 1.2)
+                }
+            }
+            .opacity(lit ? 0.6 : 0.3)
+            .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9), value: lit)
+            RadialGradient(colors: [CYNight.lantern.opacity(lit ? 0.12 : 0.04), .clear], center: .center, startRadius: 0, endRadius: 140)
+        }
     }
 }
