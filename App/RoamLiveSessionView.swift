@@ -26,6 +26,9 @@ import Combine
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Location-purpose consent is asked once, on the first GO, by the inline card; the stored answer seeds this state and
+    /// still feeds `owner.start(purposeAccepted:)`, which stays the source of truth.
+    @AppStorage("roamLivePurposeAcceptedV1") private var storedPurposeAccepted = false
     @State private var purposeAccepted = false
     @State private var presenceAccepted = false
     @State private var confirmFinish = false
@@ -95,7 +98,7 @@ import Combine
                 }
                 if [.ready, .locationDenied, .paused].contains(owner.phase) {
                     Section {
-                        Toggle("roam.live.consent", isOn: $purposeAccepted).accessibilityIdentifier("roam.live.consent")
+                        if !purposeAccepted { consentCard }
                         if owner.phase == .locationDenied {
                             VStack(alignment: .leading, spacing: 6) {
                                 Label("roam.poi.location.denied.title", systemImage: "location.slash").font(.subheadline.weight(.semibold))
@@ -167,9 +170,30 @@ import Combine
         }
         .navigationTitle("roam.experience.live")
     }
+    /// First GO only: one inline card instead of a toggle the player must find first. Agreeing records the consent and
+    /// starts the roam through the same path as the Go button (location priming still comes first when undecided).
+    private var consentCard: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Label("roam.live.consentCard.title", systemImage: "location.fill").font(.subheadline.weight(.semibold))
+            Text("roam.live.consentCard.body").font(.footnote).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYPillButton("roam.live.consentCard.accept", fullWidth: true) {
+                purposeAccepted = true; storedPurposeAccepted = true
+                if !owner.busy, owner.record == nil { beginStart() }
+            }
+            .disabled(owner.busy)
+            .accessibilityIdentifier("roam.live.consent")
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("roam.live.consentCard")
+    }
+    private func beginStart() {
+        if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
+        Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
+    }
     private var sessionObservers: some View {
         sessionContent
-        .onAppear { owner.setForeground(scenePhase == .active); owner.prepare(); browse.appear() }
+        .onAppear { purposeAccepted = storedPurposeAccepted; owner.setForeground(scenePhase == .active); owner.prepare(); browse.appear() }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
         .onChange(of: owner.phase) { _, phase in
             if phase != .active { nearbyExpanded = true }
@@ -301,10 +325,7 @@ import Combine
                     .buttonStyle(.cyPrimary)
                     .accessibilityIdentifier("roam.live.pause")
                 } else if canStart, owner.record == nil {
-                    Button {
-                        if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
-                        Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
-                    } label: {
+                    Button { beginStart() } label: {
                         Label("roam.live.start", systemImage: "figure.walk").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.cyPrimary)

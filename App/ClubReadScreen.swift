@@ -17,6 +17,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     let content: (Value) -> Content
     @State private var value: Value?
     @State private var loadedIdentity: ClubReadIdentity?
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var issue: ClubLoadIssue?
     @State private var issueIdentity: ClubReadIdentity?
     @State private var isLoading = false
@@ -60,8 +61,18 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @ViewBuilder private var readBody: some View {
         Group {
             if !reader.isClubConfigured {
-                ContentUnavailableView("club.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
-                    .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
+                ContentUnavailableView {
+                    Label("club.unavailable", systemImage: "network.slash")
+                } description: {
+                    Text("auth.notConfigured")
+                } actions: {
+                    // One way forward: the Passport tab hosts Settings and the account.
+                    if rootTabSwitch.isAvailable {
+                        CYPillButton("settings.title", style: .secondary, systemImage: "gearshape", fullWidth: false) { rootTabSwitch(.mine) }
+                            .accessibilityIdentifier(accessibilityPrefix + ".openSettings")
+                    }
+                }
+                .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
             } else if requiresSignIn && !reader.clubIdentity.isSignedIn {
                 issueView(ClubLoadIssue(ClubReadFailure.unauthorized(message: nil)))
             } else if issueIdentity == reader.clubIdentity, let issue {

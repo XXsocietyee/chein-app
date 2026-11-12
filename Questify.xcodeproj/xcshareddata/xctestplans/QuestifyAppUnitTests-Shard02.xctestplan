@@ -542,6 +542,7 @@
         "RoamTileDenialHostTests",
         "RoamTileIntentLifetimeTests",
         "RoamTileMemoryReadAccessTests",
+        "RootPresentationCoordinatorTests",
         "RunAuthorityHostSectionViewTests",
         "RuntimeDependencyAppTests",
         "RuntimeSessionRoleConsistencyTests",

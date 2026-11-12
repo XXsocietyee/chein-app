@@ -28095,13 +28095,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Discover"
+            "value": "Clubs"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发现"
+            "value": "俱乐部"
           }
         }
       }
@@ -66757,13 +66757,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home"
+            "value": "Explore"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页"
+            "value": "探索"
           }
         }
       }
@@ -155067,7 +155067,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "勋章详情"
+            "value": "徽章详情"
           }
         }
       }
@@ -155084,7 +155084,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "勋章信息"
+            "value": "徽章信息"
           }
         }
       }
@@ -155220,7 +155220,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "部分勋章未能加载"
+            "value": "部分徽章未能加载"
           }
         }
       }
@@ -155271,7 +155271,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我的勋章"
+            "value": "我的徽章"
           }
         }
       }
@@ -161696,7 +161696,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看我的勋章墙"
+            "value": "查看我的徽章墙"
           }
         }
       }
@@ -188792,7 +188792,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "勋章墙"
+            "value": "徽章墙"
           }
         }
       }
@@ -243461,7 +243461,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发现"
+            "value": "探索"
           }
         }
       }
@@ -243590,6 +243590,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "/ %lld"
+          }
+        }
+      }
+    },
+    "roam.live.consentCard.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use your location to roam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游需要使用你的位置"
+          }
+        }
+      }
+    },
+    "roam.live.consentCard.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roam reads your location only while a walk is running, to reveal the map and save your stamps. Pausing or finishing stops it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只在漫游进行时读取你的位置，用来点亮地图和保存印章。暂停或结束后立即停止。"
+          }
+        }
+      }
+    },
+    "roam.live.consentCard.accept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree and go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意并出发"
+          }
+        }
+      }
+    },
+    "offline.capsule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline: showing saved content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离线：显示已保存的内容"
           }
         }
       }

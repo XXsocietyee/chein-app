@@ -169,13 +169,13 @@ Explore minimum: tab already selected, card (1), detail (2), register (3).
 | Wallet | `TicketWalletView` | `ticketPass.overflow.all` / `onOpenWallet` | +1 | `action.close` | `ticketWallet.empty`, `.emptyHint`, `.errorTitle`, `.readOnly` | OK |
 | Detail / verify | `TicketWalletDetailView` | `ticketWallet.present.open` → fullScreenCover | +1 | `TicketPassPresentView` close callback | | OK |
 
-### J7 Clubs → detail → join/apply → member; inbox — GAP
+### J7 Clubs → detail → join/apply → member; inbox — OK (G1 fixed)
 
 | Step | Screen | Control id | Taps | Back/close | States | Verdict |
 |---|---|---|---|---|---|---|
 | Clubs tab | `ClubHomeView` | tab | 3 (guest) | – | unconfigured `club.home.unavailable` (new id, no action); error `club.home.error` + `.retry`/`.signIn`; empty `clubTab.empty`; merchant locality states | OK |
 | Detail | `ClubDetailView` | `club.home.nearby.<id>` / Join pill | +1 | system back | | OK |
-| Join / apply | `ClubActionPanel` | `club.action.*`, `club.application.message`, confirm `club.action.confirm` | +2 | `CYConfirmSheet` | `club.action.gated`, `.error`, `.loading`; guest `club.signInRequired` + **`club.action.signIn`** (new) | GAP: 4 taps (G1) |
+| Join / apply | `ClubActionPanel` | `club.action.*`, `club.application.message`, confirm `club.action.confirm` | +2 | `CYConfirmSheet` | `club.action.gated`, `.error`, `.loading`; guest `club.signInRequired` + **`club.action.signIn`** (new) | OK: Join pill on a Discover card joins in place (`ClubHomeView.joinInline`: prepare then confirm through `ClubActionCoordinator`): **tab + 1 = 2 taps**; "Apply" (approval + message) still opens the detail |
 | Member strip | `ClubDetailView` | `club.detail.tab.*` | | | tab bar now scrolls at accessibility sizes (`ClubDetailTabBar.swift`) | OK |
 | Inbox | `SessionMessagingToolbarEntry` / `MessagingHomeView` | `messaging.list.*`, `passport.action.messages` | tab+1 | system back | search now top drawer (see 4) | OK |
 
@@ -189,27 +189,27 @@ Explore minimum: tab already selected, card (1), detail (2), register (3).
 | Sign out | `SettingsSignOutEntry` / `AccountView` | `settings.signOut` + `.confirm`; **`account.signOut`** (new) | +2 | confirm sheet / dialog | | OK (two confirmations, G6) |
 | Delete account | `SettingsSupportSections` → compliance | `compliance.cancellation` | +3 | system back | | OK |
 
-### J9 Deep links — GAP
+### J9 Deep links — OK (G2, G3 fixed)
 
 | Case | Code | Result | Verdict |
 |---|---|---|---|
 | `chein://roam/go`, warm | `QuestifyApp.swift:338-347` selects Roam, no further action (`case .roamGo: break`) | Roam root, GO is one tap | OK |
 | `chein://club/<id>/join`, warm | `deepLinkClubID` → `ClubHomeView.requestedClubID` → `openedClubID` push (`ClubHomeView.swift:144-150`) | detail; join still needs confirm | OK |
 | `chein://ticket/<id>`, warm, signed in | `deepLinkTicketPass` → `AccountView.swift:197-200` | pass sheet (the `<id>` is not used; the pass shows the wallet) | OK |
-| Cold, signed out, ticket | flag only set when `session.account != nil` (`QuestifyApp.swift:343`); the link is consumed and lost | after sign-in no pass | GAP G2 |
-| Warm, Settings or Cooperation sheet open, ticket | `AccountView` has four sheets on one root; `showsTicketPass = true` while `showsSettings` is true is ignored and the flag was already cleared | link dropped | GAP G2 |
-| Cold with consent gate up and a native URL | `nativeEntry` sheet and consent sheet are both on the root | second sheet ignored by SwiftUI | GAP G3 |
+| Cold, signed out, ticket | flag only set when `session.account != nil` (`QuestifyApp.swift:343`); the link is consumed and lost | after sign-in no pass | OK: queued (`RootPresentationCoordinator`), replays after sign-in |
+| Warm, Settings or Cooperation sheet open, ticket | `AccountView` has four sheets on one root; `showsTicketPass = true` while `showsSettings` is true is ignored and the flag was already cleared | link dropped | OK: held while the sheet is open, replays on dismiss |
+| Cold with consent gate up and a native URL | `nativeEntry` sheet and consent sheet are both on the root | second sheet ignored by SwiftUI | OK: consent first, native entry queued behind it |
 | Invalid URL | `receiveNativeIntent(.routeError(.unsupported))` | landing sheet | OK |
 
-### J10 Offline / network failure on each tab root — GAP
+### J10 Offline / network failure on each tab root — OK (G5, G7 fixed)
 
-There is no global reachability monitor on the tab roots (`NWPathMonitor` only in `SearchMapOfflineBanner`, `PersonalLocationShareHost`); offline surfaces as the read failing.
+`NetworkReachability` (NWPathMonitor, `App/OfflineCapsule.swift`) drives one overlay capsule `offline.capsule` ("Offline: showing saved content" / 离线：显示已保存的内容) on all four tab roots, under the nav bar, with a VoiceOver label and no layout jump; each read also shows its own failure state.
 
 | Tab | Offline / error | Retry | Verdict |
 |---|---|---|---|
 | Explore | per-section `homeFeed.retry.*`, pull to refresh | yes | OK |
 | Roam | `roam.error`, retained previous read `roamRetained.*` | `action.retry` | OK |
-| Clubs | `club.home.error` + `club.home.retry`; unconfigured `club.unavailable` has no action | partial | GAP G5 |
+| Clubs | `club.home.error` + `club.home.retry`; unconfigured `club.unavailable` has no action | yes (unconfigured state offers `club.home.openSettings`) | OK |
 | Passport | counts em dash, rows push to screens with their own states; no page-level banner | pull to refresh | OK |
 
 ### J11 Account switch / epoch reset — OK
@@ -220,7 +220,7 @@ There is no global reachability monitor on the tab roots (`NWPathMonitor` only i
 
 `homeFeed.openCreate` exists only when `session.publishingSession != nil` (`SessionHomeFeedView.swift:102`); guests and sessions without the capability see search + menu, no empty slot. Templates (`homeFeed.openTemplates`) are gated on `session.isConfigured`. The create sheet closes with `action.close`; no sheet-on-sheet (separate booleans, one presented at a time).
 
-Totals: **9 OK, 3 GAP** (J7, J9, J10).
+Totals: **12 OK, 0 GAP** after the second pass (first pass: 9 OK, 3 GAP).
 
 ## 3. Fixes made on this branch (UI-local)
 
@@ -228,7 +228,7 @@ Totals: **9 OK, 3 GAP** (J7, J9, J10).
 |---|---|
 | `App/ActivityDetailView.swift` | Guest activity detail gets a sign-in action (`activity.detail.signInAction`) that switches to the Passport tab. |
 | `App/ClubActionPanel.swift`, `ClubDetailView.swift` | Guest membership panel gets `club.action.signIn` (calls the existing `onSignIn`). |
-| `App/RoamBrowserView.swift` | `.searchable` uses the drawer (see below). The sign-in CTA on the unauthorized status and the "Account / 我的" → "Passport / 护照" relabel were tried and reverted: `test_roam_account_entry` and `test_roam_camera_context` pin those exact source lines (G9). |
+| `App/RoamBrowserView.swift` | `.searchable` uses the drawer. The sign-in pill and the Passport relabel were first reverted (pinned lines) and applied in the second pass (section 5, G9). |
 | `App/PassportView.swift`, `AccountView.swift` | Stamp card and badge rail get one-tap rows (`passport.stamps.open` → history, `passport.badges.open` → growth center). Passport sign-out gets `account.signOut`. |
 | `App/ClubReadScreen.swift` | Unconfigured club state gets `<prefix>.unavailable` id. |
 | `App/ClubDetailTabBar.swift` | Tab bar scrolls horizontally at accessibility sizes instead of clipping "Overview / Manage". |
@@ -244,16 +244,19 @@ Identifiers were deliberately not added to generic Close/Done/Settings buttons: 
 3. **e3-club-detail tabs cramped** – the real bar is `ClubDetailTabBar` (underline tabs, `lineLimit(1)`, scale 0.8). Fixed for accessibility sizes (scrolls). Note the `e3-club-detail-spec` fixture (`E3Fixtures.swift:97`) is a three-segment picker with different copy (动态/活动/关于 vs the app's 帖子/活动/概览); it is a spec mock, not the shipping bar.
 4. **d2-square floating search** – real layout, not fixture-only: same automatic `.searchable` placement. Moved to the drawer (`SquareBrowserView.swift:130`).
 
-## 5. Gaps for the owner
+## 5. Second pass: decisions applied
 
-| # | Gap | Evidence | Why not changed here |
-|---|---|---|---|
-| G1 | Joining a club takes 4 taps from the Clubs tab (card/pill, Join, Confirm; tab included). The inline "Join" pill only opens the detail (`onJoin: { openedClubID = club.id }`). Target ≤2 cannot be met without letting the pill open the confirmation. | `ClubHomeView.swift:234`, `ClubActionPanel.swift` (confirmation owns the write) | Needs the club action coordinator wiring; behaviour change. |
-| G2 | `chein://ticket/<id>` is dropped when signed out or when another Passport sheet is open; the `<id>` is ignored (pass shows the wallet). | `QuestifyApp.swift:343`, `AccountView.swift:197-200`, four sheets on one root (`:167-186`) | Deliberate W3-6 rule ("only when signed in"); holding the link across sign-in is a product/security decision. |
-| G3 | Native-entry sheet and consent sheet share the root and can collide on a cold link. | `QuestifyApp.swift:465-469` | Needs sequencing in the root; Core/owner decision. |
-| G4 | Naming: tab "Explore/发现" but the Explore back title is `homeFeed.title` "Home/首页", and the Clubs root hero reads `club.tab.title` "Discover/发现" (same zh word as Explore). Passport vs "Roaming passport/漫游护照"; "Badges/徽章" vs "Badge wall/勋章墙". | `HomeFeedView.swift:148`, `ClubHomeView.swift:25`, catalog keys `roam.experience.title`, `roam.w208.passport.tile.badge` | `test_native_design_motion.py:173` pins `.appNavigationTitle("homeFeed.title")`; copy owner must decide. |
-| G5 | Unconfigured Clubs shows "Clubs didn't load" with no action. | `ClubReadScreen.swift:62` | Informational by design for unconfigured builds. |
-| G6 | Two sign-out paths with different confirmations (Passport `confirmationDialog`, Settings `CYConfirmSheet`); Clubs row `account.clubs` and Passport circles duplicate Clubs tab / Wallet / Tickets entries. | `AccountView.swift:98,128`, `SettingsAccountEntries.swift:43` | Removing entries changes tests and parity. |
-| G7 | No global offline banner on the tab roots. | `NWPathMonitor` only in `SearchMapOfflineBanner.swift` | New feature. |
-| G9 | Roam, signed out: the unauthorized status has no sign-in button (only `roam.more` → `roam.account.open`, 2 taps), and that menu item is labelled "Account / 我的" while it opens the "Passport / 护照" tab. | `RoamBrowserView.swift:266`, `RoamComponents.swift:81-94` | Contract tests pin `Button("account.title", ...)` and `RoamStatusView(issue: issue)` verbatim; a fix needs those tests updated by the owner. |
-| G8 | GO needs a consent toggle before `roam.live.start` is enabled; the disabled start gives no inline reason besides the footer. | `RoamLiveSessionView.swift:96-115,311` | Consent UX decision. |
+| # | Decision | Change |
+|---|---|---|
+| G1 | Join in 2 taps | The Join pill on Discover cards runs the existing coordinator path (`prepare` then `confirm`, same as `ClubActionPanel`) in place, with a working line and a Joined/Pending chip afterwards (CYMorphButton is not on this branch, so the existing chip is used). Apply and anything the coordinator cannot do from the list still open the detail. `ClubHomeView.swift`. |
+| G2 | Queue deep links | `RootPresentationCoordinator` holds one pending `chein://` link (last wins, expires after 5 minutes). It replays when the tabs are visible, the consent gate is closed, no Passport sheet (Settings, Cooperation, wallet) is open and, for tickets, the user is signed in. Unit tests: `RootPresentationCoordinatorTests`. |
+| G3 | One presentation at a time | The consent gate reports itself to the coordinator; the native-entry sheet and the Roam area picker present only when it is closed. |
+| G4 | Naming | Tab and screen names: Explore/探索 (tab, `homeFeed.title`), Roam/漫游, Clubs/俱乐部 (also the Clubs root title, `club.tab.title`), Passport/护照. Badges are 徽章 wherever the English says badge (`ClubBadge.xcstrings`, `profile.badges.*`, badge wall, Core club-badge strings, `docs/profile-localizations.json`, pinned test strings). Strings whose English says "medal" (Roam medals, template rewards) keep 勋章: they are a different object. The `homeFeed.title` key stays, so `test_native_design_motion.py:173` still passes. |
+| G5 | Unconfigured Clubs | One action, `club.home.openSettings` (Settings → Passport tab). |
+| G6 | Duplicates | On the Passport tab the Wallet row, the Clubs row and the page-level Sign out are removed (circle action, Clubs tab and Settings `settings.signOut` remain). The legacy account page keeps them, so their ids and pinned bytes are unchanged. |
+| G7 | Offline capsule | See J10. |
+| G8 | GO consent | The "Use my location" toggle is replaced by `roam.live.consentCard` on the first GO only; "Agree and go" records consent (`roamLivePurposeAcceptedV1`, reset by `--uitesting-reset-language`) and starts the roam through the Go path (location priming still first). `owner.start(purposeAccepted:)` remains the source of truth. Three UITests that tapped the switch now tap the button `roam.live.consent`. |
+| G9 | Roam signed out | `roam.signIn` primary pill on the unauthorized status; the menu item that opens Passport reads Passport/护照. `test_roam_account_entry` and `test_roam_camera_context` pins updated to the new lines. |
+| d2-city | "0 0 0" | Not a CITY counter: it is the fixture's payload-free recorder (`CityGameFixtureHost.swift`, three `Text` counters in a bottom `safeAreaInset`) drawn at caption size. Now kept in the accessibility tree for UITests but not drawn. |
+
+Left as is: the "Roaming passport/漫游护照" screen inside Roam (`roam.experience.title`, `roam.w208.tab.passport`) still shares the word with the Passport tab; the owner's naming decision did not cover it. The Passport "Wallet" section header stays even when its only row is hidden by capability.

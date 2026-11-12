@@ -191,6 +191,7 @@ struct AuthEntryLegalSheet: Identifiable { let type: SettingsLegalType; var id: 
 private struct UsageConsentLaunchGate: ViewModifier {
     let signedIn: Bool
     let market: RegionalMarket?
+    var presentation: RootPresentationCoordinator? = nil
     let onDecline: () -> Void
     @State private var presented = false
     @State private var declinedThisLaunch = false
@@ -198,7 +199,8 @@ private struct UsageConsentLaunchGate: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .onAppear { presented = UsageConsentGateDecision.showAtLaunch(granted: policy.granted, signedIn: signedIn, declinedThisLaunch: declinedThisLaunch) }
+            .onAppear { presented = UsageConsentGateDecision.showAtLaunch(granted: policy.granted, signedIn: signedIn, declinedThisLaunch: declinedThisLaunch); presentation?.consentActive = presented }
+            .onChange(of: presented) { _, value in presentation?.consentActive = value }
             .sheet(isPresented: $presented) {
                 UsageConsentGateView(market: market, onAgree: {
                     try? policy.agree(agreementChecked: true); presented = false
@@ -210,8 +212,8 @@ private struct UsageConsentLaunchGate: ViewModifier {
 }
 
 extension View {
-    func usageConsentLaunchGate(signedIn: Bool, market: RegionalMarket?, onDecline: @escaping () -> Void) -> some View {
-        modifier(UsageConsentLaunchGate(signedIn: signedIn, market: market, onDecline: onDecline))
+    func usageConsentLaunchGate(signedIn: Bool, market: RegionalMarket?, presentation: RootPresentationCoordinator? = nil, onDecline: @escaping () -> Void) -> some View {
+        modifier(UsageConsentLaunchGate(signedIn: signedIn, market: market, presentation: presentation, onDecline: onDecline))
     }
 }
 

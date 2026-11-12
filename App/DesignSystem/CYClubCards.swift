@@ -7,8 +7,8 @@ enum CYClubCardAction: Equatable {
 }
 
 extension ClubRecord {
-    /// Card state from the same flags the detail panel reads. The pill only opens the detail, where the
-    /// gated action panel still decides whether anything can be sent; this never grants a join.
+    /// Card state from the same flags the detail panel reads. Tapping the pill runs the host's gated action
+    /// (the club home joins in place through the action coordinator; other hosts open the detail); this never grants a join.
     func cardAction(viewerIsMerchant: Bool) -> CYClubCardAction {
         if isOwner { return .owner }
         if isJoined { return .joined }

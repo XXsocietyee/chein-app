@@ -14,7 +14,7 @@ class RoamAccountEntryContracts(unittest.TestCase):
     def test_missing_callback_has_no_fallback_and_only_user_button_uses_it(self):
         self.assertIn("var onOpenAccount: (() -> Void)? = nil", self.browser)
         section = self.browser.split("if let onOpenAccount {", 1)[1].split("if let cityDestination", 1)[0]
-        self.assertIn('Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)', section)
+        self.assertIn('Button("tabBar.passport", systemImage: "book.closed", action: onOpenAccount)', section)
         self.assertIn('accessibilityIdentifier("roam.account.open")', section)
         self.assertEqual(self.browser.count("action: onOpenAccount"), 1)
         self.assertNotIn("onOpenAccount()", self.browser)

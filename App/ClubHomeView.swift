@@ -18,6 +18,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     @State private var locality = MerchantClubDiscoveryState()
     /// Card or inline Join pill tapped; both open the gated detail, which still owns the membership action.
     @State private var openedClubID: Int? = nil
+    /// Inline Join pill state per club id. `.join` runs the same coordinator path as `ClubActionPanel` (prepare, then
+    /// confirm) without leaving the list; `.apply` needs a reviewed message and approval, so it still opens the detail.
+    @State private var inlineJoin: [Int: InlineJoin] = [:]
+    @State private var inlineOwnerID = UUID()
+    private enum InlineJoin: Equatable { case working, joined, pending, notice(String) }
     @Environment(\.dynamicTypeSize) private var typeSize
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
     /// Source talent/list top tabs 帖文 / 俱乐部; it opens on 俱乐部 and loads the feed only when chosen.
@@ -157,6 +162,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             if locality.phase(in: discoveryScope) != .ready { await loadLocality() }
         }
         .onDisappear { locality.leaveScreen() }
+        .onChange(of: discoveryScope) { _, _ in inlineJoin = [:] }
     }
     private var playerEmpty: some View {
         let keys = ClubTabPresentation.emptyKeys(merchant: false)
@@ -226,17 +232,31 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     @ViewBuilder private func clubRows(_ rows: [ClubRecord], identifier: String,
                                        section: ClubTabPresentation.Section, page: ClubTabPageModel?) -> some View {
         ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
-            let action = club.cardAction(viewerIsMerchant: discoveryScope.isMerchantViewer)
+            let inline = inlineJoin[club.id]
+            let action: CYClubCardAction = {
+                switch inline {
+                case .joined: return .joined
+                case .pending: return .pending
+                case .working: return .none
+                default: return club.cardAction(viewerIsMerchant: discoveryScope.isMerchantViewer)
+                }
+            }()
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if section == .nearby {
                     CYClubPhotoCard(name: club.name, place: clubPlace(club), coverURL: QuestifyCardArtwork.safeURL(club.cover),
                                     memberCount: club.sourceMemberCount, seed: "\(club.id)", prominent: index == 0,
-                                    action: action, onOpen: { openedClubID = club.id }, onJoin: { openedClubID = club.id },
+                                    action: action, onOpen: { openedClubID = club.id }, onJoin: { joinInline(club, action: action) },
                                     identifier: identifier + ".\(club.id)")
                 } else {
                     CYClubRowCard(name: club.name, logoURL: QuestifyCardArtwork.safeURL(club.logo), memberCount: club.sourceMemberCount,
                                   seed: "\(club.id)", action: action, onOpen: { openedClubID = club.id },
                                   identifier: identifier + ".\(club.id)")
+                }
+                if inline == .working {
+                    ProgressView("club.action.working").font(CYTypography.meta).accessibilityIdentifier("club.home.join.working.\(club.id)")
+                } else if case .notice(let key)? = inline {
+                    Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("club.home.join.notice.\(club.id)")
                 }
                 ClubTabTagLine(club: club, section: section,
                                topicCount: section == .nearby ? nil : page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)
@@ -244,6 +264,33 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
+        }
+    }
+    /// Join in place: one tap from the list. Anything the coordinator cannot do from here falls back to the detail.
+    private func joinInline(_ club: ClubRecord, action: CYClubCardAction) {
+        let identity = reader.clubIdentity
+        guard action == .join, let coordinator = actionCoordinator, coordinator.isConfigured, identity.isSignedIn,
+              coordinator.identity == identity, inlineJoin[club.id] != .working else { openedClubID = club.id; return }
+        let id = club.id, owner = inlineOwnerID
+        inlineJoin[id] = .working
+        Task {
+            do {
+                let value = try await coordinator.prepare(clubID: id, action: .join, expectedIdentity: identity, ownerID: owner)
+                guard coordinator.identity == identity else { coordinator.cancel(value); inlineJoin[id] = nil; return }
+                _ = await coordinator.confirm(value)
+                if case .received(let detail) = coordinator.readback(clubID: id), detail.id == id {
+                    inlineJoin[id] = detail.isJoined ? .joined : detail.joinPending ? .pending : .notice("club.action.acknowledged")
+                    return
+                }
+                switch coordinator.state(clubID: id) {
+                case .acknowledged: inlineJoin[id] = .notice("club.action.acknowledged")
+                case .outcomeUnknown: inlineJoin[id] = .notice("club.action.unknown")
+                case .rejected: inlineJoin[id] = .notice("club.action.rejected")
+                default: inlineJoin[id] = .notice("club.action.notSent")
+                }
+            } catch {
+                inlineJoin[id] = .notice((error as? ClubActionBlock) == .eligibilityChanged ? "club.action.changed" : "club.action.prepareFailed")
+            }
         }
     }
     /// Style · city, blank parts dropped; the member count lives in the footer strip.

@@ -18,12 +18,9 @@ final class RoamLiveActionAccessibilityFlowTests: XCTestCase {
         XCTAssertEqual(start.count, 1)
         XCTAssertEqual(app.buttons.matching(identifier: "roam.live.session").count, 0)
         XCTAssertFalse(start.element.isEnabled)
-        let consent = app.switches["roam.live.consent"]
-        tapFixtureNativeSwitch(consent, in: app)
-        XCTAssertEqual(consent.value as? String, "1")
-        XCTAssertTrue(start.element.isEnabled)
-        tapFixtureNativeSwitch(consent, in: app)
-        XCTAssertEqual(consent.value as? String, "0")
+        // The first-GO consent card is the only way to agree; it is not tapped here because agreeing starts capture.
+        XCTAssertTrue(app.descendants(matching: .any)["roam.live.consentCard"].firstMatch.exists, app.debugDescription)
+        XCTAssertTrue(app.buttons["roam.live.consent"].exists)
         XCTAssertFalse(start.element.isEnabled)
         XCTAssertFalse(app.buttons["roam.live.pause"].exists)
         XCTAssertEqual(app.alerts.count, 0)

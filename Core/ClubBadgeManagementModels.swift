@@ -10,10 +10,10 @@ public enum ClubBadgeManagementFailure: Error {
     case server(String)
     public var message: String {
         switch self {
-        case .unavailable: return "俱乐部勋章暂未开放，请稍后重试。"
+        case .unavailable: return "俱乐部徽章暂未开放，请稍后重试。"
         case .stale: return "账号或页面已变化，请重新读取。"
-        case .invalid: return "勋章数据未能确认，请刷新。"
-        case .forbidden: return "当前身份不能管理本俱乐部勋章。"
+        case .invalid: return "徽章数据未能确认，请刷新。"
+        case .forbidden: return "当前身份不能管理本俱乐部徽章。"
         case .persistence: return "未能安全保存操作记录，已暂停提交；请勿重复创建或颁发。"
         case .pending: return "还有结果未确认的操作，请先读取原操作结果。"
         case .unknown: return "结果尚未确认；不会自动再次创建或颁发。"
@@ -31,7 +31,7 @@ public struct ClubBadgeRecord: Decodable, Equatable, Identifiable {
     public let clubId: Int?
     public var displayName: String {
         let name = badgeName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return name.isEmpty ? "未命名勋章" : name
+        return name.isEmpty ? "未命名徽章" : name
     }
 }
 
@@ -42,10 +42,10 @@ public struct ClubBadgeCreateDraft: Equatable {
     public var normalizedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
     public var normalizedDescription: String { description.trimmingCharacters(in: .whitespacesAndNewlines) }
     public var validation: String? {
-        if normalizedName.isEmpty { return "请填写勋章名。" }
+        if normalizedName.isEmpty { return "请填写徽章名。" }
         // Original Java writer truncates at 120 UTF-16 units; do not let a surrogate pair
         // be split even when the mini-program's scalar count would allow the input.
-        if normalizedName.utf16.count > 120 { return "勋章名最多 120 个字（表情可能占两位）。" }
+        if normalizedName.utf16.count > 120 { return "徽章名最多 120 个字（表情可能占两位）。" }
         if normalizedDescription.utf16.count > 255 { return "说明最多 255 个字（表情可能占两位）。" }
         return nil
     }
@@ -203,9 +203,9 @@ public struct ClubBadgeOriginalReceipt: Codable, Equatable, Identifiable {
     }
     public var message: String {
         switch state {
-        case "CREATED": return "勋章已创建。"
-        case "GRANTED": return "这枚勋章已经记在对方名下。"
-        case "ALREADY_GRANTED": return "对方之前已经拿到这枚勋章，这次没有重复颁发。"
+        case "CREATED": return "徽章已创建。"
+        case "GRANTED": return "这枚徽章已经记在对方名下。"
+        case "ALREADY_GRANTED": return "对方之前已经拿到这枚徽章，这次没有重复颁发。"
         default: return "原操作结果尚未确认；不会自动重复提交。"
         }
     }
