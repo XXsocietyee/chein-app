@@ -1,6 +1,6 @@
 # Cloud DS (U8 / L9)
 
-Base: `ui/main` `72d2eb9ec498de21ded7cf9215f2638d7195786f`. Branch: `ui/cloud-ds`.
+Base: `origin/ui/next` `b87ab5aad675eda15e5dc2cc25e10f4debadfdce`. Branch: `ui/cloud-ds`.
 
 The host screens are unchanged. A primer screen is inserted before each system permission prompt, and a per-card theme edge is mounted on the chapter story cards and the locked chapter gate.
 
@@ -18,15 +18,17 @@ The host screens are unchanged. A primer screen is inserted before each system p
 
 Location copy is the existing draft (light up where you walk / 点亮你走过的地方). Camera and notification cards say what the prompt is for, in English and zh-Hans. Lantern gold and violet are not used on the primer.
 
-## CYThemeLook
+## Chapter edge
 
-`App/DesignSystem/CYThemeLook.swift`. Mood on a segment picks the edge: ink (DEFAULT and unknown), tide (BLUE / NIGHT), seal (RED / NEON), archive (YELLOW / ARCHIVE), paper (WHITE). Archive uses the muted tile orange, not lantern gold. Violet is not used.
+`ui/next` already defines `struct CYThemeLook` (style, palette, neon, `CYThemeLookColors`, environment key). This branch does not add another type named `CYThemeLook`. `View.cyThemeLook(_:)` stays the existing look-scope call and is not overloaded.
+
+`App/DesignSystem/CYThemeEdge.swift` maps a chapter mood onto that struct and strokes `CYThemeLook.edge`. Moods are DEFAULT / BLUE / RED / YELLOW / WHITE. NIGHT maps to BLUE, ARCHIVE to YELLOW, NEON to RED, and MOSS or an unknown mood to DEFAULT. The stroke uses the look's dim channel for DEFAULT and its mute or secondary channel for the other palettes, not the accent, so lantern gold stays on discovery and reward. Violet is not used.
 
 Mounted in `App/ChapterStoryView.swift`:
 
-- Each story segment card: `.cyThemeLook(CYThemeLook.resolve(mood: segment.mood), odd: segment.odd)` on the segment body. The segment identifier `chapterStory.segment.<id>` stays on the outer frame.
-- The locked chapter gate: `ChapterGate` wraps the existing unavailable empty state and mounts `.cyThemeLook(.ink, odd: 0)`. Identifier `chapterStory.gate`. `chapterStory.body` is unchanged.
+- Each story segment card: `.cyThemeEdge(mood: segment.mood, odd: segment.odd)` on the segment body. The segment identifier `chapterStory.segment.<id>` stays on the outer frame.
+- The locked chapter gate: `ChapterGate` wraps the existing unavailable empty state and mounts `.cyThemeEdge(mood: nil, odd: 0)`, the resting DEFAULT edge. Identifier `chapterStory.gate`. `chapterStory.body` is unchanged. The opening `CYChapterGate` overlay is unchanged.
 
 An odd level above 0 pulses the edge. Reduce Motion keeps the resting stroke and does not pulse.
 
-`python3 tools/check_design_lint.py` PASS. `python3 tools/check_scaffold.py` PASS. RegionalLaunchConfiguration grants, money, and password were not edited.
+`python3 tools/check_design_lint.py` PASS. `python3 tools/check_scaffold.py` matches the generator for this branch. The AppSession ratchet fails on the same `App/AppSession.swift` and `App/AppCompositionRoot.swift` line counts as `origin/ui/next`; this branch does not change those files. RegionalLaunchConfiguration grants, money, and password were not edited.
