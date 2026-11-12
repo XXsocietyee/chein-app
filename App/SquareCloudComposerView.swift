@@ -486,7 +486,7 @@ import SwiftUI
             clearDraft()
         case .rejected, .notSent:
             lock = SquareComposeLock(requestID: UUID().uuidString, phase: .rejected)
-            review = nil
+            self.review = nil
             if let memberID { SquareCloudDraftDisk.clearPending(memberID: memberID) }
             notice = copy("没有发出去", "It was not sent")
         default:

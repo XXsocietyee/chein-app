@@ -83,13 +83,6 @@ struct WalletIncomeAnalysisReadIdentity: Equatable {
         return result
     }
 
-    /// Phase of the slice this reader already loaded. It does not start a request.
-    var pageModel: AssetCenterAnalysisPageModel {
-        if failed || unavailable || requiresLogin { return AssetCenterAnalysisPageModel(.error) }
-        guard !loading, let result else { return AssetCenterAnalysisPageModel(.loading) }
-        if result.rows.isEmpty { return AssetCenterAnalysisPageModel(result.isPartial ? .unknown : .empty) }
-        return AssetCenterAnalysisPageModel(rows: result.rows)
-    }
 
     /// Close, background and replacement cancel the whole sequence, not just late publication.
     func cancel() {

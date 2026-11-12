@@ -115,29 +115,41 @@ extension AppCompositionRoot {
         let unauthorized: () -> Void = { [weak session] in
             session?.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
         }
-        return BundleSessionPorts(
-            read: accepted(readApproval, feature: .read, context: context) ? { [self] id, receipts in
+        // Built port by port: one large initializer expression exceeded the type checker.
+        var ports = BundleSessionPorts()
+        if accepted(readApproval, feature: .read, context: context) {
+            ports.read = { [self] (id: FreeExploreLaunchID, receipts: Set<String>) -> BundleReadTransport? in
                 self.makeBundleReadTransport(registrationID: id, receiptRequestIDs: receipts, context: context,
                     approval: readApproval, current: { current() != nil }, denied: { readApproval?.revoke() })
-            } : nil,
-            cancel: accepted(cancelApproval, feature: .cancel, context: context) ? { [self] in
+            }
+        }
+        if accepted(cancelApproval, feature: .cancel, context: context) {
+            ports.cancel = { [self] () -> BundleCancelTransport? in
                 self.makeBundleCancelTransport(context: context, approval: cancelApproval, current: current, denied: { cancelApproval?.revoke() })
-            } : nil,
-            appeal: accepted(appealApproval, feature: .appeal, context: context) ? { [self] in
+            }
+        }
+        if accepted(appealApproval, feature: .appeal, context: context) {
+            ports.appeal = { [self] () -> BundleAppealTransport? in
                 self.makeBundleAppealTransport(context: context, approval: appealApproval, current: current, unauthorized: unauthorized)
-            } : nil,
-            transfer: accepted(transferApproval, feature: .transfer, context: context) ? { [self] store in
+            }
+        }
+        if accepted(transferApproval, feature: .transfer, context: context) {
+            ports.transfer = { [self] (store: BundleTransferPendingStore) -> BundleTransferTransport? in
                 self.makeBundleTransferTransport(pending: store, context: context, approval: transferApproval, current: current, denied: { transferApproval?.revoke() })
-            } : nil,
-            refund: accepted(refundApproval, feature: .refund, context: context) ? { [self] registrationID in
+            }
+        }
+        if accepted(refundApproval, feature: .refund, context: context) {
+            ports.refund = { [self] (registrationID: FreeExploreLaunchID) -> (any BundleRefundServing)? in
                 self.makeBundleRefundClient(registrationID: registrationID, context: context, approval: refundApproval,
                     current: current, unauthorized: unauthorized)
-            } : nil,
-            shelf: makeUnavailableShelf(context: context, approval: shelfApproval),
-            voucher: makeUnavailableVoucher(context: context, approval: voucherApproval),
-            offer: makeUnavailableOffer(context: context, approval: offerApproval),
-            review: makeUnavailableReview(context: context, approval: reviewApproval),
-            renewal: makeUnavailableRenewal(context: context, approval: renewalApproval))
+            }
+        }
+        ports.shelf = makeUnavailableShelf(context: context, approval: shelfApproval)
+        ports.voucher = makeUnavailableVoucher(context: context, approval: voucherApproval)
+        ports.offer = makeUnavailableOffer(context: context, approval: offerApproval)
+        ports.review = makeUnavailableReview(context: context, approval: reviewApproval)
+        ports.renewal = makeUnavailableRenewal(context: context, approval: renewalApproval)
+        return ports
     }
 
     func makeBundleReadTransport(registrationID: FreeExploreLaunchID, receiptRequestIDs: Set<String>,
