@@ -15,8 +15,8 @@
       "zh-Hans": "我的徽章"
     },
     "growth.badges.empty": {
-      "en": "No badges lit up yet",
-      "zh-Hans": "还没有点亮任何徽章"
+      "en": "No badges yet. Finish a route to light your first one.",
+      "zh-Hans": "还没有徽章。走完一条路线，点亮第一枚。"
     },
     "growth.badges.newlyLit": {
       "en": "New badges lit",
@@ -51,8 +51,8 @@
       "zh-Hans": "Lv.%lld"
     },
     "growth.mileage": {
-      "en": "Total distance",
-      "zh-Hans": "累计距离"
+      "en": "Total distance (km)",
+      "zh-Hans": "累计距离（km）"
     },
     "growth.myRank": {
       "en": "My ranking",

@@ -39,3 +39,28 @@ Locators followed code that moved out of `AppSession` / `AppCompositionRoot` for
 ## Left failing on purpose
 
 The 194 baseline ids, including the four workflow-hash import crashes. No money, merchant, password, or presence gate was weakened. `App/RegionalLaunchConfiguration.swift` grants were not edited.
+
+## Seven locators that followed the restyle (app unchanged)
+
+These seven were new versus the 194 baseline because the checks still named the pre-split declarations. The session behavior is the same. No line was added to `docs/release/contract-failing-baseline.txt`.
+
+- Referral storage. `token` is `private(set)` so another file in the session can read it. The setter and the door adapters stay in `AppSession.swift`. The no-`removeItem` span still runs from `// Default-off source adapters` to that declaration. Capture stays; `replay()` stays absent.
+- Media owner. The token `willSet` still calls `invalidateOwnerDraftBrowser()` before `if token != newValue`, and that branch still invalidates shop NPC conversations and `platformConsumers`. Account id change still invalidates platform consumers inside the same `willSet`, before `didSet`.
+- Gate order. `gate` is `private(set)` on the same line as `private let vault`. `didSet` still calls `retainedSocialMemberActions?.synchronizeSession()` once, then `synchronizePrivateHome()` once.
+- Owner draft binding. Account and token `willSet` still call `invalidateOwnerDraftBrowser()` before assignment. The gate `didSet` still calls `synchronizeOwnerDraftBrowser()`. Root exit still calls `setOwnerDraftPresentationActive(false)`. The context fence match is unchanged.
+- Private home. The same gate `didSet` still calls `synchronizePrivateHome()`. `synchronizeAccountMarketingEntry()` still calls it first. `invalidatePrivateHome()` still drops the coordinator and does not call `clear(`. Questify root still wires `privateHomeCoordinator` and the appear/disappear active flags.
+- Ticket wallet rows. The list filters 即将开始 / 已通关 with `shown.contains` on `Array(snapshot.tickets.enumerated())` and still identifies rows by `\.offset`, so a repeated server id stays two rows. Detail navigation is still `TicketWalletDetailView(id:reader:lifecycleCoordinator:makeTeamCoordinator:)` only when `ticket.action == .detail`.
+- Topic sessions. The loaded `content` function has one bottom inset, `TopicXcxActionBar`, which opens the existing sheet and reloads that topic on dismiss. The second inset is `TopicDetailIssueState`: a refused topic shows 返回 (`mpfresh.topic.back`) and does not mount another action bar or the old enroll button.
+
+## Twelve more new failures on this tip (checks followed the shipped copy)
+
+`origin/ui/next` at `fad3ba266` already failed these twelve against the same 194 baseline. They are copy and locator drift from the U10 screens, not a second behavior change in this commit. Catalog values in `Localizable.xcstrings` were not rewritten. Checkout / 结算 labels that still say 结算 were left alone.
+
+- Global search. `contract()` on `GlobalSearchView.swift` is still empty. The byte pin moved to `f9f2c1ac763565e48ace824e62e0cc99dfd96408d9cb5cb6b7294653eaa30f8b`. The frozen inverse input hash is unchanged.
+- Growth mileage and empty badges. Shipped copy is `Total distance (km)` / `累计距离（km）` and `No badges yet. Finish a route to light your first one.` / `还没有徽章。走完一条路线，点亮第一枚。` The side file and the growth-center page snapshot now match. Unknown stays the em dash.
+- Official search placeholder. Shipped Chinese is `搜索活动名或城市`. English is unchanged. The official side catalog, the activity-list page snapshot, and the information-warning compare all read that string.
+- Registration sheet title. `registration.form.title` is `Activity registration` / `活动报名`. The page snapshot had Chinese `结算`, which disagreed with the English title. `registrationParity.title` stays Checkout / 结算.
+- Play kit fragments. The views already use these keys, and `Localizable.xcstrings` already has en and zh-Hans. The side JSON and the fragments were missing them, so the same values were copied in: legacy `playkitLegacy.music.arrived`, `silent.qrCaption`, `blind.step1`–`step3`, `blind.question`, `name.photo`, `name.suggestions`, `name.submit`; screen `playkit.challenge.localNotice`, `coin.kicker`, `dice.kicker`, `walk.remainingLabel`, `walk.stepsUnit`, `bingo.footnote`, `daily.ticketTitle`, `daily.departure`, `daily.serial`, `daily.serialHint`, `daily.signer`, `daily.leftAt`, `daily.lineForYou`, `quiet.kicker`, `shout.kicker`, `compass.kicker`, `quiet.relative`, `triesLeft`, `note.previousLabel`, `photo.retryTitle`, `scan.scopeLine`.
+- Roam empty track. Shipped copy is `No recorded route` / `没有已记录的轨迹`. The side file now matches. The key is still `roam.experience.noTrack`.
+- Search map side catalog gained `searchMap.clearKeyword` (`Clear search` / `清除搜索`) and `searchMap.retryPage` (`Retry this page` / `重试本页`), both already in `Localizable`.
+- Social catalog count is 120. The three keys after the 117 pin are `social.mine`, `social.guideTemplates.toSquare`, and `social.guideTemplates.start`, each with en and zh-Hans.

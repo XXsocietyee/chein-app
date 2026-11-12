@@ -366,5 +366,41 @@
   "playkitLegacy.silent.giveUp": {
     "en": "Stop and speak",
     "zh-Hans": "停止计时并说话"
+  },
+  "playkitLegacy.music.arrived": {
+    "en": "Arrived",
+    "zh-Hans": "到点"
+  },
+  "playkitLegacy.silent.qrCaption": {
+    "en": "Witness code · the staff scan here once they guess",
+    "zh-Hans": "见证码 · 店员猜中后扫这里"
+  },
+  "playkitLegacy.blind.step1": {
+    "en": "Collect",
+    "zh-Hans": "领小样"
+  },
+  "playkitLegacy.blind.step2": {
+    "en": "Taste blind",
+    "zh-Hans": "闭眼尝"
+  },
+  "playkitLegacy.blind.step3": {
+    "en": "Answer",
+    "zh-Hans": "作答"
+  },
+  "playkitLegacy.blind.question": {
+    "en": "Which one was in the cup?",
+    "zh-Hans": "刚才那杯是哪一种？"
+  },
+  "playkitLegacy.name.photo": {
+    "en": "The creation you just photographed",
+    "zh-Hans": "你刚拍下的作品"
+  },
+  "playkitLegacy.name.suggestions": {
+    "en": "The cat guide offers a few names:",
+    "zh-Hans": "猫向导递来几个备选："
+  },
+  "playkitLegacy.name.submit": {
+    "en": "Submit creation",
+    "zh-Hans": "提交作品"
   }
 }

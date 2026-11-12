@@ -35,7 +35,7 @@ class PrivateHomeCompositionContracts(unittest.TestCase):
             self.assertIn(text, source)
     def test_session_hooks_revoke_without_deleting_unknown_and_wire_normal_root(self):
         source = self.text('App/AppSession.swift')
-        gate = next(line for line in source.splitlines() if 'private var gate = SessionOperationGate()' in line)
+        gate = next(line for line in source.splitlines() if 'private(set) var gate = SessionOperationGate()' in line)
         self.assertIn('didSet', gate); self.assertIn('synchronizePrivateHome()', gate)
         self.assertIn('private func synchronizeAccountMarketingEntry() {\n        synchronizePrivateHome()', source)
         block = source.split('func invalidatePrivateHome() {', 1)[1].split('private var committingAuthenticatedSession', 1)[0]

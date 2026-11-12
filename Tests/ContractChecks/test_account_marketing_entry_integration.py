@@ -33,7 +33,9 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
         self.assertIn('safetyDirectory("DoorReferralSafety/" + namespace)',self.read('App/AppSessionDoorEntry.swift'))
         self.assertIn('try? retainedDoorQueue?.capture(inviter)',s)
         self.assertNotIn('retainedDoorQueue?.replay()',s)
-        self.assertNotIn('removeItem',s[s.index('// Default-off source adapters'):s.index('private var token: String?')])
+        # Token is private(set) so session extensions can read it; the setter stays in this file.
+        # The referral adapters still end at that declaration, and that span must not delete stored invites.
+        self.assertNotIn('removeItem',s[s.index('// Default-off source adapters'):s.index('private(set) var token: String?')])
     def test_guest_invitation_retained_and_auth_not_duplicated(self):
         s=self.read('App/NativeEntryLandingView.swift')
         self.assertIn('MerchantOperatorInvitationLandingView',s)

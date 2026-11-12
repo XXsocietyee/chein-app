@@ -1082,5 +1082,89 @@
   "playkit.profile.avatarRequired": {
     "en": "Add a photo",
     "zh-Hans": "放一张照片"
+  },
+  "playkit.challenge.localNotice": {
+    "en": "This is a reading from this phone, for fun only. Leaving the app interrupts the local clock; start again when you return.",
+    "zh-Hans": "本机测量读数，仅供娱乐参考。切到后台会中断本机计时，返回后请重新开始。"
+  },
+  "playkit.coin.kicker": {
+    "en": "Flip once, accept the result",
+    "zh-Hans": "抛一次，认结果"
+  },
+  "playkit.dice.kicker": {
+    "en": "Do the task that matches your roll",
+    "zh-Hans": "掷到几就做第几件事"
+  },
+  "playkit.walk.remainingLabel": {
+    "en": "Still to go",
+    "zh-Hans": "还差"
+  },
+  "playkit.walk.stepsUnit": {
+    "en": "steps",
+    "zh-Hans": "步"
+  },
+  "playkit.bingo.footnote": {
+    "en": "Each square lights up after you scan in at the store or finish its game.",
+    "zh-Hans": "每一格都要到店扫码或把那个游戏玩完才会亮。"
+  },
+  "playkit.daily.ticketTitle": {
+    "en": "Today's city sign",
+    "zh-Hans": "今日城市签"
+  },
+  "playkit.daily.departure": {
+    "en": "From",
+    "zh-Hans": "出发"
+  },
+  "playkit.daily.serial": {
+    "en": "Sign no.",
+    "zh-Hans": "签号"
+  },
+  "playkit.daily.serialHint": {
+    "en": "Your place in line",
+    "zh-Hans": "你是第几位"
+  },
+  "playkit.daily.signer": {
+    "en": "Left by",
+    "zh-Hans": "留签人"
+  },
+  "playkit.daily.leftAt": {
+    "en": "Left at",
+    "zh-Hans": "留于"
+  },
+  "playkit.daily.lineForYou": {
+    "en": "A line left for you",
+    "zh-Hans": "留给你的一句"
+  },
+  "playkit.quiet.kicker": {
+    "en": "Stay silent",
+    "zh-Hans": "别出声"
+  },
+  "playkit.shout.kicker": {
+    "en": "Shout together, let this place hear you",
+    "zh-Hans": "一起喊，让这儿听见"
+  },
+  "playkit.compass.kicker": {
+    "en": "Turn your phone towards the target",
+    "zh-Hans": "把手机转向目标方向"
+  },
+  "playkit.quiet.relative": {
+    "en": "This uses the relative volume your phone hears, not a decibel reading. If the sound crosses the line, start again.",
+    "zh-Hans": "只看手机听到的相对音量，不是分贝读数。声音过线就从头再来。"
+  },
+  "playkit.triesLeft": {
+    "en": "Tries left",
+    "zh-Hans": "还能错"
+  },
+  "playkit.note.previousLabel": {
+    "en": "The person before you wrote",
+    "zh-Hans": "前面的人写过"
+  },
+  "playkit.photo.retryTitle": {
+    "en": "Almost. Take another one.",
+    "zh-Hans": "还差一点，再拍一张"
+  },
+  "playkit.scan.scopeLine": {
+    "en": "Only confirms this stop's task code",
+    "zh-Hans": "仅确认这一站的任务码"
   }
 }

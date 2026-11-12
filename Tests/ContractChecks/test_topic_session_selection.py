@@ -19,8 +19,14 @@ class TopicSessionSelectionChecks(unittest.TestCase):
                       'TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)',
                       'showingSessionSelection = false']:
             self.assertIn(value, self.detail)
-        # No second bottom bar and no scroll-to-sessions remains on the host.
-        self.assertEqual(self.detail.count('.safeAreaInset(edge: .bottom)'), 1)
+        # Loaded topic keeps one action bar. The extra inset is the refused-topic back pill, not a second enroll bar.
+        content = self.detail.split('private func content(_ value: TopicDetail)', 1)[1].split('private var detail', 1)[0]
+        self.assertEqual(content.count('.safeAreaInset(edge: .bottom)'), 1)
+        self.assertIn('TopicXcxActionBar(', content)
+        issue = self.detail.split('struct TopicDetailIssueState', 1)[1]
+        self.assertEqual(issue.count('.safeAreaInset(edge: .bottom)'), 1)
+        self.assertIn('CYPillButton("mpfresh.topic.back"', issue)
+        self.assertNotIn('TopicXcxActionBar', issue)
         self.assertNotIn('Button("topic.sessionSelection.enroll")', self.detail)
         self.assertNotIn('proxy.scrollTo("topicXcx.anchor.sessions"', self.detail)
         sections = (ROOT / 'App/TopicXcxSections.swift').read_text()

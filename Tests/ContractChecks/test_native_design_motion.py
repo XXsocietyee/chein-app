@@ -89,7 +89,8 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("expectedPage: pageTicket", model)
     def test_navigation_scope_pagination_and_duplicate_rows_stay_explicit(self):
         wallet = app("TicketWalletView.swift")
-        self.assertIn("ForEach(Array(snapshot.tickets.enumerated()), id: \\.offset)", wallet)
+        # 即将开始 / 已通关 filters the same enumerated array. Offset identity still keeps repeated server ids.
+        self.assertIn("ForEach(Array(snapshot.tickets.enumerated()).filter { shown.contains($0.element) }, id: \\.offset)", wallet)
         self.assertIn("if ticket.action == .detail", wallet)
         # Check the native destination and arguments inside the detail-only branch.
         route = re.search(r"if ticket.action == \.detail\s*\{\s*NavigationLink\s*\{\s*TicketWalletDetailView\(([^()]*)\)\s*\} label:", wallet)

@@ -9,7 +9,8 @@ ROOT = Path(__file__).resolve().parents[2]
 class ComposedSessionInvalidationChecks(unittest.TestCase):
     def test_gate_notifies_social_and_private_home_in_reviewed_order(self):
         source = (ROOT / 'App/AppSession.swift').read_text()
-        observer = source.split('private var gate = SessionOperationGate()', 1)[1].split('private let vault:', 1)[0]
+        # Getter is internal so extensions can read the stamp; didSet still lives on this declaration.
+        observer = source.split('private(set) var gate = SessionOperationGate()', 1)[1].split('private let vault:', 1)[0]
         social = 'retainedSocialMemberActions?.synchronizeSession()'
         home = 'synchronizePrivateHome()'
         self.assertIn('didSet', observer)
