@@ -137,7 +137,7 @@ import FoundationNetworking
         return url.appendingPathComponent("App/MPParityPassSession.swift")
     }
 
-    private func plans: [PlatformPassPlan] {
+    private var plans: [PlatformPassPlan] {
         [PlatformPassPlan(code: "YEAR", title: "年卡", priceFen: 29900, validDays: 365),
          PlatformPassPlan(code: "MONTH", title: "月卡", priceFen: 3900, validDays: 30)]
     }
