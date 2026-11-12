@@ -42,13 +42,14 @@ class CoopInviteDetailPageReadyTests(unittest.TestCase):
         self.assertNotIn("?? 0", self.text("Core/CooperationContracts.swift"))
         self.assertNotIn("depositAmount || 50", page)
 
-    def test_missing_keys_are_listed_and_absent_from_the_catalog(self):
+    def test_missing_keys_are_listed_and_now_catalogued(self):
         note = NOTE.read_text()
         catalog = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())
         strings = catalog["strings"]
         for key in MISSING_KEYS:
             self.assertIn(key, note, key)
-            self.assertNotIn(key, strings, key)
+            # ui/prkeys (L1) added these with en + zh-Hans.
+            self.assertEqual(set(strings[key]["localizations"]), {"en", "zh-Hans"}, key)
         self.assertNotIn("ui-strings-pages-coop-invite-detail-index.json", note)
         self.assertFalse((ROOT / "docs/release/ui-strings-pages-coop-invite-detail-index.json").exists())
 

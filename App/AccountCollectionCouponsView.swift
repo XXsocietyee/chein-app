@@ -32,7 +32,7 @@ import SwiftUI
                 .accessibilityIdentifier("accountCollection.coupons.filter")
                 if model.isLoading || model.loadedRequest != offeredRequest { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("accountCollection.loading")) }
                 else if let issue = model.issue(for: offeredRequest) {
-                    AccountCollectionIssueView(issue: issue, retry: { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) })
+                    AccountCollectionIssueView(issue: issue, retry: { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) }, couponWallet: true)
                 } else if let coupons = model.rows(for: offeredRequest) {
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
@@ -113,12 +113,36 @@ struct AccountCollectionCouponRow: View {
             if let day = coupon.futureStartDay(relativeTo: Date()) {
                 Text("accountCollection.coupon.startsLater").font(CYTypography.meta)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
+                // Mini-program date line: {day} 起可用.
                 QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
             }
-            // The pill already says Invalid; an unknown end date is left out rather than spelled out.
-            if coupon.status != .invalid, let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
-                QuestifyMetadataLine(label: "accountCollection.coupon.validUntil", value: day, systemImage: "calendar")
+            // The pill already says Invalid. Otherwise an unknown end date is an em dash, as in the mini-program.
+            if coupon.status != .invalid {
+                QuestifyMetadataLine(label: "accountCollection.coupon.validUntil",
+                                     value: AccountCollectionCoupon.calendarDay(coupon.endTime) ?? "—", systemImage: "calendar")
+            }
+            if coupon.shopName != nil || coupon.shopAddress != nil {
+                AccountCollectionCouponShopLine(coupon: coupon)
             }
         }.orderCardSurface()
+    }
+}
+
+/// Public shop on a received coupon. Unknown name or address is left out, never an empty place.
+struct AccountCollectionCouponShopLine: View {
+    let coupon: AccountCollectionCoupon
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+            Image(systemName: "storefront").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                if let name = coupon.shopName { Text(verbatim: name).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary) }
+                if let address = coupon.shopAddress {
+                    Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("accountCollection.coupon.shop")
     }
 }

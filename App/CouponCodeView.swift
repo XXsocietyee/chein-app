@@ -16,6 +16,7 @@ extension EnvironmentValues {
 @MainActor struct CouponCodeView: View {
     @State var model: CouponCodeCoordinator
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var review = false
     @State private var viewPresentation = CouponCodeViewPresentation()
     private struct TaskKey: Hashable { let active: Bool; let presentationID: UUID? }
@@ -91,7 +92,12 @@ extension EnvironmentValues {
                         .padding(24).background(.white).accessibilityLabel("couponCode.image")
                 } else { Text("couponCode.renderFailed") }
                 Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
-                LabeledContent("couponCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
+                // Page model countdown: hidden or unknown is an em dash, a displayed 0 stays 0.
+                LabeledContent("couponCode.remaining") {
+                    Text(verbatim: model.remainingText).monospacedDigit()
+                        .contentTransition(reduceMotion ? .identity : .numericText(countsDown: true))
+                        .animation(reduceMotion ? nil : CYMotion.standard, value: model.remainingText)
+                }.accessibilityIdentifier("couponCode.remaining")
                 retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
             }
         case .loading: ProgressView("couponCode.loading")

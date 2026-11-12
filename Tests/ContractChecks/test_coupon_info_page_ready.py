@@ -67,7 +67,8 @@ class CouponInfoPageReady(unittest.TestCase):
         ]
         for key in missing:
             self.assertIn(f"`{key}`", note)
-            self.assertNotIn(key, catalog)
+            # ui/prkeys (L1) added these with en + zh-Hans; the page model still does not reference them.
+            self.assertEqual(set(catalog[key]["localizations"]), {"en", "zh-Hans"})
             self.assertNotIn(f'"{key}"', self.page)
         self.assertIn("时间设置完成", note)
         self.assertNotIn("/api/coupon/update", note)

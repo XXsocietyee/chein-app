@@ -38,7 +38,8 @@ import SwiftUI
                     }
                     Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
                     if model.working || model.core.loading { ProgressView("couponManagement.loading") }
-                    else if model.core.rows.isEmpty {
+                    // A failed read is an error notice above, not an empty list.
+                    else if model.core.rows.isEmpty, model.core.issue == nil {
                         ContentUnavailableView("couponManagement.empty", systemImage: "ticket")
                             .listRowBackground(Color.clear)
                     }
@@ -52,7 +53,8 @@ import SwiftUI
                                 // Mini-program coupon list row: description (fallback copy) and remaining stock.
                                 if let text = row.description, !text.isEmpty { Text(verbatim: text).font(.caption) }
                                 else { Text("couponManagement.noDescription").font(.caption).foregroundStyle(.secondary) }
-                                if let remaining = row.remaining { LabeledContent("couponManagement.remaining", value: "\(remaining)").font(.caption) }
+                                // Unknown remaining stock is an em dash; a literal 0 stays 0.
+                                LabeledContent("couponManagement.remaining", value: CouponInfoCount.display(row.remaining)).font(.caption)
                                 if row.state != .active { Text(LocalizedStringKey(row.state.key)).font(.caption) }
                                 Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")").font(.caption).foregroundStyle(.secondary)
                             }.padding(.vertical, 4)
@@ -132,7 +134,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     count("couponManagement.used", row.useCount)
                     count("couponManagement.remaining", row.remaining)
                     count("couponManagement.perLimit", row.perLimit)
-                    LabeledContent("couponManagement.amount", value: row.amount.map { NSDecimalNumber(decimal: $0).stringValue } ?? "—")
+                    LabeledContent("couponManagement.amount", value: CouponInfoAmount.from(row.amount).displayText)
                     LabeledContent("couponManagement.currency", value: row.currency ?? "—")
                 }
                 Section {
@@ -157,49 +159,56 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .task { await model.core.load(); model.revision += 1 }
         .onDisappear { model.cancelReview() }
     }
-    private func count(_ key: LocalizedStringKey, _ value: Int?) -> some View { LabeledContent(key, value: value.map(String.init) ?? "—") }
+    private func count(_ key: LocalizedStringKey, _ value: Int?) -> some View { LabeledContent(key, value: CouponInfoCount.display(value)) }
 }
 @MainActor private struct CouponManagementEditor: View {
     @ObservedObject var model: CouponManagementScreenModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var discard = false
     @State private var rangeEditor: CouponValidityRangeEditorModel?
+    @State private var rangeBaseline: [Date?]?
+    @State private var rangeCompleted = false
+    /// couponInfo page model: create reads the existing publish grant and never saves an edit.
+    private var page: CouponInfoSettingsPage {
+        var unresolved = false
+        if case .locked = model.core.issue { unresolved = true }
+        return CouponInfoSettingsPage.project(
+            sessionPresent: model.core.session != nil, editingID: nil, rows: nil, failure: nil,
+            unresolved: unresolved, draft: model.core.draft,
+            capability: CouponInfoSettingsCapability(canRead: model.core.canRead || model.core.canSimulate,
+                                                     canSubmitPublish: model.core.canReviewPublish))
+    }
     private func binding<T>(_ keyPath: WritableKeyPath<CouponManagementDraft, T>) -> Binding<T> {
         Binding(get: { model.core.draft[keyPath: keyPath] }, set: { value in var draft = model.core.draft; draft[keyPath: keyPath] = value; model.update(draft) })
     }
     private func closeRangeEditor() { rangeEditor?.cancel(); rangeEditor = nil }
+    private var rangeDates: [Date?] { [model.core.draft.startTime, model.core.draft.endTime] }
     var body: some View {
+        let page = self.page
         Form {
             CouponManagementNotice(model: model, surface: .editor)
-            Section("couponManagement.details") {
-                TextField("couponManagement.name", text: binding(\.name)).accessibilityIdentifier("couponManagement.name")
-                TextField("couponManagement.description", text: binding(\.description), axis: .vertical).lineLimit(2...6)
-                Picker("couponManagement.type", selection: binding(\.couponType)) {
-                    Text("couponManagement.chooseType").tag(Int?.none)
-                    ForEach(0..<4) { type in Text(LocalizedStringKey(CouponManagementDraft.typeKey(type))).tag(Optional(type)) }
-                }.accessibilityIdentifier("couponManagement.type")
-                TextField("couponManagement.quantity", text: binding(\.quantity)).keyboardType(.numberPad).accessibilityIdentifier("couponManagement.quantity")
-            }.disabled(model.working)
-            Section("couponManagement.dates") {
-                Text("couponManagement.chinaTime").font(.footnote)
-                if let start = model.core.draft.startTime {
-                    LabeledContent("couponManagement.start", value: CouponValidityTime.display(start))
+            switch page.phase {
+            case .ready:
+                fields(page)
+            case .unknown:
+                // Unknown publish outcome: show the dash-filled form read-only and offer recovery, never a resend.
+                CouponInfoSettingsStateSection(page: page)
+                if model.core.canRecoverCommands, let key = page.recoveryKey {
+                    Button(LocalizedStringKey(key)) { model.run { await model.core.recoverPendingCommands() } }
+                        .disabled(model.working).accessibilityIdentifier("couponManagement.editor.recover")
                 }
-                if let end = model.core.draft.endTime {
-                    LabeledContent("couponManagement.end", value: CouponValidityTime.display(end))
+                if let form = page.form { CouponInfoSettingsReadOnlySection(form: form) }
+            case .error, .empty, .loading:
+                CouponInfoSettingsStateSection(page: page)
+                if let key = page.retryKey {
+                    Button(LocalizedStringKey(key)) { model.run { await model.core.load() } }
+                        .disabled(model.working).accessibilityIdentifier("couponManagement.editor.retry")
                 }
-                // PORT-5: mini-program shows the validity span next to the picked range, not only inside the sheet.
-                if let span = CouponValiditySpan.make(start: model.core.draft.startTime, end: model.core.draft.endTime) {
-                    CouponValiditySpanBadge(span: span)
-                }
-                Button("couponManagement.range.edit") {
-                    closeRangeEditor(); rangeEditor = CouponValidityRangeEditorModel.make(screen: model)
-                }.disabled(model.core.session == nil).accessibilityIdentifier("couponManagement.range.open")
-            }.disabled(model.working)
-            if let blocker = model.core.draft.blocker { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary) }
-            Button("couponManagement.reviewPublish") { model.run { await model.core.preparePublish() } }
-                .disabled(model.working || model.core.draft.blocker != nil || !model.core.canReviewPublish).accessibilityIdentifier("couponManagement.publish.review")
-            if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
+            case nil:
+                Text("couponManagement.unavailable").foregroundStyle(.secondary)
+                    .accessibilityIdentifier("couponManagement.editor.hidden")
+            }
         }
         .environment(\.timeZone, CouponValidityTime.timeZone)
         .environment(\.calendar, CouponValidityTime.calendar)
@@ -212,10 +221,87 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             Button("couponManagement.discard", role: .destructive) { model.core.discardDraft(); model.revision += 1; dismiss() }
             Button("couponManagement.keepEditing", role: .cancel) {}
         }
-        .sheet(item: $rangeEditor) { editor in NavigationStack { CouponValidityRangeEditor(model: editor) } }
+        .sheet(item: $rangeEditor, onDismiss: {
+            // Mini-program toast 时间设置完成 after a confirmed range, shown inline instead of a toast.
+            if let baseline = rangeBaseline, baseline != rangeDates, model.core.draft.startTime != nil, model.core.draft.endTime != nil {
+                withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { rangeCompleted = true }
+            }
+            rangeBaseline = nil
+        }) { editor in NavigationStack { CouponValidityRangeEditor(model: editor) } }
         .onChange(of: model.core.session) { _, _ in closeRangeEditor() }
         .onChange(of: model.revision) { _, _ in closeRangeEditor() }
         .onDisappear { closeRangeEditor(); model.cancelReview() }
+    }
+    @ViewBuilder private func fields(_ page: CouponInfoSettingsPage) -> some View {
+        Section("couponManagement.details") {
+            TextField("couponManagement.name", text: binding(\.name)).accessibilityIdentifier("couponManagement.name")
+            TextField("couponManagement.description", text: binding(\.description), axis: .vertical).lineLimit(2...6)
+            Picker("couponManagement.type", selection: binding(\.couponType)) {
+                Text("couponManagement.chooseType").tag(Int?.none)
+                ForEach(0..<4) { type in Text(LocalizedStringKey(CouponManagementDraft.typeKey(type))).tag(Optional(type)) }
+            }.accessibilityIdentifier("couponManagement.type")
+            TextField("couponManagement.quantity", text: binding(\.quantity)).keyboardType(.numberPad).accessibilityIdentifier("couponManagement.quantity")
+        }.disabled(model.working)
+        Section("couponManagement.dates") {
+            Text("couponManagement.chinaTime").font(.footnote)
+            if let start = model.core.draft.startTime {
+                LabeledContent("couponManagement.start", value: CouponValidityTime.display(start))
+            }
+            if let end = model.core.draft.endTime {
+                LabeledContent("couponManagement.end", value: CouponValidityTime.display(end))
+            }
+            // PORT-5: mini-program shows the validity span next to the picked range, not only inside the sheet.
+            if let span = CouponValiditySpan.make(start: model.core.draft.startTime, end: model.core.draft.endTime) {
+                CouponValiditySpanBadge(span: span)
+            }
+            if rangeCompleted {
+                Label("couponManagement.range.completed", systemImage: "checkmark.circle.fill")
+                    .font(.footnote).foregroundStyle(CYColor.successText)
+                    .transition(.opacity)
+                    .accessibilityIdentifier("couponManagement.range.completed")
+            }
+            Button("couponManagement.range.edit") {
+                closeRangeEditor(); rangeCompleted = false; rangeBaseline = rangeDates
+                rangeEditor = CouponValidityRangeEditorModel.make(screen: model)
+            }.disabled(model.core.session == nil).accessibilityIdentifier("couponManagement.range.open")
+        }.disabled(model.working)
+        if let blocker = model.core.draft.blocker { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary) }
+        // Shown only with the existing publish grant on a new definition; an edit never publishes and nothing saves.
+        if page.publishGranted, page.editingID == nil {
+            Button("couponManagement.reviewPublish") { model.run { await model.core.preparePublish() } }
+                .disabled(model.working || !page.showsPublishAction).accessibilityIdentifier("couponManagement.publish.review")
+        }
+        if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
+    }
+}
+/// Loading / empty / error / unknown copy straight from `CouponInfoSettingsPage.stateKey`.
+private struct CouponInfoSettingsStateSection: View {
+    let page: CouponInfoSettingsPage
+    var body: some View {
+        if let key = page.stateKey {
+            Section {
+                if case .loading = page.phase { ProgressView(LocalizedStringKey(key)) }
+                else { Text(LocalizedStringKey(key)).foregroundStyle(.secondary) }
+            }.accessibilityIdentifier("couponManagement.editor.state")
+        }
+    }
+}
+/// Server values for an unresolved definition. Unknown is an em dash; a literal 0 stays 0.
+private struct CouponInfoSettingsReadOnlySection: View {
+    let form: CouponInfoSettingsForm
+    var body: some View {
+        Section("couponManagement.details") {
+            LabeledContent("couponManagement.name", value: form.nameText)
+            LabeledContent("couponManagement.type") { typeText }
+            LabeledContent("couponManagement.quantity", value: form.quantityText)
+            LabeledContent("couponManagement.start", value: form.startText)
+            LabeledContent("couponManagement.end", value: form.endText)
+            LabeledContent("couponManagement.amount", value: form.amountText)
+        }.accessibilityIdentifier("couponManagement.editor.readOnly")
+    }
+    @ViewBuilder private var typeText: some View {
+        if form.typeText == CouponInfoAmount.unknownDisplay { Text(verbatim: form.typeText) }
+        else { Text(LocalizedStringKey(form.typeText)) }
     }
 }
 @MainActor private struct CouponManagementReviewSection: View {
