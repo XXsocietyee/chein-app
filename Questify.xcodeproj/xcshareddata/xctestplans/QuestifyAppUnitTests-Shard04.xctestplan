@@ -58,6 +58,7 @@
         "AuthChannelPresentationOwnershipAppTests",
         "AuthChannelQueuedIntentAppTests",
         "BNDCancelTransportTests",
+        "BNDMountGuardTests",
         "BNDOrderStatusViewTests",
         "BackendRolloutAllowlistSwitchboardSectionViewTests",
         "BackgroundTaskAndScenePhaseLifecycleSectionViewTests",

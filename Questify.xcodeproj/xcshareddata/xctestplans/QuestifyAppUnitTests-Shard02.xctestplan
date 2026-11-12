@@ -60,6 +60,7 @@
         "AuthAndSessionAdmissionSectionViewTests",
         "AuthChannelPresentationOwnershipAppTests",
         "AuthChannelQueuedIntentAppTests",
+        "BNDMountGuardTests",
         "BNDOrderStatusViewTests",
         "BackendRolloutAllowlistSwitchboardSectionViewTests",
         "BackendSyncAndContractGateSectionViewTests",
