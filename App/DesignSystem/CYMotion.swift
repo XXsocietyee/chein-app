@@ -146,27 +146,48 @@ extension View {
             .animation(reduceMotion ? CYMotion.reduced : (pressed ? CYMotion.press : CYMotion.release), value: pressed)
     }
 
-    /// Press feedback for kit views that sit inside a plain Button/NavigationLink. Tracks the touch with a
-    /// simultaneous long-press (cancelled by a scroll), so the parent's tap and scrolling are untouched.
+    /// Press feedback for kit views (`CYImageCard`, `CYListRow`, ...). Gesture-free: it reads the pressed state that an
+    /// enclosing `CYPressButtonStyle` publishes, so it can never compete with a NavigationLink/Button/List tap (a
+    /// simultaneous LongPressGesture here swallowed every List NavigationLink tap on the iOS 27 runtime). Without that
+    /// style it does nothing and the parent's own highlight (List row, `.plain` dim) is the feedback.
     func cyPressTracking() -> some View { modifier(CYPressTracking()) }
 }
 
-private struct CYPressTracking: ViewModifier {
-    @GestureState private var pressed = false
-    @Environment(\.cyPressHandled) private var handled
+private struct CYPressedKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    /// True while the enclosing `CYPressButtonStyle` button is held down.
+    var cyIsPressed: Bool {
+        get { self[CYPressedKey.self] }
+        set { self[CYPressedKey.self] = newValue }
+    }
+}
+
+/// Publishes the button's pressed state to `cyPressTracking()` views in its label and draws nothing itself, so only the
+/// kit card scales (not the label's surrounding chrome); disabled dims like `.plain`. Use it on Buttons/NavigationLinks outside a List row, or on
+/// borderless buttons inside one; a List NavigationLink row keeps the system row highlight instead.
+struct CYPressButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(isEnabled ? 1 : 0.5)
+            .environment(\.cyIsPressed, configuration.isPressed && isEnabled)
+    }
+}
+
+extension ButtonStyle where Self == CYPressButtonStyle {
+    static var cyPressTracked: CYPressButtonStyle { CYPressButtonStyle() }
+}
+
+private struct CYPressTracking: ViewModifier {
+    @Environment(\.cyIsPressed) private var pressed
+    @Environment(\.cyPressHandled) private var handled
     @QuestifyReduceMotion private var reduceMotion
 
     func body(content: Content) -> some View {
         if handled {
             content
         } else {
-            content
-                .cyPressEffect(pressed && isEnabled, reduceMotion: reduceMotion)
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 60, maximumDistance: 10)
-                        .updating($pressed) { value, state, _ in state = value }
-                )
+            content.cyPressEffect(pressed, reduceMotion: reduceMotion)
         }
     }
 }

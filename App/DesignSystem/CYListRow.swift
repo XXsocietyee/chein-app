@@ -48,6 +48,8 @@ struct CYListRow<Leading: View>: View {
     }
 
     var body: some View {
+        // cyPressTracking is gesture-free (it only reads a CYPressButtonStyle's pressed state), so a List NavigationLink row
+        // keeps its tap; there the system row highlight is the feedback.
         if card {
             row.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg).cyPressTracking()
         } else {
