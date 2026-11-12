@@ -207,7 +207,6 @@ private struct PassportRollingCount: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: typeSize.isAccessibilitySize ? 88 : 64), spacing: CYSpacing.md)], spacing: CYSpacing.md) {
                 ForEach(0..<PassportStampGrid.slots, id: \.self) { index in
                     slot(index: index, earned: index < PassportStampGrid.earnedSlots(stampCount))
-                        .accessibilityIdentifier("passport.stamp.\(index)")
                 }
             }
             if let onOpenStamps { openRow("roam.experience.history", id: "passport.stamps.open", perform: onOpenStamps) }
@@ -230,18 +229,24 @@ private struct PassportRollingCount: View {
         if let open = openStamp {
             Button { open(CYPassportStampSelection(index: index, earned: earned)) } label: { seal }
                 .buttonStyle(.cyPressable)
+                .frame(width: size, height: size)
+                .contentShape(Circle())
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
                 .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("passport.stamp.\(index)")
         } else {
             seal
+                .frame(width: size, height: size)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
+                .accessibilityIdentifier("passport.stamp.\(index)")
         }
         }
         // Outside the button so the zoom snapshots the seal, not the pressed label. Radius = exactly half the side (a true circle): a larger radius collapses the clip to a small diamond on iOS 27 and hid the whole seal.
+        // The identifier stays on the seal-sized button. The cell only centres it; its wider frame was the gap MotionTour tapped.
         .cyHeroSourceInherited(index, cornerRadius: size / 2)
-        .frame(maxWidth: .infinity, minHeight: 44)
+        .frame(maxWidth: .infinity, minHeight: size)
     }
 
     private var badgeRail: some View {
