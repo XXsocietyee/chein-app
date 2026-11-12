@@ -62,7 +62,7 @@ import SwiftUI
                                     Text(distance, format: .number.precision(.fractionLength(1)))
                                 } else { Text(verbatim: "—") }
                             }
-                            .font(.system(size: 44, weight: .heavy, design: .rounded)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .font(.system(.largeTitle, design: .rounded).weight(.heavy)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                             .contentTransition(.numericText())
                             .lineLimit(1).minimumScaleFactor(0.5)
                             Text("roam.history.km").font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
