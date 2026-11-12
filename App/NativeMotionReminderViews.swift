@@ -18,7 +18,12 @@ import SwiftUI
             .accessibilityIdentifier("nativePlatform.steps.host")
             if let goal = segment["goal"].integer {
                 LabeledContent("playkit.walk.goal") {
-                    Text(verbatim: String(goal)).font(CYTypography.numericBody).monospacedDigit()
+                    Text("playkit.steps.goalSteps \(goal)").font(CYTypography.numericBody).monospacedDigit()
+                }
+            }
+            ForEach(["co2Label", "remainLabel"], id: \.self) { key in
+                if let line = segment[key].text, !line.isEmpty {
+                    Text(verbatim: line).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                 }
             }
             if let enrollment = runtime?.enrollment {
@@ -166,8 +171,23 @@ import SwiftUI
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("nativePlatform.reminder.host")
-            if let opens = segment["openFrom"].text { windowFact("playkitLegacy.window.opens", opens) }
-            if let closes = segment["openTo"].text { windowFact("playkitLegacy.window.closes", closes) }
+            // Mini-program line: "开放时段 23:00 – 01:00", then a large countdown to the next opening.
+            if segment["openFrom"].text != nil || segment["openTo"].text != nil {
+                Text("playkitLegacy.window.range \(clock(segment["openFrom"].text)) \(clock(segment["openTo"].text))")
+                    .font(CYTypography.bodyMedium).monospacedDigit()
+                    .foregroundStyle(CYColor.accentText)
+                    .accessibilityIdentifier("nativePlatform.reminder.range")
+            }
+            if let window = stage?.window, !window.openNow {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    let left = max(0, Int(window.nextOpenAt.timeIntervalSince(context.date)))
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .lastTextBaseline, spacing: CYSpacing.sm) { countdown(left); afterLabel }
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) { countdown(left); afterLabel }
+                    }
+                }
+                .accessibilityIdentifier("nativePlatform.reminder.countdown")
+            }
             Text("nativePlatform.reminder.boundary")
                 .font(CYTypography.meta)
                 .foregroundStyle(palette.textSecondary)
@@ -258,9 +278,17 @@ import SwiftUI
             }
         }
     }
-    private func windowFact(_ key: LocalizedStringKey, _ value: String) -> some View {
-        let shown = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        return LabeledContent(key) { Text(verbatim: shown.isEmpty ? "—" : shown).monospacedDigit() }
+    private func clock(_ value: String?) -> String {
+        let shown = (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return shown.isEmpty ? "—" : shown
+    }
+    private func countdown(_ left: Int) -> some View {
+        Text(verbatim: String(format: "%02d:%02d:%02d", left / 3600, (left % 3600) / 60, left % 60))
+            .font(CYTypography.data2XL.italic()).monospacedDigit()
+            .foregroundStyle(palette.textPrimary)
+    }
+    private var afterLabel: some View {
+        Text("playkitLegacy.window.after").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
     }
     private func refresh() async {
         guard let runtime, let stage, active else { return }

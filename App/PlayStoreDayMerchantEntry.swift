@@ -24,7 +24,7 @@ import SwiftUI
     var body: some View {
         Group {
             if let model { PlayStoreDayMerchantView(model: model, makeExternalMaps: makeExternalMaps, mediaScope: mediaScope) }
-            else if resolved { Text("playMode.unavailable") }
+            else if resolved { CYEmptyState(systemImage: "link", "mp.common.linkExpired").frame(maxHeight: .infinity).accessibilityIdentifier("playStoreDay.linkExpired") }
             else { ProgressView() }
         }
         .onAppear { guard !resolved else { return }; model = make(nodeID); resolved = true }

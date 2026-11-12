@@ -37,9 +37,16 @@ import SwiftUI
             }
             if let state = model.state {
                 Section("playx.advanced.authority") {
-                    LabeledContent("playx.state") { Text(verbatim: state.status) }
-                    LabeledContent("playx.advanced.version") { Text(verbatim: String(state.version)) }
-                    if let score = state.score { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
+                    // Mini-program summary strip: status word, then the score.
+                    HStack(spacing: CYSpacing.xl) {
+                        let phase = state.status.lowercased()
+                        if PlayAdvancedStatusWord.known.contains(phase) { PlayRuntimePhaseText(phase: phase) }
+                        else { Text(verbatim: state.status.isEmpty ? "—" : state.status) }
+                        if let score = state.score { Text("playx.advanced.scoreLine \(score)").monospacedDigit() }
+                    }
+                    .font(CYTypography.body)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("playx.advanced.summary")
                     if state.deadlineAt != nil {
                         TimelineView(.periodic(from: .now, by: 1)) { context in
                             LabeledContent("playx.advanced.remaining") { Text(verbatim: String(state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)) ?? 0)) }
@@ -103,4 +110,9 @@ import SwiftUI
             else if phase == .active && teamSurfaceVisible { model.beginTeamSurface(id: teamSurfaceID); Task { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) } }
         }
     }
+}
+
+enum PlayAdvancedStatusWord {
+    /// Server statuses that have a localized playx.phase word.
+    static let known: Set<String> = ["running", "completed", "paused", "ended", "failed", "idle", "ready", "done"]
 }

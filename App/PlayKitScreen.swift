@@ -120,6 +120,11 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
     }
     @ViewBuilder private var header: some View {
+        // Mini-program kits open with a small kicker line above the title.
+        if let eyebrow = segment["eyebrow"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !eyebrow.isEmpty, eyebrow != projection.title {
+            Text(verbatim: eyebrow).font(CYTypography.meta).foregroundStyle(.secondary)
+                .accessibilityIdentifier("playkit.eyebrow." + kind.rawValue)
+        }
         if !projection.title.isEmpty { Text(verbatim: projection.title).font(.largeTitle.bold()).fixedSize(horizontal: false, vertical: true) }
         ForEach(["lead", "prompt", "hint", "sub"], id: \.self) { key in
             if let value = segment[key].text, !value.isEmpty { Text(verbatim: value).foregroundStyle(.secondary) }

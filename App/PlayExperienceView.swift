@@ -513,6 +513,18 @@ import SwiftUI
                     if let body = node.storyText ?? node.description { Text(verbatim: body) }
                     if let instructions = node.ruleInstructions { Text(verbatim: instructions) }
                     if let question = node.question { Text(verbatim: question).font(.headline) }
+                    // Mini-program question card: the question image sits under the question.
+                    if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, let image = node.questionImage, !image.isEmpty {
+                        PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .accessibilityIdentifier("playx.question.image")
+                    }
+                    if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
+                        Text(verbatim: requirement).font(.headline).accessibilityIdentifier("playx.photo.requirement")
+                    }
+                    if node.validationMethod == 4 {
+                        Text("playx.scan.prompt").font(.headline).accessibilityIdentifier("playx.scan.prompt")
+                    }
                     PlatformChapterAudioHost(selection: PlatformChapterAudioSelection.resolve(snapshot: model.snapshot, nodeID: nodeID, extras: model.extras, currentRead: model.hasCurrentMediaSnapshot), scope: mediaScope, makeModel: makeAudio)
                     if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
                         if let audio = node.questionAudio, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: mediaScope, makeModel: makeAudio) }
@@ -533,10 +545,26 @@ import SwiftUI
                 if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) == .answer {
                     Section("playx.answer") {
                         if let options = node.options, node.validationMethod == 3 {
-                            Picker("playx.answer", selection: $answer) {
-                                Text("playx.choose").tag("")
-                                ForEach(options.keys.sorted(), id: \.self) { key in Text(verbatim: options[key] ?? key).tag(key) }
-                            }.accessibilityIdentifier("playx.answer.options")
+                            // Keyed option cards (A / B / C) as in the mini-program; the picked one is filled.
+                            VStack(spacing: CYSpacing.sm) {
+                                ForEach(options.keys.sorted(), id: \.self) { key in
+                                    let on = answer == key
+                                    Button { answer = key } label: {
+                                        HStack(spacing: CYSpacing.md) {
+                                            Text(verbatim: key).font(CYTypography.cardTitle).foregroundStyle(on ? CYColor.bgSurface : Color.secondary)
+                                            Text(verbatim: options[key] ?? key).font(CYTypography.body).foregroundStyle(on ? CYColor.bgSurface : Color.primary)
+                                            Spacer(minLength: 0)
+                                        }
+                                        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 52)
+                                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(on ? Color.primary : CYColor.bgSurfaceSubtle))
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityAddTraits(on ? .isSelected : [])
+                                    .accessibilityIdentifier("playx.answer.option." + key)
+                                }
+                            }
+                            .accessibilityIdentifier("playx.answer.options")
                         } else { TextField("playx.answer.placeholder", text: $answer, axis: .vertical).accessibilityIdentifier("playx.answer.field") }
                         Button("playx.review") { prepare(.answer(answer), context: context) }.disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                             .accessibilityIdentifier("playx.answer.review")
@@ -545,12 +573,18 @@ import SwiftUI
                 if let extra = model.extras[nodeID], extra.hintLocked == true || extra.puzzleScoring == true {
                     Section("playx.hints") {
                         if let cost = extra.hintCost { LabeledContent("playx.hints.cost") { Text(verbatim: String(cost)) } }
-                        if let cap = extra.puzzleScoreCap { LabeledContent("playx.hints.cap") { Text(verbatim: String(cap)) } }
-                        ForEach(Array(extra.usedHints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) }
-                        Button("playx.hints.request") {
+                        ForEach(Array(extra.usedHints.enumerated()), id: \.offset) { _, text in Text(verbatim: text).font(CYTypography.meta).foregroundStyle(.secondary) }
+                        if let cap = extra.puzzleScoreCap {
+                            Text("playx.hints.capLine \(cap)").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+                                .accessibilityIdentifier("playx.hints.cap")
+                        }
+                        Button {
                             hintContext = context
                             hintLevel = extra.puzzleScoring == true ? min(2, (extra.puzzleHintLevel ?? 0) + 1) : nil
                             showHint = true
+                        } label: {
+                            if extra.puzzleScoring == true { Text("playx.hints.requestLevel \(min(2, (extra.puzzleHintLevel ?? 0) + 1))") }
+                            else { Text("playx.hints.request") }
                         }
                             .disabled(!model.canWrite || (extra.puzzleScoring != true && extra.hintCost == nil))
                             .accessibilityIdentifier("playx.hints.request")
