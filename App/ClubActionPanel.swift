@@ -22,11 +22,19 @@ struct ClubActionPanel: View {
     @State private var task: Task<Void, Never>? = nil
     @State private var isWorking = false
     @State private var joinMessage = ""
-    @State private var joinedAction: ClubAction? = nil
+    /// Set only after the server acknowledges a join or apply. Leave never celebrates.
+    @State private var rewardAction: ClubAction? = nil
+    @State private var rewardHandedOff = false
+    @State private var rewardPhase: CYJoinReward.Phase = .landing
     @Environment(\.locale) private var locale
+    @QuestifyReduceMotion private var reduceMotion
 
     private var availability: ClubActionAvailability {
         ClubActionAvailability.resolve(club, viewerIsMerchant: coordinator.viewerIsMerchant)
+    }
+    /// True while the seal is landing. The joined or pending chip stays after this ends.
+    private var rewardPlaying: Bool {
+        rewardAction != nil && rewardAction != .leave && !rewardHandedOff
     }
     var body: some View {
         let _ = revision
@@ -44,29 +52,39 @@ struct ClubActionPanel: View {
                 if !coordinator.isConfigured {
                     Text("club.action.unavailable").foregroundStyle(.secondary)
                 }
-                if coordinator.isConfigured, case .available(let action) = availability {
-                    if action == .apply {
-                        TextField(text: $joinMessage, axis: .vertical) {
-                            Text("club.admission.messageLabel", tableName: "ClubApplicationMessage")
+                if let reward = rewardAction, reward != .leave {
+                    CYJoinReward(kind: reward == .apply ? .pending : .joined,
+                                 phase: rewardHandedOff ? .chip : rewardPhase,
+                                 plays: !rewardHandedOff)
+                        .listRowBackground(Color.clear)
+                        .transition(.opacity)
+                }
+                if !rewardPlaying {
+                    if coordinator.isConfigured, case .available(let action) = availability {
+                        if action == .apply, rewardAction != action {
+                            TextField(text: $joinMessage, axis: .vertical) {
+                                Text("club.admission.messageLabel", tableName: "ClubApplicationMessage")
+                            }
+                                .disabled(isWorking || state.preventsNewAction)
+                                .accessibilityIdentifier("club.application.message")
+                            Text("club.application.messageHelp").font(.caption).foregroundStyle(.secondary)
+                            if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
+                                Group {
+                                    if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
+                                        Text("club.admission.messageRequired", tableName: "ClubApplicationMessage")
+                                    } else {
+                                        Text("club.application.messageTooLong")
+                                    }
+                                }.foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("club.application.messageTooLong")
+                            }
                         }
-                            .disabled(isWorking || state.preventsNewAction)
-                            .accessibilityIdentifier("club.application.message")
-                        Text("club.application.messageHelp").font(.caption).foregroundStyle(.secondary)
-                        if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
-                            Group {
-                                if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
-                                    Text("club.admission.messageRequired", tableName: "ClubApplicationMessage")
-                                } else {
-                                    Text("club.application.messageTooLong")
-                                }
-                            }.foregroundStyle(.secondary)
-                                .accessibilityIdentifier("club.application.messageTooLong")
-                        }
+                        // A settled join or apply keeps the chip. Do not offer that action again.
+                        if rewardAction != action { membershipButton(action, state: state) }
+                    } else {
+                        Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("club.action.gated")
                     }
-                    membershipButton(action, state: state)
-                } else {
-                    Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
-                        .accessibilityIdentifier("club.action.gated")
                 }
                 if isWorking { ProgressView("club.action.working").accessibilityIdentifier("club.action.loading") }
                 if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.secondary).accessibilityIdentifier("club.action.error") }
@@ -91,6 +109,8 @@ struct ClubActionPanel: View {
         .onChange(of: identity) { _, _ in reset() }
         .onChange(of: club.id) { old, _ in reset(clubID: old) }
         .onDisappear { reset() }
+        .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardPhase)
+        .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardHandedOff)
     }
     @ViewBuilder private func membershipButton(_ action: ClubAction, state: ClubActionState) -> some View {
         let button = Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {
@@ -103,13 +123,10 @@ struct ClubActionPanel: View {
         if action == .leave {
             button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
         } else {
-            // Join / Apply morph in place: dots while preparing and sending, green check on success, then the status chip.
+            // Dots while preparing and sending. Success is the seal reward above, not a morph into the chip.
             CYClubJoinStage(
                 title: LocalizedStringKey(actionKey(action)),
-                settledTitle: joinedAction == .apply ? "club.membership.pending" : "club.membership.joined",
-                settledIcon: joinedAction == .apply ? "clock" : "checkmark",
-                settledTone: joinedAction == .apply ? .warning : .success,
-                state: joinedAction != nil ? .done : (isWorking ? .working : .idle),
+                state: isWorking ? .working : .idle,
                 seed: "club-\(club.id)", memberCount: nil, identifier: "club.action.\(action.rawValue)") { prepare(action) }
                 .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
                 .listRowBackground(Color.clear)
@@ -212,9 +229,47 @@ struct ClubActionPanel: View {
             _ = await coordinator.confirm(value, onReadbackStarted: { readbackGeneration = onReadbackStarted() })
             guard operation == generation, !Task.isCancelled, coordinator.identity == value.identity else { return }
             isWorking = false; revision &+= 1
-            if value.action != .leave, case .acknowledged = coordinator.state(clubID: club.id) { joinedAction = value.action }
+            let reduced = reduceMotion
+            let acknowledged: Bool = {
+                if case .acknowledged = coordinator.state(clubID: club.id) { return true }
+                return false
+            }()
+            if value.action == .leave, acknowledged {
+                rewardAction = nil; rewardHandedOff = false; rewardPhase = .landing
+            } else if value.action != .leave, acknowledged {
+                if reduced {
+                    // No seal travel and no particles: crossfade straight to the chip.
+                    withAnimation(CYMotion.reduced) {
+                        rewardAction = value.action
+                        rewardHandedOff = true
+                        rewardPhase = .chip
+                    }
+                    CYHaptics.success.play()
+                } else {
+                    withAnimation(.easeOut(duration: CYMotion.Duration.instant)) {
+                        rewardAction = value.action
+                        rewardHandedOff = false
+                        rewardPhase = .landing
+                    }
+                }
+            }
             if let readbackGeneration { deliverReadback(identity: value.identity, readbackGeneration: readbackGeneration) }
+            if value.action != .leave, acknowledged, !reduced { await runJoinReward(operation: operation) }
         }
+    }
+    /// Seal lands, lantern reward burst, then the chip. Leave and failures never enter.
+    private func runJoinReward(operation: UInt64) async {
+        func live() -> Bool { operation == generation && !Task.isCancelled }
+        try? await Task.sleep(for: .milliseconds(90))
+        guard live() else { return }
+        withAnimation(.spring(response: 0.22, dampingFraction: 0.58)) { rewardPhase = .burst }
+        CYHaptics.success.play()
+        try? await Task.sleep(for: .milliseconds(760))
+        guard live() else { return }
+        withAnimation(CYMotion.standard) { rewardPhase = .chip }
+        try? await Task.sleep(for: .milliseconds(520))
+        guard live() else { return }
+        withAnimation(CYMotion.standard) { rewardHandedOff = true }
     }
     private func readBack() {
         guard !isWorking, coordinator.identity == identity else { return }
@@ -239,7 +294,9 @@ struct ClubActionPanel: View {
         // Synchronization handles old-session writes even when the view now has a new identity.
         coordinator.synchronizeSession()
         coordinator.leaveScreen(clubID: clubID ?? club.id, expectedIdentity: identity, ownerID: ownerID)
-        confirmation = nil; isWorking = false; issueKey = nil; joinedAction = nil; joinMessage = ""; revision &+= 1
+        confirmation = nil; isWorking = false; issueKey = nil
+        rewardAction = nil; rewardHandedOff = false; rewardPhase = .landing
+        joinMessage = ""; revision &+= 1
     }
 }
 
