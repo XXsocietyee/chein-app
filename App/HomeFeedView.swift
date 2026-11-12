@@ -368,6 +368,12 @@ struct HomeTodayCard: View {
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
     @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
+    /// Wave 3 B2: dip 0.985, touch-origin wave, then the action (see `CYWave.swift`).
+    @State private var ownWave = CYPressWaveModel()
+    /// DEBUG fixtures inject a model so a synthetic finger can drive the card; live screens leave it nil.
+    var waveModel: CYPressWaveModel?
+    private var wave: CYPressWaveModel { waveModel ?? ownWave }
 
     private var copy: CYKitCopy { CYKitCopy(locale: locale) }
 
@@ -418,7 +424,10 @@ struct HomeTodayCard: View {
                 Text(verbatim: meta).font(CYTypography.meta).monospacedDigit().opacity(0.85)
             }
             if let action = c.action {
-                CYPillButton(verbatim: c.pill, style: .primary, fullWidth: false, action: action)
+                CYPillButton(verbatim: c.pill, style: .primary, fullWidth: false) {
+                    wave.perform(action, waveOn: cyWaveAllowed(reduceMotion: reduceMotion))
+                }
+                    .cyPressWaveExcluded()
                     .padding(.top, CYSpacing.xs)
                     .accessibilityIdentifier("homeFeed.today.action")
             }
@@ -429,6 +438,7 @@ struct HomeTodayCard: View {
         .frame(maxWidth: .infinity, minHeight: 240, alignment: .bottomLeading)
         .background { backdrop(c) }
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .cyPressWave(wave, onTap: c.action)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("homeFeed.today.\(c.id)")
     }
