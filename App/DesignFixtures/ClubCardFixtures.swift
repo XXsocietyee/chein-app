@@ -11,14 +11,16 @@ import SwiftUI
 /// | `clubcards-states` | every trailing state in one column: join, apply, pending, joined, owner, none (merchant) |
 /// | `clubcards-strip` | member strip: 0, unknown, 3, 5, 120 members |
 /// | `clubcards-ax` | home at accessibility Dynamic Type: footer stacks, no clipping |
-/// Card Join pill morphing in place: Join -> dots -> green check -> Joined chip. Loops once on appear.
+/// Card join continuity: Join -> dots -> check, the avatar flies into the strip, the count rolls, then the chip.
 private struct JoinMorphCard: View {
     @State private var morph: CYMorphState = .idle
     @State private var joined = false
     var body: some View {
         VStack(spacing: CYSpacing.lg) {
             Text(verbatim: "Synthetic: Night Market Crew").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            CYClubCardTrailing(action: joined ? .joined : .join, onJoin: { morph = .working }, joinIdentifier: "fixture.club.join", morph: morph)
+            CYClubPhotoCard(name: "Night Market Crew", place: "Food · Chengdu", coverURL: nil, memberCount: 12, seed: "night",
+                            action: joined ? .joined : .join, morph: morph, onOpen: {}, onJoin: { morph = .working },
+                            identifier: "fixture.club")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task {

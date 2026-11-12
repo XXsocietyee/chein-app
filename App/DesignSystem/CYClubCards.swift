@@ -121,7 +121,7 @@ struct CYClubCardTrailing: View {
     var morph: CYMorphState = .idle
     /// Keeps the pill's width and height after it becomes a shorter chip, so the footer does not jump.
     var anchor: CYClubCardAction? = nil
-    /// Player face drawn inside the done pill. The strip owns the matching destination.
+    /// Player face overlaid on the pill (not in its layout) so the width stays the idle label.
     var playerSeed: String? = nil
     var playerNamespace: Namespace.ID? = nil
     @QuestifyReduceMotion private var reduceMotion
@@ -141,7 +141,7 @@ struct CYClubCardTrailing: View {
                 case .none: EmptyView()
                 }
             }
-            .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.9)))
+            .transition(.opacity)
         }
         .animation(CYMotion.reduced, value: action)
     }
@@ -156,14 +156,18 @@ struct CYClubCardTrailing: View {
     }
 
     private func pill(_ title: LocalizedStringKey, identifier: String) -> some View {
-        CYMorphButton(title, state: morph, fullWidth: false, compact: true, doneAccessory: { playerSource }, action: onJoin)
+        CYMorphButton(title, state: morph, fullWidth: false, compact: true, action: onJoin)
             .identifier(identifier)
+            .overlay(alignment: .leading) { playerSource }
     }
 
     @ViewBuilder private var playerSource: some View {
         if let playerSeed, let playerNamespace, !reduceMotion {
             E3Avatar(seed: playerSeed, size: 24)
                 .matchedGeometryEffect(id: CYClubCardPlayer.geometryID, in: playerNamespace, isSource: true)
+                .transition(.identity)
+                .padding(.leading, CYSpacing.sm)
+                .allowsHitTesting(false)
                 .accessibilityHidden(true)
         }
     }
