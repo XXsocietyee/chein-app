@@ -39,6 +39,10 @@ import SwiftUI
     @State private var confirmEnd = false
     @State private var presentedMode: PlayGameplayMode?
     @State private var presentationMount = PlayExperiencePresentationMount()
+    /// Run-complete medal screen (mini-program medal-screen); shown once per session when the run completes.
+    @State private var finishScreen = false
+    @State private var finishShownFor: String?
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
@@ -98,6 +102,13 @@ import SwiftUI
         .onChange(of: PlayExperiencePresentationKey(model: model)) { _, _ in showRouteMap = false }
         .onChange(of: model.snapshot?.result) { _, _ in if model.gameplayMode == .cityOrientation { projectAmbient() } }
         .onChange(of: model.snapshot) { _, _ in invalidateShopNPC?() }
+        .onChange(of: model.snapshot?.availability) { old, new in
+            // Present only on the live transition into completed, never for a run that was already complete on open.
+            guard model.gameplayMode == .cityOrientation, old == .active, new == .completed,
+                  model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
+            finishShownFor = model.identity; finishScreen = true
+        }
+        .fullScreenCover(isPresented: $finishScreen) { finishMedalScreen }
         .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
         .onChange(of: scenePhase) { _, next in
             if model.gameplayMode == .cityOrientation, next != .active, model.clock.phase == .running {
@@ -194,6 +205,10 @@ import SwiftUI
                     }
                 }
                 Section("playx.results") {
+                    if model.snapshot?.availability == .completed, model.hasCurrentMediaSnapshot {
+                        Button { finishScreen = true } label: { Label("medalScreen.open", systemImage: "rosette") }
+                            .accessibilityIdentifier("medalScreen.open")
+                    }
                     Button("playx.results.load") { Task { await model.loadEndingAndLeaderboard() } }.accessibilityIdentifier("playx.results.load")
                     NavigationLink("playx.stopwatch") { PlayStopwatchView() }
                     if let topicID = model.snapshot?.result.topicID, let factory = summaryModel, let summary = factory(topicID),
@@ -341,8 +356,30 @@ import SwiftUI
         PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
             stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } },
             preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, narrative: narrativeModel?(.questions(nodeID: id)), shopNPC: shopNPCModel?(id),
-            mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
+            mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
+            openNode: { selectedNode = $0 })
         } else { Text("playMode.unavailable") }
+    }
+    @ViewBuilder private var finishMedalScreen: some View {
+        let snapshot = model.snapshot
+        let nodes = snapshot?.visibleNodes ?? []
+        let done = snapshot.map { snapshot in nodes.filter { snapshot.isDone($0) }.count }
+        let medals = model.reward.map { PlayRewardSection.medals(in: $0, locale: locale) } ?? []
+        let title = snapshot?.result.topicName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("medalScreen.title", locale: locale)
+        let stats = [
+            CYStoryStat(key: "medalScreen.stat.stops", value: done.map { "\($0)/\(nodes.count)" }, systemImage: "mappin.and.ellipse"),
+            CYStoryStat(key: "medalScreen.stat.time", value: Self.clockText(model.clock.elapsedSeconds), systemImage: "clock"),
+            CYStoryStat(key: "medalScreen.stat.xp", value: (model.reward?["xp"].tolerantInteger ?? model.reward?["score"].tolerantInteger).map(String.init), systemImage: "sparkles"),
+            CYStoryStat(key: "medalScreen.stat.medals", value: model.reward == nil ? nil : String(medals.count), systemImage: "rosette"),
+        ]
+        CYMedalScreen(items: medals, title: title, subtitle: appLocalized("medalScreen.subtitle", locale: locale), stats: stats,
+                      shareText: appLocalized("medalScreen.shareText \(title)", locale: locale),
+                      onClose: { finishScreen = false })
+    }
+    private static func clockText(_ seconds: Int) -> String? {
+        guard seconds > 0 else { return nil }
+        return seconds >= 3600 ? String(format: "%d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60)
+            : String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
     private func projectAmbient() {
         guard let result = model.snapshot?.result else { return }
@@ -367,7 +404,11 @@ import SwiftUI
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
+    /// Opens another stop from the outcome card ("Next stop"); nil hides that shortcut.
+    var openNode: ((Int) -> Void)? = nil
     @State private var answer = ""
+    /// Shared full-screen verdict (mini-program play-verdict) after this stop's own submission settles.
+    @State private var verdict: CYPlayVerdict?
     @State private var review: PlayCompletionReview?
     @State private var showReview = false
     @State private var showHint = false
@@ -378,7 +419,7 @@ import SwiftUI
     var body: some View {
         let context = model.interactionContext
         List {
-            PlayTaskOutcomeSection(model: model, nodeID: nodeID)
+            PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
                 if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
@@ -463,6 +504,15 @@ import SwiftUI
             if let localIssue { PlayExperienceIssueView(issue: localIssue) }
         }
         .privacySensitive().navigationTitle("playx.task.title")
+        .onChange(of: outcomeState) { old, new in
+            // Only this screen's own submission produces a verdict; a later read never replays one.
+            guard old == .submitting else { return }
+            if new == .completed { verdict = .init(kind: .win) }
+            else if new == .pending || new == .failed, case .rejected(_, let message)? = model.issue {
+                verdict = .init(kind: .fail, text: message)
+            }
+        }
+        .cyPlayVerdict($verdict)
         .modifier(JourneyCheckReviewPresentation(model: journey))
         // The optional check initially renders no rows, so its probe belongs to this stable host.
         .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
@@ -496,6 +546,10 @@ import SwiftUI
         } message: { Text("playx.hints.consequence") }
         .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = "" }
     }
+    private var outcomeState: PlayTaskOutcomePresentation.State {
+        PlayTaskOutcomePresentation(snapshot: model.snapshot, nodeID: nodeID, phase: model.phase.rawValue,
+                                    isCurrentRead: model.hasCurrentMediaSnapshot, unresolved: model.unresolved).state
+    }
     private func stateRow(_ key: String, done: Bool) -> some View { Label(LocalizedStringKey(key), systemImage: done ? "checkmark.circle.fill" : "circle") }
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {
         do { review = try model.review(nodeID: nodeID, evidence: evidence, context: context); showReview = true; localIssue = nil }
@@ -517,14 +571,32 @@ struct PlayExperienceIssueView: View {
 @MainActor struct PlayRewardSection: View {
     let reward: PlayWireValue
     var collectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
+    @Environment(\.locale) private var locale
     var body: some View {
         Section("playx.reward") {
+            // Mini-program finish-medals: the earned medals stack first, the ledger rows follow.
+            let medals = Self.medals(in: reward, locale: locale)
+            if !medals.isEmpty {
+                CYMedalDeck(items: medals).padding(.vertical, CYSpacing.sm)
+                    .listRowBackground(Color.clear)
+            }
             if let xp = reward["xp"].tolerantInteger ?? reward["score"].tolerantInteger { LabeledContent("playx.reward.xp") { Text(verbatim: String(xp)) } }
             if let score = reward["puzzleScore"].tolerantInteger { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
             if let medal = reward["medalName"].text { Text(verbatim: medal) }
             PlayRewardBadgeRows(targets: PlayRewardBadgeTarget.targets(in: reward), destination: collectionDestination)
                 .id(PlayRewardBadgeTarget.targets(in: reward))
         }.accessibilityIdentifier("playx.reward")
+    }
+    /// Medals carried by the reward receipt: the topic medal name plus each new badge. Nothing is invented.
+    static func medals(in reward: PlayWireValue, locale: Locale) -> [CYMedalItem] {
+        var items: [CYMedalItem] = []
+        if let medal = reward["medalName"].text, !medal.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            items.append(.init(id: "topic-medal", name: medal, imageURL: reward["medalImg"].text ?? reward["medalImage"].text, systemImage: "rosette"))
+        }
+        for target in PlayRewardBadgeTarget.targets(in: reward) {
+            items.append(.init(id: "badge-" + target.code, name: target.name ?? appLocalized("medalDeck.unnamed", locale: locale), systemImage: "seal.fill"))
+        }
+        return items
     }
 }
 @MainActor private struct PlayLeadSection: View {

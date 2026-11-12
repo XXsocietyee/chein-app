@@ -26,8 +26,20 @@ import SwiftUI
                             rollMode: problem.advantage ? "advantage" : (problem.disadvantage ? "disadvantage" : "normal"),
                             rolling: model.acting && model.receipt == nil
                         ).frame(maxWidth: .infinity)
+                        if let receipt = model.receipt, let dc = receipt.dc, let total = receipt.total {
+                            JourneyCheckDCTrack(total: total, dc: dc, success: receipt.success)
+                        }
                         modifiers(problem.mods)
                         if let receipt = model.receipt {
+                            if receipt.settled, let success = receipt.success {
+                                // Settle screen headline (mini-program journey-check): over the line or not, in words and icon.
+                                Label(success ? "journey.settled.passed" : "journey.settled.missed",
+                                      systemImage: success ? "checkmark.seal.fill" : "xmark.seal")
+                                    .font(CYTypography.sectionTitle)
+                                    .foregroundStyle(success ? CYColor.successText : CYColor.warningText)
+                                    .frame(maxWidth: .infinity)
+                                    .accessibilityIdentifier("journey.check.settledVerdict")
+                            }
                             resultCard(receipt)
                             modifiers(receipt.mods)
                             if receipt.exhausted { Text("journey.exhausted").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
@@ -91,7 +103,22 @@ import SwiftUI
         if let value { HStack(spacing: 4) { Text(key); Text(verbatim: String(value)).monospacedDigit().fontWeight(.semibold) } }
     }
     @ViewBuilder private func checkChips(_ problem: JourneyCheckProblem) -> some View {
-        CYStatusChip(verbatim: problem.tier)
+        if let lit = JourneyCheckTier(raw: problem.tier) {
+            // Three difficulty tiers with the author's choice lit; the exact line comes from the receipt's DC.
+            HStack(spacing: CYSpacing.xxs) {
+                ForEach(JourneyCheckTier.allCases, id: \.self) { tier in
+                    Text(LocalizedStringKey("journey.tier." + tier.rawValue))
+                        .font(CYTypography.label)
+                        .padding(.horizontal, CYSpacing.md).frame(minHeight: 32)
+                        .foregroundStyle(tier == lit ? CYColor.bgPage : CYColor.textSecondary)
+                        .background(tier == lit ? CYColor.textPrimary : CYColor.textTertiary.opacity(0.15), in: Capsule())
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("journey.tier.label") + Text(verbatim: " ") + Text(LocalizedStringKey("journey.tier." + lit.rawValue)))
+        } else {
+            CYStatusChip(verbatim: problem.tier)
+        }
         if problem.advantage { CYStatusChip("journey.advantage", tone: .success, systemImage: "plus.circle") }
         if problem.disadvantage { CYStatusChip("journey.disadvantage", tone: .warning, systemImage: "minus.circle") }
     }
@@ -109,6 +136,54 @@ import SwiftUI
         }
     }
 }
+/// Difficulty tier names the server uses; anything else keeps the raw chip.
+enum JourneyCheckTier: String, CaseIterable {
+    case easy, medium, hard
+    init?(raw: String) {
+        switch raw.lowercased() {
+        case "easy", "simple": self = .easy
+        case "medium", "normal", "standard": self = .medium
+        case "hard", "difficult": self = .hard
+        default: return nil
+        }
+    }
+}
+
+/// 1-20 track with the DC marker and the total filled up to it (mini-program `.jc__track`).
+/// Colour is never the only signal: the result card states success in words.
+struct JourneyCheckDCTrack: View {
+    let total: Int
+    let dc: Int
+    let success: Bool?
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var filled = false
+    private func fraction(_ value: Int) -> CGFloat { CGFloat(min(max(value, 0), 20)) / 20 }
+    var body: some View {
+        VStack(spacing: CYSpacing.xxs) {
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(CYNight.glassFill)
+                    Capsule().fill(success == false ? CYColor.warningText : CYNight.verify)
+                        .frame(width: proxy.size.width * (filled ? fraction(total) : 0))
+                    Rectangle().fill(CYColor.textPrimary).frame(width: 2, height: 18)
+                        .offset(x: proxy.size.width * fraction(dc) - 1)
+                }
+            }
+            .frame(height: 10)
+            HStack {
+                ForEach([1, 5, 10, 15, 20], id: \.self) { tick in
+                    Text(verbatim: String(tick)).font(CYTypography.micro).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    if tick != 20 { Spacer(minLength: 0) }
+                }
+            }
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("journey.track \(total) \(dc)"))
+        .onAppear { withAnimation(reduceMotion ? nil : .easeOut(duration: CYMotion.Duration.slow)) { filled = true } }
+    }
+}
+
 /// A List row is recycled while scrolling. Present reviews from the owning screen instead
 /// of distributing one sheet modifier across the optional Group's lazy Section children.
 @MainActor struct JourneyCheckReviewPresentation: ViewModifier {

@@ -5,6 +5,7 @@ import Observation
     @Environment(\.themeDomain) private var domain
     @Bindable var model: PlayExperienceCoordinator
     let nodeID: Int
+    var openNode: ((Int) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -33,6 +34,16 @@ import Observation
                         if let name = result.nextNodeName, !name.isEmpty {
                             Text(verbatim: name).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("playTaskOutcome.nextName")
+                        }
+                        // Mini-program chapter flow: the next stop is one tap away instead of Back + find it in the list.
+                        if result.continuation == .nextTask, let next = result.nextNodeID, let openNode {
+                            CYPillButton("playTaskOutcome.openNext", systemImage: "arrow.right.circle.fill") {
+                                guard actions.accepts(ticket, model: model, nodeID: nodeID) else { return }
+                                openNode(next)
+                            }
+                            .disabled(ticket == nil)
+                            .padding(.top, Theme.Space.s2)
+                            .accessibilityIdentifier("playTaskOutcome.openNext")
                         }
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)

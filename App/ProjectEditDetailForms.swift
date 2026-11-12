@@ -225,6 +225,11 @@ import SwiftUI
                     }
                 }
                 Section("projectEdit.nodes") {
+                    if chapter.wrappedValue.nodes.isEmpty {
+                        Label("projectEdit.nodes.empty", systemImage: "mappin.slash")
+                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("projectEdit.nodes.empty")
+                    }
                     ForEach(chapter.wrappedValue.nodes) { node in
                         NavigationLink { ProjectEditNodeView(model: model, chapterID: chapterID, nodeID: node.id, starterLease: starterLease, chapterOverride: chapter,
                             allowsGameplayRemoval: chapterOverride == nil && mediaScope == nil && starterLease == nil,
@@ -390,6 +395,9 @@ import SwiftUI
                 }
             }
             ProjectNodeNarrativeEntry(model: model, chapterID: chapterID, nodeID: nodeID)
+            if chapterOverride == nil && starterLease == nil && exists {
+                ProjectNodeNPCEntry(chapterID: chapterID, nodeID: nodeID, nodeName: node.wrappedValue.name, editable: model.fullEdit)
+            }
             if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectPrepared.nodeSaveStatus") } }
         }.modifier(ProjectEditIssueInitialScroll(anchor: initialIssueAnchor)).disabled(!model.fullEdit).appNavigationTitle("projectEdit.nodeDetails")
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
