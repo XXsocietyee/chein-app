@@ -24,13 +24,13 @@ enum HostedAccessibilityRuntime {
     private static let accessibilityOn: Bool = {
         _ = dlopen("/usr/lib/libAccessibility.dylib", RTLD_NOW)
         typealias Setter = @convention(c) (Bool) -> Void
-        var any = false
+        var found = false
         for name in ["_AXSSetApplicationAccessibilityEnabled", "_AXSSetAutomationEnabled"] {
             if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), name) {
-                unsafeBitCast(symbol, to: Setter.self)(true); any = true
+                unsafeBitCast(symbol, to: Setter.self)(true); found = true
             }
         }
-        return any
+        return found
     }()
     static var accessibilitySwitchFound: Bool { accessibilityOn }
     static func enable() { _ = declared; _ = accessibilityOn }
