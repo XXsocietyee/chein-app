@@ -75,6 +75,7 @@ struct IAPassportFixture: View {
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .navigationTitle(Text("tabBar.passport"))
+            .cyPassportStampHost()
         }
         // Player domain is dark: the real app sets this through roleTheme(.player); without it the preview renders light.
         .themeDomain(.player)

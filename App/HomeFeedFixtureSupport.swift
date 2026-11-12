@@ -40,12 +40,18 @@ import SwiftUI
 @MainActor struct HomeFeedFixtureHostView: View {
     @State private var reader: HomeFeedFixtureReader
     @State private var path: [HomeFeedDestination] = []
+    /// Same wiring as `SessionHomeFeedView`: feed cards are zoom sources, the pushed detail is the destination.
+    @Namespace private var heroNamespace
+    @State private var activityReader = ActivityFixtureReader(scenario: .reviews)
     private let hero: Bool
-    /// `--design-today ticket|club` seeds the Today card; anything else shows the start-a-roam prompt.
+    /// `d2-home` only: the continuity lab (zoom into a real activity detail). The module fixture `home-feed` keeps its plain text destinations.
+    private let continuity: Bool
+    /// `--design-today ticket|club|activity` seeds the Today card (`activity`: a club event that opens the activity detail); anything else shows the start-a-roam prompt.
     private let todayState: String?
     init(forceHero: Bool = false) {
         let todayIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "--design-today")
         todayState = todayIndex.flatMap { ProcessInfo.processInfo.arguments.indices.contains($0 + 1) ? ProcessInfo.processInfo.arguments[$0 + 1] : nil }
+        continuity = forceHero
         hero = forceHero || ProcessInfo.processInfo.arguments.contains("--design-hero")
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-home-feed-scenario")
@@ -59,16 +65,33 @@ import SwiftUI
                          continuationCards: hero ? [.init(id: "fx-continue", kind: .continueExploration, destination: .topic(7), title: "Old Town: ten hidden spots", subtitle: "Stop 4 of 10 · 18 min in")] : [],
                          onActionBanner: hero ? { _ in } : nil,
                          todayTicket: todayState == "ticket" ? HomeTodayFixtures.ticket : nil,
-                         todayClubEvent: todayState == "club" ? HomeTodayFixtures.clubEvent : nil,
+                         todayClubEvent: todayState == "club" ? HomeTodayFixtures.clubEvent : (todayState == "activity" ? HomeTodayFixtures.activityEvent : nil),
                          onOpenTodayTicket: {}, onOpenTodayClubEvent: {}, onStartRoam: {},
                          onOpenUnifiedSearch: hero ? { _ in } : nil) { path.append($0) }
+                .modifier(HomeFeedFixtureHero(namespace: heroNamespace, enabled: continuity))
                 .navigationDestination(for: HomeFeedDestination.self) { destination in
                     switch destination {
-                    case .activity(let id): Text(verbatim: "Synthetic activity destination \(id)").accessibilityIdentifier("homeFeed.destination.activity")
-                    case .topic(let id): Text(verbatim: "Synthetic topic destination \(id)").accessibilityIdentifier("homeFeed.destination.topic")
+                    case .activity(let id):
+                        if continuity {
+                            // Every synthetic activity opens the one fixture activity (id 101) so the hero lands on a real detail.
+                            ActivityDetailView(id: 101, reader: activityReader, registrationEnabled: true)
+                                .cyHeroDestinationWithFallback(destination, in: heroNamespace)
+                        } else {
+                            Text(verbatim: "Synthetic activity destination \(id)").accessibilityIdentifier("homeFeed.destination.activity")
+                        }
+                    case .topic(let id):
+                        Text(verbatim: "Synthetic topic destination \(id)").accessibilityIdentifier("homeFeed.destination.topic")
                     }
                 }
         }
+    }
+}
+
+private struct HomeFeedFixtureHero: ViewModifier {
+    let namespace: Namespace.ID
+    let enabled: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled { content.cyHeroNamespace(namespace) } else { content }
     }
 }
 
@@ -77,6 +100,8 @@ enum HomeTodayFixtures {
     static var now: Date { Date() }
     static var ticket: HomeTodayCandidate { HomeTodayCandidate(id: "fx-ticket", title: "Riverside lantern walk", start: now.addingTimeInterval(5 * 3600), place: "West Bund", imageURL: nil) }
     static var clubEvent: HomeTodayCandidate { HomeTodayCandidate(id: "fx-club", title: "Old Town photo walk", start: now.addingTimeInterval(0), place: "Old Town", imageURL: nil) }
+    /// A club event that is a real activity (id 7 matches the synthetic feed activity): the Today card zooms into its detail.
+    static var activityEvent: HomeTodayCandidate { HomeTodayCandidate(id: "fx-club", title: "Sample riverside walk", start: now.addingTimeInterval(0), place: "Sample meeting point", imageURL: nil, activityID: 7) }
     static var unknownTime: HomeTodayCandidate { HomeTodayCandidate(id: "fx-unknown", title: "Mystery ticket", start: nil, place: nil, imageURL: nil) }
 }
 

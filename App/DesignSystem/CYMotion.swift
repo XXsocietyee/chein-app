@@ -175,8 +175,8 @@ private struct CYPressTracking: ViewModifier {
 
 extension View {
     /// Mark the card that a detail zooms out of. iOS 18+, and not under Reduce Motion; iOS 17 keeps the default push.
-    func cyHeroSource<ID: Hashable>(_ id: ID, in namespace: Namespace.ID) -> some View {
-        modifier(CYHeroSource(id: id, namespace: namespace))
+    func cyHeroSource<ID: Hashable>(_ id: ID, in namespace: Namespace.ID, cornerRadius: CGFloat = CYRadius.lg) -> some View {
+        modifier(CYHeroSource(id: id, namespace: namespace, cornerRadius: cornerRadius))
     }
     /// Apply to the detail's root view. Pairs with `cyHeroSource` on the same `id` and namespace.
     func cyHeroDestination<ID: Hashable>(_ id: ID, in namespace: Namespace.ID) -> some View {
@@ -187,11 +187,12 @@ extension View {
 private struct CYHeroSource<ID: Hashable>: ViewModifier {
     let id: ID
     let namespace: Namespace.ID
+    var cornerRadius: CGFloat = CYRadius.lg
     @QuestifyReduceMotion private var reduceMotion
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 18.0, *), !reduceMotion {
             content.matchedTransitionSource(id: id, in: namespace) { source in
-                source.clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                source.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             }
         } else {
             content
@@ -411,5 +412,86 @@ struct CYOptionalHeroSource<ID: Hashable>: ViewModifier {
     let namespace: Namespace.ID?
     @ViewBuilder func body(content: Content) -> some View {
         if let namespace { content.cyHeroSource(id, in: namespace) } else { content }
+    }
+}
+
+
+// MARK: - Shared hero namespace (continuity)
+
+private struct CYHeroNamespaceKey: EnvironmentKey { static let defaultValue: Namespace.ID? = nil }
+
+extension EnvironmentValues {
+    /// The tab root's hero namespace. A host owns one `@Namespace`, publishes it with `cyHeroNamespace(_:)`, and every card
+    /// below marks itself with `cyHeroSourceInherited(_:)` without threading the namespace through initializers.
+    /// nil (previews, fixtures that do not publish one) means "no continuity": cards behave as plain buttons.
+    var cyHeroNamespace: Namespace.ID? {
+        get { self[CYHeroNamespaceKey.self] }
+        set { self[CYHeroNamespaceKey.self] = newValue }
+    }
+}
+
+extension View {
+    func cyHeroNamespace(_ namespace: Namespace.ID) -> some View { environment(\.cyHeroNamespace, namespace) }
+
+    /// `cyHeroSource` using the inherited namespace. `isEnabled: false` lets one of several copies of the same item opt out,
+    /// so a namespace never holds two sources for one id.
+    func cyHeroSourceInherited<ID: Hashable>(_ id: ID, isEnabled: Bool = true, cornerRadius: CGFloat = CYRadius.lg) -> some View {
+        modifier(CYInheritedHeroSource(id: id, isEnabled: isEnabled, cornerRadius: cornerRadius))
+    }
+
+    /// `cyHeroDestination` plus the iOS 17 / Reduce-Motion-free fallback: where the zoom is unavailable the plain push gets
+    /// a short rise-and-fade entrance so the detail still lands instead of snapping in.
+    func cyHeroDestinationWithFallback<ID: Hashable>(_ id: ID, in namespace: Namespace.ID) -> some View {
+        modifier(CYHeroFallbackEntrance()).cyHeroDestination(id, in: namespace)
+    }
+
+    /// Detail title that settles from just below its resting place while the hero zooms, so the card's title reads as
+    /// travelling into the page title. Offset-led: the title never drops below half opacity, so it does not blink.
+    func cyHeroTitleRise(delay: Double = 0.06) -> some View { modifier(CYHeroTitleRise(delay: delay)) }
+}
+
+private struct CYInheritedHeroSource<ID: Hashable>: ViewModifier {
+    let id: ID
+    let isEnabled: Bool
+    let cornerRadius: CGFloat
+    @Environment(\.cyHeroNamespace) private var namespace
+    @ViewBuilder func body(content: Content) -> some View {
+        if isEnabled, let namespace { content.cyHeroSource(id, in: namespace, cornerRadius: cornerRadius) } else { content }
+    }
+}
+
+/// iOS 17 only (the zoom needs iOS 18): the detail enters with a short rise + fade. Reduce Motion: nothing.
+private struct CYHeroFallbackEntrance: ViewModifier {
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var shown = false
+    @ViewBuilder func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content
+        } else if reduceMotion {
+            content
+        } else {
+            content
+                .opacity(shown ? 1 : 0)
+                .offset(y: shown ? 0 : 28)
+                .onAppear {
+                    guard !shown else { return }
+                    withAnimation(CYMotion.entrance) { shown = true }
+                }
+        }
+    }
+}
+
+private struct CYHeroTitleRise: ViewModifier {
+    let delay: Double
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var settled = false
+    func body(content: Content) -> some View {
+        content
+            .offset(y: settled || reduceMotion ? 0 : 16)
+            .opacity(settled || reduceMotion ? 1 : 0.5)
+            .onAppear {
+                guard !settled else { return }
+                withAnimation(CYMotion.entrance.delay(delay)) { settled = true }
+            }
     }
 }

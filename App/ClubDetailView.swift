@@ -53,6 +53,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             ClubName(value: club.name).font(.largeTitle.weight(.bold)).foregroundStyle(.white)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("club.detail.name")
+                                .cyHeroTitleRise()
                         }
                         .padding(CYSpacing.lg).padding(.top, typeSize.isAccessibilitySize ? CYSpacing.lg : 120)
                         .frame(maxWidth: .infinity, minHeight: typeSize.isAccessibilitySize ? 0 : 280, alignment: .bottomLeading)

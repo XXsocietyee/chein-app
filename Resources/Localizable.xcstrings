@@ -243593,6 +243593,57 @@
           }
         }
       }
+    },
+    "passport.stamp.detail.title %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stamp %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "印章 %lld"
+          }
+        }
+      }
+    },
+    "passport.stamp.detail.earned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collected on a roam. Every stamp you earn lights up one more slot in your passport."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在漫游中收集到的印章。每获得一枚，护照里就点亮一格。"
+          }
+        }
+      }
+    },
+    "passport.stamp.detail.locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How to earn: finish a roam and stamp a place you have not been to yet. This slot lights up when you do."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获得方式：完成一次漫游，并在一个没去过的地方盖章，这一格就会点亮。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
