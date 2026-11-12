@@ -57,6 +57,7 @@ import SwiftUI
                     }.accessibilityIdentifier("account.wallet")
                     }
                     ModSettlementAccountLink(makeReader: { session.makeModSettlementReader() })
+                    MPPassAssetsLink() // 通行证与礼品 under assets; hidden until its binding is injected, and for merchants
                 }
                 Section("account.section.collection") {
                     NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)

@@ -80,6 +80,8 @@ import SwiftUI
                     todayCard.cySectionReveal(order: 1, gate: reveal)
                     if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 2, gate: reveal) }
                     feedSection(.recommended, order: 3)
+                    // Mini-program store card (city pass entry): one feed card after the first feed block, never a paywall.
+                    MPPassExploreCard()
                     if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
                         PlayContinuationBannerView(
                             cards: continuationCards,

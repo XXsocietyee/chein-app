@@ -7,14 +7,9 @@ import SwiftUI
     @Environment(\.mpParity) private var bindings
 
     var body: some View {
-        if bindings.passMarket != nil || bindings.journeyPromo != nil || bindings.videoBounty != nil {
+        // 通行证与礼品 lives under 资产 (`MPPassAssetsLink`), as in the mini-program profile.
+        if bindings.journeyPromo != nil || bindings.videoBounty != nil {
             Section {
-                if bindings.passMarket != nil {
-                    NavigationLink { MPParityDestination(route: .passes(tab: .shop)) } label: {
-                        CYListRow("mp.account.passes", trailing: .none) { CYRowIcon(systemImage: "ticket") }
-                    }
-                    .accessibilityIdentifier("account.mp.passes")
-                }
                 if bindings.journeyPromo != nil {
                     NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
                         CYListRow("mp.account.promo", trailing: .none) { CYRowIcon(systemImage: "person.2.wave.2") }
@@ -30,6 +25,21 @@ import SwiftUI
             } header: {
                 Text("mp.account.section")
             }
+        }
+    }
+}
+
+/// Mini-program 我的 → 通行证与礼品 (`components/cy/profile` goPasses): a row inside the assets section, after the wallet
+/// (qx-b5: passes and gifts are the player's own purchase records). Hidden for merchants (`!isMerchantView`) and without a binding.
+@MainActor struct MPPassAssetsLink: View {
+    @Environment(\.mpParity) private var bindings
+
+    var body: some View {
+        if bindings.passMarket != nil, !bindings.isMerchant {
+            NavigationLink { MPParityDestination(route: .passes(tab: .shop)) } label: {
+                CYListRow("mp.account.passes", trailing: .none) { CYRowIcon(systemImage: "ticket") }
+            }
+            .accessibilityIdentifier("account.mp.passes")
         }
     }
 }
