@@ -150173,13 +150173,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load the challenge"
+            "value": "This challenge can't open right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载挑战失败"
+            "value": "挑战暂时打不开"
           }
         }
       }
