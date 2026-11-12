@@ -10,6 +10,7 @@ struct CYNightTabBar: View {
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     @QuestifyReduceMotion private var rm
+    @Namespace private var pillNS
     @State private var landed: RootTab?
     @State private var stretch: CGFloat = 1
     @State private var anchor: UnitPoint = .leading
@@ -50,24 +51,27 @@ struct CYNightTabBar: View {
             if sizeClass == .compact, !tabs.isEmpty {
                 let slot = g.size.width / CGFloat(tabs.count)
                 let y = g.size.height - bottomInset - barHeight / 2
-                ZStack(alignment: .topLeading) {
-                    if rm {
-                        ForEach(tabs, id: \.self) { tab in
-                            pill(width: slot - 20).position(x: x(tab, slot: slot), y: y).opacity(tab == selection ? 1 : 0)
+                // One slot per tab. The violet capsule is a single matchedGeometry identity, so a selection
+                // change springs it from the old slot into the new one. Stretch still leads the glide.
+                HStack(spacing: 0) {
+                    ForEach(tabs, id: \.self) { tab in
+                        ZStack {
+                            if rm {
+                                pill(width: slot - 20).opacity(tab == selection ? 1 : 0)
+                            } else if tab == (landed ?? selection) {
+                                pill(width: slot - 20)
+                                    .scaleEffect(x: stretch, anchor: anchor)
+                                    .matchedGeometryEffect(id: "tab", in: pillNS)
+                            }
                         }
-                    } else {
-                        pill(width: slot - 20)
-                            .scaleEffect(x: stretch, anchor: anchor)
-                            .position(x: x(landed ?? selection, slot: slot), y: y)
+                        .frame(width: slot, height: pillHeight)
                     }
                 }
-                .animation(CYMotion.reduced, value: selection)
+                .frame(width: g.size.width)
+                .position(x: g.size.width / 2, y: y)
+                .animation(rm ? CYMotion.reduced : nil, value: selection)
             }
         }
-    }
-
-    private func x(_ tab: RootTab, slot: CGFloat) -> CGFloat {
-        (CGFloat(tabs.firstIndex(of: tab) ?? 0) + 0.5) * slot
     }
 
     private func pill(width: CGFloat) -> some View {
