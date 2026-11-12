@@ -15,12 +15,13 @@ class ActivityReviewChecks(unittest.TestCase):
         self.assertIn('reviews=try ActivityReviews(from:decoder)', model)
         view = self.read('App/ActivityDetailView.swift')
         self.assertEqual(view.count('ActivityReviewsSection(reviews: detail.reviews)'), 1)
-        # Tickets stay in the first screen; reviews live in the secondary rows behind the "More info" toggle.
+        # U9-B: as in the mini-program, reviews follow the tickets on the first fold, before the "More info" toggle.
         self.assertLess(view.index('E1IconHeader(systemImage: "ticket"'), view.index('ActivityReviewsSection('))
+        self.assertLess(view.index('ActivityReviewsSection('), view.index('accessibilityIdentifier("activity.more.toggle")'))
         self.assertLess(view.index('accessibilityIdentifier("activity.more.toggle")'), view.index('if showsMoreInfo { moreInfoSections(detail) }'))
         more = view.split('private func moreInfoSections', 1)[1].split('private func profileAction', 1)[0]
-        self.assertIn('ActivityReviewsSection(reviews: detail.reviews)', more)
-        self.assertIn('.accessibilityIdentifier("activity.openReview")', more)
+        self.assertNotIn('ActivityReviewsSection(reviews: detail.reviews)', more)
+        self.assertIn('.accessibilityIdentifier("activity.openReview")', view)
         gate = view.split('case .clubRequired', 1)[1].split('case .allowed', 1)[0]
         self.assertNotIn('ActivityReviewsSection', gate)
         self.assertIn('.id(session.contentDetailRevision)', view)
