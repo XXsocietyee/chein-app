@@ -156,7 +156,7 @@ private struct MessagingConversationListView: View {
         .onChange(of: reader.identity) { _, _ in showsSquare = false; safety = nil; selectedTab = nil }
         .onChange(of: MessagingReadScreenInput(reader: reader, refreshRevision: 0)) { _, _ in retireReviews() }
         .onDisappear { readAll?.batch.stop() }
-        .searchable(text: $query, prompt: Text("messaging.searchPrompt"))
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: Text("messaging.searchPrompt"))
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: selectedTab) { _, _ in displayLimit = 30 }
     }

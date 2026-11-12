@@ -61,6 +61,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
         Group {
             if !reader.isClubConfigured {
                 ContentUnavailableView("club.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
             } else if requiresSignIn && !reader.clubIdentity.isSignedIn {
                 issueView(ClubLoadIssue(ClubReadFailure.unauthorized(message: nil)))
             } else if issueIdentity == reader.clubIdentity, let issue {

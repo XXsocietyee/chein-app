@@ -20,6 +20,8 @@ import SwiftUI
     @State private var showsTicketPass=false
     @State private var showsPassportWallet=false
     @State private var showsPassportMessages=false
+    @State private var showsPassportStamps=false
+    @State private var showsPassportBadges=false
     @State private var opensWalletAfterPass=false
     @State private var showsCooperation=false
     @State private var confirmsLogout=false
@@ -33,7 +35,9 @@ import SwiftUI
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true }, refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 if showsPassportOverview {
                     PassportOverviewSection(reader: session.roamExperienceReader, growth: session.growthCenterReader, refreshToken: memberRefreshToken, onOpenTickets: { showsTicketPass = true },
-                                            onOpenWallet: { showsPassportWallet = true }, onOpenMessages: { showsPassportMessages = true })
+                                            onOpenWallet: { showsPassportWallet = true }, onOpenMessages: { showsPassportMessages = true },
+                                            onOpenStamps: session.roamExperienceReader.isConfigured ? { showsPassportStamps = true } : nil,
+                                            onOpenBadges: { showsPassportBadges = true })
                 }
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
                 if let invoice = session.makeInvoiceLaunchPresentation() {
@@ -131,6 +135,7 @@ import SwiftUI
                     }
                     .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
                     .accessibilityLabel(Text("auth.signOut"))
+                    .accessibilityIdentifier("account.signOut")
                 }
             }
             .refreshable { memberRefreshToken += 1 }
@@ -149,6 +154,8 @@ import SwiftUI
             }
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope) }
             .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session) }
+            .navigationDestination(isPresented:$showsPassportStamps) { RoamHistoryView(reader: session.roamExperienceReader) }
+            .navigationDestination(isPresented:$showsPassportBadges) { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope) }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
                     ProfileFavoriteTopicDestination(selection: selected, session: session,

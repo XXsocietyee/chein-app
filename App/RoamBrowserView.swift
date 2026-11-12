@@ -614,7 +614,7 @@ private struct RoamSearchableUnlessMap: ViewModifier {
     let enabled: Bool
     @Binding var text: String
     @ViewBuilder func body(content: Content) -> some View {
-        if enabled { content.searchable(text: $text, prompt: "roam.search") } else { content }
+        if enabled { content.searchable(text: $text, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "roam.search") } else { content }
     }
 }
 
