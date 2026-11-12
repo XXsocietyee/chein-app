@@ -81,6 +81,8 @@ struct CYGoHoldPill: View {
                 .accessibilityAddTraits(.isButton)
                 .accessibilityAction { if enabled { commit() } }
                 .accessibilityIdentifier("roam.live.start")
+                // Until the player has agreed, the dimmed pill reports itself as disabled (it was only drawn faded).
+                .disabled(!enabled)
         }
     }
 

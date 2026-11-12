@@ -74,6 +74,25 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
     return false
 }
 
+/// Lazy `List`/`CollectionView` rows exist only near the viewport (a row scrolled far past is dropped from the accessibility
+/// tree, so "not found" can mean "scrolled past"). Sweeps down, then back up past the start, until `element` is hittable.
+/// Use it for rows in a long list; `revealFixtureElement` keeps its single-direction contract for short screens.
+@discardableResult
+func scrollToElement(_ element: XCUIElement, in app: XCUIApplication, container: XCUIElement? = nil,
+                     maxSweeps: Int = 12) -> Bool {
+    let scroller = container ?? app.collectionViews.firstMatch
+    func ready() -> Bool { element.exists && element.isHittable }
+    if ready() { return true }
+    guard scroller.exists else { return element.waitForExistence(timeout: 2) && element.isHittable }
+    for _ in 0..<maxSweeps { scroller.swipeUp(); if ready() { return true } }
+    for _ in 0..<(maxSweeps * 2) { scroller.swipeDown(); if ready() { return true } }
+    for _ in 0..<maxSweeps { scroller.swipeUp(); if ready() { return true } }
+    return ready()
+}
+
+/// GO is a press-and-hold pill (600 ms): a tap cancels. Holds past the commit so the start fires.
+func holdGo(_ element: XCUIElement) { element.press(forDuration: 0.9) }
+
 /// SwiftUI can expose a row-sized Switch around the actual native switch track.
 /// Validate and tap that descendant, whose frame excludes the label and row padding.
 func tapFixtureNativeSwitch(_ element: XCUIElement, in app: XCUIApplication,

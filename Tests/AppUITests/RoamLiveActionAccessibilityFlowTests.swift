@@ -9,7 +9,7 @@ final class RoamLiveActionAccessibilityFlowTests: XCTestCase {
             "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch(); defer { app.terminate() }
         let live = app.buttons["roam.experience.live.open"]
-        XCTAssertTrue(revealFixtureElement(live, in: app), app.debugDescription); live.tap()
+        XCTAssertTrue(scrollToElement(live, in: app, container: app.collectionViews["roam.experience.hub"]), app.debugDescription); live.tap()
         let start = app.buttons.matching(identifier: "roam.live.start")
         XCTAssertTrue(start.element.waitForExistence(timeout: 10), app.debugDescription)
         let tree = XCTAttachment(string: app.debugDescription)
