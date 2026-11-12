@@ -238,5 +238,40 @@
     "key": "accountCollection.coupon.viewAvailability",
     "en": "View availability",
     "zh-Hans": "查看可用时间"
+  },
+  {
+    "key": "accountCollection.coupon.permission",
+    "en": "Your current role can't view these coupons",
+    "zh-Hans": "当前身份不能查看这些优惠券"
+  },
+  {
+    "key": "accountCollection.coupon.errorTitle",
+    "en": "Coupons couldn't open right now",
+    "zh-Hans": "优惠券暂时没能打开"
+  },
+  {
+    "key": "accountCollection.coupon.malformed",
+    "en": "Coupons couldn't open right now. Try again later.",
+    "zh-Hans": "优惠券暂时没能打开，请稍后重试。"
+  },
+  {
+    "key": "accountCollection.coupon.network",
+    "en": "Network error. Try again.",
+    "zh-Hans": "网络异常，请重试。"
+  },
+  {
+    "key": "accountCollection.coupon.availableFrom %@",
+    "en": "Available from %@",
+    "zh-Hans": "%@ 起可用"
+  },
+  {
+    "key": "accountCollection.coupon.navigate",
+    "en": "Directions",
+    "zh-Hans": "导航"
+  },
+  {
+    "key": "accountCollection.coupon.openInMaps",
+    "en": "Open in Maps",
+    "zh-Hans": "在地图中打开"
   }
 ]

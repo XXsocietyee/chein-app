@@ -74,12 +74,24 @@ struct AccountCollectionLoadKey: Hashable {
 struct AccountCollectionIssueView: View {
     let issue: AccountCollectionIssue
     var retry: (() -> Void)? = nil
+    /// Coupon wallet copy (mini-program coupon-wallet): 优惠券暂时没能打开 over the network or malformed line.
+    var couponWallet = false
+    private var couponDetailKey: LocalizedStringKey? {
+        guard couponWallet else { return nil }
+        switch issue {
+        case .network: return "accountCollection.coupon.network"
+        case .failure: return "accountCollection.coupon.malformed"
+        default: return nil
+        }
+    }
     private var titleText: Text {
         if case .server(let message) = issue, !message.isEmpty { return Text(verbatim: message) }
+        if couponDetailKey != nil { return Text("accountCollection.coupon.errorTitle") }
         return Text(LocalizedStringKey(issue.localizationKey))
     }
     var body: some View {
         var layout = CYStateLayout(kind: issue == .login ? .generic : .failure, title: titleText)
+        if let couponDetailKey { layout.detail = Text(couponDetailKey) }
         if let retry, issue != .login, issue != .notConfigured {
             layout.primary = (title: LocalizedStringKey("accountCollection.retry"), action: retry)
             layout.primaryIdentifier = "accountCollection.retry"

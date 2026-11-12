@@ -50,6 +50,18 @@ import SwiftUI
                         Text("accountCollection.coupon.validityUnknown")
                     }
                 }
+                // Mini-program 导航: hand the shop coordinate to Maps. Hidden when either axis is missing or 0.
+                if let destination = shopDestination(coupon) {
+                    Section {
+                        Button {
+                            Task { _ = await NativePlatformMapOpener().open(destination) }
+                        } label: {
+                            Label("accountCollection.coupon.navigate", systemImage: "arrow.triangle.turn.up.right.diamond")
+                        }
+                        .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
+                        .accessibilityIdentifier("accountCollection.coupon.navigate")
+                    }
+                }
                 if AccountCollectionCoupon.calendarDay(coupon.receivedTime) != nil || AccountCollectionCoupon.calendarDay(coupon.usedTime) != nil {
                     Section("accountCollection.coupon.history") {
                         AccountCollectionCouponDate(label: "accountCollection.coupon.received", value: coupon.receivedTime)
@@ -96,5 +108,12 @@ import SwiftUI
             appearance.end(model: model)
             if viewPresentation === appearance { viewPresentation = OwnedCouponReadViewPresentation() }
         }
+    }
+    private func shopDestination(_ coupon: AccountCollectionCoupon) -> PlatformMapDestination? {
+        guard coupon.hasShopNavigation else { return nil }
+        let destination = PlatformMapDestination(name: coupon.shopName ?? coupon.shopAddress ?? "",
+                                                 address: coupon.shopAddress,
+                                                 latitude: coupon.shopLatitude, longitude: coupon.shopLongitude)
+        return destination.hasCoordinates ? destination : nil
     }
 }

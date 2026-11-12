@@ -118,9 +118,10 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         })
         for item in catalog.values():
             self.assertEqual(set(item['localizations']), {'en', 'zh-Hans'})
-        shared = (ROOT / 'Resources/Localizable.xcstrings').read_text()
-        for key in catalog:
-            self.assertNotIn(key, shared)
+        # ui/prkeys (L1) merged the fragment into the shared catalog unchanged.
+        shared = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
+        for key, item in catalog.items():
+            self.assertEqual(shared[key], item)
 
     def test_pbx_hunk_exists_and_forbidden_shared_files_are_untouched(self):
         hunk = HUNK.read_text()

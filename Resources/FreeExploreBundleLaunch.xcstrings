@@ -336,6 +336,38 @@
           }
         }
       }
+    },
+    "paidAmount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实付金额"
+          }
+        }
+      }
+    },
+    "saleUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sale status hasn't arrived yet. It isn't shown as off sale."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "售卖状态尚未读到，不按停售处理。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
