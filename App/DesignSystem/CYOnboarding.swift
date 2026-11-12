@@ -101,10 +101,15 @@ struct OnboardingFlow: View {
     var onGuest: () -> Void
     /// Host-supplied trailing control in the top bar (the Welcome "more" menu: language, drafts, settings).
     var topAccessory: AnyView?
+    /// Fixtures only: plays the hold-GO / stamp / join demos and the account-pill morph by themselves (video capture).
+    var autoDemo: Bool
+    @State private var registered = false
+    @Environment(\.locale) private var locale
 
-    init(initialStep: OnboardingStep = .welcome, topAccessory: AnyView? = nil, onRegister: @escaping () -> Void, onGuest: @escaping () -> Void) {
+    init(initialStep: OnboardingStep = .welcome, topAccessory: AnyView? = nil, autoDemo: Bool = false, onRegister: @escaping () -> Void, onGuest: @escaping () -> Void) {
         _state = State(initialValue: OnboardingState(step: initialStep))
         self.topAccessory = topAccessory
+        self.autoDemo = autoDemo
         self.onRegister = onRegister
         self.onGuest = onGuest
     }
@@ -123,6 +128,21 @@ struct OnboardingFlow: View {
         }
     }
 
+    /// Create account: the pill morphs to a green check in place (selection, then success at +250 ms) while the host
+    /// opens the existing sign-in gate. Outside fixtures it relaxes again so a dismissed sheet leaves a normal pill.
+    private func registerTapped() {
+        withAnimation(CYMotion.resolve(.spring(response: 0.4, dampingFraction: 0.7), reduceMotion: reduceMotion)) { registered = true }
+        CYHaptics.selection.play()
+        send(.tapPrimary)
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(250))
+            CYHaptics.success.play()
+            guard !autoDemo else { return }
+            try? await Task.sleep(for: .milliseconds(1250))
+            withAnimation(CYMotion.resolve(.spring(response: 0.4, dampingFraction: 0.8), reduceMotion: reduceMotion)) { registered = false }
+        }
+    }
+
     var body: some View {
         ZStack {
             OnboardingBackdrop(stepIndex: step.rawValue)
@@ -135,7 +155,7 @@ struct OnboardingFlow: View {
                 }
                 ScrollView {
                     VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                        OnboardingDemo(step: step, stacked: typeSize >= .accessibility1, done: state.demoDone.contains(step)) {
+                        OnboardingDemo(step: step, stacked: typeSize >= .accessibility1, done: state.demoDone.contains(step), autoplay: autoDemo) {
                             send(.demoCompleted(step))
                         }
                         OnboardingCopy(step: step, direction: state.direction)
@@ -150,6 +170,13 @@ struct OnboardingFlow: View {
         }
         .safeAreaInset(edge: .bottom) { footer }
         .simultaneousGesture(pagingDrag)
+        .environment(\.colorScheme, .dark)
+        .task(id: step) {
+            guard autoDemo, step.isFinal else { return }
+            try? await Task.sleep(for: .milliseconds(1800))
+            guard !Task.isCancelled else { return }
+            registerTapped()
+        }
         .cyHaptic(.selection, trigger: step)
         .accessibilityAction(.escape) { send(.skip) }
     }
@@ -157,7 +184,7 @@ struct OnboardingFlow: View {
     private var topBar: some View {
         HStack {
             Text(verbatim: "城瘾")
-                .font(.system(.title3, design: .rounded).weight(.heavy))
+                .font(.system(.title3, design: .rounded).weight(OBType.isChinese(locale) ? .semibold : .heavy))
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             Spacer()
@@ -182,9 +209,16 @@ struct OnboardingFlow: View {
             OnboardingDots(count: OnboardingStep.allCases.count, index: step.rawValue)
                 .padding(.bottom, CYSpacing.sm)
             if step.isFinal { OnboardingConsentNote() }
-            CYPillButton(step.isFinal ? "onboarding.createAccount" : "onboarding.continue", style: .primary) { send(.tapPrimary) }
-                .animation(CYMotion.resolve(OBMotion.page, reduceMotion: reduceMotion), value: step.isFinal)
-                .accessibilityIdentifier(step.isFinal ? "welcome.player" : "onboarding.primary")
+            Group {
+                if step.isFinal {
+                    OBMorphPill(titleKey: "onboarding.createAccount", done: registered) { registerTapped() }
+                        .accessibilityIdentifier("welcome.player")
+                } else {
+                    CYPillButton("onboarding.continue", style: .primary) { send(.tapPrimary) }
+                        .accessibilityIdentifier("onboarding.primary")
+                }
+            }
+            .animation(CYMotion.resolve(OBMotion.page, reduceMotion: reduceMotion), value: step.isFinal)
             if step.isFinal {
                 Button("welcome.browse") { send(.tapGuest) }
                     .font(CYTypography.bodyCompact.weight(.semibold))
@@ -217,13 +251,21 @@ struct OnboardingBackdrop: View {
     let stepIndex: Int
     var body: some View {
         ZStack {
-            CYColor.bgPage
+            // Warm indigo ground (never pure black: glows need something to land on).
+            LinearGradient(stops: [.init(color: CYNight.indigo, location: 0), .init(color: CYNight.ink0, location: 0.82)],
+                           startPoint: .top, endPoint: .bottom)
             GeometryReader { geo in
+                // Lantern horizon far below the fold, a little warmer on each step.
                 RadialGradient(
-                    colors: [CYColor.accent.opacity(0.10 + 0.04 * Double(stepIndex)), .clear],
-                    center: UnitPoint(x: 0.5, y: 1.1), startRadius: 0, endRadius: geo.size.width * 0.9)
+                    colors: [CYNight.ember.opacity(0.10 + 0.025 * Double(stepIndex)), .clear],
+                    center: UnitPoint(x: 0.5, y: 1.12), startRadius: 0, endRadius: geo.size.width * 0.95)
+                // The hero's own faint light pool.
+                RadialGradient(
+                    colors: [CYNight.lantern.opacity(0.07), .clear],
+                    center: UnitPoint(x: 0.5, y: 0.25), startRadius: 0, endRadius: geo.size.width * 0.7)
             }
             .animation(OBMotion.page, value: stepIndex)
+            OBGrain()
         }
         .ignoresSafeArea()
         .accessibilityHidden(true)
@@ -252,17 +294,21 @@ struct OnboardingCopy: View {
     let step: OnboardingStep
     let direction: OnboardingState.Direction
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .title) private var zhTitleSize: CGFloat = 30
 
     var body: some View {
+        let zh = OBType.isChinese(locale)
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(step.eyebrowKey)
-                .font(.caption.weight(.semibold))
+                .font(.footnote.weight(zh ? .medium : .semibold))
                 .textCase(.uppercase)
-                .tracking(1.5)
+                .tracking(zh ? 1 : 0.6)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(step.titleKey)
-                .font(CYTypography.display)
+                // EN: Rounded Heavy. zh-Hans: PingFang Semibold 30 (never Heavy: the strokes clog).
+                .font(zh ? .system(size: zhTitleSize, weight: .semibold) : .system(.largeTitle, design: .rounded).weight(.heavy))
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
@@ -305,8 +351,11 @@ struct OnboardingHero: View {
     let done: Set<OnboardingStep>
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var gyro = OBTiltSource()
     @State private var tilt: CGSize = .zero
     @State private var breathing = false
+    @State private var wave = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -323,6 +372,8 @@ struct OnboardingHero: View {
             .rotation3DEffect(.degrees(reduceMotion ? 0 : Double(tilt.width) * 8), axis: (0, 1, 0), perspective: 0.6)
             .offset(y: breathing && !reduceMotion ? -5 : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Hold-GO demo done: a ripple crosses the disc as the fog clears (Metal; no-op under RM / Low Power).
+            .obWave(origin: CGPoint(x: geo.size.width / 2, y: geo.size.height / 2), trigger: wave)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0)
                 .onChanged { v in
@@ -333,16 +384,27 @@ struct OnboardingHero: View {
                 }
                 .onEnded { _ in withAnimation(CYMotion.release) { tilt = .zero } })
             .onAppear {
-                guard !reduceMotion else { return }
-                withAnimation(OBMotion.idle) { breathing = true }
+                if !reduceMotion { withAnimation(OBMotion.idle) { breathing = true } }
+                gyro.start(reduceMotion: reduceMotion)
+            }
+            .onDisappear { gyro.stop() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { gyro.start(reduceMotion: reduceMotion) } else { gyro.stop() }
+            }
+            .onChange(of: done.contains(.roam)) { _, cleared in
+                if cleared { wave += 1 }
             }
         }
     }
 
     @ViewBuilder private func stepLayer(size: CGFloat) -> some View {
         switch step {
-        case .welcome: FogWindow(size: size, tilt: tilt)
-        case .roam: GOFace(size: size, lit: done.contains(.roam))
+        case .welcome: FogWindow(size: size, tilt: tilt, gyro: gyro, wordmark: true)
+        case .roam:
+            ZStack {
+                FogWindow(size: size, tilt: tilt, gyro: gyro, revealed: done.contains(.roam), entrance: false)
+                GOFace(size: size, lit: done.contains(.roam))
+            }
         case .stamps: StampSeal(size: size, stamped: done.contains(.stamps))
         case .clubs: AvatarOrbit(size: size, count: done.contains(.clubs) ? 6 : 5)
         case .consent: AppMark(size: size)
@@ -350,7 +412,7 @@ struct OnboardingHero: View {
     }
 }
 
-/// Layered metal disc. The specular highlight slides opposite to the tilt (fake lighting).
+/// Night glass disc: indigo body, a lantern-free cold rim. The specular highlight slides opposite to the tilt.
 struct CityDisc: View {
     var tilt: CGSize
     var softSpecular: Bool
@@ -358,39 +420,61 @@ struct CityDisc: View {
         let shape = Circle()
         ZStack {
             shape.fill(RadialGradient(
-                colors: [CYRGB(hex: 0x2A2A30).swiftUIColor, CYRGB(hex: 0x0E0E11).swiftUIColor],
+                colors: [CYNight.indigo, CYNight.ink1],
                 center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: 320))
             shape.strokeBorder(AngularGradient(
-                colors: [.white.opacity(0.55), .white.opacity(0.05), .white.opacity(0.35), .white.opacity(0.05), .white.opacity(0.55)],
-                center: .center), lineWidth: 3)
+                colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom, .white.opacity(0.10), CYNight.glassEdgeBottom, CYNight.glassEdgeTop],
+                center: .center), lineWidth: 2)
             if softSpecular {
-                shape.fill(.white.opacity(0.18)).blur(radius: 28).clipShape(shape)
+                shape.fill(.white.opacity(0.10)).blur(radius: 28).clipShape(shape)
                     .offset(x: -tilt.width * 36 - 40, y: -tilt.height * 36 - 50)
                     .blendMode(.plusLighter)
                     .clipShape(shape)
             }
         }
-        .shadow(color: .black.opacity(0.6), radius: 24, y: 14)
+        .shadow(color: CYNight.ink0.opacity(0.6), radius: 24, y: 14)
     }
 }
 
-/// Step 1: a cover-art map seen through a torn window in the fog; the window follows the drag.
+/// Step 1: the city disc is dark fog with six lit windows; a torn window follows the drag and the 城瘾 wordmark blooms
+/// at 1.4 s. Step 2 reuses it: `revealed` clears the fog (fade + grow) with a lantern ring.
 struct FogWindow: View {
     let size: CGFloat
     let tilt: CGSize
+    @ObservedObject var gyro: OBTiltSource
+    var revealed = false
+    var entrance = true
+    var wordmark = false
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var ring = false
+
     var body: some View {
         let inner = size * 0.86
         ZStack {
             CYCoverArt(seed: "welcome-fog-map", symbol: "map", showsDebugLabel: false, showsGlyph: false)
                 .frame(width: inner, height: inner)
                 .clipShape(Circle())
+                .saturation(revealed ? 1 : 0.7)
             Circle()
                 .fill(RadialGradient(
-                    colors: [.clear, CYRGB(hex: 0x0A0A0B).swiftUIColor.opacity(0.92)],
+                    colors: [.clear, CYNight.indigo.opacity(0.94), CYNight.ink0.opacity(0.96)],
                     center: UnitPoint(x: 0.5 + tilt.width * 0.3, y: 0.5 + tilt.height * 0.3),
                     startRadius: inner * 0.12, endRadius: inner * 0.5))
                 .frame(width: inner, height: inner)
+                .scaleEffect(revealed ? 1.5 : 1)
+                .opacity(revealed ? 0 : 1)
+                .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9), value: revealed)
+                .clipShape(Circle())
+            OBLanternWindows(size: inner, dragTilt: reduceMotion ? .zero : tilt, tilt: gyro, entrance: entrance, dim: revealed)
+            if revealed && !reduceMotion {
+                Circle().strokeBorder(CYNight.lantern.opacity(ring ? 0 : 0.7), lineWidth: 2)
+                    .frame(width: inner, height: inner)
+                    .scaleEffect(ring ? 1.25 : 0.35)
+                    .onAppear { withAnimation(.easeOut(duration: 0.8)) { ring = true } }
+            }
+            if wordmark { OBWordmarkBloom(fontSize: max(28, size * 0.2), delay: 1.4, intensity: 1) }
         }
+        .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9), value: revealed)
     }
 }
 
@@ -406,44 +490,102 @@ struct GOFace: View {
             Text(verbatim: "GO")
                 .font(.system(.largeTitle, design: .rounded).weight(.heavy))
                 .foregroundStyle(.white.opacity(lit ? 1 : 0.6))
-                .shadow(color: .white.opacity(lit ? 0.5 : 0), radius: 14)
+                .shadow(color: CYNight.lantern.opacity(lit ? 0.6 : 0), radius: 14)
         }
         .animation(OBMotion.demoSuccess, value: lit)
     }
 }
 
-/// Step 3: serrated seal (36 teeth) plus ink ring; drops and squashes when stamped.
+/// Step 3: stamp demo, the section 5A choreography at 70 % scale (lift 28 pt instead of 40, 25 particles instead of 36).
+/// 0 anticipation (1.15, rises) -> 120 heavy impact, squash 0.92 -> 120-420 ink ring + wave -> 250 success ->
+/// 300-700 lantern burst -> 350 title rises 10 pt -> 600 passport count rolls. Reduce Motion: crossfade to the final
+/// state with a single success haptic.
 struct StampSeal: View {
     let size: CGFloat
     let stamped: Bool
     @QuestifyReduceMotion private var reduceMotion
+    @State private var scale: CGFloat = 1
+    @State private var lift: CGFloat = -14
+    @State private var ring: CGFloat = 0
+    @State private var inked = false
+    @State private var titleIn = false
+    @State private var count = 0
+    @State private var burst = 0
+    @State private var wave = 0
+    @State private var sequence: Task<Void, Never>?
+
     var body: some View {
+        let seal = size * 0.72
         ZStack {
-            Canvas { ctx, canvas in
-                let c = CGPoint(x: canvas.width / 2, y: canvas.height / 2)
-                let outer = min(canvas.width, canvas.height) / 2, inner = outer * 0.92
-                var path = Path()
-                let teeth = 36
-                for i in 0..<(teeth * 2) {
-                    let angle = Double(i) / Double(teeth * 2) * 2 * .pi
-                    let r = i.isMultiple(of: 2) ? outer : inner
-                    let p = CGPoint(x: c.x + CGFloat(cos(angle)) * r, y: c.y + CGFloat(sin(angle)) * r)
-                    if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
-                }
-                path.closeSubpath()
-                ctx.fill(path, with: .color(.white.opacity(0.92)))
-            }
-            .frame(width: size * 0.72, height: size * 0.72)
-            Circle().strokeBorder(CYRGB(hex: 0x0E0E11).swiftUIColor.opacity(0.7), lineWidth: 3).frame(width: size * 0.52, height: size * 0.52)
-            Image(systemName: "checkmark").font(.system(.title, design: .rounded).weight(.heavy)).foregroundStyle(CYRGB(hex: 0x0E0E11).swiftUIColor)
-            if stamped && !reduceMotion {
-                Circle().strokeBorder(.white.opacity(0.5), lineWidth: 2).frame(width: size * 0.9, height: size * 0.9)
-                    .transition(.scale(scale: 0.6).combined(with: .opacity))
-            }
+            OBSealShape()
+                .fill(inked ? AnyShapeStyle(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom)) : AnyShapeStyle(Color.white.opacity(0.5)))
+                .frame(width: seal, height: seal)
+                .shadow(color: CYNight.lantern.opacity(inked ? 0.45 : 0), radius: 18)
+            Circle().strokeBorder(CYNight.ink0.opacity(0.7), lineWidth: 3).frame(width: size * 0.52, height: size * 0.52)
+            Image(systemName: "checkmark").font(.system(.title, design: .rounded).weight(.heavy)).foregroundStyle(CYNight.ink0)
+            Circle().strokeBorder(CYNight.lantern.opacity(0.7 * Double(1 - ring)), lineWidth: 2)
+                .frame(width: seal, height: seal)
+                .scaleEffect(1 + 1.4 * ring)
+                .opacity(ring > 0 ? 1 : 0)
         }
-        .offset(y: stamped ? 14 : -14)
-        .scaleEffect(x: 1, y: stamped ? 1 : 0.94)
-        .animation(reduceMotion ? CYMotion.reduced : OBMotion.demoSuccess, value: stamped)
+        .scaleEffect(scale)
+        .offset(y: lift)
+        .frame(width: size, height: size)
+        .obWave(origin: CGPoint(x: size / 2, y: size / 2), trigger: wave, amp: 7)
+        .overlay {
+            if burst > 0 { OBBurst(origin: .center, count: 25, duration: 1.0, radius: size * 0.5).id(burst) }
+        }
+        .overlay(alignment: .bottom) {
+            Text("onboarding.stamps.slam")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(CYNight.lanternHot)
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .offset(y: titleIn ? -size * 0.07 : -size * 0.07 + 10)
+                .opacity(titleIn ? 1 : 0)
+        }
+        .overlay(alignment: .topTrailing) {
+            HStack(spacing: 4) {
+                Image(systemName: "book.closed").font(.caption2.weight(.semibold))
+                Text(verbatim: "\(count)").font(.system(.caption, design: .rounded).weight(.bold).monospacedDigit()).contentTransition(.numericText())
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(Capsule().fill(CYNight.glassFill)).overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+            .opacity(count > 0 ? 1 : 0)
+            .padding(size * 0.04)
+        }
+        .onAppear { if stamped { settle(animated: false) } }
+        .onChange(of: stamped) { _, new in if new { play() } }
+        .onDisappear { sequence?.cancel() }
+    }
+
+    private func settle(animated: Bool) {
+        withAnimation(animated ? CYMotion.reduced : nil) {
+            scale = 1; lift = 0; inked = true; titleIn = true; count = 1; ring = 0
+        }
+    }
+
+    private func play() {
+        sequence?.cancel()
+        guard !reduceMotion else { settle(animated: true); CYHaptics.success.play(); return }
+        sequence = Task { @MainActor in
+            func wait(_ ms: Int) async -> Bool { try? await Task.sleep(for: .milliseconds(ms)); return !Task.isCancelled }
+            withAnimation(CYMotion.press) { scale = 1.15; lift = -28 }                          // 0 anticipation
+            guard await wait(120) else { return }
+            CYHaptics.impactHeavy.play()                                                         // 120 impact
+            withAnimation(.spring(response: 0.16, dampingFraction: 0.55)) { scale = 0.92; lift = 6; inked = true }
+            withAnimation(.easeOut(duration: 0.3)) { ring = 1 }                                  // 120-420 ink ring
+            wave += 1
+            guard await wait(130) else { return }
+            CYHaptics.success.play()                                                             // 250 success
+            withAnimation(CYMotion.release) { scale = 1; lift = 0 }
+            guard await wait(50) else { return }
+            burst += 1                                                                           // 300 burst
+            guard await wait(50) else { return }
+            withAnimation(CYMotion.entrance) { titleIn = true }                                  // 350 title
+            guard await wait(250) else { return }
+            withAnimation(CYMotion.standard) { count = 1 }                                       // 600 count rolls
+        }
     }
 }
 
@@ -483,11 +625,7 @@ struct AvatarOrbit: View {
 struct AppMark: View {
     let size: CGFloat
     var body: some View {
-        Text(verbatim: "城瘾")
-            .font(.system(.title2, design: .rounded).weight(.heavy))
-            .foregroundStyle(.white)
-            .minimumScaleFactor(0.5)
-            .lineLimit(1)
+        OBWordmarkBloom(fontSize: max(24, size * 0.26), delay: 0.2, intensity: 0.4)
             .frame(width: size * 0.8)
     }
 }
@@ -499,6 +637,7 @@ struct OnboardingDemo: View {
     let step: OnboardingStep
     let stacked: Bool
     let done: Bool
+    var autoplay = false
     let onComplete: () -> Void
 
     var body: some View {
@@ -508,13 +647,13 @@ struct OnboardingDemo: View {
                 Label("onboarding.welcome.hint", systemImage: "hand.draw")
                     .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .accessibilityHidden(true)
-            case .roam: GOHoldDemo(stacked: stacked, done: done, onComplete: onComplete)
+            case .roam: GOHoldDemo(stacked: stacked, done: done, autoplay: autoplay, onComplete: onComplete)
             case .stamps:
                 DemoRow(stacked: stacked, done: done, buttonKey: "onboarding.stamps.action", doneKey: "onboarding.stamps.done",
-                        promptKey: "onboarding.stamps.prompt", symbol: "seal", haptic: .impactHeavy, onComplete: onComplete)
+                        promptKey: "onboarding.stamps.prompt", symbol: "seal", haptic: .impactLight, autoplay: autoplay, onComplete: onComplete)
             case .clubs:
                 DemoRow(stacked: stacked, done: done, buttonKey: "onboarding.clubs.action", doneKey: "onboarding.clubs.done",
-                        promptKey: "onboarding.clubs.prompt", symbol: "person.badge.plus", haptic: .impactMedium, onComplete: onComplete)
+                        promptKey: "onboarding.clubs.prompt", symbol: "person.badge.plus", haptic: .impactMedium, autoplay: autoplay, onComplete: onComplete)
             case .consent:
                 EmptyView()
             }
@@ -533,6 +672,7 @@ private struct DemoRow: View {
     let promptKey: LocalizedStringKey
     let symbol: String
     let haptic: CYHaptics
+    var autoplay = false
     let onComplete: () -> Void
     @QuestifyReduceMotion private var reduceMotion
 
@@ -558,6 +698,12 @@ private struct DemoRow: View {
         }
         .animation(reduceMotion ? CYMotion.reduced : OBMotion.demoSuccess, value: done)
         .cyHaptic(haptic, trigger: done) { old, new in !old && new }
+        .task {
+            guard autoplay, !done else { return }
+            try? await Task.sleep(for: .milliseconds(1000))
+            guard !Task.isCancelled else { return }
+            onComplete()
+        }
     }
 }
 
@@ -565,9 +711,11 @@ private struct DemoRow: View {
 private struct GOHoldDemo: View {
     let stacked: Bool
     let done: Bool
+    var autoplay = false
     let onComplete: () -> Void
     @QuestifyReduceMotion private var reduceMotion
     @State private var progress: CGFloat = 0
+    @State private var ticks: Task<Void, Never>?
 
     var body: some View {
         let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(spacing: CYSpacing.lg))
@@ -582,7 +730,7 @@ private struct GOHoldDemo: View {
                 Circle().fill(CYColor.textPrimary).frame(width: 52, height: 52)
                     .overlay(Text(verbatim: "GO").font(.headline.weight(.heavy)).foregroundStyle(CYColor.textInverse))
                 Circle().trim(from: 0, to: done ? 1 : progress)
-                    .stroke(CYColor.textSecondary, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .stroke(CYNight.lantern, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90)).frame(width: 62, height: 62)
             }
             .frame(width: 72, height: 72)
@@ -591,6 +739,8 @@ private struct GOHoldDemo: View {
                 progress = 0; onComplete()
             }, onPressingChanged: { pressing in
                 withAnimation(pressing ? .linear(duration: 0.9) : CYMotion.release) { progress = pressing && !reduceMotion ? 1 : 0 }
+                ticks?.cancel()
+                if pressing { ticks = tickHaptics() }
             })
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("onboarding.roam.demo.label"))
@@ -605,5 +755,29 @@ private struct GOHoldDemo: View {
         }
         .animation(reduceMotion ? CYMotion.reduced : OBMotion.demoSuccess, value: done)
         .cyHaptic(.impactHeavy, trigger: done) { old, new in !old && new }
+        .task {
+            // Fixture capture: hold 900 ms (ticks at 200 / 400 ms), then commit.
+            guard autoplay, !done else { return }
+            try? await Task.sleep(for: .milliseconds(1000))
+            guard !Task.isCancelled else { return }
+            if !reduceMotion { withAnimation(.linear(duration: 0.9)) { progress = 1 } }
+            ticks = tickHaptics()
+            try? await Task.sleep(for: .milliseconds(900))
+            guard !Task.isCancelled else { return }
+            progress = 0
+            onComplete()
+        }
+    }
+
+    /// GO hold ticks (spec 3.6): impactLight at 200 and 400 ms; the commit haptic fires on completion.
+    private func tickHaptics() -> Task<Void, Never> {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(200))
+            guard !Task.isCancelled else { return }
+            CYHaptics.impactLight.play()
+            try? await Task.sleep(for: .milliseconds(200))
+            guard !Task.isCancelled else { return }
+            CYHaptics.impactLight.play()
+        }
     }
 }

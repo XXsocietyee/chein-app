@@ -243810,6 +243810,40 @@
           }
         }
       }
+    },
+    "onboarding.stamps.slam": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stamped. You were here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "盖章成功，算你来过"
+          }
+        }
+      }
+    },
+    "onboarding.createAccount.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
