@@ -259132,6 +259132,23 @@
           }
         }
       }
+    },
+    "guideXcx.detailDisclaimer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The play version is not labelled yet. This guide explains how to play; the play page decides the actual tasks, completion conditions and rewards."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用玩法版本暂未标注；教程用于说明，实际任务、完成条件与奖励以游玩页为准。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

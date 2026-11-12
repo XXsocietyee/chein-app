@@ -63,10 +63,10 @@ class GuideTemplateContracts(unittest.TestCase):
         self.assertIn('SocialReadScreen(reader: reader, requestKey: "information-list"', (ROOT/'App/SocialGuideViews.swift').read_text())
     def test_locale_fragment_is_complete_and_separate(self):
         data=json.loads((ROOT/'Resources/SocialGuideTemplateLocalizations.fragment.json').read_text())
-        self.assertEqual(len(data),7)
+        self.assertEqual(len(data),9)
         for value in data.values():
             for locale in ['en','zh-Hans']: self.assertTrue(value['localizations'][locale]['stringUnit']['value'])
-        used=set(re.findall(r'(?:Text|Section|LabeledContent|Button)\("(social\.guideTemplates\.[^"\\]+)"',self.s))
+        used=set(re.findall(r'(?:(?:Text|Section|LabeledContent|Button)\(|actionTitle: |CYEmptyState\(systemImage: "[^"]+", )"(social\.guideTemplates\.[^"\\]+)"',self.s))
         # hint/used predate the card restyle (hint line dropped; usage count now rendered via playedTimes); they stay in the fragment unrendered.
         self.assertEqual(used,set(data)-{'social.guideTemplates.hint','social.guideTemplates.used'})
     def test_focused_hosted_regressions_are_authored(self):
