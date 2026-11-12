@@ -470,6 +470,7 @@
         "ProjectThoughtDefinitionsEditorTests",
         "ProjectTicketMeetingPointTests",
         "ProjectTopicMediaPresentationTests",
+        "PublicCatalogViewsTests",
         "PublicMerchantFixtureOwnershipTests",
         "PublicMerchantHomeBusinessStateViewTests",
         "PublicMerchantReviewRowsTests",

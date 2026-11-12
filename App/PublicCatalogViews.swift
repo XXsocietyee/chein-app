@@ -1,9 +1,8 @@
 import SwiftUI
 
 /// Layout for mini-program `pages/topic/catalog/index` (city catalog / theme collection) and `catalog/detail`.
-/// Data in, intents out: the host feeds `PWaveCatalogCard` / `PWaveCatalogCity` values read by the Core public-catalog
-/// reader (`/api/public-catalog/*`, anonymous read-only) and owns paging, filters and navigation. No wiring exists yet
-/// (needs logic: PublicCatalogReading host + route), so nothing presents these views in production.
+/// Data in, intents out. `PublicCatalogViews` feeds these types from the list, filters, and info reads.
+/// An absent capability does not present them. Unknown prices stay an em dash.
 enum PublicCatalogPhase: Equatable {
     case loading
     case failed
@@ -208,5 +207,177 @@ struct PublicCatalogDetailView: View {
                 .background(.ultraThinMaterial)
                 .accessibilityIdentifier("publicCatalog.detail.open")
         }
+    }
+}
+
+/// Installed by a host that already holds a non-production reader.
+/// The shipped session leaves `host` nil, so this screen sends nothing and cannot pay.
+enum PublicCatalogHostWiring {
+    static let moneyEnabled = false
+    static var host: PublicCatalogHost?
+    static var scope: PWaveSessionScope?
+    static var token: String?
+}
+
+/// List, filters, and info on the existing catalog views. Quote, order, and pay stay off.
+@MainActor
+struct PublicCatalogViews: View {
+    static let moneyEnabled = false
+
+    let link: PublicCatalogLink
+    let host: PublicCatalogHost?
+    let scope: () -> PWaveSessionScope?
+    let token: () -> String?
+
+    @State private var hidden = true
+    @State private var phase: PublicCatalogPhase = .loading
+    @State private var detail: PublicCatalogDetailState = .loading
+    @State private var cards: [PWaveCatalogCard] = []
+    @State private var cities: [PWaveCatalogCity] = []
+    @State private var query: Query?
+
+    private struct Query {
+        var screen: PublicCatalogLink.Screen
+        var fields: [String: String]
+    }
+
+    private var active: PublicCatalogLink {
+        if let query, let built = PublicCatalogLink(screen: query.screen, fields: query.fields) {
+            return built
+        }
+        return link
+    }
+
+    private var loadID: String {
+        let fields = active.fields.keys.sorted().map { "\($0)=\(active.fields[$0] ?? "")" }.joined(separator: "\n")
+        return "\(active.screen.rawValue)\n\(fields)"
+    }
+
+    var body: some View {
+        Group {
+            if hidden {
+                EmptyView()
+            } else if active.screen == .info {
+                PublicCatalogDetailView(state: detail, onRetry: { retry() }, onOpenWork: { openWork($0) }, onOpenCity: { openCity($0) })
+            } else {
+                PublicCatalogView(phase: phase, cards: cards, cities: cities, activeCityCode: active.fields["city_code"],
+                                  loadingMore: false, moreFailed: false, onSelectCity: { selectCity($0) }, onOpen: { openCard($0) },
+                                  onRetry: { retry() }, onLoadMore: {})
+            }
+        }
+        .task(id: loadID) { await reload() }
+    }
+
+    private func retry() { Task { await reload() } }
+
+    /// A city choice reloads list or filters. It does not quote, order, or pay.
+    private func selectCity(_ code: String?) {
+        var fields = active.fields
+        if let code, !code.isEmpty { fields["city_code"] = code } else { fields.removeValue(forKey: "city_code") }
+        let screen: PublicCatalogLink.Screen = active.screen == .info ? .list : active.screen
+        if screen != .info { fields.removeValue(forKey: "id") }
+        adopt(screen: screen, fields: fields)
+    }
+
+    /// Opening a card reads info. It does not start a charge.
+    private func openCard(_ card: PWaveCatalogCard) {
+        guard let id = card.id, !id.isEmpty else { return }
+        adopt(screen: .info, fields: ["id": id])
+    }
+
+    private func openCity(_ city: PWaveCatalogCity) {
+        var fields: [String: String] = [:]
+        if let code = city.cityCode, !code.isEmpty { fields["city_code"] = code }
+        adopt(screen: .list, fields: fields)
+    }
+
+    /// The existing detail footer stays. This host does not quote, order, or pay.
+    private func openWork(_ card: PWaveCatalogCard) {
+        _ = card
+    }
+
+    private func adopt(screen: PublicCatalogLink.Screen, fields: [String: String]) {
+        guard PublicCatalogLink(screen: screen, fields: fields) != nil else { return }
+        query = Query(screen: screen, fields: fields)
+    }
+
+    private func reload() async {
+        guard let host, let scope = scope() else {
+            conceal()
+            return
+        }
+        let credential = token()
+        let requested = active
+        if !hidden { revealLoading() }
+        do {
+            let presented = try await host.load(requested, token: credential, scope: scope, currentScope: { scope })
+            guard !Task.isCancelled else { return }
+            apply(presented)
+        } catch {
+            guard !Task.isCancelled else { return }
+            showFailure()
+        }
+    }
+
+    private func apply(_ presented: PWavePresentation<PWaveThemeCollectionFact>) {
+        switch PublicCatalogScreen.state(presented) {
+        case .unavailable:
+            conceal()
+        case .loading:
+            revealLoading()
+        case .empty:
+            show(cards: [], cities: [], phase: .empty, detail: .gone)
+        case .failed, .unrecognized:
+            showFailure()
+        case .ready:
+            guard case .ready(let fact)? = presented.phase else {
+                conceal()
+                return
+            }
+            let nextPhase: PublicCatalogPhase = fact.cards.isEmpty ? .empty : .content
+            let nextDetail: PublicCatalogDetailState
+            if let card = matchingCard(in: fact) {
+                nextDetail = .ok(card)
+            } else {
+                nextDetail = .gone
+            }
+            show(cards: fact.cards, cities: fact.cities, phase: nextPhase, detail: nextDetail)
+        }
+    }
+
+    private func matchingCard(in fact: PWaveThemeCollectionFact) -> PWaveCatalogCard? {
+        if let id = active.fields["id"], let match = fact.cards.first(where: { $0.id == id }) {
+            return match
+        }
+        return fact.cards.first
+    }
+
+    private func revealLoading() {
+        hidden = false
+        cards = []
+        cities = []
+        phase = .loading
+        detail = .loading
+    }
+
+    private func showFailure() {
+        show(cards: [], cities: [], phase: .failed, detail: .failed)
+    }
+
+    private func show(cards: [PWaveCatalogCard], cities: [PWaveCatalogCity], phase: PublicCatalogPhase, detail: PublicCatalogDetailState) {
+        hidden = false
+        self.cards = cards
+        self.cities = cities
+        self.phase = phase
+        self.detail = detail
+    }
+
+    /// No host, or a presentation the capability does not reveal: show none of the catalog UI.
+    private func conceal() {
+        hidden = true
+        cards = []
+        cities = []
+        phase = .empty
+        detail = .gone
     }
 }

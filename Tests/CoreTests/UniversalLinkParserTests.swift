@@ -35,6 +35,10 @@ final class UniversalLinkParserTests: XCTestCase {
             "\(fixture)/team/join?code=SYNTHETIC",
             "\(fixture)/badge?name=Synthetic",
             "https://EXAMPLE.TEST/pages/activity/detail/index?id=42",
+            "\(fixture)/catalog",
+            "\(fixture)/catalog/list?city_code=SHA",
+            "\(fixture)/catalog/filters?city_code=SHA",
+            "\(fixture)/catalog/info?id=9",
         ]
         for raw in accepted {
             let parsed = try url(raw)
@@ -58,6 +62,12 @@ final class UniversalLinkParserTests: XCTestCase {
             "https://example.test/merchant/team?invite=synthetic-token",
             "https://example.test/no-such-route",
             "https://example.test/pages/activity/detail/index?id=0",
+            "https://example.test/catalog/map",
+            "https://example.test/catalog/ids?ids=9",
+            "https://example.test/catalog/city/list",
+            "https://example.test/catalog/info",
+            "https://example.test/catalog/info?id=9&pay=1",
+            "https://example.test/catalog?quote=1",
         ]
         for raw in rejected {
             let parsed = try url(raw)

@@ -461,6 +461,7 @@
         "ProjectThoughtDefinitionsEditorTests",
         "ProjectTicketMeetingPointTests",
         "ProjectTopicMediaPresentationTests",
+        "PublicCatalogViewsTests",
         "PublicMerchantFixtureOwnershipTests",
         "PublicMerchantHomeBusinessStateViewTests",
         "PublicTemplateCompositionTests",
