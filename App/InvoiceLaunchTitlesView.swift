@@ -19,7 +19,7 @@ import SwiftUI
     var body: some View {
         let facts = titleFacts
         List {
-            InvoiceLaunchStateSection(model: model)
+            InvoiceLaunchStateSection(model: model, sessionTitle: "u9cde.invoice.login.titles")
             if facts.readOnly, let key = facts.readOnlyKey {
                 Section { invoiceText(key).foregroundStyle(.secondary) }
                     .accessibilityIdentifier(facts.readOnlyIdentifier ?? "invoice.titlesReadOnly")

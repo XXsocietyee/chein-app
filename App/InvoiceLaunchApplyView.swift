@@ -39,7 +39,7 @@ struct InvoiceLaunchApplyIntent {
     }
     var body: some View {
         List {
-            InvoiceLaunchStateSection(model: model)
+            InvoiceLaunchStateSection(model: model, sessionTitle: "u9cde.invoice.login.apply")
             if let overview = model.overview, !applyPage.hidden {
                 Section {
                     Button { choosingTitle = true } label: {

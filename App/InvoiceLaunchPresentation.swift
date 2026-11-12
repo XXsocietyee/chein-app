@@ -186,6 +186,8 @@ func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
 @MainActor struct InvoiceLaunchStateSection: View {
     @ObservedObject var model: InvoiceLaunchPresentation
     var retry: (() async -> Void)? = nil
+    /// Source signed-out state title per page (登录后查看发票 / 登录后申请开票 / 登录后管理发票抬头).
+    var sessionTitle: LocalizedStringKey = "u9cde.invoice.login.view"
     var body: some View {
         if model.unresolved {
             Section {
@@ -196,7 +198,13 @@ func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
                     .listRowBackground(Color.clear)
             }
         }
-        if let issue = model.issue {
+        if model.issue == "session" {
+            // Source cy-empty kind="no-permission": lock icon and the page's 登录后… title.
+            ContentUnavailableView {
+                Label { Text(sessionTitle) } icon: { Image(systemName: "lock") }
+            } description: { invoiceText("session") }
+                .accessibilityIdentifier("invoice.signedOut")
+        } else if let issue = model.issue {
             ContentUnavailableView {
                 Label { invoiceText(issue) } icon: { Image(systemName: "exclamationmark.circle") }
             } actions: {

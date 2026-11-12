@@ -16,6 +16,18 @@ S = {
     'u9cde.clubEnroll.subLine %@ %lld': ('%1$@ · %2$lld groups', '%1$@ · %2$lld 个团'),
     'u9cde.clubEnroll.subLineMine %lld': ('My club · %lld groups', '我的俱乐部 · %lld 个团'),
     'u9cde.clubEnroll.signups %lld': ('%lld registered', '已报名 %lld 人'),
+    # D01-D05 subpackageMember/order
+    'u9cde.orders.payable': ('Due:', '待付款：'),
+    # D12b-D12k invoice signed-out states
+    'u9cde.invoice.login.view': ('Sign in to view invoices', '登录后查看发票'),
+    'u9cde.invoice.login.apply': ('Sign in to request an invoice', '登录后申请开票'),
+    'u9cde.invoice.login.titles': ('Sign in to manage invoice titles', '登录后管理发票抬头'),
+    # D17/D18/E27 subpackageMember/coupon-qr
+    'u9cde.coupon.autoRefresh %@': ('Code refreshes in %@s', '二维码 %@s 后自动刷新'),
+    'u9cde.coupon.failed': ("Couldn't generate the QR code. Try again later.", '二维码暂时没能生成，请稍后重试'),
+    'u9cde.coupon.used': ('Redeemed', '已核销'),
+    # D23 subpackageMember/myinvite
+    'u9cde.invite.points %@': ('+%@ points', '+%@ 积分'),
 }
 
 

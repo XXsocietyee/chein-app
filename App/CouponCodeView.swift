@@ -26,8 +26,17 @@ extension EnvironmentValues {
         return ScrollView {
             VStack(spacing: 20) {
                 if model.ownerIsCurrent {
-                    if let name = model.couponName { Text(verbatim: name).font(.title2) }
-                    if let description = model.couponDescription { Text(verbatim: description) }
+                    // Source coupon-qr head card: coupon name over its usage note.
+                    if model.couponName != nil || model.couponDescription != nil {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            if let name = model.couponName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            if let description = model.couponDescription { Text(verbatim: description).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(CYSpacing.lg)
+                        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .accessibilityElement(children: .combine)
+                    }
                     // Source parity: validity is shown on the expired result only.
                     if model.phase == .expired, let end = AccountCollectionCoupon.calendarDay(model.endTime) {
                         LabeledContent("accountCollection.coupon.validUntil") { Text(verbatim: end) }
@@ -91,14 +100,21 @@ extension EnvironmentValues {
                     Image(uiImage: image).resizable().interpolation(.none).scaledToFit().frame(width: 240, height: 240)
                         .padding(24).background(.white).accessibilityLabel("couponCode.image")
                 } else { Text("couponCode.renderFailed") }
+                // Source: 二维码 Ns 后自动刷新 under the code. Page model countdown: hidden or unknown is an em dash, a displayed 0 stays 0.
+                Group {
+                    if model.remainingText == "—" {
+                        LabeledContent("couponCode.remaining") { Text(verbatim: model.remainingText) }
+                    } else {
+                        Text("u9cde.coupon.autoRefresh \(model.remainingText)").monospacedDigit()
+                            .contentTransition(reduceMotion ? .identity : .numericText(countsDown: true))
+                            .animation(reduceMotion ? nil : CYMotion.standard, value: model.remainingText)
+                    }
+                }
+                .font(CYTypography.meta).foregroundStyle(.secondary)
+                .accessibilityIdentifier("couponCode.remaining")
                 Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
-                // Page model countdown: hidden or unknown is an em dash, a displayed 0 stays 0.
-                LabeledContent("couponCode.remaining") {
-                    Text(verbatim: model.remainingText).monospacedDigit()
-                        .contentTransition(reduceMotion ? .identity : .numericText(countsDown: true))
-                        .animation(reduceMotion ? nil : CYMotion.standard, value: model.remainingText)
-                }.accessibilityIdentifier("couponCode.remaining")
                 retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
             }
         case .loading: ProgressView("couponCode.loading")
         case .waiting:
@@ -110,15 +126,27 @@ extension EnvironmentValues {
             retryButton("couponCode.fetchAgain", identifier: "couponCode.fetchAgain", presentation: presentation, appearance: appearance)
         case .paused: Label("couponCode.paused", systemImage: "pause.circle")
         case .failed:
-            ContentUnavailableView("couponCode.failed", systemImage: "exclamationmark.triangle", description: Text("couponCode.failed.detail"))
+            // Source: 二维码暂时没能生成，请稍后重试 with one 重试 pill.
+            ContentUnavailableView("u9cde.coupon.failed", systemImage: "exclamationmark.triangle")
             Button("action.retry") {
                 guard let offer = model.offerRetry(presentation: presentation) else { return }
                 appearance.actionTask?.cancel()
                 appearance.actionTask = Task { await model.retry(permit: offer) }
-            }
+            }.buttonStyle(.questifyPrimary)
         case .used:
-            Label("couponCode.used", systemImage: "checkmark.seal.fill").font(.title2)
-            if let time = model.useTime { Text(verbatim: time) }
+            // Source used state: a large success disc, 已核销, then the redemption time.
+            VStack(spacing: CYSpacing.md) {
+                Image(systemName: "checkmark.circle")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(CYNight.ink0)
+                    .frame(width: 64, height: 64)
+                    .background(Circle().fill(CYNight.verify))
+                    .accessibilityHidden(true)
+                Text("u9cde.coupon.used").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                if let time = model.useTime { Text(verbatim: time).font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary) }
+            }
+            .padding(.top, CYSpacing.xxl)
+            .accessibilityElement(children: .combine)
         case .expired: Label("couponCode.expired", systemImage: "clock.badge.xmark")
         case .invalid: Label("couponCode.invalid", systemImage: "xmark.seal")
         case .unavailable: Label("couponCode.unavailable", systemImage: "nosign")

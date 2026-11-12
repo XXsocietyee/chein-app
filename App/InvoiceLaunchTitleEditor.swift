@@ -40,7 +40,7 @@ import SwiftUI
     }
     var body: some View {
         Form {
-            InvoiceLaunchStateSection(model: model)
+            InvoiceLaunchStateSection(model: model, sessionTitle: "u9cde.invoice.login.titles")
             if saveLocked {
                 Section {
                     invoiceText("unknown")

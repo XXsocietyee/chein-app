@@ -62,16 +62,26 @@ import SwiftUI
             .accessibilityIdentifier("social.invites")
     }
     private func memberRow(_ member: SocialInvitedMember) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            if let nickname = member.nickname { Text(verbatim: nickname).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
-            else { Text("profile.inviteHistory.nicknameUnknown").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
-            ProfileInviteTimelineDates(invitationTime: member.createdAt,
-                reward: model.scan?.rewards[String(member.id)])
-            if let reward = model.scan?.rewards[String(member.id)] {
-                CYStatusChip("social.invites.earned", tone: .success, systemImage: "checkmark")
-                LabeledContent("social.invites.points", value: NSDecimalNumber(decimal: reward.points).stringValue)
-                    .font(CYTypography.numericBody).monospacedDigit()
-            } else { CYStatusChip(LocalizedStringKey(model.scan?.isComplete == true ? "social.invites.pending" : "social.invites.synchronizing"), tone: .neutral, systemImage: "clock") }
+        // Source myinvite row: initial avatar, name over the timeline line, reward chip on the right.
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            CYAvatarView(name: member.nickname ?? "—", size: .md)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                if let nickname = member.nickname { Text(verbatim: nickname).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
+                else { Text("profile.inviteHistory.nicknameUnknown").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
+                ProfileInviteTimelineDates(invitationTime: member.createdAt,
+                    reward: model.scan?.rewards[String(member.id)])
+            }
+            Spacer(minLength: CYSpacing.sm)
+            VStack(alignment: .trailing, spacing: CYSpacing.xs) {
+                if let reward = model.scan?.rewards[String(member.id)] {
+                    // Source reward pill: +N 积分.
+                    Text("u9cde.invite.points \(NSDecimalNumber(decimal: reward.points).stringValue)")
+                        .font(CYTypography.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
+                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                        .background(Capsule().fill(CYNight.glassFill))
+                    CYStatusChip("social.invites.earned", tone: .success, systemImage: "checkmark")
+                } else { CYStatusChip(LocalizedStringKey(model.scan?.isComplete == true ? "social.invites.pending" : "social.invites.synchronizing"), tone: .neutral, systemImage: "clock") }
+            }
         }.accessibilityElement(children: .combine)
     }
 }

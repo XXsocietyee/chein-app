@@ -133,32 +133,23 @@ private struct ProfileOrderRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
-        // Source row order: 订单号 + state → mode tag → name → time → place → 实付款 → 查看详情.
+        // Source V3-22 card: cover | mode tag + state / name / time / place, then the 实付款 (待付款) line and its action.
+        // The order number lives on the detail page only.
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            header
-            Divider().overlay(CYColor.borderSubtle)
             content
+            if let explanation = UnknownPaymentState.explanation(payment: order.paymentStatus, registration: order.registrationStatus) {
+                Text(verbatim: explanation).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("profile.orders.history.unknownPayment")
+            }
             Divider().overlay(CYColor.borderSubtle)
             footer
         }
         .orderCardSurface()
     }
-    private var header: some View {
-        // Number on its own line (never truncated next to a wide chip); the status chip sits on the line below.
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            if let number = order.registrationNo, !number.isEmpty {
-                Text("profile.orders.number \(number)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    .lineLimit(3).fixedSize(horizontal: false, vertical: true)
-            }
-            OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
-                            systemImage: Self.symbol(historyState),
-                            emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress)
-            if let explanation = UnknownPaymentState.explanation(payment: order.paymentStatus, registration: order.registrationStatus) {
-                Text(verbatim: explanation).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    .accessibilityIdentifier("profile.orders.history.unknownPayment")
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    private var stateChip: some View {
+        OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
+                        systemImage: Self.symbol(historyState),
+                        emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress)
     }
     private var content: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
@@ -166,12 +157,10 @@ private struct ProfileOrderRow: View {
                 OrderCoverTile(systemImage: order.sourceMode == .freeExplore ? "figure.walk" : "map", seed: order.title ?? "")
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
-                switch order.sourceMode {
-                case .cityOrienteering?:
-                    Text("profile.orders.mode.city").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.infoText)
-                case .freeExplore?:
-                    Text("profile.orders.mode.free").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.successText)
-                case nil: EmptyView()
+                // Source moh-head: mode tag on the left, order state on the right.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) { modeTag; Spacer(minLength: CYSpacing.xs); stateChip }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) { modeTag; stateChip }
                 }
                 Group {
                     if let title = order.title, !title.isEmpty { Text(verbatim: title) }
@@ -191,6 +180,15 @@ private struct ProfileOrderRow: View {
             }
         }
     }
+    @ViewBuilder private var modeTag: some View {
+        switch order.sourceMode {
+        case .cityOrienteering?:
+            Text("profile.orders.mode.city").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.infoText)
+        case .freeExplore?:
+            Text("profile.orders.mode.free").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.successText)
+        case nil: EmptyView()
+        }
+    }
     private func meta(_ text: Text, _ symbol: String) -> some View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).frame(width: 16).accessibilityHidden(true) }
             .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
@@ -201,14 +199,21 @@ private struct ProfileOrderRow: View {
         return layout {
             // Source 实付款 ¥x; an unknown amount shows "—", never a currency caveat.
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                Text("profile.orders.paid").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                // Source: 待付款 while registrationStatus == 1, otherwise 实付款.
+                Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
                     .font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
                     .lineLimit(1).minimumScaleFactor(0.6)
             }
             if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             // Visual label only: the whole card is the NavigationLink, so there is a single control.
-            OrderPillLabel(title: Text(verbatim: c.t("查看详情", "View details")))
+            // Source shows 查看详情 for pending/registered orders, 查看退款详情 for refunds, and nothing on closed orders.
+            // 立即支付 / 取消订单 stay on the detail page behind the payment gate.
+            if historyState == .refunding || historyState == .refunded {
+                OrderPillLabel(title: Text(verbatim: c.t("查看退款详情", "View refund details")))
+            } else if order.registrationStatus == 1 || order.registrationStatus == 2 {
+                OrderPillLabel(title: Text(verbatim: c.t("查看详情", "View details")))
+            }
         }
     }
     /// The symbol and label carry the state together, never colour alone.

@@ -164,35 +164,47 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
 }
 private struct ParticipationRow: View {
     let record: ParticipationRecord
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        // Source mycanyu row: state badge above the name, "MM.DD - MM.DD", then "type · address".
-        VStack(alignment: .leading, spacing: 8) {
+        // Source mycanyu card: cover on the left, then state badge, name, "MM.DD – MM.DD" and "type · address" on the right.
+        // Accessibility sizes stack the cover above the text so the name never squeezes.
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+                                                  : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
+        layout {
             // Source cover: imgUrl || imgArr, else the default route cover; iOS shows a neutral placeholder.
-            if let url = QuestifyCardArtwork.safeURL(record.cover) {
-                QuestifyCardArtwork(url: url, height: 120).accessibilityIdentifier("playerJourney.row.cover")
-            } else {
-                ParticipationCoverPlaceholder()
+            Group {
+                if let url = QuestifyCardArtwork.safeURL(record.cover) {
+                    QuestifyCardArtwork(url: url, height: 136).accessibilityIdentifier("playerJourney.row.cover")
+                } else {
+                    ParticipationCoverPlaceholder()
+                }
             }
-            ParticipationStatusBadge(status: record.participationStatus(), detail: false)
-            if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.sourceUntitled").font(.headline) }
-            Label {
-                if let range = ParticipationDateText.range(start: record.order.ownerStartDate, end: record.order.ownerEndDate) { Text(verbatim: range) }
-                else { Text("playerJourney.timeTBD") }
-            } icon: { Image(systemName: "calendar") }
-            Label {
-                Text(LocalizedStringKey(record.modeKey))
-                    + Text(verbatim: " · ")
-                    + (record.address.map { Text(verbatim: $0) } ?? Text("playerJourney.placeTBD"))
-            } icon: { Image(systemName: "mappin.and.ellipse") }
-            .font(.subheadline).foregroundStyle(.secondary)
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+            .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : 150)
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                ParticipationStatusBadge(status: record.participationStatus(), detail: false)
+                if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.sourceUntitled").font(.headline) }
+                Label {
+                    if let range = ParticipationDateText.range(start: record.order.ownerStartDate, end: record.order.ownerEndDate) { Text(verbatim: range).monospacedDigit() }
+                    else { Text("playerJourney.timeTBD") }
+                } icon: { Image(systemName: "clock") }
+                .font(.subheadline).foregroundStyle(.secondary)
+                Label {
+                    Text(LocalizedStringKey(record.modeKey))
+                        + Text(verbatim: " · ")
+                        + (record.address.map { Text(verbatim: $0) } ?? Text("playerJourney.placeTBD"))
+                } icon: { Image(systemName: "mappin.and.ellipse") }
+                .font(.subheadline).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
     }
 }
 /// Never invented artwork: a fixed symbol when the source cover is absent or not https.
 private struct ParticipationCoverPlaceholder: View {
     var body: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .tertiarySystemFill))
-            .frame(height: 120).frame(maxWidth: .infinity)
+        RoundedRectangle(cornerRadius: 14, style: .continuous).fill(CYNight.ink2)
+            .frame(height: 136).frame(maxWidth: .infinity)
             .overlay { Image(systemName: "map").font(.title2).foregroundStyle(.secondary) }
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")
     }
@@ -248,13 +260,6 @@ private struct ParticipationCoverPlaceholder: View {
                     }
                 }
                 Section {
-                    if let target = detail.record.playEntry {
-                        Button("playerJourney.start", systemImage: "play.fill") { open(.play(target)) }
-                            .accessibilityIdentifier("playerJourney.start")
-                    } else {
-                        Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }
-                            .accessibilityIdentifier("playerJourney.start.ticketWallet")
-                    }
                     NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycle).id(lifecycle.scope) } label: {
                         Label(detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")
                     }.accessibilityIdentifier("playerJourney.orderLifecycle")
@@ -270,6 +275,23 @@ private struct ParticipationCoverPlaceholder: View {
                 }
             }
         }.cyGroupedSurface().navigationTitle("playerJourney.detail").navigationBarTitleDisplayMode(.inline)
+        // Source mycanyuinfo: 开始游戏 is the one filled action, pinned to the bottom of the page.
+        .safeAreaInset(edge: .bottom) {
+            if let detail {
+                Group {
+                    if let target = detail.record.playEntry {
+                        Button { open(.play(target)) } label: { Label("playerJourney.start", systemImage: "play.fill").frame(maxWidth: .infinity) }
+                            .accessibilityIdentifier("playerJourney.start")
+                    } else {
+                        Button { open(.ticketWallet) } label: { Label("playerJourney.start", systemImage: "ticket").frame(maxWidth: .infinity) }
+                            .accessibilityIdentifier("playerJourney.start.ticketWallet")
+                    }
+                }
+                .buttonStyle(.cyPrimary).controlSize(.large)
+                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
+                .background(.bar)
+            }
+        }
         .task(id: reader.scope) { detail = nil; await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
