@@ -147,13 +147,13 @@ struct OnboardingFlow: View {
         ZStack {
             OnboardingBackdrop(stepIndex: step.rawValue)
             GeometryReader { geo in
-            // The disc is the star: ~72 % of the screen width (50 % at AX1+), centred at ~35 % of the screen height,
-            // capped by 34 % of the height so short phones keep the copy and pill on screen.
+            // The night map is the star: ~88 % of the screen width (56 % at AX1+), centred at ~32 % of the
+            // screen height, capped by 48 % of the height so the copy and the primary pill stay on screen.
             let screenH = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
-            let wide = typeSize >= .accessibility1 ? 0.50 : 0.72
-            let disc = min(geo.size.width * wide, screenH * 0.34, 380)
-            let heroH = disc / 0.82
-            let topPad = max(0, screenH * 0.35 - geo.safeAreaInsets.top - 44 - heroH / 2)
+            let wide = typeSize >= .accessibility1 ? 0.56 : 0.88
+            let disc = min(geo.size.width * wide, screenH * 0.48, 520)
+            let heroH = disc / 0.92
+            let topPad = max(0, screenH * 0.32 - geo.safeAreaInsets.top - 44 - heroH / 2)
             VStack(spacing: 0) {
                 topBar
                 if !heroHidden {
@@ -374,7 +374,7 @@ struct OnboardingHero: View {
     var body: some View {
         GeometryReader { geo in
             let base = min(geo.size.width, geo.size.height)
-            let size = base * (step.isFinal ? 0.62 : 0.82)
+            let size = base * (step.isFinal ? 0.78 : 0.92)
             ZStack {
                 CityDisc(tilt: reduceMotion ? .zero : tilt, softSpecular: !reduceTransparency)
                     .frame(width: size, height: size)
@@ -470,9 +470,12 @@ struct FogWindow: View {
     @State private var ring = false
 
     var body: some View {
-        let inner = size * 0.86
+        let inner = size * 0.96
+        let drift = reduceMotion ? CGSize.zero : CGSize(
+            width: tilt.width + CGFloat(gyro.roll) * 0.35,
+            height: tilt.height + CGFloat(gyro.pitch) * 0.25)
         ZStack {
-            OBNightMap(lit: revealed)
+            OBNightMap(lit: revealed, drift: drift)
                 .frame(width: inner, height: inner)
                 .clipShape(Circle())
             Circle()

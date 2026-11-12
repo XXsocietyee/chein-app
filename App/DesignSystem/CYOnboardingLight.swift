@@ -382,10 +382,12 @@ extension View {
 
 // MARK: - Night map
 
-/// The fogged city seen at night: indigo ground, a faint street grid, lantern-gold avenues. Lit = avenues at 60 %
-/// with a soft glow; unlit (under fog) = 30 %. No hue outside indigo / lantern.
+/// The fogged city seen at night: indigo ground, a faint street grid, lantern-gold avenues.
+/// `drift` (already-clamped tilt / gyro, about -1...1) parallaxes the streets. Lit avenues burn;
+/// under fog they stay dim. Reduce Motion ignores drift. No hue outside indigo / lantern.
 struct OBNightMap: View {
     var lit: Bool
+    var drift: CGSize = .zero
     @QuestifyReduceMotion private var reduceMotion
 
     // Avenues as unit-space polylines (x, y), smoothed with quad curves through midpoints.
@@ -398,8 +400,16 @@ struct OBNightMap: View {
     ]
 
     var body: some View {
+        let shift = reduceMotion ? CGSize.zero : CGSize(width: drift.width * 22, height: drift.height * 14)
         ZStack {
-            LinearGradient(colors: [CYNight.indigo, CYNight.ink1], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [CYNight.indigo, CYNight.ink0], startPoint: .top, endPoint: .bottom)
+            // Horizon: one lantern source behind the map, never over type.
+            Ellipse()
+                .fill(CYNight.lantern.opacity(lit ? 0.22 : 0.07))
+                .frame(height: 90)
+                .blur(radius: 22)
+                .offset(x: shift.width * 0.4, y: 36)
+                .allowsHitTesting(false)
             Canvas { ctx, size in
                 // Faint grid, rotated a little so it reads as streets, not graph paper.
                 var grid = Path()
@@ -425,15 +435,16 @@ struct OBNightMap: View {
                     }
                     path.addLine(to: p[p.count - 1])
                     ctx.drawLayer { l in
-                        l.addFilter(.blur(radius: 4))
-                        l.stroke(path, with: .color(CYNight.lantern.opacity(0.5)), lineWidth: 5)
+                        l.addFilter(.blur(radius: lit ? 7 : 3))
+                        l.stroke(path, with: .color(CYNight.lantern.opacity(lit ? 0.85 : 0.28)), lineWidth: lit ? 8 : 4)
                     }
-                    ctx.stroke(path, with: .color(CYNight.lanternHot.opacity(0.9)), lineWidth: 1.2)
+                    ctx.stroke(path, with: .color(CYNight.lanternHot.opacity(lit ? 0.95 : 0.35)), lineWidth: lit ? 1.6 : 0.8)
                 }
             }
-            .opacity(lit ? 0.6 : 0.3)
+            .opacity(lit ? 1 : 0.72)
+            .offset(shift)
             .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9), value: lit)
-            RadialGradient(colors: [CYNight.lantern.opacity(lit ? 0.12 : 0.04), .clear], center: .center, startRadius: 0, endRadius: 140)
+            RadialGradient(colors: [CYNight.lantern.opacity(lit ? 0.20 : 0.05), .clear], center: UnitPoint(x: 0.5 + shift.width / 400, y: 0.42), startRadius: 0, endRadius: 180)
         }
     }
 }
