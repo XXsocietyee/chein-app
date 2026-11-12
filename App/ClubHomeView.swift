@@ -126,16 +126,21 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     CYSectionHeader("club.events")
                     if home.events.isEmpty {
                         CYEmptyState(systemImage: "flag.checkered", "club.emptyEvents", messageIdentifier: "club.home.events.empty")
+                            .modifier(ClubNightGlass())
                     }
-                    ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
-                        if let topicDestination, event.id > 0 {
-                            NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }
-                                .accessibilityIdentifier("club.event.\(event.id)")
-                        } else if let onTopicDestination {
-                            Button { onTopicDestination(event.id) } label: { eventRow(event, page: page) }
-                                .buttonStyle(.cyPressable)
-                                .accessibilityIdentifier("club.event.\(event.id)")
-                        } else { eventRow(event, page: page) }
+                    ForEach(Array(home.events.enumerated()), id: \.offset) { index, event in
+                        Group {
+                            if let topicDestination, event.id > 0 {
+                                NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }
+                                    .accessibilityIdentifier("club.event.\(event.id)")
+                            } else if let onTopicDestination {
+                                Button { onTopicDestination(event.id) } label: { eventRow(event, page: page) }
+                                    .buttonStyle(.cyPressable)
+                                    .accessibilityIdentifier("club.event.\(event.id)")
+                            } else { eventRow(event, page: page) }
+                        }
+                        .modifier(ClubNightGlass())
+                        .modifier(ClubRowReveal(index: index))
                     }
                 }
             }
@@ -170,6 +175,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private var playerEmpty: some View {
         let keys = ClubTabPresentation.emptyKeys(merchant: false)
         return CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title), messageIdentifier: "clubTab.empty")
+            .modifier(ClubNightGlass())
     }
     /// Merchant-only status above the list. Ready state becomes the list's section header instead.
     @ViewBuilder private var localityStatus: some View {
@@ -184,13 +190,14 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         case .unavailable:
             Section {
                 CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
+                    systemImage: "wifi.slash",
                     "club.locality.unavailable",
                     messageIdentifier: "club.home.locality.unavailable",
                     actionTitle: "action.retry",
                     actionIdentifier: "club.home.locality.retry",
-                    kind: .failure
+                    kind: .offline
                 ) { Task { await loadLocality() } }
+                .modifier(ClubNightGlass())
             }
         case .ready:
             EmptyView()
@@ -202,8 +209,10 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 CYEmptyState(
                     systemImage: "mappin.and.ellipse",
                     LocalizedStringKey(locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby"),
-                    messageIdentifier: "club.home.nearby.empty"
+                    messageIdentifier: "club.home.nearby.empty",
+                    kind: locality.phase(in: discoveryScope) == .ready ? nil : .offline
                 )
+                .modifier(ClubNightGlass())
             }
             clubRows(rows, identifier: "club.home.nearby", section: .nearby, page: page)
         } header: {
@@ -275,6 +284,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 ClubTabTagLine(club: club, section: section,
                                topicCount: section == .nearby ? nil : page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)
             }
+            .modifier(ClubRowReveal(index: index))
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
@@ -340,5 +350,39 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         let raw = await body
         let page = raw.map { ClubTabPageModel.project(homeBody: $0, merchant: discoveryScope.isMerchantViewer) }
         return ClubTabLoaded(home: home, page: page.flatMap { $0.phase == .ready || $0.phase == .empty ? $0 : nil })
+    }
+}
+
+/// Night glass plate for list chrome (events, empty, offline). Join cards keep their own face.
+private struct ClubNightGlass: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(CYSpacing.sm)
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(CYNight.glassFill)
+                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+            }
+    }
+}
+
+/// Rows rise in order. Reduce Motion shows them in place.
+private struct ClubRowReveal: ViewModifier {
+    let index: Int
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var shown = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown || reduceMotion ? 0 : 12)
+            .onAppear {
+                guard !shown else { return }
+                if reduceMotion {
+                    shown = true
+                } else {
+                    withAnimation(CYMotion.entrance.delay(Double(min(index, 7)) * 0.04)) { shown = true }
+                }
+            }
     }
 }
