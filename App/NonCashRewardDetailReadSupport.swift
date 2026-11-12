@@ -120,13 +120,20 @@ struct NonCashRewardReadFactsView: View {
         }
     }
     private func sourceValue(_ label: String, value: String, id: String) -> some View {
-        LabeledContent(LocalizedStringKey(label)) {
-            Text(verbatim: value).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(id)
+        let shown = Text(verbatim: value)
+        return LabeledContent(LocalizedStringKey(label)) {
+            shown.fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel(Text(LocalizedStringKey(label)) + Text(verbatim: ", ") + shown)
+                .accessibilityIdentifier(id)
         }.font(Theme.Font.body).padding(.vertical, Theme.Space.s1).accessibilityElement(children: .contain)
     }
     private func fact(_ availability: NonCashRewardDetailProjection.FactAvailability, id: String) -> some View {
+        let labelKey = id.hasSuffix(".value") ? String(id.dropLast(".value".count)) : id
         switch availability {
-        case .notProvided: return Text("rewards.read.notProvided").accessibilityIdentifier(id)
+        case .notProvided:
+            return Text("rewards.read.notProvided")
+                .accessibilityLabel(Text(LocalizedStringKey(labelKey)) + Text(verbatim: ", ") + Text("rewards.read.notProvided"))
+                .accessibilityIdentifier(id)
         }
     }
 }

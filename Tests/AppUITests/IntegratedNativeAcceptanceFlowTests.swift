@@ -96,26 +96,18 @@ import XCTest
     }
 
 
+    @discardableResult private func openRoamOverflow(_ app: XCUIApplication) -> Bool {
+        let menu = app.buttons["roam.more"]
+        guard menu.waitForExistence(timeout: 5), menu.isEnabled, menu.isHittable, !menu.frame.isEmpty,
+              app.frame.contains(menu.frame) else {
+            XCTFail("Expected the visible Roam overflow menu. " + app.debugDescription); return false
+        }
+        menu.tap()
+        return true
+    }
     private func tapRoamOverflowToggle(_ app: XCUIApplication) {
-        let navigation = app.navigationBars["Roam"]
-        let city = navigation.buttons["Official city"]
-        guard navigation.exists, city.exists, city.isEnabled, city.isHittable else {
-            XCTFail("Expected the visible Explore city toolbar anchor. " + app.debugDescription); return
-        }
-        // Actual run101 PNG shows the system overflow leaf to the right of City.
-        // Do not guess its localized title or tap a hidden destination directly.
-        let leaves = navigation.buttons.allElementsBoundByIndex.filter {
-            let frame = $0.frame
-            return $0.descendants(matching: .button).count == 0 && !frame.isEmpty
-                && frame.minX >= city.frame.maxX && navigation.frame.contains(frame)
-                && app.frame.contains(frame) && $0.isEnabled && $0.isHittable
-        }
-        guard leaves.count == 1, let overflow = leaves.first else {
-            XCTFail("Expected one trailing native overflow action. " + app.debugDescription); return
-        }
-        overflow.tap()
-        // Both run108 ready/denied AX trees expose this visible menu label, but
-        // the system overflow clone does not retain roam.display.toggle.
+        guard openRoamOverflow(app) else { return }
+        // The system menu clone does not retain roam.display.toggle.
         // launch() fixes en/en_US, and both journeys select list before any area.
         let exact = app.buttons.matching(NSPredicate(format: "label == %@", "Show list only"))
         guard exact.firstMatch.waitForExistence(timeout: 5), exact.count == 1 else {
@@ -220,7 +212,16 @@ import XCTest
         let button = app.tabBars.buttons[title]; XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
     }
     private func chooseManualArea(_ app: XCUIApplication) {
-        tap("roam.chooseArea", app)
+        guard openRoamOverflow(app) else { return }
+        let labeled = app.buttons.matching(NSPredicate(format: "label == %@", "Choose a search area"))
+        guard labeled.firstMatch.waitForExistence(timeout: 5), labeled.count == 1 else {
+            XCTFail("Native overflow must expose exactly one Choose a search area action. " + app.debugDescription); return
+        }
+        let area = labeled.element(boundBy: 0)
+        guard area.isEnabled, area.isHittable else {
+            XCTFail("The exact native Choose a search area action is not visible and enabled. " + app.debugDescription); return
+        }
+        area.tap()
         for (field, value) in [("latitude", "31.2"), ("longitude", "121.5"), ("name", "Synthetic manual area")] {
             let input = app.textFields["roam.area.\(field).input"]
             XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText(value)
@@ -236,6 +237,16 @@ import XCTest
         XCTAssertFalse(app.staticTexts["Owner \(owner) list snapshot"].exists)
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
     }
+    /// Settings presents CYConfirmSheet (confirm + cancel). The title and the destructive confirm stay required.
+    private func confirmSignOut(_ app: XCUIApplication) {
+        let title = app.staticTexts["Sign out of this account?"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5), app.debugDescription)
+        let confirm = app.buttons["settings.signOut.confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertTrue(confirm.isEnabled)
+        XCTAssertEqual(confirm.label, "Sign out")
+        confirm.tap()
+    }
 
     /// Actual SettingsView, reached through the normal Account toolbar and sheet.
     /// The existing integrated fixture deliberately supplies no favorites grants.
@@ -245,7 +256,7 @@ import XCTest
         let app = launch(); signIn(app)
         tab("Passport", app)
         let favoritesTabs = app.segmentedControls["accountCollection.favorites.tabs"]
-        let unavailable = app.staticTexts["Collections aren't available right now."]
+        let unavailable = app.staticTexts["Favorites can't be shown right now."]
         func expectDismissed(_ element: XCUIElement) {
             let absent = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
             XCTAssertEqual(XCTWaiter.wait(for: [absent], timeout: 5), .completed, app.debugDescription)
@@ -258,20 +269,14 @@ import XCTest
             XCTAssertTrue(app.buttons["settingsNative.openFavorites"].waitForExistence(timeout: 5))
             XCTAssertFalse(favoritesTabs.exists, "Reopening Settings must not restore a stale collection")
 
-            // Returning from Topics must consume the old route and local tab state.
+            // No favorites grant: the segmented control stays hidden and no removal or retry is offered.
             for _ in 0..<2 {
                 tap("settingsNative.openFavorites", app)
-                XCTAssertTrue(favoritesTabs.waitForExistence(timeout: 5))
-                XCTAssertTrue(favoritesTabs.buttons["Posts"].isSelected,
-                              "A fresh collection route starts on Posts")
                 XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
+                XCTAssertFalse(favoritesTabs.exists, "Unconfigured favorites stay closed")
                 XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
                 XCTAssertFalse(app.buttons.matching(NSPredicate(
                     format: "identifier BEGINSWITH %@", "profile.favoriteRemoval.")).firstMatch.exists)
-                favoritesTabs.buttons["Topics"].tap()
-                XCTAssertTrue(favoritesTabs.buttons["Topics"].isSelected)
-                XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
-                XCTAssertFalse(app.buttons["accountCollection.retry"].exists)
 
                 // Scope the native Back button to the destination navigation bar.
                 let back = app.navigationBars["Favorites"].buttons["Settings"]
@@ -282,7 +287,7 @@ import XCTest
             }
             tap("Done", app)
             expectDismissed(app.buttons["settingsNative.openFavorites"])
-            XCTAssertTrue(app.navigationBars["Account"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.navigationBars["Passport"].waitForExistence(timeout: 5))
             expectDismissed(favoritesTabs)
         }
         // Evidence is read after sheet dismissal, when the normal root is accessible.
@@ -312,9 +317,7 @@ import XCTest
         XCTAssertLessThan(merchant.frame.minY, guide.frame.minY)
         XCTAssertLessThan(guide.frame.minY, favorites.frame.minY)
         tap("settings.signOut", app)
-        let confirmation = app.sheets["Sign out of this account?"]
-        XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
-        tapFixtureSheetAction("Sign out", in: confirmation, app: app)
+        confirmSignOut(app)
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertFalse(app.tabBars.firstMatch.exists)
         wait(app) { $0.ledger.last?.route == "logout" }
@@ -416,10 +419,10 @@ import XCTest
         let listBack = app.navigationBars["My orders"].buttons.firstMatch
         XCTAssertTrue(listBack.waitForExistence(timeout: 5)); listBack.tap()
         XCTAssertTrue(app.buttons["profile.open.orders"].waitForExistence(timeout: 5))
-        tap("Sign out", app)
-        let confirmation = app.sheets["Sign out of this account?"]
-        XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
-        tapFixtureSheetAction("Sign out", in: confirmation, app: app)
+        tap("Settings", app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        tap("settings.signOut", app)
+        confirmSignOut(app)
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout: 5))
         wait(app) { $0.ledger.last?.route == "logout" }
         let loggedOut = try evidence(app)

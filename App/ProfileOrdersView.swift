@@ -302,7 +302,9 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
                 }
                 ProfileOrderSourceDetailSections(order: order)
-                if let lifecycleCoordinator {
+                // A read-only host still receives a coordinator. The payment/refund screen is only
+                // reachable when that coordinator can dispatch or simulate; the identifier stays for the guard.
+                if let lifecycleCoordinator, lifecycleCoordinator.canDispatch || lifecycleCoordinator.canSimulate {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
                             Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
