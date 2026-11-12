@@ -48,17 +48,19 @@ struct CYNightTabBar: View {
     private func pillLayer(bottomInset: CGFloat) -> some View {
         GeometryReader { g in
             if sizeClass == .compact, !tabs.isEmpty {
-                let slot = g.size.width / CGFloat(tabs.count)
+                // iOS 26+ floats the bar with a side margin; the items share the width inside it, so the pill must too.
+                let inset: CGFloat = { if #available(iOS 26, *) { return 29 } else { return 0 } }()
+                let slot = (g.size.width - inset * 2) / CGFloat(tabs.count)
                 let y = g.size.height - bottomInset - barHeight / 2
                 ZStack(alignment: .topLeading) {
                     if rm {
                         ForEach(tabs, id: \.self) { tab in
-                            pill(width: slot - 20).position(x: x(tab, slot: slot), y: y).opacity(tab == selection ? 1 : 0)
+                            pill(width: slot - 20).position(x: inset + x(tab, slot: slot), y: y).opacity(tab == selection ? 1 : 0)
                         }
                     } else {
                         pill(width: slot - 20)
                             .scaleEffect(x: stretch, anchor: anchor)
-                            .position(x: x(landed ?? selection, slot: slot), y: y)
+                            .position(x: inset + x(landed ?? selection, slot: slot), y: y)
                     }
                 }
                 .animation(CYMotion.reduced, value: selection)
