@@ -18,8 +18,23 @@ import SwiftUI
             picker().labelsHidden().tint(CYColor.textSecondary)
         }.frame(minHeight: 48)
     }
+    /// Page model for `subpackageMember/free-explore/index`. Unknown money is an em dash, never 0.
+    private var screen: FreeExploreBundlePageReady.Screen {
+        let lane: FreeExploreBundlePageReady.Lane
+        switch model.state {
+        case .idle: lane = model.busy ? .loading : .idle
+        case .loading: lane = .loading
+        case .outcomeUnknown: lane = .outcomeUnknown
+        case .confirmed: lane = model.busy ? .loading : .confirmed
+        case .staleSession: lane = .staleSession
+        }
+        let kept: FreeExploreBundlePageReady.Snapshot? = (model.catalog == nil && model.order == nil)
+            ? nil : .init(catalog: model.catalog, order: model.order)
+        return FreeExploreBundlePageReady.screen(state: lane, failed: model.failure != nil, linkMissing: false, kept: kept)
+    }
     var body: some View {
-        CYCardPage {
+        let screen = screen
+        return CYCardPage {
             CYArtCoverHeader(title: text("title"), symbol: "shippingbox.fill", seed: "bundle") {
                 if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
                     Label { Text(verbatim: ChannelCopy.text("\(units) 个章节可预约", "\(units) chapters ready to book", locale: locale)) } icon: { Image(systemName: "ticket.fill") }
@@ -29,77 +44,31 @@ import SwiftUI
                 }
             }
         } content: {
-            if !model.current {
+            switch screen {
+            case .error(.stale):
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
-            } else {
-                if model.busy { ProgressView { text("loading") }.frame(maxWidth: .infinity).padding(CYSpacing.md) }
-                if model.failure != nil {
-                    CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
-                }
+            case .loading:
+                ProgressView { text("loading") }.frame(maxWidth: .infinity).padding(CYSpacing.md)
+                    .accessibilityIdentifier("freeBundle.loading")
+            case .empty:
+                CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
+                    .accessibilityIdentifier("freeBundle.empty")
+            case .error(.load):
+                CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
+                CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.load() } }
+                    .disabled(model.busy).accessibilityIdentifier("freeBundle.reload")
+            case .unknown:
                 if model.state == .outcomeUnknown {
                     CYInfoCard(title: text("unknown"), symbol: "clock.badge.questionmark") {
                         CYPillButton(LocalizedStringKey("recover"), style: .primary, tableName: table) { Task { await model.recover() } }.disabled(model.busy)
                         CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.retryOriginal() } }.disabled(!model.canRetry)
                     }
+                } else {
+                    // Nothing has arrived yet: not an empty shelf and not a price of 0.
+                    ProgressView { text("loading") }.frame(maxWidth: .infinity).padding(CYSpacing.md)
                 }
-                if model.state == .confirmed {
-                    CYNoteBanner(text: text("confirmed"), symbol: "checkmark.seal.fill", tone: .success)
-                }
-                if model.order?.bundle != nil {
-                    CYStepIndicator(titles: [ChannelCopy.text("选章节", "Chapter", locale: locale), ChannelCopy.text("选商家", "Store", locale: locale),
-                                             ChannelCopy.text("定时间", "Time", locale: locale)], current: unitID == nil ? 0 : offerID == nil ? 1 : 2)
-                        .padding(.horizontal, CYSpacing.xs)
-                }
-                if let order = model.order, let bundle = order.bundle {
-                    CYInfoCard {
-                        // Chapters as selectable ticket rows (one tap, haptic) instead of two collapsed menus; the Review pill stays the only primary action.
-                        Text("unit", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
-                        ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
-                            CYChoiceRow(label: chapterName(unit.chapterId) ?? unit.id.text, selected: unitID == unit.id) {
-                                if unitID != unit.id { offerID = nil }
-                                unitID = unit.id
-                            }
-                        }
-                        if let unit = bundle.units.first(where: { $0.id == unitID }),
-                           let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
-                            Text("offer", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
-                            ForEach(item.stores, id: \.offerId) { store in
-                                CYChoiceRow(label: store.merchantName ?? store.offerId.text, selected: offerID == store.offerId) { offerID = store.offerId }
-                            }
-                        }
-                        DatePicker(selection: $date) { text("date").font(CYTypography.bodyCompact) }
-                        CYPillButton(LocalizedStringKey("review"), style: .primary, tableName: table) {
-                            guard let unitID, let offerID else { return }
-                            let millis = date.timeIntervalSince1970 * 1_000
-                            guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
-                            model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
-                        }
-                        .disabled(!model.canReserve || unitID == nil || offerID == nil)
-                        if !model.canReserve { text("disabled").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    }
-                    if !bundle.reservations.isEmpty {
-                        CYInfoCard(title: text("order"), symbol: "ticket.fill") {
-                            ForEach(bundle.reservations, id: \.id) { reservation in
-                                CYListRow(verbatim: reservation.status, meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
-                            }
-                            if let number = order.registrationNo { Text(verbatim: number).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
-                        }
-                    }
-                } else if model.order != nil { text("legacy").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                if let catalog = model.catalog {
-                    CYInfoCard(title: catalog.topicName.map { Text(verbatim: $0) } ?? text("catalog"), symbol: "list.star") {
-                        if catalog.items.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table) }
-                        ForEach(catalog.items, id: \.chapterId) { item in
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                if let name = item.name { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                                if let terms = item.termsMode { Text(verbatim: terms).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                                ForEach(item.stores, id: \.offerId) { store in
-                                    CYListRow(verbatim: store.merchantName ?? store.offerId.text, meta: store.validEnd, trailing: .none) { CYRowIcon(systemImage: "storefront") }
-                                }
-                            }.frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                }
+            case .ready(let facts):
+                readyContent(facts)
             }
         }
         .navigationTitle(text("title")).navigationBarTitleDisplayMode(.inline)
@@ -129,5 +98,77 @@ import SwiftUI
         }
         // A reopened destination must receive a fresh model from its authorized host.
         .onDisappear { model.cancelReview() }
+    }
+    @ViewBuilder private func readyContent(_ facts: FreeExploreBundlePageReady.Facts) -> some View {
+        if facts.refreshing { ProgressView { text("loading") }.frame(maxWidth: .infinity).padding(CYSpacing.md) }
+        if facts.refreshFailed {
+            // A failed refresh keeps the last record on screen instead of zeroing it.
+            CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
+        }
+        if facts.saleEnabled == nil {
+            CYNoteBanner(text: text("saleUnknown"), symbol: "questionmark.circle", tone: .info)
+                .accessibilityIdentifier("freeBundle.saleUnknown")
+        }
+        if model.state == .confirmed {
+            CYNoteBanner(text: text("confirmed"), symbol: "checkmark.seal.fill", tone: .success)
+        }
+        if model.order?.bundle != nil {
+            CYStepIndicator(titles: [ChannelCopy.text("选章节", "Chapter", locale: locale), ChannelCopy.text("选商家", "Store", locale: locale),
+                                     ChannelCopy.text("定时间", "Time", locale: locale)], current: unitID == nil ? 0 : offerID == nil ? 1 : 2)
+                .padding(.horizontal, CYSpacing.xs)
+        }
+        if let order = model.order, let bundle = order.bundle {
+            CYInfoCard {
+                // Chapters as selectable ticket rows (one tap, haptic) instead of two collapsed menus; the Review pill stays the only primary action.
+                Text("unit", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
+                    CYChoiceRow(label: chapterName(unit.chapterId) ?? unit.id.text, selected: unitID == unit.id) {
+                        if unitID != unit.id { offerID = nil }
+                        unitID = unit.id
+                    }
+                }
+                if let unit = bundle.units.first(where: { $0.id == unitID }),
+                   let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
+                    Text("offer", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    ForEach(item.stores, id: \.offerId) { store in
+                        CYChoiceRow(label: store.merchantName ?? store.offerId.text, selected: offerID == store.offerId) { offerID = store.offerId }
+                    }
+                }
+                DatePicker(selection: $date) { text("date").font(CYTypography.bodyCompact) }
+                CYPillButton(LocalizedStringKey("review"), style: .primary, tableName: table) {
+                    guard let unitID, let offerID else { return }
+                    let millis = date.timeIntervalSince1970 * 1_000
+                    guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
+                    model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
+                }
+                .disabled(!model.canReserve || unitID == nil || offerID == nil)
+                if !model.canReserve { text("disabled").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            }
+            if !bundle.reservations.isEmpty {
+                CYInfoCard(title: text("order"), symbol: "ticket.fill") {
+                    ForEach(bundle.reservations, id: \.id) { reservation in
+                        CYListRow(verbatim: reservation.status, meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
+                    }
+                    if let number = order.registrationNo { Text(verbatim: number).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
+                    LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("freeBundle.paidAmount")
+                }
+            }
+        } else if model.order != nil { text("legacy").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+        if let catalog = model.catalog {
+            CYInfoCard(title: catalog.topicName.map { Text(verbatim: $0) } ?? text("catalog"), symbol: "list.star") {
+                if catalog.items.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table) }
+                ForEach(catalog.items, id: \.chapterId) { item in
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        if let name = item.name { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                        if let terms = item.termsMode { Text(verbatim: terms).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        ForEach(item.stores, id: \.offerId) { store in
+                            CYListRow(verbatim: store.merchantName ?? store.offerId.text, meta: store.validEnd, trailing: .none) { CYRowIcon(systemImage: "storefront") }
+                        }
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
     }
 }
