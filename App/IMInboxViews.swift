@@ -59,18 +59,25 @@ struct IMChatDividerLabel: View {
 }
 
 /// Source unread badge: `unread > 99 ? '99+' : unread`, muted rows use the quiet style.
+/// `unknownAsDash` (conversation rows, IMListPageReady.rowUnreadBadge): an absent unread is a quiet
+/// em dash, a real 0 shows no badge. Entry badges keep hiding an unknown total.
 struct IMUnreadBadge: View {
     let count: Int?
     var muted = false
+    var unknownAsDash = false
+    private var text: String? {
+        unknownAsDash ? IMListPageReady.rowUnreadBadge(count) : IMInboxSummary.badgeText(count)
+    }
     var body: some View {
-        if let text = IMInboxSummary.badgeText(count) {
+        if let text {
+            let quiet = muted || text == IMListPageReady.unknownMark
             Text(verbatim: text)
                 .font(.caption2.weight(.semibold)).monospacedDigit()
                 .padding(.horizontal, 6).padding(.vertical, 2)
-                .foregroundStyle(muted ? CYColor.textSecondary : CYColor.textOnAccent)
-                .background(Capsule().fill(muted ? CYColor.textSecondary.opacity(0.25) : CYColor.dangerSolid))
+                .foregroundStyle(quiet ? CYColor.textSecondary : CYColor.textOnAccent)
+                .background(Capsule().fill(quiet ? CYColor.textSecondary.opacity(0.25) : CYColor.dangerSolid))
                 .accessibilityLabel(Text("messaging.unread"))
-                .accessibilityValue(Text(verbatim: text))
+                .accessibilityValue(text == IMListPageReady.unknownMark ? Text("im.list.unread.unknown") : Text(verbatim: text))
         }
     }
 }
@@ -121,7 +128,7 @@ struct IMInboxRow: View {
                 HStack(alignment: .center, spacing: 6) {
                     MessagingPreview(conversation: conversation).font(.subheadline).lineLimit(typeSize.isAccessibilitySize ? 3 : 1)
                     Spacer(minLength: 4)
-                    IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true)
+                    IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true, unknownAsDash: true)
                 }
             }
         }

@@ -232,10 +232,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Text(verbatim: description).textSelection(.enabled)
                         } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
                     }
+                    // 三宫格 (主理人 / 俱乐部类型 / 所在城市) from ClubDetailPageContent; unknown is `—`.
                     Section {
-                        LabeledContent("club.leader") { Text(verbatim: Self.dash(club.leaderName)) }
-                        LabeledContent("club.type") { Text(verbatim: Self.dash(club.clubType ?? club.clubTypes)) }
-                        LabeledContent("club.detail.cityFact") { Text(verbatim: Self.dash(club.city ?? club.address)) }
+                        ClubOverviewFactsGrid(facts: [
+                            .init(id: ClubDetailPageAccessibility.leader, labelKey: "club.leader", value: facts.content?.leaderText ?? Self.dash(club.leaderName)),
+                            .init(id: "club.detail.fact.type", labelKey: "club.type", value: facts.content?.typeText ?? Self.dash(club.clubType ?? club.clubTypes)),
+                            .init(id: ClubDetailPageAccessibility.city, labelKey: "club.detail.cityFact", value: facts.content?.cityText ?? Self.dash(club.city ?? club.address)),
+                        ])
+                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.sm, bottom: CYSpacing.sm, trailing: CYSpacing.sm))
+                    }
+                    Section {
                         ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
                         ClubOptionalRow(title: "club.keywords", value: club.keywords)
                         ClubOptionalRow(title: "club.style", value: club.style)
@@ -336,13 +342,24 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         return type + " · " + count
     }
 
-    private func detailFacts(_ club: ClubRecord) -> (meta: String, raw: String, channels: Bool) {
+    /// Projects the decoded club through `ClubDetailPageModel`. `ClubRecord` stores a missing
+    /// member count or level as 0, so only source-present facts are forwarded: unknown stays `—`.
+    private func detailFacts(_ club: ClubRecord) -> (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?) {
         var body: [String: Any] = ["id": club.id, "name": club.name, "isOwner": club.isOwner, "isJoined": club.isJoined, "viewerIsAdmin": club.viewerIsAdmin]
         if let count = club.sourceMemberCount { body["memberCount"] = count }
+        if club.level > 0 { body["level"] = club.level }
+        if let leader = club.leaderName { body["leaderName"] = leader }
+        if let city = club.city { body["city"] = city }
+        if let address = club.address { body["address"] = address }
+        if let type = club.clubType { body["clubType"] = type }
+        if let types = club.clubTypes { body["clubTypes"] = types }
         let page = ClubDetailPageModel.resolve(loading: false, payload: try? JSONSerialization.data(withJSONObject: body), failure: nil, signedIn: reader.clubIdentity.isSignedIn, grant: manageGrant, hasCommunity: community != nil, hasGovernance: management?.governance != nil)
-        guard case .ready(let ready) = page else { return (ClubMemberCountLocalization.text(club.memberCount, locale: locale), String(club.memberCount), false) }
+        guard case .ready(let ready) = page else {
+            let mark = ClubDetailPageModel.unknownMark
+            return (mark, mark, false, nil)
+        }
         let raw = ready.memberCountText
-        return (raw == ClubDetailPageModel.unknownMark ? raw : (Int(raw).map { ClubMemberCountLocalization.text($0, locale: locale) } ?? raw), raw, ready.showsChannels)
+        return (raw == ClubDetailPageModel.unknownMark ? raw : (Int(raw).map { ClubMemberCountLocalization.text($0, locale: locale) } ?? raw), raw, ready.showsChannels, ready)
     }
 
     /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
@@ -384,5 +401,31 @@ private struct ClubDetailCover: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
         .accessibilityHidden(true)
+    }
+}
+
+/// Mini-program `.ov-facts`: three equal cells, value over label. Large type stacks the cells.
+private struct ClubOverviewFactsGrid: View {
+    let facts: [ClubDetailPageFact]
+    @Environment(\.dynamicTypeSize) private var typeSize
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+        layout {
+            ForEach(facts, id: \.id) { fact in
+                VStack(spacing: CYSpacing.xs) {
+                    Text(verbatim: fact.value)
+                        .font(CYTypography.bodyMedium).foregroundStyle(fact.isUnknown ? CYColor.textTertiary : CYColor.textPrimary)
+                        .lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.center)
+                    Text(LocalizedStringKey(fact.labelKey)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 64)
+                .padding(CYSpacing.sm)
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgElevated))
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier(fact.id)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(ClubDetailPageAccessibility.factsGrid)
     }
 }

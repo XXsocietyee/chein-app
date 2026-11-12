@@ -78,7 +78,13 @@ struct PlaySessionView: View {
                     if let total = snapshot.result.total, let done = snapshot.displayedDoneCount, total > 0 {
                         ProgressView(value: Double(min(done, total)), total: Double(total))
                         LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").font(CYTypography.numericBody).monospacedDigit() }
-                    } else { Text("play.progress.unknown").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                    } else {
+                        // UNKNOWN progress is the em dash (PlayIndexPageReadiness.unknownMark), not a sentence or 0/0.
+                        LabeledContent("play.progress") {
+                            Text(verbatim: PlayIndexPageReadiness.unknownMark).font(CYTypography.numericBody)
+                                .accessibilityLabel(Text("play.progress.unknown"))
+                        }.foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("play.progress.unknown")
+                    }
                     if let description = snapshot.result.topicDescription, !description.isEmpty { Text(verbatim: description) }
                     if let note = snapshot.result.timeNote, !note.isEmpty { Text(verbatim: note).foregroundStyle(.secondary) }
                     if let expires = snapshot.result.expiresAt, !expires.isEmpty {

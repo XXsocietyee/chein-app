@@ -1,10 +1,19 @@
 import SwiftUI
 
 /// Mini-program stamp-album count headline (`{{total}} 枚`), shown only after a page was read.
+/// `text` is `StampAlbumIndexPageState.totalText`: a literal count, or the em dash when the total is unknown.
 struct StampAlbumTotalHeader: View {
-    let total: Int
+    let text: String
+    init(total: Int) { text = String(total) }
+    init(text: String) { self.text = text }
+    private var label: Text {
+        if let total = Int(text) { return Text("stampAlbum.total \(total)") }
+        return Text(verbatim: StampAlbumIndexPageState.unknownText)
+    }
     var body: some View {
-        Text("stampAlbum.total \(total)").font(.system(.title, design: .rounded).weight(.heavy)).monospacedDigit()
+        label.font(.system(.title, design: .rounded).weight(.heavy)).monospacedDigit()
+            .contentTransition(.numericText())
+            .accessibilityLabel(Int(text) == nil ? Text("stampAlbum.unknownDetail") : label)
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
             .padding(CYSpacing.lg)
