@@ -99,10 +99,13 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertNotIn('MerchantNPCKnowledgeAuthorFlow(', host)
         self.assertNotIn('publishApproved', host)
         self.assertNotIn('theme/draft', host)
-        # The files are now registered in the Xcode project (so they compile); the hold is that session/composition do not wire them.
-        for source in (session, root):
-            self.assertNotIn('MerchantNPCKnowledgeAuthorFlow', source)
-            self.assertNotIn('submitAuthoredFields', source)
+        # Composition stays unwired. The character destination builds the author flow; it does not submit or publish.
+        self.assertNotIn('MerchantNPCKnowledgeAuthorFlow', root)
+        self.assertNotIn('submitAuthoredFields', root)
+        self.assertNotIn('submitAuthoredFields', session)
+        self.assertNotIn('publishApproved', session)
+        self.assertIn('characterKnowledgeAuthorFlow', session)
+        self.assertIn('MerchantNPCKnowledgeAuthorFlow(scope: scope, publisher: writer', session)
         for token in ['Do not apply', 'App/AppSession.swift', 'App/AppCompositionRoot.swift',
                       'Questify.xcodeproj/project.pbxproj', 'MerchantNPCKnowledgeAuthorFlow(',
                       'publisher: nil', 'authorFlow: flow', 'Not inserted']:
