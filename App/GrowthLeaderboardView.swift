@@ -61,7 +61,7 @@ import SwiftUI
                     .accessibilityIdentifier("growth.board.empty")
                 } else {
                     Section {
-                        GrowthLeaderboardPodium(entries: Array(board.list.prefix(3)), metric: board.metric)
+                        GrowthLeaderboardPodiumView(entries: Array(board.list.prefix(3)), metric: board.metric)
                         metricChips.frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -211,7 +211,7 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
 }
 
 /// Mini-program podium: 2 · 1 · 3, initial discs with a rank coin, name, score + unit. Unknown score is an em dash.
-private struct GrowthLeaderboardPodium: View {
+private struct GrowthLeaderboardPodiumView: View {
     let entries: [GrowthLeaderboardEntry]
     let metric: GrowthBoardMetric
     var body: some View {
