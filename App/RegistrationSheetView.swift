@@ -305,7 +305,7 @@ struct RegistrationSheetView: View {
             .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYColor.bgElevated))
             .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
             .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)).listRowBackground(Color.clear)
-        }
+        } header: { E1IconHeader(systemImage: "calendar", title: copy.t("活动信息", "Activity")) }
     }
     private func ticketPriceText(_ copy: CoreLoopCopy) -> String {
         guard let ticket = flow.selectedTicket else { return "—" }
@@ -419,7 +419,7 @@ struct RegistrationSheetView: View {
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
                 Text("registration.form.phoneHint").font(.caption).foregroundStyle(CYColor.dangerText)
             }
-        } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人", "Who is going")) }
+        } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人信息", "Participant")) }
         .disabled(!flow.canEdit)
     }
     private var ticketSection: some View {

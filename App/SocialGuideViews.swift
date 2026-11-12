@@ -7,21 +7,22 @@ import SwiftUI
     var informationDestination: ((SocialInformation) -> AnyView)? = nil
     var body: some View {
         List {
-            Section { SocialGuideXcxHero() }
+            // Mini-program order: the three mode cards right under 城瘾玩法 (no hero line, no section title),
+            // then 现成玩法, then 玩法文档.
             Section {
                 ForEach(SocialGuideMode.allCases) { mode in
                     SocialGuideXcxModeRow(mode: mode, onOpen: onOpenDestination)
                         .listRowInsets(EdgeInsets(top: 6, leading: CYSpacing.lg, bottom: 6, trailing: CYSpacing.lg))
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
-            } header: { Text("social.guide.modes") }
+            }
             SocialGuideTemplateSection(reader: templateReader)
             Section {
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { decoded in
                     // PlayGuideInformationListPage keeps only usable rows; an all-unusable list is the empty phase.
                     let rows = decoded.filter(\.isUsable)
                     if rows.isEmpty {
-                        CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", detail: "guideXcx.docsEmptyDetail", messageIdentifier: "social.guide.docsEmpty")
+                        CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", messageIdentifier: "social.guide.docsEmpty")
                             .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                     }
                     ForEach(rows) { row in
@@ -34,10 +35,7 @@ import SwiftUI
                     }
                 }
             } header: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("guideXcx.docs")
-                    Text("guideXcx.docsHint").font(.caption).textCase(nil)
-                }
+                Text("guideXcx.docs")
             }
         }.appNavigationTitle("social.guide.title").accessibilityIdentifier("social.guide")
     }
@@ -45,9 +43,11 @@ import SwiftUI
 @MainActor struct SocialInformationView: View {
     let id: Int
     let reader: any SocialAccountReading
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         List {
-            if id <= 0 { CYEmptyState(systemImage: "link", "social.incompleteLink") }
+            // Mini-program missing-param shell: 链接已失效 with one 返回.
+            if id <= 0 { CYEmptyState(systemImage: "info.circle", "mp.common.linkExpired", actionTitle: "roamSub.w208.voucher.back", action: { dismiss() }) }
             else {
                 SocialReadScreen(reader: reader, requestKey: "information-\(id)", load: { try await reader.information(id: id) }) { row in
                     // subpackageA/pages/infomationdetail: removed, mismatched, or blank documents never render as an article.
@@ -57,7 +57,6 @@ import SwiftUI
                     case .ready(let article):
                         SocialInformationCover(id: article.id, title: article.title, created: page.createTimeDisplay)
                             .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
-                        if let summary = article.summary { Text(verbatim: summary).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).listRowBackground(Color.clear) }
                         if let contents = article.contents, page.bodyKey == nil { SocialArticleContentView(contents: contents) }
                         else { CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InformationDetailPageModel.Copy.noContent)) }
                     case .empty(.removed):
@@ -77,7 +76,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .appNavigationTitle("guideXcx.detailTitle")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .cyDomainPageBackground()
         .themeDomain(.player)
         .tint(CYDomainPalette(.player).brand)
@@ -106,22 +105,27 @@ struct SocialInformationArt: View {
     }
 }
 
-/// Article header: art banner with eyebrow, large title and date over a bottom scrim.
+/// Article header as in `infomationdetail`: title, create time, a hairline, the tutorial disclaimer, a hairline.
 struct SocialInformationCover: View {
     let id: Int
     let title: String
     let created: String?
     var body: some View {
-        SocialInformationArt(id: id, large: true).frame(minHeight: 260)
-            .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("guideXcx.detailTitle").font(.caption.weight(.semibold)).textCase(.uppercase).opacity(0.8)
-                    Text(verbatim: title).font(.largeTitle.weight(.semibold)).lineLimit(4).minimumScaleFactor(0.8)
-                    if let created { Text(verbatim: created).font(CYTypography.meta).opacity(0.8).accessibilityIdentifier("social.information.createTime") }
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let created {
+                    Text(verbatim: created).font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("social.information.createTime")
                 }
-                .foregroundStyle(.white).padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(colors: [.clear, .black.opacity(0.6)], startPoint: .top, endPoint: .bottom))
             }
             .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
+            Divider().overlay(CYColor.borderSubtle)
+            Text("guideXcx.detailDisclaimer").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Divider().overlay(CYColor.borderSubtle)
+        }
+        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
     }
 }

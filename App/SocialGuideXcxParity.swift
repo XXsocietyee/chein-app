@@ -17,41 +17,34 @@ struct SocialGuideXcxHero: View {
     }
 }
 
-/// Image-led mode card: generated cover art (tonal gradient + oversized symbol, decorative, no data),
-/// title, tag chip, description and a single "go" pill, all over a bottom scrim.
+/// Mini-program `gl-mode` card: icon disc and mode name on top, one 去看看 pill bottom-right.
 struct SocialGuideXcxModeRow: View {
     let mode: SocialGuideMode
     var onOpen: ((SocialGuideDestination) -> Void)?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var tap = 0
-    private var tones: [Color] {
-        switch mode {
-        case .classic: return [Color(red: 0.10, green: 0.16, blue: 0.30), Color(red: 0.16, green: 0.36, blue: 0.42)]
-        case .free: return [Color(red: 0.30, green: 0.16, blue: 0.14), Color(red: 0.46, green: 0.30, blue: 0.16)]
-        case .roam: return [Color(red: 0.09, green: 0.22, blue: 0.20), Color(red: 0.14, green: 0.18, blue: 0.34)]
-        }
-    }
     var body: some View {
-        let card = ZStack(alignment: .bottomLeading) {
-            LinearGradient(colors: tones, startPoint: .topLeading, endPoint: .bottomTrailing)
-            Image(systemName: mode.icon).font(.system(size: 150, weight: .thin))
-                .foregroundStyle(.white.opacity(0.10)).rotationEffect(.degrees(-12))
-                .offset(x: 90, y: -40).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                CYStatusChip(mode.xcxTagKey)
-                Text(mode.titleKey).font(.title2.weight(.semibold)).foregroundStyle(.white)
-                Text(mode.xcxDetailKey).font(CYTypography.meta).foregroundStyle(.white.opacity(0.78)).lineLimit(3)
-                if onOpen != nil {
-                    Label("guideXcx.go", systemImage: "arrow.right").font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.black).padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                        .background(Capsule().fill(.white)).padding(.top, CYSpacing.xs)
+        let card = VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack(spacing: CYSpacing.md) {
+                Image(systemName: mode.icon).font(.title3.weight(.medium)).foregroundStyle(CYColor.textPrimary)
+                    .frame(width: 40, height: 40)
+                    .background(CYNight.ink2, in: Circle())
+                    .overlay(Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                    .accessibilityHidden(true)
+                Text(mode.titleKey).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            }
+            if onOpen != nil {
+                HStack {
+                    Spacer(minLength: 0)
+                    Text("guideXcx.go").font(CYTypography.label.weight(.semibold))
+                        .foregroundStyle(CYNight.ink0).padding(.horizontal, CYSpacing.xxl).frame(minHeight: 44)
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }
             }
-            .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
-            .background(LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .top, endPoint: .bottom))
         }
-        .frame(minHeight: 200)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
+        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
         .accessibilityElement(children: .combine)
         if let onOpen {
             Button { tap += 1; onOpen(mode.destination) } label: { card }

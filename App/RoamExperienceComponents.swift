@@ -316,16 +316,30 @@ struct RoamRouteSketchView: View {
 struct RoamRecordedStats: View {
     let record: RoamHistoryRecord
     var body: some View {
-        // Mini-program kv: 总距离 / 时长 / 探店 / 探索度; a missing value shows —.
-        VStack(spacing: 8) {
-            LabeledContent("roam.experience.distance") {
-                if let distance = record.distance { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km") }
+        // Mini-program kv: 总距离 / 时长 / 探店 / 探索度 rows with hairlines; a missing value shows —.
+        VStack(spacing: 0) {
+            row("roam.experience.distance") {
+                if let distance = record.distance { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " ") + Text("roam.history.km") }
                 else { Text(verbatim: "—") }
             }
-            LabeledContent("roam.experience.duration", value: record.durationText ?? "—")
-            LabeledContent("roam.experience.shops", value: record.shops.map { String($0) } ?? "—")
-            LabeledContent("roam.experience.explorePct", value: record.explorePct.map { "\($0)%" } ?? "—")
-        }.font(.subheadline).monospacedDigit()
+            row("roam.experience.duration") { Text(verbatim: record.durationText ?? "—") }
+            row("roam.experience.shops") {
+                if let shops = record.shops { Text("roamSub.w208.session.shopsValue \(shops)") } else { Text(verbatim: "—") }
+            }
+            row("roam.experience.explorePct") { Text(verbatim: record.explorePct.map { "\($0)%" } ?? "—") }
+        }.monospacedDigit()
+    }
+    private func row(_ label: LocalizedStringKey, @ViewBuilder value: () -> some View) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(label).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Spacer(minLength: CYSpacing.md)
+                value().font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            }
+            .frame(minHeight: 52)
+            .accessibilityElement(children: .combine)
+            Divider().overlay(CYColor.borderSubtle)
+        }
     }
 }
 

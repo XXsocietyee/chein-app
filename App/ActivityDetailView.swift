@@ -315,8 +315,8 @@ struct ActivityDetailView: View {
                 .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
     }
-    /// First fold: hero, three action tiles, info card, map, people, tickets, one "More info" row.
-    /// Everything else (topic, about, plays, reviews, journeys) sits behind the disclosure; host cancel stays its own section.
+    /// First fold: hero, three action tiles, info card, map, people, tickets, reviews, one "More info" row.
+    /// Everything else (topic, about, plays, journeys) sits behind the disclosure; host cancel stays its own section.
     private func detailContent(_ detail:ActivityDetail) -> some View {
         List {
             Section {
@@ -369,7 +369,26 @@ struct ActivityDetailView: View {
                     ActivityTicketCard(ticket:ticket)
                         .questifyCardListRow()
                 }
-            } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("选择票种", "Tickets")) }
+            } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("票种", "Tickets")) }
+            // Mini-program order: reviews (count, 写评价, 还没有评价) follow the tickets on the first fold.
+            ActivityReviewsSection(reviews: detail.reviews)
+            Section {
+                if canReview(detail) {
+                    Button { showsReview = true } label: {
+                        CYListRow("context.review.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+                    }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("activity.openReview")
+                }
+                // Mini-program `activity-points`, directly under the reviews.
+                Label {
+                    Text("activity.reviewPointsNote")
+                        .accessibilityIdentifier("activity.detail.readOnly")
+                } icon: { Image(systemName:"star").accessibilityHidden(true) }
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal:false,vertical:true)
+            }
             Section {
                 Button {
                     withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { showsMoreInfo.toggle() }
@@ -435,24 +454,6 @@ struct ActivityDetailView: View {
         // A scope/reader/activity/reread invalidation immediately removes them.
         if gateScope != nil, detail.summary.id == id {
             ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
-        }
-        ActivityReviewsSection(reviews: detail.reviews)
-        Section {
-            if canReview(detail) {
-                Button { showsReview = true } label: {
-                    CYListRow("context.review.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
-                }
-                .buttonStyle(.cyPressable)
-                .accessibilityIdentifier("activity.openReview")
-            }
-            // Mini-program `activity-points`, directly under the reviews.
-            Label {
-                Text("activity.reviewPointsNote")
-                    .accessibilityIdentifier("activity.detail.readOnly")
-            } icon: { Image(systemName:"star").accessibilityHidden(true) }
-            .font(CYTypography.meta)
-            .foregroundStyle(CYColor.textSecondary)
-            .fixedSize(horizontal:false,vertical:true)
         }
         if let playReaderForActivity {
             Section {

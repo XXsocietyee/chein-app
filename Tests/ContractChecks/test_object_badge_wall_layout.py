@@ -41,7 +41,7 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         groups = ['Section("profile.badges.identities")', 'Section("profile.badges.medals")', 'Section("profile.badges.achievements")']
         self.assertEqual([self.wall.index(g) for g in groups], sorted(self.wall.index(g) for g in groups))
         for token in ['if wall.isPartial', 'Text("profile.badges.partial")', 'wall.medalFailureMessage',
-                      'if wall.isEmpty {', 'CYEmptyState(systemImage: "medal", "profile.badges.empty")', 'if let medals = wall.medals',
+                      'if wall.isEmpty {', 'CYEmptyState(systemImage: "medal", "badgeWall.empty"', 'if let medals = wall.medals',
                       'let city = medals.filter { !$0.isAchievement }', 'let achievements = medals.filter(\\.isAchievement)',
                       'ObjectBadgeWallOrdering.litFirst(wall.identities).map { .identity($0) }', 'city.map { .medal($0) }', 'achievements.map { .medal($0) }']:
             self.assertIn(token, self.wall)

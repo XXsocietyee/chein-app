@@ -31,6 +31,7 @@ struct ObjectBadgeWallLayoutSelection {
     /// Play-side badge code to read back on the loaded wall (source query `badgeCode`).
     var focusBadgeCode: String? = nil
     @State private var layoutSelection = ObjectBadgeWallLayoutSelection()
+    @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Namespace private var hero
@@ -65,7 +66,10 @@ struct ObjectBadgeWallLayoutSelection {
                     }
                 }
                 if wall.isEmpty {
-                    CYEmptyState(systemImage: "medal", "profile.badges.empty")
+                    // Mini-program badge-wall empty: 还没有点亮勋章 with 去探索 when a home route is supplied.
+                    CYEmptyState(systemImage: "medal", "badgeWall.empty",
+                                 actionTitle: onExploreHome == nil ? nil : "growthExplore.openHome",
+                                 actionIdentifier: "badgeWall.empty.explore", action: onExploreHome)
                         .accessibilityIdentifier("profile.badges.emptyState")
                 }
                 if !wall.identities.isEmpty {

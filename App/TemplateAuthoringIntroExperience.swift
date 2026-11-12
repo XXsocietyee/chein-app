@@ -143,8 +143,9 @@ import Combine
                 }
             }
             VStack(alignment:.leading,spacing:4) {
-                Text("publishParity.intro.lead").font(.title3)
-                Text("publishParity.intro.tail").font(.title2.bold())
+                // Mini-program weight order: the lead line is the bold claim, the tail is the lighter follow-on.
+                Text("publishParity.intro.lead").font(.title2.bold()).foregroundStyle(CYColor.textPrimary)
+                Text("publishParity.intro.tail").font(.title2).foregroundStyle(CYColor.textSecondary)
             }
             .fixedSize(horizontal:false,vertical:true)
             .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")

@@ -21,8 +21,8 @@
   },
   {
     "key": "roam.experience.noTrack",
-    "en": "No recorded route",
-    "zh-Hans": "没有已记录的轨迹"
+    "en": "No continuous route was recorded this time",
+    "zh-Hans": "这次没有记录到连续轨迹"
   },
   {
     "key": "roam.experience.routeSketch",

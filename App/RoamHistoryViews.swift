@@ -59,7 +59,7 @@ import SwiftUI
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Group {
                                 if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
-                                    Text(distance, format: .number.precision(.fractionLength(1)))
+                                    Text(distance, format: .number.precision(.fractionLength(2)))
                                 } else { Text(verbatim: "—") }
                             }
                             .font(.system(.largeTitle, design: .rounded).weight(.heavy)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
@@ -68,21 +68,26 @@ import SwiftUI
                             Text("roam.history.km").font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
                         }
                         .accessibilityElement(children: .combine)
-                        // 次漫游 · 公里 · 家店 on one line under the total, as in the mini-program.
+                        // 次漫游 · 家店 · 用时 columns under the total, as in the mini-program.
                         RoamHistoryParityStrip(records: records)
                     } }
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
-                    ForEach(records) { record in
+                    ForEach(Array(records.enumerated()), id: \.element.id) { index, record in
+                        if RoamHistoryMonthHead.isNewMonth(record, after: index > 0 ? records[index - 1] : nil), let date = record.recordedAt {
+                            RoamHistoryMonthHead(date: date)
+                        }
+                        // Mini-program RunCard: route sketch on top, then route icon + title with dateCard, three stats, badges.
                         NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero) } label: {
                             RoamNightCard {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    HStack(alignment: .firstTextBaseline) {
-                                        RoamRunCardTitle(record: record).foregroundStyle(CYColor.textPrimary)
-                                        Spacer(minLength: 8)
-                                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                                            .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                                    }
                                     RoamRouteSketchView(record: record)
+                                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                        Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                                            .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
+                                        RoamRunCardTitle(record: record, font: .headline).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                                        Spacer(minLength: 8)
+                                        RoamRunCardDateText(record: record)
+                                    }
                                     RoamRunCardParityMeta(record: record)
                                 }
                             }
@@ -260,6 +265,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
     @State private var record: RoamHistoryRecord?
     @State private var showShare = false
     @State private var selectedMedal: RoamMedalShareSelection?
+    @Environment(\.dismiss) private var dismiss
     @State private var loaded = false
     @State private var error: Error?
     @State private var loadedOwner: ReadKey?
@@ -277,43 +283,59 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let error = currentError { RoamExperienceIssue(error: error, retry: load) }
                 else if let record = currentRecord {
+                    // Mini-program scene-roam-session: date · time under 本次漫游, the 本次路线 replay card,
+                    // the 总距离 / 时长 / 探店 / 探索度 rows, then 解锁奖励 and 点亮地点, each with its own empty line.
+                    RoamSessionParityHeader(record: record)
                     RoamNightCard {
-                        VStack(alignment: .leading, spacing: 18) {
-                            RoamSessionParityHeader(record: record)
-                            RoamSessionRouteNameText(name: RoamSessionRouteName(record)).font(.title3).bold()
-                                .accessibilityIdentifier("roamSub.w208.session.routeName")
-                            Text("roamSub.w208.session.completeFact").font(.subheadline).foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(alignment: .firstTextBaseline) {
+                                Text("roamSub.w208.session.routeEyebrow").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                    .accessibilityAddTraits(.isHeader)
+                                Spacer(minLength: 8)
+                                if let date = record.recordedAt {
+                                    Text(date, format: .dateTime.year().month().day().weekday(.abbreviated))
+                                        .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                }
+                            }
                             RoamSavedRouteReplayView(reader: reader, record: record)
-                            RoamRecordedStats(record: record)
                         }
                     }
-                    // 解锁奖励, then 点亮地点, each with its own empty line, as in the mini-program.
+                    RoamRecordedStats(record: record)
                     let medals = RoamMedalShareSelection.selections(for: record)
-                    Text("roam.experience.rewards").font(.headline).accessibilityAddTraits(.isHeader)
+                    Text("roam.experience.rewards").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     if medals.isEmpty {
-                        Text("roam.experience.rewardsEmpty").foregroundStyle(.secondary)
+                        Text("roam.experience.rewardsEmpty").foregroundStyle(CYColor.textSecondary)
                     }
                     ForEach(medals) { medal in
                         Button { showShare = false; selectedMedal = medal } label: {
-                            HStack {
-                                Label { Text(verbatim: medal.card.name) } icon: { Image(systemName: "medal.fill").foregroundStyle(CYNight.lantern) }
+                            HStack(spacing: CYSpacing.md) {
+                                Image(systemName: "star").font(.title3.weight(.semibold)).foregroundStyle(CYNight.ink0)
+                                    .frame(width: 52, height: 56)
+                                    .background(CYNight.lantern, in: RoamHexagon())
+                                    .accessibilityHidden(true)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(verbatim: medal.card.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                    Text("roamSub.w208.session.medalCategory").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                }
                                 Spacer(minLength: 0)
-                                Image(systemName: "square.and.arrow.up").foregroundStyle(.secondary)
+                                Image(systemName: "square.and.arrow.up").foregroundStyle(CYColor.textTertiary)
                             }
                             .frame(minHeight: 44, alignment: .leading)
-                            .padding(.horizontal, CYSpacing.lg)
-                            .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         }
                         .buttonStyle(QuestifyCardButtonStyle())
                         .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
                         .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
                     }
-                    Text("roam.experience.recordedPlaces").font(.headline).accessibilityAddTraits(.isHeader)
+                    Text("roam.experience.recordedPlaces").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     if record.pois.isEmpty {
-                        Text("roam.experience.recordedPlacesEmpty").foregroundStyle(.secondary)
+                        Text("roam.experience.recordedPlacesEmpty").foregroundStyle(CYColor.textSecondary)
                     }
                     ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
-                        Label { RoamTitle(place.name) } icon: { Image(systemName: place.cat == "merchant" ? "storefront" : "mappin") }
+                        HStack(spacing: CYSpacing.md) {
+                            Image(systemName: place.cat == "merchant" ? "storefront" : "mappin").font(.title3).foregroundStyle(CYColor.textPrimary)
+                                .frame(width: 52, height: 56).background(CYNight.ink2, in: RoamHexagon()).accessibilityHidden(true)
+                            RoamTitle(place.name)
+                        }
                     }
                     Button { showShare = true } label: {
                         Label("roam.share.title", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
@@ -321,7 +343,9 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("roam.share.open")
                 } else if currentLoaded {
-                    CYEmptyState(systemImage: "questionmark.folder", "roam.experience.recordMissing", detail: "roam.experience.recordMissingHint")
+                    // Mini-program empty state: 找不到这次漫游 with one way back to the history list.
+                    CYEmptyState(systemImage: "info.circle", "roam.experience.recordMissing",
+                                 actionTitle: "roamSub.w208.session.missingBack", action: { dismiss() })
                         .accessibilityIdentifier("roam.experience.history.missing")
                 } else { ProgressView("roam.loading") }
             }.padding()
@@ -357,5 +381,21 @@ private struct RoamHistoryHeroDestination: ViewModifier {
     let hero: Namespace.ID?
     @ViewBuilder func body(content: Content) -> some View {
         if let hero { content.cyHeroDestination(id, in: hero) } else { content }
+    }
+}
+
+/// Pointy-top hexagon behind 解锁奖励 / 点亮地点 marks (mini-program `.rw__hex`).
+struct RoamHexagon: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width, h = rect.height
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX + w, y: rect.minY + h * 0.25))
+        path.addLine(to: CGPoint(x: rect.minX + w, y: rect.minY + h * 0.75))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + h * 0.75))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + h * 0.25))
+        path.closeSubpath()
+        return path
     }
 }

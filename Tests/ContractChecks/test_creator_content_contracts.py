@@ -18,7 +18,8 @@ class CreatorContentContracts(unittest.TestCase):
         self.assertIn('try Task.checkCancellation()', self.reader)
         self.assertIn('scope == captured', self.reader)
     def test_ui_shared_artwork_and_no_fake_writes(self):
-        self.assertIn('QuestifyImageEntityCard',self.ui)
+        # U9-B: rows follow the mini-program myproject anatomy (cover tile + title row + stats footer) over shared E1 cover art.
+        self.assertIn('E1CoverArt(seed: title',self.ui)
         self.assertNotIn('apply(',self.ui);self.assertNotIn('delete(',self.service)
         # The standalone "read-only" notice was retired with the list restyle; rows still open only for the loaded scope.
         self.assertIn('guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,',self.ui)
