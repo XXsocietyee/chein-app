@@ -54,7 +54,7 @@ import UIKit
                 // The canvas measures the frame, so it stays mounted while the page model is still loading.
                 if images.indices.contains(index), page.phase != .error, page.phase != .unknown { canvas(images[index]) }
                 else if images.isEmpty {
-                    CYEmptyState(systemImage: "photo.on.rectangle", LocalizedStringKey(CropPageModel.Copy.empty), messageIdentifier: "miniCrop.empty")
+                    CYEmptyState(systemImage: "info.circle", LocalizedStringKey(CropPageModel.Copy.empty), messageIdentifier: "miniCrop.empty")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if page.phase == .unknown {
                     CYEmptyState(systemImage: "questionmark.square.dashed", LocalizedStringKey(CropPageModel.Copy.unknown), messageIdentifier: "miniCrop.unknown")
@@ -90,7 +90,12 @@ import UIKit
     }
 
     @ViewBuilder private var controls: some View {
-        if typeSize.isAccessibilitySize {
+        if images.isEmpty {
+            // Mini-program missing-source state: one full-width 返回上一页, no crop actions.
+            Button("pages.crop.back", action: onCancel)
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                .accessibilityIdentifier("miniCrop.cancel")
+        } else if typeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: CYSpacing.sm) { controlButtons }
         } else {
             HStack(spacing: CYSpacing.md) { controlButtons }

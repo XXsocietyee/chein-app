@@ -258419,6 +258419,22 @@
           }
         }
       }
+    },
+    "pages.crop.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回上一页"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
