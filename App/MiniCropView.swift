@@ -30,6 +30,8 @@ import UIKit
     private var index: Int { session.index }
     private var scale: Double { session.scale }
     private var offset: CGSize { CGSize(width: session.offsetX, height: session.offsetY) }
+    /// pages/crop page model: phase, batch position (`—` when unknown, never 0/0) and action gates.
+    private var page: CropPageFacts { CropPageModel.facts(session: session) }
 
     var body: some View {
         // Mini `pages/crop`: bar / near-black stage with a fixed frame / bottom bar (取消 text left, 选取 solid right).
@@ -38,7 +40,7 @@ import UIKit
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.top, CYSpacing.sm)
             if images.count > 1 {
-                Text("publishParity.crop.progress \(index + 1) \(images.count)")
+                progressLabel
                     .font(CYTypography.caption)
                     .monospacedDigit()
                     .foregroundStyle(CYColor.textSecondary)
@@ -49,8 +51,15 @@ import UIKit
                     .accessibilityIdentifier("miniCrop.progress")
             }
             Group {
-                if images.indices.contains(index) { canvas(images[index]) }
-                else {
+                // The canvas measures the frame, so it stays mounted while the page model is still loading.
+                if images.indices.contains(index), page.phase != .error, page.phase != .unknown { canvas(images[index]) }
+                else if images.isEmpty {
+                    CYEmptyState(systemImage: "photo.on.rectangle", LocalizedStringKey(CropPageModel.Copy.empty), messageIdentifier: "miniCrop.empty")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if page.phase == .unknown {
+                    CYEmptyState(systemImage: "questionmark.square.dashed", LocalizedStringKey(CropPageModel.Copy.unknown), messageIdentifier: "miniCrop.unknown")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
                     CYEmptyState(systemImage: "crop", "publishParity.crop.failed", messageIdentifier: "miniCrop.failed")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -67,6 +76,16 @@ import UIKit
         .cyHeroScreen()
         .transaction { transaction in
             if reduceMotion { transaction.disablesAnimations = true }
+        }
+    }
+
+    /// Localized `1/2` when the model knows the position; the em dash otherwise. One image shows nothing.
+    @ViewBuilder private var progressLabel: some View {
+        let text = page.progressText
+        Group {
+            if text.isEmpty { EmptyView() }
+            else if text == CropPageModel.unknownDisplay { Text(verbatim: text) }
+            else { Text("publishParity.crop.progress \(index + 1) \(images.count)") }
         }
     }
 
@@ -87,9 +106,11 @@ import UIKit
         Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }
             .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
             .frame(minHeight: CYSpacing.minTouchTarget)
+            .disabled(!page.canUseOriginal)
             .accessibilityIdentifier("miniCrop.useOriginal")
-        Button("publishParity.crop.confirm") { confirm() }
+        Button(LocalizedStringKey(page.confirmKey)) { confirm() }
             .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: typeSize.isAccessibilitySize))
+            .disabled(!page.canConfirm && page.phase != .loading)
             .accessibilityIdentifier("miniCrop.confirm")
     }
 

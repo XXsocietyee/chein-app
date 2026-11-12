@@ -27,6 +27,20 @@ struct ObjectBadgeWallParityHeader: View {
                     }
                 }
                 .listRowBackground(Color.clear)
+            } else {
+                // ObjectBadgeWallPageState.unknown: the medal collection never arrived, so the
+                // unlocked / total / waiting counts are an em dash, never a measured 0.
+                let counts = ObjectBadgeWallPageState.project(wall).counts
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
+                    Text(verbatim: "\(counts.unlocked) / \(counts.total)")
+                        .font(CYTypography.dataXL).monospacedDigit().foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    Text("badgeWall.state.unknownDetail")
+                        .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("badgeWall.state.unknownDetail"))
+                .accessibilityIdentifier(counts.accessibilityIdentifier)
             }
             if let focus = ObjectBadgeWallFocus.resolve(code: focusBadgeCode, wall: wall) {
                 Label { focusText(focus) } icon: { Image(systemName: "scope").accessibilityHidden(true) }

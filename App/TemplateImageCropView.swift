@@ -55,7 +55,15 @@ import SwiftUI
                     CYPillButton("publishParity.crop.useOriginal", style: .secondary) { confirm(draft.id, original) }
                         .accessibilityIdentifier("template.imageCrop.useOriginal")
                 }
-            } else { Text("image.retained.failed").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+            } else {
+                // pages/crop error copy from CropPageModel: a non-positive size or an unrenderable preview.
+                let page = CropPageModel.facts(hasOpener: true, paths: [draft.id.uuidString],
+                                               width: Double(draft.source.width), height: Double(draft.source.height),
+                                               failed: true)
+                Text(LocalizedStringKey(page.copyKey)).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("template.imageCrop.failed")
+            }
             CYPillButton("image.retained.cancel", style: .tertiary) { cancel(draft.id) }
                 .accessibilityIdentifier("template.imageCrop.cancel")
         }

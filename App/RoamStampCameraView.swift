@@ -31,6 +31,9 @@ import UIKit
     @State private var work: Task<Void, Never>?
     @State private var localDraft = RoamCityStampDraft()
     @State private var createdStampTarget: RoamCreatedStampTarget?
+    /// subpackageP3/pages/stamp-camera page contract: create and exchange stay hidden while their
+    /// capability switches are off; the album list path exists only with an album reader.
+    private var pageContract: StampCameraPageContract { StampCameraPageContract(hasAlbumReader: album != nil) }
     var body: some View {
         let _ = revision
         Form {
@@ -74,14 +77,14 @@ import UIKit
                         CYPillButton("media.stamp.retake", style: .secondary) { coordinator.retake(); revision += 1 }
                             .disabled(!coordinator.canCapture)
                     }
-                    if coordinator.pending != nil {
+                    if coordinator.pending != nil, pageContract.showsCreate {
                         CYPillButton("media.stamp.create") { run { await coordinator.create() } }
                             .disabled(!coordinator.canCreate)
                     }
                     if case .created = coordinator.phase {
                         RoamStampCreatedMark()
                     }
-                    if case .created(let stampID) = coordinator.phase, let exchange { exchangeRows(stampID: stampID, exchange: exchange) }
+                    if case .created(let stampID) = coordinator.phase, let exchange, pageContract.showsExchange { exchangeRows(stampID: stampID, exchange: exchange) }
                     if case .created = coordinator.phase, let album {
                         CYPillButton("roam.createdStamp.open", style: exchange == nil ? .primary : .secondary, systemImage: "rectangle.stack") {
                             guard createdStampTarget == nil else { return }
@@ -189,7 +192,9 @@ import UIKit
                         .font(.caption).foregroundStyle(palette.danger).accessibilityIdentifier("media.stamp.caption.limit")
                 }
                 Spacer(minLength: 8)
-                Text(verbatim: "\(captionText.utf16.count)/30").font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                // Measured UTF-16 length from StampCameraPageReady; an over-limit caption still shows its real count.
+                let units = StampCameraPageReady.captionUnits(captionText)
+                Text(verbatim: "\(units.phase == .ready ? units.text : String(captionText.utf16.count))/30").font(.caption).monospacedDigit().foregroundStyle(.secondary)
                     .accessibilityIdentifier("media.stamp.caption.remaining")
             }
         }.accessibilityIdentifier("media.stamp.caption.section")

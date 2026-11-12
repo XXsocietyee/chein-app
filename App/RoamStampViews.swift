@@ -148,6 +148,8 @@ struct RoamAlbumReadOwner: Hashable {
     private var pager: RoamAlbumPager { presentation.pager }
     var body: some View {
         let read = presentation.readAction(), refresh = presentation.refreshAction()
+        // subpackageP3/pages/stamp-album/index page model: an unknown total is an em dash, never a guessed 0.
+        let page = StampAlbumIndexPageModel.project(pager)
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 if canShowAlbum {
@@ -156,7 +158,13 @@ struct RoamAlbumReadOwner: Hashable {
                 if !pager.stamps.isEmpty {
                     RoamStampAlbumPages(stamps: Array(pager.stamps.prefix(6)), offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
                 }
-                if let total = pager.total { StampAlbumTotalHeader(total: total) }
+                switch page.phase {
+                case .ready, .unknown: StampAlbumTotalHeader(text: page.totalText)
+                case .loading:
+                    // A next-page read keeps the headline that was already read.
+                    if pager.loaded, let total = pager.total, total > 0 { StampAlbumTotalHeader(text: String(total)) }
+                case .empty, .error: EmptyView()
+                }
                 if let error = pager.error {
                     switch StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) {
                     case .denied: StampAlbumDeniedNotice()
@@ -164,7 +172,11 @@ struct RoamAlbumReadOwner: Hashable {
                     case .signIn, .retryWholePage: RoamExperienceIssue(error: error, retry: read)
                     }
                 }
-                if pager.loaded && pager.stamps.isEmpty {
+                if page.phase == .unknown && pager.stamps.isEmpty && pager.error == nil {
+                    Label("stampAlbum.unknownDetail", systemImage: "questionmark.circle")
+                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("roam.experience.album.unknown")
+                } else if pager.loaded && pager.stamps.isEmpty {
                     VStack(spacing: CYSpacing.md) {
                         CYEmptyState(systemImage: "rectangle.stack", "roam.experience.albumEmpty")
                         Text("roam.experience.albumEmptyHint")
