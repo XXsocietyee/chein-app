@@ -127,7 +127,13 @@ struct IMInboxRow: View {
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
+        // Mini-program cy-fly-in: rows settle in with a short rise; Reduce Motion shows them at once.
+        .opacity(arrived || reduceMotion ? 1 : 0)
+        .offset(y: arrived || reduceMotion ? 0 : 8)
+        .onAppear { withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { arrived = true } }
     }
+    @State private var arrived = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ViewBuilder private var officialChip: some View {
         if conversation.kind == .merchant {
             CYStatusChip("im.inbox.officialTag", tone: .neutral)
