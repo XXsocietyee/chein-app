@@ -1,0 +1,714 @@
+import SwiftUI
+
+// Mini-program `subpackageMember/market/passes` (list: on sale / my orders / gifts), `market/pass` (detail + quote),
+// and `market/gift` (claim a gift). Purchase and gift claim stay OFF (`MPCommerceGate`): the offer and the quote are
+// drawn read-only with one sentence where the pay buttons would be. Every number is a server fact; unknown is an em dash.
+
+enum PassMarketTab: String, CaseIterable, Identifiable, Hashable {
+    case shop, orders, gifts
+    var id: String { rawValue }
+    var title: LocalizedStringKey {
+        switch self {
+        case .shop: "mp.pass.tab.shop"
+        case .orders: "mp.pass.tab.orders"
+        case .gifts: "mp.pass.tab.gifts"
+        }
+    }
+}
+
+/// Server `productKind` 1...8.
+enum PassProductKind: Int, Equatable {
+    case singleLevel = 1, cityBundle, timedPass, fixedYear, group, schoolGroup, giftPass, extraSeat
+    var label: LocalizedStringKey {
+        switch self {
+        case .singleLevel: "mp.pass.kind.single"
+        case .cityBundle: "mp.pass.kind.city"
+        case .timedPass: "mp.pass.kind.timed"
+        case .fixedYear: "mp.pass.kind.year"
+        case .group: "mp.pass.kind.group"
+        case .schoolGroup: "mp.pass.kind.school"
+        case .giftPass: "mp.pass.kind.gift"
+        case .extraSeat: "mp.pass.kind.extraSeat"
+        }
+    }
+}
+
+/// Validity wording: fixed periods are a fixed period (never "subscription"); first-use products count from first play.
+enum PassValidity: Equatable {
+    case daysAfterPurchase(Int)
+    case fixedRange(from: String, to: String)
+    case fixedUntil(String)
+    case daysFromFirstPlay(Int)
+
+    var text: Text {
+        switch self {
+        case .daysAfterPurchase(let days): Text("mp.pass.validity.afterPurchase \(days)")
+        case .fixedRange(let from, let to): Text(verbatim: "\(from) – \(to)")
+        case .fixedUntil(let to): Text("mp.pass.validity.until \(to)")
+        case .daysFromFirstPlay(let days): Text("mp.pass.validity.firstPlay \(days)")
+        }
+    }
+}
+
+struct PassProductCard: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let kind: PassProductKind?
+    let city: String?
+    let validity: PassValidity?
+    /// Seats when more than one (one-person products show no seat line).
+    let seats: Int?
+    /// "¥99.00" (cash) and points; both nil means no price line (never 0).
+    let cashPriceText: String?
+    let pointsPrice: Int?
+    let topics: [String]
+    let giftAllowed: Bool
+    let giftOnly: Bool
+    let isExtraSeat: Bool
+    /// Ticket face text for the hero (server city / kind).
+    let faceText: String?
+
+    var coverCount: Int { topics.count }
+}
+
+enum PassOrderState: Equatable {
+    case paid, paidAwaitingFirstPlay, paidGift
+    case pendingCash(blockedReason: String?)
+    case cancelled, refunded, unknown
+
+    var text: Text {
+        switch self {
+        case .paid: Text("mp.pass.order.paid")
+        case .paidAwaitingFirstPlay: Text("mp.pass.order.awaitingFirstPlay")
+        case .paidGift: Text("mp.pass.order.paidGift")
+        case .pendingCash(let reason):
+            if let reason { Text("mp.pass.order.pendingReason \(reason)") } else { Text("mp.pass.order.pending") }
+        case .cancelled: Text("mp.pass.order.cancelled")
+        case .refunded: Text("mp.pass.order.refunded")
+        case .unknown: Text("mp.common.statusUnknown")
+        }
+    }
+}
+
+struct PassOrderRow: Identifiable, Equatable {
+    let id: String
+    /// Product name when the catalog knows it; nil reads "Pass order".
+    let name: String?
+    let state: PassOrderState
+    let amountText: String?
+    let timeText: String?
+}
+
+enum PassGiftStatus: Equatable { case pending, claimed, expired, revoked, unknown }
+
+struct PassGiftRow: Identifiable, Equatable {
+    let id: String
+    let status: PassGiftStatus
+    let claimDeadlineText: String?
+    let timeText: String?
+
+    func stateText(bought: Bool) -> Text {
+        switch status {
+        case .pending: bought ? Text("mp.pass.gift.pendingBought") : Text("mp.pass.gift.pending")
+        case .claimed: Text("mp.pass.gift.claimed")
+        case .expired: Text("mp.pass.gift.expired")
+        case .revoked: bought ? Text("mp.pass.gift.revokedBought") : Text("mp.pass.gift.revoked")
+        case .unknown: Text("mp.common.statusUnknown")
+        }
+    }
+}
+
+/// Platform pass (membership) entry on the shop tab; nil when the server says the pass is not enabled or the account is a merchant.
+enum PassMemberEntrySide: Equatable {
+    case activeUntil(String)
+    case plans(String)
+    case themeCount(Int)
+    case none
+}
+
+struct PassMarketContent: Equatable {
+    var products: [PassProductCard]
+    var orders: [PassOrderRow]
+    var giftsBought: [PassGiftRow]
+    var giftsReceived: [PassGiftRow]
+}
+
+struct PassMarketState: Equatable {
+    var content: MPLoad<PassMarketContent> = .loading
+    /// `/api/user/info.point`; nil hides the balance card (never 0).
+    var pointBalance: Int? = nil
+    var member: PassMemberEntrySide? = nil
+    /// Quiet refresh failed while content stays on screen.
+    var refreshFailed = false
+}
+
+/// Logic stub for Cursor: `/api/marketing/product/list|orders|gifts/bought|gifts/received`, `/api/platform-pass`, `/api/user/info`.
+@MainActor protocol PassMarketBinding: AnyObject, Observable {
+    var state: PassMarketState { get }
+    func load(quiet: Bool)
+}
+
+@MainActor struct PassMarketHost: View {
+    let binding: any PassMarketBinding
+    var initialTab: PassMarketTab = .shop
+    @State private var route: MPParityRoute?
+    @Environment(\.mpParity) private var bindings
+
+    var body: some View {
+        PassMarketView(state: binding.state, initialTab: initialTab,
+                       onReload: { binding.load(quiet: $0) },
+                       onOpenProduct: bindings.passDetail == nil ? nil : { route = .pass(productID: $0) },
+                       onOpenMembership: { route = .reveal(paid: nil) },
+                       onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) },
+                       pointsDestination: nil)
+            .task { binding.load(quiet: false) }
+            .mpParityRouteDestination($route)
+    }
+}
+
+struct PassMarketView: View {
+    let state: PassMarketState
+    var initialTab: PassMarketTab = .shop
+    let onReload: (_ quiet: Bool) -> Void
+    let onOpenProduct: ((String) -> Void)?
+    let onOpenMembership: () -> Void
+    let onOpenLibrary: (() -> Void)?
+    /// Points history destination (mini-program `points-history`); nil keeps the balance card read-only.
+    let pointsDestination: (() -> AnyView)?
+
+    @State private var tab: PassMarketTab = .shop
+    @State private var didSetTab = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                if let balance = state.pointBalance { balanceCard(balance).padding(.horizontal, CYSpacing.pageHorizontal) }
+                MPChipTabs(tabs: PassMarketTab.allCases, selection: $tab, title: { Text($0.title) }, identifier: { "passMarket.tab.\($0.rawValue)" })
+                if state.refreshFailed {
+                    CYOfflineStrip().padding(.horizontal, CYSpacing.pageHorizontal)
+                }
+                MPLoadSwitch(load: state.content, errorTitle: "mp.common.loadFailed", identifier: "passMarket", onRetry: { onReload(false) }) { content in
+                    Group {
+                        switch tab {
+                        case .shop: shop(content)
+                        case .orders: orders(content.orders)
+                        case .gifts: gifts(content)
+                        }
+                    }
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .transition(.opacity)
+                }
+            }
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .cyAnimation(value: tab)
+        .refreshable { onReload(true) }
+        .background { MPNightGround() }
+        .navigationTitle(Text("mp.pass.title"))
+        .navigationBarTitleDisplayMode(.large)
+        .onAppear { if !didSetTab { tab = initialTab; didSetTab = true } }
+    }
+
+    // r2-store balance card: read-only server balance; points are earned, never sold (no top-up packs here).
+    @ViewBuilder private func balanceCard(_ balance: Int) -> some View {
+        let label = HStack {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text("mp.pass.points").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: String(balance)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    .contentTransition(.numericText())
+            }
+            Spacer()
+            if pointsDestination != nil {
+                HStack(spacing: CYSpacing.xs) { Text("mp.pass.pointsHistory"); Image(systemName: "chevron.right") }
+                    .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+            }
+        }
+        .padding(CYSpacing.lg)
+        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("passMarket.points")
+        if let pointsDestination {
+            NavigationLink { pointsDestination() } label: { label }.buttonStyle(.cyPressable)
+        } else {
+            label
+        }
+    }
+
+    @ViewBuilder private func shop(_ content: PassMarketContent) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if let member = state.member {
+                Button(action: onOpenMembership) { memberCard(member) }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("passMarket.member")
+            }
+            if content.products.isEmpty && state.member == nil {
+                CYEmptyState(systemImage: "ticket", "mp.pass.empty.shop", messageIdentifier: "passMarket.shop.empty")
+            }
+            ForEach(Array(content.products.enumerated()), id: \.element.id) { index, product in
+                Group {
+                    if let onOpenProduct {
+                        Button { onOpenProduct(product.id) } label: { PassProductCardView(product: product) }
+                            .buttonStyle(.cyPressable)
+                    } else {
+                        PassProductCardView(product: product)
+                    }
+                }
+                .cyStaggerAppear(index)
+                .accessibilityIdentifier("passMarket.product.\(product.id)")
+            }
+            if state.member != nil, let onOpenLibrary {
+                Button(action: onOpenLibrary) {
+                    MPCard { MPRow(title: Text("mp.pass.library"), chevron: true) }
+                }
+                .buttonStyle(.cyPressable)
+                .accessibilityIdentifier("passMarket.library")
+            }
+        }
+    }
+
+    private func memberCard(_ side: PassMemberEntrySide) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Image(systemName: "key.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lanternHot)
+                .frame(width: 44, height: 44)
+                .background { Circle().fill(CYNight.glow(radius: 22)) }
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text("mp.pass.member").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                switch side {
+                case .activeUntil(let until): Text("mp.pass.member.until \(until)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                case .plans(let plans): Text(verbatim: plans).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                case .themeCount(let count): Text("mp.pass.member.count \(count)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                case .none: EmptyView()
+                }
+            }
+            Spacer()
+            Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+        }
+        .padding(CYSpacing.lg)
+        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private func orders(_ rows: [PassOrderRow]) -> some View {
+        if rows.isEmpty {
+            CYEmptyState(systemImage: "doc.text", "mp.pass.empty.orders", messageIdentifier: "passMarket.orders.empty")
+        } else {
+            MPRows(items: rows) { row in
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        (row.name.map { Text(verbatim: $0) } ?? Text("mp.pass.order.fallbackName")).font(CYTypography.bodyMedium)
+                        row.state.text.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+                        if let amount = row.amountText { Text(verbatim: amount).font(CYTypography.bodyMedium).monospacedDigit() }
+                        if let time = row.timeText { Text(verbatim: time).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    }
+                }
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("passMarket.order.\(row.id)")
+            }
+        }
+    }
+
+    @ViewBuilder private func gifts(_ content: PassMarketContent) -> some View {
+        if content.giftsBought.isEmpty && content.giftsReceived.isEmpty {
+            CYEmptyState(systemImage: "gift", "mp.pass.empty.gifts", messageIdentifier: "passMarket.gifts.empty")
+        } else {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                if !content.giftsBought.isEmpty {
+                    MPSectionHeader(title: "mp.pass.gift.sent")
+                    MPRows(items: content.giftsBought) { giftRow($0, bought: true) }
+                }
+                if !content.giftsReceived.isEmpty {
+                    MPSectionHeader(title: "mp.pass.gift.received").padding(.top, CYSpacing.sm)
+                    MPRows(items: content.giftsReceived) { giftRow($0, bought: false) }
+                }
+            }
+        }
+    }
+
+    private func giftRow(_ row: PassGiftRow, bought: Bool) -> some View {
+        MPRow(title: row.stateText(bought: bought),
+              sub: row.claimDeadlineText.map { Text("mp.pass.gift.deadline \($0)") },
+              value: row.timeText.map { Text(verbatim: $0) })
+            .accessibilityIdentifier("passMarket.gift.\(row.id)")
+    }
+}
+
+/// Shop card: kind + city header, name, validity, "includes N works · seats", price.
+struct PassProductCardView: View {
+    let product: PassProductCard
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(spacing: CYSpacing.sm) {
+                if let kind = product.kind {
+                    Text(kind.label).font(CYTypography.caption).foregroundStyle(CYNight.lanternHot)
+                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                        .background(CYNight.lantern.opacity(0.14), in: Capsule())
+                }
+                if let city = product.city { Text(verbatim: city).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                Spacer()
+            }
+            Text(verbatim: product.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .multilineTextAlignment(.leading)
+            if let validity = product.validity { validity.text.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            HStack(alignment: .firstTextBaseline) {
+                if product.coverCount > 0 {
+                    if let seats = product.seats {
+                        Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
+                    } else {
+                        Text("mp.pass.cover \(product.coverCount)")
+                    }
+                }
+                Spacer()
+                PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(CYTypography.cardTitle)
+            }
+            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Unit price only: "¥99.00 / 300 points"; nothing when both are missing.
+struct PassPriceText: View {
+    let cash: String?
+    let points: Int?
+    var body: some View {
+        HStack(spacing: CYSpacing.xs) {
+            if let cash { Text(verbatim: cash) }
+            if cash != nil && points != nil { Text(verbatim: "/") }
+            if let points { Text("mp.pass.points.amount \(points)") }
+        }
+        .monospacedDigit()
+        .foregroundStyle(CYColor.textPrimary)
+    }
+}
+
+// MARK: - Detail
+
+enum PassBuyState: Equatable {
+    case loading
+    /// Refused quote or closed channel: the reason sentence only, no buttons.
+    case unavailable(reason: String?)
+    /// Group / school products: go through the registration checkout (activity signup), not this page.
+    case checkout(activityID: String?, ticketID: String?)
+    /// Quote allows these pay modes. Drawn read-only while `MPCommerceGate.purchasesEnabled` is false.
+    case buyable(payModes: [PassPayMode], cashReason: String?)
+}
+
+struct PassPayMode: Identifiable, Equatable {
+    enum Mode: Int { case cash = 1, points = 2 }
+    let mode: Mode
+    /// "Pay ¥99.00" / "Redeem 300 points", formatted from the quote.
+    let amountText: String
+    var id: Int { mode.rawValue }
+}
+
+struct PassCheckoutRow: Identifiable, Equatable {
+    enum Kind: String { case price, cash, points }
+    let kind: Kind
+    let valueText: String
+    /// Cash closed: the reason under the label and the row dimmed.
+    let note: String?
+    let off: Bool
+    var id: String { kind.rawValue }
+}
+
+struct PassDetailState: Equatable {
+    var product: MPLoad<PassProductCard> = .loading
+    var forGift = false
+    var buy: PassBuyState = .loading
+    var checkout: [PassCheckoutRow] = []
+}
+
+/// Logic stub for Cursor: `/api/marketing/product/{id}`, `/quote` (fulfillment SELF / GIFT). Order / pay / unlock stay unbound.
+@MainActor protocol PassDetailBinding: AnyObject, Observable {
+    var state: PassDetailState { get }
+    func load()
+    func setForGift(_ forGift: Bool)
+}
+
+@MainActor struct PassDetailHost: View {
+    let binding: any PassDetailBinding
+    var onOpenCheckout: ((String, String?) -> Void)? = nil
+
+    var body: some View {
+        PassDetailView(state: binding.state, onRetry: { binding.load() }, onSetForGift: { binding.setForGift($0) }, onOpenCheckout: onOpenCheckout)
+            .task { binding.load() }
+    }
+}
+
+struct PassDetailView: View {
+    let state: PassDetailState
+    let onRetry: () -> Void
+    let onSetForGift: (Bool) -> Void
+    /// Activity signup for group products (activityID, ticketID). Nil hides the button and keeps the sentence.
+    let onOpenCheckout: ((String, String?) -> Void)?
+
+    private enum ForWhom: String, CaseIterable, Identifiable { case me, gift; var id: String { rawValue } }
+
+    var body: some View {
+        Group {
+            switch state.product {
+            case .loading:
+                CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityIdentifier("passDetail.loading")
+            case .failed(let reason):
+                CYStateLayout(kind: .failure, title: reason.map { Text(verbatim: $0) } ?? Text("mp.common.loadFailed"),
+                              primary: (title: "action.retry", action: onRetry), primaryStyle: .secondary, primaryIdentifier: "passDetail.retry")
+                    .frame(maxHeight: .infinity)
+                    .accessibilityIdentifier("passDetail.error")
+            case .ready(let product):
+                content(product)
+            }
+        }
+        .background { MPNightGround(glow: state.product.value != nil) }
+        .navigationTitle(state.product.value.map { Text(verbatim: $0.name) } ?? Text(verbatim: ""))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func content(_ product: PassProductCard) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                PassTicketHero(face: product.faceText ?? product.name)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, CYSpacing.md)
+                MPCard {
+                    let rows = facts(product)
+                    ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                        if index > 0 { MPDivider() }
+                        MPRow(title: row.0, value: row.1)
+                    }
+                }
+                if !product.topics.isEmpty {
+                    MPSectionHeader(title: "mp.pass.detail.topics")
+                    MPCard {
+                        ForEach(Array(product.topics.enumerated()), id: \.offset) { index, topic in
+                            if index > 0 { MPDivider() }
+                            MPRow(title: Text(verbatim: topic))
+                        }
+                    }
+                }
+                if product.giftAllowed {
+                    MPChipTabs(tabs: ForWhom.allCases, selection: Binding(get: { state.forGift ? .gift : .me }, set: { onSetForGift($0 == .gift) }),
+                               title: { ($0 == .me ? Text("mp.pass.detail.forMe") : Text("mp.pass.detail.forGift")) },
+                               identifier: { "passDetail.for.\($0.rawValue)" })
+                        .padding(.horizontal, -CYSpacing.pageHorizontal)
+                }
+                if !state.checkout.isEmpty {
+                    MPSectionHeader(title: "mp.pass.detail.checkout")
+                    MPCard {
+                        ForEach(Array(state.checkout.enumerated()), id: \.element.id) { index, row in
+                            if index > 0 { MPDivider() }
+                            MPRow(title: (row.kind == .price ? Text("mp.pass.detail.price") : row.kind == .cash ? Text("mp.pass.detail.cash") : Text("mp.pass.detail.points")),
+                                  sub: row.note.map { Text(verbatim: $0) }, value: Text(verbatim: row.valueText), strong: true, muted: row.off)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.jumbo)
+        }
+        .safeAreaInset(edge: .bottom) { bar }
+    }
+
+    private func facts(_ product: PassProductCard) -> [(Text, Text)] {
+        var rows: [(Text, Text)] = []
+        if let kind = product.kind { rows.append((Text("mp.pass.detail.kind"), Text(kind.label))) }
+        if let city = product.city { rows.append((Text("mp.pass.detail.city"), Text(verbatim: city))) }
+        if let validity = product.validity { rows.append((Text("mp.pass.detail.validity"), validity.text)) }
+        if let seats = product.seats { rows.append((Text("mp.pass.detail.seats"), Text("mp.pass.seats \(seats)"))) }
+        if state.forGift || product.seats == nil {
+            rows.append((Text("mp.pass.detail.user"), (state.forGift ? Text("mp.pass.detail.userFriend") : Text("mp.pass.detail.userMe"))))
+        }
+        return rows
+    }
+
+    @ViewBuilder private var bar: some View {
+        MPBottomBar {
+            switch state.buy {
+            case .loading:
+                ProgressView().frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("passDetail.quoteLoading")
+            case .unavailable(let reason):
+                (reason.map { Text(verbatim: $0) } ?? Text("mp.pass.buy.unavailable"))
+                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("passDetail.unavailable")
+            case .checkout(let activityID, let ticketID):
+                if let activityID, let onOpenCheckout {
+                    CYPillButton("mp.pass.buy.checkout") { onOpenCheckout(activityID, ticketID) }
+                        .accessibilityIdentifier("passDetail.checkout")
+                } else {
+                    Text("mp.pass.buy.useCheckout").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+            case .buyable(let modes, let cashReason):
+                if let cashReason, state.checkout.isEmpty {
+                    Text(verbatim: cashReason).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                // Gate OFF: the pay modes are shown as facts, not buttons.
+                HStack(spacing: CYSpacing.sm) {
+                    ForEach(modes) { mode in
+                        Text(verbatim: mode.amountText).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                            .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
+                            .background(CYNight.ink2, in: Capsule())
+                    }
+                }
+                MPGatedNote(text: Text("mp.gate.purchase"), identifier: "passDetail.purchaseOff")
+            }
+        }
+    }
+}
+
+/// r3-pass hero: a lantern-gold city pass that assembles from shards on appear (cross-fade under Reduce Motion).
+struct PassTicketHero: View {
+    let face: String
+    @State private var assembled = false
+    @QuestifyReduceMotion private var reduceMotion
+
+    private static let shards: [(x: CGFloat, y: CGFloat, r: Double)] = [(-90, -60, -24), (80, -70, 18), (-110, 40, 30), (100, 50, -20), (0, -110, 12), (10, 100, -14)]
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+        ZStack {
+            CYNight.glow(radius: 120).frame(width: 340, height: 260).opacity(assembled ? 0.8 : 0)
+            ZStack {
+                ForEach(Array(Self.shards.enumerated()), id: \.offset) { index, shard in
+                    shape.fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern, CYNight.ember.opacity(0.9)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 220, height: 132)
+                        .mask {
+                            // Each shard shows one sixth of the face; together they read as one ticket.
+                            GeometryReader { geo in
+                                let column = CGFloat(index % 3), row = CGFloat(index / 3)
+                                Rectangle().frame(width: geo.size.width / 3 + 1, height: geo.size.height / 2 + 1)
+                                    .offset(x: column * geo.size.width / 3, y: row * geo.size.height / 2)
+                            }
+                        }
+                        .offset(x: assembled ? 0 : shard.x, y: assembled ? 0 : shard.y)
+                        .rotationEffect(.degrees(assembled ? 0 : shard.r))
+                        .opacity(assembled ? 1 : 0.35)
+                        .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.55, dampingFraction: 0.72).delay(Double(index) * 0.04), value: assembled)
+                }
+                VStack(spacing: CYSpacing.xs) {
+                    Image(systemName: "key.fill").font(CYTypography.sectionTitle)
+                    Text(verbatim: face).font(CYTypography.cardTitle).lineLimit(2).multilineTextAlignment(.center)
+                }
+                .foregroundStyle(CYNight.ink0)
+                .padding(.horizontal, CYSpacing.lg)
+                .frame(width: 220, height: 132)
+                .opacity(assembled ? 1 : 0)
+                .animation(CYMotion.resolve(CYMotion.entrance.delay(0.35), reduceMotion: reduceMotion), value: assembled)
+            }
+            .cyFoil(in: shape, active: assembled)
+        }
+        .frame(height: 200)
+        .onAppear { assembled = true }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: face))
+    }
+}
+
+// MARK: - Gift claim
+
+enum PassGiftClaimPhase: Equatable {
+    case ready
+    case claimed(registrationID: String?)
+    /// Reason sentence from the claim reason code ("gift already claimed", "token expired"...).
+    case failed(reason: String)
+    /// Network loss: same request id resent on the next tap.
+    case unknown
+}
+
+struct PassGiftClaimState: Equatable {
+    var phase: PassGiftClaimPhase = .ready
+    var claiming = false
+}
+
+/// Logic stub for Cursor: `/api/marketing/product/gifts/claim` with a stable request id. Claim stays gated OFF here.
+@MainActor protocol PassGiftClaimBinding: AnyObject, Observable {
+    var state: PassGiftClaimState { get }
+    func claim()
+}
+
+@MainActor struct PassGiftClaimHost: View {
+    let binding: any PassGiftClaimBinding
+    @State private var route: MPParityRoute?
+    var body: some View {
+        PassGiftClaimView(state: binding.state, onClaim: { binding.claim() }, onOpenGifts: { route = .passes(tab: .gifts) })
+            .mpParityRouteDestination($route)
+    }
+}
+
+struct PassGiftClaimView: View {
+    let state: PassGiftClaimState
+    let onClaim: () -> Void
+    let onOpenGifts: () -> Void
+    @State private var popped = false
+    @State private var glowing = false
+    @QuestifyReduceMotion private var reduceMotion
+
+    private var failedReason: String? { if case .failed(let reason) = state.phase { return reason } else { return nil } }
+    private var claimed: Bool { if case .claimed = state.phase { return true } else { return false } }
+
+    var body: some View {
+        VStack(spacing: CYSpacing.xl) {
+            Spacer()
+            ZStack {
+                if !claimed && failedReason == nil {
+                    Circle().stroke(CYNight.lantern.opacity(0.5), lineWidth: 2)
+                        .frame(width: 120, height: 120)
+                        .scaleEffect(glowing ? 1.6 : 1)
+                        .opacity(glowing ? 0 : 0.8)
+                        .animation(reduceMotion ? nil : .easeOut(duration: 2.4).repeatForever(autoreverses: false), value: glowing)
+                }
+                Circle().fill(failedReason == nil ? CYNight.glow(radius: 60) : RadialGradient(colors: [CYNight.ink2], center: .center, startRadius: 0, endRadius: 1))
+                    .frame(width: 120, height: 120)
+                Image(systemName: claimed ? "checkmark" : "gift.fill")
+                    .font(CYTypography.display)
+                    .foregroundStyle(failedReason == nil ? (claimed ? CYNight.verify : CYNight.lanternHot) : CYColor.textTertiary)
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .scaleEffect(popped ? 1 : 0.6)
+            .opacity(popped ? 1 : 0)
+            .accessibilityHidden(true)
+            Group {
+                if claimed { Text("mp.gift.claimed") }
+                else if let failedReason { Text(verbatim: failedReason) }
+                else { Text("mp.gift.title") }
+            }
+            .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+            .padding(.horizontal, CYSpacing.xxl)
+            .accessibilityAddTraits(.updatesFrequently)
+            .accessibilityIdentifier("passGift.status")
+            Spacer()
+            if failedReason == nil {
+                MPBottomBar {
+                    if state.phase == .unknown { Text("mp.gift.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if claimed {
+                        CYPillButton("mp.gift.view", action: onOpenGifts).accessibilityIdentifier("passGift.view")
+                    } else if MPCommerceGate.claimsEnabled {
+                        CYMorphButton("mp.gift.claim", state: state.claiming ? .working : .idle, action: onClaim).identifier("passGift.claim")
+                    } else {
+                        MPGatedNote(text: Text("mp.gate.claim"), identifier: "passGift.claimOff")
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .background { MPNightGround(glow: failedReason == nil) }
+        .navigationTitle(Text("mp.gift.nav"))
+        .navigationBarTitleDisplayMode(.inline)
+        .cyHaptic(.success, trigger: claimed)
+        .onAppear {
+            withAnimation(CYMotion.resolve(.spring(response: 0.45, dampingFraction: 0.6), reduceMotion: reduceMotion)) { popped = true }
+            glowing = true
+        }
+    }
+}

@@ -1,0 +1,551 @@
+import SwiftUI
+
+// Mini-program `subpackageMember/market/membership` (platform pass), `market/library` (playable theme library) and
+// `subpackagePass/reveal` (key reveal intro). Opening / renewing the pass is a payment and stays OFF (`MPCommerceGate`):
+// plans and prices are shown read-only. Merchant accounts have no pass: one sentence only.
+
+// MARK: - Membership
+
+struct PassPlanCard: Identifiable, Equatable {
+    enum Line: Equatable {
+        /// Year plan: "under ¥X a month".
+        case year(monthlyText: String)
+        case month
+        case custom(title: String, days: Int?)
+    }
+    let code: String
+    let priceText: String
+    let line: Line
+    let best: Bool
+    var id: String { code }
+
+    var lineText: Text {
+        switch line {
+        case .year(let monthly): Text("mp.member.plan.year \(monthly)")
+        case .month: Text("mp.member.plan.month")
+        case .custom(let title, let days):
+            if let days { Text(verbatim: "\(title) · ") + Text("mp.member.plan.days \(days)") } else { Text(verbatim: title) }
+        }
+    }
+}
+
+enum PassBuyBlock: Equatable {
+    /// No plans on sale.
+    case notOnSale
+    /// No usable channel on this device.
+    case deviceUnavailable
+}
+
+struct PassMembershipContent: Equatable {
+    var active: Bool
+    var untilText: String?
+    /// Library theme count (`libraryCount`); nil hides the count line, never 0.
+    var themeCount: Int?
+    var plans: [PassPlanCard]
+    var selectedPlan: String?
+    var buyBlock: PassBuyBlock?
+}
+
+enum PassMembershipPhase: Equatable {
+    case loading
+    case failed
+    case merchant
+    case notEnabled
+    case ready(PassMembershipContent)
+}
+
+/// Logic stub for Cursor: `GET /api/platform-pass` (+ merchant role). Purchase (`platform-pass-pay`) stays unbound.
+@MainActor protocol PassMembershipBinding: AnyObject, Observable {
+    var phase: PassMembershipPhase { get }
+    func load()
+    func selectPlan(_ code: String)
+}
+
+@MainActor struct PassMembershipHost: View {
+    let binding: any PassMembershipBinding
+    @State private var route: MPParityRoute?
+    @Environment(\.mpParity) private var bindings
+    var body: some View {
+        PassMembershipView(phase: binding.phase, onRetry: { binding.load() }, onSelectPlan: { binding.selectPlan($0) },
+                           onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) })
+            .task { binding.load() }
+            .mpParityRouteDestination($route)
+    }
+}
+
+struct PassMembershipView: View {
+    let phase: PassMembershipPhase
+    let onRetry: () -> Void
+    let onSelectPlan: (String) -> Void
+    let onOpenLibrary: (() -> Void)?
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        Group {
+            switch phase {
+            case .loading:
+                CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityIdentifier("membership.loading")
+            case .failed:
+                CYErrorState("mp.common.loadFailed", onRetry: onRetry).frame(maxHeight: .infinity).accessibilityIdentifier("membership.error")
+            case .merchant:
+                CYEmptyState(systemImage: "key", "mp.member.merchant", messageIdentifier: "membership.merchant").frame(maxHeight: .infinity)
+            case .notEnabled:
+                CYEmptyState(systemImage: "key", "mp.member.off", messageIdentifier: "membership.off").frame(maxHeight: .infinity)
+            case .ready(let content):
+                ready(content)
+            }
+        }
+        .background { MPNightGround() }
+        .navigationTitle(Text("mp.member.title"))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func ready(_ content: PassMembershipContent) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                card(content)
+                if let onOpenLibrary {
+                    Button(action: onOpenLibrary) {
+                        MPCard {
+                            MPRow(title: Text("mp.member.library"),
+                                  sub: content.themeCount.map { Text("mp.member.library.count \($0)") },
+                                  chevron: true,
+                                  leading: AnyView(Image(systemName: "seal.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
+                        }
+                    }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("membership.library")
+                }
+                if !content.plans.isEmpty { plans(content) }
+                if content.active && !content.plans.isEmpty { renewNote(content) }
+                if !content.plans.isEmpty {
+                    Text("mp.member.terms").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.jumbo)
+        }
+        .safeAreaInset(edge: .bottom) {
+            MPBottomBar {
+                if content.active, let onOpenLibrary {
+                    CYPillButton("mp.member.toLibrary", action: onOpenLibrary).accessibilityIdentifier("membership.toLibrary")
+                } else {
+                    buyLabel(content).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textTertiary)
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .background(CYNight.ink2, in: Capsule())
+                        .accessibilityAddTraits(.isStaticText)
+                        .accessibilityIdentifier("membership.buy")
+                    MPGatedNote(text: Text("mp.gate.purchase"), identifier: "membership.purchaseOff")
+                }
+            }
+        }
+    }
+
+    private func buyLabel(_ content: PassMembershipContent) -> Text {
+        switch content.buyBlock {
+        case .notOnSale: Text("mp.member.buy.notOnSale")
+        case .deviceUnavailable: Text("mp.member.buy.device")
+        case nil: content.active ? Text("mp.member.buy.renew") : Text("mp.member.buy.open")
+        }
+    }
+
+    private func card(_ content: PassMembershipContent) -> some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("mp.member.eyebrow").font(CYTypography.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary)
+                (content.active ? Text("mp.member.active") : Text("mp.member.inactive")).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                if content.active, let until = content.untilText {
+                    Text("mp.pass.member.until \(until)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }
+            }
+            Spacer()
+            PassKeyEmblem(size: 92, lit: content.active)
+        }
+        .padding(CYSpacing.xl)
+        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("membership.card")
+    }
+
+    private func plans(_ content: PassMembershipContent) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            ForEach(content.plans) { plan in
+                let on = plan.code == content.selectedPlan
+                Button { onSelectPlan(plan.code) } label: {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: plan.priceText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        plan.lineText.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+                    .padding(CYSpacing.lg)
+                    .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                        .strokeBorder(on ? CYColor.selection : CYColor.borderSubtle, lineWidth: on ? 2 : 1))
+                    .overlay(alignment: .topTrailing) {
+                        if plan.best {
+                            Text("mp.member.best").font(CYTypography.micro).foregroundStyle(CYNight.ink0)
+                                .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                                .background(CYNight.lantern, in: Capsule())
+                                .offset(x: -CYSpacing.sm, y: -CYSpacing.sm)
+                        }
+                    }
+                    .scaleEffect(on && !reduceMotion ? 1.02 : 1)
+                    .cyAnimation(.spring(response: 0.3, dampingFraction: 0.7), value: on)
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(on ? [.isSelected] : [])
+                .accessibilityIdentifier("membership.plan.\(plan.code)")
+                .cyHaptic(.selection, trigger: on)
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private func renewNote(_ content: PassMembershipContent) -> some View {
+        buyLabel(content).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+            .background(CYNight.ink1, in: Capsule())
+            .accessibilityIdentifier("membership.renew")
+    }
+}
+
+/// Glass key emblem (the reward object). Lantern light only once the pass is active.
+struct PassKeyEmblem: View {
+    var size: CGFloat = 92
+    var lit = true
+    @State private var sway = false
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            if lit { Circle().fill(CYNight.glow(radius: size / 2)).frame(width: size * 1.6, height: size * 1.6) }
+            Image(systemName: "key.fill")
+                .resizable().scaledToFit()
+                .frame(width: size * 0.62)
+                .foregroundStyle(lit ? AnyShapeStyle(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern, CYNight.ember], startPoint: .top, endPoint: .bottom))
+                                     : AnyShapeStyle(CYColor.textTertiary))
+                .rotationEffect(.degrees(sway ? 8 : -8))
+                .animation(reduceMotion || !lit ? nil : .easeInOut(duration: 3).repeatForever(autoreverses: true), value: sway)
+        }
+        .frame(width: size, height: size)
+        .onAppear { sway = true }
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Library
+
+enum PassLibraryKind: String, CaseIterable, Identifiable, Hashable {
+    case all, city, free
+    var id: String { rawValue }
+    var title: LocalizedStringKey {
+        switch self {
+        case .all: "mp.library.kind.all"
+        case .city: "mp.library.kind.city"
+        case .free: "mp.library.kind.free"
+        }
+    }
+}
+
+struct PassLibraryCard: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let coverURL: String?
+    let city: String?
+    /// 1 city orienteering, 2 free explore.
+    let kind: PassLibraryKind?
+    /// Minutes, already rounded; nil hides the duration.
+    let minutes: Int?
+    /// "¥0 with pass" only when the server stated coverage (`covered == true`).
+    let freeWithPass: Bool
+}
+
+enum PassLibraryPhase: Equatable {
+    case loading
+    case failed(String?)
+    case merchant
+    case off
+    case ready([PassLibraryCard])
+}
+
+/// Logic stub for Cursor: `GET /api/platform-pass/library?productType=`.
+@MainActor protocol PassLibraryBinding: AnyObject, Observable {
+    var phase: PassLibraryPhase { get }
+    func load(kind: PassLibraryKind)
+}
+
+@MainActor struct PassLibraryHost: View {
+    let binding: any PassLibraryBinding
+    var initialKind: PassLibraryKind = .all
+    var onOpenTopic: ((String) -> Void)? = nil
+    var body: some View {
+        PassLibraryView(phase: binding.phase, initialKind: initialKind, onLoad: { binding.load(kind: $0) }, onOpenTopic: onOpenTopic)
+    }
+}
+
+struct PassLibraryView: View {
+    let phase: PassLibraryPhase
+    var initialKind: PassLibraryKind = .all
+    let onLoad: (PassLibraryKind) -> Void
+    let onOpenTopic: ((String) -> Void)?
+    @State private var kind: PassLibraryKind = .all
+    @State private var loadedKind: PassLibraryKind?
+    @State private var started = false
+
+    private var showsKinds: Bool {
+        switch phase {
+        case .merchant, .off: false
+        default: true
+        }
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                if showsKinds {
+                    MPChipTabs(tabs: PassLibraryKind.allCases, selection: $kind, title: { Text($0.title) }, identifier: { "passLibrary.kind.\($0.rawValue)" })
+                }
+                Group {
+                    switch phase {
+                    case .loading:
+                        CYLoadingStateView(rows: 3).accessibilityIdentifier("passLibrary.loading")
+                    case .failed(let message):
+                        CYStateLayout(kind: .failure, title: message.map { Text(verbatim: $0) } ?? Text("mp.library.error"),
+                                      primary: (title: "action.retry", action: { onLoad(kind) }), primaryStyle: .secondary, primaryIdentifier: "passLibrary.retry")
+                            .accessibilityIdentifier("passLibrary.error")
+                    case .merchant:
+                        CYEmptyState(systemImage: "key", "mp.member.merchant", messageIdentifier: "passLibrary.merchant")
+                    case .off:
+                        CYEmptyState(systemImage: "key", "mp.member.off", messageIdentifier: "passLibrary.off")
+                    case .ready(let cards) where cards.isEmpty:
+                        CYEmptyState(systemImage: "map", "mp.library.empty", messageIdentifier: "passLibrary.empty")
+                    case .ready(let cards):
+                        LazyVStack(spacing: CYSpacing.md) {
+                            ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
+                                Group {
+                                    if let onOpenTopic {
+                                        Button { onOpenTopic(card.id) } label: { PassLibraryCardView(card: card) }.buttonStyle(.cyPressable)
+                                    } else {
+                                        PassLibraryCardView(card: card)
+                                    }
+                                }
+                                .cyStaggerAppear(min(index, 7))
+                                .accessibilityIdentifier("passLibrary.card.\(card.id)")
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+            }
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .refreshable { onLoad(kind) }
+        .background { MPNightGround() }
+        .navigationTitle(Text("mp.library.title"))
+        .navigationBarTitleDisplayMode(.large)
+        .onAppear { if !started { kind = initialKind; loadedKind = initialKind; started = true; onLoad(initialKind) } }
+        .onChange(of: kind) { _, new in if started && new != loadedKind { loadedKind = new; onLoad(new) } }
+    }
+}
+
+/// Club-style photo card: cover, bottom ink gradient, top row (city mark + "¥0 with pass" + city), title, one data line, tags.
+struct PassLibraryCardView: View {
+    let card: PassLibraryCard
+
+    private var kindText: Text? {
+        switch card.kind {
+        case .city: Text("mp.library.kind.city")
+        case .free: Text("mp.library.kind.free")
+        default: nil
+        }
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            CYCachedAsyncImage(card.coverURL, role: .cover)
+                .overlay(LinearGradient(colors: [.clear, CYNight.ink0.opacity(0.92)], startPoint: .center, endPoint: .bottom))
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: card.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                HStack(spacing: CYSpacing.xs) {
+                    if let kindText { kindText }
+                    if kindText != nil && card.minutes != nil { Text(verbatim: "·") }
+                    if let minutes = card.minutes { Text("mp.library.minutes \(minutes)") }
+                }
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            .padding(CYSpacing.lg)
+        }
+        .overlay(alignment: .top) {
+            HStack(spacing: CYSpacing.sm) {
+                if card.freeWithPass {
+                    Text("mp.library.free").font(CYTypography.caption).foregroundStyle(CYNight.ink0)
+                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                        .background(CYNight.lantern, in: Capsule())
+                }
+                Spacer()
+                if let city = card.city {
+                    Label { Text(verbatim: city) } icon: { Image(systemName: "mappin") }
+                        .font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                        .cyNightGlass(in: Capsule())
+                }
+            }
+            .padding(CYSpacing.md)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("mp.library.open \(card.title)"))
+    }
+}
+
+// MARK: - Reveal
+
+/// Facts the membership page passes after a PAID order (count and until only when the server gave them).
+struct PassRevealPaidFacts: Hashable {
+    let count: Int?
+    let untilText: String?
+}
+
+/// Key reveal (l-icons ps-key): shards fly in and fuse into the key, a warm gradient rises, then eyebrow / title / line /
+/// button follow. The full version plays the first time per account and after a paid order; later visits land on the
+/// idle state. Reduce Motion: the end state at once. "Skip" appears shortly after the start, only in the full version.
+@MainActor struct PassRevealView: View {
+    let paid: PassRevealPaidFacts?
+    let accountKey: String?
+    var isMerchant = false
+    @Environment(\.mpParity) private var bindings
+    @AppStorage("pass_reveal_seen_v1") private var seenAccount = ""
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var step = 0
+    @State private var full = false
+    @State private var route: MPParityRoute?
+    @State private var timeline: Task<Void, Never>?
+    @State private var skipVisible = false
+
+    /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
+    private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
+    private static let skipAt: UInt64 = 600
+
+    var body: some View {
+        Group {
+            if isMerchant {
+                CYEmptyState(systemImage: "key", "mp.member.merchant", messageIdentifier: "passReveal.merchant").frame(maxHeight: .infinity)
+            } else {
+                stage
+            }
+        }
+        .background(CYNight.ink0.ignoresSafeArea())
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if full && skipVisible && step < 8 {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("mp.reveal.skip") { finish(); go() }.accessibilityIdentifier("passReveal.skip")
+                }
+            }
+        }
+        .mpParityRouteDestination($route)
+        .onAppear(perform: start)
+        .onDisappear { timeline?.cancel() }
+    }
+
+    private var stage: some View {
+        VStack(spacing: CYSpacing.lg) {
+            Spacer()
+            ZStack {
+                Circle().fill(CYNight.glow(radius: 110)).frame(width: 360, height: 360).opacity(step >= 2 ? 1 : 0)
+                ForEach(0..<8, id: \.self) { index in
+                    let angle = Double(index) / 8 * 2 * .pi
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom))
+                        .frame(width: 14, height: 26)
+                        .rotationEffect(.radians(angle))
+                        .offset(x: step >= 2 ? 0 : cos(angle) * 160, y: step >= 2 ? 0 : sin(angle) * 220)
+                        .opacity(step >= 1 && step < 2 ? 0.9 : 0)
+                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.75).delay(Double(index) * 0.03), value: step)
+                }
+                PassKeyEmblem(size: 180, lit: true)
+                    .scaleEffect(step >= 2 ? 1 : 0.4)
+                    .opacity(step >= 2 ? 1 : 0)
+                    .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
+            }
+            .frame(height: 320)
+            .accessibilityHidden(true)
+            Spacer()
+            VStack(spacing: CYSpacing.md) {
+                eyebrow.font(CYTypography.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).revealIn(step >= 5, reduceMotion: reduceMotion)
+                title.font(CYTypography.display).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
+                if let line { line.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
+                CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
+                    .accessibilityIdentifier("passReveal.start")
+                    .revealIn(step >= 8, reduceMotion: reduceMotion)
+                    .padding(.top, CYSpacing.sm)
+            }
+            .padding(.horizontal, CYSpacing.xxl)
+            .padding(.bottom, CYSpacing.xxl)
+            .accessibilityElement(children: .contain)
+        }
+        .background(alignment: .bottom) {
+            LinearGradient(colors: [.clear, CYNight.ember.opacity(0.28), CYNight.lantern.opacity(0.18)], startPoint: .top, endPoint: .bottom)
+                .frame(height: 420)
+                .opacity(step >= 4 ? 1 : 0)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.6), value: step >= 4)
+                .ignoresSafeArea()
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var eyebrow: Text { paid == nil ? Text("mp.reveal.eyebrow") : Text("mp.reveal.eyebrowPaid") }
+    private var title: Text {
+        guard let paid else { return Text("mp.reveal.title") }
+        if let count = paid.count { return Text("mp.reveal.titlePaid \(count)") }
+        return Text("mp.member.active")
+    }
+    private var line: Text? {
+        guard let paid else { return Text("mp.reveal.line") }
+        return paid.untilText.map { Text("mp.reveal.linePaid \($0)") }
+    }
+
+    private func start() {
+        guard !isMerchant, step == 0 else { return }
+        let key = accountKey.flatMap { $0.isEmpty ? nil : $0 } ?? "guest"
+        let firstTime = seenAccount != key
+        full = !reduceMotion && (paid != nil || firstTime)
+        seenAccount = key
+        guard full else { finish(); return }
+        timeline = Task { @MainActor in
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: Self.skipAt * 1_000_000)
+                if !Task.isCancelled { skipVisible = true }
+            }
+            var elapsed: UInt64 = 0
+            for item in Self.schedule {
+                try? await Task.sleep(nanoseconds: (item.ms - elapsed) * 1_000_000)
+                elapsed = item.ms
+                if Task.isCancelled { return }
+                withAnimation(.easeOut(duration: 0.35)) { step = max(step, item.step) }
+            }
+        }
+    }
+
+    private func finish() {
+        timeline?.cancel()
+        withAnimation(CYMotion.resolve(.easeOut(duration: 0.3), reduceMotion: reduceMotion)) { step = 8 }
+    }
+
+    private func go() {
+        if paid != nil {
+            if bindings.passLibrary != nil { route = .library(kind: .all) }
+        } else if bindings.membership != nil {
+            route = .membership
+        }
+    }
+}
+
+private extension View {
+    func revealIn(_ on: Bool, reduceMotion: Bool) -> some View {
+        opacity(on ? 1 : 0).offset(y: on || reduceMotion ? 0 : 12)
+            .animation(reduceMotion ? nil : .spring(response: 0.45, dampingFraction: 0.85), value: on)
+    }
+}
