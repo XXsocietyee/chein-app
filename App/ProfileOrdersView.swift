@@ -314,6 +314,7 @@ struct ProfileOrderDetailView: View {
                 }
                 ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
                 FreeExploreBundleReadEntry(order: order, requestedID: id, origin: reader)
+                BundleCommerceOrderEntry(order: order, requestedID: id, origin: reader)
                 // Source 退款与客服 (报名与客服 when free): 联系客服 opens the read-only support page.
                 Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderP2.supportSection.free" : "profile.orderP2.supportSection")) {
                     NavigationLink { ParticipationSupportView() } label: {
