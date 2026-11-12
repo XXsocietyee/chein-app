@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Embed in the caller's NavigationStack. The caller owns existing detail destinations.
 @MainActor struct HomeFeedView: View {
@@ -78,6 +79,9 @@ import SwiftUI
                             onActionBanner?(banner)
                         }
                         .cySectionReveal(order: 0, gate: reveal)
+                        // Feed search lives under the greeting. The navigation-bar drawer sat in the
+                        // status-bar band and blurred this header while the bar was hidden.
+                        HomeFeedInlineSearch(text: $keyword, onSubmit: { submitFeedSearch() })
                     }
                     if let consent = cityLocationConsent {
                         HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
@@ -154,10 +158,20 @@ import SwiftUI
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.top, CYSpacing.lg)
                     .padding(.bottom, CYSpacing.jumbo)
+                    .background {
+                        if hasHeroHeader {
+                            GeometryReader { proxy in
+                                Color.clear.preference(key: HomeScrollMinYKey.self, value: proxy.frame(in: .global).minY)
+                            }
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
+                        }
+                    }
                 }
                 .background { CYExploreGround() }
-                .searchable(text: $keyword, placement: onOpenUnifiedSearch == nil ? .automatic : .navigationBarDrawer(displayMode: .automatic), prompt: Text("homeFeed.search"))
-                .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .modifier(HomeHeroStatusBarClearance(active: hasHeroHeader))
+                .modifier(HomeFeedNavigationSearch(text: $keyword, enabled: !hasHeroHeader, usesDrawer: onOpenUnifiedSearch != nil))
+                .onSubmit(of: .search) { submitFeedSearch() }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
                 .onChange(of: query) { _, value in model.schedule(.query(value), reader: reader, permit: permit) }
                 .refreshable { await model.reload(reader: reader, query: query) }
@@ -167,6 +181,8 @@ import SwiftUI
         }
         .appNavigationTitle("homeFeed.title")
         // The greeting block is the title (mini-program home): no second large nav title above it.
+        // Hiding the bar lets the scroll view run under the status bar; HomeHeroStatusBarClearance
+        // puts the greeting fully below that band.
         .toolbar(hasHeroHeader ? .hidden : .automatic, for: .navigationBar)
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
@@ -313,6 +329,92 @@ import SwiftUI
         .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .cyNightCardDepth(radius: CYRadius.lg)
         .transition(.opacity)
+    }
+    private func submitFeedSearch() {
+        submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+/// Feed keyword field used when the navigation bar is hidden. It sits under the greeting so the
+/// status-bar material does not blur "Hi".
+private struct HomeFeedInlineSearch: View {
+    @Binding var text: String
+    var onSubmit: () -> Void
+    var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(CYColor.textSecondary)
+                .accessibilityHidden(true)
+            TextField("homeFeed.search", text: $text)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+                .onSubmit(onSubmit)
+        }
+        .font(CYTypography.body)
+        .padding(.horizontal, CYSpacing.md)
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isSearchField)
+        .accessibilityIdentifier("homeFeed.search")
+    }
+}
+
+/// Keeps the system search only when the navigation bar is showing. With the bar hidden, the
+/// drawer draws in the status-bar band and blurs the greeting.
+private struct HomeFeedNavigationSearch: ViewModifier {
+    @Binding var text: String
+    var enabled: Bool
+    var usesDrawer: Bool
+    func body(content: Content) -> some View {
+        if enabled {
+            content.searchable(
+                text: $text,
+                placement: usesDrawer ? .navigationBarDrawer(displayMode: .automatic) : .automatic,
+                prompt: Text("homeFeed.search")
+            )
+        } else {
+            content
+        }
+    }
+}
+
+private struct HomeScrollMinYKey: PreferenceKey {
+    static var defaultValue: CGFloat = -1
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        let next = nextValue()
+        if next >= 0 { value = next }
+    }
+}
+
+private enum HomeWindowSafeTop {
+    @MainActor static var current: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?.safeAreaInsets.top ?? 0
+    }
+}
+
+/// Extra top inset so the greeting clears the status bar when the navigation bar is hidden.
+/// Measured once from the content's laid-out top, so a view that is already clear is not padded twice.
+private struct HomeHeroStatusBarClearance: ViewModifier {
+    var active: Bool
+    @State private var extra: CGFloat = 0
+    @State private var locked = false
+    func body(content: Content) -> some View {
+        content
+            .onPreferenceChange(HomeScrollMinYKey.self) { minY in
+                guard active, !locked, minY >= 0 else { return }
+                let safeTop = HomeWindowSafeTop.current
+                guard safeTop > 0 else { return }
+                extra = min(80, max(0, safeTop - minY))
+                locked = true
+            }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                Color.clear.frame(height: active ? extra : 0).accessibilityHidden(true)
+            }
     }
 }
 

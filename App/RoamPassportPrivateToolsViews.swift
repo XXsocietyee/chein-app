@@ -10,12 +10,7 @@ import SwiftUI
     private let initialScope: RoamPrivatePageScope?
     private let initialConfigured: Bool?
     private let initialWrites: Bool?
-    @State private var openedLink: OpenedLink?
-    private enum LinkKind: Hashable { case goals, capsule }
-    private struct OpenedLink: Identifiable, Hashable {
-        let id = UUID()
-        let kind: LinkKind
-    }
+    @EnvironmentObject private var navigation: RoamPassportPrivateNavigation
     init(tools: (any RoamPrivateToolsServing)?) {
         self.tools = tools
         self.initialScope = tools.map { RoamPrivatePageScope($0) }
@@ -28,10 +23,10 @@ import SwiftUI
         NavigationLink { RoamExplorationGoalsView(tools: tools) } label: {
             RoamPassportTileLabel(title: "roam.goals.title", subtitle: "roam.goals.tile", systemImage: "flag")
                 .background {
-                    if openedLink == nil {
+                    if navigation.openedLink == nil {
                         RoamHostedAccessibilityAnchor(
                             identifier: "roam.goals.open",
-                            action: { openedLink = OpenedLink(kind: .goals) }
+                            action: { navigation.openedLink = RoamPassportOpenedLink(kind: .goals) }
                         )
                     }
                 }
@@ -39,24 +34,56 @@ import SwiftUI
         NavigationLink { RoamCapsuleView(tools: tools) } label: {
             RoamPassportTileLabel(title: "roam.capsule.title", subtitle: "roam.capsule.tile", systemImage: "clock")
                 .background {
-                    if openedLink == nil {
+                    if navigation.openedLink == nil {
                         RoamHostedAccessibilityAnchor(
                             identifier: "roam.capsule.open",
-                            action: { openedLink = OpenedLink(kind: .capsule) }
+                            action: { navigation.openedLink = RoamPassportOpenedLink(kind: .capsule) }
                         )
                     }
                 }
         }
         .accessibilityIdentifier("roam.capsule.open")
-        .onAppear { openedLink = nil }
-        .navigationDestination(item: $openedLink) { item in
-            switch item.kind {
-            case .goals:
-                RoamExplorationGoalsView(tools: tools)
-            case .capsule:
-                RoamCapsuleView(tools: tools)
+        .onAppear { navigation.openedLink = nil }
+    }
+}
+
+/// The goals and capsule pushes. `navigationDestination(item:)` on a row inside the List
+/// collapses that section into one cramped line, so the destination lives on the List.
+@MainActor private final class RoamPassportPrivateNavigation: ObservableObject {
+    @Published var openedLink: RoamPassportOpenedLink?
+}
+
+private struct RoamPassportOpenedLink: Identifiable, Hashable {
+    let id = UUID()
+    let kind: RoamPassportPrivateLinkKind
+}
+
+private enum RoamPassportPrivateLinkKind: Hashable { case goals, capsule }
+
+extension View {
+    /// Hoist the private-link push onto the List or NavigationStack. Do not call this from a row.
+    func roamPassportPrivateDestinations(tools: (any RoamPrivateToolsServing)?) -> some View {
+        modifier(RoamPassportPrivateDestinationModifier(tools: tools))
+    }
+}
+
+private struct RoamPassportPrivateDestinationModifier: ViewModifier {
+    let tools: (any RoamPrivateToolsServing)?
+    @StateObject private var navigation = RoamPassportPrivateNavigation()
+    private var openedLink: Binding<RoamPassportOpenedLink?> {
+        Binding(get: { navigation.openedLink }, set: { navigation.openedLink = $0 })
+    }
+    func body(content: Content) -> some View {
+        content
+            .environmentObject(navigation)
+            .navigationDestination(item: openedLink) { item in
+                switch item.kind {
+                case .goals:
+                    RoamExplorationGoalsView(tools: tools)
+                case .capsule:
+                    RoamCapsuleView(tools: tools)
+                }
             }
-        }
     }
 }
 
