@@ -28248,13 +28248,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You haven't joined a club yet"
+            "value": "No clubs yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你还没有加入俱乐部"
+            "value": "还没有俱乐部"
           }
         }
       }
@@ -28486,13 +28486,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clubs"
+            "value": "Discover"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部"
+            "value": "发现"
           }
         }
       }

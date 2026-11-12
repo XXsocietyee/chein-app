@@ -33,6 +33,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var body: some View {
         VStack(spacing: 0) {
         if community != nil {
+            // Mini-program talent/list: the 发现 title sits above the 帖文 / 俱乐部 tabs and stays for both tabs.
+            CYHeroHeader(screenTitle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.top, CYSpacing.sm)
             Picker("club.title", selection: $topTab) {
                 ForEach(ClubTabPresentation.TopTab.allCases, id: \.self) { Text(LocalizedStringKey($0.key)).tag($0) }
             }.pickerStyle(.segmented)
@@ -49,12 +54,14 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             let home = loaded.home
             let page = loaded.page
             List {
-                Section {
-                    CYHeroHeader(screenTitle)
+                if community == nil {
+                    Section {
+                        CYHeroHeader(screenTitle)
+                    }
+                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
                 // Mini-program club tab: 「创建你自己的俱乐部」 stays pinned above the list; merchants never see it.
                 if !discoveryScope.isMerchantViewer, let operations = management?.operations {
                     Section {
@@ -88,16 +95,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     Section { playerEmpty }
                 } else {
                     Section {
-                        // 你的俱乐部 (row cards), then 发现 (photo cards with the inline Join pill).
-                        if !home.owned.isEmpty || !home.joined.isEmpty {
-                            clubSectionHeader("club.home.yours")
-                            clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)
-                            clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)
-                        }
-                        if !nearby.isEmpty {
-                            clubSectionHeader("club.home.discover")
-                            clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
-                        }
+                        // Created and joined clubs (row cards), then nearby (photo cards with the inline Join pill),
+                        // one list with no group headers as in the mini-program.
+                        clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)
+                        clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)
+                        clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
                     }
                 }
                 Section {
@@ -233,13 +235,6 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             guard !Task.isCancelled else { return }
             locality.fail(request, current: discoveryScope)
         }
-    }
-    private func clubSectionHeader(_ title: LocalizedStringKey) -> some View {
-        CYSectionHeader(title)
-            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.xs, trailing: CYSpacing.pageHorizontal))
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-            .accessibilityAddTraits(.isHeader)
     }
     @ViewBuilder private func clubRows(_ rows: [ClubRecord], identifier: String,
                                        section: ClubTabPresentation.Section, page: ClubTabPageModel?) -> some View {
