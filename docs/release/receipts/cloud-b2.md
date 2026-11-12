@@ -1,6 +1,6 @@
 # Cloud B2 — pass and market reads
 
-Rebased onto `origin/ui/next` `b87ab5aad675eda15e5dc2cc25e10f4debadfdce`. Branch `ui/cloud-b2-pass` only.
+Rebased onto `origin/ui/next` `ac32c5b4bf1fbd4370fd18b18764b1238f7aaa84`. Branch `ui/cloud-b2-pass` only.
 
 Mini-program reference: `liboyang42-cpu/hengyin` `chengyinhub-xcx` master `1c80c5aea8f721ca8575e6108048495b100f5576`.
 
