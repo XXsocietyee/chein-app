@@ -149,7 +149,8 @@ public struct IMRouteProjectionReadState: Equatable {
 }
 
 /// Untrusted card payload is only projected into a typed local destination. No generic
-/// URL opening, arbitrary router dispatch, synthetic business mutation or click telemetry.
+/// URL opening, arbitrary router dispatch, or synthetic business mutation. The only click
+/// is the official in-app broadcast id, and only when the card itself carries `bcId`.
 public enum IMCardDestination: Equatable { case topic(Int), review(MessagingCardResult), unsupported }
 public struct IMCardAction: Equatable {
     public let label: String
@@ -173,6 +174,15 @@ public struct IMCardAction: Equatable {
             guard let text = row["text"] as? String, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
             return Self(label: text, isReject: row["type"] as? String == "reject", destination: destination(row["action"] as? String))
         }
+    }
+    /// Buttons this version can open. A card that is only an official broadcast id keeps one tap.
+    public static func displayed(for message: MessagingMessage) -> [Self] {
+        let parsed = actions(for: message)
+        let actionable = parsed.filter { $0.destination != .unsupported }
+        if !actionable.isEmpty { return actionable }
+        guard message.card?.broadcastID != nil else { return [] }
+        if let first = parsed.first { return [first] }
+        return [Self(label: "im.full.details", isReject: false, destination: .unsupported)]
     }
     private static func destination(_ action: String?) -> IMCardDestination {
         guard let action, action.hasPrefix("/topic/"), !action.contains("?"), !action.contains("#"), !action.contains("%") else { return .unsupported }

@@ -145,6 +145,10 @@ struct MessagingMessageDetailView: View {
                         Section {
                             IMCardActionsView(message: message) { destination in
                                 guard reader.identity == identity, currentSnapshot == message, message.isPayloadVisible else { return }
+                                if let id = message.card?.broadcastID {
+                                    let sender = reader as? MessagingSessionReader
+                                    Task { await sender?.reportBroadcastClick(id: id) }
+                                }
                                 switch destination {
                                 case .topic(let id): selectedTopicID = id
                                 case .review(let result): selectedReview = result

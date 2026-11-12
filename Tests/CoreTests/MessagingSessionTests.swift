@@ -116,6 +116,27 @@ final class MessagingSessionTests: XCTestCase {
         XCTAssertThrowsError(try session(1, 1, ""))
         XCTAssertThrowsError(try session(1, 1, "bad\nheader"))
     }
+    func testBroadcastClickUsesTheLiveSessionAndIgnoresFailure() async throws {
+        var requests: [URLRequest] = []
+        var expired = 0
+        let api = try service { request in
+            requests.append(request)
+            return (Data(#"{"code":401}"#.utf8), 401)
+        }
+        let live = try session()
+        let reader = MessagingSessionReader(service: api, currentSession: { live }, onUnauthorized: { _ in expired += 1 })
+        await reader.reportBroadcastClick(id: 91)
+        await reader.reportBroadcastClick(id: 0)
+        let guest = MessagingSessionReader(service: api, currentSession: { nil })
+        await guest.reportBroadcastClick(id: 91)
+        XCTAssertEqual(requests.count, 1)
+        let request = try XCTUnwrap(requests.first)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-token")
+        XCTAssertEqual(request.url?.path, "/fixture/api/official/broadcast/91/click")
+        XCTAssertEqual(request.httpBody, Data(#"{"channel":"inapp"}"#.utf8))
+        XCTAssertEqual(expired, 0)
+    }
 }
 
 private final class MessagingClosureTransport: HTTPTransport {
