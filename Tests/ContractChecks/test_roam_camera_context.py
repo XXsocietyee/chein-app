@@ -74,7 +74,7 @@ class RoamCameraContextTests(unittest.TestCase):
         self.assertIn('interactionID: interactionID', (ROOT / 'App/RoamMapView.swift').read_text())
 
     def test_all_statuses_and_reload_routes_remain_accessible(self):
-        for value in ['CYSkeleton().accessibilityIdentifier("roam.loading")', 'RoamStatusView(issue: issue)',
+        for value in ['CYSkeleton().accessibilityIdentifier("roam.loading")', 'RoamStatusView(issue: issue, onSignIn: onOpenAccount)',
                       '.accessibilityIdentifier("roam.empty")', 'Label("roam.noCoordinates"',
                       'ForEach(visibleItems)', '.refreshable { await load() }']:
             self.assertIn(value, self.results)

@@ -81,6 +81,8 @@ enum RoamScreenIssue {
 struct RoamStatusView: View {
     let issue: RoamScreenIssue
     var retry: (() -> Void)? = nil
+    /// Offered only for `.unauthorized`; hosts without a sign-in route leave it nil.
+    var onSignIn: (() -> Void)? = nil
     private var canRetry: Bool { if case .failed = issue, retry != nil { return true } else { return false } }
     var body: some View {
         // Kit state: icon, one line, one quiet action. Same copy and identifier as before.
@@ -88,6 +90,10 @@ struct RoamStatusView: View {
             CYEmptyState(systemImage: "map", issue.title, actionTitle: canRetry ? "action.retry" : nil, action: retry)
             Text(issue.message).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center).padding(.horizontal, CYSpacing.xxl)
+            if case .unauthorized = issue, let onSignIn {
+                CYPillButton("auth.signIn", style: .primary, fullWidth: false, action: onSignIn)
+                    .accessibilityIdentifier("roam.signIn")
+            }
         }
         .frame(maxWidth: .infinity)
         .accessibilityIdentifier("roam.error")

@@ -113,10 +113,9 @@ final class RoamExperienceFlowTests: XCTestCase {
         let start = app.buttons["roam.live.start"]
         XCTAssertTrue(revealFixtureElement(start, in: app, requiresHittable: false), app.debugDescription)
         XCTAssertFalse(start.isEnabled)
-        let consent = app.switches["roam.live.consent"]
-        tapFixtureNativeSwitch(consent, in: app)
-        XCTAssertEqual(consent.value as? String, "1", app.debugDescription)
-        tapVisible(app.buttons["roam.live.start"], app: app)
+        // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
+        tapVisible(app.buttons["roam.live.consent"], app: app)
+        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { tapVisible(app.buttons["roam.live.start"], app: app) }
         tapVisible(app.buttons["roam.live.pause"], app: app)
         XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.resume"], app: app)
@@ -131,10 +130,9 @@ final class RoamExperienceFlowTests: XCTestCase {
     }
     func testOfflineLiveUnknownBootstrapIsRecoveredBeforeExplicitResume() {
         let app = app("liveUnknown"); open("live", in: app)
-        let consent = app.switches["roam.live.consent"]
-        tapFixtureNativeSwitch(consent, in: app)
-        XCTAssertEqual(consent.value as? String, "1", app.debugDescription)
-        tapVisible(app.buttons["roam.live.start"], app: app)
+        // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
+        tapVisible(app.buttons["roam.live.consent"], app: app)
+        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { tapVisible(app.buttons["roam.live.start"], app: app) }
         XCTAssertTrue(app.staticTexts["Needs a quick check"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.recover"], app: app)
         XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))

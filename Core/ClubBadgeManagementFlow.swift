@@ -115,7 +115,7 @@ public struct ClubBadgeGrantReview: Equatable, Identifiable {
     private func showCreationVisibility() {
         if let receipt, receipt.state == "CREATED", let code = receipt.badgeCode,
            loaded, !badges.contains(where: { $0.badgeCode == code }) {
-            let note = "原操作已确认创建，但上次读取的列表暂未包含这枚勋章；可刷新列表。"
+            let note = "原操作已确认创建，但上次读取的列表暂未包含这枚徽章；可刷新列表。"
             refreshError = refreshError.map { $0 + "\n" + note } ?? note
         }
     }
@@ -184,7 +184,7 @@ public struct ClubBadgeGrantReview: Equatable, Identifiable {
             // The second confirmation binds exact current names and IDs. Changed targets require
             // a new user selection/confirmation; do not silently substitute another member/badge.
             guard values.contains(confirmation.badge), roster.contains(confirmation.member) else {
-                clearManagement(); throw ClubBadgeManagementFailure.server("成员或勋章状态已变化，请重新选择并确认。")
+                clearManagement(); throw ClubBadgeManagementFailure.server("成员或徽章状态已变化，请重新选择并确认。")
             }
             badges = values; members = roster
             let fields: [String: Any] = ["clubId": clubID, "memberId": confirmation.member.memberId, "badgeCode": confirmation.badge.badgeCode]

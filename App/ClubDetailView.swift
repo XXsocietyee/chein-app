@@ -100,7 +100,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
                 if let actionCoordinator {
-                    ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator,
+                    ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
                                     onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
                         guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
                         actionDetail = detail; actionIdentity = identity

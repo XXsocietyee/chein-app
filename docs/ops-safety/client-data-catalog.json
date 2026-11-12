@@ -203,6 +203,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/RoamLiveSessionView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "One Bool (roamLivePurposeAcceptedV1): the player agreed once, on the first GO consent card, to use location while roaming; it only seeds the in-view consent state",
+      "retention": "Until app data is deleted or the app is reinstalled",
+      "deletion": "Removed with app data; no account data stored"
+    },
+    {
       "file": "App/RoamReceivedStampMetadataView.swift",
       "kinds": [
         "userDefaults"

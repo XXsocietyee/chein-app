@@ -127,7 +127,7 @@ import SwiftUI
             .navigationDestination(isPresented: $showsReportProgress) { reportProgressDestination?() }
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
-            .searchable(text: $keyword, prompt: "square.search")
+            .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "square.search")
             .onSubmit(of: .search) { query.keyword = keyword.isEmpty ? nil : keyword }
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
             .onChange(of: reader.scope) { _, _ in path = []; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil }

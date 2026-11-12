@@ -267,7 +267,7 @@ struct RoamBrowserView: View {
                 Label(LocalizedStringKey(showsMap ? "roam.listOnly" : "roam.showMap"), systemImage: showsMap ? "list.bullet" : "map")
             }.accessibilityIdentifier("roam.display.toggle")
             if let onOpenAccount {
-                Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
+                Button("tabBar.passport", systemImage: "book.closed", action: onOpenAccount)
                     .accessibilityIdentifier("roam.account.open")
             }
             if experienceReader != nil {
@@ -363,11 +363,11 @@ struct RoamBrowserView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     startHeader
-                    RoamStatusView(issue: issue)
+                    RoamStatusView(issue: issue, onSignIn: onOpenAccount)
                 }.padding()
             }
         } else {
-            RoamStatusView(issue: issue)
+            RoamStatusView(issue: issue, onSignIn: onOpenAccount)
         }
     }
     /// Browser controls as list rows under the 附近 section: area, layer, radius and the layer's filter.
@@ -471,7 +471,7 @@ struct RoamBrowserView: View {
             if loading || loadedKey != requestKey {
                 CYSkeleton().accessibilityIdentifier("roam.loading")
             } else if let issue {
-                RoamStatusView(issue: issue) { startLoad() }
+                RoamStatusView(issue: issue, onSignIn: onOpenAccount) { startLoad() }
             } else if visibleItems.isEmpty {
                 VStack(spacing: CYSpacing.sm) {
                     CYEmptyState(systemImage: "map", "roam.empty", actionTitle: "action.retry") { startLoad() }
@@ -617,7 +617,7 @@ private struct RoamSearchableUnlessMap: ViewModifier {
     let enabled: Bool
     @Binding var text: String
     @ViewBuilder func body(content: Content) -> some View {
-        if enabled { content.searchable(text: $text, prompt: "roam.search") } else { content }
+        if enabled { content.searchable(text: $text, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "roam.search") } else { content }
     }
 }
 

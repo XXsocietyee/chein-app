@@ -9,6 +9,7 @@ struct QuestifyApp: App {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
             UserDefaults.standard.set(AppLanguage.system.rawValue,forKey:"preferences.language")
+            UserDefaults.standard.removeObject(forKey:"roamLivePurposeAcceptedV1") // tests start on the first-GO consent card
         }
         if ProcessInfo.processInfo.arguments.contains("--uitesting-first-launch-language") {
             UserDefaults.standard.removeObject(forKey:"preferences.language")
@@ -258,6 +259,8 @@ struct SessionRootView: View {
     @State private var deepLinkTicketPass=false
     @State private var deepLinkClubID: Int?
     @State private var showsAreaPicker=false
+    @State private var presentation = RootPresentationCoordinator()
+    @State private var reachability = NetworkReachability()
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
@@ -309,6 +312,8 @@ struct SessionRootView: View {
                     clubTab
                     mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                .offlineCapsule(reachability)
+                .onAppear { reachability.start() }
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .cyHaptic(.selection, trigger: selectedTab)
@@ -332,21 +337,30 @@ struct SessionRootView: View {
         return chain6(chain5(chain4(chain3(chain2(chain1(chain0(base)))))))
     }
 
+    private func replayDeepLink() {
+        guard let link = presentation.takeLink(tabsVisible: session.account != nil || browsingAsGuest, signedIn: session.account != nil) else { return }
+        selectedTab = link.rootTab
+        switch link {
+        case .ticket: deepLinkTicketPass = true // pass sheet only; the ticket wallet reader keeps its own gating
+        case .clubJoin(let id): deepLinkClubID = id // club detail only; joining still needs the detail's confirmation
+        case .roamGo: break
+        }
+    }
+
     private func chain0<V: View>(_ v: V) -> some View {
         v
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
+        .environment(presentation)
         .onChange(of: session.pendingDeepLink, initial: true) { _, _ in
-            // W3-6: chein:// links resolve in one presentation, the owning root tab.
-            if let link = session.consumeDeepLink() {
-                selectedTab = link.rootTab
-                switch link {
-                case .ticket: if session.account != nil { deepLinkTicketPass = true } // pass sheet only; the ticket wallet reader keeps its own gating
-                case .clubJoin(let id): deepLinkClubID = id // club detail only; joining still needs the detail's confirmation
-                case .roamGo: break
-                }
-            }
+            // W3-6: chein:// links resolve in one presentation, the owning root tab. The coordinator keeps one pending
+            // link (last wins, five minutes) until the tabs, sign-in and any open Passport sheet allow it.
+            if let link = session.consumeDeepLink() { presentation.enqueue(link); replayDeepLink() }
         }
+        .onChange(of: presentation.hasBlockingSheet) { _, _ in replayDeepLink() }
+        .onChange(of: presentation.consentActive) { _, _ in replayDeepLink() }
+        .onChange(of: browsingAsGuest) { _, _ in replayDeepLink() }
         .onChange(of: session.account?.id) { _, accountID in
+            replayDeepLink()
             merchantRootCoordinator.handleSessionChange(accountID: accountID, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision)
         }
         .onChange(of: session.sessionRevision) { _, revision in
@@ -462,11 +476,12 @@ struct SessionRootView: View {
         .onDisappear { session.setWorkshopOwnedPresentationActive(false) }
         .onOpenURL { session.receiveNativeURL($0) }
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveWeChatUserActivity($0) }
-        .sheet(item: Binding(get: { session.nativeEntry }, set: { if $0 == nil { session.dismissNativeEntry() } })) { entry in
+        // One presentation at a time: the consent gate goes first, native entry and the area picker queue behind it.
+        .sheet(item: Binding(get: { presentation.allowsSecondaryRootSheet ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
         }
-        .sheet(isPresented:$showsAreaPicker) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
-        .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, onDecline: { browsingAsGuest = true })
+        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
+        .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, presentation: presentation, onDecline: { browsingAsGuest = true })
     }
 
     private func chain6<V: View>(_ v: V) -> some View {

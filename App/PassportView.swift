@@ -43,13 +43,16 @@ struct PassportBadge: Identifiable, Equatable {
     var onOpenTickets: () -> Void
     var onOpenWallet: () -> Void
     var onOpenMessages: () -> Void
+    /// Stamp collection and badge rail each get one tap to their existing list (history / growth center); nil = static.
+    var onOpenStamps: (() -> Void)? = nil
+    var onOpenBadges: (() -> Void)? = nil
     @State private var stampCount: Int?
     @State private var badges: [PassportBadge]?
     private struct LoadKey: Equatable { var stamps: ObjectIdentifier; var growth: ObjectIdentifier?; var refresh: Int }
 
     var body: some View {
         Section {
-            PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages)
+            PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
         }
         // No white slab: the section rows are clear and each block below draws its own dark glass card.
         .listRowBackground(Color.clear)
@@ -136,6 +139,8 @@ private struct PassportRollingCount: View {
     var onOpenTickets: () -> Void = {}
     var onOpenWallet: () -> Void = {}
     var onOpenMessages: () -> Void = {}
+    var onOpenStamps: (() -> Void)? = nil
+    var onOpenBadges: (() -> Void)? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -205,6 +210,7 @@ private struct PassportRollingCount: View {
                         .accessibilityIdentifier("passport.stamp.\(index)")
                 }
             }
+            if let onOpenStamps { openRow("roam.experience.history", id: "passport.stamps.open", perform: onOpenStamps) }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.stampGrid")
@@ -262,8 +268,24 @@ private struct PassportRollingCount: View {
                     }
                 }
             }
+            if let onOpenBadges { openRow("growth.title", id: "passport.badges.open", perform: onOpenBadges) }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.badgeRail")
+    }
+
+    /// Quiet "see all" row under a card: one tap from the Passport root to the full list.
+    private func openRow(_ title: LocalizedStringKey, id: String, perform: @escaping () -> Void) -> some View {
+        Button(action: perform) {
+            HStack {
+                Text(title).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Spacer(minLength: CYSpacing.sm)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
     }
 }

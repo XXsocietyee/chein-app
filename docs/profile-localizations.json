@@ -297,12 +297,12 @@
   {
     "key": "profile.badges.title",
     "en": "My badges",
-    "zh-Hans": "我的勋章"
+    "zh-Hans": "我的徽章"
   },
   {
     "key": "profile.badges.empty",
     "en": "No badges yet",
-    "zh-Hans": "暂无勋章"
+    "zh-Hans": "暂无徽章"
   },
   {
     "key": "profile.badges.emptyHint",
@@ -312,7 +312,7 @@
   {
     "key": "profile.badges.partial",
     "en": "Some badges couldn’t be loaded",
-    "zh-Hans": "部分勋章未能加载"
+    "zh-Hans": "部分徽章未能加载"
   },
   {
     "key": "profile.badges.partialHint",
@@ -347,7 +347,7 @@
   {
     "key": "profile.badges.details",
     "en": "Badge information",
-    "zh-Hans": "勋章信息"
+    "zh-Hans": "徽章信息"
   },
   {
     "key": "profile.badges.family",
@@ -382,6 +382,6 @@
   {
     "key": "profile.badges.detail",
     "en": "Badge details",
-    "zh-Hans": "勋章详情"
+    "zh-Hans": "徽章详情"
   }
 ]

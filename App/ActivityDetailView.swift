@@ -32,6 +32,7 @@ struct ActivityDetailView: View {
     var playReaderForActivity: ((Int)->PlaySessionReader)?
     var registrationEnabled: Bool
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         Group {
             if session.account == nil {
@@ -43,6 +44,11 @@ struct ActivityDetailView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("activity.detail.signIn")
+                    // Guests had a message and no way forward: the Passport tab hosts the sign-in entry.
+                    if rootTabSwitch.isAvailable {
+                        CYPillButton("auth.signIn", style: .secondary, fullWidth: false) { rootTabSwitch(.mine) }
+                            .accessibilityIdentifier("activity.detail.signInAction")
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.horizontal, CYSpacing.pageHorizontal)

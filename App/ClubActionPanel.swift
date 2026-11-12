@@ -10,6 +10,8 @@ struct ClubActionPanel: View {
     let club: ClubRecord
     let identity: ClubReadIdentity
     let coordinator: ClubActionCoordinator
+    /// Guests get a way to the sign-in entry instead of a bare message.
+    var onSignIn: (() -> Void)? = nil
     let onReadbackStarted: () -> UInt64
     let onReadback: (ClubRecord, ClubReadIdentity, UInt64) -> Void
     @State private var ownerID = UUID()
@@ -31,6 +33,9 @@ struct ClubActionPanel: View {
         Section {
             if coordinator.identity != identity || !identity.isSignedIn {
                 Text("club.signInRequired").foregroundStyle(.secondary)
+                if let onSignIn {
+                    Button("club.signIn", action: onSignIn).accessibilityIdentifier("club.action.signIn")
+                }
             } else {
                 // Same-account original result/UNKNOWN remains visible after grant revocation.
                 // Its journal is not a current permission and cannot enable a new writer.

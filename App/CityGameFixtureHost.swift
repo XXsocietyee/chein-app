@@ -139,7 +139,9 @@ import Observation
                 Text(verbatim: String(service.submissions.count)).accessibilityIdentifier("cityGame.recorder.submissions")
                 Text(verbatim: String(service.effects)).accessibilityIdentifier("cityGame.recorder.effects")
                 Text(verbatim: String(Set(service.submissions.map(\.requestId)).count)).accessibilityIdentifier("cityGame.recorder.requestIds")
-            }.font(.caption2)
+            }
+            // Test instrumentation only: kept in the accessibility tree for UITests, never drawn (it read as a stray "0 0 0" above the CITY actions).
+            .font(.caption2).foregroundStyle(.clear).frame(height: 1).clipped().allowsHitTesting(false)
         }
     }
 }

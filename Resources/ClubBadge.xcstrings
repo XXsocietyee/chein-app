@@ -12,7 +12,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部勋章"
+            "value": "俱乐部徽章"
           }
         }
       }
@@ -108,7 +108,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "勋章已创建"
+            "value": "徽章已创建"
           }
         }
       }
@@ -124,7 +124,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "勋章已颁发"
+            "value": "徽章已颁发"
           }
         }
       }
@@ -172,7 +172,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建勋章"
+            "value": "创建徽章"
           }
         }
       }
@@ -188,7 +188,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "颁发勋章"
+            "value": "颁发徽章"
           }
         }
       }
@@ -204,7 +204,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未命名勋章"
+            "value": "未命名徽章"
           }
         }
       }
@@ -252,7 +252,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向这位成员颁发这枚勋章？"
+            "value": "向这位成员颁发这枚徽章？"
           }
         }
       }
@@ -268,7 +268,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "勋章名"
+            "value": "徽章名"
           }
         }
       }
@@ -396,7 +396,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有俱乐部勋章。"
+            "value": "还没有俱乐部徽章。"
           }
         }
       }
@@ -412,7 +412,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只有俱乐部主理人可以创建或颁发勋章。"
+            "value": "只有俱乐部主理人可以创建或颁发徽章。"
           }
         }
       }
@@ -428,7 +428,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部勋章暂未开放。"
+            "value": "俱乐部徽章暂未开放。"
           }
         }
       }
