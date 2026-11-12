@@ -19,7 +19,7 @@ import SwiftUI
     var showsStartChat = true
     var isCurrent: @MainActor () -> Bool = { true }
     @Environment(\.dismiss) private var dismiss
-    private enum Tab: String, CaseIterable { case posts, achievements, about, projects, orders }
+    private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
     @State private var authorPostTicket: ProfileAuthorPostTicket?
     @State private var tab = Tab.posts
@@ -114,12 +114,18 @@ import SwiftUI
                             }
                         }
                         if let actions, actions.identity.accountID != profile.id {
-                            NavigationLink { SocialActionEditorView(purpose: .toggleFollow, target: .member(profile.id), coordinator: actions) } label: {
-                                Text(LocalizedStringKey(profile.isFollowed == true ? "social.editor.unfollow" : "social.editor.follow"))
+                            // Mini-program other-player head: 关注 and 发消息 side by side as two pills.
+                            HStack(spacing: CYSpacing.sm) {
+                                NavigationLink { SocialActionEditorView(purpose: .toggleFollow, target: .member(profile.id), coordinator: actions) } label: {
+                                    profilePill(Text(LocalizedStringKey(profile.isFollowed == true ? "social.editor.unfollow" : "social.editor.follow")), systemImage: nil)
+                                }
+                                if showsStartChat {
+                                    NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: {
+                                        profilePill(Text("social.editor.startChat"), systemImage: "message")
+                                    }
+                                }
                             }
-                            if showsStartChat {
-                                NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: { Text("social.editor.startChat") }
-                            }
+                            .buttonStyle(.plain)
                         }
                         if profile.id == memberID, let accountID = reader.identity.accountID,
                            accountID != memberID, memberID > 0, isCurrent() {
@@ -128,24 +134,31 @@ import SwiftUI
                             }.accessibilityIdentifier("social.personalLocationShare")
                         }
                     }
+                    // Mini-program cy-profile counters: 好友 / 关注 / 粉丝, em dash when the server omitted one.
+                    Section {
+                        HStack(spacing: 0) {
+                            profileCounter(profile.friends, id: "friends") { Text("member.card.friends", tableName: "MemberProfile") }
+                            profileCounter(profile.following, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
+                            profileCounter(profile.followers, id: "followers") { Text("member.card.fans", tableName: "MemberProfile") }
+                        }
+                    }
                     // Mini-program cy/profile tab order: 我的 (orders, projects), 帖文, 成就, 关于.
                     Picker("social.profileSection", selection: $tab) {
                         if let selfOrdersAccess, selfOrdersAccess.context(memberID: memberID, social: reader, isCurrent: isCurrent()) != nil {
-                            Text("profile.selfOrders.title").tag(Tab.orders)
-                        }
-                        if let selfProjectsAccess, selfProjectsAccess.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) != nil {
-                            Text("profile.selfProjects.title").tag(Tab.projects)
+                            Text("social.mine").tag(Tab.mine)
+                        } else if let selfProjectsAccess, selfProjectsAccess.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) != nil {
+                            Text("social.mine").tag(Tab.mine)
                         }
                         Text("social.posts").tag(Tab.posts)
                         Text("social.achievements").tag(Tab.achievements)
                         Text("social.about").tag(Tab.about)
                     }.accessibilityIdentifier("social.profile.tabs")
                     switch tab {
-                    case .orders:
+                    case .mine:
+                        // Mini-program 我的 tab: 我的订单, then 我的项目.
                         if let selfOrdersAccess {
                             ProfileSelfOrdersEntry(memberID: memberID, social: reader, access: selfOrdersAccess, isCurrent: isCurrent)
                         }
-                    case .projects:
                         if let selfProjectsAccess {
                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
                         }
@@ -232,8 +245,28 @@ import SwiftUI
             }
             .accessibilityIdentifier("social.profile")
             .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in
-                if context == nil && tab == .orders { tab = .posts }
+                if context == nil && tab == .mine && selfProjectsAccess?.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) == nil { tab = .posts }
             }
+    }
+    private func profilePill(_ title: Text, systemImage: String?) -> some View {
+        HStack(spacing: CYSpacing.xs) {
+            if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
+            title
+        }
+        .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+        .frame(maxWidth: .infinity, minHeight: 44)
+        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+        .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+    }
+    private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
+        VStack(spacing: 2) {
+            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity, minHeight: 56)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("social.profile.counter.\(id)")
     }
     private var authorPostsContext: ProfileAuthorPostsContext {
         .init(memberID: memberID, accountReader: reader, squareReader: squareReader)

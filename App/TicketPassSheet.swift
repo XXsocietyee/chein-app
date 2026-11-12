@@ -39,7 +39,7 @@ enum CYPassCardPick {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .cyDomainPageBackground()
-                .navigationTitle(Text(verbatim: c.t("我的票", "My pass")))
+                .navigationTitle(Text(verbatim: c.t("票夹", "Ticket wallet"))) // mini-program signup page title
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {

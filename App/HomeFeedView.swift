@@ -238,7 +238,7 @@ import UIKit
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 switch section {
                 case .recommended: sectionHeader(Text("homeFeed.editorsPicks"))
-                case .nearby: sectionHeader(Text("homeFeed.activityHighlights"))
+                case .nearby: sectionHeader(Text("homeFeed.nearbyActivities"))
                 case .upcoming: sectionHeader(Text("homeFeed.upcoming"))
                 }
                 if failed {
@@ -266,6 +266,25 @@ import UIKit
                     }
                 } else if model.loading {
                     CYSkeleton().padding(.vertical, CYSpacing.md).frame(maxWidth: .infinity, minHeight: 88)
+                }
+                // Mini-program `正在更新…` line while a loaded rail refreshes, and the editor-picks footnote.
+                if model.loading, let items, !items.isEmpty, !failed {
+                    Group {
+                        switch section {
+                        case .recommended: Text("homeFeed.updating.recommended")
+                        case .nearby: Text("homeFeed.updating.nearby")
+                        case .upcoming: Text("homeFeed.updating.upcoming")
+                        }
+                    }
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
+                }
+                if section == .recommended, let items, !items.isEmpty {
+                    Text("homeFeed.editorsPicksFootnote")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
                 }
             }
             // Skeleton, failure and content cross-fade in place; a rail never swaps instantly.

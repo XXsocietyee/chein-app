@@ -8,7 +8,7 @@ final class ProfileSelfProjectsFlowTests: XCTestCase {
     private func launch(_ scenario:String="content",open:Bool=true) {
         app.launchArguments=["--uitesting-profile-self-projects","--profile-self-projects-scenario",scenario,"--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]
         app.launch();XCTAssertTrue(app.staticTexts["Synthetic projects owner"].waitForExistence(timeout:10))
-        if open {let picker=app.buttons["social.profile.tabs"];if picker.exists {picker.tap()};let tab=app.buttons["My projects"];if tab.waitForExistence(timeout:3) {tab.tap()}else{app.staticTexts["My projects"].tap()}}
+        if open {let picker=app.buttons["social.profile.tabs"];if picker.exists {picker.tap()};let tab=app.buttons["Mine"];if tab.waitForExistence(timeout:3) {tab.tap()}else{app.staticTexts["Mine"].tap()}}
     }
     func testOwnPreviewFiltersEndedAndOtherBusinessType() {launch();XCTAssertTrue(app.buttons["profile.selfProjects.project.topic:7"].waitForExistence(timeout:5));XCTAssertFalse(app.buttons["profile.selfProjects.project.activity:7"].exists);XCTAssertFalse(app.buttons["profile.selfProjects.project.topic:8"].exists)}
     func testTopicDetailAndBackKeepUsablePreview() {launch();app.buttons["profile.selfProjects.project.topic:7"].tap();XCTAssertTrue(app.staticTexts["profile.selfProjectsFixture.detail"].waitForExistence(timeout:5));app.navigationBars.buttons.element(boundBy:0).tap();XCTAssertTrue(app.buttons["profile.selfProjects.project.topic:7"].waitForExistence(timeout:5))}

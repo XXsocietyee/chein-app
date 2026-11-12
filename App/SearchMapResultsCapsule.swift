@@ -12,6 +12,10 @@ struct SearchMapResultsCapsuleView: View {
             HStack(spacing: 8) {
                 if state == .loading { ProgressView().accessibilityHidden(true) }
                 switch state {
+                case .results(let total, let listOnly) where listOnly == total:
+                    // Mini-program: nothing mappable here, the rows still open in the list.
+                    Text("searchMap.w208.capsule.empty")
+                    Text("searchMap.w208.capsule.listOnly \(listOnly)").foregroundStyle(.secondary)
                 case .results(let total, let listOnly):
                     Text("searchMap.w208.capsule.results \(total)")
                     if listOnly > 0 { Text("searchMap.w208.capsule.listOnly \(listOnly)").foregroundStyle(.secondary) }

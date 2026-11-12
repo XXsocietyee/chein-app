@@ -57,7 +57,14 @@ struct SearchMapCard: View {
                     Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2)
                 }
                 if !row.tags.isEmpty {
-                    Text(verbatim: row.tags.joined(separator: " · ")).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1)
+                    // Mini-program result card: tags are small filled chips, at most three on one line.
+                    HStack(spacing: CYSpacing.xs) {
+                        ForEach(Array(row.tags.prefix(3).enumerated()), id: \.offset) { _, tag in
+                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                                .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
+                                .background(Capsule(style: .continuous).fill(CYNight.glassFill))
+                        }
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

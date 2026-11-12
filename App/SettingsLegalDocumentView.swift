@@ -16,6 +16,7 @@ import SwiftUI
     let type: SettingsLegalType
     let market: RegionalMarket?
     @StateObject private var model: SettingsLegalViewModel
+    @Environment(\.locale) private var locale
     init(type: SettingsLegalType, market: RegionalMarket?, reader: any SettingsLegalReading) {
         self.type = type; self.market = market
         _model = StateObject(wrappedValue: SettingsLegalViewModel(reader: reader))
@@ -62,8 +63,11 @@ import SwiftUI
     }
 
     @ViewBuilder private func readyBody(_ document: SettingsLegalDocument, page: SettingsLegalAgreementPage.Facts) -> some View {
-        Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            .accessibilityIdentifier("settingsNative.legal.sourceNotice")
+        // The mini-program page opens straight on the title; the Chinese-only note is for other UI languages.
+        if locale.language.languageCode != .chinese {
+            Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("settingsNative.legal.sourceNotice")
+        }
         Text(verbatim: SettingsLegalAgreementPage.displayText(document.title)).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
         HStack(alignment: .firstTextBaseline) {
             Text("settingsNative.legal.version")
