@@ -46,6 +46,9 @@ public struct TopicReadSession: Equatable {
     public func topicList(query: TopicQuery, pageNumber: Int) async throws -> TopicPage {
         try await read { try await $0.list(query: query, pageNumber: pageNumber, token: $1) }
     }
+    public func topicListDocument(query: TopicQuery, pageNumber: Int) async throws -> TopicListDocument {
+        try await read { try await $0.listDocument(query: query, pageNumber: pageNumber, token: $1) }
+    }
     public func topicDetail(id: Int) async throws -> TopicDetail {
         guard service != nil else { throw APIError.notConfigured }
         guard currentSession() != nil else { throw APIError.unauthorized }

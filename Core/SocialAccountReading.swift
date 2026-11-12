@@ -47,6 +47,7 @@ extension SocialAccountReading {
     }
     public func publicProfile(memberID: Int) async throws -> SocialPublicProfile { try await read { try await $0.profile(memberID: memberID, token: $1) } }
     public func informationList() async throws -> [SocialInformation] { try await read { service, token in try await service.informationList(token: token) } }
+    public func informationListReceipt() async throws -> CloudB3RawBody { try await read { service, token in try await service.informationListReceipt(token: token) } }
     public func information(id: Int) async throws -> SocialInformation { try await read { service, token in try await service.information(id: id, token: token) } }
     public func invitationHistory(page: Int) async throws -> SocialInviteHistory {
         guard identity.accountID != nil else { throw APIError.unauthorized }

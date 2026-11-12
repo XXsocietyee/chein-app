@@ -15,6 +15,7 @@ public struct MerchantRedemptionContext: Equatable {
             let type = parts.count >= 3 ? String(parts[2]) : ""
             if type.hasPrefix("group_") { return .init(kind: .group, code: code, legacyType: nil) }
             if ["activity", "topic"].contains(type) { return .init(kind: .dynamicTicket, code: code, legacyType: nil) }
+            if type.hasPrefix("citynode_") { throw MerchantRedemptionFailure.cityNodeWrongPlace }
             throw MerchantRedemptionFailure.unsupported
         }
         // Current source also accepts signed coupon presentation codes directly.
@@ -47,7 +48,19 @@ public struct MerchantRedemptionContext: Equatable {
         return .form(endpoint, fields)
     }
 }
-public enum MerchantRedemptionFailure: Error, Equatable { case unsupported, denied, noChoices, unknown }
+public enum MerchantRedemptionFailure: Error, Equatable {
+    case unsupported, denied, noChoices, unknown, cityNodeWrongPlace
+    /// Where a code scanned in the wrong place should be redeemed. Money stays off.
+    public var redemptionPlace: String? {
+        switch self {
+        case .cityNodeWrongPlace:
+            return W8Text.t(
+                "这是城市据点核销码，请到城市据点核销入口兑换，不要在门票或活动核销处使用。",
+                "This is a city-node code. Redeem it at the city-node entry, not at ticket or activity redemption.")
+        default: return nil
+        }
+    }
+}
 public struct MerchantRedemptionChoice: Equatable, Identifiable {
     public enum Target: Equatable, Hashable { case chapter(MerchantChapterID), stationRegistration(MerchantStationRegistrationID) }
     public let target: Target

@@ -17,6 +17,9 @@ import UIKit
               let purpose = Bundle.main.object(forInfoDictionaryKey: "NSLocationWhenInUseUsageDescription") as? String,
               !purpose.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw PlayExperienceError.disabled }
         let id = UUID()
+        if CLLocationManager().authorizationStatus == .notDetermined {
+            guard await CYPermissionSystemPrompt.precede(.location) else { throw PlayExperienceError.disabled }
+        }
         return try await withTaskCancellationHandler(operation: {
             try Task.checkCancellation()
             return try await withCheckedThrowingContinuation { continuation in

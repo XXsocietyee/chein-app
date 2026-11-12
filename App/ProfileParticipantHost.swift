@@ -127,7 +127,7 @@ import Foundation
             throw error
         }
     }
-    @MainActor private final class Reader: ProfileReading {
+    @MainActor private final class Reader: ProfileReading, ProfileParticipantListFactsReading {
         weak var owner: ProfileParticipantHost?
         init(owner: ProfileParticipantHost) { self.owner = owner }
         var identity: ProfileReadIdentity? { owner?.identity }
@@ -135,6 +135,10 @@ import Foundation
         func profileParticipants() async throws -> [ProfileParticipant] {
             guard let owner else { throw APIError.notConfigured }
             return try await owner.read { try await $0.participants(token: $1) }
+        }
+        func profileParticipantListFacts() async throws -> ProfileParticipantListFacts {
+            guard let owner else { throw APIError.notConfigured }
+            return try await owner.read { try await $0.participantListFacts(token: $1) }
         }
         func profileParticipant(id: Int) async throws -> ProfileParticipant {
             guard let owner else { throw APIError.notConfigured }

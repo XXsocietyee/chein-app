@@ -98,7 +98,13 @@ extension PlayKitScreen {
             else if startedAt == nil {
                 Button("playkitLegacy.silent.start") { startedAt = ProcessInfo.processInfo.systemUptime; onDirty() }.disabled(!active)
             } else {
-                Button("playkitLegacy.silent.giveUp", role: .destructive) { stop(); gaveUp = true }.disabled(!active)
+                Button("playkitLegacy.silent.giveUp", role: .destructive) {
+                    var transition = PlayKitSilentOrderGiveUp(running: startedAt != nil, gaveUp: gaveUp)
+                    transition.giveUp()
+                    stop()
+                    gaveUp = transition.gaveUp
+                    onDirty()
+                }.disabled(!active)
             }
         }
         .onAppear { elapsed = max(0, segment["elapsedSeconds"].integer ?? 0) }

@@ -371,7 +371,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 Section {
                     Button("publishModes.saveLocal") {
                         guard let account, let draftStore else { return }
-                        do { try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, activity: draft), session: account); message = "publishModes.savedLocal" }
+                        do { try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, activity: draft, wizardStep: wizardStep), session: account); message = "publishModes.savedLocal" }
                         catch { message = "publishModes.storageFailed" }
                     }.disabled(!editable)
                     Button("publishModes.restoreLocal") {
@@ -380,7 +380,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         do {
                             if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity {
                                 draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal"
-                                wizardStep = ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft: activity)
+                                wizardStep = ActivityPublishingWizard.resume(savedStep: saved.wizardStep, draft: activity)
                                 wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, activity)
                             } else { message = "publishModes.noSavedLocal" }
                         } catch { message = "publishModes.storageFailed" }

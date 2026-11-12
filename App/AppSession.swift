@@ -1293,7 +1293,7 @@ final class AppSession: ObservableObject {
             guard let self, self.compositionViewerRevision == key.viewerRevision,
                   key.approval != nil, self.currentPlayReadApprovalKey == key.approval else { return }
             self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.epoch,credential:self.token)
-        })
+        }, onNodes: { [weak self] result in if let self { CloudB3SessionBridge.acceptNodes(result, session: self) } })
         playReaders[key]=reader
         return reader
     }

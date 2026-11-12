@@ -17,6 +17,25 @@ public struct OfficialEventService {
         let rows: [OfficialEvent] = try await get("api/official/events", city: city, token: token)
         return complete(rows)
     }
+    /// Bytes and status of `GET api/official/events`. `events()` only returns decoded rows, so a
+    /// malformed success cannot be told apart from a transport failure. 401 still signs the caller out.
+    public func eventsReceipt(city: String? = nil, token: String? = nil) async throws -> CloudB3RawBody {
+        if let token { try requireToken(token) }
+        guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/official/events"), resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
+        if let city { components.queryItems = [URLQueryItem(name: "city", value: city)] }
+        guard let url = components.url else { throw APIError.invalidRequest }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"; request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
+        try Task.checkCancellation()
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        let envelope = try? JSONDecoder().decode(Status.self, from: data)
+        if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
+        return CloudB3RawBody(body: data, status: status)
+    }
     public func detail(id: Int, token: String? = nil) async throws -> OfficialEvent {
         guard id > 0 else { throw APIError.invalidRequest }
         let value: OfficialEvent = try await get("api/official/events/\(id)", token: token, missingEvent: true)

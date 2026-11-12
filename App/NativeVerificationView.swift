@@ -35,6 +35,7 @@ extension EnvironmentValues {
             Section {
                 Text("verification.boundary").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("verification.screen")
                 if let key = flow.issueKey { Text(LocalizedStringKey(key)).accessibilityIdentifier("verification.issue") }
+                if let detail = flow.issueDetail { Text(verbatim: detail).accessibilityIdentifier("verification.issue.place") }
                 if flow.phase == .loading { ProgressView("verification.loading") }
                 if let access = flow.access, flow.current {
                     LabeledContent("verification.merchant") { Text(verbatim: access.name ?? String(access.merchantID)) }

@@ -184,6 +184,11 @@ private final class QRScannerSession: ObservableObject {
                 self?.refresh()
                 return
             }
+            guard await CYPermissionSystemPrompt.precede(.camera) else {
+                self?.isRequestingPermission = false
+                self?.refresh()
+                return
+            }
             _ = await AVCaptureDevice.requestAccess(for: .video)
             guard let self else { return }
             self.isRequestingPermission = false

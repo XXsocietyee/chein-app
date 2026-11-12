@@ -21,9 +21,27 @@ public struct PlayTaskSummaryPresentation: Equatable {
     }
 }
 
+/// Mode-2 shop visits complete only when the merchant redeems them (`done`).
+/// Player scan, photo, and self-report do not complete the visit.
+public enum PlayMode2ShopVisit {
+    public static func isComplete(done: Bool, arrived: Bool = false, selfReported: Bool = false) -> Bool {
+        _ = arrived
+        _ = selfReported
+        return done
+    }
+}
+
 public enum PlayTaskStatusPresentation: String, Equatable {
     case completed, locked, awaitingVerification, available, unknown
     public init(node: PlayNode, snapshot: PlaySnapshot) {
+        if snapshot.result.mode == 2 {
+            if PlayMode2ShopVisit.isComplete(done: node.done == true) { self = .completed }
+            else if snapshot.isLocked(node) { self = .locked }
+            else if node.selfReported == true { self = .awaitingVerification }
+            else if node.done == false && snapshot.availability == .active { self = .available }
+            else { self = .unknown }
+            return
+        }
         if snapshot.isDone(node) { self = .completed }
         else if snapshot.isLocked(node) { self = .locked }
         else if snapshot.result.mode == 2 && node.selfReported == true { self = .awaitingVerification }

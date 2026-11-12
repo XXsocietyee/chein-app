@@ -54,6 +54,22 @@ public struct SquareService {
         func literalTrue(_ value: Any?) -> Bool { (value as? NSNumber).map { CFGetTypeID($0) == CFBooleanGetTypeID() && $0.boolValue } ?? false }
         return SquareCommunityFeatures(read: literalTrue(flags["communityPostRead"]), write: literalTrue(flags["communityPostWrite"]))
     }
+    /// Success envelope of `POST api/creativesquare/info`. `detail(id:)` decodes counts that are
+    /// missing as zero; this keeps the bytes for `SquareXcxPresentation.resolvePost`.
+    public func detailBody(id: Int, token: String? = nil) async throws -> Data {
+        guard id > 0 else { throw APIError.invalidRequest }
+        return try await post("api/creativesquare/info", fields: ["id": String(id)], token: token)
+    }
+    /// Success envelope of `POST api/comment/list` for the same page `comments(postID:)` decodes.
+    public func commentsBody(postID: Int, pageNumber: Int = 1, pageSize: Int = 50, token: String? = nil) async throws -> Data {
+        guard postID > 0, pageNumber > 0, pageSize > 0, pageSize <= 1000 else { throw APIError.invalidRequest }
+        return try await post("api/comment/list", fields: ["owner_type": "3", "owner_id": String(postID), "pageNum": String(pageNumber), "pageSize": String(pageSize)], token: token)
+    }
+    /// `aigcFilingNo` from the same `POST api/config/features` as `communityFeatures`. Absent, blank,
+    /// or non-string is nil. This does not change feature flags.
+    public func aigcFilingNumber(token: String?) async throws -> String? {
+        AIGCFilingNumber.parse(try await post("api/config/features", fields: [:], token: token))
+    }
     public func detail(id: Int, token: String? = nil) async throws -> SquarePost {
         guard id > 0 else { throw APIError.invalidRequest }
         let result: SquareDetailEnvelope = try decode(try await post("api/creativesquare/info", fields: ["id": String(id)], token: token))

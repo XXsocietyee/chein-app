@@ -14,6 +14,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     public private(set) var pending: TopicSelfPlayPending?
     public private(set) var result: PaymentProviderReturnFlow?
     public private(set) var messageKey: String?
+    public private(set) var paymentExplanation: String?
     public var onChange: (() -> Void)?
     private let client: (any TopicSelfPlayServing)?
     private let provider: (any TopicSelfPlayPaymentProviding)?
@@ -49,7 +50,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
     @discardableResult public func prepare() -> Bool {
         guard canCreate, consented, let session = openedSession, let document,
               let topicID = SelfPlayTopicID(rawValue: topic.id), let price = topic.selfPlayPrice, price >= 0,
-              let intent = try? TopicSelfPlayIntent(topic: topicID, realName: realName, phone: phone, requestID: "app-" + UUID().uuidString) else {
+              let intent = try? TopicSelfPlayIntent(topic: topicID, realName: realName, phone: phone, requestID: "app-" + UUID().uuidString, sourceClubId: topic.clubID) else {
             messageKey = !consented ? "contextSelfPlay.consentRequired" : "contextSelfPlay.invalid"; onChange?(); return false
         }
         review = TopicSelfPlayReview(id: UUID(), session: session, intent: intent, price: price, document: document)
@@ -82,7 +83,12 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             guard stamp == generation, current else { return }
             let observation = OrderPaymentObservation(payment: order.paymentStatus, registration: order.registrationStatus)
             if observation == .paid || observation == .registrationAccepted { showReadback(); return }
-            guard observation == .pending, order.payableAmount == value.price else { phase = .unknown; messageKey = "contextSelfPlay.unknown"; onChange?(); return }
+            guard observation == .pending, order.payableAmount == value.price else {
+                phase = .unknown
+                messageKey = "contextSelfPlay.unknown"
+                paymentExplanation = UnknownPaymentState.explanation(payment: order.paymentStatus, registration: order.registrationStatus)
+                onChange?(); return
+            }
             // Zero-priced pending orders retain the original receipt and use readback only.
             if value.price == 0 { showReadback(); return }
             guard let provider, provider.isConfigured else { phase = .paymentUnavailable; messageKey = "contextSelfPlay.paymentUnavailable"; onChange?(); return }
@@ -98,7 +104,9 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
         } catch {
             guard stamp == generation, current else { return }
             phase = pending == nil ? .editing : .unknown
-            messageKey = pending == nil ? "contextSelfPlay.notCreated" : "contextSelfPlay.unknown"; onChange?()
+            messageKey = pending == nil ? "contextSelfPlay.notCreated" : "contextSelfPlay.unknown"
+            if pending != nil { paymentExplanation = UnknownPaymentState.explanation(payment: nil, registration: nil) }
+            onChange?()
         }
     }
     public func prepareExistingPayment() async {
@@ -115,7 +123,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             if price == 0 { showReadback(); return }
             paymentReview = .init(id: UUID(), session: session, registrationID: id, price: price, document: document)
             phase = .paymentUnavailable
-        } catch { guard stamp == generation, current else { return }; phase = .unknown; messageKey = "contextSelfPlay.unknown" }
+        } catch { guard stamp == generation, current else { return }; phase = .unknown; messageKey = "contextSelfPlay.unknown"; paymentExplanation = UnknownPaymentState.explanation(payment: nil, registration: nil) }
         onChange?()
     }
     public func cancelPaymentReview() { paymentReview = nil; onChange?() }
@@ -136,7 +144,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             guard stamp == generation, current, !Task.isCancelled else { return }
             _ = await provider.pay(registrationID: value.registrationID, parameters: params)
             guard stamp == generation, current else { return }; showReadback()
-        } catch { guard stamp == generation, current else { return }; phase = .unknown; messageKey = "contextSelfPlay.unknown"; onChange?() }
+        } catch { guard stamp == generation, current else { return }; phase = .unknown; messageKey = "contextSelfPlay.unknown"; paymentExplanation = UnknownPaymentState.explanation(payment: nil, registration: nil); onChange?() }
     }
     /// A new intent requires authoritative terminal proof and a fresh user review.
     /// Ambiguous 409/410 text or an unknown create with no order ID cannot clear the lock.
@@ -152,7 +160,7 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
             let notice = try await client.document()
             guard stamp == generation, current else { return }
             document = notice; phase = .editing; messageKey = "contextSelfPlay.closedCanReview"
-        } catch { guard stamp == generation, current else { return }; phase = .unknown; messageKey = "contextSelfPlay.unknown" }
+        } catch { guard stamp == generation, current else { return }; phase = .unknown; messageKey = "contextSelfPlay.unknown"; paymentExplanation = UnknownPaymentState.explanation(payment: nil, registration: nil) }
         onChange?()
     }
     private func markPaymentAttempted() throws {
@@ -179,7 +187,10 @@ public enum TopicSelfPlayPhase: Equatable { case editing, reviewing, creating, p
         case .accepted, .paid: phase = .complete; messageKey = "contextSelfPlay.ready"
         case .failed: phase = .failed; messageKey = "contextSelfPlay.failed"
         case .accessDenied: phase = .changed; messageKey = "contextSelfPlay.changed"
-        default: phase = .unknown; messageKey = "contextSelfPlay.unknown"
+        default:
+            phase = .unknown
+            messageKey = "contextSelfPlay.unknown"
+            paymentExplanation = UnknownPaymentState.explanation(payment: nil, registration: nil)
         }
         onChange?()
     }

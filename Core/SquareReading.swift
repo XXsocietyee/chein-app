@@ -66,6 +66,15 @@ public struct SquareCommunityFeatures: Equatable {
     public func squareDetail(id: Int) async throws -> SquarePost {
         try await read { try await $0.detail(id: id, token: $1) }
     }
+    public func squareDetailBody(id: Int) async throws -> Data {
+        try await read { try await $0.detailBody(id: id, token: $1) }
+    }
+    public func squareCommentsBody(postID: Int, pageNumber: Int) async throws -> Data {
+        try await read { try await $0.commentsBody(postID: postID, pageNumber: pageNumber, token: $1) }
+    }
+    public func aigcFilingNumber() async throws -> String? {
+        try await read { try await $0.aigcFilingNumber(token: $1) }
+    }
     public func communityFeatures() async throws -> SquareCommunityFeatures {
         try await read { try await $0.communityFeatures(token: $1) }
     }
