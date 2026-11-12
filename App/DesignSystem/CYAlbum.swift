@@ -155,14 +155,15 @@ private struct CYAlbumFoilSheen: ViewModifier {
     @State private var phase: CGFloat = -1
 
     func body(content: Content) -> some View {
+        // Wave 3: the gyro-driven CYFoil is the material (static highlight under Reduce Motion / Low Power);
+        // the one-shot sweep below stays as the "it just arrived" beat.
         content
+            .cyFoil(cornerRadius: cornerRadius, active: active)
             .overlay {
                 if active {
                     GeometryReader { proxy in
                         let width = proxy.size.width
-                        if reduceMotion {
-                            LinearGradient(colors: [.white.opacity(0.16), .clear], startPoint: .topLeading, endPoint: .center)
-                        } else {
+                        if !reduceMotion {
                             Rectangle()
                                 .fill(LinearGradient(colors: [.clear, .white.opacity(0.10), .white.opacity(0.48), .white.opacity(0.10), .clear],
                                                      startPoint: .leading, endPoint: .trailing))
