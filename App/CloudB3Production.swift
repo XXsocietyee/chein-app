@@ -38,7 +38,7 @@ extension AppSession: OrientScoreEntryProviding {
 
 /// Holds the per-session readers outside `AppSession` so that glue file does not grow.
 @MainActor enum CloudB3SessionBridge {
-    private final class Slot {
+    @MainActor private final class Slot {
         weak var session: AppSession?
         let facts: PlayThemeFactsStore
         let emergency: PlayEmergencyLocationConformer

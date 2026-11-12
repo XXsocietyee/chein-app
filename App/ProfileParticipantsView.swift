@@ -163,12 +163,6 @@ enum ProfileParticipantDisplay {
     }
 }
 
-/// Binding stub for Cursor: a reader that also returns the list `total` (`ProfileService.participantListFacts`).
-/// No reader conforms yet, so the list wraps `profileParticipants()` rows with an unknown total and the total footer stays hidden.
-@MainActor protocol ProfileParticipantListFactsReading {
-    func profileParticipantListFacts() async throws -> ProfileParticipantListFacts
-}
-
 /// pages/address list body. Reads `ProfileParticipantListCoordinator` so a refresh keeps the retained list
 /// (source `refreshing` float), a first-load failure is an error (not an empty list), and malformed is unknown.
 @MainActor private struct ProfileParticipantListBody<Ready: View>: View {

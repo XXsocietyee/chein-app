@@ -193,7 +193,7 @@ public enum IMMessageMerge {
 
 /// `_readReceipt`: automatic recovery and an explicit retry share one in-flight query.
 /// The same purpose keeps a single consumer. A late callback does not clear the flight that replaced it.
-public struct IMReceiptQueryShare: Equatable {
+public struct IMReceiptQueryShare {
     public enum Purpose: String, Equatable, Hashable { case recover, retry }
     public enum Join: Equatable { case start(token: Int), attach(token: Int) }
 

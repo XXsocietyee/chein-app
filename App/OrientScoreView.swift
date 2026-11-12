@@ -240,13 +240,6 @@ import QuestifyCore
     }
 }
 
-/// Binding stub for Cursor: composition that can read this player's own round score for a topic/activity
-/// (`OrientSessionService.current` to pick the session, then `.score`). Nothing conforms yet, so the entry
-/// below stays hidden (capability absent => hidden). It never syncs, settles, appeals, or disputes.
-@MainActor protocol OrientScoreEntryProviding {
-    /// Nil hides the entry. The loader returns nil when the player has no round of their own here.
-    func orientScoreLoader(topicID: Int, activityID: Int) -> (() async throws -> OrientSessionScore?)?
-}
 
 /// subpackageMember/orient-score entry from the participation/activity detail (source `participation-result-entry`).
 @available(macOS 14.0, *)
