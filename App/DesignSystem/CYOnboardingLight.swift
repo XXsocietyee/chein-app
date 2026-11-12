@@ -105,11 +105,10 @@ struct OBLanternWindows: View {
     var dim: Bool = false
 
     @QuestifyReduceMotion private var reduceMotion
-    @Environment(\.scenePhase) private var scenePhase
     @State private var appeared = false
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion || scenePhase != .active)) { tl in
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { tl in
             let t = reduceMotion ? 0 : tl.date.timeIntervalSinceReferenceDate
             ZStack {
                 ForEach(0..<Self.specs.count, id: \.self) { i in
@@ -126,8 +125,10 @@ struct OBLanternWindows: View {
     }
 
     private func window(_ s: Spec, t: Double) -> some View {
-        let driftX = reduceMotion ? 0 : sin(t * 0.45 + s.phase) * 4
-        let driftY = reduceMotion ? 0 : cos(t * 0.37 + s.phase * 1.3) * 3.5
+        // Slow elliptical orbit (period 14-22 s) that never stops, plus a gentle idle sway standing in for gyro parallax.
+        let w = 0.28 + 0.06 * s.depth
+        let driftX = reduceMotion ? 0 : cos(t * w + s.phase) * (7 + 6 * s.depth) + sin(t * 0.5 + s.phase) * 3 * s.depth
+        let driftY = reduceMotion ? 0 : sin(t * w * 0.8 + s.phase * 1.3) * (5 + 5 * s.depth)
         let flicker = reduceMotion ? 1 : 0.82 + 0.18 * sin(t * 1.9 + s.phase * 2)
         let px = (tilt.roll * 8 + Double(dragTilt.width) * 6) * s.depth
         let py = (-tilt.pitch * 8 + Double(dragTilt.height) * 6) * s.depth
@@ -332,5 +333,41 @@ struct OBMorphPill: View {
         .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.4, dampingFraction: 0.7), value: done)
         .accessibilityLabel(Text(titleKey))
         .accessibilityValue(done ? Text("onboarding.createAccount.done") : Text(verbatim: ""))
+    }
+}
+
+// MARK: - Drag hint
+
+/// Glass capsule under the disc: a fingertip loops left-right-left (1.8 s) with a fading trail. Reduce Motion: static.
+struct OBDragHint: View {
+    let titleKey: LocalizedStringKey
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { tl in
+                let p = reduceMotion ? 0 : sin(tl.date.timeIntervalSinceReferenceDate * 2 * .pi / 1.8)
+                ZStack {
+                    Capsule().fill(CYNight.lanternHot.opacity(0.28)).frame(width: 30, height: 4).offset(x: -p * 8 - 2)
+                        .opacity(reduceMotion ? 0 : abs(p))
+                    Image(systemName: "hand.point.up.left.fill")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.white)
+                        .offset(x: p * 11)
+                }
+                .frame(width: 44, height: 24)
+            }
+            Text(titleKey)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.white.opacity(0.85))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, CYSpacing.lg)
+        .padding(.vertical, CYSpacing.sm)
+        .background(.ultraThinMaterial, in: Capsule())
+        .background(Capsule().fill(CYNight.glassFill))
+        .overlay(Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
     }
 }
