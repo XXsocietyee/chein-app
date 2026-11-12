@@ -236,24 +236,33 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                                        section: ClubTabPresentation.Section, page: ClubTabPageModel?) -> some View {
         ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
             let inline = inlineJoin[club.id]
+            // Keep the Join / Apply pill mounted while the request is in flight. The card moves the avatar into its
+            // own strip and then settles the pill; swapping in `.none` would drop the control and jump the footer.
+            let membership = club.cardAction(viewerIsMerchant: discoveryScope.isMerchantViewer)
             let action: CYClubCardAction = {
                 switch inline {
                 case .joined: return .joined
                 case .pending: return .pending
-                case .working: return .none
-                default: return club.cardAction(viewerIsMerchant: discoveryScope.isMerchantViewer)
+                default: return membership
+                }
+            }()
+            let morph: CYMorphState = {
+                switch inline {
+                case .working: return .working
+                case .joined, .pending: return .done
+                default: return .idle
                 }
             }()
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if section == .nearby {
                     CYClubPhotoCard(name: club.name, place: clubPlace(club), coverURL: QuestifyCardArtwork.safeURL(club.cover),
                                     memberCount: club.sourceMemberCount, seed: "\(club.id)", prominent: index == 0,
-                                    action: action, onOpen: { openedClubID = club.id }, onJoin: { joinInline(club, action: action) },
+                                    action: action, morph: morph, onOpen: { openedClubID = club.id }, onJoin: { joinInline(club, action: action) },
                                     identifier: identifier + ".\(club.id)")
                         .cyHeroSource(club.id, in: hero)
                 } else {
                     CYClubRowCard(name: club.name, logoURL: QuestifyCardArtwork.safeURL(club.logo), memberCount: club.sourceMemberCount,
-                                  seed: "\(club.id)", action: action, onOpen: { openedClubID = club.id },
+                                  seed: "\(club.id)", action: action, morph: morph, onOpen: { openedClubID = club.id },
                                   identifier: identifier + ".\(club.id)")
                         .cyHeroSource(club.id, in: hero)
                 }
