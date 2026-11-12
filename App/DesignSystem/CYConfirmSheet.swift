@@ -19,8 +19,12 @@ public struct CYConfirmSheet: View {
     private let cancelIdentifier: String?
     private let titleIdentifier: String?
     private let consequences: [CYConfirmConsequence]
+    /// Join only: the sheet itself plays a stamp seal and lantern burst before it dismisses.
+    private let showsJoinReward: Bool
 
     @Environment(\.dismiss) private var dismiss
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var rewarding = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 24
 
@@ -28,9 +32,11 @@ public struct CYConfirmSheet: View {
                 isDestructive: Bool = false, confirmIdentifier: String? = nil,
                 cancelIdentifier: String? = nil, titleIdentifier: String? = nil,
                 consequences: [CYConfirmConsequence] = [],
+                showsJoinReward: Bool = false,
                 onConfirm: @escaping () -> Void) {
         self.isDestructive = isDestructive
         self.consequences = consequences
+        self.showsJoinReward = showsJoinReward && !isDestructive
         self.confirmIdentifier = confirmIdentifier
         self.cancelIdentifier = cancelIdentifier
         self.titleIdentifier = titleIdentifier
@@ -41,9 +47,10 @@ public struct CYConfirmSheet: View {
     }
 
     @ViewBuilder private var confirmButton: some View {
-        let label = Button(action: onConfirm) {
+        let label = Button(action: confirm) {
             Text(confirmTitle).frame(maxWidth: .infinity)
         }
+        .disabled(rewarding)
         if let confirmIdentifier {
             styled(label).accessibilityIdentifier(confirmIdentifier)
         } else {
@@ -132,6 +139,36 @@ public struct CYConfirmSheet: View {
         }
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : (consequences.isEmpty ? [.fraction(0.36), .large] : [.medium, .large]))
         .presentationDragIndicator(.visible)
+        .overlay { if rewarding { joinReward } }
+    }
+
+    private func confirm() {
+        guard showsJoinReward else { onConfirm(); return }
+        withAnimation(reduceMotion ? CYMotion.reduced : CYMotion.entrance) { rewarding = true }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 180 : 720))
+            onConfirm()
+        }
+    }
+
+    private var joinReward: some View {
+        ZStack {
+            Circle()
+                .fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom))
+                .frame(width: 72, height: 72)
+                .shadow(color: CYNight.lantern.opacity(0.45), radius: 16)
+                .overlay {
+                    Circle().strokeBorder(CYNight.ink0.opacity(0.7), lineWidth: 3).padding(12)
+                    Image(systemName: "checkmark")
+                        .font(.system(.title2, design: .rounded).weight(.heavy))
+                        .foregroundStyle(CYNight.ink0)
+                }
+                .transition(reduceMotion ? .opacity : .scale(scale: 0.55).combined(with: .opacity))
+            CYBurst(origin: .center, count: 32, duration: 0.9, style: .dust, reach: 140)
+                .frame(width: 200, height: 200)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

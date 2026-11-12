@@ -53,7 +53,8 @@ import QuestifyCore
                         title: String(localized: LocalizedStringResource("club.action.join", locale: locale)),
                         message: ChannelCopy.text("城瘾跑团", "City Run Club", locale: locale) + "\n" + String(localized: LocalizedStringResource("club.action.confirm.join", locale: locale)),
                         confirmTitle: String(localized: LocalizedStringResource("club.action.join", locale: locale)),
-                        isDestructive: false
+                        isDestructive: false,
+                        showsJoinReward: true
                     ) { show = false; stage = true }
                 } else {
                 CYConfirmSheet(

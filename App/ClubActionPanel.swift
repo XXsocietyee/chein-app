@@ -84,7 +84,8 @@ struct ClubActionPanel: View {
                     confirmTitle: String(localized: String.LocalizationValue(actionKey(value.action))),
                     isDestructive: value.action == .leave,
                     confirmIdentifier: "club.action.confirm",
-                    consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale) : []
+                    consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale) : [],
+                    showsJoinReward: value.action == .join
                 ) { submit(value) }
             }
         }
