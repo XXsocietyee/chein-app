@@ -505,12 +505,17 @@ struct GOFace: View {
     var body: some View {
         ZStack {
             Circle()
-                .strokeBorder(AngularGradient(colors: [.white, .white.opacity(0.25), .white, .white.opacity(0.25), .white], center: .center), lineWidth: 6)
+                .strokeBorder(AngularGradient(
+                    colors: lit
+                        ? [CYNight.lanternHot, CYNight.lantern, CYNight.lanternHot, CYNight.ember, CYNight.lanternHot]
+                        : [CYNight.glassEdgeTop, CYNight.glassEdgeBottom, CYNight.glassEdgeTop, CYNight.glassEdgeBottom, CYNight.glassEdgeTop],
+                    center: .center), lineWidth: 6)
                 .frame(width: size * 0.78, height: size * 0.78)
+                .shadow(color: CYNight.lantern.opacity(lit ? 0.45 : 0), radius: 16)
             Text(verbatim: "GO")
                 .font(.system(.largeTitle, design: .rounded).weight(.heavy))
-                .foregroundStyle(.white.opacity(lit ? 1 : 0.6))
-                .shadow(color: CYNight.lantern.opacity(lit ? 0.6 : 0), radius: 14)
+                .foregroundStyle(lit ? CYNight.lanternHot : Color.white.opacity(0.72))
+                .shadow(color: CYNight.lantern.opacity(lit ? 0.7 : 0), radius: 14)
         }
         .animation(OBMotion.demoSuccess, value: lit)
     }
@@ -538,7 +543,7 @@ struct StampSeal: View {
         let seal = size * 0.72
         ZStack {
             OBSealShape()
-                .fill(inked ? AnyShapeStyle(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom)) : AnyShapeStyle(Color.white.opacity(0.5)))
+                .fill(inked ? AnyShapeStyle(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom)) : AnyShapeStyle(CYNight.glassFill))
                 .frame(width: seal, height: seal)
                 .shadow(color: CYNight.lantern.opacity(inked ? 0.45 : 0), radius: 18)
             Circle().strokeBorder(CYNight.ink0.opacity(0.7), lineWidth: 3).frame(width: size * 0.52, height: size * 0.52)
@@ -621,13 +626,15 @@ struct AvatarOrbit: View {
             let t = reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate
             let radius = size * 0.38
             ZStack {
-                Circle().strokeBorder(.white.opacity(0.16), lineWidth: 1).frame(width: radius * 2, height: radius * 2)
+                Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1).frame(width: radius * 2, height: radius * 2)
                 ForEach(0..<count, id: \.self) { i in
                     let angle = t * 0.25 + Double(i) / Double(count) * 2 * .pi
+                    let joined = i == count - 1 && count > 5
                     CYCoverArt(seed: "orbit-\(i)", showsDebugLabel: false, showsGlyph: false)
                         .frame(width: size * 0.2, height: size * 0.2)
                         .clipShape(Circle())
-                        .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1.5))
+                        .overlay(Circle().strokeBorder(joined ? CYNight.lantern : CYNight.glassEdgeTop, lineWidth: joined ? 2 : 1.5))
+                        .shadow(color: joined ? CYNight.lantern.opacity(0.55) : .clear, radius: 8)
                         .offset(x: CGFloat(cos(angle)) * radius, y: CGFloat(sin(angle)) * radius)
                 }
                 Text(verbatim: "\(count)")
