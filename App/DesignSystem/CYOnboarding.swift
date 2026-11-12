@@ -146,15 +146,24 @@ struct OnboardingFlow: View {
     var body: some View {
         ZStack {
             OnboardingBackdrop(stepIndex: step.rawValue)
+            GeometryReader { geo in
+            // The disc is the star: ~62 % of the screen width (45 % at AX1+), centred at ~34 % of the screen height,
+            // capped by 30 % of the height so short phones keep the copy and pill on screen.
+            let screenH = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
+            let wide = typeSize >= .accessibility1 ? 0.45 : 0.62
+            let disc = min(geo.size.width * wide, screenH * 0.30, 340)
+            let heroH = disc / 0.82
+            let topPad = max(0, screenH * 0.34 - geo.safeAreaInsets.top - 44 - heroH / 2)
             VStack(spacing: 0) {
                 topBar
                 if !heroHidden {
                     OnboardingHero(step: step, done: state.demoDone)
-                        .frame(height: typeSize >= .accessibility1 ? 160 : 260)
+                        .frame(height: heroH)
+                        .padding(.top, topPad)
                         .accessibilityHidden(true)
                 }
                 ScrollView {
-                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    VStack(alignment: .center, spacing: CYSpacing.lg) {
                         OnboardingDemo(step: step, stacked: typeSize >= .accessibility1, done: state.demoDone.contains(step), autoplay: autoDemo) {
                             send(.demoCompleted(step))
                         }
@@ -162,10 +171,11 @@ struct OnboardingFlow: View {
                     }
                     .padding(.horizontal, CYSpacing.xxl)
                     .padding(.top, CYSpacing.md)
-                    .frame(maxWidth: 620, alignment: .leading)
+                    .frame(maxWidth: 620, alignment: .center)
                     .frame(maxWidth: .infinity)
                 }
                 .scrollBounceBehavior(.basedOnSize)
+            }
             }
         }
         .safeAreaInset(edge: .bottom) { footer }
@@ -299,7 +309,7 @@ struct OnboardingCopy: View {
 
     var body: some View {
         let zh = OBType.isChinese(locale)
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .center, spacing: CYSpacing.sm) {
             Text(step.eyebrowKey)
                 .font(.footnote.weight(zh ? .medium : .semibold))
                 .textCase(.uppercase)
@@ -309,16 +319,20 @@ struct OnboardingCopy: View {
             Text(step.titleKey)
                 // EN: Rounded Heavy. zh-Hans: PingFang Semibold 30 (never Heavy: the strokes clog).
                 .font(zh ? .system(size: zhTitleSize, weight: .semibold) : .system(.largeTitle, design: .rounded).weight(.heavy))
+                .lineSpacing(3)
+                .multilineTextAlignment(.center)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("onboarding.title")
             Text(step.bodyKey)
-                .font(CYTypography.body)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.system(.body))
+                .foregroundStyle(.white.opacity(0.6))
+                .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 300)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
         .id(step)
         .transition(reduceMotion ? .opacity : .asymmetric(
             insertion: .opacity.combined(with: .offset(y: direction == .forward ? 16 : -16)).animation(OBMotion.copyIn),
@@ -360,10 +374,17 @@ struct OnboardingHero: View {
     var body: some View {
         GeometryReader { geo in
             let base = min(geo.size.width, geo.size.height)
-            let size = base * (step.isFinal ? 0.46 : 0.82)
+            let size = base * (step.isFinal ? 0.62 : 0.82)
             ZStack {
                 CityDisc(tilt: reduceMotion ? .zero : tilt, softSpecular: !reduceTransparency)
                     .frame(width: size, height: size)
+                    .background {
+                        // Soft lantern halo behind the disc (a background radial, never over content).
+                        Circle().fill(CYNight.glow(radius: size * 0.6))
+                            .frame(width: size * 1.9, height: size * 1.9)
+                            .opacity(0.35)
+                            .allowsHitTesting(false)
+                    }
                 stepLayer(size: size)
                     .id(step)
                     .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.92)))
@@ -451,10 +472,9 @@ struct FogWindow: View {
     var body: some View {
         let inner = size * 0.86
         ZStack {
-            CYCoverArt(seed: "welcome-fog-map", symbol: "map", showsDebugLabel: false, showsGlyph: false)
+            OBNightMap(lit: revealed)
                 .frame(width: inner, height: inner)
                 .clipShape(Circle())
-                .saturation(revealed ? 1 : 0.7)
             Circle()
                 .fill(RadialGradient(
                     colors: [.clear, CYNight.indigo.opacity(0.94), CYNight.ink0.opacity(0.96)],
@@ -644,9 +664,7 @@ struct OnboardingDemo: View {
         Group {
             switch step {
             case .welcome:
-                Label("onboarding.welcome.hint", systemImage: "hand.draw")
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                    .accessibilityHidden(true)
+                OBDragHint(titleKey: "onboarding.welcome.hint")
             case .roam: GOHoldDemo(stacked: stacked, done: done, autoplay: autoplay, onComplete: onComplete)
             case .stamps:
                 DemoRow(stacked: stacked, done: done, buttonKey: "onboarding.stamps.action", doneKey: "onboarding.stamps.done",
@@ -658,7 +676,7 @@ struct OnboardingDemo: View {
                 EmptyView()
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
         .frame(minHeight: step == .welcome || step == .consent ? 0 : 56)
     }
 }
@@ -749,11 +767,22 @@ private struct GOHoldDemo: View {
             .accessibilityAction { onComplete() }
             .accessibilityIdentifier("onboarding.demo")
             Text(done ? "onboarding.roam.done" : "onboarding.roam.prompt")
-                .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.85))
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .multilineTextAlignment(stacked ? .leading : .center)
                 .fixedSize(horizontal: false, vertical: true)
-                .contentTransition(.opacity)
+                .layoutPriority(1)
+                .id(done)
+                .transition(.opacity)
         }
-        .animation(reduceMotion ? CYMotion.reduced : OBMotion.demoSuccess, value: done)
+        // The hint lives in a glass capsule centred under the disc. The label swap is a plain fade (no spring on the
+        // layout), so the capsule never resizes mid-animation and clips the text.
+        .padding(.leading, CYSpacing.md)
+        .padding(.trailing, CYSpacing.xl)
+        .padding(.vertical, CYSpacing.xs)
+        .obGlassCapsule()
+        .animation(.easeInOut(duration: 0.2), value: done)
         .cyHaptic(.impactHeavy, trigger: done) { old, new in !old && new }
         .task {
             // Fixture capture: hold 900 ms (ticks at 200 / 400 ms), then commit.

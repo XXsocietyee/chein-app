@@ -38,3 +38,17 @@ Names: `onboarding-1` ... `onboarding-5` (EN), `onboarding-zh-1` ... `onboarding
 - `onboarding-4`: five orbiting avatars become six at 1.0 s.
 - `onboarding-5`: faint wordmark bloom at 0.2 s; at 1.8 s pill morphs green with check, same width; sign-in gate not opened in fixture.
 - zh: same timestamps; titles visibly lighter (Semibold).
+
+## Round 2: hero is the star (layout fix)
+
+- Disc diameter = min(62 % of width, 30 % of height, 340 pt) (45 % of width at AX1+, hidden at AX3+), centred at ~34 % of the screen height (computed from the geometry's safe-area insets, so 6.1 and 6.9 inch agree), with a soft lantern halo behind it. Final step disc is 0.62/0.82 of the others instead of a small coin. Copy sits directly under the disc, centred; pager dots + pill stay in the bottom inset, so no dead band.
+- Type: title EN Rounded Heavy largeTitle (34) with line spacing, zh PingFang Semibold 30; body 17 at 60 % white, max 300 pt; eyebrow 13 tracked.
+- `OBDragHint`: glass capsule under the disc on step 1 with a looping fingertip drag (1.8 s, trail); Reduce Motion: static.
+- Windows: continuous slow elliptical orbit (14-22 s) plus idle sway, no longer paused by scenePhase (the timeline only pauses for Reduce Motion), parallax from gyro / `--uitesting-fake-tilt` unchanged.
+- Same layout applies to `onboarding-2`...`5` and `onboarding-zh-*`; re-record all.
+
+## Round 3
+
+- Round 2 layout was never in `ui/main` (the `ui/w8` push was not merged); `ui/w8b` merges it (`238dcc533`) onto `de48d025c`. All five steps use the same `OnboardingFlow` body, so steps 2-5 get the 62 % disc.
+- Fog-cleared disc is now `OBNightMap`: indigo ground, faint rotated street grid, lantern-gold avenues (30 % under fog, 60 % revealed, soft glow), no olive/green (was the generated `CYCoverArt` hue).
+- GO hint is a glass capsule centred under the disc; the label swap is a plain fade (the spring on the whole layout was resizing the capsule mid-animation and clipping "Fog cleared"); `lineLimit(2)`, `minimumScaleFactor(0.85)`, leading padding.
