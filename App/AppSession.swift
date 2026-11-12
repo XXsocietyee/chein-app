@@ -724,9 +724,23 @@ final class AppSession: ObservableObject {
         if resource { return factory.resourceClient() }
         return factory.chatClient(currentScope: { [weak self] row in self?.merchantNPCScope(row: row) })
     }
+    func characterKnowledgeAuthorFlow(access: MerchantOperationsAccess) -> MerchantNPCKnowledgeAuthorFlow? {
+        guard let merchantID = access.identity.merchantID, let row = PublicMerchantRowID(merchantID),
+              let scope = merchantNPCScope(row: row), let api = regionalConfiguration?.apiConfiguration else { return nil }
+        let writer = MerchantNPCKnowledgeReviewWriter(configuration: api, transport: runtimeHTTPTransport, memberID: { [weak self] in
+            guard let self, self.merchantNPCScope(row: row) == scope else { return nil }
+            return self.account.map { Int64($0.id) }
+        }, token: { [weak self] in
+            guard let self, self.merchantNPCScope(row: row) == scope else { return nil }
+            return self.token
+        })
+        let ownerKey = scope.namespace + ":" + String(scope.accountID)
+        let recovery = MerchantNPCKnowledgeRecoveryStore(defaults: sessionDefaults, ownerKey: ownerKey, merchantRowID: row.rawValue)
+        return MerchantNPCKnowledgeAuthorFlow(scope: scope, publisher: writer, currentScope: { [weak self] in self?.merchantNPCScope(row: row) }, recovery: recovery)
+    }
     func merchantOperationsDestination(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess) -> AnyView {
-        // w2-19: source pages/merchant/decor/ai-npc has its own page; saves stay dormant.
-        if destination == .character { return merchantStoreCharacterDestination() }
+        // pages/merchant/decor/ai-npc keeps its page. The knowledge author flow rides along; publish stays waiting-source.
+        if destination == .character { return merchantStoreCharacterDestination(access: access) }
         guard destination == .assets else { return AnyView(MerchantOperationsDocumentView(reader: merchantOperationsReader, destination: destination, imageHost: retainedMerchantImages, templateAssistFactory: { [weak self] coordinator in
             self?.merchantTemplateAssistFlow(coordinator: coordinator) ?? MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
         })) }
