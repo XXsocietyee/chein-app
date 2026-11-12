@@ -9,7 +9,7 @@ final class RegistrationWaitlistUITests: XCTestCase {
         if dark { app.launchArguments += ["--uitesting-dark"] }
         else { app.launchArguments += ["-AppleInterfaceStyle", "Light"] }
         app.launch()
-        XCTAssertTrue(app.navigationBars[language == "en" ? "Activity registration" : "活动报名"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars[language == "en" ? "Activity registration" : "结算"].waitForExistence(timeout: 10))
     }
     private func reveal(_ element: XCUIElement) {
         for _ in 0..<10 { if element.exists && element.isHittable { return }; app.swipeUp() }
