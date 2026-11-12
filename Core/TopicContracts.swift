@@ -271,6 +271,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let lifecycle: Int?
     public let selfPlay: Int?
     public let selfPlayPrice: Decimal?
+    /// Server `platformPassCovered`. Missing stays false: this order is not treated as ¥0.
+    public let platformPassCovered: Bool
     public let merchantCount: Int?
     public let isOwner: Bool
     public let betaFlag: Int
@@ -322,6 +324,7 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         lifecycle = c.int("lifecycle")
         selfPlay = c.int("selfPlay")
         selfPlayPrice = c.money("selfPlayPrice")
+        platformPassCovered = c.flag("platformPassCovered")
         merchantCount = c.int("registrationMerchantCount")
         isOwner = c.flag("isOwner")
         betaFlag = c.int("betaFlag") ?? 0

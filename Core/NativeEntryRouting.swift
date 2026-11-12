@@ -10,6 +10,8 @@ public enum NativeEntryIntent: Equatable {
     case publicMerchant(PublicMerchantHomeTarget)
     /// FP-C3. A parsed destination only; no origin is enabled by it and presentation stays the host's choice.
     case content(NativeContentTarget)
+    /// Public catalog list, filters, or info. Parsing does not enable an origin, a charge, or a read.
+    case publicCatalog(PublicCatalogLink)
 }
 /// Positive server ids for public content destinations. Parsing grants no access: the destination screen
 /// still reads through its own approved, authenticated source.
@@ -58,6 +60,9 @@ public struct NativeEntryLinkPolicy {
         if c.percentEncodedPath == "/" + parts.joined(separator: "/"), c.query == nil, parts.count == 3, parts[0] == "merchant", parts[1] == "public-home",
            let value = Int(parts[2]), String(value) == parts[2], let row = PublicMerchantRowID(value) {
             return .publicMerchant(.legacyMerchantRowID(row))
+        }
+        if let catalog = PublicCatalogLink.parse(path: c.percentEncodedPath, items: c.queryItems ?? []) {
+            return .publicCatalog(catalog)
         }
         guard c.percentEncodedPath == "/merchant/team", let items = c.queryItems,
               items.count == 1, items[0].name == "invite",
