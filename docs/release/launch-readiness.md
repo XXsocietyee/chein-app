@@ -24,11 +24,11 @@ Base: `origin/rc/20261108`. Facts come from files in this repo; verification num
 
 | Check | Result |
 | --- | --- |
-| Debug + Release arm64 builds | OK (reported) |
-| App unit tests | 7471 pass / 128 fail; 115 are the hosted-window family on the iOS 27 sim, root cause unproven, same on base `201bf147f` (reported) |
-| Contract suite | 259 failing of 5912 (was 721). Ratchet: `tools/contract_ratchet.py`, baseline `contract-failing-baseline.txt` (259 lines, confirmed), see `receipts/contract-ratchet.md` |
-| UITests | Entry 7/7, Regional 4/4, TicketWallet 6/6 pass; 14 other UITests being fixed (reported) |
-| Core scratch package | 1254/1254 (reported) |
+| Debug + Release arm64 builds | Debug arm64 builds OK on the final tip; Release arm64 simulator build OK on `930acb848` (binary has no design-fixture symbols), not rebuilt after later merges (measured) |
+| App unit tests | 7469 pass / 130 fail of 7599 on `198b2d873` (serial, parallel off). 2 names new vs the first run (`MerchantWorkbenchRemindersTests` hosted, `OwnAccountRefreshOrderingTests` test-process crash); the hosted-window family (about 43 tests in 13 hosted classes) is unchanged by the harness changes in e3p/e3q, root cause unproven; names in `chengyin-refs/app-full-failing-3.txt` (measured) |
+| Contract suite | 246 failing of 5912 (was 721). Ratchet: `tools/contract_ratchet.py --check` = 246, baseline 246, new 0, `contract-failing-baseline.txt`, see `receipts/contract-ratchet.md` (measured) |
+| UITests | Entry 7/7, Regional 4/4, TicketWallet 6/6 pass (measured on the IA tip before the last test-only merges). Still failing on the final tip: CouponRuntime 6/6, IntegratedActivityPlayJourney 2/2, IntegratedNativeAcceptance 6/6, IntegratedDeniedAcceptance 2/2, NonCashReward 5 of 6 (measured; the first 14 also fail on the pre-IA base) |
+| Core scratch package | 1254/1254 (measured earlier on `5e2aeabb1`+e1s; not re-run on the final tip) |
 | Release binary fixture symbols | 0 (reported) |
 | Xcode Cloud | **NOT cloud verified** (silent; see `receipts/xcode-cloud.md`) |
 | Real device | **No real-device pass** |
@@ -78,7 +78,7 @@ Owner-approved (`testflight-internal.md`): API `https://www.chengyinhub.com/prod
 | Per-row ticket notices (cancelled / expired / unknown) not rendered; anonymous growth leaderboard route marked `.missing`; shortened disclosure copy (shopNPC voice, roam history, playkit pair) | `contract-backlog-1.md` |
 | Unavailable club community shown as empty was fixed; `walking.saved.notice` lost a sentence; official event dates use viewer time zone | `contract-backlog-2.md` |
 | `cityGame.points.existing`, `cityGame.notEnabled`, several template/city-node notes not rendered | `contract-backlog-5.md` |
-| Remaining contract failures (259) are classed obsolete/env or hash pins needing reviewed regeneration, not hidden | `contract-backlog-1..5.md` |
+| Remaining contract failures (246) are classed obsolete/env or hash pins needing reviewed regeneration, not hidden | `contract-backlog-1..5.md` |
 | Today card shows only "Start a roam" until ticket/club-event sources are wired | `receipts/ui-today-hero.md` |
 | Light/glass visuals, 120 Hz, VoiceOver paging, Reduce Motion: no device pass | `receipts/ui-carousel.md` |
 | Map chrome contrast over live tiles guaranteed only by scrim | `receipts/ui-a11y-sweep.md` |
