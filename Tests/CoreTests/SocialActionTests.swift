@@ -52,13 +52,19 @@ private final class SocialWriteTransport: HTTPTransport {
         try await coordinator.prepare(command, target: target, ownerID: owner, expectedIdentity: access.identity)
     }
     func testNewPostUsesExactLegacyContractAndStableIntentID() throws {
-        let command = SocialActionCommand.createPost(text: "Example & 示例", requestID: "abcdefghijklmnop")
+        let command = SocialActionCommand.createPost(text: "Example & 示例", requestID: "abcdefghijklmnop", activityID: nil)
         let r = try request(command, target: .newPost)
         XCTAssertEqual(r.url?.path, "/fixture/api/creativesquare/action")
         XCTAssertEqual(r.httpMethod, "POST"); XCTAssertTrue(fields(r).contains("name=\"request_id\"\r\n\r\nabcdefghijklmnop"))
         XCTAssertTrue(fields(r).contains("name=\"pics\"\r\n\r\n\r\n"))
         XCTAssertFalse(fields(r).contains("author")); XCTAssertFalse(fields(r).contains("latitude"))
         XCTAssertTrue(fields(try request(command, target: .newPost)).contains("abcdefghijklmnop"))
+        XCTAssertFalse(fields(try request(command, target: .newPost)).contains("activity_id"))
+    }
+    func testCreatePostSendsActivityOnlyWhenChosen() throws {
+        let linked = try request(.createPost(text: "Example", requestID: "abcdefghijklmnop", activityID: 44), target: .newPost)
+        XCTAssertTrue(fields(linked).contains("name=\"activity_id\"\r\n\r\n44"))
+        XCTAssertThrowsError(try request(.createPost(text: "Example", requestID: "abcdefghijklmnop", activityID: 0), target: .newPost))
     }
     func testEditingOmitsMediaAndRetainsSourceAssociation() throws {
         let r = try request(.editPost(text: "Revised"), target: .post(701))

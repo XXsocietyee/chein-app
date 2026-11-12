@@ -119,6 +119,8 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     public let safetyLabels: [String]
     public let commentPolicy: String
     public let viewerCanComment: Bool
+    /// Activity feed fields. Missing keys stay nil; they are never filled with 0.
+    public let strava: SquareStravaAttachment
     public init(from decoder: Decoder) throws {
         let root = try SquareValue(from: decoder)
         guard root.object != nil else { throw APIError.malformedResponse }
@@ -175,6 +177,7 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         safetyLabels = (labels.array ?? labels.parsedJSON.array ?? []).compactMap(\.nonempty)
         commentPolicy = post["commentPolicy"].text ?? "EVERYONE"
         viewerCanComment = root["viewerCanComment"].isNull || root["viewerCanComment"].truthy
+        strava = SquareStravaAttachment(root: root, post: post, dataType: dataType, referenceType: referenceType)
     }
 }
 public struct SquareComment: Decodable, Equatable, Identifiable {
@@ -269,6 +272,32 @@ indirect enum SquareValue: Decodable {
     subscript(_ key: String) -> Self { object?[key] ?? .null }
     func first(_ keys: String...) -> Self { keys.lazy.map { self[$0] }.first { !$0.isNull } ?? .null }
     var parsedJSON: Self { guard let string else { return .null }; return (try? JSONDecoder().decode(Self.self, from: Data(string.utf8))) ?? .null }
+    /// A non-negative finite magnitude. Missing, negative, and non-numeric values stay unknown.
+    var nonNegativeDouble: Double? {
+        switch self {
+        case .double(let value): return value.isFinite && value >= 0 ? value : nil
+        case .integer(let value): return value >= 0 ? Double(value) : nil
+        case .string(let raw):
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let value = Double(trimmed), value.isFinite, value >= 0 else { return nil }
+            return value
+        default: return nil
+        }
+    }
+    /// Whole non-negative number. A fractional JSON number stays unknown instead of being truncated.
+    var wholeNonNegative: Int? {
+        switch self {
+        case .integer(let value): return value >= 0 ? value : nil
+        case .double(let value) where value.isFinite && value >= 0 && value < Double(Int.max) && value == value.rounded():
+            return Int(value)
+        case .string(let raw):
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let value = Int(trimmed), value >= 0, String(value) == trimmed else { return nil }
+            return value
+        default: return nil
+        }
+    }
+    var positiveInt: Int? { wholeNonNegative.flatMap { $0 > 0 ? $0 : nil } }
     var pictures: [String] {
         if let array { return array.compactMap(\.nonempty) }
         guard let value = nonempty else { return [] }

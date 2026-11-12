@@ -9,6 +9,8 @@ public enum CYNight {
     public static let ink2 = CYRGB(hex: 0x171726).swiftUIColor      // raised card / sheet
     public static let indigo = CYRGB(hex: 0x1B1E4A).swiftUIColor    // map ground, fog, hero backdrops
     public static let violet = CYRGB(hex: 0x7A5CFF).swiftUIColor    // selection only
+    /// The only selection colour. Call this from screens; do not paint it on chrome or content.
+    public static var selection: Color { violet }
     // Muted group hues for Settings tiles (quiet chrome: no lantern, no selection violet).
     public static let tileBlue = CYRGB(hex: 0x3A4A8A).swiftUIColor
     public static let tileGreen = CYRGB(hex: 0x1E6B4A).swiftUIColor

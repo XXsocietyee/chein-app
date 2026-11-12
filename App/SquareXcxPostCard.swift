@@ -9,7 +9,13 @@ struct SquareXcxPostCard: View {
     var now: Date = Date()
     /// List rows place the tappable gallery outside their NavigationLink, so the card omits it there.
     var showsMedia = true
+    var viewerID: Int? = nil
+    var onDoubleTapLike: (() -> Void)? = nil
+    var onFollow: (() -> Void)? = nil
+    var onRepost: ((String) async -> SquareStravaRepostStart)? = nil
+    var confirmResult: ((String) async -> SquareStravaReread)? = nil
     private var facts: SquarePostCardFacts { SquarePostCardFacts(post) }
+    private var strava: SquareStravaFacts { SquareStravaFacts(post: post) }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             head
@@ -21,22 +27,34 @@ struct SquareXcxPostCard: View {
                 Text(verbatim: contents).lineLimit(2)
                 if facts.bodyExpandable { Text("square.xcx.expand").font(.caption).foregroundStyle(.tint) }
             }
-            if facts.isCompletionShare || facts.hasPlayCover { playCard }
-            if showsMedia, let preview = facts.leadingRoutePreview {
+            if strava.hasActivity {
+                SquareStravaActivityBlock(facts: strava, routeSnapshot: post.routeImage, mediaScope: mediaScope, onDoubleTapLike: onDoubleTapLike, onRepost: onRepost, confirmResult: confirmResult)
+            } else if facts.isCompletionShare || facts.hasPlayCover { playCard }
+            if !strava.hasActivity, showsMedia, let preview = facts.leadingRoutePreview {
                 NativeMediaGalleryEntry(sources: [preview], scope: mediaScope, titleKey: "media.destination.squareImages", compact: true)
             }
             if !facts.strip.isEmpty {
                 if showsMedia { NativeMediaGalleryEntry(sources: facts.strip, scope: mediaScope, titleKey: "media.destination.squareImages", compact: true) }
                 if facts.showsCountPill { Text("square.xcx.countPill \(facts.strip.count)").font(.caption2).accessibilityIdentifier("square.card.count") }
             }
-            counters
+            if !strava.hasActivity { counters }
         }.padding(.vertical, 4)
     }
     /// One line: avatar, name (single line) and time; at most ONE chip under it (notice > author badge > level).
     /// The remaining badges stay in the accessibility label and in the post detail.
     private var head: some View {
         HStack(alignment: .center, spacing: 10) {
-            Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
+            ZStack(alignment: .bottomTrailing) {
+                Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
+                if strava.showsFollow(viewerID: viewerID, authorID: post.memberID), let onFollow {
+                    Button(action: onFollow) {
+                        Image(systemName: "plus.circle.fill").font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(Text("strava.follow", tableName: "SquareStrava"))
+                    .accessibilityIdentifier("square.strava.follow")
+                }
+            }
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).font(.headline).lineLimit(1) }

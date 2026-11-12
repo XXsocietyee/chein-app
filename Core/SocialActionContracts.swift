@@ -15,7 +15,7 @@ public enum SocialActionTarget: Hashable {
 }
 public enum SocialPostAction: String, CaseIterable { case like = "LIKE", bookmark = "BOOKMARK" }
 public enum SocialActionCommand: Equatable {
-    case createPost(text: String, requestID: String)
+    case createPost(text: String, requestID: String, activityID: Int?)
     case editPost(text: String)
     case comment(text: String)
     case communityComment(text: String, requestID: String)
@@ -26,9 +26,16 @@ public enum SocialActionCommand: Equatable {
     case report
     case legacyPostReport(reason: String)
     case legacyPostLike
-    public static func newPost(text: String) -> Self { .createPost(text: text, requestID: UUID().uuidString) }
+    public static func newPost(text: String, activityID: Int? = nil) -> Self { .createPost(text: text, requestID: UUID().uuidString, activityID: activityID) }
     public static func action(_ action: SocialPostAction, enabled: Bool) -> Self { .postAction(action, enabled: enabled, requestID: UUID().uuidString) }
-    public var text: String? { switch self { case .createPost(let text, _), .editPost(let text), .comment(let text), .communityComment(let text, _): return text; default: return nil } }
+    public var text: String? { switch self { case .createPost(let text, _, _), .editPost(let text), .comment(let text), .communityComment(let text, _): return text; default: return nil } }
+    /// Saved idempotency key for a re-read. Absent means this command cannot be confirmed by request id.
+    public var idempotencyKey: String? {
+        switch self {
+        case .createPost(_, let id, _), .communityComment(_, let id), .communityCommentLike(_, let id), .postAction(_, _, let id): return id
+        default: return nil
+        }
+    }
     public var requiredGeneration: SquareContentGeneration? {
         switch self {
         case .communityComment, .communityCommentLike, .postAction: return .communityV1
@@ -59,8 +66,9 @@ public enum SocialActionCommand: Equatable {
         case .toggleFollow, .startChat:
             guard let memberID = target.memberID, let profile = snapshot.profile, memberID == profile.id, memberID != accountID else { throw SocialActionBlock.invalid }
             if self == .toggleFollow, profile.isFollowed == nil { throw SocialActionBlock.changed }
-        case .createPost(_, let id):
+        case .createPost(_, let id, let activityID):
             guard target == .newPost, Self.validRequestID(id) else { throw SocialActionBlock.invalid }
+            if let activityID { guard activityID > 0 else { throw SocialActionBlock.invalid } }
         case .editPost:
             guard case .post = target, let post = snapshot.post, post.memberID == accountID else { throw SocialActionBlock.ownerRequired }
             guard post.lifecycle == "PUBLISHED" else { throw SocialActionBlock.changed }
@@ -146,8 +154,9 @@ public struct SocialActionRequestBuilder {
         case .startChat:
             guard let id = snapshot.target.memberID else { throw SocialActionBlock.invalid }
             path = "api/im/start"; fields = ["target_member_id": String(id)]
-        case .createPost(let text, let requestID):
+        case .createPost(let text, let requestID, let activityID):
             path = "api/creativesquare/action"; fields = ["contents": text, "pics": "", "request_id": requestID]
+            if let activityID { fields["activity_id"] = String(activityID) }
         case .editPost(let text):
             guard let post = snapshot.post else { throw SocialActionBlock.changed }
             path = "api/creativesquare/action"; fields = ["id": String(post.id), "contents": text]

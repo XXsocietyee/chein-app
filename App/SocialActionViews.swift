@@ -11,6 +11,7 @@ public enum SocialEditorPurpose: String, Identifiable {
     var initialText = ""
     var contentGeneration: SquareContentGeneration = .legacySquare
     var initialEnabled = true
+    var confirmResult: ((String) async -> SquareStravaReread)? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
     @State private var enabled = true
@@ -129,7 +130,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             if let heldReview { coordinator.cancel(heldReview) }; heldReview = nil; revision += 1
         }) { item in
             NavigationStack {
-                SocialActionReviewView(review: item, coordinator: coordinator, onClose: { review = nil; revision += 1 })
+                SocialActionReviewView(review: item, coordinator: coordinator, confirmResult: confirmResult, onClose: { review = nil; revision += 1 })
             }
         }
         .accessibilityIdentifier("social.editor")
@@ -167,6 +168,7 @@ public enum SocialEditorPurpose: String, Identifiable {
 @MainActor private struct SocialActionReviewView: View {
     let review: SocialActionReview
     let coordinator: SocialActionCoordinator
+    var confirmResult: ((String) async -> SquareStravaReread)? = nil
     let onClose: () -> Void
     @State private var busy = false
     @State private var revision = 0
@@ -207,6 +209,9 @@ public enum SocialEditorPurpose: String, Identifiable {
                     if coordinator.availability(for: review.command, target: review.target) == .disabled { Text("social.writesDisabled") }
                 }
                 SocialActionStateView(state: state)
+                if case .outcomeUnknown = state, let requestID = review.command.idempotencyKey, let confirmResult {
+                    SquareStravaConfirmResultButton(requestID: requestID, reread: confirmResult)
+                }
                 if coordinator.availability == .syntheticOnly {
                     CYPillButton("social.simulate") {
                         busy = true

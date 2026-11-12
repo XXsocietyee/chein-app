@@ -14,8 +14,7 @@ import SwiftUI
     var upcomingDestination: ((Int) -> AnyView)? = nil
     /// Reporter progress survives unavailable or deleted feed targets; nil preserves fixture callers.
     var reportProgressDestination: (() -> AnyView)? = nil
-    @State private var showsWorkspace = false
-    @State private var showsComposer = false
+    @State private var cover: SquareBrowserCover?
     @State private var showsReportProgress = false
     var onClose: (() -> Void)? = nil
     @State private var query = SquareQuery()
@@ -80,7 +79,9 @@ import SwiftUI
                         }
                     }
                     ForEach(pagination.items) { post in
-                        NavigationLink(value: post.id) { SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false) }
+                        NavigationLink(value: post.id) {
+                            SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false, viewerID: accountReader?.identity.accountID, onDoubleTapLike: likeAction(post), onFollow: followAction(post))
+                        }
                             .accessibilityIdentifier("square.row.\(post.id)")
                         NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages", compact: true)
                     }
@@ -99,7 +100,7 @@ import SwiftUI
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             if let workspace {
-                                Button("squareWorkspace.title", systemImage: "doc.text") { showsWorkspace = true }
+                                Button("squareWorkspace.title", systemImage: "doc.text") { cover = .workspace }
                                     .accessibilityIdentifier("square.workspace.entry")
                                     .disabled(workspace.busy)
                             }
@@ -113,16 +114,32 @@ import SwiftUI
                 }
                 if let actions {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("social.editor.createPost", systemImage: "square.and.pencil") { if workspace != nil { showsWorkspace = true } else { showsComposer = true } }
+                        Button("social.editor.createPost", systemImage: "square.and.pencil") { cover = .compose }
                             .disabled(actions.identity.accountID == nil).accessibilityIdentifier("social.compose")
                     }
                 }
             }
-            .sheet(isPresented: $showsComposer) {
-                if let actions { NavigationStack { SocialActionEditorView(purpose: .createPost, target: .newPost, coordinator: actions) }.id(actions.identity) }
-            }
-            .sheet(isPresented: $showsWorkspace) {
-                if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace) }.id(workspace.session) }
+            .sheet(item: $cover) { item in
+                switch item {
+                case .compose:
+                    if let actions {
+                        SquarePostComposeView(coordinator: actions, confirmResult: { _ in .stillUnknown }).id(actions.identity)
+                    }
+                case .workspace:
+                    if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace) }.id(workspace.session) }
+                case .like(let post):
+                    if let actions {
+                        NavigationStack {
+                            SocialActionEditorView(purpose: .like, target: .post(post.id), coordinator: actions, contentGeneration: post.generation == .unknown ? .legacySquare : post.generation, confirmResult: { _ in .stillUnknown })
+                        }.id(actions.identity)
+                    }
+                case .follow(let memberID):
+                    if let actions {
+                        NavigationStack {
+                            SocialActionEditorView(purpose: .toggleFollow, target: .member(memberID), coordinator: actions, confirmResult: { _ in .stillUnknown })
+                        }.id(actions.identity)
+                    }
+                }
             }
             .navigationDestination(isPresented: $showsReportProgress) { reportProgressDestination?() }
             .scrollContentBackground(.hidden)
@@ -137,11 +154,20 @@ import SwiftUI
             .accessibilityIdentifier("square.browser")
         }
     }
+    private func likeAction(_ post: SquarePost) -> (() -> Void)? {
+        guard let actions, actions.availability(for: post.generation == .communityV1 ? .action(.like, enabled: post.isLiked != 1) : .legacyPostLike, target: .post(post.id)) != .disabled else { return nil }
+        return { cover = .like(post) }
+    }
+    private func followAction(_ post: SquarePost) -> (() -> Void)? {
+        guard let actions, SquareStravaFacts(post: post).showsFollow(viewerID: accountReader?.identity.accountID, authorID: post.memberID),
+              actions.availability(for: .toggleFollow, target: .member(post.memberID)) != .disabled else { return nil }
+        return { cover = .follow(post.memberID) }
+    }
     private func governanceContext(postID: Int?) -> SquareGovernanceContext? {
         guard let governance, let governanceAccess else { return nil }
         return .init(coordinator: governance, access: governanceAccess(postID), communityPostRead: reader.isConfigured,
             openPost: { id in guard reader.isConfigured, id > 0 else { return }; path.append(id) },
-            openDrafts: { if workspace != nil { showsWorkspace = true } }, signIn: { onSignIn?() })
+            openDrafts: { if workspace != nil { cover = .workspace } }, signIn: { onSignIn?() })
     }
     @ViewBuilder private var filters: some View {
         if query.mode == .nearby {
@@ -185,6 +211,18 @@ import SwiftUI
         catch {
             guard operation == generation, captured == key else { return }
             phase = .failed(error, retry: nil); loadedKey = captured
+        }
+    }
+}
+
+private enum SquareBrowserCover: Identifiable {
+    case compose, workspace, like(SquarePost), follow(Int)
+    var id: String {
+        switch self {
+        case .compose: return "compose"
+        case .workspace: return "workspace"
+        case .like(let post): return "like.\(post.id)"
+        case .follow(let memberID): return "follow.\(memberID)"
         }
     }
 }

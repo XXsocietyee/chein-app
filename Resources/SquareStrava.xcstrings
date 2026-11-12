@@ -1,0 +1,270 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "strava.activity.empty": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No finished activities" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "还没有可关联的活动" } }
+      }
+    },
+    "strava.activity.emptyDetail": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Only activities you finished can be attached." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅显示已完成的活动" } }
+      }
+    },
+    "strava.activity.failed": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The activity list could not be opened." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动列表没能打开" } }
+      }
+    },
+    "strava.activity.loading": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading activities" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在读取活动" } }
+      }
+    },
+    "strava.activity.notConfigured": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Activity list is not available." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动列表暂不可用" } }
+      }
+    },
+    "strava.activity.offline": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You are offline. The activity list was not loaded." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前离线，活动列表没有载入" } }
+      }
+    },
+    "strava.activity.permission": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This account cannot open the activity list." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前账号不能查看活动列表" } }
+      }
+    },
+    "strava.activity.retry": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Try again" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重试" } }
+      }
+    },
+    "strava.activity.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choose an activity" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择活动" } }
+      }
+    },
+    "strava.cleared": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cleared" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已通关" } }
+      }
+    },
+    "strava.compose.activity": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Activity" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择活动" } }
+      }
+    },
+    "strava.compose.cancel": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cancel" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "取消" } }
+      }
+    },
+    "strava.compose.clearActivity": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Remove the selected activity" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "清除已选活动" } }
+      }
+    },
+    "strava.compose.drafts": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Drafts" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "草稿" } }
+      }
+    },
+    "strava.compose.placeholder": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "What do you want to share?" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "有什么新鲜好玩的分享吗？" } }
+      }
+    },
+    "strava.compose.publish": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Publish" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "发布" } }
+      }
+    },
+    "strava.compose.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "New post" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "新建帖文" } }
+      }
+    },
+    "strava.compose.tooLong": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Shorten the post before publishing. The draft is kept." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "帖文太长，请缩短后再发布。草稿已保留。" } }
+      }
+    },
+    "strava.confirmed": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The saved request was confirmed." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已按原请求编号确认结果" } }
+      }
+    },
+    "strava.confirmResult": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Check the result" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "确认结果" } }
+      }
+    },
+    "strava.drafts.delete": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Delete this draft" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "删除这条草稿" } }
+      }
+    },
+    "strava.drafts.empty": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No drafts" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "还没有草稿" } }
+      }
+    },
+    "strava.drafts.emptyDetail": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Leaving mid-post keeps a draft here." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "写到一半退出时会自动存成草稿，回到这里就能接着写。" } }
+      }
+    },
+    "strava.drafts.error": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The draft could not be saved on this device." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "草稿没能保存在这台设备上" } }
+      }
+    },
+    "strava.drafts.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Drafts" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "草稿" } }
+      }
+    },
+    "strava.follow": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Follow" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关注" } }
+      }
+    },
+    "strava.kudos": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Kudos" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "点赞" } }
+      }
+    },
+    "strava.map.preview": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Route preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "路线预览" } }
+      }
+    },
+    "strava.notSent": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not sent" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "没有发出" } }
+      }
+    },
+    "strava.offline": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Offline. Publishing stays off." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前离线，发布保持关闭" } }
+      }
+    },
+    "strava.rejected": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The saved request was not accepted." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "原请求没有被接受" } }
+      }
+    },
+    "strava.repost": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Repost" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "转发" } }
+      }
+    },
+    "strava.repost.undo": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Undo repost" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "取消转发" } }
+      }
+    },
+    "strava.review.activity": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Activity" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动" } }
+      }
+    },
+    "strava.review.activityNote": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The activity id is sent with the text. This screen does not mark it linked until the saved request is confirmed." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动编号会随正文提交。在按原请求编号确认之前，这里不显示成已经关联。" } }
+      }
+    },
+    "strava.review.submit": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Submit" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提交" } }
+      }
+    },
+    "strava.review.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Review post" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "确认帖文" } }
+      }
+    },
+    "strava.signIn": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Sign in to publish." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "登录后才能发布" } }
+      }
+    },
+    "strava.stats.distance": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Distance" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "距离" } }
+      }
+    },
+    "strava.stats.duration": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Time" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "时长" } }
+      }
+    },
+    "strava.stats.km": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "km" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公里" } }
+      }
+    },
+    "strava.stats.pace": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Nodes" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "完成节点" } }
+      }
+    },
+    "strava.unknown": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Still unconfirmed. The saved request stays locked." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "结果仍未确认，原请求保持锁定" } }
+      }
+    },
+    "strava.writesOff": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Publishing is off for this account." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前账号不能发布" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

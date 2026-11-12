@@ -471,6 +471,10 @@ struct ClubCommunityPostTile: View {
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
     @Environment(\.dynamicTypeSize) private var typeSize
+    private var clubLike: (() -> Void)? {
+        guard let clubID, identity.isSignedIn, model.context.coordinator?.permitsInjectedWrites == true else { return nil }
+        return { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } }
+    }
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
         guard let evidence, evidence.identity == identity, evidence.post == post, Date().timeIntervalSince(evidence.observedAt) < 60 else { return false }
         return evidence.allows(operation)
@@ -480,7 +484,10 @@ struct ClubCommunityPostTile: View {
             ClubPostAuthorProfile(post: post, clubID: clubID, identity: identity, model: model)
             ClubPostDiscussionBody(post: post, expanded: commentsExpanded, open: canOpenComments ? openComments : nil)
             ClubPostImageGallery(post: post, clubID: clubID, identity: identity, model: model)
-            if !post.sportName.isEmpty, (post.refType == 1 || !post.sportCover.isEmpty) {
+            if post.strava.hasActivity {
+                SquareStravaActivityBlock(facts: SquareStravaFacts(club: post), routeSnapshot: post.sportCover.isEmpty ? nil : post.sportCover,
+                    onDoubleTapLike: clubLike)
+            } else if !post.sportName.isEmpty, (post.refType == 1 || !post.sportCover.isEmpty) {
                 ClubPostReferenceView(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
                 ClubPostPlayPreview(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
             }
