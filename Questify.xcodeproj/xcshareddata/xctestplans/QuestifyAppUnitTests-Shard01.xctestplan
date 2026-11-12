@@ -179,6 +179,7 @@
         "LanguageSwitcherTests",
         "LocalizationCompletenessSectionViewTests",
         "LocationShareAndSideQuestViewTests",
+        "MPParityPassBindingTests",
         "ManualMapCompositionTests",
         "MapPublicLayerAppIntegrationTests",
         "MapVisualAndMerchantGameViewTests",

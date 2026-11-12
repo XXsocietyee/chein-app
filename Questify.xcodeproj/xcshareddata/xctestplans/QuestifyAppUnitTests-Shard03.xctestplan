@@ -171,6 +171,7 @@
         "LocalizationCompletenessSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
         "LocationShareAndSideQuestViewTests",
+        "MPParityPassBindingTests",
         "ManualMapCompositionTests",
         "MapVisualAndMerchantGameViewTests",
         "MarketingOriginalSettingsHostTests",
