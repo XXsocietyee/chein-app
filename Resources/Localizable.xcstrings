@@ -258387,6 +258387,22 @@
           }
         }
       }
+    },
+    "searchMap.clearKeyword": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除搜索"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

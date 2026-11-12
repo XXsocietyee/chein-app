@@ -66,6 +66,19 @@ import SwiftUI
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
                         .frame(minHeight: 44)
+                    // Mini-program field: 搜索中 spinner while a search runs, clear (x) once there is text.
+                    if loading {
+                        ProgressView().controlSize(.small).accessibilityLabel(Text("searchMap.loading"))
+                    }
+                    if !filter.keyword.isEmpty {
+                        Button { setKeyword("") } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.textTertiary)
+                                .frame(minWidth: 44, minHeight: 44)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text("searchMap.clearKeyword"))
+                        .accessibilityIdentifier("searchMap.clearKeyword")
+                    }
                 }
                 .padding(.horizontal, CYSpacing.md)
                 .searchNightPill()
