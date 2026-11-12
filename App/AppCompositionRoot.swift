@@ -3476,6 +3476,10 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if let route = PublicTopicTemplateReadRoute(url: url, baseURL: api.baseURL) {
             guard deployment.reads.contains(.publicTopicTemplateCatalogAndDetail),
                   route.accepts(request), captured.isPublicTemplateViewer else { throw APIError.notConfigured }
+        } else if request.httpMethod == "POST",
+                  url == api.baseURL.appendingPathComponent("api/im/send-receipt"),
+                  request.url?.query == nil, request.url?.fragment == nil {
+            guard captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if let exit = ChapterWriteExit.match(request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
