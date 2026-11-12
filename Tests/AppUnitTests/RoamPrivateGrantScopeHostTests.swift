@@ -149,7 +149,10 @@ import UIKit
     var body: some View {
         NavigationStack {
             if export { RoamExplorationExportView(tools: rig.reader) }
-            else { List { RoamPassportPrivateLinks(tools: rig.reader) } }
+            else {
+                List { RoamPassportPrivateLinks(tools: rig.reader) }
+                    .roamPassportPrivateDestinations(tools: rig.reader)
+            }
         }.environment(\.scenePhase, .active)
     }
 }

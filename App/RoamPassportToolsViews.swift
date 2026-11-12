@@ -11,12 +11,7 @@ import UIKit
     private let isConfigured: Bool?
     private let privateScope: RoamPrivatePageScope?
     private let privateConfigured: Bool?
-    @State private var openedTool: OpenedTool?
-    private enum Tool: Hashable { case anniversary, recap, export }
-    private struct OpenedTool: Identifiable, Hashable {
-        let id = UUID()
-        let tool: Tool
-    }
+    @EnvironmentObject private var navigation: RoamPassportToolsNavigation
     init(
         reader: (any RoamPassportToolsReading)?,
         routeDestination: ((String) -> AnyView)? = nil,
@@ -38,10 +33,10 @@ import UIKit
             NavigationLink { RoamAnniversaryView(reader: reader, routeDestination: routeDestination) } label: {
                 Label("roam.tools.anniversary", systemImage: "calendar")
                     .background {
-                        if openedTool == nil {
+                        if navigation.openedTool == nil {
                             RoamHostedAccessibilityAnchor(
                                 identifier: "roam.tools.anniversary.open",
-                                action: { openedTool = OpenedTool(tool: .anniversary) }
+                                action: { navigation.openedTool = RoamPassportOpenedTool(tool: .anniversary) }
                             )
                         }
                     }
@@ -49,10 +44,10 @@ import UIKit
             NavigationLink { RoamMonthlyRecapView(reader: reader, routeDestination: routeDestination) } label: {
                 Label("roam.tools.recap", systemImage: "chart.bar")
                     .background {
-                        if openedTool == nil {
+                        if navigation.openedTool == nil {
                             RoamHostedAccessibilityAnchor(
                                 identifier: "roam.tools.recap.open",
-                                action: { openedTool = OpenedTool(tool: .recap) }
+                                action: { navigation.openedTool = RoamPassportOpenedTool(tool: .recap) }
                             )
                         }
                     }
@@ -60,26 +55,64 @@ import UIKit
             NavigationLink { RoamExplorationExportView(tools: privateTools) } label: {
                 Label("roam.export.title", systemImage: "square.and.arrow.down")
                     .background {
-                        if openedTool == nil {
+                        if navigation.openedTool == nil {
                             RoamHostedAccessibilityAnchor(
                                 identifier: "roam.export.open",
-                                action: { openedTool = OpenedTool(tool: .export) }
+                                action: { navigation.openedTool = RoamPassportOpenedTool(tool: .export) }
                             )
                         }
                     }
             }.accessibilityIdentifier("roam.export.open")
         }
-        .onAppear { openedTool = nil }
-        .navigationDestination(item: $openedTool) { item in
-            switch item.tool {
-            case .anniversary:
-                RoamAnniversaryView(reader: reader, routeDestination: routeDestination)
-            case .recap:
-                RoamMonthlyRecapView(reader: reader, routeDestination: routeDestination)
-            case .export:
-                RoamExplorationExportView(tools: privateTools)
+        .onAppear { navigation.openedTool = nil }
+    }
+}
+
+/// Shared by the tools rows and the list-level destination. A `navigationDestination(item:)`
+/// on the section itself is inside the List and collapses those rows into one cramped line.
+@MainActor private final class RoamPassportToolsNavigation: ObservableObject {
+    @Published var openedTool: RoamPassportOpenedTool?
+}
+
+private struct RoamPassportOpenedTool: Identifiable, Hashable {
+    let id = UUID()
+    let tool: RoamPassportTool
+}
+
+private enum RoamPassportTool: Hashable { case anniversary, recap, export }
+
+extension View {
+    /// Hoist the tools push onto the List or NavigationStack. Do not call this from a row.
+    func roamPassportToolsDestinations(
+        reader: (any RoamPassportToolsReading)?,
+        routeDestination: ((String) -> AnyView)?,
+        privateTools: (any RoamPrivateToolsServing)?
+    ) -> some View {
+        modifier(RoamPassportToolsDestinationModifier(reader: reader, routeDestination: routeDestination, privateTools: privateTools))
+    }
+}
+
+private struct RoamPassportToolsDestinationModifier: ViewModifier {
+    let reader: (any RoamPassportToolsReading)?
+    let routeDestination: ((String) -> AnyView)?
+    let privateTools: (any RoamPrivateToolsServing)?
+    @StateObject private var navigation = RoamPassportToolsNavigation()
+    private var openedTool: Binding<RoamPassportOpenedTool?> {
+        Binding(get: { navigation.openedTool }, set: { navigation.openedTool = $0 })
+    }
+    func body(content: Content) -> some View {
+        content
+            .environmentObject(navigation)
+            .navigationDestination(item: openedTool) { item in
+                switch item.tool {
+                case .anniversary:
+                    RoamAnniversaryView(reader: reader, routeDestination: routeDestination)
+                case .recap:
+                    RoamMonthlyRecapView(reader: reader, routeDestination: routeDestination)
+                case .export:
+                    RoamExplorationExportView(tools: privateTools)
+                }
             }
-        }
     }
 }
 

@@ -102,6 +102,11 @@ check('Goal projection pins the counting contract',
 check('Photo attach stays unavailable on iOS', 'roam.capsule.photoUnavailable' in views and 'PhotosPicker' not in views)
 check('Roam hub exposes goals and capsule beside the badge wall',
       '.accessibilityIdentifier("roam.badgeWall.open")\n                RoamPassportPrivateLinks(tools: privateToolsReader)' in hub)
+links = views.split('@MainActor struct RoamPassportPrivateLinks', 1)[1].split('/// The goals and capsule pushes', 1)[0]
+check('Private link destinations are hoisted off the list rows',
+      'navigationDestination' not in links
+      and '.navigationDestination(item: openedLink)' in views
+      and '.roamPassportPrivateDestinations(tools: privateToolsReader)' in hub)
 check('Roam tools expose export after monthly recap',
       tools_section.index('roam.tools.recap.open') < tools_section.index('RoamExplorationExportView(tools: privateTools)'))
 check('Offline fixture is DEBUG-only in the App', fixture_host.startswith('#if DEBUG') and 'RoamPrivateToolsFixture(scenario:' in fixture_host

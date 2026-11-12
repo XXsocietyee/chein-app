@@ -67,6 +67,16 @@ class RoamAnniversaryNavigationContracts(unittest.TestCase):
         self.assertNotIn('completeReturn', host)
         self.assertNotIn('onReturn', host)
 
+    def test_tool_destinations_are_hoisted_off_the_list_rows(self):
+        # navigationDestination(item:) on the section is inside the List and collapses the tools into one row.
+        section = self.views.split('@MainActor struct RoamPassportToolsSection', 1)[1].split(
+            '/// Shared by the tools rows', 1)[0]
+        self.assertNotIn('navigationDestination', section)
+        self.assertIn('.navigationDestination(item: openedTool)', self.views)
+        hoist = '.roamPassportToolsDestinations(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)'
+        self.assertIn(hoist, self.home)
+        self.assertIn(hoist, self.hub)
+
     def test_no_play_start_or_new_api_or_permission(self):
         for source in (self.core, self.views, self.home, self.hub):
             for banned in ('startRoam', 'continueRoam', 'makeRoamLiveSessionController',

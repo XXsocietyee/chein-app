@@ -18,7 +18,7 @@ class RoamPrivateToolsContracts(unittest.TestCase):
     def test_reviewed_source_contracts_all_pass(self):
         result = self.run_checker(ROOT)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn('PASS: 30 roam private tools source contracts', result.stdout)
+        self.assertIn('PASS: 31 roam private tools source contracts', result.stdout)
 
     def test_catalog_has_every_reviewed_key(self):
         result = subprocess.run([sys.executable, str(ROOT / 'tools/build_roam_private_tools_localizations.py'), '--root', str(ROOT), '--check'],
