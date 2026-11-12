@@ -47,6 +47,13 @@ public final class MessagingSessionReader: MessagingReading {
         guard let service, let snapshot = currentSession() else { return nil }
         return service.directoryTransportHold(token: snapshot.token, accountID: snapshot.identity.accountID, epoch: snapshot.identity.epoch)
     }
+    /// Official in-app card click. Failure, including 401, is ignored and does not expire the session.
+    public func reportBroadcastClick(id: Int) async {
+        guard id > 0, let hold = directoryTransportHold(),
+              var request = IMBroadcastClick.request(baseURL: hold.configuration.baseURL, id: id) else { return }
+        request.setValue(hold.token, forHTTPHeaderField: "Authorization")
+        _ = try? await hold.transport.send(request)
+    }
     public init(service: MessagingService?, currentSession: @escaping () -> MessagingReadSession?,
                 isAvailable: @escaping () -> Bool = { true },
                 onUnauthorized: @escaping (MessagingReadSession) -> Void = { _ in }) {

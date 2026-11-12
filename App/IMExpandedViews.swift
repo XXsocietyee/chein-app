@@ -423,7 +423,7 @@ struct IMMutationSummary: View {
     let onDestination: (IMCardDestination) -> Void
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        let actions = IMCardAction.actions(for: message).filter { $0.destination != .unsupported }
+        let actions = IMCardAction.displayed(for: message)
         let primaryIndex = actions.firstIndex { !$0.isReject }
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             // Actions this version can't open are left out rather than shown disabled.

@@ -211,6 +211,8 @@ public struct MessagingCard: Equatable {
     public let longitude: Double?
     public let buttonLabels: [String]
     public let result: MessagingCardResult?
+    /// Official in-app notice id (`bcId`). Present only when the card can report a click.
+    public let broadcastID: Int?
 
     public static func parse(_ raw: String?, fallbackTitle: String?) -> Self? {
         guard let raw, let data = raw.data(using: .utf8),
@@ -226,6 +228,7 @@ public struct MessagingCard: Equatable {
         }
         func number(_ value: Any?) -> Double? { text(value).flatMap(Double.init) }
         let type = text(j["cardType"]) ?? "generic"
+        let broadcastID = Self.broadcastID(j["bcId"])
         if type == "location" {
             let lat = number(j["lat"]), lng = number(j["lng"])
             let valid = lat.map { $0.isFinite && (-90...90).contains($0) } == true
@@ -233,7 +236,7 @@ public struct MessagingCard: Equatable {
             guard text(j["name"]) != nil || valid else { return nil }
             return Self(kind: .location, title: text(j["name"]), subtitle: nil, meta: nil,
                         topicID: nil, address: text(j["address"]), latitude: valid ? lat : nil,
-                        longitude: valid ? lng : nil, buttonLabels: [], result: nil)
+                        longitude: valid ? lng : nil, buttonLabels: [], result: nil, broadcastID: broadcastID)
         }
         if type == "route" || type == "signup" {
             let id = text(j["topicId"]).flatMap(Int.init).flatMap { $0 > 0 ? $0 : nil }
@@ -242,7 +245,7 @@ public struct MessagingCard: Equatable {
             guard id != nil || text(j["action"]) != nil else { return nil }
             return Self(kind: type == "route" ? .route : .signup, title: nil, subtitle: nil,
                         meta: nil, topicID: id, address: nil, latitude: nil, longitude: nil,
-                        buttonLabels: [], result: nil)
+                        buttonLabels: [], result: nil, broadcastID: broadcastID)
         }
         let labels = (j["buttons"] as? [[String: Any]] ?? []).compactMap { text($0["text"]) }
         let result = (j["result"] as? [String: Any]).flatMap { row -> MessagingCardResult? in
@@ -253,9 +256,38 @@ public struct MessagingCard: Equatable {
         let title = text(j["title"]) ?? text(fallbackTitle)
         let subtitle = text(j["sub"]), meta = text(j["meta"])
         guard title != nil || subtitle != nil || meta != nil || !labels.isEmpty
-                || result != nil || text(j["action"]) != nil else { return nil }
+                || result != nil || text(j["action"]) != nil || broadcastID != nil else { return nil }
         return Self(kind: .generic, title: title, subtitle: subtitle, meta: meta, topicID: nil,
-                    address: nil, latitude: nil, longitude: nil, buttonLabels: labels, result: result)
+                    address: nil, latitude: nil, longitude: nil, buttonLabels: labels, result: result, broadcastID: broadcastID)
+    }
+
+    /// `bcId` is a positive integer. Anything else is not a click target.
+    static func broadcastID(_ value: Any?) -> Int? {
+        if let number = value as? Int, number > 0 { return number }
+        if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
+            let int = number.intValue
+            guard int > 0, number.stringValue == String(int) else { return nil }
+            return int
+        }
+        if let string = value as? String {
+            let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let int = Int(trimmed), int > 0, String(int) == trimmed else { return nil }
+            return int
+        }
+        return nil
+    }
+}
+
+/// Best-effort official notice click from an in-app card (`bcId`). The mini-program posts
+/// `{channel:"inapp"}` and ignores failure. The host adds the session token; this does not pick a host.
+public enum IMBroadcastClick {
+    public static func request(baseURL: URL, id: Int) -> URLRequest? {
+        guard id > 0 else { return nil }
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/official/broadcast/\(id)/click"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data(#"{"channel":"inapp"}"#.utf8)
+        return request
     }
 }
 
