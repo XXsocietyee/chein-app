@@ -252,14 +252,13 @@ struct NearbyMapDiscoveryStatusView: View {
             .font(CYTypography.label).foregroundStyle(CYColor.warningText)
             if let issue { RoamStatusView(issue: issue, retry: retry) }
         case .unavailable:
-            CYEmptyState(
-                systemImage: "wifi.slash",
-                LocalizedStringKey(events ? "nearby.map.eventsUnavailable" : "nearby.map.poisUnavailable"),
-                tableName: "NearbyMapDiscovery",
-                kind: .offline
-            )
+            if events {
+                CYEmptyState(systemImage: "wifi.slash", LocalizedStringKey("nearby.map.eventsUnavailable"), tableName: "NearbyMapDiscovery", kind: .offline)
+            } else {
+                CYEmptyState(systemImage: "wifi.slash", LocalizedStringKey("nearby.map.poisUnavailable"), tableName: "NearbyMapDiscovery", kind: .offline)
+            }
         case .waiting:
-            CYEmptyState(systemImage: "location.slash", "nearby.map.areaRequired", tableName: "NearbyMapDiscovery", kind: .location)
+            CYEmptyState(systemImage: "location.slash", LocalizedStringKey("nearby.map.areaRequired"), tableName: "NearbyMapDiscovery", kind: .location)
         case .loaded: EmptyView()
         }
     }

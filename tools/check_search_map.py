@@ -9,7 +9,7 @@ service=(root/'Core/SearchMapService.swift').read_text(); contracts=(root/'Core/
 app='\n'.join(p.read_text() for p in (root/'App').glob('*Search*swift'))
 keys=json.loads((root/'docs/search-map-localizations.json').read_text())
 check('bilingual catalog entries', all(set(v)=={'en','zh-Hans'} and all(isinstance(x,str) and x for x in v.values()) for v in keys.values()))
-app_without_ids=re.sub(r'\.accessibilityIdentifier\("[^"\n]*"\)', '', app)
+app_without_ids=re.sub(r'(?:\.accessibilityIdentifier\(|messageIdentifier: )"[^"\n]*"\)?', '', app)  # messageIdentifier is an accessibility id, not a key
 literal_keys={x for x in re.findall(r'"(searchMap\.[A-Za-z][A-Za-z0-9.]*)"',app_without_ids) if not x.endswith('.')}
 check('all literal UI localization keys', literal_keys <= set(keys))
 check('all domain/mode/validation localization keys', {f'searchMap.kind.{x}' for x in ['topic','activity','club','merchant']} | {f'searchMap.mode.{x}' for x in ['walking','driving','transit']} | {f'searchMap.validation.{x}' for x in range(8)} <= set(keys))

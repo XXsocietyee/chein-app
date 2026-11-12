@@ -45,6 +45,7 @@ ALLOWLIST = {
     'App/PublishingContextHandoffViews.swift': {RAW_HEX: 1, VIOLET: 1},
     'App/PushNotificationAndLiveActivitySectionView.swift': {VIOLET: 1},
     'App/RoamPassportToolsViews.swift': {FIXED_FONT: 1},
+    'App/SearchMapComponents.swift': {VIOLET: 2},  # selected filter pill: violet is the selection colour
     'App/SettingsView.swift': {VIOLET: 4},
     'App/ShopNPCView.swift': {FIXED_FONT: 2},
     'App/SocialGuideViews.swift': {FIXED_FONT: 1},
