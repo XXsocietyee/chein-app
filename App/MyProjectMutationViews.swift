@@ -7,6 +7,16 @@ import QuestifyCore
 /// "Not available yet". Composition replaces `makeMutator` once the endpoint allowlist is approved.
 @MainActor enum MyProjectMutationFactory {
     static var makeMutator: () -> MyProjectMutating = { GatedMyProjectMutator() }
+
+    /// True once composition replaced the gated mutator. While false the list offers no write at all.
+    static var isLive: Bool { !(makeMutator() is GatedMyProjectMutator) }
+
+    /// The list's mutation model, or nil while writes are gated (capability absent: hidden).
+    static func liveModel(scope: String?) -> MyProjectMutationModel? {
+        let mutator = makeMutator()
+        guard !(mutator is GatedMyProjectMutator) else { return nil }
+        return MyProjectMutationModel(writer: mutator, scope: scope ?? "")
+    }
 }
 
 /// Confirm dialog + honest result banner for `MyProjectMutationModel`. Attach to the list screen and call
