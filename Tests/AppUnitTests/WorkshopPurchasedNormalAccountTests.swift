@@ -17,7 +17,23 @@ enum HostedAccessibilityRuntime {
         }
         return true
     }()
-    static func enable() { _ = declared }
+    /// SwiftUI only materialises its accessibility node tree (the carrier of `.accessibilityIdentifier`) when the process
+    /// reports accessibility as enabled, as it does under XCUITest/VoiceOver. A unit-test host does not, so on the iOS 27
+    /// simulator a hosted `Button` is just an anonymous `HostingUIButton`: zero nodes, zero identifiers. Turn the same
+    /// switch on through libAccessibility; absent symbols are tolerated (the lookup then simply behaves as before).
+    private static let accessibilityOn: Bool = {
+        _ = dlopen("/usr/lib/libAccessibility.dylib", RTLD_NOW)
+        typealias Setter = @convention(c) (Bool) -> Void
+        var found = false
+        for name in ["_AXSSetApplicationAccessibilityEnabled", "_AXSSetAutomationEnabled"] {
+            if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), name) {
+                unsafeBitCast(symbol, to: Setter.self)(true); found = true
+            }
+        }
+        return found
+    }()
+    static var accessibilitySwitchFound: Bool { accessibilityOn }
+    static func enable() { _ = declared; _ = accessibilityOn }
 }
 
 /// Own a real foreground scene for hosted SwiftUI navigation so the fixture takes
@@ -89,10 +105,11 @@ enum HostedAccessibilityRuntime {
 /// Failure-time evidence for hosted lookups: what the process, scenes and accessibility tree actually looked like when a
 /// bounded wait gave up. Diagnostic only; it never gates a test.
 @MainActor func hostedDiagnostics() -> String {
-    var seen = Set<ObjectIdentifier>(), ids = Set<String>(), classes = Set<String>(), nodes = 0
+    var seen = Set<ObjectIdentifier>(), ids = Set<String>(), classes = Set<String>(), nodes = 0, buttonLabels = [String]()
     func visit(_ node: NSObject, _ depth: Int) {
         guard depth < 40, nodes < 4000, seen.insert(ObjectIdentifier(node)).inserted else { return }
         nodes += 1; classes.insert(String(describing: type(of: node)))
+        if let button = node as? UIButton, buttonLabels.count < 12 { buttonLabels.append(button.accessibilityLabel ?? button.currentTitle ?? "?") }
         if let id = (node as? UIAccessibilityIdentification)?.accessibilityIdentifier, !id.isEmpty { ids.insert(id) }
         if let view = node as? UIView { view.subviews.forEach { visit($0, depth + 1) } }
         node.accessibilityElements?.forEach { if let child = $0 as? NSObject { visit(child, depth + 1) } }
@@ -105,7 +122,7 @@ enum HostedAccessibilityRuntime {
     let conforms = node.flatMap { cls in proto.map { class_conformsToProtocol(cls, $0) } }
     let sceneText = scenes.map { "\($0.activationState.rawValue):windows=\($0.windows.count),visible=\($0.windows.filter { !$0.isHidden }.count)" }
     return "[hosted diagnostics app=\(UIApplication.shared.applicationState.rawValue) scenes=\(sceneText) nodes=\(nodes) "
-        + "swiftUINodeClass=\(node != nil) conformsToIdentification=\(String(describing: conforms)) "
+        + "swiftUINodeClass=\(node != nil) axSwitch=\(HostedAccessibilityRuntime.accessibilitySwitchFound) buttons=\(buttonLabels) conformsToIdentification=\(String(describing: conforms)) "
         + "voiceOver=\(UIAccessibility.isVoiceOverRunning) ids=\(ids.sorted().prefix(40)) classes=\(classes.sorted().prefix(25))]"
 }
 
