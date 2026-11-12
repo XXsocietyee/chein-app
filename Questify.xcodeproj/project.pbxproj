@@ -3625,6 +3625,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "6047F194B5684FF439A97A3A";
 		};
+		"5AD75004DCB1E8A389B5CE4B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYOnboardingLight.swift";
+			"sourceTree" = "<group>";
+		};
+		"E1F999AADD31D62CAF1061B6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5AD75004DCB1E8A389B5CE4B";
+		};
+		"CB8151D2CC32123F9E265E25" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.metal";
+			"path" = "App/DesignSystem/CYOnboardingWave.metal";
+			"sourceTree" = "<group>";
+		};
+		"A2D4B77F83FAAF5088518EFD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CB8151D2CC32123F9E265E25";
+		};
 		"9C706A40878B5D7500C871D4" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -36225,6 +36245,8 @@
 				"64A177E4326474477FAA7828",
 				"4BDFC29A4C5FE75113EBC04E",
 				"6047F194B5684FF439A97A3A",
+				"5AD75004DCB1E8A389B5CE4B",
+				"CB8151D2CC32123F9E265E25",
 				"9C706A40878B5D7500C871D4",
 				"33B848792095A9B7167706BE",
 				"0903E595C45C4545731A2A85",
@@ -40881,6 +40903,8 @@
 				"9C57971BEC97DE9530140F7C",
 				"A40C2CA024C250C9B86D888B",
 				"A1C1DFD7B8B737C631D3CA90",
+				"E1F999AADD31D62CAF1061B6",
+				"A2D4B77F83FAAF5088518EFD",
 				"26118825E76FFE55174887C7",
 				"375BF6B8833E9F38B7E65B6F",
 				"1997F7FA34B2553F303331D3",
