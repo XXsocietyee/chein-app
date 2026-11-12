@@ -553,10 +553,13 @@ struct ProfileEditView: View {
                     ProfileCurrentAvatarView(model: model, reader: savedMedia?.avatar)
                     ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)
-                    // Mini-program order: 昵称 → 手机号 → 城市签名, one elevated group.
+                    // Mini-program order (gerenziliao @1c80c5a): [昵称, 个人介绍], then 手机号 in its own group.
                     Section {
                         textFieldRow(.name, value: model.draft.name).disabled(!model.canBeginTextEdit)
-                        if let phone = model.coordinator.phoneDisplay {
+                        textFieldRow(.introduction, value: model.draft.introduction).disabled(!model.canBeginTextEdit)
+                    } header: { Text("profile.edit.details") }
+                    if let phone = model.coordinator.phoneDisplay {
+                        Section {
                             LabeledContent("profile.phone.title") {
                                 switch phone {
                                 case .masked(let value):
@@ -566,8 +569,7 @@ struct ProfileEditView: View {
                                 }
                             }.privacySensitive().accessibilityIdentifier("profile.phone.value")
                         }
-                        textFieldRow(.introduction, value: model.draft.introduction).disabled(!model.canBeginTextEdit)
-                    } header: { Text("profile.edit.details") }
+                    }
                     Section("profile.case.title") {
                         textFieldRow(.caseIntroduction, value: model.draft.caseIntroduction ?? model.coordinator.snapshot?.caseIntroduction ?? "")
                             .disabled(!model.canBeginTextEdit)
