@@ -68,6 +68,7 @@ struct ClubOperationsWorkspaceView: View {
     var onEnterClubManagement: ((ClubCreateToManageDestination) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
     @StateObject private var profileChoice = ClubProfileChoiceController()
     @StateObject private var profileMedia = ClubProfileMediaFlow()
     @StateObject private var profileDraft = ClubProfileLocalDraftFlow()
@@ -327,16 +328,22 @@ struct ClubOperationsWorkspaceView: View {
             if target != .create, let profile = value.profile {
                 ClubEditFactsSection(clubID: profile.club.id, governanceAvailable: hostApplication != nil)
             }
-            ClubProfileMediaSection(draft: $draft, snapshot: value, identity: identity, service: access.profileMedia,
-                flow: profileMedia, enabled: scenePhase == .active && !loading && !state.locksForm && !profileDraftBlocked && access.identity == identity)
+            if target != .create || ClubPlayerSurface.flatCreateForm {
+                ClubProfileMediaSection(draft: $draft, snapshot: value, identity: identity, service: access.profileMedia,
+                    flow: profileMedia, enabled: scenePhase == .active && !loading && !state.locksForm && !profileDraftBlocked && access.identity == identity)
+            }
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
-                choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice)
+                choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice,
+                checkClubName: { await access.checkClubName($0) }, submitCreate: { Task { await prepare(.create(draft)) } },
+                createNameTaken: createNameTakenMessage)
                 .disabled(loading || state.locksForm || profileDraftBlocked)
-            Section {
-                reviewProfileButton(value)
-                    .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty) || (target == .create && ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: draft.name, city: draft.city) != nil))
-                    .accessibilityIdentifier("club.ops.reviewProfile")
-            }.listRowBackground(Color.clear)
+            if target != .create || ClubPlayerSurface.flatCreateForm {
+                Section {
+                    reviewProfileButton(value)
+                        .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty) || (target == .create && ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: draft.name, city: draft.city) != nil))
+                        .accessibilityIdentifier("club.ops.reviewProfile")
+                }.listRowBackground(Color.clear)
+            }
         }
         if let profile = value.profile, profile.club.isOwner {
             ClubWelcomeNoteEntry(club: profile.club, identity: identity, access: access,
@@ -428,8 +435,11 @@ struct ClubOperationsWorkspaceView: View {
             }
             if readbackUnavailable { Text("club.ops.readbackUnavailable") }
             if createToManageFlow.requiresReadbackRecovery(state: state, hasSnapshot: snapshot != nil) {
-                Button("club.ops.readBack") { Task { await readBack() } }
-                    .disabled(loading).accessibilityIdentifier("club.ops.readBack")
+                Button { Task { await readBack() } } label: {
+                    if target == .create { Text(verbatim: ClubPlayerCopy.confirmResult(locale)) }
+                    else { Text("club.ops.readBack") }
+                }
+                .disabled(loading).accessibilityIdentifier("club.ops.readBack")
             }
             if snapshot == nil, identity != nil, access.isConfigured, !loading {
                 Button("club.ops.retryRead") {
@@ -637,6 +647,11 @@ struct ClubOperationsWorkspaceView: View {
     private var isCreateOutcomeUnknown: Bool {
         if case .outcomeUnknown = state { return true }
         return false
+    }
+    /// Create rejection that names a taken club name. The wizard returns to the name step; the lock stays if the result is unknown.
+    private var createNameTakenMessage: String? {
+        guard target == .create, case .rejected(let failure) = state, ClubNameCheck.isTakenMessage(failure.message) else { return nil }
+        return failure.message
     }
     @MainActor static func unknownCreateCurrentCount(target: ClubOperationsTarget, state: ClubOperationsState,
         identity: ClubReadIdentity?, access: any ClubOperationsAccess, coordinator: ClubOperationsCoordinator,
@@ -875,11 +890,30 @@ private struct ClubOperationsProfileForm: View {
     var choiceContext: ClubProfileChoiceContext? = nil
     var choiceIsCurrent: (ClubProfileChoiceContext) -> Bool = { _ in false }
     let choiceController: ClubProfileChoiceController
+    var checkClubName: (String) async -> ClubNameCheck.Result = { _ in .unchecked }
+    var submitCreate: () -> Void = {}
+    var createNameTaken: String? = nil
+    @Environment(\.locale) private var formLocale
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var createStep = 0
+    @State private var createChecking = false
+    @State private var createCheckName: String?
+    @State private var createCheckWantsAdvance = false
+    @State private var nameCheckGeneration = 0
+    @State private var createNameError: String?
+    @State private var createTypeError: String?
+    @State private var createCityError: String?
+    @State private var createDirectionNote: String?
+    @FocusState private var createNameFocused: Bool
     var body: some View {
         if isCreate { createSections } else { editSections }
     }
     /// Mini-program club/create steps, in order: 类型 → 活动方向 → 资料 → 城市.
+    /// UI tests keep the flat form so the name field and review button are on screen immediately.
     @ViewBuilder private var createSections: some View {
+        if ClubPlayerSurface.flatCreateForm { flatCreateSections } else { steppedCreateSections }
+    }
+    @ViewBuilder private var flatCreateSections: some View {
         Section {
             CYHeroHeader("club.ops.create", subtitle: "club.ops.clubType")
                 .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
@@ -911,6 +945,215 @@ private struct ClubOperationsProfileForm: View {
             field("style", text: $draft.style)
         } header: { Text("club.ops.city") } footer: {
             if ClubOperationsPort.missingCreateStep(clubType: "x", name: "x", city: draft.city) == 4 { Text("club.ops.create.needCity") }
+        }
+    }
+    @ViewBuilder private var steppedCreateSections: some View {
+        if createStep == 0 {
+            Section {
+                Text(verbatim: ClubPlayerCopy.createIntroTitle(formLocale))
+                    .font(CYTypography.pageTitle)
+                    .accessibilityIdentifier("club.player.create.intro")
+            }
+        } else {
+            Section {
+                Text(verbatim: ClubPlayerCopy.progress(createStep))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale)))
+                    .accessibilityIdentifier("club.player.create.progress")
+                Text(verbatim: ClubPlayerCopy.createTitle(step: createStep, locale: formLocale))
+                    .font(CYTypography.sectionTitle)
+                    .accessibilityIdentifier("club.player.create.stepTitle")
+            }
+        }
+        if createStep == 1 { createTypeSection }
+        if createStep == 2 { createDirectionSection }
+        if createStep == 3 { createProfileSection }
+        if createStep == 4 { createCitySection }
+        Section {
+            if createStep == 4 { createAdvanceButton.accessibilityIdentifier("club.ops.reviewProfile") }
+            else { createAdvanceButton.accessibilityIdentifier("club.player.create.next") }
+        }
+            .listRowBackground(Color.clear)
+            .onChange(of: createNameFocused) { _, focused in
+                guard !focused, createStep == 3 else { return }
+                Task { await runNameCheck(advance: false) }
+            }
+            .onChange(of: draft.name) { _, _ in
+                createNameError = nil
+                nameCheckGeneration += 1
+                createChecking = false
+                createCheckName = nil
+                createCheckWantsAdvance = false
+            }
+            .onChange(of: draft.city) { _, _ in createCityError = nil }
+            .onChange(of: draft.clubType) { _, _ in createTypeError = nil }
+            .onChange(of: createNameTaken) { _, message in
+                guard let message else { return }
+                createNameError = message
+                setCreateStep(3)
+            }
+            .onAppear {
+                if let createNameTaken {
+                    createNameError = createNameTaken
+                    createStep = 3
+                }
+            }
+    }
+    @ViewBuilder private var createTypeSection: some View {
+        Section {
+            ForEach(Array(ClubOperationsCatalog.types.enumerated()), id: \.element) { index, value in
+                Button {
+                    draft.clubType = draft.clubType == value ? "" : value
+                    createTypeError = nil
+                } label: {
+                    HStack {
+                        Text(LocalizedStringKey("club.ops.value." + value))
+                        Spacer()
+                        if draft.clubType == value {
+                            Image(systemName: "checkmark").foregroundStyle(CYNight.selection).accessibilityHidden(true)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(index == 0 ? "club.ops.clubType" : "club.player.create.type.\(index)")
+                .accessibilityAddTraits(draft.clubType == value ? .isSelected : [])
+            }
+            if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) {
+                Text(verbatim: draft.clubType)
+            }
+            if let createTypeError {
+                Text(verbatim: createTypeError).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("club.player.create.typeError")
+            }
+        }
+    }
+    @ViewBuilder private var createDirectionSection: some View {
+        Section {
+            ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
+                let selected = draft.activityPrefs.contains(value)
+                Button {
+                    if selected {
+                        draft.activityPrefs.removeAll { $0 == value }
+                        createDirectionNote = nil
+                    } else if draft.activityPrefs.count >= 3 {
+                        createDirectionNote = ClubPlayerCopy.directionLimit(formLocale)
+                    } else {
+                        draft.activityPrefs.append(value)
+                        createDirectionNote = nil
+                    }
+                } label: {
+                    HStack {
+                        Text(LocalizedStringKey("club.ops.value." + value))
+                        Spacer()
+                        if selected { Image(systemName: "checkmark").foregroundStyle(CYNight.selection).accessibilityHidden(true) }
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("club.player.create.direction.\(index)")
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+            Text(verbatim: ClubPlayerCopy.directionCount(draft.activityPrefs.count, locale: formLocale))
+                .font(CYTypography.meta).foregroundStyle(.secondary)
+                .accessibilityIdentifier("club.player.create.directionCount")
+            if let createDirectionNote {
+                Text(verbatim: createDirectionNote).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("club.player.create.directionLimit")
+            }
+        }
+    }
+    @ViewBuilder private var createProfileSection: some View {
+        Section {
+            field("name", text: $draft.name).focused($createNameFocused)
+            field("description", text: $draft.description, axis: .vertical)
+            if let createNameError {
+                Text(verbatim: createNameError).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("club.player.create.nameError")
+            }
+        } footer: { counterLabel("description", draft.description) }
+    }
+    @ViewBuilder private var createCitySection: some View {
+        Section {
+            field("city", text: $draft.city)
+            field("keywords", text: $draft.keywords)
+            field("style", text: $draft.style)
+            if let createCityError {
+                Text(verbatim: createCityError).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("club.player.create.cityError")
+            }
+        }
+    }
+    private var createAdvanceButton: some View {
+        Button(action: advanceCreate) {
+            Group {
+                if createChecking && createStep == 3 { Text(verbatim: ClubPlayerCopy.checkingName(formLocale)) }
+                else if createStep == 0 { Text(verbatim: ClubPlayerCopy.createStart(formLocale)) }
+                else if createStep == 4 { Text("club.ops.create") }
+                else { Text(verbatim: ClubPlayerCopy.next(formLocale)) }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(CYPillButtonStyle())
+        .disabled(createChecking && createStep != 3)
+    }
+    private func setCreateStep(_ next: Int) {
+        if reduceMotion { createStep = next } else { withAnimation(.easeInOut(duration: 0.2)) { createStep = next } }
+    }
+    private func advanceCreate() {
+        switch createStep {
+        case 0: setCreateStep(1)
+        case 1:
+            guard ClubCreateSteps.canAdvance(step: 1, clubType: draft.clubType, name: draft.name, nameBlocked: false, city: draft.city) else {
+                createTypeError = ClubPlayerCopy.needType(formLocale)
+                return
+            }
+            createTypeError = nil
+            setCreateStep(2)
+        case 2: setCreateStep(3)
+        case 3:
+            let name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if name.isEmpty {
+                createNameError = ClubPlayerCopy.needName(formLocale)
+                return
+            }
+            if createNameError != nil, !createChecking { return }
+            Task { await runNameCheck(advance: true) }
+        case 4:
+            guard ClubCreateSteps.canAdvance(step: 4, clubType: draft.clubType, name: draft.name, nameBlocked: false, city: draft.city) else {
+                createCityError = ClubPlayerCopy.needCity(formLocale)
+                return
+            }
+            createCityError = nil
+            submitCreate()
+        default: break
+        }
+    }
+    private func runNameCheck(advance: Bool) async {
+        let name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard ClubNameCheck.shouldQuery(name) else {
+            if advance { createNameError = ClubPlayerCopy.needName(formLocale) }
+            return
+        }
+        if createChecking, createCheckName == name {
+            if advance { createCheckWantsAdvance = true }
+            return
+        }
+        let generation = nameCheckGeneration
+        createChecking = true
+        createCheckName = name
+        createCheckWantsAdvance = advance
+        let result = await checkClubName(name)
+        guard generation == nameCheckGeneration, draft.name.trimmingCharacters(in: .whitespacesAndNewlines) == name else { return }
+        let shouldAdvance = createCheckWantsAdvance
+        createChecking = false
+        createCheckName = nil
+        createCheckWantsAdvance = false
+        switch result {
+        case .taken(let reason):
+            createNameError = reason
+        case .available, .unchecked:
+            createNameError = nil
+            if shouldAdvance, createStep == 3 { setCreateStep(4) }
         }
     }
     /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.

@@ -209,6 +209,8 @@ public enum ClubOperationsWriteAvailability: Equatable { case unverified, approv
     func hasPending(target: ClubOperationsTarget) -> Bool
     func snapshot(target: ClubOperationsTarget) async throws -> ClubOperationsSnapshot
     func perform(_ command: ClubOperationsCommand, target: ClubOperationsTarget, expectedIdentity: ClubReadIdentity) async throws -> ClubOperationsReceipt
+    /// Read-only name check. The default stays unchecked so a missing capability never blocks or invents "available".
+    func checkClubName(_ name: String) async -> ClubNameCheck.Result
 }
 private extension String { var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) } }
 
@@ -218,6 +220,7 @@ public extension ClubOperationsAccess {
     var profileMedia: ClubProfileMediaService? { nil }
     var profileDrafts: ClubProfileLocalDraftContext? { nil }
     func hasPending(target: ClubOperationsTarget) -> Bool { false }
+    func checkClubName(_ name: String) async -> ClubNameCheck.Result { .unchecked }
 }
 
 /// Canonical workspace tabs for post-create club routing.
