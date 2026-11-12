@@ -7,6 +7,8 @@ import SwiftUI
 private struct CYFoilModifier<S: Shape>: ViewModifier {
     let shape: S
     let active: Bool
+    /// Scales every foil layer: 1 for big collectibles; small saturated seals (Passport grid) use less so the colour stays punchy.
+    var strength: Double = 1
     @QuestifyReduceMotion private var reduceMotion
 
     private var live: Bool { active && !reduceMotion && CYLightBudget.gyroAllowed }
@@ -16,7 +18,7 @@ private struct CYFoilModifier<S: Shape>: ViewModifier {
             .overlay {
                 if active {
                     Group {
-                        if live { CYFoilLive() } else { CYFoilLayers(u: UnitPoint(x: 0.3, y: 0.25), strength: 0.25) }
+                        if live { CYFoilLive(scale: strength) } else { CYFoilLayers(u: UnitPoint(x: 0.3, y: 0.25), strength: 0.25 * strength) }
                     }
                     .clipShape(shape)   // clip the light only, never the host (shadows and glows stay)
                 }
@@ -27,9 +29,10 @@ private struct CYFoilModifier<S: Shape>: ViewModifier {
 
 /// Reads the shared tilt so only this overlay re-renders at 30 Hz, not the host view.
 private struct CYFoilLive: View {
+    var scale: Double = 1
     var body: some View {
         let tilt = CYTilt.shared
-        CYFoilLayers(u: UnitPoint(x: 0.5 + CGFloat(tilt.roll) * 1.4, y: 0.5 - CGFloat(tilt.pitch) * 1.0), strength: 1)
+        CYFoilLayers(u: UnitPoint(x: 0.5 + CGFloat(tilt.roll) * 1.4, y: 0.5 - CGFloat(tilt.pitch) * 1.0), strength: scale)
     }
 }
 
@@ -62,12 +65,12 @@ private struct CYFoilLayers: View {
 
 extension View {
     /// Holographic foil sheen, clipped to `shape`. `active` false (locked) draws nothing.
-    func cyFoil<S: Shape>(in shape: S, active: Bool = true) -> some View {
-        modifier(CYFoilModifier(shape: shape, active: active))
+    func cyFoil<S: Shape>(in shape: S, active: Bool = true, strength: Double = 1) -> some View {
+        modifier(CYFoilModifier(shape: shape, active: active, strength: strength))
     }
 
-    func cyFoil(cornerRadius: CGFloat = CYRadius.lg, active: Bool = true) -> some View {
-        cyFoil(in: CYFoilClip(cornerRadius: cornerRadius), active: active)
+    func cyFoil(cornerRadius: CGFloat = CYRadius.lg, active: Bool = true, strength: Double = 1) -> some View {
+        cyFoil(in: CYFoilClip(cornerRadius: cornerRadius), active: active, strength: strength)
     }
 }
 

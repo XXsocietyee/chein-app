@@ -142,8 +142,8 @@ struct CYAlbumProgressRing: View {
 extension View {
     /// Metallic highlight that sweeps once across an unlocked collectible on appear and whenever `trigger` changes.
     /// Reduce Motion: a static soft highlight in the top-left corner. `active` false (locked) draws nothing.
-    func cyFoilSheen(active: Bool = true, trigger: Int = 0, cornerRadius: CGFloat = CYRadius.lg) -> some View {
-        modifier(CYAlbumFoilSheen(active: active, trigger: trigger, cornerRadius: cornerRadius))
+    func cyFoilSheen(active: Bool = true, trigger: Int = 0, cornerRadius: CGFloat = CYRadius.lg, foilStrength: Double = 1) -> some View {
+        modifier(CYAlbumFoilSheen(active: active, trigger: trigger, cornerRadius: cornerRadius, foilStrength: foilStrength))
     }
 }
 
@@ -151,6 +151,7 @@ private struct CYAlbumFoilSheen: ViewModifier {
     let active: Bool
     let trigger: Int
     let cornerRadius: CGFloat
+    var foilStrength: Double = 1
     @QuestifyReduceMotion private var reduceMotion
     @State private var phase: CGFloat = -1
 
@@ -158,7 +159,7 @@ private struct CYAlbumFoilSheen: ViewModifier {
         // Wave 3: the gyro-driven CYFoil is the material (static highlight under Reduce Motion / Low Power);
         // the one-shot sweep below stays as the "it just arrived" beat.
         content
-            .cyFoil(cornerRadius: cornerRadius, active: active)
+            .cyFoil(cornerRadius: cornerRadius, active: active, strength: foilStrength)
             .overlay {
                 if active {
                     GeometryReader { proxy in

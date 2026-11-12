@@ -223,7 +223,7 @@ private struct PassportRollingCount: View {
         let size: CGFloat = typeSize.isAccessibilitySize ? 64 : 44
         let seal = CYStampSeal(index: index, earned: earned)
             .frame(width: size, height: size)
-            .cyFoilSheen(active: earned, trigger: 0, cornerRadius: size / 2)
+            .cyFoilSheen(active: earned, trigger: 0, cornerRadius: size / 2, foilStrength: 0.4)
             .shadow(color: earned ? foil.1.opacity(0.35) : .clear, radius: 6, y: 3)
             .opacity(earned ? 1 : 0.35)
         Group {

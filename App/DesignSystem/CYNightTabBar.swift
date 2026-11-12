@@ -15,29 +15,16 @@ struct CYNightTabBar: View {
     @State private var anchor: UnitPoint = .leading
     @State private var task: Task<Void, Never>?
 
-    private let barHeight: CGFloat = 49
+    private let barHeight: CGFloat = 44
     private let pillHeight: CGFloat = 34
 
     var body: some View {
-        GeometryReader { g in
-            if sizeClass == .compact, !tabs.isEmpty {
-                let slot = g.size.width / CGFloat(tabs.count)
-                let y = g.size.height - g.safeAreaInsets.bottom - barHeight / 2
-                ZStack(alignment: .topLeading) {
-                    if rm {
-                        ForEach(tabs, id: \.self) { tab in
-                            pill(width: slot - 20).position(x: x(tab, slot: slot), y: y).opacity(tab == selection ? 1 : 0)
-                        }
-                    } else {
-                        pill(width: slot - 20)
-                            .scaleEffect(x: stretch, anchor: anchor)
-                            .position(x: x(landed ?? selection, slot: slot), y: y)
-                    }
-                }
-                .animation(CYMotion.reduced, value: selection)
-            }
+        // The outer reader keeps the real bottom safe area; the inner one ignores it to span the screen. Reading the inset from
+        // the ignoring reader gives 0 and drops the pill below the floating bar (outside it, under the icons).
+        GeometryReader { outer in
+            let bottomInset = outer.safeAreaInsets.bottom
+            pillLayer(bottomInset: bottomInset).ignoresSafeArea()
         }
-        .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .onChange(of: selection) { old, new in
@@ -54,6 +41,27 @@ struct CYNightTabBar: View {
                 if Task.isCancelled { return }
                 anchor = right ? .trailing : .leading
                 withAnimation(.spring(response: 0.34, dampingFraction: 0.62)) { stretch = 1 }
+            }
+        }
+    }
+
+    private func pillLayer(bottomInset: CGFloat) -> some View {
+        GeometryReader { g in
+            if sizeClass == .compact, !tabs.isEmpty {
+                let slot = g.size.width / CGFloat(tabs.count)
+                let y = g.size.height - bottomInset - barHeight / 2
+                ZStack(alignment: .topLeading) {
+                    if rm {
+                        ForEach(tabs, id: \.self) { tab in
+                            pill(width: slot - 20).position(x: x(tab, slot: slot), y: y).opacity(tab == selection ? 1 : 0)
+                        }
+                    } else {
+                        pill(width: slot - 20)
+                            .scaleEffect(x: stretch, anchor: anchor)
+                            .position(x: x(landed ?? selection, slot: slot), y: y)
+                    }
+                }
+                .animation(CYMotion.reduced, value: selection)
             }
         }
     }

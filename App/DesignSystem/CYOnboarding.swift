@@ -147,13 +147,13 @@ struct OnboardingFlow: View {
         ZStack {
             OnboardingBackdrop(stepIndex: step.rawValue)
             GeometryReader { geo in
-            // The disc is the star: ~62 % of the screen width (45 % at AX1+), centred at ~34 % of the screen height,
-            // capped by 30 % of the height so short phones keep the copy and pill on screen.
+            // The disc is the star: ~72 % of the screen width (50 % at AX1+), centred at ~35 % of the screen height,
+            // capped by 34 % of the height so short phones keep the copy and pill on screen.
             let screenH = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
-            let wide = typeSize >= .accessibility1 ? 0.45 : 0.62
-            let disc = min(geo.size.width * wide, screenH * 0.30, 340)
+            let wide = typeSize >= .accessibility1 ? 0.50 : 0.72
+            let disc = min(geo.size.width * wide, screenH * 0.34, 380)
             let heroH = disc / 0.82
-            let topPad = max(0, screenH * 0.34 - geo.safeAreaInsets.top - 44 - heroH / 2)
+            let topPad = max(0, screenH * 0.35 - geo.safeAreaInsets.top - 44 - heroH / 2)
             VStack(spacing: 0) {
                 topBar
                 if !heroHidden {
