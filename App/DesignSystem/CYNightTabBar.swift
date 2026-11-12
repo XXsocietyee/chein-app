@@ -19,6 +19,13 @@ struct CYNightTabBar: View {
     private let barHeight: CGFloat = 44
     private let pillHeight: CGFloat = 34
 
+    init(selection: RootTab, tabs: [RootTab] = RootTab.playerTabs) {
+        self.selection = selection
+        self.tabs = tabs
+        // While `landed` is nil, the capsule follows `selection` and the first change snaps. Seed it so every change stretches, then springs.
+        _landed = State(initialValue: .some(selection))
+    }
+
     var body: some View {
         // The outer reader keeps the real bottom safe area; the inner one ignores it to span the screen. Reading the inset from
         // the ignoring reader gives 0 and drops the pill below the floating bar (outside it, under the icons).
