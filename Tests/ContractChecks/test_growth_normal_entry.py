@@ -72,8 +72,8 @@ class GrowthNormalEntrySourceChecks(unittest.TestCase):
         self.assertIn('GrowthNormalLeaderboardHoldView()', read('App/GrowthLeaderboardView.swift'))
         self.assertIn('if let issue = overview.progress.issue', source)
         self.assertIn('if let issue = overview.completed.issue', source)
-        self.assertIn('completed.isEmpty', source)
-        self.assertIn('center.missions.isEmpty', source)
+        # B68 (u10-screens): the page is the mini-program section set; missions and the empty-completed line are gone.
+        self.assertNotIn('center.missions', source)
     def test_new_keys_are_bilingual_and_large_type_and_navigation_remain_native(self):
         catalog = json.loads(read('Resources/GrowthNormalEntry.xcstrings'))
         self.assertEqual(len(catalog['strings']), 3)

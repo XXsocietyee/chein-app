@@ -20,7 +20,7 @@ final class RoamHomeTabsFlowTests: XCTestCase {
         let app = launch()
         let tabs = app.segmentedControls["roam.home.tabs"]
         XCTAssertTrue(tabs.waitForExistence(timeout: 8))
-        XCTAssertTrue(tabs.buttons["走起"].exists)
+        XCTAssertTrue(tabs.buttons["开始漫游"].exists) // u10-screens B01: mini-program tab copy
         XCTAssertTrue(tabs.buttons["漫游护照"].exists)
         XCTAssertTrue(revealFixtureElement(element("roam.home.intro.map", app), in: app, requiresHittable: false))
         XCTAssertTrue(element("roam.home.intro.teams", app).exists)

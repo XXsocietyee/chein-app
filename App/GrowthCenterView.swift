@@ -24,6 +24,7 @@ extension EnvironmentValues {
     @State private var unlockTrackerKey: GrowthCenterLoadKey?
     @State private var newlyLitBadges: [String] = []
     @State private var celebrations = CYCelebrationCenter()
+    @State private var expandedBadge: Int?
     private var reads: GrowthNormalReadTask { model.overviewReads }
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope) }
@@ -53,21 +54,7 @@ extension EnvironmentValues {
                 score(overview)
                 footprint(overview)
                 badges(overview)
-                if let center = overview.center.value {
-                    Section {
-                        if center.missions.isEmpty {
-                            Text("growthNormalEntry.missions.empty", tableName: "GrowthNormalEntry").foregroundStyle(.secondary)
-                                .accessibilityIdentifier("growth.missions.empty")
-                        }
-                        ForEach(Array(center.missions.enumerated()), id: \.offset) { _, mission in
-                            VStack(alignment: .leading, spacing: 6) {
-                                GrowthCenterName(name: mission.name, fallback: "growth.mission.unnamed").font(.headline)
-                                if let text = GrowthCenterFormatting.nonempty(mission.description) { Text(verbatim: text).foregroundStyle(.secondary) }
-                                GrowthCenterMetricRow("growth.mission.experience") { GrowthCenterInteger(value: mission.experienceReward) }
-                            }.fixedSize(horizontal: false, vertical: true)
-                        }
-                    } header: { Text("growth.missions") }
-                }
+                // B68: the mini-program page ends with 我的徽章; missions, check-ins and streak live on the profile growth card.
             }
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
@@ -87,35 +74,32 @@ extension EnvironmentValues {
         .onChange(of: ObjectIdentifier(reader)) { _, value in latestReaderID = value; badgePresentationID = UUID() }
     }
     @ViewBuilder private func score(_ overview: GrowthCenterOverview) -> some View {
-        Section { scoreRows(overview) } header: { growthHeader("growth.score") }
+        // B68 gc-score-card: avatar + name, the points on the right, then the 总积分榜 row.
+        Section { scoreRows(overview) }
+            .listRowBackground(CYNight.ink2)
     }
     @ViewBuilder private func scoreRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
             if let board = overview.rank.value {
-                // Mini-program score card: the points are the one number that matters.
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("growth.currentPoints").font(.subheadline).foregroundStyle(.secondary)
-                    GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
-                        .lineLimit(1).minimumScaleFactor(0.5)
-                }.frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.lg)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(LinearGradient(colors: [CYColor.bgElevated, CYColor.bgPage], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.08), lineWidth: 1))
-                    )
-                    .listRowBackground(Color.clear)
+                HStack(spacing: CYSpacing.md) {
+                    GrowthProfileDisc(name: board.me.nickname)
+                    if let name = GrowthCenterFormatting.nonempty(board.me.nickname) {
+                        Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                    }
+                    Spacer(minLength: CYSpacing.sm)
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                        GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
+                            .lineLimit(1).minimumScaleFactor(0.5)
+                        Group { if board.metric == .exp { Text("u10.growth.unit.exp") } else { Text("growth.unit.point") } }
+                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("growth.currentPoints"))
                     .accessibilityValue(pointsValue(board.me.score))
                     .accessibilityIdentifier("growth.points")
-                LabeledContent("growth.myRank") {
-                    if let rank = board.me.rank { Text(rank, format: .number).monospacedDigit() }
-                    else { Text("growth.unranked") }
                 }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("growth.myRank"))
-                .accessibilityValue(rankValue(board.me.rank))
-                .accessibilityIdentifier("growth.myRank")
+                .padding(.vertical, CYSpacing.xs)
+                leaderboardRow(rank: board.me.rank)
                 if let percentage = GrowthCenterFormatting.nonempty(board.me.rankPercentage) { Text(verbatim: percentage).font(.caption) }
             } else if let issue = overview.rank.issue {
                 // Own-center points are not leaderboard score/rank and do not fall back
@@ -124,38 +108,55 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("growth.normal.points")
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
                 else { GrowthCenterIssueView(issue: issue, retry: reload) }
-            }
-            if reader.offersLeaderboard {
-                NavigationLink { GrowthLeaderboardView(reader: reader) } label: {
-                    Label("growth.board.link", systemImage: "list.number")
-                }.frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
+                if reader.offersLeaderboard { leaderboardRow(rank: nil, showsRank: false) }
             }
         }
+    }
+    /// 总积分榜 · 第 N 名 (or 总积分榜 when unranked), with 查看榜单 › opening the full board.
+    @ViewBuilder private func leaderboardRow(rank: Int?, showsRank: Bool = true) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            Group {
+                if let rank { Text("u10.growth.boardRank \(rank)") } else { Text("u10.growth.board") }
+            }
+            .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("growth.myRank"))
+            .accessibilityValue(rankValue(rank))
+            .accessibilityIdentifier(showsRank ? "growth.myRank" : "u10.growth.boardRow")
+            Spacer(minLength: CYSpacing.sm)
+            if reader.offersLeaderboard {
+                NavigationLink { GrowthLeaderboardView(reader: reader) } label: {
+                    HStack(spacing: CYSpacing.xs) {
+                        Text("growth.board.link")
+                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
+                    }
+                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                }
+                .frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
+            }
+        }
+        .frame(minHeight: 44)
     }
     private func growthHeader(_ key: LocalizedStringKey) -> some View {
         Text(key).font(.title3.weight(.heavy)).textCase(nil).foregroundStyle(Color.primary).padding(.top, 8)
     }
     @ViewBuilder private func footprint(_ overview: GrowthCenterOverview) -> some View {
-        // 我的足迹 in the mini-program order: 探索值, 徽章, 完成主题, 累计距离; level sits in the header.
+        // 我的足迹 in the mini-program order: 探索值, 徽章 (枚), 完成主题 (个), 累计距离 (km); level sits in the header.
         Section {
             GrowthCenterMetricRow("growth.experience") { GrowthCenterInteger(value: overview.center.value?.experience) }.accessibilityIdentifier("growth.experience")
-            GrowthCenterMetricRow("growth.badgeCount") { GrowthCenterInteger(value: overview.center.value?.badges.count) }
-            GrowthCenterMetricRow("growth.completedTopics") { GrowthCenterInteger(value: overview.completedTopicCount) }.accessibilityIdentifier("growth.completedTopics")
+            GrowthCenterMetricRow("growth.badgeCount") { growthCount(overview.center.value?.badges.count, unit: "u10.growth.unit.badge") }
+                .accessibilityIdentifier("growth.badgeCount")
+            GrowthCenterMetricRow("growth.completedTopics") { growthCount(overview.completedTopicCount, unit: "u10.growth.unit.topic") }.accessibilityIdentifier("growth.completedTopics")
             GrowthCenterMetricRow("growth.mileage") {
                 if let mileage = GrowthCenterFormatting.mileage(overview.progress.value?.totalMileage) {
-                    Text(mileage, format: .number.precision(.fractionLength(0...1))).monospacedDigit()
+                    HStack(spacing: 2) {
+                        Text(mileage, format: .number.precision(.fractionLength(0...1))).monospacedDigit()
+                        Text(verbatim: "km")
+                    }
                 } else { Text("growth.unknown").accessibilityLabel(Text("growth.unknownValue")) }
             }.accessibilityIdentifier("growth.mileage")
-            GrowthCenterMetricRow("profile.selfGrowth.checkins") { GrowthCenterInteger(value: overview.progress.value?.totalCheckins) }
-                .accessibilityIdentifier("growth.checkins")
-            GrowthCenterMetricRow("profile.selfGrowth.streak") { GrowthCenterInteger(value: overview.progress.value?.streakDays) }
-                .accessibilityIdentifier("growth.streak")
             if let issue = overview.progress.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
             if let issue = overview.completed.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
-            else if let completed = overview.completed.value, completed.isEmpty {
-                Text("growthNormalEntry.completed.empty", tableName: "GrowthNormalEntry").foregroundStyle(.secondary)
-                    .accessibilityIdentifier("growth.completed.empty")
-            }
         } header: {
             HStack {
                 growthHeader("growth.overview")
@@ -165,16 +166,30 @@ extension EnvironmentValues {
                 }
             }
         }
+        .listRowBackground(CYNight.ink2)
+    }
+    @ViewBuilder private func growthCount(_ value: Int?, unit: LocalizedStringKey) -> some View {
+        if let value = GrowthCenterFormatting.nonnegative(value) {
+            HStack(spacing: 2) { Text(value, format: .number).monospacedDigit(); Text(unit) }
+        } else { Text("growth.unknown").accessibilityLabel(Text("growth.unknownValue")) }
     }
     @ViewBuilder private func badges(_ overview: GrowthCenterOverview) -> some View {
-        Section { badgeRows(overview) } header: { growthHeader("growth.badges") }
+        Section { badgeRows(overview) } header: {
+            HStack {
+                growthHeader("growth.badges")
+                Spacer(minLength: 8)
+                if let count = overview.center.value?.badges.count { Text(count, format: .number).monospacedDigit() }
+            }
+        }
+        .listRowBackground(CYNight.ink2)
     }
     @ViewBuilder private func badgeRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
             if let issue = overview.center.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
             else if let center = overview.center.value {
                 if center.badges.isEmpty {
-                    Text("growth.badges.empty").foregroundStyle(.secondary).accessibilityIdentifier("growth.badges.empty")
+                    Label { Text("growth.badges.empty") } icon: { Image(systemName: "star").accessibilityHidden(true) }
+                        .foregroundStyle(.secondary).accessibilityIdentifier("growth.badges.empty")
                     if let onExploreHome {
                         let selection = GrowthBadgeExploreSelection(readerID: ObjectIdentifier(reader), key: key,
                             center: center, presentationID: badgePresentationID)
@@ -192,16 +207,10 @@ extension EnvironmentValues {
                     }
                 }
                 ForEach(Array(center.badges.enumerated()), id: \.offset) { index, badge in
-                    if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) {
-                        DisclosureGroup {
-                            LabeledContent("growth.badge.obtained") { Text(verbatim: moment).monospacedDigit() }
-                        } label: {
-                            Label { GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed") } icon: { Image(systemName: "medal").accessibilityHidden(true) }
-                        }.accessibilityIdentifier("growth.badge.\(index)")
-                    } else {
-                        Label { GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed") } icon: { Image(systemName: "medal").accessibilityHidden(true) }
-                            .accessibilityIdentifier("growth.badge.\(index)")
+                    GrowthBadgeMomentRow(badge: badge, expanded: expandedBadge == index) {
+                        expandedBadge = expandedBadge == index ? nil : index
                     }
+                    .accessibilityIdentifier("growth.badge.\(index)")
                 }
             }
         }
@@ -234,6 +243,58 @@ extension EnvironmentValues {
             guard let name = badge.displayName else { continue }
             celebrations.enqueue(.badge(CYBadgePayload(id: GrowthBadgeUnlockTracker.code(badge) ?? name, name: name)))
         }
+    }
+}
+
+/// Initial disc for the score card (the mini-program avatar slot; remote avatars are not loaded on this screen).
+struct GrowthProfileDisc: View {
+    let name: String?
+    var body: some View {
+        let initial = GrowthCenterFormatting.nonempty(name).map { String($0.prefix(1)) }
+        ZStack {
+            Circle().fill(CYNight.ink1)
+            if let initial { Text(verbatim: initial).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
+            else { Image(systemName: "person.fill").font(.title3).foregroundStyle(CYColor.textTertiary) }
+        }
+        .frame(width: 48, height: 48)
+        .overlay(Circle().strokeBorder(CYNight.lantern.opacity(0.6), lineWidth: 2))
+        .accessibilityHidden(true)
+    }
+}
+
+/// gc-badge-row: initial tile, name, 查看获得时刻 (or 获得于 … / 获得时间未记录 when open), 查看 / 收起.
+struct GrowthBadgeMomentRow: View {
+    let badge: GrowthCenterBadge
+    let expanded: Bool
+    let toggle: () -> Void
+    var body: some View {
+        Button(action: toggle) {
+            HStack(spacing: CYSpacing.md) {
+                Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
+                    .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .frame(width: 40, height: 40)
+                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")
+                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Group {
+                        if !expanded { Text("u10.growth.badge.hint") }
+                        else if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(moment)") }
+                        else { Text("u10.growth.badge.noTime") }
+                    }
+                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                }
+                Spacer(minLength: CYSpacing.sm)
+                Group { if expanded { Text("u10.template.cap.collapse") } else { Text("u10.growth.badge.view") } }
+                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(expanded ? [.isSelected] : [])
     }
 }
 

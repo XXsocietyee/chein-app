@@ -34,7 +34,7 @@ class PublicPlayTemplatePresentationContracts(unittest.TestCase):
             self.assertIn(text, model)
         view = self.read('App/DiscoveryPlayTemplatePresentationView.swift')
         self.assertIn('public var useCountText: String { useCount.map(String.init) ?? "—" }', model)  # unknown is a dash, never 0
-        for text in ['if let publisher = presentation.publisher', 'if presentation.useCount != nil',
+        for text in ['if showsPublisher, let publisher = presentation.publisher', 'if presentation.useCount != nil',
                      'if presentation.hasStory', 'if presentation.storyImage != nil',
                      'Text(verbatim: publisher)', 'Text(verbatim: text)', 'NativeMediaGalleryEntry(',
                      'scope: scope', 'reader: imageReader']:

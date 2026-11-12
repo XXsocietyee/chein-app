@@ -11,14 +11,19 @@ struct StampAlbumTotalHeader: View {
         return Text(verbatim: StampAlbumIndexPageState.unknownText)
     }
     var body: some View {
-        label.font(.system(.title, design: .rounded).weight(.heavy)).monospacedDigit()
-            .contentTransition(.numericText())
-            .accessibilityLabel(Int(text) == nil ? Text("stampAlbum.unknownDetail") : label)
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
-            .padding(CYSpacing.lg)
-            .background { CYCoverArt(seed: "stamp-album", symbol: "seal.fill", cornerRadius: CYRadius.lg) }
-            .accessibilityIdentifier("roam.experience.album.total")
+        // Mini-program `al-hd`: a large light count and a small 枚 beside it (B62); unknown stays the em dash.
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+            Text(verbatim: text).font(.system(.largeTitle, design: .default).weight(.light)).monospacedDigit()
+                .contentTransition(.numericText())
+                .foregroundStyle(CYColor.textPrimary)
+            if Int(text) != nil {
+                Text("u10.album.unit").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textTertiary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Int(text) == nil ? Text("stampAlbum.unknownDetail") : label)
+        .accessibilityIdentifier("roam.experience.album.total")
     }
 }
 

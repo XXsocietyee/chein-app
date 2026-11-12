@@ -133,6 +133,7 @@ struct RoamAlbumReadOwner: Hashable {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
+    @Environment(\.collectionAlbumHosted) private var hosted
     @Namespace private var hero
     @StateObject private var presentation: RoamAlbumReadPresentation
     init(album: RoamStampAlbumView) {
@@ -153,9 +154,10 @@ struct RoamAlbumReadOwner: Hashable {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 if canShowAlbum {
-                RoamStampAlbumCover(total: pager.total, loaded: pager.loaded)
+                // Inside 收集册 (B62) the head carries the title; the standalone album keeps its cover.
+                if !hosted { RoamStampAlbumCover(total: pager.total, loaded: pager.loaded) }
                 RoamExperienceNotice(offline: reader.isOfflineExample)
-                if !pager.stamps.isEmpty {
+                if !hosted, !pager.stamps.isEmpty {
                     RoamStampAlbumPages(stamps: Array(pager.stamps.prefix(6)), offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
                 }
                 switch page.phase {
@@ -177,13 +179,9 @@ struct RoamAlbumReadOwner: Hashable {
                         .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("roam.experience.album.unknown")
                 } else if pager.loaded && pager.stamps.isEmpty {
-                    VStack(spacing: CYSpacing.md) {
-                        CYEmptyState(systemImage: "rectangle.stack", "roam.experience.albumEmpty")
-                        Text("roam.experience.albumEmptyHint")
-                            .font(CYTypography.body)
-                            .multilineTextAlignment(.center)
-                    }
-                    .accessibilityIdentifier("roam.experience.album.empty")
+                    // B63: mini-program cy-empty 还没有邮票 + 打开集邮相机, no extra line.
+                    CYEmptyState(systemImage: "rectangle.stack", "roam.experience.albumEmpty")
+                        .accessibilityIdentifier("roam.experience.album.empty")
                     if allowsCapture {
                         NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
                             .buttonStyle(.cyDomainPrimary(fullWidth: false)).frame(maxWidth: .infinity).frame(minHeight: 44)
@@ -197,6 +195,7 @@ struct RoamAlbumReadOwner: Hashable {
                                 .cyHeroDestination(stamp.id, in: hero)
                         } label: {
                             RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
+                                .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: hosted))
                                 .cyFoilSheen()
                                 .cyNewPulse(CYAlbumRecency.isNew(stamp.createTime), text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
                                 .cyHeroSource(stamp.id, in: hero)
@@ -217,8 +216,20 @@ struct RoamAlbumReadOwner: Hashable {
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.cyDomainPageBackground()
+            .overlay(alignment: .bottomTrailing) {
+                // B62 al-fab: the camera is a round + once the album has stamps (the empty state has its own CTA).
+                if hosted, allowsCapture, canShowAlbum, (pager.total ?? pager.stamps.count) > 0 {
+                    NavigationLink { captureDestination } label: {
+                        Image(systemName: "plus").font(.title2.weight(.medium)).foregroundStyle(CYNight.ink0)
+                            .frame(width: 56, height: 56).background(Color.white, in: Circle())
+                    }
+                    .accessibilityLabel(Text("stampAlbum.openCamera"))
+                    .accessibilityIdentifier("roam.experience.album.fab")
+                    .padding(CYSpacing.xl)
+                }
+            }
             .toolbar {
-                if allowsCapture {
+                if allowsCapture, !hosted {
                     ToolbarItem(placement: .topBarTrailing) {
                         NavigationLink { captureDestination } label: { Label("media.stamp.title", systemImage: "camera") }
                     }
@@ -231,6 +242,39 @@ struct RoamAlbumReadOwner: Hashable {
             .accessibilityIdentifier("roam.experience.album")
     }
 }
+/// B62 stamp look inside 收集册: a white perforated edge and a small per-stamp tilt (deterministic from the id).
+struct RoamStampPerforatedTile: ViewModifier {
+    let seed: Int
+    let enabled: Bool
+    private var angle: Double { Double(abs(seed &* 37) % 13) - 6 }
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .padding(CYSpacing.sm)
+                .background(RoamStampPerforation().fill(Color.white, style: FillStyle(eoFill: true)))
+                .rotationEffect(.degrees(angle))
+                .padding(CYSpacing.sm)
+        } else {
+            content
+        }
+    }
+}
+
+/// Rectangle with half-circle notches along every edge (stamp perforation), filled even-odd.
+struct RoamStampPerforation: Shape {
+    var radius: CGFloat = 3
+    var step: CGFloat = 10
+    func path(in rect: CGRect) -> Path {
+        var path = Path(rect)
+        func notch(_ x: CGFloat, _ y: CGFloat) { path.addEllipse(in: CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)) }
+        var x = rect.minX + step / 2
+        while x < rect.maxX { notch(x, rect.minY); notch(x, rect.maxY); x += step }
+        var y = rect.minY + step / 2
+        while y < rect.maxY { notch(rect.minX, y); notch(rect.maxX, y); y += step }
+        return path
+    }
+}
+
 /// Album cover: gold seal ring counting up to the collection size, the one visible title, one honest line.
 /// Every stamp in the album is already earned, so the seal is full once the total is known and a dash before that.
 private struct RoamStampAlbumCover: View {

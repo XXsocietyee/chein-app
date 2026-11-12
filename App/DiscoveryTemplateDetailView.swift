@@ -10,10 +10,15 @@ struct DiscoveryTemplateDetailView: View {
     let imageReader: any RetainedPublicImageReading
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
     @State private var adoption: Adoption?
+    @State private var tab: TemplateDetailTab = .details
+    @State private var capabilityPreview: TemplateNodePreviewState?
+    /// Binding stub: the public share link for this play (mini-program `open-type="share"`). nil hides the share key.
+    var shareURL: URL? = nil
     private struct Adoption: Identifiable, Hashable {
         let id = UUID()
         let source: DiscoveryPlayTemplate
@@ -51,37 +56,73 @@ struct DiscoveryTemplateDetailView: View {
                 let item = read.template
                 let parity = read.extras != nil ? DiscoveryPlayTemplateDetailPresentation(read, ownScope: false) : nil
                 List {
-                    // Mini-program `xb-head` then `xb-cta`: title and publisher, then 应用 right under them.
+                    // Mini-program `xb-head` → `xb-cta` → 详情 / 能力 tabs (B57). The head and the tabs are the same on both tabs.
                     Section {
-                        DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay")
-                            .font(.system(.largeTitle, design: .default).weight(.heavy))
-                            .foregroundStyle(palette.textPrimary)
-                            .accessibilityAddTraits(.isHeader)
-                        DiscoveryPlayMetadata(item: item)
-                        if authoringFactory != nil {
-                            Button {
-                                guard loadedKey == requestKey, reader.isConfigured,
-                                      authoringCompletion?.isCurrent() != false else { return }
-                                adoption = Adoption(source: item, key: requestKey)
-                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
-                                .buttonStyle(CYPillButtonStyle(style: .primary))
-                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                                .accessibilityIdentifier("templateAuthor.adopt")
+                        TemplateXbHead(title: item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title),
+                                       publisher: publisherText(parity, item: item), official: isOfficial(parity)) {
+                            E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
                         }
+                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+                        HStack(spacing: CYSpacing.md) {
+                            if authoringFactory != nil {
+                                Button {
+                                    guard loadedKey == requestKey, reader.isConfigured,
+                                          authoringCompletion?.isCurrent() != false else { return }
+                                    adoption = Adoption(source: item, key: requestKey)
+                                } label: { TemplateXbApplyLabel() }
+                                    .buttonStyle(.plain)
+                                    .accessibilityIdentifier("templateAuthor.adopt")
+                            } else {
+                                Spacer(minLength: 0)
+                            }
+                            TemplateXbShareButton(url: shareURL, label: "u10.template.share")
+                        }
+                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
+                        TemplateXbTabs(selection: $tab)
+                            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))
                     }
-                    DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader)
-                    textSection("discovery.introduction", text: item.description)
-                    textSection("discovery.rules", text: item.ruleInstructions)
-                    textSection("discovery.location", text: item.usageLocation)
-                    if let parity {
-                        // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
-                        if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials) }
-                        DiscoveryTemplateDetailParitySections(presentation: parity)
-                    } else {
-                        textSection("discovery.materials", text: item.requiredMaterials)
-                        if let verification = item.verification {
-                            Section { Text(verification.label).font(CYTypography.body) } header: { DiscoverySectionHeader("discovery.verification") }.discoveryCardRow()
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    if tab == .details {
+                        DiscoveryPlayMetadata(item: item).discoveryCardRow()
+                        DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader, showsPublisher: false)
+                        textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description)
+                        if let parity, !parity.ruleSteps.isEmpty {
+                            Section {
+                                ForEach(Array(parity.ruleSteps.enumerated()), id: \.offset) { index, step in
+                                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
+                                        Text(verbatim: String(index + 1)).font(CYTypography.label.monospacedDigit())
+                                            .frame(width: 28, height: 28).background(CYNight.ink0, in: Circle())
+                                        Text(verbatim: step).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityIdentifier("discovery.templateDetail.rule.\(index)")
+                                }
+                            } header: { DiscoverySectionHeader("discovery.rules") }
+                                .discoveryCardRow()
+                        } else {
+                            textSection("discovery.rules", text: item.ruleInstructions)
                         }
+                        if let parity {
+                            // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
+                            if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials) }
+                            DiscoveryTemplateDetailParitySections(presentation: parity)
+                        } else {
+                            textSection("discovery.location", text: item.usageLocation)
+                            textSection("discovery.materials", text: item.requiredMaterials)
+                            if let verification = item.verification {
+                                Section { Text(verification.label).font(CYTypography.body) } header: { DiscoverySectionHeader("discovery.verification") }.discoveryCardRow()
+                            }
+                        }
+                    } else {
+                        Section {
+                            TemplateCapabilityRows(rows: capabilityRows(parity, item: item)) { action in
+                                if action == "preview", let node = parity?.nodePreview { capabilityPreview = TemplateNodePreviewState(preview: node) }
+                            }
+                            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
+                        }
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        if parity != nil { DiscoveryTemplateNoticeSection() }
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -94,7 +135,10 @@ struct DiscoveryTemplateDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
-        .onChange(of: requestKey) { _, _ in adoption = nil }
+        .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
+        .sheet(item: $capabilityPreview) { state in
+            TemplateNodePreviewSheet(state: state) { capabilityPreview = nil }
+        }
         .navigationDestination(item: $adoption) { selected in
             if let authoringFactory {
                 DiscoveryTemplateAdoptionDestination(factory: { authoringFactory(selected.source) },
@@ -104,6 +148,46 @@ struct DiscoveryTemplateDetailView: View {
                     .id(selected.id)
             }
         }
+    }
+    private func publisherText(_ parity: DiscoveryPlayTemplateDetailPresentation?, item: DiscoveryPlayTemplate) -> Text? {
+        guard let parity else {
+            if let name = item.publisher?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { return Text(verbatim: name) }
+            return nil
+        }
+        switch parity.publisher {
+        case .named(let name, _): return Text(verbatim: name)
+        case .mine: return Text("discovery.templateDetail.publisher.mine")
+        case .creator: return Text("discovery.templateDetail.publisher.creator")
+        case .platform: return Text("discovery.templateDetail.publisher.platform")
+        }
+    }
+    private func isOfficial(_ parity: DiscoveryPlayTemplateDetailPresentation?) -> Bool {
+        switch parity?.publisher {
+        case .named(_, let official)?: return official
+        case .platform?: return true
+        default: return false
+        }
+    }
+    /// 能力 rows in the mini-program order: 方式 (with 节点预览), 场景, 来源.
+    private func capabilityRows(_ parity: DiscoveryPlayTemplateDetailPresentation?, item: DiscoveryPlayTemplate) -> [TemplateCapabilityRow] {
+        var rows: [TemplateCapabilityRow] = []
+        var way = parity?.verificationMethodText.map(Self.splitChips) ?? []
+        if parity?.nodePreview != nil {
+            way.append(.init(text: appLocalized("u10.template.cap.preview", locale: locale), action: "preview"))
+        }
+        if !way.isEmpty { rows.append(.init(key: "way", label: "u10.template.cap.way", chips: way)) }
+        let scene = parity?.sceneChips.map { TemplateCapabilityRow.Chip(text: $0) } ?? Self.splitChips(item.usageLocation ?? "")
+        if !scene.isEmpty { rows.append(.init(key: "scene", label: "u10.template.cap.scene", chips: scene)) }
+        if let name = item.publisher?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+            rows.append(.init(key: "from", label: "u10.template.cap.from", chips: [.init(text: name)]))
+        }
+        return rows
+    }
+    private static func splitChips(_ value: String) -> [TemplateCapabilityRow.Chip] {
+        value.components(separatedBy: CharacterSet(charactersIn: ",，、;；/|\n"))
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .map { TemplateCapabilityRow.Chip(text: $0) }
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -166,8 +250,14 @@ struct DiscoveryTemplateDetailView: View {
 @MainActor
 struct DiscoveryTopicTemplatePreview: View {
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
     @State private var detail: PublicTopicTemplateCoordinator
+    @State private var tab: TemplateDetailTab = .details
+    /// Binding stub: the public share link for this topic template. nil hides the share key.
+    var shareURL: URL? = nil
+    /// Binding stub: 通关勋章 (`finishMedalName`) is not in the public projection yet. nil hides the block.
+    var finishMedalName: String? = nil
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
     var body: some View {
         Group {
@@ -180,17 +270,22 @@ struct DiscoveryTopicTemplatePreview: View {
                 DiscoveryErrorView(error: error) { Task { await detail.load() } }
             } else if let item = detail.value {
                 List {
+                    // B78 topic-detail (owner V-24): same chrome as the play detail — head, 应用 + share, 详情 / 能力.
                     Section {
-                        if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
-                        DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic")
-                            .font(.system(.largeTitle, design: .default).weight(.heavy)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
-                        optionalText(item.subtitle)
-                        TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
-                        if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
-                        if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds") { TopicXcxDurationText(seconds: seconds) } }
-                        // Topic templates have no venue (mini-program topic-detail shows no address) and no version label.
-                    }.discoveryCardRow()
-                    // Mini topic-detail "使用此模板". Hidden while the write is gated.
+                        TemplateXbHead(title: (item.name ?? "").isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name ?? ""),
+                                       publisher: topicAuthor(item), official: false, subtitle: item.subtitle) {
+                            E1CoverArt(seed: item.name ?? "topic", symbol: "building.2", imageURL: item.imgUrl, debugLabel: false,
+                                       symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                        }
+                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+                        if shareURL != nil {
+                            HStack { Spacer(minLength: 0); TemplateXbShareButton(url: shareURL, label: "u10.template.shareTopic") }
+                        }
+                        TemplateXbTabs(selection: $tab)
+                            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))
+                    }
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    // Mini topic-detail "应用". Hidden while the write is gated.
                     if TopicTemplateUseFactory.isLive {
                         Section {
                             TopicTemplateUseSection(templateID: item.id, scope: nil, readOnly: false) { topicID in
@@ -198,52 +293,10 @@ struct DiscoveryTopicTemplatePreview: View {
                             }
                         }.discoveryCardRow()
                     }
-                    if let text = item.description, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.introduction") }.discoveryCardRow() }
-                    if let text = item.playerPromise, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.playerPromise") }.discoveryCardRow() }
-                    ForEach(item.chapters) { chapter in
-                        Section {
-                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(CYTypography.cardTitle)
-                            optionalText(chapter.description)
-                            if let count = chapter.nodeCount { LabeledContent("discovery.publicStations", value: String(count)) }
-                            if !chapter.routeShape.isEmpty {
-                                PublicTemplateSilhouette(points: chapter.routeShape)
-                                    .frame(height: 140)
-                                    .accessibilityLabel(Text("discovery.publicSilhouette"))
-                            }
-                            // The public endpoint intentionally withholds node IDs.
-                            ForEach(Array(chapter.nodes.enumerated()), id: \.offset) { _, node in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    DiscoveryTitle(text: node.name ?? "", fallback: "discovery.publicStation").font(CYTypography.label)
-                                    optionalText(node.hookTeaser)
-                                    optionalText(node.addressName)
-                                    optionalText(node.interactionType)
-                                }.accessibilityElement(children: .combine)
-                            }
-                            if let status = chapter.recruitStatus {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text("discovery.publicRecruitment").font(CYTypography.cardTitle)
-                                    optionalText(status.state)
-                                    if let count = status.remainingMerchantCount {
-                                        LabeledContent("discovery.publicRemaining", value: String(count))
-                                    }
-                                }.accessibilityIdentifier("discovery.publicRecruitment")
-                            }
-                        }.discoveryCardRow()
-                    }
-                    if !item.games.isEmpty {
-                        Section {
-                            ForEach(item.games) { game in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    DiscoveryTitle(text: game.title ?? "", fallback: "discovery.untitledPlay").font(CYTypography.cardTitle)
-                                    optionalText(game.players)
-                                    optionalText(game.difficulty)
-                                    optionalText(game.interactionType)
-                                }
-                            }
-                        } header: { DiscoverySectionHeader("discovery.publicGames") }.discoveryCardRow()
-                    }
-                    if item.chapters.isEmpty && item.games.isEmpty {
-                        Section { Text("discovery.publicEmpty").font(CYTypography.body).foregroundStyle(palette.textSecondary) }.discoveryCardRow()
+                    if tab == .details {
+                        topicDetails(item)
+                    } else {
+                        topicCapabilities(item)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -259,6 +312,170 @@ struct DiscoveryTopicTemplatePreview: View {
     }
     @ViewBuilder private func optionalText(_ value: String?) -> some View {
         if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).font(CYTypography.meta).foregroundStyle(palette.textSecondary).textSelection(.enabled) }
+    }
+    /// Mini-program `author || '城瘾'`.
+    private func topicAuthor(_ item: PublicTopicTemplateDetail) -> Text {
+        if let author = item.author?.trimmingCharacters(in: .whitespacesAndNewlines), !author.isEmpty { return Text(verbatim: author) }
+        return Text("discovery.templateDetail.publisher.platform")
+    }
+    private func nonempty(_ value: String?) -> String? {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
+        return value
+    }
+    /// 详情: 剧情 (opening + each chapter with its numbered stops), stats, 节点 cards, recruitment (merchant viewers only).
+    @ViewBuilder private func topicDetails(_ item: PublicTopicTemplateDetail) -> some View {
+        if nonempty(item.description) != nil || !item.chapters.isEmpty {
+            Section {
+                if let opening = nonempty(item.description) {
+                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled)
+                }
+                let numbered = Self.numberedStops(item.chapters)
+                ForEach(Array(item.chapters.enumerated()), id: \.element.id) { index, chapter in
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                            if !(chapter.name ?? "").hasPrefix("第") {
+                                Text("u10.template.chapterNo \(index + 1)").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                            }
+                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(CYTypography.cardTitle)
+                        }
+                        optionalText(chapter.description)
+                        let stops = numbered.filter { $0.chapterID == chapter.id }
+                        if !stops.isEmpty {
+                            TemplateChipFlow(spacing: CYSpacing.sm) {
+                                ForEach(stops, id: \.number) { stop in
+                                    HStack(spacing: CYSpacing.xs) {
+                                        Text(verbatim: String(stop.number)).font(CYTypography.micro.monospacedDigit())
+                                            .frame(width: 22, height: 22).background(CYNight.ink0, in: Circle())
+                                        stop.name.map { Text(verbatim: $0) } ?? Text("u10.template.stopNo \(stop.number)")
+                                    }
+                                    .font(CYTypography.meta).foregroundStyle(palette.textPrimary).lineLimit(1)
+                                    .padding(.trailing, CYSpacing.sm).padding(CYSpacing.xxs)
+                                    .background(CYNight.ink2, in: Capsule())
+                                }
+                            }
+                        }
+                        if let count = chapter.nodeCount { LabeledContent("discovery.publicStations", value: String(count)) }
+                        if let status = chapter.recruitStatus {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("discovery.publicRecruitment").font(CYTypography.cardTitle)
+                                optionalText(status.state)
+                                if let count = status.remainingMerchantCount {
+                                    LabeledContent("discovery.publicRemaining", value: String(count))
+                                }
+                            }.accessibilityIdentifier("discovery.publicRecruitment")
+                        }
+                    }
+                    .accessibilityElement(children: .contain)
+                }
+            } header: { TemplateXbSectionTitle(title: "u10.template.story", systemImage: "book") }
+                .discoveryCardRow()
+        }
+        Section {
+            HStack(alignment: .top) {
+                topicStat(Text(verbatim: String(item.chapters.count)), label: "discovery.templateDetail.stat.chapters")
+                topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+            }
+            TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
+        }.discoveryCardRow()
+        let nodes = item.chapters.flatMap(\.nodes)
+        if !nodes.isEmpty {
+            Section {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        ForEach(Array(nodes.enumerated()), id: \.offset) { index, node in
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                E1CoverArt(seed: (node.name ?? "") + String(index), symbol: "mappin.and.ellipse", imageURL: node.imgUrl, debugLabel: false)
+                                    .frame(width: 150, height: 150)
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                    .accessibilityHidden(true)
+                                (nonempty(node.name).map { Text(verbatim: $0) } ?? Text("u10.template.nodeNo \(index + 1)"))
+                                    .font(CYTypography.label).foregroundStyle(palette.textPrimary).lineLimit(1)
+                                if let teaser = nonempty(node.hookTeaser) {
+                                    Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary).lineLimit(1)
+                                }
+                            }
+                            .frame(width: 150, alignment: .leading)
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: 0))
+            } header: { TemplateXbSectionTitle(title: "u10.template.nodes", systemImage: "safari") }
+                .discoveryCardRow()
+                .accessibilityIdentifier("discovery.topicDetail.nodes")
+        }
+        if item.chapters.isEmpty && item.games.isEmpty {
+            Section { Text("discovery.publicEmpty").font(CYTypography.body).foregroundStyle(palette.textSecondary) }.discoveryCardRow()
+        }
+        if let medal = finishMedalName {
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: medal).font(CYTypography.cardTitle)
+                    Text("u10.template.medalHint").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                }.accessibilityElement(children: .combine)
+            } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star") }
+                .discoveryCardRow()
+        }
+    }
+    private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
+        VStack(spacing: 2) {
+            value.font(CYTypography.numericBody).foregroundStyle(palette.textPrimary)
+            Text(label).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+    /// 能力: one summary chip line, then each stop with its play, teaser and duration; a dash when there are none.
+    @ViewBuilder private func topicCapabilities(_ item: PublicTopicTemplateDetail) -> some View {
+        let stops = Self.numberedStops(item.chapters)
+        Section {
+            TemplateChipFlow(spacing: CYSpacing.sm) {
+                ForEach(topicSummary(item, stopCount: stops.count), id: \.self) { chip in
+                    Text(verbatim: chip).modifier(TemplateChipStyle())
+                }
+            }
+            .accessibilityIdentifier("discovery.topicDetail.summary")
+            if stops.isEmpty {
+                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(palette.textTertiary)
+                    .accessibilityIdentifier("template.cap.empty")
+            }
+            ForEach(stops, id: \.number) { stop in
+                HStack(alignment: .top, spacing: CYSpacing.md) {
+                    Text(verbatim: String(stop.number)).font(CYTypography.label.monospacedDigit())
+                        .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        if let name = stop.name { Text(verbatim: name).font(CYTypography.label).lineLimit(1) }
+                        if let play = nonempty(stop.node.interactionType) {
+                            Text(verbatim: play).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                        }
+                        if let teaser = nonempty(stop.node.hookTeaser) {
+                            Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                        }
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number)")
+            }
+        }.discoveryCardRow()
+    }
+    private func topicSummary(_ item: PublicTopicTemplateDetail, stopCount: Int) -> [String] {
+        let free = item.mode == "FREE_EXPLORE"
+        var chips = [free ? appLocalized("u10.template.summary.free", locale: locale) : appLocalized("u10.template.summary.city", locale: locale)]
+        if free { chips.append(appLocalized("u10.template.summary.multiDay", locale: locale)) }
+        if !item.games.isEmpty { chips.append(appLocalized("u10.template.summary.games \(item.games.count)", locale: locale)) }
+        if stopCount > 0 { chips.append(appLocalized("u10.template.summary.stops \(stopCount)", locale: locale)) }
+        return chips
+    }
+    private struct NumberedStop { let number: Int; let chapterID: Int; let name: String?; let node: PublicTemplateNode }
+    private static func numberedStops(_ chapters: [PublicTemplateChapter]) -> [NumberedStop] {
+        var out: [NumberedStop] = []
+        for chapter in chapters {
+            for node in chapter.nodes {
+                let name = node.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+                out.append(.init(number: out.count + 1, chapterID: chapter.id, name: (name?.isEmpty ?? true) ? nil : name, node: node))
+            }
+        }
+        return out
     }
 }
 

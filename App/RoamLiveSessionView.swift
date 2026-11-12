@@ -40,6 +40,8 @@ import Combine
     @State private var revealToastTask: Task<Void, Never>?
     @State private var nearbyExpanded = true
     @State private var celebrations = CYCelebrationCenter()
+    /// B04: once the walk is settled and archived the screen becomes the mini-program finish report.
+    @State private var finishReport: RoamFinishReport?
     @State private var goCommitted = false
     @State private var goWave = 0
     @Namespace private var goNamespace
@@ -195,7 +197,14 @@ import Combine
         Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
     }
     private var sessionObservers: some View {
-        sessionContent
+        // A ZStack keeps one identity: swapping in the report must not run the session's onDisappear (pause).
+        ZStack {
+            if let finishReport {
+                RoamFinishReportView(report: finishReport, history: model.finishedHistory)
+            } else {
+                sessionContent
+            }
+        }
         .onAppear { purposeAccepted = storedPurposeAccepted; owner.setForeground(scenePhase == .active); owner.prepare(); browse.appear() }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
         .onChange(of: owner.phase) { _, phase in
@@ -218,6 +227,7 @@ import Combine
         .task(id: owner.phase) { await pulseWhileActive() }
         .cyCelebrations(celebrations)
         .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in
+            finishReport = id == nil ? nil : RoamFinishReport(controller: owner, history: model.finishedHistory)
             // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
             guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
             celebrations.enqueue(.roamSummary(payload))
