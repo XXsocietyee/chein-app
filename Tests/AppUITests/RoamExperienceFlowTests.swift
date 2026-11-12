@@ -28,7 +28,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(app.otherElements["roam.experience.error"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["roam.experience.history.empty"].exists)
         XCTAssertTrue(app.buttons["roam.experience.retry"].exists)
-        XCTAssertTrue(app.staticTexts["Your roam history couldn't be loaded."].exists)
+        XCTAssertTrue(app.staticTexts["Your roam history couldn't be loaded. It has not been replaced."].exists)
     }
     func testEmptyHistoryIsNotAnError() {
         let app = app("empty"); open("history", in: app)
@@ -61,7 +61,9 @@ final class RoamExperienceFlowTests: XCTestCase {
     func testAlbumPageErrorKeepsAlreadyLoadedStamp() {
         let app = app("pageFailure"); open("album", in: app)
         app.swipeUp(); app.buttons["roam.experience.album.more"].tap()
-        XCTAssertTrue(app.otherElements["roam.experience.error"].waitForExistence(timeout: 5))
+        // A failed later page keeps the read stamps and shows the continuation retry footer, not the whole-page error.
+        XCTAssertTrue(app.buttons["roam.experience.album.continuationRetry"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.otherElements["roam.experience.error"].exists)
         XCTAssertTrue(app.buttons.matching(identifier: "roam.experience.album.stamp").count > 0)
     }
     func testLiveMemoryReadCannotStartGPSOrAwardXP() {

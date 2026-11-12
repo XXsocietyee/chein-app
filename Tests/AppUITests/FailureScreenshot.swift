@@ -131,7 +131,8 @@ func openListRow(_ element: XCUIElement, in app: XCUIApplication, container: XCU
 
 /// First GO asks for location through the in-app primer before the roam starts; accept it when it appears.
 func acceptLocationPrimerIfShown(in app: XCUIApplication) {
-    let allow = app.buttons["cy.permission.priming.primary"]
+    // CYPermissionPrimingView's primary pill (e5c renamed it from cy.permission.priming.primary).
+    let allow = app.buttons["permission.priming.allow"]
     if allow.waitForExistence(timeout: 2) { allow.tap() }
 }
 

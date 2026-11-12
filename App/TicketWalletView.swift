@@ -101,7 +101,6 @@ import SwiftUI
                             .questifyCardListRow()
                         } else {
                             TicketWalletRow(ticket: ticket)
-                                .cyPressTracking()
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                                 .questifyCardListRow()
                         }
@@ -112,7 +111,6 @@ import SwiftUI
                         NavigationLink { TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator) } label: {
                             Label("team.title", systemImage: "person.3")
                         }
-                        .cyPressTracking()
                         .accessibilityIdentifier("ticketWallet.teams")
                     }
                 }
