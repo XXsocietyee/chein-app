@@ -17,3 +17,6 @@ All accessibility identifiers unchanged; no new strings; no Core/network changes
 | Detail | ink card, yellow medal | RoamNightCard, lantern medal, ink1 medal rows with press style |
 
 Not done / for integrator: compile; visual check on Questify-iPhone17 (default + RM); RoamLiveSessionView untouched.
+
+## Hub tap bug (coordinator heads-up)
+pol2 does not touch hub rows/NavigationLinks: only the hero Section (no gestures, no overlay hit-testing beyond a stroke overlay on a non-row view) changed. Rows are `NavigationLink { } label: { CYListRow(.. trailing: .none) }` where `CYListRow` applies `cyPressTracking()` (CYMotion.swift:154), a `simultaneousGesture(LongPressGesture(minimumDuration: 60, maximumDistance: 10))` inside a List NavigationLink. Unverified suspect (no simulator): it is the only gesture in the row path, and `.none` trailing rows have no chevron. First experiment for the integrator: set `\.cyPressHandled` true on the hub List (or drop cyPressTracking in CYListRow when inside a List) and re-run RoamExperienceFlowTests. If pol2's hero is the cause, revert the hero hunk in RoamExperienceHubView.swift (c0e173825).
