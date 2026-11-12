@@ -614,6 +614,7 @@
         "UsageConsentHistoryHostTests",
         "VerificationPresentationAppTests",
         "WP01SeenAckRefreshTests",
+        "WP08ReceiveNativeURLAuditTests",
         "WP12QmodImportMountTests",
         "WP14NPCChatDataRevokeTests",
         "WalkingCheckpointReadRetryTests",

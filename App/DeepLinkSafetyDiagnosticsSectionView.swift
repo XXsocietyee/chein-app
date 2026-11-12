@@ -73,6 +73,9 @@ public struct DeepLinkSafetySnapshot: Equatable, Sendable {
         case rejectedUntrustedHostOrScheme = "REJECTED_UNTRUSTED_HOST_OR_SCHEME"
         case rejectedCrossMarketRealm = "REJECTED_CROSS_MARKET_REALM"
         case rejectedMutationAttempt = "REJECTED_MUTATION_ATTEMPT"
+        case rejectedAuthenticationRequired = "REJECTED_AUTHENTICATION_REQUIRED"
+        case rejectedPaymentOrPasswordRoute = "REJECTED_PAYMENT_OR_PASSWORD_ROUTE"
+        case rejectedUnsupportedRoute = "REJECTED_UNSUPPORTED_ROUTE"
     }
 
     public let activeMarketCode: String
@@ -111,6 +114,53 @@ public struct DeepLinkSafetySnapshot: Equatable, Sendable {
     /// Deep links never auto-mutate client or server state.
     public var allowsAutoMutation: Bool {
         false
+    }
+
+    /// A link never presents a payment sheet or a password login.
+    public var opensPaymentOrPasswordRoutes: Bool {
+        false
+    }
+
+    /// Last decision recorded by the real `receiveNativeURL` intake. Nil until a link is audited.
+    public static var latestIntake: DeepLinkSafetySnapshot?
+
+    public static func recordIntake(
+        report: DeepLinkAndUniversalLinkSafetyAudit.AuditReport,
+        marketCode: String,
+        realmIdentifier: String,
+        allowlistedHTTPSHostsCount: Int
+    ) {
+        let presented = presentation(for: report.decision)
+        latestIntake = DeepLinkSafetySnapshot(
+            activeMarketCode: marketCode,
+            activeAuthRealm: realmIdentifier,
+            allowlistedHTTPSHostsCount: allowlistedHTTPSHostsCount,
+            lastEvaluatedOutcome: presented.outcome,
+            lastEvaluatedSummary: presented.summary
+        )
+    }
+
+    private static func presentation(
+        for decision: DeepLinkAndUniversalLinkSafetyAudit.AuditDecision
+    ) -> (outcome: Outcome, summary: String) {
+        switch decision {
+        case .allowReadOnly(_):
+            return (.acceptedReadOnlyRoute, "Accepted read-only route. Payment and password routes stay closed.")
+        case .incompleteProfileLinkFallback(fallbackLocalizationKey: _):
+            return (.incompleteMemberIDFallback, "w2-12 fallback: memberID is missing or <= 0; no profile request is issued.")
+        case .authenticationRequired(target: _):
+            return (.rejectedAuthenticationRequired, "Protected link requires an authenticated session. No navigation occurred.")
+        case .rejected(.paymentOrPasswordRoute(_)):
+            return (.rejectedPaymentOrPasswordRoute, "Payment and password routes are not opened from a link.")
+        case .rejected(.nonHTTPSScheme(_)), .rejected(.untrustedHost(_)), .rejected(.malformedURL):
+            return (.rejectedUntrustedHostOrScheme, "Rejected link: requires HTTPS and an allowlisted regional host.")
+        case .rejected(.crossRealmRejected(linkRealm: _, sessionRealm: _)), .rejected(.unknownRealmIdentifier(_)):
+            return (.rejectedCrossMarketRealm, "Rejected link: target market or auth realm does not match active session scope.")
+        case .rejected(.writeOrPaymentIntentRejected(keys: _)):
+            return (.rejectedMutationAttempt, "Rejected link: deep links are read-only and never auto-trigger write mutations.")
+        case .rejected(.unsupportedRoute(_)):
+            return (.rejectedUnsupportedRoute, "Rejected link: the route is not in the safe destination set.")
+        }
     }
 
     /// Evaluates a candidate member/card Universal Link against the four deep-link safety invariants.
@@ -226,6 +276,13 @@ public struct DeepLinkSafetySnapshot: Equatable, Sendable {
                 Text(verbatim: "Auto-Mutation Policy")
             }
             .accessibilityIdentifier("deepLinkSafety.summary.zeroAutoMutation")
+
+            LabeledContent {
+                Text(verbatim: snapshot.opensPaymentOrPasswordRoutes ? "OPEN" : "CLOSED")
+            } label: {
+                Text(verbatim: "Payment And Password Routes")
+            }
+            .accessibilityIdentifier("deepLinkSafety.summary.paymentPassword")
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {

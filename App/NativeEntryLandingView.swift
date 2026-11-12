@@ -44,9 +44,8 @@ import SwiftUI
                     }
                 case .publicMerchant(let target):
                     PublicMerchantHomeView(target: target, context: session.publicMerchantHomeContext).id(session.sessionRevision)
-                case .content:
-                    // Parsed but not presented yet: no origin is enabled, so this is reachable only from in-app routing.
-                    NativeRouteErrorView(failure: .unsupported, goHome: { session.dismissNativeEntry(); goHome() })
+                case .content(let target):
+                    AuditedContentEntry(target: target, session: session, goHome: goHome)
                 case .merchantInvitation(let route):
                     MerchantOperatorInvitationLandingView(invitation: route.invitation,
                         reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,
@@ -97,6 +96,20 @@ import SwiftUI
     }
 }
 
+
+/// Public topic is the only content kind a classified link may present. Other kinds stay on the unsupported route.
+@MainActor private struct AuditedContentEntry: View {
+    let target: NativeContentTarget
+    @ObservedObject var session: AppSession
+    let goHome: () -> Void
+    var body: some View {
+        if target.kind == .topic {
+            SessionTopicDetailView(id: target.id, session: session)
+        } else {
+            NativeRouteErrorView(failure: .unsupported, goHome: { session.dismissNativeEntry(); goHome() })
+        }
+    }
+}
 
 @MainActor struct SessionMerchantMarketingDestination: View {
     @ObservedObject var session: AppSession
