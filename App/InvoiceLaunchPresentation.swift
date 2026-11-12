@@ -166,6 +166,12 @@ func invoiceAmount(_ value: Decimal, locale: Locale) -> String {
     formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2
     return formatter.string(from: NSDecimalNumber(decimal: value)) ?? "—"
 }
+/// Known money stays the two-place formatter, including 0.00. A non-finite amount is the page-model em dash.
+func invoiceLaunchDisplayedAmount(_ value: Decimal, locale: Locale) -> String {
+    let amount = InvoiceLaunchApplyAmount.from(value)
+    if amount.literal == nil { return amount.displayText }
+    return invoiceAmount(value, locale: locale)
+}
 func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
     switch time {
     case .text(let value): return value

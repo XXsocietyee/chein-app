@@ -282,7 +282,10 @@ import UIKit
                     Text(LocalizedStringKey(row.status.localizationKey))
                     LabeledContent(LocalizedStringKey(row.amountLabelKey)) {
                         if let amount = row.amountText { Text(verbatim: amount) }
-                        else { Text("club.settlementDetail.amountUnknown") }
+                        else {
+                            Text(verbatim: ClubOpsGovernanceCount.unknownDisplay)
+                                .accessibilityLabel(Text("club.settlementDetail.amountUnknown"))
+                        }
                     }
                 }
                 Section("club.settlementDetail.breakdown") {

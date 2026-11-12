@@ -10,6 +10,26 @@ import SwiftUI
     @State private var tax = ""
     @State private var isDefault: Bool
     @State private var invalid = false
+    private var screen: InvoiceLaunchTitleEditorScreen {
+        let source: InvoiceLaunchTitleEditorSource
+        if model.issue == "session" { source = .login }
+        else if model.issue == "unavailable" { source = .unavailable }
+        else if model.busy, model.overview == nil { source = .loading }
+        else if model.issue != nil, model.overview == nil, title != nil { source = .failed }
+        else if let titles = model.overview?.titles { source = .titles(titles) }
+        else { source = .loading }
+        let saved = model.overview?.pending
+        let pending: InvoiceLaunchPending? = saved?.kind == .saveTitle ? saved : nil
+        return InvoiceLaunchTitleEditorRead.screen(source: source, editingID: title?.id, pending: pending)
+    }
+    private var saveLocked: Bool {
+        if case .unknown = screen { return true }
+        return false
+    }
+    private var lockedRequestID: String? {
+        if case .unknown(_, let requestID) = screen { return requestID }
+        return nil
+    }
 
     init(model: InvoiceLaunchPresentation, title: InvoiceLaunchTitle?) {
         self.model = model; self.title = title
@@ -21,6 +41,14 @@ import SwiftUI
     var body: some View {
         Form {
             InvoiceLaunchStateSection(model: model)
+            if saveLocked {
+                Section {
+                    invoiceText("unknown")
+                    Text(verbatim: lockedRequestID?.isEmpty == false ? lockedRequestID! : InvoiceLaunchTitleEditorForm.unknownText)
+                        .font(CYTypography.meta).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("invoice.title.pendingRequest")
+                }
+            }
             Section {
                 Picker(selection: $type) {
                     invoiceText("COMPANY").tag("COMPANY")
@@ -38,11 +66,15 @@ import SwiftUI
                     }
                 }
                 Toggle(isOn: $isDefault) { invoiceText("defaultTitle") }
-            }.disabled(!model.allows(.saveTitle))
+                if case .ready(let form) = screen {
+                    Text(verbatim: form.taxNoMaskedText).font(CYTypography.meta).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("invoice.title.taxMask")
+                }
+            }.disabled(!model.allows(.saveTitle) || saveLocked)
             if invalid { invoiceText("notSaved").font(.footnote).foregroundStyle(.red) }
         }
         .safeAreaInset(edge: .bottom) {
-            if model.allows(.saveTitle) {
+            if model.allows(.saveTitle), !saveLocked {
                 CYPillButton("save", style: .primary, tableName: "InvoiceLaunchUI") {
                     do {
                         let draft = try InvoiceLaunchTitleRules.draft(id: title?.id, type: type,

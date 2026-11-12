@@ -54,7 +54,9 @@ class InvoiceTitlesPageReadyTests(unittest.TestCase):
         self.assertNotIn("9134", source)
         self.assertIn("func canSubmit(type: String, name: String, tax: String) -> Bool", rules)
         self.assertNotIn("unknownDisplay", rules)
-        self.assertNotIn("InvoiceLaunchTitlesPage", self.read("App/InvoiceLaunchTitlesView.swift"))
+        titles = self.read("App/InvoiceLaunchTitlesView.swift")
+        self.assertIn("InvoiceLaunchTitlesPage.facts", titles)
+        self.assertNotIn("enum InvoiceLaunchTitlesPage", titles)
         catalog_row = self.read("docs/parity/page-map.csv")
         self.assertIn("subpackageMember/invoice-titles/index,发票抬头列表,App/InvoiceLaunchTitlesView.swift,exists,", catalog_row)
 

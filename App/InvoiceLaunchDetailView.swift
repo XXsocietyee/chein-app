@@ -13,7 +13,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
                         invoiceText(row.status.noticeKey).font(CYTypography.sectionTitle)
-                        Text(verbatim: invoiceAmount(row.totalAmount, locale: locale)).font(CYTypography.dataXL).monospacedDigit()
+                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).font(CYTypography.dataXL).monospacedDigit()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, CYSpacing.xs)
@@ -39,10 +39,10 @@ import SwiftUI
                 Section {
                     ForEach(row.orders, id: \.orderId) { order in
                         LabeledContent {
-                            Text(verbatim: invoiceAmount(order.amount, locale: locale))
-                        } label: { Text(verbatim: order.orderTitle ?? "—") }
+                            Text(verbatim: invoiceLaunchDisplayedAmount(order.amount, locale: locale))
+                        } label: { Text(verbatim: order.orderTitle ?? InvoiceLaunchApplyPage.unknownDisplay) }
                     }
-                    LabeledContent { Text(verbatim: invoiceAmount(row.totalAmount, locale: locale)).bold() } label: { invoiceText("amount") }
+                    LabeledContent { Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).bold() } label: { invoiceText("amount") }
                 } header: { invoiceText("orders") }
                 if row.status == .submitted && model.allows(.cancel) {
                     Section {

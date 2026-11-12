@@ -152,6 +152,8 @@ struct ClubOpsCustomerRowView: View {
 
 @MainActor struct ClubOpsCustomerDetailContent: View {
     let detail: ClubOpsCustomerDetailPresentation
+    /// Core page projection. Nil keeps the presentation integers. Unknown counts are an em dash.
+    var page: ClubCustomerDetailPage? = nil
     /// Non-nil only when the existing history-topic route accepts this exact returned record.
     let topicAction: (ClubOpsCustomerRecord) -> (id: Int, open: () -> Void)?
     let editButton: AnyView?
@@ -188,8 +190,8 @@ struct ClubOpsCustomerRowView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             LabeledContent {
-                if let amount = detail.paidAmountText {
-                    Text(verbatim: amount)
+                if let text = paidText {
+                    Text(verbatim: text)
                         .font(CYTypography.numericBody)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
@@ -217,9 +219,9 @@ struct ClubOpsCustomerRowView: View {
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
                 : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.sm))
             metrics {
-                ClubOpsCustomerMetricTile(value: .known(detail.arrivedCount), label: "clubOps.customer.arrived")
-                ClubOpsCustomerMetricTile(value: .known(detail.pendingCount), label: "clubOps.customer.pending")
-                ClubOpsCustomerMetricTile(value: .known(detail.refundedCount), label: "clubOps.customer.refunded")
+                ClubOpsCustomerMetricTile(value: page?.metrics?.arrived ?? .known(detail.arrivedCount), label: "clubOps.customer.arrived")
+                ClubOpsCustomerMetricTile(value: page?.metrics?.pending ?? .known(detail.pendingCount), label: "clubOps.customer.pending")
+                ClubOpsCustomerMetricTile(value: page?.metrics?.refunded ?? .known(detail.refundedCount), label: "clubOps.customer.refunded")
             }
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowBackground(Color.clear)
@@ -254,6 +256,11 @@ struct ClubOpsCustomerRowView: View {
             }
             if detail.canEdit, let editButton { editButton }
         } header: { ClubOpsCustomerHeading("clubOps.customer.tagsAndRemark") }
+    }
+    /// Withheld stays the permission sentence. Unknown is the page model's em dash, never 0.
+    private var paidText: String? {
+        if let paid = page?.paidAmount { return paid.displayText }
+        return detail.paidAmountText
     }
     @ViewBuilder private var interaction: some View {
         if let day = detail.lastInteraction {

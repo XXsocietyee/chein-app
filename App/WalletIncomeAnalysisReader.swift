@@ -66,6 +66,17 @@ struct WalletIncomeAnalysisReadIdentity: Equatable {
     private var generation = UUID()
     private var task: Task<Void, Never>?
 
+    /// Core page projection. A partial or empty-unverified slice is unknown, never a zero total.
+    var pageModel: AssetCenterAnalysisPageModel {
+        if loading { return AssetCenterAnalysisPageModel(.loading) }
+        if failed { return AssetCenterAnalysisPageModel(.error) }
+        if unavailable || requiresLogin { return AssetCenterAnalysisPageModel(.error) }
+        guard let result else { return AssetCenterAnalysisPageModel(.loading) }
+        if result.rows.isEmpty { return AssetCenterAnalysisPageModel(result.isPartial ? .unknown : .empty) }
+        if result.isPartial { return AssetCenterAnalysisPageModel(.unknown) }
+        return AssetCenterAnalysisPageModel(rows: result.rows)
+    }
+
     func displayedResult(for reader: WalletCommerceReader) -> WalletIncomeAnalysisSlice? {
         guard !loading, reader.isConfigured, reader.scope != nil,
               identity == WalletIncomeAnalysisReadIdentity(reader) else { return nil }

@@ -25,6 +25,14 @@ struct InvoiceLaunchApplyIntent {
     @State private var selected = Set<Int64>()
     @State private var choosingTitle = false
     private var title: InvoiceLaunchTitle? { model.overview?.titles.first { $0.id == titleID } }
+    /// Host switches only. A missing read stays hidden. Apply stays off unless the existing permit is on.
+    private var applyPage: InvoiceLaunchApplyPage {
+        let capability = InvoiceLaunchApplyCapability(readsEnabled: model.overview != nil || model.busy, mutationsEnabled: model.allows(.apply))
+        guard let overview = model.overview else {
+            return model.busy ? .loading(capability: capability) : .hidden()
+        }
+        return InvoiceLaunchApplyPage.project(titles: overview.titles, orders: overview.eligibleOrders, unresolved: model.unresolved, capability: capability)
+    }
     private var canSubmit: Bool {
         model.allows(.apply) && title != nil && !selected.isEmpty && selected.count <= 50
             && selected.isSubset(of: Set(model.overview?.eligibleOrders.map(\.orderId) ?? []))
@@ -32,12 +40,7 @@ struct InvoiceLaunchApplyIntent {
     var body: some View {
         List {
             InvoiceLaunchStateSection(model: model)
-            if model.overview != nil, !model.allows(.apply), model.issue == nil, !model.busy, !model.unresolved {
-                // Honest gated state: the host has not granted invoice writes, so say so instead of a dead form.
-                Section { invoiceText("applyUnavailable").foregroundStyle(.secondary) }
-                    .accessibilityIdentifier("invoice.applyUnavailable")
-            }
-            if let overview = model.overview {
+            if let overview = model.overview, !applyPage.hidden {
                 Section {
                     Button { choosingTitle = true } label: {
                         LabeledContent { Text(verbatim: title?.titleName ?? "—") } label: { invoiceText("chooseTitle") }
@@ -50,8 +53,8 @@ struct InvoiceLaunchApplyIntent {
                             if on { selected.insert(order.orderId) } else { selected.remove(order.orderId) }
                         })) {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(verbatim: order.orderTitle ?? "—")
-                                Text(verbatim: invoiceAmount(order.amount, locale: locale))
+                                Text(verbatim: order.orderTitle ?? InvoiceLaunchApplyPage.unknownDisplay)
+                                Text(verbatim: applyAmount(order))
                             }
                         }.disabled(!model.allows(.apply) || (!selected.contains(order.orderId) && selected.count >= 50))
                         .accessibilityIdentifier("invoice.select.\(order.orderId)")
@@ -61,7 +64,7 @@ struct InvoiceLaunchApplyIntent {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            if model.overview != nil, model.allows(.apply) {
+            if model.overview != nil, applyPage.showsApplyAction {
                 CYPillButton("submit", style: .primary, tableName: "InvoiceLaunchUI") {
                     guard let titleID, canSubmit else { return }
                     let intent = InvoiceLaunchApplyIntent(titleID: titleID, selected: selected,
@@ -96,6 +99,11 @@ struct InvoiceLaunchApplyIntent {
                     }
                 }.disabled(!model.allows(.apply))
             }.navigationTitle(invoiceText("chooseTitle"))
-        }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        }        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+    }
+    private func applyAmount(_ order: InvoiceLaunchOrder) -> String {
+        let line = applyPage.lines.first { $0.orderID == order.orderId }
+        if line?.amount.literal == nil { return line?.amount.displayText ?? InvoiceLaunchApplyPage.unknownDisplay }
+        return invoiceAmount(order.amount, locale: locale)
     }
 }
