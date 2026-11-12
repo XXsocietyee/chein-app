@@ -325,11 +325,6 @@ struct ClubOperationsWorkspaceView: View {
                     draft.discardMedia(.logo, original: value.profile); draft.discardMedia(.cover, original: value.profile)
                 })
             }
-            if target != .create, value.profile?.club.isOwner != true {
-                // Source club/edit: the 你是管理员 · 只能改展示信息 note sits under the page title, above 俱乐部形象.
-                Section { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
-                    .listRowBackground(Color.clear)
-            }
             if target != .create, let profile = value.profile {
                 ClubEditFactsSection(clubID: profile.club.id, governanceAvailable: hostApplication != nil)
             }
@@ -1164,6 +1159,8 @@ private struct ClubOperationsProfileForm: View {
     /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.
     @ViewBuilder private var editSections: some View {
         Section("club.ops.basics") {
+            // cy-scene-club-edit admin-note: administrators may only edit display information.
+            if !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
             field("name", text: $draft.name)
             field("city", text: $draft.city)
             field("keywords", text: $draft.keywords)

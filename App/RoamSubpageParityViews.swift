@@ -510,13 +510,12 @@ struct RoamPOIMissingView: View {
     }
 }
 
-/// `citynode-code` title (node name, default 据点) and 出示给商家扫码,即可领取优惠券.
+/// `citynode-code` title (node name, default 据点). 出示给商家扫码,即可领取优惠券 sits under the code in VerificationCodeView.
 struct RoamCityVoucherHeading: View {
     let title: String?
     var body: some View {
         VStack(spacing: 6) {
             if let title { Text(verbatim: title).font(.title2.bold()) } else { Text("roamSub.w208.voucher.defaultName").font(.title2.bold()) }
-            Text("roamSub.w208.voucher.desc").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
         }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.voucher.heading")
     }
 }

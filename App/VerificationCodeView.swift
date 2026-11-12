@@ -84,12 +84,15 @@ extension EnvironmentValues {
                     try? await Task.sleep(for: .milliseconds(1400))
                     revealSweep = false
                 }
-            CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
-                .accessibilityIdentifier("verificationCode.refresh")
             if model.target.kind == .cityVoucher, autoIssue {
+                // Source citynode-code: 「Ns 后自动刷新」 right under the code, then 出示给商家扫码领券; the code refreshes itself.
                 Text("roamSub.w208.voucher.countdown \(model.remainingSeconds)").monospacedDigit()
+                    .font(CYTypography.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roamSub.w208.voucher.countdown")
+                Text("roamSub.w208.voucher.desc").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             } else {
+                CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
+                    .accessibilityIdentifier("verificationCode.refresh")
                 LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
             }
         } else if model.phase == .loading {

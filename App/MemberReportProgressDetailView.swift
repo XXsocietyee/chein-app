@@ -18,35 +18,49 @@ import SwiftUI
                 .listRowBackground(Color.clear)
                 .listRowInsets(gutter)
             if let flow, let original = flow.detailRecord {
-                Text(verbatim: "#\(original.id)")
-                    .font(CYTypography.numericBody)
-                    .foregroundStyle(CYColor.textSecondary)
+                if let record = flow.detail {
+                    // Source report-detail head card: 「对象 · 原因」 with the stage on the right, then 编号 N · 提交于 time.
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                            HStack(spacing: 4) {
+                                Text(verbatim: copy("report.target.\(record.targetKey)"))
+                                Text(verbatim: "·").accessibilityHidden(true)
+                                if let label = flow.reasonLabel(for: record) { Text(verbatim: shown(label)) }
+                                else { Text(verbatim: copy("report.reason.fallback")) }
+                            }.font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Spacer(minLength: CYSpacing.sm)
+                            CYStatusChip(verbatim: copy("report.stage.\(record.stageKey)"), tone: stageTone(record.stage))
+                        }
+                        HStack(spacing: 4) {
+                            Text("u9cde.report.number \(String(original.id))")
+                            Text(verbatim: "·").accessibilityHidden(true)
+                            Text("u9cde.report.submittedAt")
+                            MemberReportProgressTimeView(value: record.createTime)
+                        }.font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                        if !record.isDecided, record.estimatedResolveAt != nil {
+                            labeledTime("report.estimated", value: record.estimatedResolveAt, systemImage: "hourglass")
+                        }
+                    }
+                    .padding(CYSpacing.lg)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("report.detail.head")
                     .listRowInsets(gutter)
                     .listRowBackground(Color.clear)
-                if let record = flow.detail {
-                    fact(copy("report.target.\(record.targetKey)"), systemImage: "flag")
-                    fact(copy("report.target.id"), value: String(record.targetId), systemImage: "number")
-                    CYStatusChip(verbatim: copy("report.stage.\(record.stageKey)"), tone: stageTone(record.stage), systemImage: "flag")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .listRowInsets(gutter)
-                        .listRowBackground(Color.clear)
-                    if let label = flow.reasonLabel(for: record) { fact(shown(label), systemImage: "text.quote") }
-                    else { fact(copy("report.reason.fallback"), systemImage: "text.quote") }
-                    if let version = record.policyVersion { fact(copy("report.policy"), value: shown(version), systemImage: "doc.text") }
-                    fact(copy("report.version"), value: String(record.version), systemImage: "number")
-                    if let description = record.description, !description.isEmpty {
-                        Text(verbatim: shown(description))
-                            .font(CYTypography.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .listRowInsets(gutter)
-                            .listRowBackground(Color.clear)
+                    if let summary = record.decisionSummary, !summary.isEmpty {
+                        Section { Text(verbatim: shown(summary)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).listRowInsets(gutter) } header: { Text("u9cde.report.decision") }
                     }
-                    labeledTime("report.created", value: record.createTime, systemImage: "clock")
-                    if !record.isDecided, record.estimatedResolveAt != nil {
-                        labeledTime("report.estimated", value: record.estimatedResolveAt, systemImage: "hourglass")
+                    if let description = record.description, !description.isEmpty {
+                        Section {
+                            Text(verbatim: shown(description))
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .listRowInsets(gutter)
+                                .listRowBackground(Color.clear)
+                        } header: { Text("u9cde.report.yourNote") }
                     }
                     if record.anonymityPolicy == "SUBJECT_HIDDEN" {
                         memberReportProgressText("report.privacy.source")
@@ -59,21 +73,19 @@ import SwiftUI
                     if let evidence = record.evidenceAssetIds {
                         fact(copy("report.evidence.count"), value: String(evidence.count), systemImage: "paperclip")
                     }
-                    if let summary = record.decisionSummary, !summary.isEmpty {
-                        Section { Text(verbatim: shown(summary)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).listRowInsets(gutter) } header: { memberReportProgressText("report.decision") }
-                    }
                     if let timeline = record.timeline, !timeline.isEmpty {
                         Section {
                             ForEach(Array(timeline.enumerated()), id: \.offset) { _, event in
                                 timelineRow(event).listRowInsets(gutter).listRowBackground(Color.clear)
                             }
-                        } header: { memberReportProgressText("report.timeline.title") }
+                        } header: { Text("u9cde.report.progress") }
                     } else {
                         Section {
-                            CYEmptyState(systemImage: "clock", "report.timeline.empty", tableName: "MemberReportProgress")
+                            Text("u9cde.report.progressEmpty").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("report.timeline.empty")
                                 .listRowInsets(gutter)
                                 .listRowBackground(Color.clear)
-                        } header: { memberReportProgressText("report.timeline.title") }
+                        } header: { Text("u9cde.report.progress") }
                     }
                 }
                 if flow.busy {

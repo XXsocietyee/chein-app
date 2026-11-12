@@ -32,13 +32,24 @@ struct MemberReportProgressTimeView: View {
                         guard let (original, intent) = rendered, let selected = original.select(record, intent: intent) else { return }
                         selection = selected
                     } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            memberReportProgressText("report.target.\(record.targetKey)")
-                            if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
-                            else { memberReportProgressText("report.reason.fallback") }
-                            memberReportProgressText("report.stage.\(record.stageKey)").font(.caption)
-                            Text(verbatim: "#\(record.id)").font(.caption)
-                            MemberReportProgressTimeView(value: record.createTime).font(.caption)
+                        // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」, stage and chevron on the right.
+                        HStack(alignment: .center, spacing: CYSpacing.md) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 4) {
+                                    memberReportProgressText("report.target.\(record.targetKey)")
+                                    Text(verbatim: "·").accessibilityHidden(true)
+                                    if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
+                                    else { memberReportProgressText("report.reason.fallback") }
+                                }.foregroundStyle(CYColor.textPrimary)
+                                HStack(spacing: 4) {
+                                    Text("u9cde.report.number \(String(record.id))")
+                                    Text(verbatim: "·").accessibilityHidden(true)
+                                    MemberReportProgressTimeView(value: record.createTime)
+                                }.font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: CYSpacing.sm)
+                            memberReportProgressText("report.stage.\(record.stageKey)").font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityHidden(true)
                         }
                     }.disabled(flow.busy || !flow.reader.allows(.detail))
                     .accessibilityIdentifier("report.progress.row.\(record.id)")
@@ -48,6 +59,12 @@ struct MemberReportProgressTimeView: View {
                     Button {
                         guard let (original, intent) = rendered else { return }; original.showMore(intent: intent)
                     } label: { memberReportProgressText("report.history.more") }.disabled(flow.busy)
+                }
+                if flow.loaded && !flow.records.isEmpty && !flow.hasMore && !flow.busy {
+                    // Source list footer: 已经到底了.
+                    Text("u9cde.report.end").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                        .accessibilityIdentifier("report.progress.end")
                 }
                 if flow.busy { CYSkeleton() }
                 if let failure = flow.failure { memberReportProgressText("report.error.\(failure)").accessibilityIdentifier("report.progress.error") }

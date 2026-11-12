@@ -280,14 +280,14 @@ private struct ParticipationCoverPlaceholder: View {
             if let detail {
                 Group {
                     if let target = detail.record.playEntry {
-                        Button { open(.play(target)) } label: { Label("playerJourney.start", systemImage: "play.fill").frame(maxWidth: .infinity) }
+                        Button("playerJourney.start", systemImage: "play.fill") { open(.play(target)) }
                             .accessibilityIdentifier("playerJourney.start")
                     } else {
-                        Button { open(.ticketWallet) } label: { Label("playerJourney.start", systemImage: "ticket").frame(maxWidth: .infinity) }
+                        Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }
                             .accessibilityIdentifier("playerJourney.start.ticketWallet")
                     }
                 }
-                .buttonStyle(.cyPrimary).controlSize(.large)
+                .buttonStyle(.cyPrimary).controlSize(.large).frame(maxWidth: .infinity)
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
                 .background(.bar)
             }

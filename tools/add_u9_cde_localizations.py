@@ -10,8 +10,6 @@ S = {
     'u9cde.topic.routeNote.fixed': ('Fixed route', '固定路线'),
     'u9cde.topic.routeNote.free': ('No fixed route', '没有固定路线'),
     'u9cde.topic.routeConfiguring': ('Route being set up', '路线配置中'),
-    # C44/C45 pages/club/detail: source PUBLIC_TABS label is 帖文
-    'club.detail.tab.posts': ('Posts', '帖文'),
     # C47-C49 pages/club/enroll sub line
     'u9cde.clubEnroll.subLine %@ %lld': ('%1$@ · %2$lld groups', '%1$@ · %2$lld 个团'),
     'u9cde.clubEnroll.subLineMine %lld': ('My club · %lld groups', '我的俱乐部 · %lld 个团'),
@@ -28,6 +26,18 @@ S = {
     'u9cde.coupon.used': ('Redeemed', '已核销'),
     # D23 subpackageMember/myinvite
     'u9cde.invite.points %@': ('+%@ points', '+%@ 积分'),
+    # D90 subpackageMember/points-history filter chips
+    'u9cde.points.earned': ('Earned', '获得'),
+    'u9cde.points.used': ('Used', '使用'),
+    # D91 subpackageMember/report-mine
+    'u9cde.report.number %@': ('No. %@', '编号 %@'),
+    'u9cde.report.end': ("That's everything", '已经到底了'),
+    # D92 subpackageMember/report-detail
+    'u9cde.report.submittedAt': ('Submitted', '提交于'),
+    'u9cde.report.decision': ('Decision', '处理结论'),
+    'u9cde.report.yourNote': ('Your report note', '你的举报说明'),
+    'u9cde.report.progress': ('Progress', '处理进度'),
+    'u9cde.report.progressEmpty': ('No progress records yet', '暂时还没有进度记录'),
 }
 
 

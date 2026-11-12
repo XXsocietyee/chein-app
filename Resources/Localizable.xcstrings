@@ -12616,7 +12616,6 @@
       }
     },
     "club.detail.tab.posts": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -12627,7 +12626,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "帖文"
+            "value": "帖子"
           }
         }
       }
@@ -258528,6 +258527,159 @@
           "stringUnit": {
             "state": "translated",
             "value": "+%@ 积分"
+          }
+        }
+      }
+    },
+    "u9cde.points.earned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获得"
+          }
+        }
+      }
+    },
+    "u9cde.points.used": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用"
+          }
+        }
+      }
+    },
+    "u9cde.report.number %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No. %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编号 %@"
+          }
+        }
+      }
+    },
+    "u9cde.report.end": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That's everything"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已经到底了"
+          }
+        }
+      }
+    },
+    "u9cde.report.submittedAt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交于"
+          }
+        }
+      }
+    },
+    "u9cde.report.decision": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理结论"
+          }
+        }
+      }
+    },
+    "u9cde.report.yourNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your report note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的举报说明"
+          }
+        }
+      }
+    },
+    "u9cde.report.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理进度"
+          }
+        }
+      }
+    },
+    "u9cde.report.progressEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No progress records yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时还没有进度记录"
           }
         }
       }

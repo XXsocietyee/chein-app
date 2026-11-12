@@ -137,7 +137,7 @@ extension EnvironmentValues {
             // Source used state: a large success disc, 已核销, then the redemption time.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "checkmark.circle")
-                    .font(.system(size: 28, weight: .semibold))
+                    .font(.title.weight(.semibold))
                     .foregroundStyle(CYNight.ink0)
                     .frame(width: 64, height: 64)
                     .background(Circle().fill(CYNight.verify))

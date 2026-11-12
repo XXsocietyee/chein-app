@@ -177,7 +177,8 @@ enum WalletPayoutCapability { static let isOn = false }
             out.append(.init(title: "wallet.withdrawals", icon: "arrow.up.right", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
         }
         if visibility.income { out.append(.init(title: "wallet.income", icon: "list.bullet.indent", id: "wallet.income.open") { AnyView(incomeDestination) }) }
-        if visibility.points { out.append(.init(title: "wallet.points", icon: "star.circle", id: "wallet.points.open") { AnyView(WalletLedgerView(reader: reader, kind: .points)) }) }
+        // Source assetcenter/earnings quick row: 提现 / 明细 / 分析 / 更多. Points history moves into 更多.
+        if visibility.income { out.append(.init(title: "wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.quick") { AnyView(WalletIncomeAnalysisView(reader: reader)) }) }
         return out
     }
     private var incomeDestination: WalletIncomeView {
@@ -295,6 +296,7 @@ enum WalletPayoutCapability { static let isOn = false }
                             .id(invitationHistory.reader.identity)
                     }
                 }
+                if visibility.points { walletRow("wallet.points", icon: "star.circle", id: "wallet.points.open") { WalletLedgerView(reader: reader, kind: .points) } }
                 if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
                 if WalletPayoutCapability.isOn, visibility.withdrawalRecords {
                     walletRow("wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { WithdrawalHistoryView(reader: reader) }
@@ -413,7 +415,10 @@ enum WalletPayoutCapability { static let isOn = false }
         List {
             balanceHero
             Picker("wallet.direction", selection: $direction) {
-                Text("wallet.all").tag("all"); Text("wallet.inflow").tag("income"); Text("wallet.outflow").tag("expense")
+                // Source points-history chips read 全部 / 获得 / 使用; money ledgers keep 收入 / 支出.
+                Text("wallet.all").tag("all")
+                Text(points ? "u9cde.points.earned" : "wallet.inflow").tag("income")
+                Text(points ? "u9cde.points.used" : "wallet.outflow").tag("expense")
             }.pickerStyle(.segmented)
             if points { NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
