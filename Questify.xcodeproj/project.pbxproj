@@ -3485,6 +3485,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "AFA05AFECAFB914FD41C259B";
 		};
+		"136685E0C741EBFC70E1D292" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYEdgeGlow.swift";
+			"sourceTree" = "<group>";
+		};
+		"C93DCD7780A3458AB2688330" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "136685E0C741EBFC70E1D292";
+		};
 		"3DD655C23771C2651F4C4634" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3654,6 +3664,26 @@
 		"A1C1DFD7B8B737C631D3CA90" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "6047F194B5684FF439A97A3A";
+		};
+		"045CDB90772E8C0E377B5124" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYPassFromCard.swift";
+			"sourceTree" = "<group>";
+		};
+		"6E306D433A319560A1873335" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "045CDB90772E8C0E377B5124";
+		};
+		"2AD01C88FBEE27684D6B5DDE" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYPassVerified.swift";
+			"sourceTree" = "<group>";
+		};
+		"4285866FDC833D0788708C5F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "2AD01C88FBEE27684D6B5DDE";
 		};
 		"9C706A40878B5D7500C871D4" = {
 			"isa" = "PBXFileReference";
@@ -36261,6 +36291,7 @@
 				"1786A32ED568AB757F9569BF",
 				"BC769790930EB7CE4786AEC0",
 				"AFA05AFECAFB914FD41C259B",
+				"136685E0C741EBFC70E1D292",
 				"3DD655C23771C2651F4C4634",
 				"542C408EC299FB899E6FE372",
 				"948151614F64B25B9B60E4B3",
@@ -36278,6 +36309,8 @@
 				"4BDFC29A4C5FE75113EBC04E",
 				"4FBA88784542ACB8EDA6E66D",
 				"6047F194B5684FF439A97A3A",
+				"045CDB90772E8C0E377B5124",
+				"2AD01C88FBEE27684D6B5DDE",
 				"9C706A40878B5D7500C871D4",
 				"33B848792095A9B7167706BE",
 				"0903E595C45C4545731A2A85",
@@ -40922,6 +40955,7 @@
 				"7A91C0FBCEBFB2304E218626",
 				"6DC750ECDE4DF106C7459E65",
 				"2211F6D19FA1ADE62EE2DBC9",
+				"C93DCD7780A3458AB2688330",
 				"34CC836EEA07D1BB326D0D33",
 				"82E403B1109B2B82E93A3160",
 				"B23E8165E669DC0AC9A1E46B",
@@ -40939,6 +40973,8 @@
 				"A40C2CA024C250C9B86D888B",
 				"4F1D8CB4A890BDB9B67B8CEF",
 				"A1C1DFD7B8B737C631D3CA90",
+				"6E306D433A319560A1873335",
+				"4285866FDC833D0788708C5F",
 				"26118825E76FFE55174887C7",
 				"375BF6B8833E9F38B7E65B6F",
 				"1997F7FA34B2553F303331D3",
