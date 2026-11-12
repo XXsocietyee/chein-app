@@ -29,6 +29,7 @@ struct E1ActivityHero: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("activity.detail.name")
+                        .cyHeroTitleRise()
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, dynamicTypeSize.isAccessibilitySize ? CYSpacing.lg : 72)
                 .frame(maxWidth: .infinity, alignment: .leading)

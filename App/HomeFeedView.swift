@@ -27,6 +27,7 @@ import SwiftUI
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.timeZone) private var timeZone
+    @Environment(\.cyHeroNamespace) private var heroNamespace
     @StateObject private var model = HomeFeedModel()
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
@@ -170,8 +171,25 @@ import SwiftUI
     }
     /// One focal point on the first fold: ticket within 24 h > club event today > start a roam.
     @ViewBuilder private var todayCard: some View {
-        HomeTodayCard(choice: HomeTodayChoice.resolve(ticket: todayTicket, clubEvent: todayClubEvent, now: Date(), calendar: .current),
-                      onTicket: onOpenTodayTicket, onClubEvent: onOpenTodayClubEvent, onStartRoam: onStartRoam)
+        let choice = HomeTodayChoice.resolve(ticket: todayTicket, clubEvent: todayClubEvent, now: Date(), calendar: .current)
+        // A club event that is a real activity opens the activity detail: the card is the hero source and zooms into it.
+        let activityID = choice.activityID
+        HomeTodayCard(choice: choice,
+                      onTicket: onOpenTodayTicket,
+                      onClubEvent: activityID.map { id -> () -> Void in { if model.canOpen(reader) { onDestination(.activity(id)) } } } ?? onOpenTodayClubEvent,
+                      onStartRoam: onStartRoam)
+            .cyHeroSourceInherited(HomeFeedDestination.activity(activityID ?? 0), isEnabled: activityID != nil)
+    }
+    /// Items that already own a hero source higher on the screen (Today card, then each earlier rail), so a namespace
+    /// never holds two sources for one destination id.
+    private func heroOwned(by section: String?) -> Set<HomeFeedDestination> {
+        var owned = Set<HomeFeedDestination>()
+        if let id = HomeTodayChoice.resolve(ticket: todayTicket, clubEvent: todayClubEvent, now: Date(), calendar: .current).activityID { owned.insert(.activity(id)) }
+        for rail in HomeFeedSection.allCases {
+            if rail.rawValue == section { break }
+            if let items = model.sections[rail] { owned.formUnion(items.map(\.id)) }
+        }
+        return owned
     }
     /// Mini-program `sec-reco` / `sec-nearby` / `sec-upcoming`: a titled horizontal rail each, with its own
     /// loading, failure and empty state. 即将上线 disappears once it has loaded with nothing in it.
@@ -247,7 +265,12 @@ import SwiftUI
     }
     private func row(_ item: HomeFeedItem, section: String, style: CYImageCard.Style? = nil) -> some View {
         Button { if model.canOpen(reader) { onDestination(item.id) } } label: {
-            if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
+            Group {
+                if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
+            }
+            // The tapped card grows into the detail (iOS 18 zoom; iOS 17 keeps the push + entrance). Only the first copy of an item
+            // on screen is the source, so duplicates across rails and the stream never fight over one id.
+            .cyHeroSourceInherited(item.id, isEnabled: heroNamespace != nil && !heroOwned(by: section == "stream" ? nil : section).contains(item.id))
         }
             .buttonStyle(QuestifyCardButtonStyle())
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
@@ -324,6 +347,8 @@ struct HomeTodayCandidate: Equatable {
     var start: Date?
     var place: String?
     var imageURL: URL?
+    /// Set when the candidate is a real activity: the Today card then opens the activity detail and zooms into it.
+    var activityID: Int? = nil
 }
 
 extension HomeTodayCandidate {
@@ -346,6 +371,12 @@ enum HomeTodayChoice: Equatable {
     case ticket(HomeTodayCandidate)
     case clubEvent(HomeTodayCandidate)
     case roam
+
+    /// The activity a club-event Today card opens, when it is one. Tickets and the roam prompt never have one.
+    var activityID: Int? {
+        if case .clubEvent(let candidate) = self { return candidate.activityID }
+        return nil
+    }
 
     /// A ticket counts from 3 h before it starts (already underway) to 24 h ahead. A club event counts on the current calendar day.
     /// Candidates without a start date never win: an unknown time is not "today".

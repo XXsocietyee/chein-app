@@ -19,6 +19,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     /// Card or inline Join pill tapped; both open the gated detail, which still owns the membership action.
     @State private var openedClubID: Int? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
+    /// Club cards zoom into the detail they open; `cyHeroSource` ids are the club id.
+    @Namespace private var hero
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
     /// Source talent/list top tabs 帖文 / 俱乐部; it opens on 俱乐部 and loads the feed only when chosen.
     @State private var topTab = ClubTabPresentation.TopTab.club
@@ -143,6 +145,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
         .navigationDestination(item: $openedClubID) { id in
             ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
+                .cyHeroDestinationWithFallback(id, in: hero)
         }
         .onChange(of: requestedClubID?.wrappedValue, initial: true) { _, id in
             guard let id else { return }
@@ -233,10 +236,12 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                                     memberCount: club.sourceMemberCount, seed: "\(club.id)", prominent: index == 0,
                                     action: action, onOpen: { openedClubID = club.id }, onJoin: { openedClubID = club.id },
                                     identifier: identifier + ".\(club.id)")
+                        .cyHeroSource(club.id, in: hero)
                 } else {
                     CYClubRowCard(name: club.name, logoURL: QuestifyCardArtwork.safeURL(club.logo), memberCount: club.sourceMemberCount,
                                   seed: "\(club.id)", action: action, onOpen: { openedClubID = club.id },
                                   identifier: identifier + ".\(club.id)")
+                        .cyHeroSource(club.id, in: hero)
                 }
                 ClubTabTagLine(club: club, section: section,
                                topicCount: section == .nearby ? nil : page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)

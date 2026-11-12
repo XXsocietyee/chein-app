@@ -5,6 +5,8 @@ import SwiftUI
     var onSignIn:(()->Void)? = nil
     var onStartRoam:(()->Void)? = nil
     @State private var router = AppRouter()
+    /// One hero namespace for the Explore stack: feed cards are zoom sources, the pushed detail is the destination.
+    @Namespace private var hero
     @State private var activeContinuationScope:PlaySessionScope?=nil
     @State private var continuationCoordinator = HomeContinuationCoordinator()
     @State private var continuationCards:[HomeIndexParityPresentation.ContinuationCard]=[]
@@ -93,6 +95,7 @@ import SwiftUI
                 onOpenTodayTicket: { showsTodayTickets=true },
                 onStartRoam: onStartRoam
             ) { router.pushHome($0) }
+                .cyHeroNamespace(hero)
                 .toolbar {
                     ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }
                     // Two actions at most: search, then everything else in one menu.
@@ -130,7 +133,9 @@ import SwiftUI
                 .navigationDestination(for:AppRoute.self) { route in
                     switch route.homeFeedDestination {
                     case .activity(let id): ActivityDetailView(id:id,reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true)
+                            .cyHeroDestinationWithFallback(HomeFeedDestination.activity(id), in: hero)
                     case .topic(let id): SessionTopicDetailView(id: id, session: session)
+                            .cyHeroDestinationWithFallback(HomeFeedDestination.topic(id), in: hero)
                     case nil: EmptyView()
                     }
                 }

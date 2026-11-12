@@ -138,6 +138,8 @@ import SwiftUI
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .appNavigationTitle(showsPassportOverview ? "tabBar.passport" : "account.title")
+            // Stamp grid cells zoom into the stamp detail (Passport tab only draws the cells).
+            .cyPassportStampHost()
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {

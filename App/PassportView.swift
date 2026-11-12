@@ -139,18 +139,9 @@ private struct PassportRollingCount: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.cyOpenPassportStamp) private var openStamp
     /// Glass circle scales with the glyph (Dynamic Type) so the icon never outgrows it.
     @ScaledMetric(relativeTo: .title3) private var actionCircle: CGFloat = 56
-
-    /// One foil colour pair per stamp (by index), so a collection reads as distinct seals.
-    private static let foils: [(Color, Color)] = [
-        (Color(red: 1.00, green: 0.84, blue: 0.40), Color(red: 0.86, green: 0.55, blue: 0.16)),
-        (Color(red: 0.62, green: 0.84, blue: 1.00), Color(red: 0.28, green: 0.52, blue: 0.92)),
-        (Color(red: 0.62, green: 0.95, blue: 0.78), Color(red: 0.18, green: 0.64, blue: 0.48)),
-        (Color(red: 1.00, green: 0.70, blue: 0.78), Color(red: 0.84, green: 0.30, blue: 0.48)),
-        (Color(red: 0.88, green: 0.90, blue: 0.94), Color(red: 0.50, green: 0.55, blue: 0.64)),
-        (Color(red: 1.00, green: 0.78, blue: 0.60), Color(red: 0.88, green: 0.42, blue: 0.24)),
-    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
@@ -220,28 +211,28 @@ private struct PassportRollingCount: View {
     }
 
     /// Earned: foil seal in this stamp's colour with the one-shot sheen. Locked: ghost silhouette, dashed outline, low opacity.
+    /// With a host (`cyPassportStampHost`) the cell is a button: the seal zooms into the stamp detail (the same seal at 2.2x).
     @ViewBuilder private func slot(index: Int, earned: Bool) -> some View {
-        let foil = Self.foils[index % Self.foils.count]
-        ZStack {
-            if earned {
-                Circle().fill(LinearGradient(colors: [foil.0, foil.1], startPoint: .topLeading, endPoint: .bottomTrailing))
-                Circle().strokeBorder(LinearGradient(colors: [.white.opacity(0.85), foil.1.opacity(0.6)], startPoint: .top, endPoint: .bottom), lineWidth: 2)
-                Circle().strokeBorder(.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [2, 3])).padding(6)
-                Image(systemName: "seal.fill")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
-            } else {
-                Circle().strokeBorder(palette.textTertiary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
-                Image(systemName: "seal").font(.title3).foregroundStyle(palette.textTertiary)
-            }
+        let foil = CYStampSeal.foil(index)
+        let seal = CYStampSeal(index: index, earned: earned)
+            .cyFoilSheen(active: earned, trigger: 0, cornerRadius: 64)
+            .shadow(color: earned ? foil.1.opacity(0.35) : .clear, radius: 6, y: 3)
+            .opacity(earned ? 1 : 0.35)
+        Group {
+        if let open = openStamp {
+            Button { open(CYPassportStampSelection(index: index, earned: earned)) } label: { seal }
+                .buttonStyle(.cyPressable)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
+                .accessibilityAddTraits(.isButton)
+        } else {
+            seal
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
         }
-        .aspectRatio(1, contentMode: .fit)
-        .cyFoilSheen(active: earned, trigger: 0, cornerRadius: 64)
-        .shadow(color: earned ? foil.1.opacity(0.35) : .clear, radius: 6, y: 3)
-        .opacity(earned ? 1 : 0.35)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
+        }
+        // Outside the button so the zoom snapshots the seal, not the pressed label.
+        .cyHeroSourceInherited(index, cornerRadius: 64)
     }
 
     private var badgeRail: some View {

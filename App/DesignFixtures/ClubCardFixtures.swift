@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// | name | shows |
 /// |---|---|
-/// | `clubcards-home` | 你的俱乐部 row cards (owner, joined) then 发现 photo cards: Join, Apply, pending |
+/// | `clubcards-home` | 你的俱乐部 row cards (owner, joined) then 发现 photo cards: Join, Apply, pending. Continuity lab: tap a card and it zooms into the (synthetic) club detail; back returns along the same path |
 /// | `clubcards-directory` | directory photo cards: prominent Join, joined chip, unknown member count (em dash) |
 /// | `clubcards-states` | every trailing state in one column: join, apply, pending, joined, owner, none (merchant) |
 /// | `clubcards-strip` | member strip: 0, unknown, 3, 5, 120 members |
@@ -14,7 +14,7 @@ import SwiftUI
 enum ClubCardFixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
-        case "clubcards-home": return wrap(home)
+        case "clubcards-home": return wrap(ClubCardsContinuityHost())
         case "clubcards-directory": return wrap(directory)
         case "clubcards-states": return wrap(states)
         case "clubcards-strip": return wrap(strip)
@@ -23,25 +23,33 @@ enum ClubCardFixtures {
         }
     }
 
-    @MainActor private static func photo(_ name: String, place: String?, count: Int?, action: CYClubCardAction, prominent: Bool = false) -> some View {
+    @MainActor private static func photo(_ name: String, place: String?, count: Int?, action: CYClubCardAction, prominent: Bool = false, onOpen: @escaping () -> Void = {}) -> some View {
         CYClubPhotoCard(name: name, place: place, coverURL: nil, memberCount: count, seed: name, prominent: prominent,
-                        action: action, onOpen: {}, onJoin: {}, identifier: "fixture.club.\(name)")
+                        action: action, onOpen: onOpen, onJoin: onOpen, identifier: "fixture.club.\(name)")
     }
 
-    @MainActor private static var home: some View {
+    /// The Club home list with the real kit cards. `open` receives a club id; each card is a zoom source for that id.
+    @MainActor fileprivate static func homeList(open: @escaping (Int) -> Void) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 CYSectionHeader("club.home.yours")
-                CYClubRowCard(name: "Riverside Runners", logoURL: nil, memberCount: 128, seed: "r1", action: .owner, onOpen: {})
-                CYClubRowCard(name: "Old Town Tea Society", logoURL: nil, memberCount: 42, seed: "r2", action: .joined, onOpen: {})
+                CYClubRowCard(name: "Riverside Runners", logoURL: nil, memberCount: 128, seed: "r1", action: .owner, onOpen: { open(1) })
+                    .cyHeroSourceInherited(1)
+                CYClubRowCard(name: "Old Town Tea Society", logoURL: nil, memberCount: 42, seed: "r2", action: .joined, onOpen: { open(2) })
+                    .cyHeroSourceInherited(2)
                 CYSectionHeader("club.home.discover").padding(.top, CYSpacing.md)
-                photo("Night Market Crew", place: "Food · Chengdu", count: 125, action: .join, prominent: true)
-                photo("Dawn Temple Run", place: "Sports · Hangzhou", count: 31, action: .apply)
-                photo("Hidden Bookshop Crawl", place: "Culture · Shanghai", count: 9, action: .pending)
+                photo("Night Market Crew", place: "Food · Chengdu", count: 125, action: .join, prominent: true, onOpen: { open(3) })
+                    .cyHeroSourceInherited(3)
+                photo("Dawn Temple Run", place: "Sports · Hangzhou", count: 31, action: .apply, onOpen: { open(4) })
+                    .cyHeroSourceInherited(4)
+                photo("Hidden Bookshop Crawl", place: "Culture · Shanghai", count: 9, action: .pending, onOpen: { open(5) })
+                    .cyHeroSourceInherited(5)
             }
             .padding(CYSpacing.pageHorizontal)
         }
     }
+
+    @MainActor private static var home: some View { homeList { _ in } }
 
     @MainActor private static var directory: some View {
         ScrollView {
@@ -92,6 +100,25 @@ enum ClubCardFixtures {
             .preferredColorScheme(.dark)
             .background(CYColor.bgPage.ignoresSafeArea())
         )
+    }
+}
+
+/// `clubcards-home` host: same list, inside a stack, pushing a synthetic club detail (id 81 on the fixture reader for every card).
+@MainActor private struct ClubCardsContinuityHost: View {
+    @Namespace private var hero
+    @StateObject private var reader = ClubFixtureReader(scenario: .visitor)
+    @State private var opened: Int?
+    var body: some View {
+        NavigationStack {
+            ClubCardFixtures.homeList { opened = $0 }
+                .cyHeroNamespace(hero)
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationDestination(item: $opened) { id in
+                    ClubDetailView(id: 81, reader: reader)
+                        .cyHeroDestinationWithFallback(id, in: hero)
+                }
+        }
+        .environment(\.clubEnrollmentProfile, ClubEnrollmentProfileContext(reader: reader.profileReader, squareReader: reader.squareReader))
     }
 }
 #endif
