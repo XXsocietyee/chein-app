@@ -97,6 +97,7 @@ struct RegistrationSheetView: View {
                         activitySection
                         ticketSection
                         quoteSection
+                        refundTiersSection
                         waitlistSection
                         confirmationSection
                     }
@@ -518,7 +519,8 @@ struct RegistrationSheetView: View {
     private var quoteSection: some View {
         Section {
             // Source 订单金额 is the selected ticket's listed price; unknown stays unknown.
-            if flow.selectedTicket != nil {
+            // Source k9 p1 N-11: 订单金额 only appears when a deduction row follows; with no quote it is the only amount.
+            if flow.selectedTicket != nil && showsOrderAmount {
                 RegistrationAmountRow(key: "registrationParity.orderAmount",
                     amount: RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).orderAmount)
             }
@@ -529,17 +531,24 @@ struct RegistrationSheetView: View {
             } else {
                 switch flow.quoteState {
                 case .received(let quote):
-                    RegistrationAmountRow(key: "registration.form.memberDiscount", amount: quote.memberDiscountYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
+                    if Self.positive(quote.memberDiscountYuan) {
+                        RegistrationAmountRow(key: "registration.form.memberDiscount", amount: quote.memberDiscountYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
+                    }
                     if let note = RegistrationCheckoutClubBenefit.from(quote)?.noteKey {
                         LabeledContent("registrationParity.clubBenefit") { Text(LocalizedStringKey(note)) }
                             .accessibilityIdentifier("registration.fees.clubBenefit")
                     }
-                    RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
-                    RegistrationAmountRow(key: "registration.form.pointsDiscount", amount: quote.pointsDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
-                    LabeledContent("registration.form.pointsUsed") {
-                        Text(verbatim: String(quote.pointsUsed)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    if Self.positive(quote.couponDeductYuan) {
+                        RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     }
-                    if quote.pointsUsable {
+                    // Source R11 p1 F-10 / P-32: no points (or a ¥0 ticket) means no points row at all, never "−¥0".
+                    if showsPointsRow(quote) {
+                        RegistrationAmountRow(key: "registration.form.pointsDiscount", amount: quote.pointsDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
+                        if flow.usePoints {
+                            LabeledContent("registration.form.pointsUsed") {
+                                Text(verbatim: String(quote.pointsUsed)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            }
+                        }
                         Toggle("registration.form.usePoints", isOn: Binding(
                             get: { flow.usePoints },
                             set: { if flow.setUsePoints($0) { Task { await flow.requestQuote() } } }
@@ -547,7 +556,7 @@ struct RegistrationSheetView: View {
                         if flow.usePoints, quote.pointsDeductYuan == .zero {
                             Text("registration.form.insufficientPoints").font(.caption).foregroundStyle(.secondary)
                         }
-                    } else { Text("registration.form.pointsUnavailable").foregroundStyle(.secondary) }
+                    }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
                         .font(CYTypography.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
@@ -568,6 +577,36 @@ struct RegistrationSheetView: View {
                 .disabled(!flow.quoteEnabled || !flow.canEdit || flow.isQuoting)
                 .accessibilityIdentifier("registration.form.refreshQuote")
         } header: { E1IconHeader(systemImage: "yensign.circle", title: CoreLoopCopy(locale: locale).t("费用明细", "Price details")) }
+    }
+    private static func positive(_ amount: Decimal?) -> Bool { (amount ?? .zero) > .zero }
+    private func showsPointsRow(_ quote: RegistrationQuote) -> Bool {
+        // Source also hides the row when the viewer's point balance is 0; the quote carries no balance yet (Cursor).
+        quote.pointsUsable && Self.positive(flow.selectedTicket?.price)
+    }
+    private var showsOrderAmount: Bool {
+        guard flow.quoteEnabled, case .received(let quote) = flow.quoteState else { return true }
+        return Self.positive(quote.memberDiscountYuan) || Self.positive(quote.couponDeductYuan) || showsPointsRow(quote)
+    }
+    /// Source 退款规则 (hengyin bde2745d0 / a34ba30c4): every paid ticket lists the platform's three tiers, read-only.
+    /// Self-guided (mode 2) tickets count from the ticket start, others from the meeting time.
+    @ViewBuilder private var refundTiersSection: some View {
+        if let ticket = flow.selectedTicket, Self.positive(ticket.price) {
+            let clock = ticket.selfGuided == true ? "mpfresh.registration.refund.beforeStart" : "mpfresh.registration.refund.beforeMeet"
+            Section {
+                LabeledContent {
+                    Text("mpfresh.registration.refund.full", tableName: "MpFresh").foregroundStyle(CYColor.textPrimary)
+                } label: { Text("mpfresh.registration.refund.over24 \(Text(LocalizedStringKey(clock), tableName: "MpFresh"))", tableName: "MpFresh") }
+                LabeledContent {
+                    Text("mpfresh.registration.refund.half \(50)", tableName: "MpFresh").foregroundStyle(CYColor.textPrimary)
+                } label: { Text("mpfresh.registration.refund.within24 \(Text(LocalizedStringKey(clock), tableName: "MpFresh"))", tableName: "MpFresh") }
+                LabeledContent {
+                    Text("mpfresh.registration.refund.none", tableName: "MpFresh").foregroundStyle(CYColor.textPrimary)
+                } label: { Text("mpfresh.registration.refund.afterStart", tableName: "MpFresh") }
+            } header: {
+                E1IconHeader(systemImage: "arrow.uturn.backward.circle", title: String(localized: LocalizedStringResource("mpfresh.registration.refund.title", table: "MpFresh", locale: locale)))
+            }
+            .accessibilityIdentifier("registration.refundTiers")
+        }
     }
     private var confirmationSection: some View {
         Section {

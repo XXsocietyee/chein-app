@@ -7,7 +7,11 @@ import SwiftUI
     var onSignIn: (() -> Void)? = nil
     var makeTeamCoordinator: (() -> TeamCoordinator)? = nil
     var orderLifecycleCoordinator: OrderLifecycleCoordinator? = nil
+    /// Source nav「+」去探索主题 (r3 票夹, hengyin 57815ec71). Hidden until the host wires it.
+    var onExplore: (() -> Void)? = nil
     @Environment(\.ticketWalletPendingOrderProvider) private var pendingOrderProvider
+    @Environment(\.ticketWalletCompletionReader) private var completionReader
+    @State private var walletFilter = TicketWalletFilter.all
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletSnapshot>()
     @State private var isVisible = false
@@ -27,7 +31,7 @@ import SwiftUI
                     TicketWalletIssueView(issue: .login)
                     if let onSignIn { Button("ticketWallet.signIn", action: onSignIn) }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-                else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("ticketWallet.loading")) }
+                else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("mpfresh.ticketWallet.loading", tableName: "MpFresh")) }
                 else if let issue = model.issue(owner: key) {
                     // Source failure title 票夹没能打开 precedes the specific reason.
                     Text("ticketWallet.parity.error.title").font(.headline)
@@ -62,9 +66,18 @@ import SwiftUI
                         }
                         .listRowBackground(Color.clear)
                     }
-                    ticketCarousel(snapshot.tickets)
+                    let shown = filtered(snapshot.tickets)
+                    if !snapshot.tickets.isEmpty && shown.isEmpty {
+                        // Source filter 即将开始 / 已通关 with no match: say so instead of an empty wallet.
+                        Text(LocalizedStringKey(walletFilter.emptyKey), tableName: "MpFresh")
+                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.lg)
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("ticketWallet.filterEmpty")
+                    }
+                    ticketCarousel(shown)
                     // Source preserves both lanes and row order, including repeated server IDs.
-                    ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { rowIndex, ticket in
+                    ForEach(Array(snapshot.tickets.enumerated()).filter { shown.contains($0.element) }, id: \.offset) { rowIndex, ticket in
                         if ticket.action == .detail {
                             NavigationLink {
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
@@ -117,6 +130,15 @@ import SwiftUI
             .appNavigationTitle("ticketWallet.title")
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
+                if completionReader != nil, reader.isAuthenticated, model.value(owner: key)?.tickets.isEmpty == false {
+                    ToolbarItem(placement: .principal) { filterMenu }
+                }
+                if let onExplore {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: onExplore) { Label { Text("mpfresh.ticketWallet.explore", tableName: "MpFresh") } icon: { Image(systemName: "plus") } }
+                            .accessibilityIdentifier("ticketWallet.explore")
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
                         .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
@@ -182,6 +204,32 @@ import SwiftUI
 }
 
 extension TicketWalletView {
+    /// Source「票夹 ▾」pop-over (全部 / 即将开始 / 已通关, split by server topicCompleted; hengyin 91aab64b4).
+    fileprivate var filterMenu: some View {
+        Menu {
+            Picker(selection: $walletFilter) {
+                ForEach(TicketWalletFilter.allCases, id: \.self) { filter in
+                    Text(LocalizedStringKey(filter.titleKey), tableName: "MpFresh").tag(filter)
+                }
+            } label: { EmptyView() }
+        } label: {
+            HStack(spacing: CYSpacing.xs) {
+                Text(LocalizedStringKey(walletFilter.navKey), tableName: "MpFresh").font(.headline)
+                Image(systemName: "chevron.down").font(.caption.weight(.semibold)).accessibilityHidden(true)
+            }
+            .foregroundStyle(CYColor.textPrimary)
+        }
+        .accessibilityLabel(Text("mpfresh.ticketWallet.filter.a11y \(Text(LocalizedStringKey(walletFilter.titleKey), tableName: "MpFresh"))", tableName: "MpFresh"))
+        .accessibilityIdentifier("ticketWallet.filter")
+    }
+    fileprivate func filtered(_ tickets: [TicketWalletTicket]) -> [TicketWalletTicket] {
+        guard walletFilter != .all, let completionReader else { return tickets }
+        return tickets.filter { ticket in
+            // Unknown completion stays in 全部 only; it is never guessed into either bucket.
+            guard let done = completionReader.topicCompleted(ticket) else { return false }
+            return walletFilter == .completed ? done : !done
+        }
+    }
     /// Glass carousel entry over the openable tickets (detail action only, same destination as the rows below). Two or more tickets;
     /// accessibility Dynamic Type sizes skip it and keep the vertical rows.
     @ViewBuilder fileprivate func ticketCarousel(_ tickets: [TicketWalletTicket]) -> some View {
