@@ -3325,6 +3325,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "8199A3B43F7530AA44F92739";
 		};
+		"F27B492050F51C145370A830" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/WaveFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"11707EA5CFDD27E0ED80BADD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F27B492050F51C145370A830";
+		};
 		"C29815D3422CDCC9B3C79A9D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3804,6 +3814,26 @@
 		"DADDBFFC23D588FBA15D587F" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B79F202B805F2836091F4731";
+		};
+		"8B28FD7AC63C93127A2FAA03" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.metal";
+			"path" = "App/DesignSystem/CYWave.metal";
+			"sourceTree" = "<group>";
+		};
+		"0A12260EF15E6EAC38EEC836" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8B28FD7AC63C93127A2FAA03";
+		};
+		"492D8C1F5C5CE3199649E610" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYWave.swift";
+			"sourceTree" = "<group>";
+		};
+		"8B9D972C23B044103A4F9027" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "492D8C1F5C5CE3199649E610";
 		};
 		"6D30BC01F5A5E489AB6ACBF0" = {
 			"isa" = "PBXFileReference";
@@ -36195,6 +36225,7 @@
 				"062D849A750988F9A7996757",
 				"5E02307E53038A8A0F4C5DC2",
 				"8199A3B43F7530AA44F92739",
+				"F27B492050F51C145370A830",
 				"C29815D3422CDCC9B3C79A9D",
 				"CD7AEA418FB522FA3F0C8475",
 				"9B56A1A0795B82ACDA884752",
@@ -36243,6 +36274,8 @@
 				"6BEB12C7C283D6F8F1563CF8",
 				"2FAA663B4078640434196980",
 				"B79F202B805F2836091F4731",
+				"8B28FD7AC63C93127A2FAA03",
+				"492D8C1F5C5CE3199649E610",
 				"6D30BC01F5A5E489AB6ACBF0",
 				"BC3EF634F214F6A2D220551D",
 				"3FFA3958EDD157C5A3D94CAA",
@@ -40851,6 +40884,7 @@
 				"AEEC38686AEC955EE3D695E2",
 				"74DEC6F7635F614D374D9122",
 				"68B7BF7CEC0A97D8D54061C4",
+				"11707EA5CFDD27E0ED80BADD",
 				"21BB346DEC7FC9E258F7942A",
 				"7E2AE4533B66B175E2C81F7D",
 				"798F7EB3CF7792CA1BB108B2",
@@ -40899,6 +40933,8 @@
 				"24F6C459A2CE0DDDA05B214F",
 				"0F84E8455E3AE9C5B52C097E",
 				"DADDBFFC23D588FBA15D587F",
+				"0A12260EF15E6EAC38EEC836",
+				"8B9D972C23B044103A4F9027",
 				"B6613DF03F3A98A45BE6D658",
 				"985B2C5C5D720EF6D1FBFE71",
 				"69AB87740CE786288AB31FBB",
@@ -44211,7 +44247,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift CarouselFixtures.swift ClubCardFixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift IAFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift CarouselFixtures.swift ClubCardFixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift IAFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift WaveFixtures.swift";
 			};
 			"baseConfigurationReference" = "2DE2C287CCE985622F66EC30";
 		};
