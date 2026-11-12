@@ -73,6 +73,63 @@ public enum PlayKitActionCatalog {
         }
     }
 }
+
+/// reaction, ballShake and quietHold may submit only after START_CHALLENGE was sent.
+public enum PlayKitChallengeStartGate {
+    public static let kinds: Set<String> = ["reaction", "ballShake", "quietHold"]
+    public static let submitActions: Set<String> = ["SUBMIT_REACTION", "SUBMIT_BALL_SHAKE", "SUBMIT_QUIET_HOLD"]
+    public static func allowsSubmit(kind: String, action: String, started: Bool) -> Bool {
+        guard kinds.contains(kind), submitActions.contains(action) else { return true }
+        return started
+    }
+}
+
+/// Closing the advanced panel also closes a playkit sheet opened from it.
+public struct AdvancedPlayKitPresentation: Equatable {
+    public var advancedOpen: Bool
+    public var playKitOpen: Bool
+    public init(advancedOpen: Bool, playKitOpen: Bool) {
+        self.advancedOpen = advancedOpen
+        self.playKitOpen = playKitOpen
+    }
+    public func closingAdvancedPanel() -> Self {
+        Self(advancedOpen: false, playKitOpen: false)
+    }
+}
+
+/// A failed leaderboard fetch is an error. An empty successful board is not.
+public enum LeaderboardFetchPresentation: Equatable {
+    case error, empty, ready, other
+    public static func resolve(phase: String, rowCount: Int) -> Self {
+        if phase == "failed" { return .error }
+        if phase == "ready" { return rowCount == 0 ? .empty : .ready }
+        return .other
+    }
+}
+
+/// A disabled primary action still explains itself when tapped. Money stays off.
+public enum DisabledCallToAction {
+    public static func reason(enabled: Bool) -> String? {
+        guard !enabled else { return nil }
+        return W8Text.t(
+            "现在不能继续。这一步还没准备好。这台设备不会收款，也不会把订单标成已支付。",
+            "You can’t continue yet. This step is not ready. This device will not collect payment or mark an order paid.")
+    }
+}
+
+/// Silent-order give-up stops the local clock. It is not a completion or subscription.
+public struct PlayKitSilentOrderGiveUp: Equatable {
+    public var running: Bool
+    public var gaveUp: Bool
+    public init(running: Bool, gaveUp: Bool = false) {
+        self.running = running
+        self.gaveUp = gaveUp
+    }
+    public mutating func giveUp() {
+        running = false
+        gaveUp = true
+    }
+}
 public struct PlayAdvancedPending: Codable, Equatable {
     public let sessionID: Int; public let version: Int; public let key: String
     public let action: String; public let payload: [String: PlayWireValue]
@@ -112,6 +169,8 @@ extension PlayExperienceService {
     public private(set) var issue: PlayExperienceError?
     public private(set) var leaderboard: [PlayWireValue] = []
     public private(set) var leaderboardPhase = "idle"
+    public private(set) var playKitPresentation = AdvancedPlayKitPresentation(advancedOpen: true, playKitOpen: false)
+    private var acknowledgedChallengeStarts = Set<String>()
     private var leaderboardGeneration: UInt64 = 0
     private var teamSurfaceRevision: UInt64 = 0
     private var teamSurfaceActive = false
@@ -250,6 +309,8 @@ extension PlayExperienceService {
     public func review(kind: String, action: String, detail: [String: PlayWireValue] = [:]) throws -> PlayKitActionReview {
         guard canInteract, let state, let owner else { throw PlayExperienceError.staleSession }
         guard state.playKit[kind].object != nil || state.config[kind]["enabled"].bool == true else { throw PlayExperienceError.unsupported }
+        let started = acknowledgedChallengeStarts.contains("\(state.sessionID)|\(kind)") || state.playKit[kind]["started"].bool == true
+        guard PlayKitChallengeStartGate.allowsSubmit(kind: kind, action: action, started: started) else { throw PlayExperienceError.invalidAction }
         let payload = try PlayKitActionCatalog.payload(kind: kind, action: action, detail: detail)
         // Existing mechanical branch/random projections live outside playKit.
         let segment: PlayWireValue
@@ -277,7 +338,18 @@ extension PlayExperienceService {
         catch { failure(error, session: review.owner, generation: generation, preservePending: true); return false }
         pending = command
         await sendPending()
-        return pending == nil && phase == "ready" && self.state?.sessionID == review.sessionID && (self.state?.version ?? -1) > review.version
+        let sent = pending == nil && phase == "ready" && self.state?.sessionID == review.sessionID && (self.state?.version ?? -1) > review.version
+        if sent, review.action == "START_CHALLENGE", PlayKitChallengeStartGate.kinds.contains(review.kind) {
+            acknowledgedChallengeStarts.insert("\(review.sessionID)|\(review.kind)")
+        }
+        return sent
+    }
+    public func closeAdvancedPanel() {
+        playKitPresentation = playKitPresentation.closingAdvancedPanel()
+    }
+    public func openPlayKitSheet() {
+        playKitPresentation.playKitOpen = true
+        playKitPresentation.advancedOpen = true
     }
     public func submit(kind: String, action: String, detail: [String: PlayWireValue] = [:]) async {
         do { _ = await submit(try review(kind: kind, action: action, detail: detail)) }

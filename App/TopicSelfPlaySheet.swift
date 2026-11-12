@@ -66,6 +66,9 @@ import SwiftUI
                 }
                 if model.flow.pending != nil { billSection }
                 if let key = model.flow.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("contextSelfPlay.status") } }
+                if let explanation = model.flow.paymentExplanation {
+                    Section { Text(verbatim: explanation).accessibilityIdentifier("contextSelfPlay.payment.unknown") }
+                }
                 if model.flow.phase == .creating { ProgressView("contextSelfPlay.creating") }
                 if let id = model.flow.registrationID {
                     Section {

@@ -25,6 +25,8 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
             if let deadline = signupDeadline.flatMap(RegistrationWaitlistStatus.parseDeadline), now >= deadline { return true }
             return false
         }
+        // The form re-checks signupDeadline on every confirm, including timed sessions.
+        if let deadline = signupDeadline.flatMap(RegistrationWaitlistStatus.parseDeadline), now >= deadline { return true }
         let boundary = startTime.flatMap(RegistrationWaitlistStatus.parseDeadline) ?? end
         return boundary.map { now >= $0 } ?? false
     }
@@ -46,6 +48,8 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
         guard id > 0, price.map({ $0 >= .zero }) ?? true else { throw APIError.malformedResponse }
     }
     public var isSoldOut: Bool { remainingInventory.map { $0 <= 0 } ?? false }
+    /// A missing count is unknown. It is not zero and it is not sold out.
+    public var inventoryIsUnknown: Bool { remainingInventory == nil }
     public var isConfirmedFree: Bool { price == Decimal.zero }
 }
 

@@ -121,6 +121,7 @@ struct MerchantBusinessField: View {
     @State private var raw = ""
     @State private var preview: MerchantRedemptionContext?
     @State private var issue: String?
+    @State private var issueDetail: String?
     var body: some View {
         Form {
             Section {
@@ -128,8 +129,17 @@ struct MerchantBusinessField: View {
                 SecureField("merchant.business.scanInput", text: $raw).textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityIdentifier("merchant.business.scanInput")
                 Button("merchant.business.previewRoute") {
-                    do { preview = try .parse(raw); issue = nil }
-                    catch { preview = nil; issue = error as? MerchantRedemptionFailure == .unsupported ? "merchant.business.unsupportedCode" : "merchant.business.invalid" }
+                    do { preview = try .parse(raw); issue = nil; issueDetail = nil }
+                    catch {
+                        preview = nil
+                        if let place = (error as? MerchantRedemptionFailure)?.redemptionPlace {
+                            issue = nil
+                            issueDetail = place
+                        } else {
+                            issueDetail = nil
+                            issue = error as? MerchantRedemptionFailure == .unsupported ? "merchant.business.unsupportedCode" : "merchant.business.invalid"
+                        }
+                    }
                     raw = ""
                 }.disabled(raw.isEmpty).accessibilityIdentifier("merchant.business.previewRoute")
             }
@@ -141,9 +151,10 @@ struct MerchantBusinessField: View {
                     Text("merchant.business.disabled").font(.footnote)
                 }.accessibilityIdentifier("merchant.business.routePreview")
             }
+            if let issueDetail { Text(verbatim: issueDetail).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.redeemPlace") }
             if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
         }.appNavigationTitle("merchant.business.scan")
-        .onDisappear { raw = ""; preview = nil }
+        .onDisappear { raw = ""; preview = nil; issue = nil; issueDetail = nil }
     }
 }
 

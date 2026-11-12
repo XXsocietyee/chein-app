@@ -81,6 +81,11 @@ public struct ClubGovernanceFormDraft {
         default: return nil
         }
     }
+    /// The role picker writes the chosen member and role into this draft together.
+    public mutating func applyClubRolePicker(memberID: String, roleCode: String) {
+        text["targetMemberId"] = memberID.trimmingCharacters(in: .whitespacesAndNewlines)
+        text["roleCode"] = roleCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
     public func command(now: Date = Date()) throws -> ClubGovernanceCommand {
         var values = anchors
         let integers = Set(["maxEventSize", "avgEventSize", "occurrenceCount", "capacity", "defaultLeadMemberId", "offerMinutes", "targetMemberId", "targetId"])

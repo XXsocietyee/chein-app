@@ -79,6 +79,12 @@ public enum ActivityPublishingWizard {
 
     public static func retreat(from step: Int) -> Int { max(clamp(step) - 1, 0) }
 
+    /// Resume at the saved step. A missing saved step still opens the first incomplete step.
+    public static func resume(savedStep: Int?, draft: ActivityPublishDraft) -> Int {
+        if let savedStep { return clamp(savedStep) }
+        return resumeIndex(draft)
+    }
+
     /// A requested index cannot land past the first incomplete step.
     public static func located(_ requested: Int, draft: ActivityPublishDraft) -> Int {
         min(clamp(requested), resumeIndex(draft))

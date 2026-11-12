@@ -11,6 +11,7 @@ import SwiftUI
     let onReady: (PlayAdvancedState) -> Void
     @State private var teamSurfaceID = UUID()
     @State private var teamSurfaceVisible = false
+    @State private var continueReason: String?
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -45,10 +46,23 @@ import SwiftUI
                         }
                     }
                     if state.readyForBase {
-                        CYPillButton("playx.advanced.continue") { onReady(state); dismiss() }
+                        CYPillButton("playx.advanced.continue") {
+                            let ready = model.pending == nil && model.isCurrent && model.phase == "ready"
+                            if let reason = DisabledCallToAction.reason(enabled: ready) {
+                                continueReason = reason
+                                return
+                            }
+                            continueReason = nil
+                            onReady(state)
+                            dismiss()
+                        }
                             .listRowBackground(Color.clear)
-                            .disabled(model.pending != nil || !model.isCurrent || model.phase != "ready")
                             .accessibilityIdentifier("playx.advanced.continue")
+                        if let continueReason {
+                            Text(verbatim: continueReason)
+                                .font(.footnote)
+                                .accessibilityIdentifier("playx.advanced.continue.reason")
+                        }
                     }
                 }
                 ForEach(PlayKitScreenKind.present(in: state)) { kind in
@@ -83,7 +97,7 @@ import SwiftUI
         }.cyGroupedSurface().privacySensitive().navigationTitle("playx.advanced").accessibilityIdentifier("playx.advanced.view")
         .onAppear { teamSurfaceVisible = true; model.beginTeamSurface(id: teamSurfaceID) }
         .task(id: model.state?.version) { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) }
-        .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID) }
+        .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID); model.closeAdvancedPanel() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { model.endTeamSurface(id: teamSurfaceID) }
             else if phase == .active && teamSurfaceVisible { model.beginTeamSurface(id: teamSurfaceID); Task { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) } }

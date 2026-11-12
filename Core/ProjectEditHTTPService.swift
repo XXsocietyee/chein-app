@@ -172,8 +172,14 @@ public struct ProjectEditCredentials: Equatable {
         guard code == 200 else { return .rejected }
         guard let path = try? ProjectEditStoryContract.path(payload: operation.payload, baseline: operation.baseline) else { return .unknown }
         if path == ProjectEditStoryContract.createPath || path == ProjectEditStoryContract.updatePath {
-            guard let acknowledgment = try? ProjectEditBundleAcknowledgment.decode(envelope?["data"], expectedTopicID: operation.identity.topicID) else { return .unknown }
-            return .bundleAcknowledged(operationID: operation.operationID, acknowledgment: acknowledgment)
+            if let acknowledgment = try? ProjectEditBundleAcknowledgment.decode(envelope?["data"], expectedTopicID: operation.identity.topicID) {
+                return .bundleAcknowledged(operationID: operation.operationID, acknowledgment: acknowledgment)
+            }
+            // Create `data` is a scalar topic id. An object acknowledgment is still accepted.
+            if path == ProjectEditStoryContract.createPath, let created = OperationAdapterHTTP.positiveID(envelope?["data"]) {
+                return .acknowledged(operationID: operation.operationID, topicID: created)
+            }
+            return .unknown
         }
         let topicID: Int
         if let existing = operation.identity.topicID { topicID = existing }

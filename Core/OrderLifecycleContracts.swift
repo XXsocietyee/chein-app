@@ -213,6 +213,22 @@ public enum OrderLifecycleTime {
 /// Registration acceptance and cash settlement stay independent. In Flutter the verifier
 /// treats registrationStatus==2 OR paymentStatus==2 as success; we expose both dimensions
 /// so the UI never relabels acceptance alone as money paid.
+/// An unrecognized payment code, or both statuses absent, explains itself.
+/// Known codes 0–4 keep their existing observation. Money stays off.
+public enum UnknownPaymentState {
+    public static let knownCodes: Set<Int> = [0, 1, 2, 3, 4]
+    public static func explanation(payment: Int?, registration: Int?) -> String? {
+        let unrecognized = payment.map { !knownCodes.contains($0) } ?? false
+        let bothAbsent = payment == nil && registration == nil
+        guard unrecognized || bothAbsent else { return nil }
+        // A missing code is unknown. Unknown is an em dash, in both languages.
+        let code = payment.map(String.init) ?? "—"
+        return W8Text.t(
+            "支付状态无法识别（\(code)）。这台设备不会收款，也不会把订单标成已支付。",
+            "Payment state \(code) is not recognized. This device will not collect payment or mark the order paid.")
+    }
+}
+
 public enum OrderPaymentObservation: String, Equatable {
     case paid, registrationAccepted, failed, pending, unknown
     public init(payment: Int?, registration: Int?) {

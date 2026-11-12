@@ -158,6 +158,9 @@ import SwiftUI
         return Section("orderLifecycle.payment.title") {
             Text(LocalizedStringKey("orderLifecycle.payment." + observation.rawValue))
                 .accessibilityIdentifier("orderLifecycle.payment.observation")
+            if let explanation = UnknownPaymentState.explanation(payment: detail.paymentStatus, registration: detail.registrationStatus) {
+                Text(verbatim: explanation).accessibilityIdentifier("orderLifecycle.payment.unknown")
+            }
             Text("orderLifecycle.payment.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             OrderLifecycleField(label: "orderLifecycle.payment.deadline", value: detail.payExpireTime)
         }

@@ -7,9 +7,12 @@ public struct PublishingLocalDraft: Codable, Equatable {
     public let baseline: String
     public let quick: QuickPublishDraft?
     public let activity: ActivityPublishDraft?
-    public init(session: PublishingSession, identity: UUID, baseline: String = "", quick: QuickPublishDraft? = nil, activity: ActivityPublishDraft? = nil) throws {
+    /// Saved publishing step. Absent on older drafts, which resume at the first incomplete step.
+    public let wizardStep: Int?
+    public init(session: PublishingSession, identity: UUID, baseline: String = "", quick: QuickPublishDraft? = nil, activity: ActivityPublishDraft? = nil, wizardStep: Int? = nil) throws {
         guard (quick == nil) != (activity == nil) else { throw PublishModesError.invalidDraft }
         version = 1; ownerKey = session.storageKey; self.identity = identity; self.baseline = baseline; self.quick = quick; self.activity = activity
+        self.wizardStep = wizardStep
     }
 }
 /// Full drafts require the existing secure storage interface. No plaintext fallback.

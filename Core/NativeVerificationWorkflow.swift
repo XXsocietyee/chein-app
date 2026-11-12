@@ -21,6 +21,7 @@ public struct NativeVerificationReview: Equatable, Identifiable {
     public private(set) var review: NativeVerificationReview?
     public private(set) var result: MerchantRedemptionResult?
     public private(set) var issueKey: String?
+    public private(set) var issueDetail: String?
     public private(set) var access: MerchantBusinessAccess?
     public private(set) var needsReadback = false
     public private(set) var loadedScope: MerchantBusinessScope?
@@ -53,13 +54,13 @@ public struct NativeVerificationReview: Equatable, Identifiable {
             phase = needsReadback ? .unknown : .idle
         } catch {
             guard self.generation == generation, reader.scope == scope, !Task.isCancelled else { return }
-            issueKey = key(error); phase = .idle
+            note(error); phase = .idle
         }
     }
     public func prepare(raw: String) async {
         guard canCapture else { return }
         let capturedScope = reader.scope, capturedGeneration = generation
-        phase = .loading; issueKey = nil; result = nil; context = nil; review = nil
+        phase = .loading; issueKey = nil; issueDetail = nil; result = nil; context = nil; review = nil
         do {
             let parsed = try MerchantRedemptionContext.parse(raw)
             guard let capturedScope else { throw APIError.unauthorized }
@@ -75,7 +76,7 @@ public struct NativeVerificationReview: Equatable, Identifiable {
             phase = .reviewing
         } catch {
             guard capturedGeneration == generation, capturedScope == reader.scope, !Task.isCancelled else { return }
-            issueKey = key(error); phase = .idle
+            note(error); phase = .idle
         }
     }
     public func prepareChoice(_ target: MerchantRedemptionChoice.Target) {
@@ -88,16 +89,16 @@ public struct NativeVerificationReview: Equatable, Identifiable {
     public func cancelReview() {
         guard phase == .reviewing else { return }
         let wasChoice = review?.choice != nil
-        review = nil; issueKey = nil
+        review = nil; issueKey = nil; issueDetail = nil
         if wasChoice { phase = .choosing }
         else { context = nil; phase = .idle }
     }
     public func confirm(_ value: NativeVerificationReview) async {
         guard current, review == value, value.scope == reader.scope, !needsReadback else { return }
-        guard now() < value.expiresAt else { review = nil; issueKey = "verification.reviewExpired"; phase = value.choice == nil ? .idle : .choosing; if value.choice == nil { context = nil }; return }
-        guard canDispatch, let redemption else { review = nil; phase = .disabled; issueKey = "verification.dispatchDisabled"; return }
+        guard now() < value.expiresAt else { review = nil; issueKey = "verification.reviewExpired"; issueDetail = nil; phase = value.choice == nil ? .idle : .choosing; if value.choice == nil { context = nil }; return }
+        guard canDispatch, let redemption else { review = nil; phase = .disabled; issueKey = "verification.dispatchDisabled"; issueDetail = nil; return }
         let capturedGeneration = generation
-        review = nil; phase = .submitting; issueKey = nil
+        review = nil; phase = .submitting; issueKey = nil; issueDetail = nil
         do {
             if let choice = value.choice { try await redemption.choose(choice) }
             else { try await redemption.begin(value.context, expectedMerchantID: value.merchantID) }
@@ -111,18 +112,22 @@ public struct NativeVerificationReview: Equatable, Identifiable {
             guard capturedGeneration == generation, value.scope == reader.scope, !Task.isCancelled else { return }
             needsReadback = (try? hasJournalLock(scope: value.scope, merchantID: value.merchantID)) ?? true
             phase = needsReadback ? .unknown : .result
-            issueKey = key(error)
+            note(error)
             if !needsReadback { context = nil }
         }
     }
     public func cancelChoice() { guard phase != .submitting else { return }; redemption?.cancelChoice(); context = nil; result = nil; review = nil; phase = needsReadback ? .unknown : .idle }
     public func deactivate() {
         generation &+= 1; redemption?.cancelChoice(); context = nil; review = nil; result = nil; access = nil
-        loadedScope = nil; issueKey = nil; needsReadback = false; phase = .idle
+        loadedScope = nil; issueKey = nil; issueDetail = nil; needsReadback = false; phase = .idle
         // Durable intent is deliberately untouched. A later ledger read cannot clear it.
     }
     private func hasJournalLock(scope: MerchantBusinessScope, merchantID: Int) throws -> Bool {
         try journal.intents().contains { $0.realm == scope.realm && $0.accountID == scope.accountID && $0.merchantID == merchantID && $0.target == "redemption" }
+    }
+    private func note(_ error: Error) {
+        issueKey = key(error)
+        issueDetail = (error as? MerchantRedemptionFailure)?.redemptionPlace
     }
     private func key(_ error: Error) -> String {
         if error as? APIError == .unauthorized { return "verification.login" }

@@ -205,6 +205,9 @@ public struct TopicTicket: Decodable, Equatable, Identifiable {
         totalInventory = c.int("totalInventory") ?? 0
         registrants = try c.list("cmsRegistrationList")
     }
+    /// Null remaining inventory is unknown, not sold out. A literal zero is sold out.
+    public var inventoryIsUnknown: Bool { remaining == nil }
+    public var isSoldOut: Bool { remaining.map { $0 <= 0 } ?? false }
 }
 
 public struct TopicComment: Decodable, Equatable {
