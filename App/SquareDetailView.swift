@@ -306,6 +306,13 @@ import SwiftUI
                     Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
                         .font(.caption).foregroundStyle(.secondary)
                         .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                    // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
+                    if let actions, actions.identity.accountID != nil, comment.generation != .unknown {
+                        Button { reportComment(comment) } label: { Text("square.report").font(.caption).foregroundStyle(.secondary) }
+                            .buttonStyle(.borderless)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
+                    }
                     Spacer(minLength: 0)
                     if let actions, actions.identity.accountID != nil {
                         Menu {
@@ -313,13 +320,6 @@ import SwiftUI
                                 Button("social.reply", systemImage: "arrowshape.turn.up.left") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }
                             }
                             Button(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike"), systemImage: comment.isLiked == 0 ? "heart" : "heart.slash") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
-                            if comment.generation != .unknown {
-                                Button("square.report", systemImage: "exclamationmark.bubble") {
-                                    if comment.generation == .legacySquare { editor = .init(purpose: .report, target: .comment(postID: id, commentID: comment.id), text: "") }
-                                    else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
-                                }
-                                .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
-                            }
                             if SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
                                 Button("square.block", systemImage: "hand.raised") { blockNotice = true }
                                     .accessibilityIdentifier("square.block.commentEntry.\(comment.id)")
@@ -339,6 +339,10 @@ import SwiftUI
             }
         }
         .padding(.leading, comment.parentID == nil ? 0 : 24)
+    }
+    private func reportComment(_ comment: SquareComment) {
+        if comment.generation == .legacySquare { editor = .init(purpose: .report, target: .comment(postID: id, commentID: comment.id), text: "") }
+        else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
     }
     @ViewBuilder private func commentAuthor(_ comment: SquareComment) -> some View {
         if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).font(.subheadline.weight(.semibold)) }
