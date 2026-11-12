@@ -29003,13 +29003,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "To verify by me"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待核销"
+            "value": "待我核销"
           }
         }
       }
@@ -190980,7 +190980,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "找不到这个据点"
+            "value": "找不到这个节点"
           }
         }
       }

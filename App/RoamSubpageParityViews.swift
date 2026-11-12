@@ -291,7 +291,7 @@ struct RoamPOIUnavailableView: View {
 struct RoamPOIMissingView: View {
     var onBack: (() -> Void)? = nil
     var body: some View {
-        CYEmptyState(systemImage: "questionmark.circle", "roamSub.w208.poi.missing",
+        CYEmptyState(systemImage: "info.circle", "roamSub.w208.poi.missing",
                      detail: "roamSub.w208.poi.missingHint",
                      actionTitle: onBack == nil ? nil : "roamSub.w208.poi.backToMap", action: onBack)
             .accessibilityIdentifier("roamSub.w208.poi.missing")
