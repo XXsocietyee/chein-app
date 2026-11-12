@@ -452,6 +452,7 @@
         "ProjectTeamConfigurationPresentationTests",
         "ProjectThoughtDefinitionsEditorTests",
         "ProjectTopicMediaPresentationTests",
+        "PublicCatalogViewsTests",
         "PublicMerchantHomeBusinessStateViewTests",
         "PublicMerchantReviewRowsTests",
         "PublicTemplateCompositionTests",

@@ -46,6 +46,10 @@ import SwiftUI
                     PublicMerchantHomeView(target: target, context: session.publicMerchantHomeContext).id(session.sessionRevision)
                 case .content(let target):
                     AuditedContentEntry(target: target, session: session, goHome: goHome)
+                case .publicCatalog(let link):
+                    PublicCatalogViews(link: link, host: PublicCatalogHostWiring.host,
+                                       scope: { PublicCatalogHostWiring.scope }, token: { PublicCatalogHostWiring.token })
+                        .id(session.sessionRevision)
                 case .merchantInvitation(let route):
                     MerchantOperatorInvitationLandingView(invitation: route.invitation,
                         reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,
