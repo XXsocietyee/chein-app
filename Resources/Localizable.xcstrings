@@ -133717,13 +133717,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save participant"
+            "value": "Save participant info"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存参与人"
+            "value": "保存参与人信息"
           }
         }
       }
@@ -241835,13 +241835,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You cannot view this check-in record."
+            "value": "This check-in record is not visible"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无权查看该核销记录"
+            "value": "核销记录不可见"
           }
         }
       }
@@ -257560,6 +257560,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅确认这一站的任务码"
+          }
+        }
+      }
+    },
+    "participant.form.namePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入姓名"
+          }
+        }
+      }
+    },
+    "participant.form.phonePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter mobile number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入手机号"
+          }
+        }
+      }
+    },
+    "settingsNative.about.myCode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的二维码"
+          }
+        }
+      }
+    },
+    "settingsNative.about.myCodePending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player code not generated yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家个人码待生成"
           }
         }
       }

@@ -51,6 +51,14 @@ import UIKit
                 marketRow
             } header: { Text("settingsNative.about.appSection") } footer: { AIGCFilingNumberText() }
             .labelStyle(SettingsTileLabelStyle())
+            // Mini-program about page: "我的二维码" with the pending player code placeholder.
+            Section {
+                Label("settingsNative.about.myCodePending", systemImage: "qrcode")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textSecondary)
+                    .frame(maxWidth: .infinity, minHeight: 96)
+                    .accessibilityIdentifier("settingsNative.about.myCode")
+            } header: { Text("settingsNative.about.myCode") }
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in
                     NavigationLink {

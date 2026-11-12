@@ -240,7 +240,7 @@ struct ParticipantFormView: View {
                     Section {
                         VStack(alignment: .leading, spacing: 4) {
                             Label("profile.participants.name", systemImage: "person").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            TextField("profile.participants.name", text: $model.draft.fullName)
+                            TextField("participant.form.namePlaceholder", text: $model.draft.fullName)
                             .textContentType(.name).textInputAutocapitalization(.words)
                             .submitLabel(.next).focused($focusedField, equals: .name)
                             .onSubmit { focusedField = .phone }
@@ -248,7 +248,7 @@ struct ParticipantFormView: View {
                         }
                         VStack(alignment: .leading, spacing: 4) {
                             Label("profile.participants.phone", systemImage: "phone").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            TextField("profile.participants.phone", text: $model.draft.mobilePhone)
+                            TextField("participant.form.phonePlaceholder", text: $model.draft.mobilePhone)
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
                             .onSubmit { focusedField = model.reviewForSave() }

@@ -83,7 +83,7 @@ struct ClubCheckinRailView: View {
         let copy = CYKitCopy(locale: locale)
         switch kind {
         case .missing: return copy("This check-in record does not exist.", "核销记录不存在")
-        case .denied: return copy("You cannot view this check-in record.", "无权查看该核销记录")
+        case .denied: return copy("This check-in record is not visible", "核销记录不可见")
         case .error: return copy("Couldn't load this check-in.", "核销详情加载失败")
         }
     }
