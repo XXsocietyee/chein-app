@@ -11,6 +11,9 @@ import SwiftUI
     @State private var tagConfirm = false
     @State private var correctedValue = ""
     @State private var error: PlayExperienceError?
+    /// Mini-program shows one calibration question at a time; a server tiebreak jumps to the new last step.
+    @State private var stepIndex = 0
+    @State private var pickFirst = false
     @ViewBuilder var body: some View {
         if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
         else { currentContent }
@@ -64,7 +67,9 @@ import SwiftUI
                         Button("playx.preference.answerAgain") { useExisting = false }.disabled(model.phase != "ready" || model.steps.isEmpty)
                     }
                 } else {
-                    ForEach(Array(model.steps.enumerated()), id: \.element.id) { index, step in
+                    let index = min(stepIndex, max(0, model.steps.count - 1))
+                    if model.steps.indices.contains(index) {
+                        let step = model.steps[index]
                         Section {
                             // Mini-program calibration header: "装机校准 i / n", question, then option cards.
                             Text("playx.preference.stepCount \(index + 1) \(model.steps.count)")
@@ -74,7 +79,7 @@ import SwiftUI
                             VStack(spacing: CYSpacing.sm) {
                                 ForEach(step.options) { option in
                                     let on = model.choices[step.id] == option.id
-                                    Button { model.select(stepID: step.id, optionID: option.id) } label: {
+                                    Button { model.select(stepID: step.id, optionID: option.id); pickFirst = false } label: {
                                         HStack {
                                             Text(verbatim: option.text).font(CYTypography.body).foregroundStyle(Color.primary)
                                             Spacer(minLength: CYSpacing.sm)
@@ -92,15 +97,32 @@ import SwiftUI
                             }
                             .disabled(model.phase != "ready")
                             .accessibilityIdentifier("playx.preference.step.\(step.id)")
+                            if pickFirst {
+                                Text("playx.preference.pickFirst").font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                                    .accessibilityIdentifier("playx.preference.pickFirst")
+                            }
                         }
+                        .id(step.id)
+                        let last = index >= model.steps.count - 1
+                        CYPillButton(last ? "playx.preference.generate" : "playx.preference.next") {
+                            guard model.choices[step.id] != nil else { pickFirst = true; return }
+                            pickFirst = false
+                            if last { prepare(reuse: nil) } else { stepIndex = index + 1 }
+                        }
+                        .listRowBackground(Color.clear).disabled(model.phase != "ready")
+                        .accessibilityIdentifier(last ? "playx.preference.review" : "playx.preference.next")
                     }
-                    CYPillButton("playx.review") { prepare(reuse: nil) }.listRowBackground(Color.clear).disabled(model.phase != "ready").accessibilityIdentifier("playx.preference.review")
                 }
             }
             if model.phase == "completed" { CYPillButton("playx.preference.done") { dismiss() }.listRowBackground(Color.clear) }
             if model.phase == "failed" || model.phase == "idle" { Button("playx.refresh") { Task { await model.load() } } }
         }.cyGroupedSurface().privacySensitive().navigationTitle("playx.preference.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.preference.view")
             .task { await model.load() }
+            .onChange(of: model.steps.count) { old, new in
+                // A tiebreak step appended by the server is answered next; a reload starts over.
+                stepIndex = new > old && old > 0 ? new - 1 : min(stepIndex, max(0, new - 1))
+                pickFirst = false
+            }
             .confirmationDialog("playx.review", isPresented: $confirm, titleVisibility: .visible) {
                 Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil; useExisting = false } } }
                 Button("playx.cancel", role: .cancel) { model.cancelReview(); review = nil }

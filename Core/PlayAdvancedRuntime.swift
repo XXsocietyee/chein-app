@@ -11,6 +11,9 @@ public struct PlayAdvancedState: Equatable {
     public let storyVariables: [String: PlayWireValue]
     public let objectCard: ObjectCard?
     public let modInstallationRuntime: PlayWireValue
+    /// UG-03/04 accusation config and the clues this run has earned. `.null` and empty hide the accusation screen.
+    public let accusation: PlayWireValue
+    public let clues: [PlayWireValue]
     let modInstallationReceipt: PlayWireValue
     public var isMultiplayer: Bool { config["multiplayer"]["enabled"].bool == true }
     public var needsUnverifiedSteps: Bool { playKit["steps"].object != nil && playKit["steps"]["reached"].bool != true }
@@ -29,6 +32,7 @@ public struct PlayAdvancedState: Equatable {
         storyVariables = raw["vars"].object ?? [:]
         objectCard = PlayObjectCardReceiptDecoder.decode(raw["objectCard"])
         modInstallationRuntime = raw["modInstallationRuntime"]
+        accusation = raw["accusation"]; clues = raw["clues"].array ?? []
         modInstallationReceipt = modInstallationRuntime == .null ? .null : raw
     }
     public func remainingSeconds(nowMilliseconds: Int64) -> Int? {
@@ -94,6 +98,10 @@ public struct AdvancedPlayKitPresentation: Equatable {
     }
     public func closingAdvancedPanel() -> Self {
         Self(advancedOpen: false, playKitOpen: false)
+    }
+    /// One sheet at a time: dismissing the playkit sheet leaves the advanced panel as it was.
+    public func closingPlayKitSheet() -> Self {
+        Self(advancedOpen: advancedOpen, playKitOpen: false)
     }
 }
 
@@ -350,6 +358,10 @@ extension PlayExperienceService {
     public func openPlayKitSheet() {
         playKitPresentation.playKitOpen = true
         playKitPresentation.advancedOpen = true
+    }
+    /// The playkit sheet over the pack was dismissed. The advanced panel stays open.
+    public func closePlayKitSheet() {
+        playKitPresentation = playKitPresentation.closingPlayKitSheet()
     }
     public func submit(kind: String, action: String, detail: [String: PlayWireValue] = [:]) async {
         do { _ = await submit(try review(kind: kind, action: action, detail: detail)) }

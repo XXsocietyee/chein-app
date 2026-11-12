@@ -3,7 +3,9 @@ import SwiftUI
 /// A frozen action review is the only write outlet for all specialized native kits.
 typealias PlayKitReviewRequest = (String, [String: PlayWireValue], @escaping () -> Void) -> Void
 
-enum PlayKitNativePresentation: Equatable { case navigation, inline }
+/// `.sheet` is the mini-program sheet over the pack: the kit is the one sheet on screen, so its
+/// review shows as a panel inside it rather than a second sheet stacked on top.
+enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
 
 @MainActor struct PlayKitScreen: View {
     @Bindable var model: PlayAdvancedCoordinator
@@ -17,9 +19,12 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
+    /// UG-03 accusation write. Nil while the pack is NOT_RUN: the screen explains that nothing is sent.
+    var ugAccusationWrite: PlayKitAccusationWrite? = nil
     @State var text = ""
     @State var selected = Set<String>()
     @State var answers: [String: String] = [:]
+    @State var profileStep = 0
     @State var avatarURL = ""
     @State var dirty = false
     @State var reasoningFeedback = PlayKitReasoningFeedbackState()
@@ -48,27 +53,14 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             if dirty { leaveReview = true } else { dismiss() }
         }))
         .privacySensitive()
-        .sheet(item: $review) { item in
+        .sheet(item: stackedReview) { item in
             NavigationStack {
                 Form {
+                    Section { reviewReadback(item) }
                     Section {
-                        if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
-                        else { PlayKitPayloadReadback(payload: item.payload) }
-                    }
-                    Section {
-                        Button("playkit.confirm") {
-                            let completion = reviewedCompletion
-                            let expectedLifetime = lifetime
-                            review = nil; reviewedCompletion = nil
-                            Task {
-                                if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
-                            }
-                        }
-                            .buttonStyle(.questifyPrimary)
+                        reviewConfirm(item)
                             .frame(maxWidth: .infinity)
                             .listRowBackground(Color.clear)
-                            .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
-                            .accessibilityIdentifier("playkit.review.confirm")
                     }
                 }.cyGroupedSurface().navigationTitle("playkit.submitQuestion")
                     .navigationBarTitleDisplayMode(.inline)
@@ -76,6 +68,9 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             }.privacySensitive()
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+        }
+        .safeAreaInset(edge: .bottom) {
+            if presentation == .sheet, let item = review { reviewPanel(item) }
         }
         .confirmationDialog("playkit.discardQuestion", isPresented: $leaveReview, titleVisibility: .visible) {
             Button("playkit.discard", role: .destructive) { clearTransient(); dismiss() }
@@ -100,6 +95,45 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             }
         }
         .onDisappear { clearTransient() }
+    }
+    /// A nested review sheet only when the kit itself is not already the sheet.
+    private var stackedReview: Binding<PlayKitActionReview?> {
+        Binding(get: { presentation == .sheet ? nil : review }, set: { review = $0 })
+    }
+    @ViewBuilder private func reviewReadback(_ item: PlayKitActionReview) -> some View {
+        if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
+        else { PlayKitPayloadReadback(payload: item.payload) }
+    }
+    private func reviewConfirm(_ item: PlayKitActionReview) -> some View {
+        Button("playkit.confirm") {
+            let completion = reviewedCompletion
+            let expectedLifetime = lifetime
+            review = nil; reviewedCompletion = nil
+            Task {
+                if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
+            }
+        }
+            .buttonStyle(.questifyPrimary)
+            .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
+            .accessibilityIdentifier("playkit.review.confirm")
+    }
+    /// Review inside the kit sheet: same readback and confirm, docked at the bottom.
+    private func reviewPanel(_ item: PlayKitActionReview) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack {
+                Text("playkit.submitQuestion").font(CYTypography.cardTitle).accessibilityAddTraits(.isHeader)
+                Spacer()
+                Button("playkit.cancel") { review = nil; reviewedCompletion = nil }
+                    .accessibilityIdentifier("playkit.review.cancel")
+            }
+            reviewReadback(item)
+            reviewConfirm(item).frame(maxWidth: .infinity)
+        }
+        .padding(CYSpacing.lg)
+        .background(RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous).fill(CYColor.bgElevated).ignoresSafeArea(edges: .bottom))
+        .privacySensitive()
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("playkit.review.panel")
     }
     @ViewBuilder private var screenContainer: some View {
         if presentation == .inline { contents }
@@ -145,7 +179,11 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     @ViewBuilder private var content: some View {
         switch kind {
-        case .qa: qaForm
+        case .qa:
+            if let accusation = accusationProjection {
+                PlayKitAccusationView(projection: accusation, approvedHosts: approvedArtworkHosts, enabled: enabled, showsTitle: false,
+                    accuse: ugAccusationWrite, close: presentation == .inline ? nil : { dismiss() })
+            } else { qaForm }
         case .branch: branchForm
         case .estimate: estimateForm
         case .pricePair: pricePairForm
@@ -182,8 +220,12 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                 .id(childReset)
         }
     }
+    /// UG-03: a PICK qa whose node turned accusation on. Its end screen reads the server verdict itself.
+    var accusationProjection: PlayKitAccusationProjection? {
+        kind == .qa ? model.state.flatMap(PlayKitAccusationProjection.project) : nil
+    }
     @ViewBuilder var authoritativeResult: some View {
-        if reasoningFeedback.showsResult(for: projection) {
+        if reasoningFeedback.showsResult(for: projection), accusationProjection == nil {
             if kind == .photoCheck, segment["degraded"].bool == true {
                 Label("playkit.photo.noVerdict", systemImage: "exclamationmark.bubble")
             } else if let passed = projection.reportedPass {
@@ -225,7 +267,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
     }
     private func clearTransient() {
         if kind == .photoCheck { model.clearObjectCardReceipt() }
-        lifetime = UUID(); review = nil; reviewedCompletion = nil; text = ""; selected = []; answers = [:]; avatarURL = ""
+        lifetime = UUID(); review = nil; reviewedCompletion = nil; text = ""; selected = []; answers = [:]; avatarURL = ""; profileStep = 0
         dirty = false; reasoningFeedback = .init(); childReset = UUID(); device?.cancel()
     }
 }
@@ -278,6 +320,7 @@ private struct PlayKitScreenChrome: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         if presentation == .inline { content }
         else {
+            // Navigation and sheet presentations share the title and the close button.
             content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + kind.rawValue)))
                 .navigationBarTitleDisplayMode(.inline).navigationBarBackButtonHidden(true)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.close", action: close).accessibilityIdentifier("playkit.close") } }
