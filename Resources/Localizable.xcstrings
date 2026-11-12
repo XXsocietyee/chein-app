@@ -198788,13 +198788,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interests"
+            "value": "Interest tags"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "兴趣"
+            "value": "兴趣标签"
           }
         }
       }
@@ -258400,6 +258400,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "清除搜索"
+          }
+        }
+      }
+    },
+    "social.mine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mine"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的"
           }
         }
       }

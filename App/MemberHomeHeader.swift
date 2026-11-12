@@ -40,7 +40,7 @@ import SwiftUI
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
                     (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
-                        Label { city } icon: { Image(systemName: "mappin.and.ellipse") }
+                        Label { city } icon: { Image(systemName: "location") }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
                             HStack(spacing: 2) {
@@ -61,15 +61,21 @@ import SwiftUI
                 stat(snapshot?.followCountText, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
                 stat(snapshot?.fansCountText, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
             }
-            // Quick actions as tiles: tickets (opens) and balance (read-only preview, em dash when unknown).
-            rowLayout {
-                if let onOpenTickets {
-                    Button(action: onOpenTickets) {
-                        tile(symbol: "ticket.fill") { Text("member.card.tickets", tableName: "MemberProfile") } value: { Image(systemName: "chevron.right").font(.caption.weight(.bold)) }
-                    }
-                    .buttonStyle(CYPressScaleStyle())
-                    .accessibilityIdentifier("member.card.tickets")
+            // Mini-program member header: one full-width 票夹 pill under the counters.
+            if let onOpenTickets {
+                Button(action: onOpenTickets) {
+                    Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
+                        .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                        .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }
+                .buttonStyle(CYPressScaleStyle())
+                .accessibilityIdentifier("member.card.tickets")
+            }
+            // Balance preview (read-only, em dash when unknown). The mini-program shows it under 我的资产.
+            rowLayout {
                 tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
                     Text(verbatim: snapshot?.balancePreviewText ?? "—")
                         .font(.subheadline.weight(.semibold).monospacedDigit())
