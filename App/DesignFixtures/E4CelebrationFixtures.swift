@@ -1,9 +1,9 @@
 #if DEBUG
 import SwiftUI
 
-/// e4 celebration + state kit (docs/release/motion-spec-celebration.md). Offline, synthetic, DEBUG only; mounted nowhere live.
+/// e4 celebration + state kit (docs/release/motion-spec-celebration.md), wave 3 B5 choreographies (specs/design-wave3.md 5A/5B). Offline, synthetic, DEBUG only; the live mounts are RoamBrowserView (stamp), ObjectBadgeDetailView and GrowthCenterView (badge).
 /// `--design-fixture celebration-stamp | celebration-badge | celebration-roam | celebration-roam-unknown | celebration-queue`
-/// plus `celebration-roam-route`, `celebration-badge-long`, `celebration-share-walk` and `celebration-share-badge`,
+/// plus `celebration-stamp-count` (known passport count rolls 11 to 12), `celebration-roam-route`, `celebration-badge-long`, `celebration-share-walk` and `celebration-share-badge`,
 /// and `state-offline | state-server | state-empty | state-empty-compact`. Add `-zh` for Simplified Chinese copy
 /// and `--uitesting-reduce-motion` for the fallback. The celebration fixtures log every haptic with its timestamp.
 enum E4CelebrationFixtures {
@@ -13,6 +13,7 @@ enum E4CelebrationFixtures {
         let locale = Locale(identifier: zh ? "zh-Hans" : "en")
         switch base {
         case "celebration-stamp": return wrap(E4CelebrationLab(script: .stamp), locale)
+        case "celebration-stamp-count": return wrap(E4CelebrationLab(script: .stampCount), locale)
         case "celebration-badge": return wrap(E4CelebrationLab(script: .badge), locale)
         case "celebration-roam": return wrap(E4CelebrationLab(script: .roam), locale)
         case "celebration-roam-unknown": return wrap(E4CelebrationLab(script: .roamUnknown), locale)
@@ -36,7 +37,7 @@ enum E4CelebrationFixtures {
 
 // MARK: - Celebrations
 
-private enum E4CelebrationScript { case stamp, badge, badgeLong, roam, roamUnknown, roamRoute, queue }
+private enum E4CelebrationScript { case stamp, stampCount, badge, badgeLong, roam, roamUnknown, roamRoute, queue }
 
 private struct E4CelebrationLab: View {
     let script: E4CelebrationScript
@@ -78,6 +79,8 @@ private struct E4CelebrationLab: View {
         switch script {
         case .stamp:
             center.enqueue(.stamp(CYStampPayload(id: "s\(n)", place: "Lantern Gate (example)")))
+        case .stampCount:
+            center.enqueue(.stamp(CYStampPayload(id: "s\(n)", place: "Lantern Gate (example)", passportCount: 12)))
         case .badge:
             center.enqueue(.badge(CYBadgePayload(id: "b\(n)", name: "Night Walker", symbol: "moon.stars.fill")))
         case .roam:

@@ -13,6 +13,7 @@ import UIKit
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyCelebrationCenter) private var celebrations
     @Environment(\.cyPalette) private var palette
     @State private var cameraDenied = false
     @State private var showingPriming = false
@@ -113,6 +114,8 @@ import UIKit
             }
         }
             .themeDomain(.player)
+            // A stamp that has just been created plays the stamp press once (deduped per stamp id by the queue).
+            .onChange(of: revision) { _, _ in celebrateCreatedStamp() }
             .navigationDestination(item: $createdStampTarget) { target in
                 if let album, target.isCurrent(reader: album.reader) {
                     RoamCreatedStampView(target: target, album: album)
@@ -212,6 +215,10 @@ import UIKit
             guard !Task.isCancelled, ticket == captureGeneration, scenePhase == .active, cameraEnabled, purposeAccepted else { return }
             showingCamera = granted; cameraIssue = !granted
         }
+    }
+    private func celebrateCreatedStamp() {
+        guard let celebrations, case .created(let stampID)? = coordinator?.phase else { return }
+        celebrations.enqueue(.stamp(CYStampPayload(id: "stamp-\(stampID)", place: nil, passportCount: nil)))
     }
     private func stop() { captureGeneration += 1; work?.cancel(); work = nil; coordinator?.cancel(); coordinator?.changed = nil; localDraft = RoamCityStampDraft() }
     private func run(_ action: @escaping @MainActor () async -> Void) { work?.cancel(); work = Task { await action(); revision += 1 } }

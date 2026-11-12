@@ -20,6 +20,18 @@ enum CYCelebrationShare {
             brand: appLocalized("roamSub.w208.share.brand", locale: locale))
     }
 
+    static func stamp(_ payload: CYStampPayload, locale: Locale) -> CYShareCardContent {
+        let copy = CYCelebrationCopy(locale: locale)
+        return CYShareCardContent(
+            kind: .medal,
+            eyebrow: copy.stampEyebrow,
+            title: copy.stampLine,
+            showsPlace: false,
+            artSeed: payload.id,
+            artSymbol: payload.symbol,
+            brand: appLocalized("roamSub.w208.share.brand", locale: locale))
+    }
+
     /// Unknown numbers are `nil` stats (an em dash on the card), never 0.
     static func walk(_ payload: CYRoamSummaryPayload, locale: Locale, includeRoute: Bool = false) -> CYShareCardContent {
         let copy = CYCelebrationCopy(locale: locale)

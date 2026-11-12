@@ -12,6 +12,8 @@ struct CYCelebrationCopy {
     init(locale: Locale) { copy = CYKitCopy(locale: locale) }
 
     var stampLine: String { copy("Stamped. You were here.", "盖章成功，算你来过") }
+    var stampEyebrow: String { copy("City stamp", "城市印章") }
+    var shareStamp: String { copy("Share stamp", "分享这枚章") }
     var badgeEyebrow: String { copy("New badge", "新徽章") }
     var shareBadge: String { copy("Share badge", "分享徽章") }
     var keepBadge: String { copy("Keep in passport", "收进护照") }
@@ -75,6 +77,8 @@ final class CYCelebrationCenter {
     func dismiss(ifCurrent id: Int) { if state.current?.id == id { apply(.dismiss) } }
     func setReduceMotion(_ value: Bool) { apply(.setReduceMotion(value)) }
     func setAssistive(_ value: Bool) { apply(.setAssistive(value)) }
+    /// Stops the auto-dismiss clock of the active celebration (a share sheet is open on top of it).
+    func hold(ifCurrent id: Int) { if state.current?.id == id { apply(.hold) } }
 
     private func apply(_ action: CYCelebrationAction) {
         let now = Self.now()
@@ -129,6 +133,46 @@ extension View {
     /// `shareEnabled: false` hides Share (Keep / Done become the one primary).
     func cyCelebrations(_ center: CYCelebrationCenter, shareEnabled: Bool = true, onShare: ((CYCelebrationEvent) -> Void)? = nil) -> some View {
         modifier(CYCelebrationHost(center: center, shareEnabled: shareEnabled, onShare: onShare))
+            .environment(\.cyCelebrationCenter, center)
+    }
+}
+
+/// Environment access for screens that enqueue a celebration without owning a host (the stamp camera, pushed under
+/// `RoamBrowserView`). nil outside a host: callers simply skip the moment.
+private struct CYCelebrationCenterKey: EnvironmentKey { static let defaultValue: CYCelebrationCenter? = nil }
+extension EnvironmentValues {
+    var cyCelebrationCenter: CYCelebrationCenter? {
+        get { self[CYCelebrationCenterKey.self] }
+        set { self[CYCelebrationCenterKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Only the stamp overlay of `cyCelebrations`, for a view that sits above the host's layer (inside a sheet).
+    func cyStampOverlay(_ center: CYCelebrationCenter?, shareEnabled: Bool = true) -> some View {
+        modifier(CYStampOverlayHost(center: center, shareEnabled: shareEnabled))
+    }
+}
+
+struct CYStampOverlayHost: ViewModifier {
+    let center: CYCelebrationCenter?
+    let shareEnabled: Bool
+
+    private var stamp: (CYCelebrationEvent, CYStampPayload)? {
+        if let event = center?.current, case .stamp(let p) = event.payload { return (event, p) }
+        return nil
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if let center, let (event, payload) = stamp {
+                    CYStampSlamView(payload: payload, shareEnabled: shareEnabled, onHold: { center.hold(ifCurrent: event.id) }) { center.dismiss(ifCurrent: event.id) }
+                        .id(event.id)
+                        .transition(.opacity)
+                }
+            }
+            .animation(CYMotion.reduced, value: stamp?.0.id)
     }
 }
 
@@ -140,10 +184,6 @@ private struct CYCelebrationHost: ViewModifier {
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     @Environment(\.locale) private var locale
 
-    private var stamp: (CYCelebrationEvent, CYStampPayload)? {
-        if let event = center.current, case .stamp(let p) = event.payload { return (event, p) }
-        return nil
-    }
     private var badge: (CYCelebrationEvent, CYBadgePayload)? {
         if let event = center.current, case .badge(let p) = event.payload { return (event, p) }
         return nil
@@ -163,14 +203,7 @@ private struct CYCelebrationHost: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .overlay {
-                if let (event, payload) = stamp {
-                    CYStampSlamView(payload: payload) { center.dismiss(ifCurrent: event.id) }
-                        .id(event.id)
-                        .transition(.opacity)
-                }
-            }
-            .animation(CYMotion.reduced, value: stamp?.0.id)
+            .modifier(CYStampOverlayHost(center: center, shareEnabled: shareEnabled))
             .fullScreenCover(item: binding(badge?.0)) { event in
                 if case .badge(let payload) = event.payload {
                     CYBadgeUnlockCover(
@@ -206,150 +239,263 @@ private struct CYCelebrationHost: ViewModifier {
 
 // MARK: - Stamp slam
 
-/// Seal drops 40 pt, squashes 1.0 to 0.92 to 1.0 on `spring(0.32, 0.55)`, an ink ring expands and fades over 0.5 s,
-/// then the line fades in. Reduce Motion: the finished state cross-fades in. Tap anywhere to dismiss early.
+/// Choreography 5A (specs/design-wave3.md), every beat derived from one clock so it can be checked against the table:
+///   0 ms     seal rises 40 pt and grows to 1.15 on an `ink1` paper card
+///   120 ms   seal drops (impactHeavy from the engine) and squashes to 0.92, the card dips 0.985
+///   120-420  lantern ring expands 1 to 2.4x and fades, a second thinner ring follows 60 ms later
+///   250 ms   success haptic (the engine keeps cues 150 ms apart, so it logs at about 270 ms)
+///   300-1100 `CYBurst`, 36 lantern particles from the seal
+///   350 ms   title and place rise 14 pt
+///   600 ms   passport mini-page (top right) flips once, the count rolls on `.numericText` (a dash when unknown)
+///   900 ms   Share pill enters (hidden when sharing is off); auto-dismiss at 2.4 s, tap anywhere to dismiss early
+/// Reduce Motion: the finished state cross-fades in, no particles, no flip.
 struct CYStampSlamView: View {
     let payload: CYStampPayload
+    var shareEnabled = true
+    /// Called when Share is tapped so the host can stop the auto-dismiss clock while the sheet is open.
+    var onHold: (() -> Void)?
     let onDismiss: () -> Void
     @QuestifyReduceMotion private var reduceMotion
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
-    @State private var step = 0
-    @State private var ring: CGFloat = 0
-    @State private var lineShown = false
+    @State private var start = Date()
+    @State private var finished = false
+    @State private var countShown = false
+    @State private var sharing = false
 
-    private static let ink = Color(red: 0.98, green: 0.45, blue: 0.40)
-
-    private var scale: CGFloat {
-        if reduceMotion { return 1 }
-        switch step {
-        case 0: return 1.15
-        case 1: return 0.92
-        default: return 1
-        }
-    }
+    private static let hold = 1.4
+    private static let paperSide: CGFloat = 236
+    private static let sealSide: CGFloat = 170
 
     var body: some View {
         let copy = CYCelebrationCopy(locale: locale)
-        ZStack {
-            Color.black.opacity(0.45).ignoresSafeArea()
-            VStack(spacing: CYSpacing.xl) {
-                ZStack {
-                    Circle()
-                        .strokeBorder(Self.ink, lineWidth: 3)
-                        .scaleEffect(1 + ring * 0.6)
-                        .opacity(Double(0.6 * (1 - ring)))
-                    seal
-                        .scaleEffect(scale)
-                        .offset(y: step == 0 && !reduceMotion ? -40 : 0)
-                        .opacity(step == 0 && !reduceMotion ? 0 : 1)
+        TimelineView(.animation(paused: finished || reduceMotion)) { timeline in
+            let e = reduceMotion ? 99 : timeline.date.timeIntervalSince(start)
+            ZStack {
+                CYNight.ink0.opacity(0.72 * min(1, e / 0.15)).ignoresSafeArea()
+                VStack(spacing: CYSpacing.xl) {
+                    seal(at: e)
+                    titleBlock(copy, at: e)
                 }
-                .frame(width: 170, height: 170)
-                VStack(spacing: CYSpacing.xs) {
-                    Text(verbatim: copy.stampLine)
-                        .font(CYTypography.sheetTitle)
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                    if let place = payload.place?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty {
-                        Text(verbatim: place).font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.8))
-                    }
+                .padding(CYSpacing.xxl)
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onDismiss)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text(verbatim: copy.announcement(for: .stamp(payload))))
+                .accessibilityAddTraits([.isModal, .isButton])
+                .accessibilityAction(.escape, onDismiss)
+                .accessibilityIdentifier("cy.celebration.stamp")
+                passport(copy, at: e)
+                if shareEnabled { sharePill(copy, at: e) }
+                if e >= 0.3 {
+                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.42), count: 36, duration: 0.8, reach: 200).ignoresSafeArea()
                 }
-                .opacity(lineShown || reduceMotion ? 1 : 0)
             }
-            .padding(CYSpacing.xxl)
         }
-        .contentShape(Rectangle())
-        .onTapGesture(perform: onDismiss)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: copy.announcement(for: .stamp(payload))))
-        .accessibilityAddTraits([.isModal, .isButton])
-        .accessibilityAction(.escape, onDismiss)
-        .accessibilityIdentifier("cy.celebration.stamp")
+        .sheet(isPresented: $sharing) {
+            CYCelebrationShareSheet(content: CYCelebrationShare.stamp(payload, locale: locale))
+        }
         .task { await play() }
     }
 
-    private var seal: some View {
+    // MARK: Beats
+
+    private func ease(_ x: Double) -> Double { 1 - pow(1 - min(max(x, 0), 1), 3) }
+    private func span(_ e: Double, _ from: Double, _ to: Double) -> Double { min(max((e - from) / (to - from), 0), 1) }
+
+    /// (scale, rise in pt, opacity) of the seal at `e` seconds.
+    private func pose(_ e: Double) -> (Double, Double, Double) {
+        if reduceMotion { return (1, 0, 1) }
+        if e < 0.12 { let u = ease(e / 0.12); return (1 + 0.15 * u, -40 * u, min(1, e / 0.06)) }
+        if e < 0.22 { let u = (e - 0.12) / 0.10; let q = u * u; return (1.15 - 0.23 * q, -40 * (1 - q), 1) }
+        let d = e - 0.22
+        return (1 - 0.08 * exp(-7 * d) * cos(16 * d), 0, 1)
+    }
+
+    private func seal(at e: Double) -> some View {
+        let (scale, rise, opacity) = pose(e)
+        let ringA = span(e, 0.12, 0.42), ringB = span(e, 0.18, 0.48)
+        let dip = reduceMotion ? 1 : 1 - 0.015 * sin(.pi * span(e, 0.12, 0.30))
+        let landed = span(e, 0.12, 0.40)
+        return ZStack {
+            Circle().fill(CYNight.glow(radius: Self.sealSide / 2))
+                .frame(width: Self.sealSide * 2.6, height: Self.sealSide * 2.6)
+                .opacity(reduceMotion ? 0.8 : 0.9 * landed)
+            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                .fill(CYNight.ink1)
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                    .strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
+                .frame(width: Self.paperSide, height: Self.paperSide)
+                .scaleEffect(dip)
+                .shadow(color: CYNight.ink0.opacity(0.4), radius: 12, y: 6)
+                .opacity(reduceMotion ? 1 : min(1, e / 0.12))
+            if !reduceMotion {
+                Circle().strokeBorder(CYNight.lantern, lineWidth: 3)
+                    .frame(width: Self.sealSide, height: Self.sealSide)
+                    .scaleEffect(1 + 1.4 * ease(ringA)).opacity(ringA > 0 ? 0.8 * (1 - ringA) : 0)
+                Circle().strokeBorder(CYNight.lanternHot, lineWidth: 1.5)
+                    .frame(width: Self.sealSide, height: Self.sealSide)
+                    .scaleEffect(1 + 1.4 * ease(ringB)).opacity(ringB > 0 ? 0.5 * (1 - ringB) : 0)
+            }
+            sealFace
+                .scaleEffect(scale)
+                .offset(y: rise)
+                .opacity(opacity)
+        }
+        .frame(width: Self.paperSide, height: Self.paperSide)
+        .animation(CYMotion.reduced, value: reduceMotion)
+    }
+
+    private var sealFace: some View {
         ZStack {
-            Circle().strokeBorder(Self.ink, lineWidth: 6)
-            Circle().strokeBorder(Self.ink.opacity(0.7), style: StrokeStyle(lineWidth: 2, dash: [2, 6])).padding(16)
+            Circle().strokeBorder(CYNight.lantern, lineWidth: 6)
+            Circle().strokeBorder(CYNight.lantern.opacity(0.7), style: StrokeStyle(lineWidth: 2, dash: [2, 6])).padding(16)
             Image(systemName: payload.symbol)
                 .font(.system(size: 64, weight: .bold))
-                .foregroundStyle(Self.ink)
+                .foregroundStyle(CYNight.lanternHot)
         }
-        .frame(width: 170, height: 170)
-        .background(Circle().fill(Self.ink.opacity(0.10)))
-        .shadow(color: Self.ink.opacity(0.35), radius: 16)
+        .frame(width: Self.sealSide, height: Self.sealSide)
+        .background(Circle().fill(CYNight.lantern.opacity(0.14)))
+        .shadow(color: CYNight.lantern.opacity(0.35), radius: 16)
+    }
+
+    private func titleBlock(_ copy: CYCelebrationCopy, at e: Double) -> some View {
+        let u = reduceMotion ? 1 : ease(span(e, 0.35, 0.60))
+        return VStack(spacing: CYSpacing.xs) {
+            Text(verbatim: copy.stampLine)
+                .font(CYTypography.sheetTitle)
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+            if let place = payload.place?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty {
+                Text(verbatim: place).font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.8))
+            }
+        }
+        .offset(y: 14 * (1 - u))
+        .opacity(u)
+    }
+
+    /// Top-right mini page: flips once at 600 ms, the number rolls (dash while unknown).
+    private func passport(_ copy: CYCelebrationCopy, at e: Double) -> some View {
+        let flip = reduceMotion ? 0 : ease(span(e, 0.60, 1.0))
+        let appear = reduceMotion ? 1 : span(e, 0.5, 0.6)
+        return VStack {
+            HStack {
+                Spacer()
+                HStack(spacing: CYSpacing.xs) {
+                    Text(verbatim: countText)
+                        .font(.system(size: 17, weight: .bold, design: .rounded)).monospacedDigit()
+                        .foregroundStyle(.white)
+                        .contentTransition(reduceMotion ? .opacity : .numericText())
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(CYNight.lanternHot)
+                        .frame(width: 48, height: 48)
+                        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .rotation3DEffect(.degrees(360 * flip), axis: (x: 0, y: 1, z: 0))
+                }
+                .opacity(appear)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.top, CYSpacing.xxl)
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
+    }
+
+    private var countText: String {
+        guard let total = payload.passportCount, total >= 0 else { return CYUnknown.dash }
+        return CYUnknown.count(countShown || reduceMotion ? total : max(0, total - 1))
+    }
+
+    private func sharePill(_ copy: CYCelebrationCopy, at e: Double) -> some View {
+        let u = reduceMotion ? 1 : ease(span(e, 0.90, 1.10))
+        return VStack {
+            Spacer()
+            CYPillButton(verbatim: copy.shareStamp, style: .primary) {
+                onHold?()
+                sharing = true
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.lg)
+            .offset(y: 16 * (1 - u))
+            .opacity(u)
+            .allowsHitTesting(e >= 0.90)
+        }
     }
 
     private func play() async {
-        if reduceMotion {
-            step = 2
-            return
-        }
-        withAnimation(.easeIn(duration: CYMotion.Duration.quick)) { step = 1 }
-        try? await Task.sleep(for: .seconds(0.22))
+        if reduceMotion { return }
+        let clock = ContinuousClock()
+        let t0 = clock.now
+        start = .now
+        try? await clock.sleep(until: t0 + .milliseconds(600))
         guard !Task.isCancelled else { return }
-        withAnimation(.spring(response: 0.32, dampingFraction: 0.55)) { step = 2 }
-        withAnimation(.easeOut(duration: 0.5)) { ring = 1 }
-        try? await Task.sleep(for: .seconds(0.2))
+        withAnimation(.easeOut(duration: CYMotion.Duration.quick)) { countShown = true }
+        try? await clock.sleep(until: t0 + .seconds(Self.hold))
         guard !Task.isCancelled else { return }
-        withAnimation(.easeOut(duration: CYMotion.Duration.quick)) { lineShown = true }
+        finished = true
     }
 }
 
 // MARK: - Badge unlock
 
-/// Full-screen cover: medal lands on `spring(0.6, 0.58)` from 1.4x over a radial glow (background, not overlay),
-/// one confetti burst, eyebrow + name, Share primary and Keep secondary. Swipe down also keeps. Without an `onShare`
-/// the Share button is absent and Keep becomes the one primary.
+/// Choreography 5B (heyozi), one clock, no pile of competing animations (specs/design-wave3.md):
+///   0 ms      ground fades to `indigo` over `ink0`
+///   150-600   dark silhouette of the medal at 0.2x fills white and lands on an ease-out-back overshoot (impactMedium at 450),
+///             blurred lantern copies bloom behind it
+///   600-900   horizon arc draws in under the medal
+///   700-1300  seven stars orbit in (success haptic at 1000); the real medal takes over from the silhouette at 600
+///   1100 ms   eyebrow + name rise 14 pt; 1400 a foil sheen sweeps the medal once
+///   1500 ms   Share pill enters and the buttons go live (under 1.8 s to interactive); swipe down keeps at any time.
+/// Reduce Motion: the finished state cross-fades in over 200 ms with one success haptic. Low Power: bloom without blur copies.
 struct CYBadgeUnlockCover: View {
     let payload: CYBadgePayload
     var shareEnabled = true
     var onShare: (() -> Void)?
     let onKeep: () -> Void
     @QuestifyReduceMotion private var reduceMotion
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
-    @State private var landed = false
-    @State private var burst = 0
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @State private var start = Date()
+    @State private var finished = false
+    @State private var shown = false
     @State private var sharing = false
+
+    private static let medalSide: CGFloat = 168
+    /// Piecewise-linear phase of `CYStarBloom` against elapsed seconds, so beats land on the millisecond table.
+    static func phase(at e: Double) -> Double {
+        if e <= 0.15 { return 0 }
+        if e <= 0.60 { return 0.45 * (e - 0.15) / 0.45 }
+        if e <= 1.30 { return 0.45 + 0.55 * (e - 0.60) / 0.70 }
+        return 1
+    }
+    static func span(_ e: Double, _ from: Double, _ to: Double) -> Double { min(max((e - from) / (to - from), 0), 1) }
+
+    private var isZh: Bool { locale.identifier.hasPrefix("zh") }
+    private var nameFont: Font { .system(size: 34, weight: isZh ? .semibold : .heavy, design: isZh ? .default : .rounded) }
 
     var body: some View {
         let copy = CYCelebrationCopy(locale: locale)
-        ZStack {
-            palette.bgPage.ignoresSafeArea()
-            VStack(spacing: CYSpacing.xxl) {
-                Spacer(minLength: CYSpacing.xxxl)
-                CYBadgeMedal(seed: payload.id, symbol: payload.symbol, size: 168)
-                    .scaleEffect(landed || reduceMotion ? 1 : 1.4)
-                    .opacity(landed || reduceMotion ? 1 : 0)
-                    .background { glow }
-                    .frame(height: 230)
-                VStack(spacing: CYSpacing.sm) {
-                    Text(verbatim: copy.badgeEyebrow)
-                        .font(CYTypography.label)
-                        .textCase(.uppercase)
-                        .foregroundStyle(palette.textSecondary)
-                    Text(verbatim: CYUnknown.text(payload.name))
-                        .font(CYTypography.display)
-                        .foregroundStyle(palette.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .accessibilityAddTraits(.isHeader)
+        TimelineView(.animation(paused: finished || reduceMotion)) { timeline in
+            let e = reduceMotion ? 99 : timeline.date.timeIntervalSince(start)
+            // Idle drift of the stars after the choreography has landed (no drift under Low Power).
+            let drift = (e > 1.3 && CYLightBudget.shadersAllowed) ? (e - 1.3) * 0.25 : 0
+            ZStack {
+                ground(at: e)
+                VStack(spacing: CYSpacing.xxl) {
+                    Spacer(minLength: CYSpacing.xxxl)
+                    stage(at: e, drift: drift)
+                    titleBlock(copy, at: e)
+                    Spacer(minLength: CYSpacing.lg)
+                    buttons(copy, at: e)
                 }
-                .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: CYSpacing.lg)
-                VStack(spacing: CYSpacing.sm) {
-                    if shareEnabled {
-                        CYPillButton(verbatim: copy.shareBadge) { onShare?(); sharing = true }
-                        CYPillButton(verbatim: copy.keepBadge, style: .tertiary, action: onKeep)
-                    } else {
-                        CYPillButton(verbatim: copy.keepBadge, action: onKeep)
-                    }
+                .padding(.horizontal, CYSpacing.xxl)
+                .padding(.bottom, CYSpacing.lg)
+                if e >= 1.0 {
+                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.34), count: 28, duration: 1.4, style: .dust, reach: 260).ignoresSafeArea()
                 }
             }
-            .padding(.horizontal, CYSpacing.xxl)
-            .padding(.bottom, CYSpacing.lg)
-            CYConfettiBurst(trigger: burst)
+            .opacity(reduceMotion ? (shown ? 1 : 0) : 1)
         }
         .gesture(
             DragGesture(minimumDistance: 24).onEnded { value in
@@ -361,27 +507,87 @@ struct CYBadgeUnlockCover: View {
             CYCelebrationShareSheet(content: CYCelebrationShare.badge(payload, locale: locale))
         }
         .accessibilityIdentifier("cy.celebration.badge")
-        .task { await land() }
+        .task { await play() }
     }
 
-    private var glow: some View {
-        Circle()
-            .fill(RadialGradient(colors: [Color(red: 1.0, green: 0.84, blue: 0.40).opacity(0.5), .clear], center: .center, startRadius: 8, endRadius: 190))
-            .frame(width: 380, height: 380)
-            .opacity(landed || reduceMotion ? 1 : 0)
-            .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: CYMotion.Duration.slow), value: landed)
-            .accessibilityHidden(true)
+    private func ground(at e: Double) -> some View {
+        LinearGradient(colors: [CYNight.indigo, CYNight.ink0], startPoint: .top, endPoint: .bottom)
+            .opacity(reduceMotion ? 1 : Self.span(e, 0, 0.15))
+            .background(CYNight.ink0)
+            .ignoresSafeArea()
     }
 
-    private func land() async {
+    private func stage(at e: Double, drift: Double) -> some View {
+        let phase = Self.phase(at: e)
+        let cheap = !CYLightBudget.shadersAllowed || reduceTransparency
+        let land = CYStarBloom<Circle>.landScale(phase)
+        let sheen = Self.span(e, 1.4, 1.9)
+        return ZStack {
+            CYStarBloom(shape: Circle(), phase: reduceMotion ? 1 : phase, spin: drift, size: Self.medalSide, cheap: cheap)
+            CYBadgeMedal(seed: payload.id, symbol: payload.symbol, size: Self.medalSide)
+                .scaleEffect(reduceMotion ? 1 : land)
+                .opacity(reduceMotion ? 1 : CYStarBloom<Circle>.objectOpacity(phase))
+                .overlay { sheenBand(progress: sheen).clipShape(Circle()).frame(width: Self.medalSide, height: Self.medalSide).scaleEffect(land) }
+        }
+        .frame(height: 230)
+        .accessibilityHidden(true)
+    }
+
+    /// One light band that crosses the medal once (foil beat, 1400 ms). Gyro foil (`CYFoil`) takes over in B1.
+    @ViewBuilder private func sheenBand(progress: Double) -> some View {
+        if !reduceMotion, progress > 0, progress < 1 {
+            LinearGradient(colors: [.clear, CYNight.lanternHot.opacity(0.7), .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: Self.medalSide * 0.5)
+                .rotationEffect(.degrees(20))
+                .offset(x: (progress - 0.5) * Self.medalSide * 2)
+                .blendMode(.screen)
+        }
+    }
+
+    private func titleBlock(_ copy: CYCelebrationCopy, at e: Double) -> some View {
+        let u = reduceMotion ? 1 : CYStarBloom<Circle>.easeOutBack(Self.span(e, 1.1, 1.4)) * Self.span(e, 1.1, 1.3)
+        return VStack(spacing: CYSpacing.sm) {
+            Text(verbatim: copy.badgeEyebrow)
+                .font(CYTypography.label)
+                .textCase(.uppercase)
+                .tracking(isZh ? 1 : 0.6)
+                .foregroundStyle(CYNight.lantern)
+            Text(verbatim: CYUnknown.text(payload.name))
+                .font(nameFont)
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .offset(y: 14 * (1 - u))
+        .opacity(min(1, u))
+    }
+
+    @ViewBuilder private func buttons(_ copy: CYCelebrationCopy, at e: Double) -> some View {
+        let u = reduceMotion ? 1 : Self.span(e, 1.5, 1.7)
+        VStack(spacing: CYSpacing.sm) {
+            if shareEnabled {
+                CYPillButton(verbatim: copy.shareBadge) { onShare?(); sharing = true }
+                CYPillButton(verbatim: copy.keepBadge, style: .tertiary, action: onKeep)
+            } else {
+                CYPillButton(verbatim: copy.keepBadge, action: onKeep)
+            }
+        }
+        .offset(y: 16 * (1 - u))
+        .opacity(u)
+        .allowsHitTesting(e >= 1.5)
+    }
+
+    private func play() async {
         if reduceMotion {
-            landed = true
+            withAnimation(.easeInOut(duration: CYMotion.Duration.quick)) { shown = true }
             return
         }
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.58)) { landed = true }
-        try? await Task.sleep(for: .seconds(0.3))
+        start = .now
+        // Park the clock once everything has landed; the idle drift needs it, so only Low Power stops early.
+        try? await Task.sleep(for: .seconds(2.0))
         guard !Task.isCancelled else { return }
-        burst += 1
+        if !CYLightBudget.shadersAllowed { finished = true }
     }
 }
 

@@ -26,6 +26,7 @@ struct RoamItemDetailView: View {
     @State private var originatingReaderID: ObjectIdentifier
     @State private var originatingArea: RoamSearchArea?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyCelebrationCenter) private var celebrations
     @Environment(\.scenePhase) private var scenePhase
     @State private var node: RoamNodeDetail?
     @State private var merchant: RoamMerchantDetail?
@@ -160,6 +161,8 @@ struct RoamItemDetailView: View {
             .onChange(of: reader.searchArea) { _, _ in merchantRetry.cancel(); eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil }
             .onDisappear { eventIsVisible = false; readsInForeground = false; eventPresentationID = UUID(); suspendReads() }
         }
+        // This sheet sits above RoamBrowserView's celebration layer, so a stamp made from here re-hosts the slam.
+        .cyStampOverlay(celebrations)
         .privacySensitive()
         .presentationDragIndicator(.visible)
         .accessibilityIdentifier("roam.detail")

@@ -38,6 +38,7 @@ struct RoamBrowserView: View {
     /// Existing account-scoped topic detail; nil keeps unconfigured hosts unavailable.
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     @State private var homeTab: RoamHomeTab = .start
+    @State private var celebrations = CYCelebrationCenter()
     @State private var entryCard: RoamNearbyEventsEntrySelection?
     @State private var recoveryEntry = RoamHomeRecoveryEntry()
     @Environment(\.scenePhase) private var recoveryScenePhase
@@ -244,6 +245,8 @@ struct RoamBrowserView: View {
                 }
             }
         }
+        // Hosts the stamp slam (a stamp made in the pushed camera, or in the item sheet, which re-hosts the overlay).
+        .cyCelebrations(celebrations)
     }
     private var passportView: some View {
         RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
