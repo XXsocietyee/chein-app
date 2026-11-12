@@ -220,6 +220,8 @@ private struct ParticipationCoverPlaceholder: View {
                         if let date = detail.cooperateDate { LabeledContent("playerJourney.cooperateDate") { Text(verbatim: date) } }
                     }
                 }
+                // Source result cards sit above the verification stats.
+                OrientScoreParticipationEntry(detail: detail)
                 if detail.showOrderStats {
                     Section("playerJourney.verification") {
                         // Source shows two cells in 人 and 0 for unknown statistics.

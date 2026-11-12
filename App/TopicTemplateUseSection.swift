@@ -7,6 +7,9 @@ import QuestifyCore
 /// "Not available yet"). Composition replaces `makeUser` once a write route and grant are approved.
 @MainActor enum TopicTemplateUseFactory {
     static var makeUser: () -> TopicTemplateUsing = { GatedTopicTemplateUser() }
+
+    /// True once composition replaced the gated writer. While false hosts do not show the section.
+    static var isLive: Bool { !(makeUser() is GatedTopicTemplateUser) }
 }
 
 /// Drop-in "Use this template" row for the topic-template detail screen. On a server-confirmed copy it

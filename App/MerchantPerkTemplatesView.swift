@@ -4,6 +4,8 @@ import SwiftUI
 /// Writes run only through the injected coordinator; a gated build says "not available yet".
 @MainActor struct MerchantPerkTemplatesView: View {
     @Bindable var model: MerchantPerkTemplatesCoordinator
+    /// False when the host has no write executor: add and delete are hidden, the list stays readable.
+    var writesEnabled = true
     @State private var draft = MerchantPerkTemplateDraft()
     @State private var showingForm = false
     @State private var confirmingDiscard = false
@@ -15,10 +17,12 @@ import SwiftUI
         content
             .appNavigationTitle("merchant.perks.title")
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("merchant.perks.add") { openForm() }
-                        .disabled(model.phase != .ready || model.isBusy)
-                        .accessibilityIdentifier("merchant.perks.add")
+                if writesEnabled {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("merchant.perks.add") { openForm() }
+                            .disabled(model.phase != .ready || model.isBusy)
+                            .accessibilityIdentifier("merchant.perks.add")
+                    }
                 }
             }
             .task { if model.phase == .idle { await model.load() } }
@@ -137,10 +141,16 @@ import SwiftUI
         }
         .accessibilityElement(children: .combine)
         .swipeActions {
-            Button("merchant.perks.delete", role: .destructive) { pendingDelete = row }
-                .disabled(model.isBusy)
+            if writesEnabled {
+                Button("merchant.perks.delete", role: .destructive) { pendingDelete = row }
+                    .disabled(model.isBusy)
+            }
         }
-        .accessibilityAction(named: Text("merchant.perks.delete")) { pendingDelete = row }
+        .accessibilityActions {
+            if writesEnabled {
+                Button("merchant.perks.delete") { pendingDelete = row }
+            }
+        }
     }
 
     private func openForm() {

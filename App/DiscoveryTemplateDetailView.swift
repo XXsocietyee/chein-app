@@ -166,6 +166,7 @@ struct DiscoveryTemplateDetailView: View {
 @MainActor
 struct DiscoveryTopicTemplatePreview: View {
     @Environment(\.cyPalette) private var palette
+    @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
     @State private var detail: PublicTopicTemplateCoordinator
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
     var body: some View {
@@ -189,6 +190,14 @@ struct DiscoveryTopicTemplatePreview: View {
                         if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds") { TopicXcxDurationText(seconds: seconds) } }
                         // Topic templates have no venue (mini-program topic-detail shows no address) and no version label.
                     }.discoveryCardRow()
+                    // Mini topic-detail "使用此模板". Hidden while the write is gated.
+                    if TopicTemplateUseFactory.isLive {
+                        Section {
+                            TopicTemplateUseSection(templateID: item.id, scope: nil, readOnly: false) { topicID in
+                                copiedDestination?(topicID)
+                            }
+                        }.discoveryCardRow()
+                    }
                     if let text = item.description, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.introduction") }.discoveryCardRow() }
                     if let text = item.playerPromise, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.playerPromise") }.discoveryCardRow() }
                     ForEach(item.chapters) { chapter in
