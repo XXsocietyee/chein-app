@@ -30,6 +30,8 @@ enum CYPassCardPick {
     @State private var selectedID: Int?
     @State private var detailID: Int?
     @State private var loadToken = 0
+    /// Bumped when the pass flips to verified: the edge glow sweeps the display corners (choreography D).
+    @State private var glowTick = 0
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
@@ -51,6 +53,7 @@ enum CYPassCardPick {
                 }
         }
         .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) { await load() }
+        .cyEdgeGlow(trigger: glowTick)
         .accessibilityIdentifier("ticketPass.sheet")
     }
     private struct TaskKey: Equatable { let scope: UUID; let token: Int; let active: Bool }
@@ -70,7 +73,7 @@ enum CYPassCardPick {
             if let ticket = current(in: snapshot) {
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
-                        TicketPassCard(ticket: ticket)
+                        TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
                         if let partial = snapshot.partialFailure {
                             Text(verbatim: c.t("部分票券没能读取，下拉或在菜单里刷新", "Some tickets did not load. Refresh from the menu."))
                                 .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
@@ -153,7 +156,8 @@ enum CYPassCardPick {
         guard reader.isAuthenticated, reader.isConfigured else {
             phase = .failed(TicketWalletReadFailure.unavailable, retry: nil); return
         }
-        phase = .loading
+        // A refresh over a loaded pass keeps the card on screen, so a status flip (ready to verified) can animate.
+        if phase.value == nil { phase = .loading }
         do {
             let snapshot = try await reader.ticketWallet()
             guard !Task.isCancelled else { return }
@@ -168,11 +172,22 @@ enum CYPassCardPick {
 /// The pass itself: header (title, date, place), tear line with notches, 240 pt code tile on white, status chip.
 @MainActor struct TicketPassCard: View {
     let ticket: TicketWalletTicket
+    /// Fired when the status flips to verified while the card is on screen; the host sweeps the display-edge glow.
+    var onVerified: (() -> Void)? = nil
     static let qrSide: CGFloat = 240
     @Environment(\.verificationCodeFactory) private var codeFactory
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
+    @QuestifyReduceMotion private var reduceMotion
     @State private var topHeight: CGFloat = 0
+    @State private var cardSize: CGSize = .zero
+    @State private var appeared = false
+    @State private var sheen = 0
+    @State private var dimTile = false
+    @State private var faceAngle = 0.0
+    @State private var tear: CGFloat = 0
+    @State private var drop: CGFloat = 0
+    @State private var verifyRun: Task<Void, Never>?
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     private var state: CYPassState { CYPassState(ticket.status) }
     private let tearBand: CGFloat = 22
@@ -181,22 +196,79 @@ enum CYPassCardPick {
     }
 
     var body: some View {
+        front
+            .accessibilityHidden(faceAngle >= 90)
+            .modifier(CYPassFlip(angle: faceAngle, crossfade: reduceMotion, back: verifiedBack))
+            .cyPassTilt()
+            .scaleEffect(appeared || reduceMotion ? 1 : 0.94, anchor: .top)
+            .offset(y: appeared || reduceMotion ? 0 : 28)
+            .opacity(appeared ? 1 : 0)
+            .onAppear {
+                withAnimation(CYMotion.resolve(CYMotion.entrance, reduceMotion: reduceMotion)) { appeared = true }
+                if ticket.status == .ready {
+                    Task { @MainActor in try? await Task.sleep(for: .milliseconds(450)); sheen += 1 }
+                }
+            }
+            .onChange(of: ticket.status) { old, new in
+                if new == .verified, old != .verified { runVerified() }
+            }
+            .onDisappear { verifyRun?.cancel() }
+    }
+
+    /// The live pass: the face every state starts on.
+    private var front: some View {
         VStack(spacing: 0) {
             header.background(GeometryReader { Color.clear.preference(key: TicketPassTopHeightKey.self, value: $0.size.height) })
             Color.clear.frame(height: tearBand).accessibilityHidden(true)
-            tile.padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xl)
+            tile.opacity(dimTile ? 0.6 : 1).padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xl)
         }
         .onPreferenceChange(TicketPassTopHeightKey.self) { topHeight = $0 }
         .frame(maxWidth: .infinity)
         .background(CYColor.bgElevated)
+        .cyFoilSheen(trigger: sheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
-        .overlay(shape.stroke(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
+        .cyPassFoilEdge(shape, active: ticket.status == .ready)
         .shadow(color: .black.opacity(0.40), radius: 16, y: 9)
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
+        .background(GeometryReader { g in Color.clear.onAppear { cardSize = g.size }.onChange(of: g.size) { _, new in cardSize = new } })
         .privacySensitive()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("ticketPass.card")
+    }
+
+    /// The green "You're in" face, torn along the perforation once the flip lands. Hidden until a flip happens.
+    @ViewBuilder private var verifiedBack: some View {
+        if cardSize.width > 1, topHeight > 0 {
+            let notchY = topHeight + tearBand / 2
+            CYPassTear(
+                face: CYPassVerifiedFace(title: ticket.title ?? "", number: ticket.registrationNumber, size: cardSize, notchY: notchY, shape: shape),
+                size: cardSize, notchY: notchY, tear: tear, drop: drop)
+        }
+    }
+
+    /// Choreography D from the moment the status flips (ms): 0 tile dims and the host fires the edge glow; 300 flip
+    /// (0.5 s); 800 the perforation tears (3 pt gap, 24 pt slide, impactLight); 1700 the stub drops toward the tab bar.
+    private func runVerified() {
+        verifyRun?.cancel()
+        verifyRun = Task { @MainActor in
+            withAnimation(.easeOut(duration: 0.15)) { dimTile = true }
+            onVerified?()
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            if reduceMotion {
+                withAnimation(CYMotion.reduced) { faceAngle = 180 }
+                return
+            }
+            withAnimation(.easeInOut(duration: 0.5)) { faceAngle = 180 }
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            CYHaptics.impactLight.play()
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { tear = 1 }
+            try? await Task.sleep(for: .milliseconds(900))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeIn(duration: 0.5)) { drop = 1 }
+        }
     }
 
     /// Cover-art band with the status chip top-right and the title on a scrim (same art as the wallet pass), then date
@@ -293,3 +365,4 @@ private struct TicketPassTopHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
+

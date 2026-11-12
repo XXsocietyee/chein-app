@@ -52,7 +52,7 @@ import SwiftUI
     func ticketDetail(id: Int) async throws -> TicketWalletTicket { throw TicketWalletReadFailure.unavailable }
 }
 
-/// Pass-card sheet lab (W1-5): `--design-fixture ui-pass-card | -pending | -used | -expired | -empty | -error`.
+/// Pass-card sheet lab (W1-5): `--design-fixture ui-pass-card-sheet | -pending | -used | -expired | -empty | -error`.
 /// The valid one has no code factory, so it shows the honest staff tile at the same 240 pt white size.
 struct PassCardFixture: View {
     enum Kind { case valid, pending, used, expired, empty, error }
@@ -95,6 +95,80 @@ struct PassCardFixture: View {
         TicketWalletSnapshot(tickets: base.ticket(id: id).map { [$0] } ?? [])
     }
     func ticketDetail(id: Int) async throws -> TicketWalletTicket { try await base.ticketDetail(id: id) }
+}
+
+/// One ticket whose status is chosen at init: ready (verificationStatus 0) or verified (1). Two instances with
+/// different scopes make the sheet reload, which is how `ui-pass-card-verify` flips the status.
+@MainActor final class E1PassCardVerifyReader: TicketWalletReading {
+    let scope = UUID()
+    let verified: Bool
+    init(verified: Bool) { self.verified = verified }
+    var isConfigured: Bool { true }
+    var isAuthenticated: Bool { true }
+    var isOfflineExample: Bool { true }
+    private struct Envelope: Decodable { let data: [TicketWalletTicket] }
+    private var tickets: [TicketWalletTicket] {
+        let time = verified ? #","verificationTime":"2030-05-18 19:04:00""# : ""
+        let json = #"{"data":[{"id":1001,"ownerType":1,"ownerId":201,"registrationStatus":2,"verificationStatus":\#(verified ? 1 : 0),"registrationNo":"EXAMPLE-PASS-1001","participateDate":"2030-05-18"\#(time),"cmsTopic":{"name":"Lantern Walk, Old Town (offline example)","productType":2,"addressName":"Drum Tower Square","startDate":"2030-05-18 19:00:00","endDate":"2030-05-18 22:00:00"}}]}"#
+        return (try? JSONDecoder().decode(Envelope.self, from: Data(json.utf8)))?.data ?? []
+    }
+    func ticketWallet() async throws -> TicketWalletSnapshot { TicketWalletSnapshot(tickets: tickets) }
+    func ticketDetail(id: Int) async throws -> TicketWalletTicket {
+        guard let t = tickets.first(where: { $0.id == id }) else { throw TicketWalletReadFailure.unavailable }
+        return t
+    }
+}
+
+/// `--design-fixture ui-pass-card-verify`: the real pass sheet on a ready ticket; 1.5 s after it appears the reader
+/// answers "verified". Expected beats (ms after the flip): 0 tile dims + edge glow sweeps the display corners (450),
+/// 300 pass flips to the green "You're in" face, 800 perforation tears and the stub slides, 1700 the stub drops toward
+/// the tab bar. With `--uitesting-reduce-motion`: glow fades, faces crossfade, no flip, no tear.
+struct PassCardVerifyFixture: View {
+    @State private var ready = E1PassCardVerifyReader(verified: false)
+    @State private var done = E1PassCardVerifyReader(verified: true)
+    @State private var flipped = false
+    var body: some View {
+        TicketPassSheet(reader: flipped ? done : ready, onClose: {}, onOpenWallet: {})
+            .themeDomain(.player)
+            .preferredColorScheme(.dark)
+            .task {
+                try? await Task.sleep(for: .milliseconds(1500))
+                flipped = true
+            }
+    }
+}
+
+/// `--design-fixture ui-pass-card`: the wallet card on an ink page. It opens by itself at 0.9 s (the pass grows out of
+/// the card), rests 2.4 s, then returns along the same path as a drag-down would; tap the card to open it again, drag
+/// the pass down past 120 pt (or tap the backdrop) to send it back.
+struct PassCardHostFixture: View {
+    @State private var holder = E1TicketHolderReader()
+    @State private var presented = false
+    @Environment(\.locale) private var locale
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+    var body: some View {
+        ZStack {
+            CYNight.ink0.ignoresSafeArea()
+            if let ticket = holder.ticket(id: E1TicketHolderReader.validID) {
+                CYPassFromCard(isPresented: $presented) {
+                    E1TicketCard(ticket: ticket, interactive: false)
+                } pass: {
+                    TicketPassCard(ticket: ticket)
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .padding(.top, CYSpacing.xxl)
+            }
+        }
+        .themeDomain(.player)
+        .preferredColorScheme(.dark)
+        .task {
+            try? await Task.sleep(for: .milliseconds(900))
+            presented = true
+            try? await Task.sleep(for: .milliseconds(3300))
+            presented = false
+        }
+    }
 }
 
 struct E1TicketHolderFixture: View {
