@@ -1,18 +1,20 @@
 import SwiftUI
 
 // Night-city light, particles (wave 3 B5). Spec: specs/design-wave3.md 3.4 and 5A. Canvas + TimelineView, no images.
-// Budget: at most 60 particles, stops drawing (and stops the timeline) when it ends. Reduce Motion, Low Power and
-// thermal >= serious draw nothing at all (CYLightBudget.particlesAllowed); the surrounding choreography carries the beat.
+// A mix of round dots, four-point sparkles and warm streaks (4-9 pt), slow easeOut drift with a light fall.
+// Budget: at most 90 particles, stops drawing when it ends. Reduce Motion, Low Power and thermal >= serious draw nothing
+// (CYLightBudget.particlesAllowed); the surrounding choreography carries the beat.
 
 struct CYBurst: View {
     enum Style { case dust, confetti }
+    private enum Glyph { case dot, sparkle, streak }
 
     private struct Particle {
-        var angle: Double, speed: Double, size: Double, hue: Double, spin: Double
+        var angle: Double, speed: Double, size: Double, hue: Double, spin: Double, glyph: Glyph
     }
 
-    /// Spec cap: never more than 60 particles on screen.
-    static let maxCount = 60
+    /// Owner call (wave 3 review): richer than the spec's 60.
+    static let maxCount = 90
 
     var origin: UnitPoint = .center
     var count = 48
@@ -43,8 +45,10 @@ struct CYBurst: View {
             guard particles.isEmpty else { return }
             let n = min(max(count, 0), Self.maxCount)
             particles = (0..<n).map { _ in
-                Particle(angle: .random(in: 0..<2 * .pi), speed: .random(in: 0.4...1), size: .random(in: 3...7),
-                         hue: .random(in: 0..<1), spin: .random(in: -6...6))
+                let roll = Double.random(in: 0..<1)
+                return Particle(angle: .random(in: 0..<2 * .pi), speed: .random(in: 0.35...1), size: .random(in: 4...9),
+                                hue: .random(in: 0..<1), spin: .random(in: -3...3),
+                                glyph: roll < 0.45 ? .dot : (roll < 0.80 ? .sparkle : .streak))
             }
             started = .now
         }
@@ -57,16 +61,45 @@ struct CYBurst: View {
         let o = CGPoint(x: size.width * origin.x, y: size.height * origin.y)
         let colors = palette
         for p in particles {
-            let travel = p.speed * (1 - pow(1 - t, 3)) * reach
-            let gravity = (style == .confetti ? 140 : 80) * t * t
+            let eased = 1 - pow(1 - t, 2.4)               // slow tail: drifts rather than flies
+            let travel = p.speed * eased * reach
+            let gravity = (style == .confetti ? 110 : 36) * t * t
+            let dx = cos(p.angle) * travel, dy = sin(p.angle) * travel + gravity
             var c = context
-            c.opacity = max(0, 1 - t * t)
-            c.translateBy(x: o.x + cos(p.angle) * travel, y: o.y + sin(p.angle) * travel + gravity)
-            c.rotate(by: .radians(p.spin * t))
-            let w = style == .confetti ? p.size * 1.4 : p.size
-            let rect = CGRect(x: -w / 2, y: -p.size / 2, width: w, height: p.size * 0.6)
+            // Twinkle: sparkles pulse, everything fades over the last 40 %.
+            let fade = t < 0.6 ? 1 : max(0, 1 - (t - 0.6) / 0.4)
+            let twinkle = p.glyph == .sparkle ? 0.65 + 0.35 * sin(t * 18 + p.hue * 20) : 1
+            c.opacity = fade * twinkle
+            c.translateBy(x: o.x + dx, y: o.y + dy)
             let color = colors[Int(p.hue * Double(colors.count)) % colors.count]
-            c.fill(style == .confetti ? Path(rect) : Path(ellipseIn: rect), with: .color(color))
+            switch p.glyph {
+            case .dot:
+                let r = p.size / 2
+                c.fill(Path(ellipseIn: CGRect(x: -r, y: -r, width: p.size, height: p.size)), with: .color(color))
+            case .sparkle:
+                c.rotate(by: .radians(p.spin * t))
+                c.fill(Self.sparkle(radius: p.size * 0.9), with: .color(color))
+            case .streak:
+                // Warm streak along the direction of travel.
+                c.rotate(by: .radians(atan2(dy, dx)))
+                let len = p.size * 3.2
+                c.fill(Path(roundedRect: CGRect(x: -len, y: -0.9, width: len, height: 1.8), cornerRadius: 0.9),
+                       with: .linearGradient(Gradient(colors: [.clear, CYNight.lantern]), startPoint: CGPoint(x: -len, y: 0), endPoint: .zero))
+            }
         }
+    }
+
+    /// Four-point sparkle: long thin points with a pinched waist.
+    static func sparkle(radius r: Double) -> Path {
+        var path = Path()
+        let waist = r * 0.22
+        for i in 0..<8 {
+            let a = Double(i) * .pi / 4 - .pi / 2
+            let rad = i % 2 == 0 ? r : waist
+            let pt = CGPoint(x: cos(a) * rad, y: sin(a) * rad)
+            if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
+        }
+        path.closeSubpath()
+        return path
     }
 }

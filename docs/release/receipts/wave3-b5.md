@@ -67,3 +67,9 @@ Reduce Motion: stamp = finished state cross-fades in, no particles, no flip, one
 
 - The stamp from the live camera has no place name and no passport count yet (`place: nil`, `passportCount: nil`): the title line shows alone and the count is a dash. Wire them when the created-stamp read exposes them.
 - Haptic and 1.8 s numbers are derived from the code clock, not measured; record at 0.25x speed to judge.
+
+## Review round 2 (from the real video frames)
+
+- Badge: new `CYCraftedMedal` / `CYBadgeShape` (`CYBadgeCraft.swift`): medal with ribbon, star, or shield with laurel, picked stably from the badge id; lantern-gold angular rim, inner bevel, grain, foil sheen that drifts live from 1400 ms (time-driven stand-in for B1's `CYFoil`). `CYStarBloom` now blooms the same silhouette; horizon is a lantern-gold arc that draws in from its centre with a bloom underneath.
+- Particles (`CYBurst`): 4-9 pt mix of dots, four-point sparkles (twinkling) and warm streaks, up to 90, slower drift. Badge: 40 at landing (450 ms) plus 86 when the stars arrive (1000 ms). Stamp: 48.
+- Stamp: the dark tile is gone, the seal presses straight onto the ground. Brass seal with serrated edge, inner ring and engraved glyph; contact squash (scaleY 0.9, about two frames), ink-bleed halo plus two rings; caption starts at 450 ms and rises from below.
