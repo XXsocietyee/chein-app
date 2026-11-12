@@ -37,6 +37,18 @@ final class SettingsNativeFlowTests: XCTestCase {
         XCTAssertTrue(sound.waitForExistence(timeout: 5)); expectSwitch(sound, value: "0")
         XCTAssertFalse(app.alerts.firstMatch.exists)
     }
+    /// presstap: plain taps on Settings Form rows (NavigationLinks) must push their page, and back must return.
+    func testSettingsRowTapsNavigate() {
+        launch()
+        let sound = app.buttons["settingsNative.openSound"]
+        reveal(sound); sound.tap()
+        XCTAssertTrue(app.switches["settingsNative.sound.sound"].waitForExistence(timeout: 5), app.debugDescription)
+        back()
+        let about = app.buttons["settingsNative.openAbout"]
+        reveal(about); about.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["settingsNative.about.market"].firstMatch.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(app.switches["settingsNative.sound.sound"].exists)
+    }
     func testSoundLoadFailureAndRetry() {
         launch("loadFailure"); open("settingsNative.openSound")
         XCTAssertTrue(app.staticTexts["settingsNative.sound.error"].waitForExistence(timeout: 5))

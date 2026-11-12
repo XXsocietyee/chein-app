@@ -32,6 +32,16 @@ final class IMMessagingParityUITests: XCTestCase {
         XCTAssertFalse(app.buttons["messaging.conversation.904"].exists)
     }
 
+    /// presstap: a plain tap on a home inbox row (a List NavigationLink) must push the conversation. A press-tracking
+    /// gesture on the row once swallowed this tap on the iOS 27 runtime.
+    func testInboxRowTapNavigatesToConversation() {
+        let app = launch("success")
+        let row = app.buttons["messaging.conversation.901"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5), app.debugDescription)
+        row.tap()
+        XCTAssertTrue(app.buttons["messaging.message.10"].waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertFalse(row.isHittable)
+    }
     func testReadOnlyFixtureOffersNoSafetyActions() {
         let app = launch("success")
         let row = app.buttons["messaging.conversation.901"]
