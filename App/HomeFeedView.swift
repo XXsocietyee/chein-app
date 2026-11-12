@@ -50,6 +50,7 @@ import SwiftUI
                 // Night-city offline state: drawn art on the ink ground instead of the system placeholder.
                 CYStateLayout(kind: .offline, title: Text("homeFeed.unavailable"),
                               detail: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
+                    .accessibilityElement(children: .combine) // one static text, as the system placeholder was: UITests and VoiceOver read a single state
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background { CYExploreGround() }
                     .accessibilityIdentifier("homeFeed.configurationUnavailable")

@@ -149,14 +149,14 @@ struct SettingsGuideHandoff {
 
 /// Night-city tile colours: one muted hue per group. Lantern stays off chrome; violet stays off these tiles.
 enum SettingsTint {
-    static let blue = CYRGB(hex: 0x3A4A8A).swiftUIColor
-    static let green = CYRGB(hex: 0x1E6B4A).swiftUIColor
-    static let orange = CYRGB(hex: 0x8A5A32).swiftUIColor
-    static let red = CYRGB(hex: 0x8A3A32).swiftUIColor
-    static let pink = CYRGB(hex: 0x8A4A58).swiftUIColor
+    static let blue = CYNight.tileBlue
+    static let green = CYNight.tileGreen
+    static let orange = CYNight.tileOrange
+    static let red = CYNight.tileRed
+    static let pink = CYNight.tilePink
     static let purple = CYNight.indigo
     static let indigo = CYNight.indigo
-    static let teal = CYRGB(hex: 0x1E5A68).swiftUIColor
+    static let teal = CYNight.tileTeal
     static let gray = CYNight.ink2
 }
 private struct SettingsTileTintKey: EnvironmentKey { static let defaultValue: Color = SettingsTint.gray }

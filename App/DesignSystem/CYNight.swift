@@ -9,6 +9,13 @@ public enum CYNight {
     public static let ink2 = CYRGB(hex: 0x171726).swiftUIColor      // raised card / sheet
     public static let indigo = CYRGB(hex: 0x1B1E4A).swiftUIColor    // map ground, fog, hero backdrops
     public static let violet = CYRGB(hex: 0x7A5CFF).swiftUIColor    // selection only
+    // Muted group hues for Settings tiles (quiet chrome: no lantern, no selection violet).
+    public static let tileBlue = CYRGB(hex: 0x3A4A8A).swiftUIColor
+    public static let tileGreen = CYRGB(hex: 0x1E6B4A).swiftUIColor
+    public static let tileOrange = CYRGB(hex: 0x8A5A32).swiftUIColor
+    public static let tileRed = CYRGB(hex: 0x8A3A32).swiftUIColor
+    public static let tilePink = CYRGB(hex: 0x8A4A58).swiftUIColor
+    public static let tileTeal = CYRGB(hex: 0x1E5A68).swiftUIColor
     public static let lantern = CYRGB(hex: 0xFFB84D).swiftUIColor   // light: discovery + reward only
     public static let lanternHot = CYRGB(hex: 0xFFE3A6).swiftUIColor // light core
     public static let ember = CYRGB(hex: 0xFF7A3D).swiftUIColor     // gradient tail of lantern, never alone

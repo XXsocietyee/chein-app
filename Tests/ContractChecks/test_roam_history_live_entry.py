@@ -78,7 +78,7 @@ class RoamHistoryLiveEntryContracts(unittest.TestCase):
         self.assertEqual(self.history.count('try reader.history()'), 1)
 
     def test_prior_record_detail_navigation_statistics_and_share_remain(self):
-        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts)', 'RoamHistorySummary(records)', 'RoamRouteSketchView(record: record)', 'RoamExperienceIssue(error: error, retry: load)']:
+        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero)', 'RoamHistorySummary(records)', 'RoamRouteSketchView(record: record)', 'RoamExperienceIssue(error: error, retry: load)']:
             self.assertIn(token, self.history)
         self.assertIn('RoamHistoryShareView(record: record, reader: reader)', self.view)
         self.assertIn('RoamRecordedStats(record: record)', self.view)
