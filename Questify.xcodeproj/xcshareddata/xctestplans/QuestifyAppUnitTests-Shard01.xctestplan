@@ -58,6 +58,7 @@
         "BNDCancelTransportTests",
         "BackendRolloutAllowlistSwitchboardSectionViewTests",
         "BackendSyncAndContractGateSectionViewTests",
+        "BundleCommerceMountTests",
         "CYCachedAsyncImageTests",
         "ChannelAdmissionGovernanceEntryTests",
         "ChannelDirectoryTransportInjectionTests",

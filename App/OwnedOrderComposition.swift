@@ -8,6 +8,7 @@ import SwiftUI
     var body: some View {
         OwnedOrdersLifecycleHost(session: session)
             .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
+            .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
             .id(session.ownedOrderReader.identity)
     }
 }
