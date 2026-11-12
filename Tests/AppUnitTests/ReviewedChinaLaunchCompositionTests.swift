@@ -134,6 +134,11 @@ import XCTest
             return XCTFail("a China host with a bundle and realm still selects the reviewed deployment")
         }
         XCTAssertTrue(shipped.playerWritesEnabled)
+        XCTAssertNotNil(admitted.playerWriteCatalog)
+        for name in ["im", "square", "club-community", "club-join", "profile", "registration", "team", "roam", "play", "consent"] {
+            XCTAssertNotNil(admitted.playerWriteCatalog?.feature(name))
+        }
+        XCTAssertNil(RegionalLaunchConfiguration.composition.playerWriteCatalog)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)

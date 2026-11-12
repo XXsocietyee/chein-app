@@ -854,6 +854,13 @@ final class AppSession: ObservableObject {
     private var communityService: ClubCommunityService {
         resolvedClubCommunityService(fallback: dormantCommunityService)
     }
+    private func clubCommunityWriteServiceOrDormant() -> ClubCommunityService {
+        if let context = currentRuntimeDependencyContext,
+           let writer = composition.clubCommunityWriteService(baseURL: context.baseURL, transport: runtimeHTTPTransport) {
+            return writer
+        }
+        return dormantCommunityService
+    }
     var clubCommunityRuntimeContext: RuntimeDependencyContext? { currentRuntimeDependencyContext }
     var clubCommunityRuntimeTransport: any HTTPTransport { scopedTransport(clubCommunityTransportOverride) }
     func currentClubCommunitySession() throws -> ClubCommunitySession { try currentCommunitySession() }
@@ -872,7 +879,7 @@ final class AppSession: ObservableObject {
         }
     }
     private lazy var communityCoordinator = ClubCommunityCoordinator(
-        service: dormantCommunityService,
+        service: clubCommunityWriteServiceOrDormant(),
         currentSession: { [weak self] in
             guard let self else { throw ClubCommunityFailure.unavailable }; return try self.currentCommunitySession()
         },

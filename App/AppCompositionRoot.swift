@@ -383,6 +383,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     var clubPostOriginalApproval: @MainActor (RuntimeDependencyContext) -> ClubPostOriginalApproval? = { _ in nil }
     var clubCommentOriginalApproval: @MainActor (RuntimeDependencyContext) -> ClubCommentOriginalApproval? = { _ in nil }
     var clubOrdinaryAdmissionApproval: @MainActor (RuntimeDependencyContext) -> ClubOrdinaryAdmissionApproval? = { _ in nil }
+    /// Non-nil only when the shipped China composition has the owner player-write grant.
+    let playerWriteCatalog: PlayerWriteCatalog?
     var clubRoleAssignmentApproval: @MainActor (RuntimeDependencyContext) -> ClubRoleAssignmentApproval? = { _ in nil }
     var clubRoleRevocationApproval: @MainActor (RuntimeDependencyContext) -> ClubRoleRevocationApproval? = { _ in nil }
     /// 俱乐部帖子图片上传 (`api/common/uploadOSS`, `bizType=club_post_image`). Dormant until a reviewed lease exists.
@@ -597,11 +599,22 @@ extension KeychainTokenStore: AppTokenStorage {}
                 gates.roamLive(context)
             }
         }
+        let grantPlayerWrites: Bool
         if case .reviewed(let reviewed) = deployment, reviewed.playerWritesEnabled, reviewed.regional.market == .china {
+            grantPlayerWrites = true
             clubOrdinaryAdmissionApproval = { context in
                 try? ClubOrdinaryAdmissionApproval(context: context, allowsWrites: true)
             }
+        } else {
+            grantPlayerWrites = false
         }
+        self.playerWriteCatalog = grantPlayerWrites ? .shipped : nil
+    }
+
+    /// Club post/comment writes for the player grant. The read composition stays read-only.
+    func clubCommunityWriteService(baseURL: URL, transport: any HTTPTransport) -> ClubCommunityService? {
+        guard playerWriteCatalog != nil else { return nil }
+        return ClubCommunityService(dormantBaseURL: baseURL, transport: transport, grant: .reviewedInjection)
     }
     var reviewed: ReviewedAppDeployment? {
         if case .reviewed(let value) = deployment { return value }; return nil
@@ -3569,23 +3582,78 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
 }
 
-/// Non-money player writes approved 2026-11-12. Exact paths only. Money, merchant, coop,
-/// and password routes are not in the set, and `ReleaseMoneyWriteSwitch` still refuses them.
+/// One non-nil writer record per player feature the shipped China composition builds.
+struct PlayerWriteCatalog {
+    struct Feature {
+        let name: String
+        let service: String
+        let view: String
+    }
+    let features: [Feature]
+    func feature(_ name: String) -> Feature? { features.first { $0.name == name } }
+    static let shipped = PlayerWriteCatalog(features: [
+        .init(name: "im", service: "MessageActionCoordinator", view: "SessionMessagingHome"),
+        .init(name: "square", service: "SquareGovernanceService", view: "SessionSquareBrowserView"),
+        .init(name: "club-community", service: "ClubCommunityCoordinator", view: "ClubDetailView"),
+        .init(name: "club-join", service: "ClubOrdinaryAdmissionApproval", view: "ClubHomeView"),
+        .init(name: "profile", service: "ProfileEditService", view: "ProfileEditView"),
+        .init(name: "registration", service: "RegistrationCoordinator", view: "RegistrationSheetView"),
+        .init(name: "team", service: "ReviewedNearbyTeamWriteRoute", view: "TeamHomeView"),
+        .init(name: "roam", service: "RoamExperienceMutation", view: "RoamCheckIn"),
+        .init(name: "play", service: "PlayExperienceCoordinator", view: "PlayExperienceView"),
+        .init(name: "consent", service: "AccountComplianceCompositionRoute", view: "SettingsView")
+    ])
+}
+
+/// Non-money player writes approved 2026-11-12. Paths are the live wired catalog only.
+/// Money, merchant, coop, and password routes are not in the set, and
+/// `ReleaseMoneyWriteSwitch` still refuses them. `api/registration/create` is free tickets only.
 private enum PlayerWriteAdmission {
     static let paths: Set<String> = [
         "api/im/send", "api/im/send-receipt", "api/im/read", "api/im/mute", "api/im/delete",
-        "api/im/report", "api/im/block", "api/im/unblock",
+        "api/im/report", "api/im/block", "api/im/unblock", "api/im/start",
         "api/creativesquare/action", "api/creativesquare/bookmark", "api/creativesquare/like", "api/creativesquare/report",
-        "api/comment/add", "api/v1/community/reports", "api/v1/community/appeals",
+        "api/comment/add", "api/comment/delete", "api/comment/like", "api/comment/report",
+        "api/v1/community/reports", "api/v1/community/appeals",
         "api/club/join", "api/club/quit", "api/club/post/create", "api/club/post/update", "api/club/post/like",
-        "api/club/post/report", "api/club/post/comment/create", "api/club/post/comment/report", "api/club/post/repost",
-        "api/user/update", "api/common/uploadOSS", "api/user/address/action", "api/user/address/delete",
+        "api/club/post/report", "api/club/post/delete", "api/club/post/comment/create", "api/club/post/comment/report",
+        "api/club/post/comment/delete", "api/club/post/repost",
+        "api/user/update", "api/user/follow/action", "api/user/setInviter", "api/common/uploadOSS",
+        "api/user/address/action", "api/user/address/delete",
         "api/registration/create", "api/registration/cancel",
-        "api/team/create", "api/team/join", "api/team/quit",
-        "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange",
-        "api/play/answer", "api/play/checkin",
+        "api/registration/scan_qr_code_chapter", "api/registration/scan_qr_code_station",
+        "api/verify/dyncode/issue", "api/verify/citynode/issue", "api/coupon/qr-token",
+        "api/team/create", "api/team/join", "api/team/quit", "api/team/report", "api/team/applications",
+        "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",
+        "api/roam/shop/visit", "api/roam/poi/discover", "api/roam/reveal", "api/roam/presence",
+        "api/roam/nearby-runners", "api/roam/share/snapshot", "api/roam/passport/record",
+        "api/play/answer", "api/play/checkin", "api/play/arrive", "api/play/photo", "api/play/puzzle/reveal",
+        "api/play/sensor-result", "api/play/scan-entry", "api/play/advanced/start", "api/play/advanced/action",
+        "api/play/action-context", "api/play/action-receipt", "api/play/check/settle", "api/play/run-session/save",
+        "api/play/theme/action", "api/play/orient/session", "api/play/orient/session/start",
+        "api/play/orient/session/abandon", "api/play/orient/session/prepare", "api/play/orient/session/receipt",
+        "api/play/journey/opening/complete", "api/play/journey/ask", "api/play/journey/backpack",
+        "api/play/journey/call", "api/play/journey/casebook", "api/play/journey/ending",
+        "api/play/journey/stage-end", "api/play/journey/thought/sync",
+        "api/topic/chapter/finish", "api/topic/create", "api/topic/update", "api/topic/cancel", "api/topic/delete",
+        "api/topic/v2/create", "api/topic/v2/update", "api/topic/like", "api/topic/report", "api/template/report",
+        "api/circle-theme/session/join",
+        "api/capsules/create", "api/capsules/delete",
+        "api/community-trust/reports/submit",
+        "api/club/governance/cases/report", "api/club/governance/cases/appeal",
+        "api/club/event-ops/waitlist/join", "api/club/event-ops/waitlist/cancel",
+        "api/ai/npc/chat/data/delete",
         "api/exploration-goals/create", "api/exploration-goals/cancel",
-        "api/compliance/consents"
+        "api/compliance/consents", "api/compliance/consents/latest"
+    ]
+    static let patterns: Set<String> = [
+        "/api/city/nodes/{}/favorite",
+        "/api/city/nodes/{}/complete",
+        "/api/official/events/{}/arrivals",
+        "/api/official/events/{}/complete",
+        "/api/play/preference/{}",
+        "/api/play/preference/{}/submit",
+        "/api/play/orient/session/task/{}/result"
     ]
 
     static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
@@ -3593,11 +3661,19 @@ private enum PlayerWriteAdmission {
               let url = request.url else { return false }
         let relative = relativePath(url, baseURL: baseURL)
         guard !relative.isEmpty, !ReleaseMoneyWriteSwitch.blocks("/" + relative) else { return false }
+        if relative == "api/registration/create" { return freeRegistrationBody(request) }
         if paths.contains(relative) { return true }
-        let parts = relative.split(separator: "/").map(String.init)
-        guard parts.count == 5, parts[0] == "api", parts[1] == "city", parts[2] == "nodes",
-              let id = Int(parts[3]), id > 0, String(id) == parts[3],
-              parts[4] == "favorite" || parts[4] == "complete" else { return false }
+        return patterns.contains(ChinaReviewedRouteCapability.normalized(relative))
+    }
+
+    /// A create with `payChannel` or a positive amount is a payment step and stays closed.
+    private static func freeRegistrationBody(_ request: URLRequest) -> Bool {
+        guard let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              object["payChannel"] == nil else { return false }
+        for key in ["payAmount", "price", "amount", "payableAmount"] {
+            if let number = object[key] as? NSNumber, number.doubleValue > 0 { return false }
+        }
         return true
     }
 

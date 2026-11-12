@@ -94,6 +94,8 @@ public enum RegistrationCoordinatorBlock: Equatable {
     case quoteNotUsable
     case intentAlreadySubmitted
     case invalidRequest
+    /// Quote price is above zero. Payment stays off, so this confirm does not send.
+    case paymentRequired
     case cancelledBeforeDispatch
     case noKnownRegistrationID
     case readbackInProgress
@@ -223,13 +225,14 @@ public final class RegistrationCoordinator {
               !participant.phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return .blocked(.invalidRequest)
         }
+        guard quote.payAmount == .zero else { return .blocked(.paymentRequired) }
         let intent: RegistrationCreateIntent
         do {
             intent = try RegistrationCreateIntent(
                 selection: selection, quote: quote, realName: participant.realName,
                 phone: participant.phone, email: participant.email,
                 participateDate: participant.participateDate,
-                usesAppPaymentChannel: participant.usesAppPaymentChannel,
+                usesAppPaymentChannel: false,
                 requestID: makeRequestID(), waitlistOffer: participant.waitlistOffer
             )
         } catch { return .blocked(.invalidRequest) }
