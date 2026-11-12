@@ -102,6 +102,39 @@ func scrollToElement(_ element: XCUIElement, in app: XCUIApplication, container:
     return ready()
 }
 
+/// Opens a row of a long lazy list by tapping its coordinates once it sits fully inside the visible area and has held
+/// still for half a second. `isHittable` is not used: the hub keeps relaying out while it loads, so the element can be
+/// reported unhittable (or still coasting) even though the row is on screen. Sweeps down, back up, then down again.
+@discardableResult
+func openListRow(_ element: XCUIElement, in app: XCUIApplication, container: XCUIElement, maxSweeps: Int = 12) -> Bool {
+    let screen = app.windows.firstMatch.frame
+    func visible() -> Bool {
+        guard element.exists else { return false }
+        let frame = element.frame
+        return !frame.isEmpty && frame.minY > 120 && frame.maxY < screen.maxY - 90 && frame.midX > 0 && frame.midX < screen.maxX
+    }
+    func tapIfStill() -> Bool {
+        guard visible() else { return false }
+        let before = element.frame
+        Thread.sleep(forTimeInterval: 0.5)
+        guard visible(), abs(element.frame.minY - before.minY) < 1 else { return false }
+        element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        return true
+    }
+    if tapIfStill() { return true }
+    guard container.exists else { return false }
+    for _ in 0..<maxSweeps { container.swipeUp(velocity: .slow); if tapIfStill() { return true } }
+    for _ in 0..<(maxSweeps * 2) { container.swipeDown(velocity: .slow); if tapIfStill() { return true } }
+    for _ in 0..<maxSweeps { container.swipeUp(velocity: .slow); if tapIfStill() { return true } }
+    return false
+}
+
+/// First GO asks for location through the in-app primer before the roam starts; accept it when it appears.
+func acceptLocationPrimerIfShown(in app: XCUIApplication) {
+    let allow = app.buttons["cy.permission.priming.primary"]
+    if allow.waitForExistence(timeout: 2) { allow.tap() }
+}
+
 /// GO is a press-and-hold pill (600 ms): a tap cancels. Holds past the commit so the start fires.
 func holdGo(_ element: XCUIElement) { element.press(forDuration: 0.9) }
 
