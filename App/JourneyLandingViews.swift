@@ -79,6 +79,8 @@ struct JourneyModeTilesView: View {
     let tiles: [JourneyModeTile]
     @Binding var active: String?
     var showsRules = true
+    /// Lobby tiles (seats page) are informational only: no radio, no selection.
+    var selectable = true
     @Namespace private var ring
     @QuestifyReduceMotion private var reduceMotion
 
@@ -89,7 +91,7 @@ struct JourneyModeTilesView: View {
             MPSectionHeader(title: "mp.journey.howToPlay")
             HStack(spacing: CYSpacing.md) {
                 ForEach(Array(tiles.enumerated()), id: \.element.id) { index, tile in
-                    tileView(tile, multi: tiles.count > 1).cyStaggerAppear(index)
+                    tileView(tile, multi: selectable && tiles.count > 1).cyStaggerAppear(index)
                 }
             }
             if showsRules, let tile = activeTile, !tile.rules.isEmpty {
@@ -254,8 +256,11 @@ enum JourneyLandingPhase: Equatable {
 @MainActor struct JourneyLandingHost: View {
     let binding: any JourneyLandingBinding
     var onBrowse: (() -> Void)? = nil
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
-        JourneyLandingView(phase: binding.phase, onRetry: { binding.load() }, onSelectMode: { binding.selectMode($0) }, onPrimary: { binding.primary() }, onBrowse: onBrowse)
+        JourneyLandingView(phase: binding.phase, onRetry: { binding.load() }, onSelectMode: { binding.selectMode($0) }, onPrimary: { binding.primary() },
+                           onBrowse: onBrowse ?? (rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.home) } : nil))
             .task { binding.load() }
     }
 }
@@ -347,7 +352,7 @@ struct JourneyDuoView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            seat {
+            seat(ringDelay: 0) {
                 if let inviter { MPAvatar(url: inviter.avatarURL, initial: inviter.initial, size: 72) }
                 else { Image(systemName: "person.2.fill").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary) }
             }
@@ -367,7 +372,7 @@ struct JourneyDuoView: View {
                 }
             }
             .frame(height: 20)
-            seat {
+            seat(ringDelay: 1.2) {
                 if let seatNo {
                     Text(verbatim: seatNo).font(CYTypography.dataXL).foregroundStyle(CYNight.ink0).monospacedDigit()
                         .transition(.scale.combined(with: .opacity))
@@ -382,9 +387,18 @@ struct JourneyDuoView: View {
         .accessibilityHidden(true)
     }
 
-    private func seat<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+    private func seat<Content: View>(ringDelay: Double, @ViewBuilder _ content: () -> Content) -> some View {
         ZStack {
             Circle().strokeBorder(CYColor.borderStrong, lineWidth: 1.5).frame(width: 88, height: 88)
+            // jl-ring: each end breathes outward every 2.4 s, the two ends half a beat apart. Reduce Motion: no ring.
+            if !reduceMotion {
+                TimelineView(.animation(minimumInterval: 1.0 / 30)) { context in
+                    let p = ((context.date.timeIntervalSinceReferenceDate + ringDelay) / 2.4).truncatingRemainder(dividingBy: 1)
+                    Circle().strokeBorder(CYNight.lantern.opacity(0.6), lineWidth: 1.5)
+                        .frame(width: 88, height: 88).scaleEffect(1 + p * 0.4).opacity(1 - p)
+                }
+                .allowsHitTesting(false)
+            }
             Circle().fill(CYNight.ink2).frame(width: 72, height: 72)
             content()
         }
@@ -536,7 +550,7 @@ struct JourneySeatsView: View {
                 }
                 if content.showsParty { party(content) }
                 if content.multi && !content.tiles.isEmpty {
-                    JourneyModeTilesView(tiles: content.tiles, active: .constant(nil), showsRules: false)
+                    JourneyModeTilesView(tiles: content.tiles, active: .constant(nil), showsRules: false, selectable: false)
                 }
                 if content.showsParty && (!content.invited.isEmpty || content.actionError != nil) {
                     if let error = content.actionError { MPInlineError(text: Text(verbatim: error)) }
@@ -607,8 +621,12 @@ struct JourneySeatsView: View {
                 if circle.kind == .open {
                     Circle().strokeBorder(CYColor.borderStrong, style: StrokeStyle(lineWidth: 1.5, dash: [4, 4])).frame(width: 56, height: 56)
                     Image(systemName: "plus").foregroundStyle(CYColor.textSecondary).frame(width: 56, height: 56)
+                } else if circle.kind == .invited {
+                    Circle().strokeBorder(CYColor.textPrimary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 4])).frame(width: 56, height: 56)
+                        .overlay(Text(verbatim: String(circle.no)).font(CYTypography.cardTitle).monospacedDigit())
                 } else if circle.kind == .me {
                     MPAvatar(url: circle.avatarURL, initial: circle.initial ?? "", size: 56)
+                        .overlay(Circle().strokeBorder(CYColor.textPrimary, lineWidth: 2).padding(-3))
                 } else {
                     Circle().fill(CYNight.ink2).frame(width: 56, height: 56)
                         .overlay(Text(verbatim: String(circle.no)).font(CYTypography.cardTitle).monospacedDigit())
@@ -621,6 +639,7 @@ struct JourneySeatsView: View {
             Text(circle.kind.label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
         }
         .frame(minWidth: CYSpacing.minTouchTarget)
+        .opacity(circle.kind == .expired ? 0.45 : 1)
     }
 
     private func openInvite(_ content: JourneySeatsContent) {
@@ -707,7 +726,8 @@ struct JourneyPromoContent: Equatable {
     var heldOrders: Int?
     var campaigns: [JourneyPromoCampaign]
     var links: [JourneyPromoLink]
-    var hasRecords: Bool { !buckets.isEmpty || heldOrders != nil || !campaigns.isEmpty || !links.isEmpty }
+    /// Mini-program `hasRecords`: allocations or deals. Links alone still show "no verifiable records".
+    var hasRecords: Bool { !buckets.isEmpty || !campaigns.isEmpty }
 }
 
 enum JourneyPromoPhase: Equatable {
@@ -781,7 +801,7 @@ struct JourneyPromoView: View {
             MPRows(items: content.campaigns) { campaign in
                 MPRow(title: campaign.title.map { Text(verbatim: $0) } ?? Text("mp.promo.topic"),
                       sub: Text("mp.promo.deal.line \(MPText.orDash(campaign.attributed)) \(MPText.orDash(campaign.paid))")
-                        + (campaign.refunded.map { Text(verbatim: " · ") + Text("mp.promo.deal.refunded \($0)") } ?? Text(verbatim: "")))
+                        + (campaign.refunded.flatMap { $0 > 0 ? $0 : nil }.map { Text(verbatim: " · ") + Text("mp.promo.deal.refunded \($0)") } ?? Text(verbatim: "")))
             }
         }
         if !content.links.isEmpty {
