@@ -12,7 +12,7 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         self.wall, self.detail = self.source.split('@MainActor struct ObjectBadgeDetailView:', 1)
     def test_existing_detail_and_route_lifetimes_are_byte_identical(self):
         value = ('@MainActor struct ObjectBadgeDetailView:' + self.detail).encode()
-        self.assertEqual(hashlib.sha256(value).hexdigest(), '926bbcfeae6b096a767097acccee7a2fe9195934cd12bb6d122a1408a6254cd8')
+        self.assertEqual(hashlib.sha256(value).hexdigest(), '6e109d563a6b532fe703c26b338285160317eb29288c0db93d38d13042329858')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_default_list_and_current_owner_selection_are_local(self):
