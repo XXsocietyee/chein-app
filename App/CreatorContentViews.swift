@@ -62,7 +62,7 @@ private struct CreatorContentIssueView: View {
     @StateObject private var model = CreatorContentScreenModel<CreatorContentProjectPage>()
     /// Nil while my-project writes are gated; then no row offers a write.
     @State private var mutation: MyProjectMutationModel?
-    @State private var query = CreatorContentQuery()
+    @State private var query = CreatorContentQuery(type: "topic")
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.myProjectTemplateShelf) private var templateShelf
@@ -76,10 +76,10 @@ private struct CreatorContentIssueView: View {
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
             else {
+                // Mini-program myproject: three underline tabs 主题 / 活动 / 模板, no owner or state filters.
                 Section {
-                    picker("creatorContent.type", selection: $query.type, values: ["all", "topic", "activity", "template"])
-                    picker("creatorContent.owner", selection: $query.ownerType, values: ["all", "member", "club", "merchant"])
-                    picker("creatorContent.state", selection: $query.state, values: ["all", "draft", "pending", "notStarted", "running", "completed", "offline", "rejected"])
+                    typeTabs
+                        .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                 }
                 if let mutation, reader.isAuthenticated {
                     MyProjectMutationStrip(model: mutation) { Task { await refresh() } }
@@ -131,27 +131,67 @@ private struct CreatorContentIssueView: View {
             Task { await refresh() }
         }
     }
-    private func picker(_ title: LocalizedStringKey, selection: Binding<String>, values: [String]) -> some View {
-        Picker(title, selection: selection) {
-            ForEach(values, id: \.self) { value in Text(LocalizedStringKey("creatorContent.filter." + value)).tag(value) }
-        }.pickerStyle(.menu)
+    private var typeTabs: some View {
+        HStack(spacing: 0) {
+            ForEach(["topic", "activity", "template"], id: \.self) { value in
+                let selected = query.type == value
+                Button { query.type = value } label: {
+                    VStack(spacing: CYSpacing.sm) {
+                        Text(LocalizedStringKey("creatorContent.filter." + value))
+                            .font(selected ? CYTypography.cardTitle : CYTypography.body)
+                            .foregroundStyle(selected ? CYColor.textPrimary : CYColor.textSecondary)
+                        Capsule().fill(selected ? CYColor.textPrimary : Color.clear).frame(height: 3)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+                .accessibilityIdentifier("creatorContent.type.\(value)")
+            }
+        }
+        .sensoryFeedback(.selection, trigger: query.type)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("creatorContent.type"))
     }
     private func issue(_ value: CreatorContentIssue) -> some View {
         CreatorContentIssueView(issue: value) { Task { await refresh() } }
     }
+    /// Mini-program myproject row: cover tile, title (state top-right), hairline, then the stats footer.
     private func card(_ project: CreatorContentProject) -> some View {
-        QuestifyImageEntityCard(imageSource: project.cover, title: project.title,
-                               subtitle: project.projectTypeText, fallbackTitle: "creatorContent.untitled", minimumHeight: 240) {
-            if let state = project.stateText { Text(verbatim: state) }
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                let title = project.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                Color.clear.frame(width: 92, height: 92)
+                    .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: project.cover, debugLabel: false) }
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    HStack(alignment: .firstTextBaseline) {
+                        if let type = project.projectTypeText { Text(verbatim: type).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                        Spacer(minLength: CYSpacing.sm)
+                        if let state = project.stateText { Text(verbatim: state).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                    }
+                    if title.isEmpty { Text("creatorContent.untitled").font(CYTypography.cardTitle) }
+                    else { Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2) }
+                    MyProjectCardMeta(project: project, chinese: locale.language.languageCode?.identifier == "zh")
+                }
+            }
+            Divider().overlay(CYColor.borderSubtle)
             // Mini-program myproject footer: co-host acceptance text, otherwise always "N 报名 · N 浏览", then the owner identity.
-            if let pending = project.pendingVerifyCount { Text("myProject.pendingVerify \(pending)") }
-            else if let acceptance = MyProjectListPresentation.acceptanceText(project) { Text(verbatim: acceptance) }
-            else { Text("myProject.statsLine \(project.signupCount) \(project.viewCount)") }
-            Text(LocalizedStringKey(project.ownerType == "club" ? "creatorContent.filter.club"
-                : project.ownerType == "merchant" ? "creatorContent.filter.merchant" : "creatorContent.filter.member"))
-                .font(.caption).foregroundStyle(.secondary)
-            MyProjectCardMeta(project: project, chinese: locale.language.languageCode?.identifier == "zh")
-        }.accessibilityElement(children: .combine)
+            Group {
+                if let pending = project.pendingVerifyCount { Text("myProject.pendingVerify \(pending)") }
+                else if let acceptance = MyProjectListPresentation.acceptanceText(project) { Text(verbatim: acceptance) }
+                else { Text("myProject.statsLine \(project.signupCount) \(project.viewCount)") }
+            }
+            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            if project.ownerType == "club" || project.ownerType == "merchant" {
+                Text(LocalizedStringKey(project.ownerType == "club" ? "creatorContent.filter.club" : "creatorContent.filter.merchant"))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .padding(CYSpacing.lg)
+        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }
