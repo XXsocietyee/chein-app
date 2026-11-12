@@ -39,9 +39,12 @@ import QuestifyCore
 @available(macOS 14.0, *)
 @MainActor struct OrientScoreView: View {
     @StateObject private var model: OrientScoreModel
+    /// Mini-program "选择其他对局": shown only when the host can list the player's other rounds (needs logic).
+    private let onChooseAnother: (() -> Void)?
 
-    init(model: OrientScoreModel) {
+    init(model: OrientScoreModel, onChooseAnother: (() -> Void)? = nil) {
         _model = StateObject(wrappedValue: model)
+        self.onChooseAnother = onChooseAnother
     }
 
     var body: some View {
@@ -77,6 +80,21 @@ import QuestifyCore
                 .accessibilityIdentifier("orientScore.error")
         case .ready(let summary):
             OrientScoreReadyContent(summary: summary)
+            // Mini-program footer: "刷新计分" and, when other rounds exist, "选择其他对局".
+            VStack(spacing: CYSpacing.xs) {
+                Button(W8Text.t("刷新计分", "Refresh score")) { Task { await model.load() } }
+                    .font(CYTypography.label)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("orientScore.refresh")
+                if let onChooseAnother {
+                    Button(W8Text.t("选择其他对局", "Choose another round"), action: onChooseAnother)
+                        .font(CYTypography.label)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("orientScore.chooseAnother")
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, CYSpacing.md)
         }
     }
 }
@@ -111,6 +129,7 @@ import QuestifyCore
                     .font(CYTypography.data2XL)
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityLabel(summary.totalAccessibility)
+                Text(W8Text.t("对局 \(summary.sessionID)", "Round \(summary.sessionID)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 Text(W8Text.t("计分精确到 0.01 分；积分与探索值以结算结果为准。", "Scores are exact to 0.01. Points and explore XP follow the settlement result."))
                     .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
@@ -144,6 +163,11 @@ import QuestifyCore
                     Text(W8Text.t("本局已结算 · \(settlement.total)", "Settled · \(settlement.total)")).font(CYTypography.bodyMedium)
                     Text(W8Text.t("积分 \(settlement.points) · 探索值 \(settlement.xp)", "Points \(settlement.points) · Explore XP \(settlement.xp)"))
                         .font(CYTypography.bodyCompact)
+                    Text(W8Text.t("结算编号 \(settlement.settlementID)", "Settlement \(settlement.settlementID)"))
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(W8Text.t("结算后冲正只影响展示分，不追发或追扣本局奖励。", "Corrections after settlement change only the shown score; this round's rewards are not re-issued or clawed back."))
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Text(summary.settlementNotice).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -168,6 +192,8 @@ import QuestifyCore
                         }
                         Text(W8Text.t("累计 \(row.running)", "Running total \(row.running)")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         if !row.reason.isEmpty { Text(row.reason).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        Text(row.nodeID.map { W8Text.t("流水 \(row.entryID) · 节点 \($0)", "Entry \(row.entryID) · node \($0)") } ?? W8Text.t("流水 \(row.entryID)", "Entry \(row.entryID)"))
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         if let reversed = row.reversesEntryID {
                             Text(W8Text.t("冲正原流水 \(reversed)", "Reverses entry \(reversed)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         }

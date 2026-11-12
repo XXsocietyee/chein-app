@@ -1,0 +1,349 @@
+import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
+
+// Roam nearby parity (mini-program `subpackageRoam/nearby`): the team card's "举报队伍" entry and the official place
+// expanded card (place play, Xiaohongshu, info rows, "网上怎么说" quotes, player reviews + my review, photo credit).
+// Layout only. The report goes through the existing `TeamOrientBoardAccess.reportTeam`; place extras need a binding.
+
+// MARK: - Report a nearby team
+
+/// "Report team" on a nearby team card. Hidden when no signed-in report path is injected.
+@MainActor struct NearbyTeamReportButton: View {
+    let teamID: Int
+    @Environment(\.teamOrientBoardAccess) private var access
+    @Environment(\.locale) private var locale
+    @State private var shown = false
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+
+    var body: some View {
+        if let access, access.enabled, teamID > 0 {
+            Button { shown = true } label: {
+                Label { Text(verbatim: c.t("举报队伍", "Report team")) } icon: { Image(systemName: "flag") }
+                    .font(CYTypography.label)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(verbatim: c.t("举报这支队伍", "Report this team")))
+            .accessibilityIdentifier("nearby.team.report.\(teamID)")
+            .sheet(isPresented: $shown) { NearbyTeamReportSheet(teamID: teamID) }
+        }
+    }
+}
+
+@MainActor private struct NearbyTeamReportSheet: View {
+    let teamID: Int
+    @Environment(\.teamOrientBoardAccess) private var access
+    @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
+    @State private var reason = ""
+    @State private var state: TeamReportState = .idle
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+    private var trimmed: String { TeamReportRules.trimmedReason(reason) }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                switch state {
+                case .submitted:
+                    Section {
+                        CYStatusChip(verbatim: c.t("举报已记录，平台将核查处理", "Report recorded. Platform support will review it."), tone: .success, systemImage: "checkmark.circle.fill")
+                            .accessibilityIdentifier("nearby.team.reportSuccess")
+                    }
+                case .unavailable:
+                    Section {
+                        CYStatusChip(verbatim: c.t("举报功能暂不可用，请稍后再试", "Reporting is currently unavailable. Please try again later."), tone: .warning, systemImage: "exclamationmark.triangle")
+                            .accessibilityIdentifier("nearby.team.reportUnavailable")
+                    }
+                default:
+                    Section(c.t("举报原因", "Reason for report")) {
+                        TextField(c.t("请描述该队伍的违规情况", "Describe the issue with this team"), text: $reason, axis: .vertical)
+                            .lineLimit(3...6)
+                            .accessibilityIdentifier("nearby.team.reportReason")
+                        Text(verbatim: "\(trimmed.count) / \(TeamReportRules.reasonLimit)").font(CYTypography.caption).monospacedDigit()
+                            .foregroundStyle(trimmed.count > TeamReportRules.reasonLimit ? CYColor.dangerText : CYColor.textTertiary)
+                    }
+                    if case .failed = state {
+                        Section {
+                            Text(verbatim: c.t("举报未能提交，请检查网络后重试", "Your report could not be submitted. Check your connection and try again."))
+                                .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                                .accessibilityIdentifier("nearby.team.reportError")
+                        }
+                    }
+                    Section {
+                        CYPillButton(verbatim: state == .submitting ? c.t("提交中…", "Submitting…") : c.t("提交举报", "Submit report")) {
+                            Task {
+                                state = .submitting
+                                state = await TeamReportSubmission.run(access: access, teamID: teamID, reason: reason)
+                            }
+                        }
+                        .disabled(state == .submitting || trimmed.isEmpty || trimmed.count > TeamReportRules.reasonLimit)
+                        .accessibilityIdentifier("nearby.team.reportSubmit")
+                    }
+                    .listRowBackground(Color.clear)
+                }
+            }
+            .navigationTitle(Text(verbatim: c.t("举报队伍", "Report team")))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Official place extras
+
+struct RoamPlaceGame: Equatable {
+    let title: String?
+    let detail: String?
+    let steps: [String]
+    let completed: Bool
+}
+
+struct RoamPlaceInfoRow: Identifiable, Equatable {
+    let key: String
+    let value: String
+    var id: String { key }
+}
+
+/// A cited press / travelogue excerpt. Kept apart from player reviews and never presented as a player.
+struct RoamPlaceQuote: Identifiable, Equatable {
+    let url: String
+    let text: String
+    let sourceLabel: String
+    var id: String { url }
+}
+
+struct RoamPlaceReview: Identifiable, Equatable {
+    let id: String
+    let name: String?
+    let timeText: String?
+    let stars: Int?
+    let text: String
+}
+
+struct RoamPlaceExtras: Equatable {
+    var placeName: String
+    var game: RoamPlaceGame?
+    var infoRows: [RoamPlaceInfoRow]
+    var quotes: [RoamPlaceQuote]
+    var reviews: [RoamPlaceReview]
+    /// False until the review read finished (the empty sentence waits for it).
+    var reviewsLoaded: Bool
+    /// The player already reviewed this place: the compose block hides.
+    var reviewed: Bool
+    var photoCredit: String?
+    var reviewBusy = false
+    var reviewError: String?
+}
+
+/// Logic stub for Cursor: official place facts (template game, info rows, cited quotes, photo credit) and
+/// place reviews (read + publish once the place challenge is completed).
+@MainActor protocol RoamPlaceExtrasBinding: AnyObject, Observable {
+    var extras: RoamPlaceExtras? { get }
+    func load()
+    func publishReview(stars: Int, text: String)
+}
+
+private struct RoamPlaceExtrasProviderKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (_ poiID: Int) -> (any RoamPlaceExtrasBinding)?)? = nil
+}
+
+extension EnvironmentValues {
+    /// Nil (default) hides the place extras entirely.
+    var roamPlaceExtrasProvider: (@MainActor (_ poiID: Int) -> (any RoamPlaceExtrasBinding)?)? {
+        get { self[RoamPlaceExtrasProviderKey.self] }
+        set { self[RoamPlaceExtrasProviderKey.self] = newValue }
+    }
+}
+
+/// Mount point under the POI node card. Draws nothing without a provider or binding.
+@MainActor struct RoamPlaceExtrasMount: View {
+    let poiID: Int
+    @Environment(\.roamPlaceExtrasProvider) private var provider
+    @State private var binding: (any RoamPlaceExtrasBinding)?
+
+    var body: some View {
+        Group {
+            if let binding, let extras = binding.extras {
+                RoamPlaceExtrasSection(extras: extras, onPublish: { binding.publishReview(stars: $0, text: $1) })
+            }
+        }
+        .task(id: poiID) {
+            guard binding == nil, let made = provider?(poiID) else { return }
+            binding = made
+            made.load()
+        }
+    }
+}
+
+struct RoamPlaceExtrasSection: View {
+    let extras: RoamPlaceExtras
+    let onPublish: (Int, String) -> Void
+    @Environment(\.locale) private var locale
+    @State private var creditOpen = false
+    @State private var copiedNotice: String?
+    @State private var myStars = 0
+    @State private var myText = ""
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+
+    var body: some View {
+        Section {
+            if let game = extras.game { gameCard(game) }
+            infoRows
+            if !extras.quotes.isEmpty { quotes }
+            reviews
+            if extras.game?.completed == true && !extras.reviewed { compose }
+            if let credit = extras.photoCredit, !credit.isEmpty { creditRow(credit) }
+            if let copiedNotice {
+                Text(verbatim: copiedNotice).font(CYTypography.meta).foregroundStyle(CYColor.successText)
+                    .accessibilityAddTraits(.updatesFrequently)
+            }
+        }
+        .accessibilityIdentifier("roam.place.extras")
+    }
+
+    private func gameCard(_ game: RoamPlaceGame) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            HStack {
+                Text(verbatim: c.t("地点玩法", "Place play")).font(CYTypography.caption).tracking(0.6).foregroundStyle(CYNight.lantern)
+                Spacer()
+                if game.completed { CYStatusChip(verbatim: c.t("已完成", "Completed"), tone: .success, systemImage: "checkmark") }
+            }
+            Text(verbatim: game.title ?? c.t("地点挑战", "Place challenge")).font(CYTypography.cardTitle)
+            if let detail = game.detail { Text(verbatim: detail).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+            ForEach(Array(game.steps.enumerated()), id: \.offset) { index, step in
+                Text(verbatim: "\(index + 1)  \(step)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roam.place.game")
+    }
+
+    @ViewBuilder private var infoRows: some View {
+        Button {
+            UIPasteboard.general.string = extras.placeName
+            copiedNotice = c.t("已复制地点名，去小红书搜笔记", "Place name copied. Search it on Xiaohongshu.")
+        } label: {
+            LabeledContent { Text(verbatim: c.t("复制地点名去搜笔记", "Copy the place name to search notes")).foregroundStyle(CYColor.textSecondary) } label: {
+                Text(verbatim: c.t("小红书", "Xiaohongshu"))
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+        }
+        .accessibilityIdentifier("roam.place.xhs")
+        ForEach(extras.infoRows) { row in
+            LabeledContent { Text(verbatim: row.value) } label: { Text(verbatim: row.key) }
+        }
+    }
+
+    private var quotes: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: c.t("网上怎么说", "What people say online")).font(CYTypography.label).accessibilityAddTraits(.isHeader)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: CYSpacing.md) {
+                    ForEach(extras.quotes) { quote in
+                        Button {
+                            UIPasteboard.general.string = quote.url
+                            copiedNotice = c.t("已复制原文链接", "Source link copied")
+                        } label: {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text(verbatim: "「\(quote.text)」").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary).lineLimit(4)
+                                Text(verbatim: "\(quote.sourceLabel) · " + c.t("复制原文链接", "Copy source link")).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                            }
+                            .frame(width: 240, alignment: .leading)
+                            .padding(CYSpacing.md)
+                            .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: c.t("复制原文链接：", "Copy source link: ") + quote.sourceLabel))
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier("roam.place.quotes")
+    }
+
+    private var reviews: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(spacing: CYSpacing.xs) {
+                Text(verbatim: c.t("玩家评价", "Player reviews")).font(CYTypography.label)
+                if !extras.reviews.isEmpty { Text(verbatim: String(extras.reviews.count)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary) }
+            }
+            .accessibilityAddTraits(.isHeader)
+            if extras.reviews.isEmpty {
+                if extras.reviewsLoaded {
+                    Text(verbatim: c.t("还没有评价。完成挑战后来写第一条。", "No reviews yet. Finish the challenge and write the first one."))
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("roam.place.reviewsEmpty")
+                }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        ForEach(extras.reviews) { review in
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                HStack {
+                                    Text(verbatim: review.name ?? c.t("玩家", "Player")).font(CYTypography.label)
+                                    Spacer()
+                                    if let time = review.timeText { Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+                                }
+                                if let stars = review.stars {
+                                    Label { Text(verbatim: String(stars)) } icon: { Image(systemName: "star.fill") }
+                                        .font(CYTypography.caption).foregroundStyle(CYNight.lantern)
+                                        .accessibilityLabel(Text(verbatim: c.t("\(stars) 星", "\(stars) stars")))
+                                }
+                                Text(verbatim: review.text).font(CYTypography.bodyCompact).lineLimit(4)
+                            }
+                            .frame(width: 220, alignment: .leading)
+                            .padding(CYSpacing.md)
+                            .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier("roam.place.reviews")
+    }
+
+    private var compose: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(spacing: CYSpacing.xs) {
+                ForEach(1...5, id: \.self) { value in
+                    Button { myStars = value } label: {
+                        Image(systemName: value <= myStars ? "star.fill" : "star")
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(value <= myStars ? CYNight.lantern : CYColor.textTertiary)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(verbatim: c.t("\(value) 星", "\(value) stars")))
+                    .accessibilityAddTraits(value <= myStars ? [.isSelected] : [])
+                }
+            }
+            .cyHaptic(.selection, trigger: myStars)
+            TextField(c.t("说说这次挑战和这个地方", "Tell us about the challenge and this place"), text: $myText, axis: .vertical)
+                .lineLimit(2...5)
+                .onChange(of: myText) { _, value in if value.count > 200 { myText = String(value.prefix(200)) } }
+                .accessibilityLabel(Text(verbatim: c.t("写评价", "Write a review")))
+                .accessibilityIdentifier("roam.place.reviewText")
+            if let error = extras.reviewError { Text(verbatim: error).font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
+            CYPillButton(verbatim: extras.reviewBusy ? c.t("发布中…", "Publishing…") : c.t("发布评价", "Publish review"), style: .secondary) {
+                onPublish(myStars, myText.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            .disabled(extras.reviewBusy || myStars == 0 || myText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .accessibilityIdentifier("roam.place.reviewPublish")
+        }
+    }
+
+    private func creditRow(_ credit: String) -> some View {
+        DisclosureGroup(isExpanded: $creditOpen) {
+            Text(verbatim: credit).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+        } label: {
+            Text(verbatim: c.t("照片来源与许可", "Photo sources and licences")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        }
+        .accessibilityIdentifier("roam.place.photoCredit")
+    }
+}

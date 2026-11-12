@@ -198,6 +198,8 @@ struct RoamItemDetailView: View {
                 merchantRetrySection(node: node)
             }
             Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination) }
+            // Official place extras (play, Xiaohongshu, quotes, player reviews, photo credit); hidden without a binding.
+            RoamPlaceExtrasMount(poiID: node.poiId)
             Section("roam.yourStatus") {
                 let isCompleted = poiActionModel.completedOverride ?? node.completed
                 Label(LocalizedStringKey(isCompleted ? "roam.completed" : "roam.notCompleted"), systemImage: isCompleted ? "checkmark.circle" : "circle")
