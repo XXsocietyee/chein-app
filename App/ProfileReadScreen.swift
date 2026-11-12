@@ -59,19 +59,17 @@ struct ProfileReadScreen<Value, Content: View>: View {
             } else if isLoading {
                 Color.clear
             } else if let issue {
-                ContentUnavailableView {
-                    Label {
-                        Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier(accessibilityPrefix + ".error")
-                    } icon: { Image(systemName: "exclamationmark.circle") }
-                } description: {
-                    if let message = issue.message { Text(verbatim: message) }
-                    else if !issue.detailKey.isEmpty { Text(LocalizedStringKey(issue.detailKey)) }
-                } actions: {
-                    if issue.canRetry {
-                        CYPillButton("action.retry", style: .secondary, fullWidth: false) { loadOwner.start { await reload() } }
-                            .accessibilityIdentifier(accessibilityPrefix + ".retry")
-                    }
-                }
+                CYEmptyState(
+                    systemImage: "exclamationmark.triangle",
+                    LocalizedStringKey(issue.titleKey),
+                    detail: issue.message == nil && !issue.detailKey.isEmpty ? LocalizedStringKey(issue.detailKey) : nil,
+                    detailVerbatim: issue.message,
+                    messageIdentifier: accessibilityPrefix + ".error",
+                    actionTitle: issue.canRetry ? "action.retry" : nil,
+                    actionIdentifier: issue.canRetry ? accessibilityPrefix + ".retry" : nil,
+                    kind: .failure,
+                    action: issue.canRetry ? { loadOwner.start { await reload() } } : nil
+                )
             } else if let value {
                 content(value)
             }
