@@ -34,3 +34,18 @@ AuthChannelView (e4) (a) renders the code field only after a code was sent (`sms
 | IntegratedActivityPlayJourney x2, IntegratedNativeAcceptance x6 | sign-in already auto-submitted, so tap(phoneSignIn) asserted on a missing button | tap phoneSignIn only if it still exists and is enabled; the following wait on accountID/tokenStored still proves sign-in |
 Same one-line guard applied to IntegratedDenied and NonCashReward flows (identical pattern). Assertions are not removed.
 Not simulator-verified (code-only).
+
+## Round 3 (ui16.xcresult, base ui/main edc63b28e)
+| tests | what the AX dump / source shows | fix |
+|---|---|---|
+| IntegratedNative x6, IntegratedActivityPlay x2, IntegratedDenied x2 (`wait`/`evidence` violations: `exact form: api/registration/list`) | not a screen problem: after sign-in the app is on Explore/Passport and the Passport ticket-wallet preload POSTs `api/registration/list` with owner_type 1/2 (Core/TicketWalletListReadRoute). The synthetic fixture only accepted owner_type 3 (orders), so it recorded a violation, which the tests assert is empty | App/IntegratedNativeAcceptanceFixture.swift answers the two wallet lanes with an empty list under ledger route `wallet-list` (form still validated byte-exact via matchesForm); orders.* routes and the tests' assertions are unchanged |
+| NonCashRewardFlowTests x5 | AX dump is Passport scrolled looking for `rewards.open`; the row lives in AccountCollectionFavoritesView, i.e. Passport > Settings > Favorites | launch() now taps Settings, `settingsNative.openFavorites`, then `rewards.open` |
+| CouponRuntimeFlowTests x5, CouponRuntimeChineseFlowTests x1 | AX dump shows the Settings sheet open (legal/about/compliance/sign out) with NO `account.merchant`: merchant rows (and the mode switch) are gated by `themeDomain != .player` (design-report-d2.md:65) and the signed-in root is `.roleTheme(.player)`; ui-ia.md already flagged "CouponRuntimeJourney needs an extra Settings step", but the step is not sufficient | NOT fixed: no merchant entry exists in the player shell, so this is a product/design decision (see worker_done), not a helper bug |
+Code-only; not simulator-verified.
+
+## Round 4 (owner decision: v1 is player-side first)
+The 6 Coupon tests drive a merchant journey that the player shell intentionally hides (themeDomain != .player), so they
+are skipped, not fixed: each starts with `try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1
+player shell (docs/release/receipts/uitest-14.md)")`. Bodies, helpers and assertions are unchanged; flip
+`merchantSurfaceHiddenInV1` to false in each class when merchant surfaces ship. Test counts (6 runtime + 1 recovery) are
+unchanged for the contract checks. Listed under Known gaps in docs/release/launch-readiness.md.
