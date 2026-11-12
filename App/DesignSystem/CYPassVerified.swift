@@ -47,8 +47,8 @@ struct CYPassTear<Face: View>: View {
                 .mask(alignment: .top) { Rectangle().frame(height: notchY) }
             face.frame(width: size.width, height: size.height)
                 .mask(alignment: .bottom) { Rectangle().frame(height: max(0, size.height - notchY)) }
-                .rotationEffect(.degrees(Double(tear) * 1.2), anchor: .topLeading)
-                .offset(y: tear * 27 + drop * 280)
+                .rotationEffect(.degrees(Double(tear) * 4 + Double(drop) * 6), anchor: .topLeading)
+                .offset(x: tear * 5 + drop * 18, y: tear * 27 + drop * 300)
                 .scaleEffect(1 - drop * 0.45, anchor: .top)
                 .opacity(1 - Double(drop))
         }
@@ -75,33 +75,49 @@ struct CYPassVerifiedFace: View {
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 76, weight: .semibold))
-                    .foregroundStyle(CYNight.verify)
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(CYRGB(hex: 0x127A5A).swiftUIColor, .white)
                     .symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
                     .shadow(color: CYNight.verify.opacity(0.5), radius: 14)
                     .accessibilityHidden(true)
                 Text(verbatim: c.t("已入场", "You're in"))
                     .font(.system(.largeTitle, design: c.isChinese ? .default : .rounded).weight(c.isChinese ? .semibold : .heavy))
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(.white)
                 Text(verbatim: c.t("玩得开心", "Have fun."))
-                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
+                    .font(CYTypography.cardTitle).foregroundStyle(.white.opacity(0.88))
                 Text(verbatim: title.isEmpty ? "—" : title)
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    .font(CYTypography.meta).foregroundStyle(.white.opacity(0.72))
                     .lineLimit(1).padding(.horizontal, CYSpacing.xl)
             }
             .frame(maxWidth: .infinity)
             .frame(height: notchY)
             VStack(spacing: CYSpacing.xs) {
                 Text(verbatim: c.t("已核验入场", "Checked in"))
-                    .font(CYTypography.cardTitle).foregroundStyle(CYNight.verify)
+                    .font(CYTypography.cardTitle).foregroundStyle(.white)
                 Text(verbatim: (number?.isEmpty == false) ? number! : "—")
-                    .font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
+                    .font(CYTypography.caption.monospaced()).foregroundStyle(.white.opacity(0.7))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(width: size.width, height: size.height)
-        .background { ZStack { CYColor.bgElevated; CYNight.verify.opacity(0.12) } }
+        .background {
+            ZStack {
+                // Rich teal to green ground, a soft verify glow behind the check, a cool top-edge highlight.
+                LinearGradient(colors: [CYRGB(hex: 0x0B4F5C).swiftUIColor, CYRGB(hex: 0x127A5A).swiftUIColor, CYRGB(hex: 0x1FA866).swiftUIColor],
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                RadialGradient(colors: [CYNight.verify.opacity(0.55), CYNight.verify.opacity(0.12), .clear],
+                               center: UnitPoint(x: 0.5, y: notchY * 0.42 / max(size.height, 1)), startRadius: 4, endRadius: 150)
+                LinearGradient(colors: [.white.opacity(0.18), .clear], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.35))
+            }
+        }
+        .overlay(alignment: .top) {
+            // The perforation line: dotted, on the tear row, so the two halves read as one pass until it tears.
+            Path { p in p.move(to: CGPoint(x: 22, y: notchY)); p.addLine(to: CGPoint(x: size.width - 22, y: notchY)) }
+                .stroke(.white.opacity(0.45), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [0.5, 7]))
+                .allowsHitTesting(false)
+        }
         .clipShape(shape, style: FillStyle(eoFill: true))
-        .overlay(shape.stroke(CYNight.verify.opacity(0.45), lineWidth: 1).allowsHitTesting(false))
+        .overlay(shape.stroke(.white.opacity(0.28), lineWidth: 1).allowsHitTesting(false))
         .onAppear { landed = true }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: c.t("已入场，玩得开心", "You're in. Have fun.")))

@@ -67,6 +67,18 @@ extension View {
     }
 
     func cyFoil(cornerRadius: CGFloat = CYRadius.lg, active: Bool = true) -> some View {
-        cyFoil(in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous), active: active)
+        cyFoil(in: CYFoilClip(cornerRadius: cornerRadius), active: active)
+    }
+}
+
+/// Rounded-rect clip that becomes a true circle/capsule once the radius reaches half the short side. A `.continuous`
+/// rounded rect with an oversize radius (a 64 pt radius on a 44 pt seal) draws a diamond-like squircle, which is
+/// what turned round stamp seals into pastel diamonds.
+struct CYFoilClip: Shape {
+    var cornerRadius: CGFloat
+    func path(in rect: CGRect) -> Path {
+        let half = min(rect.width, rect.height) / 2
+        if cornerRadius >= half { return Capsule(style: .circular).path(in: rect) }
+        return RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).path(in: rect)
     }
 }

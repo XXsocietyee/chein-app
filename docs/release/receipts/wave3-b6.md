@@ -48,3 +48,17 @@ RM: crossfade only.
 `ui-pass-card-verify` (ms after the 1.5 s flip): 0 tile dims to 60 %, green comet sweeps the display edge once (450), ring fades by 900;
 120 and 260 haptics; 300-800 pass flips to the green "You're in / Have fun." face; 800 perforation tears (3 pt gap, 24 pt slide, impactLight);
 1700-2200 the stub drops away downward. RM: ring fades, crossfade to the green face, no flip, no tear.
+
+## Fix pass (rc 2dd07066a review)
+
+- Passport stamp seals rendered as pastel diamonds: `CYFoil` (via `cyFoilSheen(cornerRadius: 64)` on a ~44 pt seal) clipped with a
+  `.continuous` RoundedRectangle whose radius exceeded half the side, which draws a squircle/diamond. New `CYFoilClip` in
+  `CYFoil.swift` becomes a true circle/capsule once the radius reaches half the short side; used by `cyFoil(cornerRadius:)` and the
+  one-shot sweep in `CYAlbum`. Seals stay round; badge medals (64 pt, radius 32) get the same fix.
+- Edge glow was a thin static outline: `CYEdgeGlow` was not `Animatable`, so the `sweep` range test only ever saw the final value and
+  the comet never drew. It now interpolates `sweep`/`ring` per frame; the comet is a 6 pt stroke plus a 12 pt blurred copy that runs once around
+  the display corner radius in 450 ms, then the ring fades (450 to 900 ms).
+- Verified face: teal-to-green gradient (0B4F5C, 127A5A, 1FA866), verify-green radial glow behind a white check, top highlight,
+  dotted perforation line on the tear row, notches and corners from the pass shape, white text for contrast.
+- Tear: the stub rotates 4 degrees and shifts 5 pt right with the 27 pt slide, then drops 300 pt (rotating to 10 degrees) while fading toward the tab bar.
+- Branch note: rc/20261108 does not yet contain w1 (CYFoil) or w6; this branch is rc + ui/w1 + ui/w6 + the fix.

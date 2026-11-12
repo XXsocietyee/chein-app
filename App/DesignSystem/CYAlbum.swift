@@ -173,7 +173,7 @@ private struct CYAlbumFoilSheen: ViewModifier {
                         }
                     }
                     .blendMode(.screen)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                    .clipShape(CYFoilClip(cornerRadius: cornerRadius))
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
                 }

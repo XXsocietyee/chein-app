@@ -21,7 +21,7 @@ enum CYDisplayCorner {
 }
 
 /// The light itself, a pure function of `sweep` (comet position, 0 to 1) and `ring` (steady ring intensity, 0 to 1).
-struct CYEdgeGlow: View {
+struct CYEdgeGlow: View, Animatable {
     var color: Color = CYNight.verify
     var sweep: Double
     var ring: Double
@@ -31,6 +31,12 @@ struct CYEdgeGlow: View {
     /// Low Power / thermal: keep the comet, drop the blur copies.
     var cheap = false
 
+    /// Animatable so the comet position is interpolated every frame (the `sweep` range test below reads the live value).
+    var animatableData: AnimatablePair<Double, Double> {
+        get { AnimatablePair(sweep, ring) }
+        set { sweep = newValue.first; ring = newValue.second }
+    }
+
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         ZStack {
@@ -38,8 +44,8 @@ struct CYEdgeGlow: View {
                 shape.strokeBorder(color.opacity(ring), lineWidth: 2)
             } else {
                 if sweep > 0 && sweep < 1 {
-                    if !cheap { shape.strokeBorder(comet, lineWidth: 7).blur(radius: 10) }
-                    shape.strokeBorder(comet, lineWidth: 2.5)
+                    if !cheap { shape.strokeBorder(comet, lineWidth: 12).blur(radius: 8).opacity(0.9) }
+                    shape.strokeBorder(comet, lineWidth: 6).blur(radius: cheap ? 0 : 3)
                 }
                 shape.strokeBorder(color.opacity(0.6 * ring), lineWidth: 1.5)
                 if !cheap { shape.strokeBorder(color.opacity(0.45 * ring), lineWidth: 5).blur(radius: 7) }
