@@ -127,26 +127,18 @@ import XCTest
         }
         XCTFail("Play must be fully above the actual registration inset before tapping. " + app.debugDescription)
     }
+    @discardableResult private func openRoamOverflow(_ app: XCUIApplication) -> Bool {
+        let menu = app.buttons["roam.more"]
+        guard menu.waitForExistence(timeout: 5), menu.isEnabled, menu.isHittable, !menu.frame.isEmpty,
+              app.frame.contains(menu.frame) else {
+            XCTFail("Expected the visible Roam overflow menu. " + app.debugDescription); return false
+        }
+        menu.tap()
+        return true
+    }
     private func tapRoamOverflowToggle(_ app: XCUIApplication) {
-        let navigation = app.navigationBars["Roam"]
-        let city = navigation.buttons["Official city"]
-        guard navigation.exists, city.exists, city.isEnabled, city.isHittable else {
-            XCTFail("Expected the visible Explore city toolbar anchor. " + app.debugDescription); return
-        }
-        // Actual run101 PNG shows the system overflow leaf to the right of City.
-        // Do not guess its localized title or tap a hidden destination directly.
-        let leaves = navigation.buttons.allElementsBoundByIndex.filter {
-            let frame = $0.frame
-            return $0.descendants(matching: .button).count == 0 && !frame.isEmpty
-                && frame.minX >= city.frame.maxX && navigation.frame.contains(frame)
-                && app.frame.contains(frame) && $0.isEnabled && $0.isHittable
-        }
-        guard leaves.count == 1, let overflow = leaves.first else {
-            XCTFail("Expected one trailing native overflow action. " + app.debugDescription); return
-        }
-        overflow.tap()
-        // Both run108 ready/denied AX trees expose this visible menu label, but
-        // the system overflow clone does not retain roam.display.toggle.
+        guard openRoamOverflow(app) else { return }
+        // The system menu clone does not retain roam.display.toggle.
         // launch() fixes en/en_US, and both journeys select list before any area.
         let exact = app.buttons.matching(NSPredicate(format: "label == %@", "Show list only"))
         guard exact.firstMatch.waitForExistence(timeout: 5), exact.count == 1 else {
@@ -229,7 +221,16 @@ import XCTest
         let button = app.tabBars.buttons[title]; XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
     }
     private func chooseManualArea(_ app: XCUIApplication) {
-        tap("roam.chooseArea", app)
+        guard openRoamOverflow(app) else { return }
+        let labeled = app.buttons.matching(NSPredicate(format: "label == %@", "Choose a search area"))
+        guard labeled.firstMatch.waitForExistence(timeout: 5), labeled.count == 1 else {
+            XCTFail("Native overflow must expose exactly one Choose a search area action. " + app.debugDescription); return
+        }
+        let area = labeled.element(boundBy: 0)
+        guard area.isEnabled, area.isHittable else {
+            XCTFail("The exact native Choose a search area action is not visible and enabled. " + app.debugDescription); return
+        }
+        area.tap()
         for (field, value) in [("latitude", "31.2"), ("longitude", "121.5"), ("name", "Synthetic manual area")] {
             let input = app.textFields["roam.area.\(field).input"]
             XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText(value)
@@ -259,13 +260,27 @@ import XCTest
         }
         XCTAssertEqual(Set(entries.map(\.namespace)).count, 1)
     }
+    /// Home feed plus the two ticket-wallet preloads. Later Passport `userInfo` reads are ignored here.
+    private func homeAndWalletSettled(_ value: Evidence) -> Bool {
+        let routes = value.ledger.map(\.route)
+        guard routes.count >= 3, Array(routes.prefix(3)) == ["sms-send", "phone", "userInfo"] else { return false }
+        let rest = value.ledger.dropFirst(3)
+        let wallet = rest.filter { $0.route == "wallet-list" }.map { $0.fields["owner_type"] ?? "" }.sorted()
+        return contentRoutes(value).sorted() == home.sorted() && wallet == ["1", "2"]
+    }
+    private func contentRoutes(_ value: Evidence) -> [String] {
+        value.ledger.dropFirst(3).map(\.route).filter { $0 != "wallet-list" && $0 != "userInfo" }
+    }
+    private func journeyRoutes(_ value: Evidence) -> [String] {
+        contentRoutes(value).filter { !home.contains($0) }
+    }
 
 
 
     func testActualPhoneHomeDetailManualMapPlayAndFreshOwnedOrderJourney() throws {
         let app = launch(); XCTAssertEqual(try evidence(app).ledger.count, 0)
         signIn(app)
-        wait(app) { $0.ledger.count == 9 }
+        wait(app) { self.homeAndWalletSettled($0) }
         let initial = try evidence(app)
         XCTAssertEqual(Array(initial.ledger.prefix(3)).map(\.route), ["sms-send", "phone", "userInfo"])
         XCTAssertNil(initial.ledger[0].token); XCTAssertNil(initial.ledger[0].accountID)
@@ -274,16 +289,17 @@ import XCTest
         XCTAssertNil(initial.ledger[1].token); XCTAssertNil(initial.ledger[1].accountID)
         XCTAssertEqual(initial.ledger[1].fields, ["phone": "10000000000", "code": "123456"])
         XCTAssertEqual(initial.ledger[2].token, "synthetic-7"); XCTAssertNil(initial.ledger[2].accountID)
-        XCTAssertEqual(Array(initial.ledger.dropFirst(3)).map(\.route).sorted(), home.sorted())
+        XCTAssertEqual(self.contentRoutes(initial).sorted(), home.sorted())
+        XCTAssertEqual(initial.ledger.filter { $0.route == "wallet-list" }.map { $0.fields["owner_type"] ?? "" }.sorted(), ["1", "2"])
         tap("homeFeed.nearby.activity.21", app)
         XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
-        wait(app) { $0.ledger.count == 10 }
+        wait(app) { $0.ledger.filter { $0.route == "activity-detail" }.count == 1 }
         tab("Roam", app)
         // Select the normal list presentation before supplying a center.
         // The API ledger is not evidence about all operating-system networking.
         tap("roam.display.toggle", app); chooseManualArea(app)
         XCTAssertTrue(app.staticTexts["Synthetic manual place"].waitForExistence(timeout: 5))
-        wait(app) { $0.ledger.count == 11 }
+        wait(app) { $0.ledger.filter { $0.route == "map.places" }.count == 1 }
         XCTAssertFalse(app.alerts.firstMatch.exists)
         tab("Explore", app)
         XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
@@ -297,10 +313,12 @@ import XCTest
         XCTAssertTrue(app.buttons["play.node.1"].exists); XCTAssertFalse(app.buttons["play.node.2"].exists)
         orders(app, owner: 7)
         let final = try evidence(app)
-        XCTAssertEqual(final.ledger.dropFirst(9).map(\.route), ["activity-detail", "map.places", "activity-detail", "play-nodes", "play-route", "orders.list", "orders.detail"])
+        XCTAssertEqual(self.journeyRoutes(final), ["activity-detail", "map.places", "activity-detail", "play-nodes", "play-route", "orders.list", "orders.detail"])
         assertIdentity(Array(final.ledger.dropFirst(3)), owner: 7, epoch: final.epoch)
-        XCTAssertEqual(final.ledger.last?.fields, ["id": "41"])
-        XCTAssertEqual(final.ledger[final.ledger.count - 2].fields, ["owner_type": "3"])
+        let owned = final.ledger.filter { $0.route.hasPrefix("orders.") }
+        XCTAssertEqual(owned.map(\.route), ["orders.list", "orders.detail"])
+        XCTAssertEqual(owned.first?.fields, ["owner_type": "3"])
+        XCTAssertEqual(owned.last?.fields, ["id": "41"])
         XCTAssertTrue(final.manualArea)
     }
 
