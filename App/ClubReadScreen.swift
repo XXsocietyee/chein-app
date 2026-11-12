@@ -61,18 +61,17 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @ViewBuilder private var readBody: some View {
         Group {
             if !reader.isClubConfigured {
-                ContentUnavailableView {
-                    Label("club.unavailable", systemImage: "network.slash")
-                } description: {
-                    Text("auth.notConfigured")
-                } actions: {
-                    // One way forward: the Passport tab hosts Settings and the account.
-                    if rootTabSwitch.isAvailable {
-                        CYPillButton("settings.title", style: .secondary, systemImage: "gearshape", fullWidth: false) { rootTabSwitch(.mine) }
-                            .accessibilityIdentifier(accessibilityPrefix + ".openSettings")
-                    }
-                }
-                .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
+                // One way forward: the Passport tab hosts Settings and the account.
+                CYEmptyState(
+                    systemImage: "network.slash",
+                    "club.unavailable",
+                    detail: "auth.notConfigured",
+                    messageIdentifier: accessibilityPrefix + ".unavailable",
+                    actionTitle: rootTabSwitch.isAvailable ? "settings.title" : nil,
+                    actionIdentifier: rootTabSwitch.isAvailable ? accessibilityPrefix + ".openSettings" : nil,
+                    kind: .offline,
+                    action: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil
+                )
             } else if requiresSignIn && !reader.clubIdentity.isSignedIn {
                 issueView(ClubLoadIssue(ClubReadFailure.unauthorized(message: nil)))
             } else if issueIdentity == reader.clubIdentity, let issue {
@@ -88,20 +87,24 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
         }
     }
     private func issueView(_ issue: ClubLoadIssue) -> some View {
-        ContentUnavailableView {
-            Label {
-                Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier(accessibilityPrefix + ".error")
-            } icon: { Image(systemName: issue.needsSignIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.circle") }
-        } description: {
-            if let message = issue.message { Text(verbatim: message) }
-            else { Text(LocalizedStringKey(issue.hintKey)) }
-        } actions: {
-            if issue.needsSignIn, let onSignIn {
-                Button("club.signIn", action: onSignIn).accessibilityIdentifier(accessibilityPrefix + ".signIn")
-            } else if issue.canRetry {
-                CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false) { Task { await reload() } }.accessibilityIdentifier(accessibilityPrefix + ".retry")
-            }
+        let symbol = issue.needsSignIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle"
+        let actionTitle: LocalizedStringKey? = issue.needsSignIn ? (onSignIn == nil ? nil : "club.signIn") : (issue.canRetry ? "action.retry" : nil)
+        let actionID = issue.needsSignIn ? accessibilityPrefix + ".signIn" : accessibilityPrefix + ".retry"
+        let action: (() -> Void)? = actionTitle == nil ? nil : {
+            if issue.needsSignIn { onSignIn?() }
+            else { Task { await reload() } }
         }
+        return CYEmptyState(
+            systemImage: symbol,
+            LocalizedStringKey(issue.titleKey),
+            detail: issue.message == nil ? LocalizedStringKey(issue.hintKey) : nil,
+            detailVerbatim: issue.message,
+            messageIdentifier: accessibilityPrefix + ".error",
+            actionTitle: actionTitle,
+            actionIdentifier: actionTitle == nil ? nil : actionID,
+            kind: issue.canRetry && !issue.needsSignIn ? .failure : nil,
+            action: action
+        )
     }
     private func reload() async {
         // A cancelled refresh must not retire a newer read or clear its accepted state.

@@ -7,6 +7,7 @@ struct CYEmptyState: View {
     private let message: LocalizedStringKey
     private let tableName: String?
     private let detail: LocalizedStringKey?
+    private let detailVerbatim: String?
     private let messageIdentifier: String?
     private let actionTitle: LocalizedStringKey?
     private let actionIdentifier: String?
@@ -19,6 +20,7 @@ struct CYEmptyState: View {
         _ message: LocalizedStringKey,
         tableName: String? = nil,
         detail: LocalizedStringKey? = nil,
+        detailVerbatim: String? = nil,
         messageIdentifier: String? = nil,
         actionTitle: LocalizedStringKey? = nil,
         actionIdentifier: String? = nil,
@@ -31,6 +33,7 @@ struct CYEmptyState: View {
         self.message = message
         self.tableName = tableName
         self.detail = detail
+        self.detailVerbatim = detailVerbatim
         self.messageIdentifier = messageIdentifier
         self.actionTitle = actionTitle
         self.actionIdentifier = actionIdentifier
@@ -42,7 +45,7 @@ struct CYEmptyState: View {
         CYStateLayout(
             kind: kind ?? CYStateKind(symbol: systemImage),
             title: Text(message, tableName: tableName),
-            detail: detail.map { Text($0) },
+            detail: detailVerbatim.map { Text(verbatim: $0) } ?? detail.map { Text($0) },
             primary: actionTitle.flatMap { title in action.map { (title: title, action: $0) } },
             primaryStyle: actionStyle,
             primaryIdentifier: actionIdentifier
@@ -55,6 +58,33 @@ private extension View {
     @ViewBuilder func cyIdentifier(_ identifier: String?) -> some View {
         if let identifier { accessibilityIdentifier(identifier) }
         else { self }
+    }
+}
+
+/// Loading sibling of `CYEmptyState` / `CYErrorState`. Skeleton only, no spinner, no invented rows.
+struct CYLoadingState: View {
+    private let message: LocalizedStringKey
+    private let messageIdentifier: String?
+    @Environment(\.cyPalette) private var palette
+
+    init(_ message: LocalizedStringKey = "accountCollection.loading", messageIdentifier: String? = nil) {
+        self.message = message
+        self.messageIdentifier = messageIdentifier
+    }
+
+    var body: some View {
+        VStack(spacing: CYSpacing.lg) {
+            CYSkeleton()
+            Text(message)
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, CYSpacing.xxl)
+        .padding(.horizontal, CYSpacing.lg)
+        .accessibilityElement(children: .combine)
+        .cyIdentifier(messageIdentifier)
     }
 }
 

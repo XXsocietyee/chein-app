@@ -19,9 +19,11 @@ import SwiftUI
                 TeamNotice(coordinator: model.coordinator)
                 if !model.coordinator.authenticated {
                     if let onLogin { Button("team.signIn", action: onLogin).buttonStyle(.cyPrimary) }
-                } else if model.running && model.coordinator.teams.isEmpty { ProgressView("team.loading") }
+                } else if model.running && model.coordinator.teams.isEmpty {
+                    CYLoadingState("team.loading", messageIdentifier: "team.loading")
+                }
                 else if model.coordinator.messageKey == nil && model.coordinator.teams.isEmpty {
-                    CYEmptyStateView(systemImage: "person.3", title: "team.empty", description: "team.empty.detail")
+                    CYEmptyState(systemImage: "person.3", "team.empty", detail: "team.empty.detail", messageIdentifier: "team.empty")
                 }
                 ForEach(model.coordinator.teams) { team in
                     NavigationLink { TeamDetailView(lookup: .id(team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator) } label: { TeamCard(team: team) }
@@ -67,7 +69,9 @@ import SwiftUI
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 TeamNotice(coordinator: model.coordinator)
-                if model.running { ProgressView(LocalizedStringKey(TeamPagePresentation.loadingKey(pageKind, hasDetail: model.coordinator.detail != nil))) }
+                if model.running {
+                    CYLoadingState(LocalizedStringKey(TeamPagePresentation.loadingKey(pageKind, hasDetail: model.coordinator.detail != nil)), messageIdentifier: "team.loading")
+                }
                 if !model.running, let state = TeamPagePresentation.blockingState(kind: pageKind, messageKey: model.coordinator.messageKey,
                                                                                 hasDetail: model.coordinator.detail != nil, legacyTeamID: legacyTeamID,
                                                                                 failure: model.coordinator.readFailure) {
