@@ -5,13 +5,17 @@ import XCTest
 @MainActor final class CouponRuntimeFlowTests: XCTestCase, CouponRuntimeJourney {
     var app: XCUIApplication!
     var chinese = false
+    /// Re-enable (set false) when merchant surfaces ship; bodies below are intentionally unchanged.
+    static let merchantSurfaceHiddenInV1 = true
     override func setUp() { super.setUp(); continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
     func testNormalRootReadOnlyLeaseCannotConfirm() throws {
+        try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1 player shell (docs/release/receipts/uitest-14.md)")
         launch("readOnly"); openCoupons(); enterDraft()
         let confirm = app.buttons["couponManagement.confirm"]; XCTAssertTrue(revealFixtureElement(confirm, in: app, requiresHittable: false)); XCTAssertFalse(confirm.isEnabled)
     }
     func testNormalRootExplicitCreateThenOwnedStop() throws {
+        try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1 player shell (docs/release/receipts/uitest-14.md)")
         launch("ready"); openCoupons(); enterDraft(); tap("couponManagement.confirm")
         let acknowledgement = app.staticTexts["couponManagement.notice.editor.readback"]
         XCTAssertTrue(revealFixtureElement(acknowledgement, in: app, towardTop: true, requiresHittable: false))
@@ -35,6 +39,7 @@ import XCTest
         XCTAssertFalse(routes.contains { $0.contains("subscription") || $0.contains("claim") || $0.contains("issue") })
     }
     func testNormalRootTimeoutCannotRepeatConfirmedPublication() throws {
+        try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1 player shell (docs/release/receipts/uitest-14.md)")
         launch("unknown"); openCoupons(); enterDraft(); tap("couponManagement.confirm")
         assertEditorIssue(.unknownOutcome)
         tap("couponManagement.publish.review")
@@ -45,6 +50,7 @@ import XCTest
         XCTAssertEqual(record["pendingBeforeWrites"] as? [Bool], [true])
     }
     func testNormalRootFreshPermissionRevokedAtConfirmDoesNotWrite() throws {
+        try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1 player shell (docs/release/receipts/uitest-14.md)")
         launch("revokeOnConfirm"); openCoupons(); enterDraft(); tap("couponManagement.confirm")
         assertEditorIssue(.forbidden)
         try closeEditor()
@@ -54,6 +60,7 @@ import XCTest
         XCTAssertEqual(record["pending"] as? Bool, false)
     }
     func testNormalRootDiskRestartDoesNotRedispatchUnknownCreation() throws {
+        try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1 player shell (docs/release/receipts/uitest-14.md)")
         let journal = UUID()
         launch("unknown", journalID: journal); openCoupons(); enterDraft(); tap("couponManagement.confirm")
         assertEditorIssue(.unknownOutcome)

@@ -42,3 +42,10 @@ Not simulator-verified (code-only).
 | NonCashRewardFlowTests x5 | AX dump is Passport scrolled looking for `rewards.open`; the row lives in AccountCollectionFavoritesView, i.e. Passport > Settings > Favorites | launch() now taps Settings, `settingsNative.openFavorites`, then `rewards.open` |
 | CouponRuntimeFlowTests x5, CouponRuntimeChineseFlowTests x1 | AX dump shows the Settings sheet open (legal/about/compliance/sign out) with NO `account.merchant`: merchant rows (and the mode switch) are gated by `themeDomain != .player` (design-report-d2.md:65) and the signed-in root is `.roleTheme(.player)`; ui-ia.md already flagged "CouponRuntimeJourney needs an extra Settings step", but the step is not sufficient | NOT fixed: no merchant entry exists in the player shell, so this is a product/design decision (see worker_done), not a helper bug |
 Code-only; not simulator-verified.
+
+## Round 4 (owner decision: v1 is player-side first)
+The 6 Coupon tests drive a merchant journey that the player shell intentionally hides (themeDomain != .player), so they
+are skipped, not fixed: each starts with `try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1
+player shell (docs/release/receipts/uitest-14.md)")`. Bodies, helpers and assertions are unchanged; flip
+`merchantSurfaceHiddenInV1` to false in each class when merchant surfaces ship. Test counts (6 runtime + 1 recovery) are
+unchanged for the contract checks. Listed under Known gaps in docs/release/launch-readiness.md.

@@ -72,6 +72,7 @@ Owner-approved (`testflight-internal.md`): API `https://www.chengyinhub.com/prod
 | Blacklist: original identities and historical copy not rendered | `contract-backlog-3.md` |
 | Channel appeal: "receipt does not mean reversed" safety copy not rendered | `contract-backlog-3.md` |
 | Merchant template metadata hints removed from editor | `contract-backlog-3.md` |
+| Merchant coupon runtime UITests skipped for v1 (CouponRuntimeFlowTests x5, CouponRuntimeChineseFlowTests x1; merchant surface hidden in the player shell, bodies kept for re-enable) | `uitest-14.md` |
 | Shop NPC retry copy over-promises ("won't send it twice"); needs copy decision | `contract-backlog-3.md` |
 | `ticketWallet.readOnly` ("Payment, refunds and completion rewards aren't in the app yet") no longer rendered | `contract-backlog-5.md` |
 | Wallet withdrawal label says "Withdrawals", not "Withdrawal request debits"; payout-wording call (a later commit message mentions a request-debit label fix; not re-verified here) | `contract-backlog-5.md` |
