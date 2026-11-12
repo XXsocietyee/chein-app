@@ -58,6 +58,7 @@ import AVFoundation
             case .authorizedWhenInUse, .authorizedAlways: break
             case .denied, .restricted: throw PlayKitSensorError.permissionDenied
             case .notDetermined:
+                guard await CYPermissionSystemPrompt.precede(.location) else { throw PlayKitSensorError.permissionDenied }
                 try await withCheckedThrowingContinuation { (reply: CheckedContinuation<Void, Error>) in
                     headingPermission = reply; manager.requestWhenInUseAuthorization()
                 }

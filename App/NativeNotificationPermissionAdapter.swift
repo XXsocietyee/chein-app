@@ -25,6 +25,7 @@ import UserNotifications
     func requestFromUserAction() async throws {
         // Re-read to handle a permission changed outside this screen.
         guard await center.notificationSettings().authorizationStatus == .notDetermined else { return }
+        guard await CYPermissionSystemPrompt.precede(.notification) else { return }
         _ = try await center.requestAuthorization(options: [.alert, .sound, .badge])
     }
     func openSettingsFromUserAction() async throws {

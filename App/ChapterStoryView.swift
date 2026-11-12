@@ -60,7 +60,9 @@ import UIKit
                     if let title = chapter.title { CYHeroHeader(verbatim: title) }
                     if segments.isEmpty { CYEmptyState(systemImage: "book.closed", "chapterStory.empty") }
                     ForEach(segments) { segment in
-                        segmentBody(segment).frame(maxWidth: .infinity, alignment: .leading)
+                        segmentBody(segment)
+                            .cyThemeEdge(mood: segment.mood, odd: segment.odd)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("chapterStory.segment." + segment.id)
                     }
                     if model.thoughtSyncPhase == .syncing { ProgressView("chapterStory.thought.syncing") }
@@ -96,7 +98,7 @@ import UIKit
                                      retryTitle: "homeFeed.retry") { Task { await model.load() } }
                         .accessibilityIdentifier("chapterStory.error")
                 } else {
-                    CYEmptyState(systemImage: "lock", "chapterStory.unavailable", detail: "chapterStory.unavailable.detail")
+                    ChapterGate()
                 }
             }.padding(CYSpacing.pageHorizontal).frame(maxWidth: 720).frame(maxWidth: .infinity)
         }
@@ -292,6 +294,15 @@ import UIKit
         if state.readyForBase { ready(state) }
     }
 }
+/// Locked chapter. The same empty state, with the resting ink look on the gate card.
+@MainActor private struct ChapterGate: View {
+    var body: some View {
+        CYEmptyState(systemImage: "lock", "chapterStory.unavailable", detail: "chapterStory.unavailable.detail")
+            .cyThemeEdge(mood: nil, odd: 0)
+            .accessibilityIdentifier("chapterStory.gate")
+    }
+}
+
 @MainActor private struct ChapterStoryArtwork: View {
     let url: String
     let reader: (any RetainedPublicImageReading)?

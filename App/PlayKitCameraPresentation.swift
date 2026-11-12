@@ -59,7 +59,10 @@ import PhotosUI
             let allowed: Bool
             switch AVCaptureDevice.authorizationStatus(for: .video) {
             case .authorized: allowed = true
-            case .notDetermined: allowed = await AVCaptureDevice.requestAccess(for: .video)
+            case .notDetermined:
+                if await CYPermissionSystemPrompt.precede(.camera) {
+                    allowed = await AVCaptureDevice.requestAccess(for: .video)
+                } else { allowed = false }
             default: allowed = false
             }
             guard generation == token else { return }

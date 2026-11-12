@@ -195,7 +195,16 @@ import UIKit
                 finish(.failure(PersonalLocationShareFailure.existingLocationPermissionRequired), acquisition: id); return
             }
             guard !requestedPermission else { return }
-            requestedPermission = true; driver.requestForegroundAuthorization()
+            requestedPermission = true
+            Task { @MainActor [weak self] in
+                let allowed = await CYPermissionSystemPrompt.precede(.location)
+                guard let self, self.acquisitionId == id, self.pending != nil else { return }
+                guard allowed else {
+                    self.finish(.failure(PersonalLocationShareFailure.existingLocationPermissionRequired), acquisition: id)
+                    return
+                }
+                self.driver?.requestForegroundAuthorization()
+            }
         case .denied, .restricted:
             finish(.failure(PersonalLocationShareFailure.existingLocationPermissionRequired), acquisition: id)
         @unknown default:
