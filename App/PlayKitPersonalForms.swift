@@ -1,39 +1,132 @@
 import SwiftUI
 
 extension PlayKitScreen {
+    /// Mini-program 出生登记: the register card on top, then one question at a time with
+    /// 上一题 / "i / n", the avatar as the last step, and 下一题 → 完成建档. Submit stays one write.
     @ViewBuilder var profileForm: some View {
-        if raw["avatar"]["enabled"].bool == true {
-            if !avatarURL.isEmpty { artwork(avatarURL); Label("playkit.profile.avatarReady", systemImage: "person.crop.circle.badge.checkmark") }
-            photoInput { url in avatarURL = url; dirty = true }
-        }
         let questions = (raw["questions"].array ?? []).filter { ($0["key"].text ?? "").isEmpty == false }
-        if questions.count > 1 {
-            let answered = questions.filter { !(answers[$0["key"].text ?? ""] ?? "").isEmpty }.count
-            CYStepIndicator(titles: questions.map { $0["label"].text ?? "" }, current: min(answered, questions.count - 1))
-        }
-        ForEach(Array((raw["questions"].array ?? []).enumerated()), id: \.offset) { _, question in
-            if let key = question["key"].text, !key.isEmpty {
-                CYInfoCard {
-                    Text(verbatim: question["label"].text ?? key).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        .accessibilityAddTraits(.isHeader)
-                    if question["kind"].text == "pick" {
-                        ForEach(PlayKitOption.read(question["options"], idKey: "key")) { option in
-                            CYChoiceRow(label: option.label, selected: answers[key] == option.id, enabled: enabled) {
-                                answers[key] = option.id; dirty = true
-                            }
-                        }
-                    } else {
-                        TextField("playkit.profile.answer", text: Binding(get: { answers[key] ?? "" }, set: {
-                            let maxLength = question["maxLength"].integer ?? 0
-                            answers[key] = PlayKitInputContract.limitText($0, toUTF16: maxLength > 0 ? maxLength : 4096); dirty = true
-                        }), axis: .vertical).cyField().disabled(!enabled)
-                    }
+        let avatarEnabled = raw["avatar"]["enabled"].bool == true
+        let total = questions.count + (avatarEnabled ? 1 : 0)
+        let step = min(profileStep, max(0, total - 1))
+        let done = projection.complete
+        let final = step >= total - 1
+        profileSummary(questions)
+        if !done && total > 0 {
+            HStack {
+                if step > 0 {
+                    Button("playkit.profile.previous") { profileStep = step - 1 }
+                        .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                        .disabled(!enabled)
+                        .accessibilityIdentifier("playkit.profile.previous")
                 }
+                Spacer()
+                Text(verbatim: "\(step + 1) / \(total)").font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
+                    .accessibilityLabel(Text("playkit.profile.stepCount \(step + 1) \(total)"))
+                    .accessibilityIdentifier("playkit.profile.step")
             }
         }
-        Text("playkit.profile.lockNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-        let payload: [String: PlayWireValue] = ["answers": .object(answers.mapValues(PlayWireValue.string)), "avatarUrl": .string(avatarURL)]
-        submitButton("SUBMIT_PROFILE", payload: payload, valid: valid("SUBMIT_PROFILE", payload))
+        if !done, questions.indices.contains(step) { profileQuestion(questions[step]) }
+        if avatarEnabled && ((!done && step == questions.count) || (done && !avatarURL.isEmpty)) {
+            VStack(spacing: CYSpacing.sm) {
+                if !avatarURL.isEmpty { artwork(avatarURL).frame(maxWidth: 160); Label("playkit.profile.avatarReady", systemImage: "person.crop.circle.badge.checkmark") }
+                else {
+                    HStack(spacing: CYSpacing.xxs) {
+                        Text(LocalizedStringKey(raw["avatar"]["required"].bool == true ? "playkit.profile.avatarRequired" : "playkit.profile.avatarOptional"))
+                        if raw["avatar"]["required"].bool == true { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
+                    }.font(CYTypography.label)
+                }
+                if !done { photoInput { url in avatarURL = url; dirty = true } }
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("playkit.profile.avatar")
+        }
+        if done {
+            Text("playkit.profile.seal")
+                .font(CYTypography.cardTitle).foregroundStyle(CYColor.dangerText)
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(CYColor.dangerText, lineWidth: 2))
+                .rotationEffect(.degrees(-6))
+                .frame(maxWidth: .infinity)
+                .accessibilityLabel(Text("playkit.profile.sealLabel"))
+                .accessibilityIdentifier("playkit.profile.seal")
+            CYPillButton("playkit.profile.registered") {}.disabled(true).accessibilityIdentifier("playkit.submit.profile")
+        } else if final {
+            Text("playkit.profile.lockNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            let payload: [String: PlayWireValue] = ["answers": .object(answers.mapValues(PlayWireValue.string)), "avatarUrl": .string(avatarURL)]
+            Button("playkit.profile.finish") { prepare("SUBMIT_PROFILE", payload) }
+                .buttonStyle(.questifyPrimary).disabled(!enabled || !valid("SUBMIT_PROFILE", payload))
+                .accessibilityIdentifier("playkit.submit.profile")
+        } else {
+            CYPillButton("playkit.profile.next") { profileStep = step + 1 }
+                .disabled(!enabled || !questions.indices.contains(step) || !profileAnswered(questions[step]))
+                .accessibilityIdentifier("playkit.profile.next")
+        }
+    }
+    /// The register card: every question with the answer written so far (option label for picks).
+    private func profileSummary(_ questions: [PlayWireValue]) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Group { if projection.title.isEmpty { Text("playkit.profile.formTitle") } else { Text(verbatim: projection.title) } }
+                .font(CYTypography.meta).tracking(4).foregroundStyle(CYColor.textTertiary)
+                .frame(maxWidth: .infinity)
+            ForEach(Array(questions.enumerated()), id: \.offset) { _, question in
+                let key = question["key"].text ?? ""
+                let value = answers[key] ?? ""
+                let shown = PlayKitOption.read(question["options"], idKey: "key").first { $0.id == value }?.label ?? value
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.lg) {
+                    Text(verbatim: question["label"].text ?? key).font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: shown.isEmpty ? "—" : shown).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, CYSpacing.xs)
+                .overlay(alignment: .bottom) { Rectangle().fill(CYColor.borderSubtle).frame(height: 1) }
+                .accessibilityElement(children: .combine)
+            }
+        }
+        .padding(CYSpacing.lg)
+        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYColor.bgElevated))
+        .accessibilityIdentifier("playkit.profile.summary")
+    }
+    @ViewBuilder private func profileQuestion(_ question: PlayWireValue) -> some View {
+        let key = question["key"].text ?? ""
+        let limit = profileLimit(question)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack(spacing: CYSpacing.xxs) {
+                Text(verbatim: question["label"].text ?? key).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityHint(Text("playkit.profile.required"))
+            if question["kind"].text == "pick" {
+                ForEach(PlayKitOption.read(question["options"], idKey: "key")) { option in
+                    CYChoiceRow(label: option.label, selected: answers[key] == option.id, enabled: enabled) {
+                        answers[key] = option.id; dirty = true
+                    }
+                }
+            } else {
+                TextField("playkit.profile.placeholder", text: Binding(get: { answers[key] ?? "" }, set: {
+                    answers[key] = PlayKitInputContract.limitText($0, toUTF16: limit); dirty = true
+                })).cyField().disabled(!enabled)
+                    .accessibilityLabel(Text(verbatim: question["label"].text ?? key))
+                    .accessibilityIdentifier("playkit.profile.field." + key)
+                Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)")
+                    .font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .id(key)
+        .accessibilityIdentifier("playkit.profile.question." + key)
+    }
+    /// Mini-program default is 12 characters when the merchant set no limit.
+    private func profileLimit(_ question: PlayWireValue) -> Int {
+        let configured = question["maxLength"].integer ?? 0
+        return configured > 0 ? configured : 12
+    }
+    private func profileAnswered(_ question: PlayWireValue) -> Bool {
+        let value = (answers[question["key"].text ?? ""] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return false }
+        if question["kind"].text == "pick" { return PlayKitOption.read(question["options"], idKey: "key").contains { $0.id == value } }
+        return value.utf16.count <= profileLimit(question)
     }
     @ViewBuilder var noteForm: some View {
         let limit = PlayKitShortMessageLimit.resolve(raw["maxLength"])

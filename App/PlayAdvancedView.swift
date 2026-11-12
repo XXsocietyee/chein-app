@@ -8,10 +8,18 @@ import SwiftUI
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
+    /// UG-01 / UG-03 writes stay NOT_RUN in Core; nil keeps both screens read-only with an explanation.
+    var ugHangmanWrite: PlayKitHangmanWrite? = nil
+    var ugAccusationWrite: PlayKitAccusationWrite? = nil
+    /// Album photo completion (upload + SUBMIT_ALBUM). Nil hides the completion button.
+    var albumComplete: (() -> Void)? = nil
     let onReady: (PlayAdvancedState) -> Void
     @State private var teamSurfaceID = UUID()
     @State private var teamSurfaceVisible = false
     @State private var continueReason: String?
+    /// The one playkit sheet over the pack. Opening another replaces it; closing the panel closes it.
+    @State private var openKit: PlayAdvancedKitSheet?
+    @State private var kitDirty = false
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -74,20 +82,18 @@ import SwiftUI
                 }
                 ForEach(PlayKitScreenKind.present(in: state)) { kind in
                     Section {
-                        NavigationLink {
-                            PlayKitScreen(model: model, kind: kind, device: device, mediaScope: mediaScope,
-                                makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(LocalizedStringKey("playkit.kind." + kind.rawValue)).font(.headline)
-                                if let title = state.playKit[kind.rawValue]["title"].text, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
-                                if PlayKitScreenProjection(kind: kind, segment: state.playKit[kind.rawValue]).complete { Text("playkit.result.recorded").font(.caption) }
-                            }
-                        }.accessibilityIdentifier("playkit.open." + kind.rawValue)
+                        kitRow(.screen(kind), title: state.playKit[kind.rawValue]["title"].text,
+                               recorded: PlayKitScreenProjection(kind: kind, segment: state.playKit[kind.rawValue]).complete)
                     }
                 }
+                if state.playKit["hangman"].object != nil {
+                    Section { kitRow(.hangman, title: state.playKit["hangman"]["title"].text, recorded: state.playKit["hangman"]["solved"].bool == true) }
+                }
+                if state.playKit["album"].object != nil {
+                    Section { kitRow(.album, title: state.playKit["album"]["title"].text, recorded: state.playKit["album"]["done"].bool == true) }
+                }
                 // Existing non-screen kits remain explicitly distinct from this migration.
-                ForEach((state.playKit.object ?? [:]).keys.filter { PlayKitScreenKind(rawValue: $0) == nil }.sorted(), id: \.self) { kind in
+                ForEach((state.playKit.object ?? [:]).keys.filter { PlayKitScreenKind(rawValue: $0) == nil && !PlayAdvancedKitSheet.ownKeys.contains($0) }.sorted(), id: \.self) { kind in
                     Section {
                         Text(verbatim: state.playKit[kind]["title"].text ?? kind).font(.headline)
                         if let description = state.playKit[kind]["description"].text { Text(verbatim: description) }
@@ -105,10 +111,97 @@ import SwiftUI
         .onAppear { teamSurfaceVisible = true; model.beginTeamSurface(id: teamSurfaceID) }
         .task(id: model.state?.version) { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) }
         .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID); model.closeAdvancedPanel() }
+        .sheet(item: $openKit, onDismiss: { kitDirty = false; model.closePlayKitSheet() }) { sheet in
+            NavigationStack { kitSheet(sheet) }
+                .presentationDetents(sheet.halfSheet ? [.medium, .large] : [.large])
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled(kitDirty)
+        }
+        .onChange(of: model.playKitPresentation.playKitOpen) { _, open in if !open { openKit = nil } }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { model.endTeamSurface(id: teamSurfaceID) }
             else if phase == .active && teamSurfaceVisible { model.beginTeamSurface(id: teamSurfaceID); Task { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) } }
         }
+    }
+}
+
+extension PlayAdvancedView {
+    private func kitRow(_ sheet: PlayAdvancedKitSheet, title: String?, recorded: Bool) -> some View {
+        Button {
+            openKit = sheet
+            model.openPlayKitSheet()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(LocalizedStringKey("playkit.kind." + sheet.key)).font(.headline)
+                    if let title, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
+                    if recorded { Text("playkit.result.recorded").font(.caption) }
+                }
+                Spacer(minLength: CYSpacing.sm)
+                Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("playkit.open." + sheet.key)
+    }
+
+    @ViewBuilder private func kitSheet(_ sheet: PlayAdvancedKitSheet) -> some View {
+        switch sheet {
+        case .screen(let kind):
+            PlayKitScreen(model: model, kind: kind, presentation: .sheet, reportDirty: { kitDirty = $0 }, device: device, mediaScope: mediaScope,
+                makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
+                ugAccusationWrite: ugAccusationWrite)
+        case .hangman:
+            Group {
+                if let segment = model.state?.playKit["hangman"], segment.object != nil {
+                    PlayKitHangmanView(projection: PlayKitHangmanProjection(segment: segment), enabled: model.canInteract,
+                        submit: ugHangmanWrite, close: { openKit = nil })
+                        .padding()
+                } else { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }
+            }
+            .modifier(PlayAdvancedKitSheetChrome(key: sheet.key, close: { openKit = nil }))
+        case .album:
+            Group {
+                if let state = model.state, let album = PlayKitAlbumProjection(state: state) {
+                    ScrollView {
+                        PlayKitAlbumView(projection: album, approvedHosts: approvedArtworkHosts, complete: albumComplete, close: { openKit = nil })
+                    }
+                } else { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }
+            }
+            .modifier(PlayAdvancedKitSheetChrome(key: sheet.key, close: { openKit = nil }))
+        }
+    }
+}
+
+/// Which playkit sits in the sheet over the advanced pack.
+enum PlayAdvancedKitSheet: Identifiable, Equatable {
+    case screen(PlayKitScreenKind), hangman, album
+    /// playKit keys with their own native sheet outside PlayKitScreenKind.
+    static let ownKeys: Set<String> = ["hangman", "album"]
+    var key: String {
+        switch self {
+        case .screen(let kind): return kind.rawValue
+        case .hangman: return "hangman"
+        case .album: return "album"
+        }
+    }
+    var id: String { key }
+    private static let halfSheetKinds: Set<PlayKitScreenKind> = [.timeWindow, .blindTaste, .silentOrder, .diyName, .musicCorner, .steps, .dailySign, .slowTask]
+    /// The mini-program v5.1 kits open as a half sheet over the pack; the full-screen kits use the whole sheet.
+    var halfSheet: Bool {
+        guard case .screen(let kind) = self else { return false }
+        return Self.halfSheetKinds.contains(kind)
+    }
+}
+
+private struct PlayAdvancedKitSheetChrome: ViewModifier {
+    let key: String; let close: () -> Void
+    func body(content: Content) -> some View {
+        content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + key)))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.close", action: close).accessibilityIdentifier("playkit.close") } }
+            .accessibilityIdentifier("playkit.screen." + key)
     }
 }
 
