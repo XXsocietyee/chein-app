@@ -29,7 +29,8 @@ import XCTest
         if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn") }
         let account = app.tabBars.buttons["Passport"]
         XCTAssertTrue(account.waitForExistence(timeout: 10)); account.tap()
-        tap("rewards.open")
+        // Rewards now live on the collections page: Passport > Settings > Favorites.
+        tap("Settings"); tap("settingsNative.openFavorites"); tap("rewards.open")
     }
     /// Full-method conservative estimate: 480 seconds, unmeasured after source reconstruction.
     func testDetailDisclosesFrozenTermsExactMapOriginAndUnavailableClaimFacts() {
