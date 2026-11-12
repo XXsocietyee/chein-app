@@ -21,7 +21,10 @@ import UserNotifications
     }
     func requestPermission() async throws -> NativePlatformPermission {
         guard enabled else { throw NativePlatformIssue.disabled }
-        if await permission() == .notDetermined { _ = try await center.requestAuthorization(options: [.alert, .sound]) }
+        if await permission() == .notDetermined {
+            guard await CYPermissionSystemPrompt.precede(.notification) else { return await permission() }
+            _ = try await center.requestAuthorization(options: [.alert, .sound])
+        }
         return await permission()
     }
     func pending() async -> [NativeLocalReminder] {

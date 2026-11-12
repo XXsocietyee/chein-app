@@ -1,5 +1,6 @@
-import SwiftUI
+import AVFoundation
 import PhotosUI
+import SwiftUI
 
 /// Native picker host. A system picker is not opened by a task, bootstrap or a fixture.
 /// The default host passes false; an approved native host can enable user-initiated selection.
@@ -23,7 +24,7 @@ import PhotosUI
             Text("merchant.engagement.evidenceSelectionBoundary").font(.footnote)
             PhotosPicker(selection: $item, matching: .images, photoLibrary: .shared()) { Label("merchant.engagement.selectEvidence", systemImage: "photo.badge.plus") }
                 .disabled(!nativeSelectionEnabled).accessibilityIdentifier("merchant.engagement.evidencePicker")
-            Button("merchant.engagement.captureEvidence") { showingCamera = true }
+            Button("merchant.engagement.captureEvidence") { Task { await openCamera() } }
                 .disabled(!cameraSelectionEnabled || !UIImagePickerController.isSourceTypeAvailable(.camera))
             if !nativeSelectionEnabled { Text("merchant.engagement.nativeSelectionDisabled").foregroundStyle(.secondary) }
             if loading { ProgressView() }
@@ -55,6 +56,13 @@ import PhotosUI
             }
         }
         .onDisappear { generation += 1; selection = nil; item = nil; loading = false }
+    }
+    private func openCamera() async {
+        guard cameraSelectionEnabled else { return }
+        if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+            guard await CYPermissionSystemPrompt.precede(.camera) else { return }
+        }
+        showingCamera = true
     }
 }
 

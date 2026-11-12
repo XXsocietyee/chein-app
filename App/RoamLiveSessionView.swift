@@ -246,7 +246,11 @@ import Combine
             locationPrimingAllowed = false
             Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
         }) {
-            CYPermissionPriming(kind: .location, onAllow: { locationPrimingAllowed = true; showingLocationPriming = false }, onNotNow: { showingLocationPriming = false })
+            CYPermissionPrimerScreen(kind: .location, onPrimary: {
+                CYPermissionSystemPrompt.notePrimed(.location)
+                locationPrimingAllowed = true
+                showingLocationPriming = false
+            }, onSecondary: { showingLocationPriming = false })
         }
         .confirmationDialog("roam.live.finishConfirm", isPresented: $confirmFinish, titleVisibility: .visible) {
             Button("roam.live.finish") { Task { await owner.finish() } }.accessibilityIdentifier("roam.live.finish.confirm")

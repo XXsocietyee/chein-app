@@ -55,7 +55,9 @@ import PhotosUI
             case .authorized: allowed = true
             case .notDetermined:
                 authorizationInFlight = true
-                allowed = await AVCaptureDevice.requestAccess(for: .video)
+                if await CYPermissionSystemPrompt.precede(.camera) {
+                    allowed = await AVCaptureDevice.requestAccess(for: .video)
+                } else { allowed = false }
             default: allowed = false
             }
             guard cameraGeneration == generation else { throw CancellationError() }
@@ -75,7 +77,17 @@ import PhotosUI
             return try await withTaskCancellationHandler(operation: {
                 try await withCheckedThrowingContinuation { reply in
                     locationReply = reply; let manager = makeLocationManager(); locationManager = manager; manager.delegate = self
-                    if manager.authorizationStatus == .notDetermined { manager.requestWhenInUseAuthorization() }
+                    if manager.authorizationStatus == .notDetermined {
+                        Task { @MainActor [weak self] in
+                            let allowed = await CYPermissionSystemPrompt.precede(.location)
+                            guard let self, self.locationGeneration == generation, let manager = self.locationManager else { return }
+                            guard allowed else {
+                                self.takeLocationReply(manager)?.resume(throwing: PlayExperienceError.disabled)
+                                return
+                            }
+                            manager.requestWhenInUseAuthorization()
+                        }
+                    }
                     else { requestLocationIfAuthorized(manager) }
                 }
             }, onCancel: { [weak self] in

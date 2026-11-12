@@ -64,7 +64,10 @@ import simd
                 switch AVCaptureDevice.authorizationStatus(for: .video) {
                 case .authorized: allowed = true
                 case .notDetermined:
-                    authorizing = true; allowed = await AVCaptureDevice.requestAccess(for: .video)
+                    authorizing = true
+                    if await CYPermissionSystemPrompt.precede(.camera) {
+                        allowed = await AVCaptureDevice.requestAccess(for: .video)
+                    } else { allowed = false }
                 default: allowed = false
                 }
                 guard token == generation else { return }; authorizing = false

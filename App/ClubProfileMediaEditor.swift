@@ -1,5 +1,6 @@
-import SwiftUI
+import AVFoundation
 import PhotosUI
+import SwiftUI
 import UIKit
 
 @MainActor struct ClubProfileMediaSection: View {
@@ -72,7 +73,7 @@ import UIKit
                 } else if let scope = flow.scope, let service = flow.service {
                     PhotosPicker(selection: $item, matching: .images) { Label(String(localized: LocalizedStringResource("media.album", table: "ClubProfileMedia", locale: locale)), systemImage: "photo") }
                         .disabled(!canSelect || !service.permitsAlbum(scope))
-                    Button(String(localized: LocalizedStringResource("media.camera", table: "ClubProfileMedia", locale: locale))) { guard canSelect, service.permitsCamera(scope) else { return }; camera = true }
+                    Button(String(localized: LocalizedStringResource("media.camera", table: "ClubProfileMedia", locale: locale))) { Task { await openCamera(scope: scope, service: service) } }
                         .disabled(!canSelect || !service.permitsCamera(scope) || !UIImagePickerController.isSourceTypeAvailable(.camera))
                 }
                 if loading || flow.state == .uploading { ProgressView() }
@@ -108,6 +109,13 @@ import UIKit
             }
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active { selectionGeneration = UUID(); crop = nil; item = nil; camera = false; flow.retire(); dismiss() } }
+    }
+    private func openCamera(scope: ClubProfileMediaScope, service: ClubProfileMediaService) async {
+        guard canSelect, service.permitsCamera(scope) else { return }
+        if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+            guard await CYPermissionSystemPrompt.precede(.camera) else { return }
+        }
+        camera = true
     }
     private func accept(_ bytes: Data) {
         guard flow.current, let field = flow.field, let image = try? RetainedImageSanitizer.sanitize(bytes) else { issue = String(localized: LocalizedStringResource("media.unreadable", table: "ClubProfileMedia", locale: locale)); return }

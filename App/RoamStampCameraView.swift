@@ -127,7 +127,11 @@ import UIKit
             .sheet(isPresented: $showingPriming, onDismiss: {
                 if primingAllowed { primingAllowed = false; requestCamera(primed: true) }
             }) {
-                CYPermissionPriming(kind: .camera, onAllow: { primingAllowed = true; showingPriming = false }, onNotNow: { showingPriming = false })
+                CYPermissionPrimerScreen(kind: .camera, onPrimary: {
+                    CYPermissionSystemPrompt.notePrimed(.camera)
+                    primingAllowed = true
+                    showingPriming = false
+                }, onSecondary: { showingPriming = false })
             }
             .fullScreenCover(isPresented: $showingCamera, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
@@ -215,7 +219,10 @@ import UIKit
             if status == .denied || status == .restricted { cameraDenied = true; cameraIssue = false; return }
             cameraDenied = false
             let granted: Bool
-            if status == .notDetermined { granted = await AVCaptureDevice.requestAccess(for: .video) }
+            if status == .notDetermined {
+                guard await CYPermissionSystemPrompt.precede(.camera) else { cameraIssue = false; return }
+                granted = await AVCaptureDevice.requestAccess(for: .video)
+            }
             else { granted = status == .authorized }
             guard !Task.isCancelled, ticket == captureGeneration, scenePhase == .active, cameraEnabled, purposeAccepted else { return }
             showingCamera = granted; cameraIssue = !granted
