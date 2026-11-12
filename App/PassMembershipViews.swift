@@ -291,6 +291,7 @@ struct PassLibraryView: View {
     let onLoad: (PassLibraryKind) -> Void
     let onOpenTopic: ((String) -> Void)?
     @State private var kind: PassLibraryKind = .all
+    @State private var loadedKind: PassLibraryKind?
     @State private var started = false
 
     private var showsKinds: Bool {
@@ -344,8 +345,8 @@ struct PassLibraryView: View {
         .background { MPNightGround() }
         .navigationTitle(Text("mp.library.title"))
         .navigationBarTitleDisplayMode(.large)
-        .onAppear { if !started { started = true; kind = initialKind; onLoad(initialKind) } }
-        .onChange(of: kind) { _, new in if started { onLoad(new) } }
+        .onAppear { if !started { kind = initialKind; loadedKind = initialKind; started = true; onLoad(initialKind) } }
+        .onChange(of: kind) { _, new in if started && new != loadedKind { loadedKind = new; onLoad(new) } }
     }
 }
 
