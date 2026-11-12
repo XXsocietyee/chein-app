@@ -529,6 +529,38 @@
         }
       }
     },
+    "clubOps.customers.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
+      }
+    },
+    "clubOps.customers.unknownLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customer count unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客户人数未确认"
+          }
+        }
+      }
+    },
     "clubOps.customers.empty": {
       "localizations": {
         "en": {
@@ -941,6 +973,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "可提现为 0：分润到账并客诉期结束后才能提现"
+          }
+        }
+      }
+    },
+    "club.host.apply.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载中..."
+          }
+        }
+      }
+    },
+    "club.host.apply.unknownCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
           }
         }
       }

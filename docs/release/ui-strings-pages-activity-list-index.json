@@ -1,0 +1,321 @@
+{
+  "page": "pages/activity/list/index",
+  "screen": "App/OfficialEventsBrowserView.swift",
+  "table": "Localizable",
+  "strings": [
+    {
+      "key": "action.close",
+      "en": "Close",
+      "zh-Hans": "关闭"
+    },
+    {
+      "key": "official.title",
+      "en": "Official events",
+      "zh-Hans": "官方活动"
+    },
+    {
+      "key": "official.search",
+      "en": "Search event names or cities",
+      "zh-Hans": "搜索活动名或城市"
+    },
+    {
+      "key": "official.filter",
+      "en": "Event category",
+      "zh-Hans": "活动分类"
+    },
+    {
+      "key": "official.bucket.live",
+      "en": "Live",
+      "zh-Hans": "进行中"
+    },
+    {
+      "key": "official.bucket.upcoming",
+      "en": "Upcoming",
+      "zh-Hans": "即将"
+    },
+    {
+      "key": "official.bucket.ended",
+      "en": "Ended",
+      "zh-Hans": "已结束"
+    },
+    {
+      "key": "official.tab.mine",
+      "en": "Mine",
+      "zh-Hans": "我的"
+    },
+    {
+      "key": "official.publishedLink",
+      "en": "My published",
+      "zh-Hans": "我发布的"
+    },
+    {
+      "key": "official.inboxLink",
+      "en": "Invitations",
+      "zh-Hans": "邀约"
+    },
+    {
+      "key": "official.summary.live %lld",
+      "en": "Live · %lld events",
+      "zh-Hans": "进行中 · 共 %lld 个活动"
+    },
+    {
+      "key": "official.summary.upcoming %lld",
+      "en": "Coming soon · %lld events",
+      "zh-Hans": "即将上线 · 共 %lld 个活动"
+    },
+    {
+      "key": "official.summary.ended %lld",
+      "en": "Ended · %lld events",
+      "zh-Hans": "已结束 · 共 %lld 个活动"
+    },
+    {
+      "key": "official.summary.mine %lld",
+      "en": "Mine · %lld events",
+      "zh-Hans": "我的 · 共 %lld 个活动"
+    },
+    {
+      "key": "official.summary.search %@ %lld",
+      "en": "“%1$@” · %2$lld results",
+      "zh-Hans": "「%1$@」%2$lld 个结果"
+    },
+    {
+      "key": "official.empty.live",
+      "en": "No live events yet",
+      "zh-Hans": "暂无进行中的活动"
+    },
+    {
+      "key": "official.empty.upcoming",
+      "en": "No upcoming events yet",
+      "zh-Hans": "暂无即将上线的活动"
+    },
+    {
+      "key": "official.empty.ended",
+      "en": "No ended events yet",
+      "zh-Hans": "暂无已结束的活动"
+    },
+    {
+      "key": "official.empty.mine",
+      "en": "No events joined yet",
+      "zh-Hans": "还没有参与的活动"
+    },
+    {
+      "key": "official.empty.search",
+      "en": "No matching events",
+      "zh-Hans": "没有找到相关活动"
+    },
+    {
+      "key": "official.emptyDetail.curated",
+      "en": "Curated official events will appear here first",
+      "zh-Hans": "官方策展活动会第一时间出现在这里"
+    },
+    {
+      "key": "official.emptyDetail.ended",
+      "en": "Past events appear here once archived",
+      "zh-Hans": "往期活动归档后会出现在这里"
+    },
+    {
+      "key": "official.emptyDetail.mine",
+      "en": "Events you sign up for will appear here",
+      "zh-Hans": "报名活动后会出现在这里"
+    },
+    {
+      "key": "official.searchEmptyDetail",
+      "en": "Try another keyword, or browse other categories",
+      "zh-Hans": "换个关键词，或看看其他分类"
+    },
+    {
+      "key": "official.loading",
+      "en": "Loading official events",
+      "zh-Hans": "正在加载官方活动"
+    },
+    {
+      "key": "official.notConfigured",
+      "en": "Official events aren't available right now",
+      "zh-Hans": "官方活动暂不可用"
+    },
+    {
+      "key": "official.signInRequired",
+      "en": "Sign in to view your official-event records",
+      "zh-Hans": "登录后查看我的官方活动记录"
+    },
+    {
+      "key": "official.forbidden",
+      "en": "Your account cannot view this content",
+      "zh-Hans": "你的账号无权查看这些内容"
+    },
+    {
+      "key": "official.unavailable",
+      "en": "This record is unavailable for this account",
+      "zh-Hans": "当前账号无法查看这条记录"
+    },
+    {
+      "key": "official.failed",
+      "en": "Official-event content could not be loaded",
+      "zh-Hans": "官方活动内容未能加载"
+    },
+    {
+      "key": "official.signIn",
+      "en": "Sign in",
+      "zh-Hans": "登录"
+    },
+    {
+      "key": "official.retry",
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    {
+      "key": "official.offlineExample",
+      "en": "Example content",
+      "zh-Hans": "示例内容"
+    },
+    {
+      "key": "official.untitled",
+      "en": "Untitled official event",
+      "zh-Hans": "未命名官方活动"
+    },
+    {
+      "key": "official.status.upcoming",
+      "en": "Upcoming",
+      "zh-Hans": "即将开始"
+    },
+    {
+      "key": "official.status.registration",
+      "en": "Registration open",
+      "zh-Hans": "报名中"
+    },
+    {
+      "key": "official.status.live",
+      "en": "In progress",
+      "zh-Hans": "进行中"
+    },
+    {
+      "key": "official.status.settling",
+      "en": "Settling",
+      "zh-Hans": "结算中"
+    },
+    {
+      "key": "official.status.ended",
+      "en": "Ended",
+      "zh-Hans": "已结束"
+    },
+    {
+      "key": "official.status.unknown",
+      "en": "Status not provided",
+      "zh-Hans": "状态未提供"
+    },
+    {
+      "key": "official.status.paused",
+      "en": "Paused",
+      "zh-Hans": "已暂停"
+    },
+    {
+      "key": "official.informationIncomplete",
+      "en": "Information incomplete",
+      "zh-Hans": "信息不全"
+    },
+    {
+      "key": "official.city",
+      "en": "City",
+      "zh-Hans": "城市"
+    },
+    {
+      "key": "official.card.participants %lld",
+      "en": "%lld joined",
+      "zh-Hans": "%lld 人参与"
+    },
+    {
+      "key": "official.card.collective %lld",
+      "en": "City lit up %lld%%",
+      "zh-Hans": "全城已点亮 %lld%%"
+    },
+    {
+      "key": "official.card.collectiveUnknown",
+      "en": "City lit up —",
+      "zh-Hans": "全城已点亮 —"
+    },
+    {
+      "key": "official.countdown.start",
+      "en": "Starts in",
+      "zh-Hans": "距开始"
+    },
+    {
+      "key": "official.countdown.end",
+      "en": "Ends in",
+      "zh-Hans": "距结束"
+    },
+    {
+      "key": "official.countdown.startingSoon",
+      "en": "Starting soon",
+      "zh-Hans": "即将开始"
+    },
+    {
+      "key": "official.countdown.endingSoon",
+      "en": "Ending soon",
+      "zh-Hans": "即将结束"
+    },
+    {
+      "key": "official.countdown.days %lld",
+      "en": "%lld d",
+      "zh-Hans": "%lld 天"
+    },
+    {
+      "key": "official.countdown.hours %lld",
+      "en": "%lld h",
+      "zh-Hans": "%lld 小时"
+    },
+    {
+      "key": "official.countdown.minutes %lld",
+      "en": "%lld min",
+      "zh-Hans": "%lld 分"
+    },
+    {
+      "key": "official.notAnnounced",
+      "en": "Not announced",
+      "zh-Hans": "待公布"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    {
+      "id": "official.search",
+      "labelKey": "official.search"
+    },
+    {
+      "id": "official.filter",
+      "labelKey": "official.filter"
+    },
+    {
+      "id": "official.publishedLink",
+      "labelKey": "official.publishedLink"
+    },
+    {
+      "id": "official.inboxLink",
+      "labelKey": "official.inboxLink"
+    },
+    {
+      "id": "officialList.summary",
+      "labelKeys": [
+        "official.summary.live %lld",
+        "official.summary.upcoming %lld",
+        "official.summary.ended %lld",
+        "official.summary.mine %lld",
+        "official.summary.search %@ %lld"
+      ]
+    },
+    {
+      "id": "official.issue",
+      "labelKey": "official.failed"
+    },
+    {
+      "id": "official.signIn",
+      "labelKey": "official.signIn"
+    },
+    {
+      "id": "official.retry",
+      "labelKey": "official.retry"
+    },
+    {
+      "id": "official.event.",
+      "labelKey": "official.title"
+    }
+  ]
+}

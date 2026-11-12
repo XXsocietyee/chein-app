@@ -1,0 +1,152 @@
+{
+  "page": "subpackageP3/pages/stamp-camera/index/index",
+  "screen": "App/RoamStampCameraView.swift",
+  "mapStatus": "partial",
+  "unknownMark": "—",
+  "strings": {
+    "action.back": {
+      "en": "Back",
+      "zh-Hans": "返回"
+    },
+    "action.retry": {
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    "media.stamp.cameraDenied.message": {
+      "en": "Allow the camera in Settings to take a stamp photo. We only use it when you tap the shutter.",
+      "zh-Hans": "到“设置”里允许相机，就能拍邮票照片。只有你按下快门时才会拍照。"
+    },
+    "media.stamp.cameraDenied.title": {
+      "en": "Camera is off",
+      "zh-Hans": "相机未开启"
+    },
+    "media.stamp.cameraIssue": {
+      "en": "Camera access is off. Turn it on in Settings, then try again.",
+      "zh-Hans": "相机权限未开启，请在设置中开启后重试。"
+    },
+    "media.stamp.capture": {
+      "en": "Take photo",
+      "zh-Hans": "拍照"
+    },
+    "media.stamp.capturedPreview": {
+      "en": "Your captured photo, cropped to 4:5",
+      "zh-Hans": "实际拍摄并裁切为 4:5 的照片"
+    },
+    "media.stamp.consent": {
+      "en": "Use the camera for this stamp",
+      "zh-Hans": "为这枚邮票使用相机"
+    },
+    "media.stamp.create": {
+      "en": "Finish saving",
+      "zh-Hans": "完成存入"
+    },
+    "media.stamp.disabled": {
+      "en": "The camera can't be used here right now",
+      "zh-Hans": "暂时无法在这里使用相机"
+    },
+    "media.stamp.phase.awaitingCreate": {
+      "en": "Photo uploaded. Tap Finish saving.",
+      "zh-Hans": "照片已上传，点「完成存入」。"
+    },
+    "media.stamp.phase.created": {
+      "en": "Saved to your album",
+      "zh-Hans": "已存入集邮册"
+    },
+    "media.stamp.phase.creating": {
+      "en": "Saving to your album…",
+      "zh-Hans": "正在存入集邮册…"
+    },
+    "media.stamp.phase.failed": {
+      "en": "It wasn't saved. Try again.",
+      "zh-Hans": "没有存入成功，请重试。"
+    },
+    "media.stamp.phase.ready": {
+      "en": "Ready",
+      "zh-Hans": "准备拍摄"
+    },
+    "media.stamp.phase.review": {
+      "en": "Check your photo",
+      "zh-Hans": "看看这张照片"
+    },
+    "media.stamp.phase.unavailable": {
+      "en": "Safe recovery storage is unavailable. No upload or save can start.",
+      "zh-Hans": "安全恢复存储不可用，暂不能上传或入册。"
+    },
+    "media.stamp.phase.unknown": {
+      "en": "Still confirming your last photo.",
+      "zh-Hans": "上一张还在确认中。"
+    },
+    "media.stamp.phase.uploading": {
+      "en": "Saving…",
+      "zh-Hans": "正在存入…"
+    },
+    "media.stamp.purpose": {
+      "en": "Your photo is cropped to 4:5. You'll see it before it's saved to your album.",
+      "zh-Hans": "照片会裁成 4:5，存入集邮册前可以先看一眼。"
+    },
+    "media.stamp.retake": {
+      "en": "Retake",
+      "zh-Hans": "重拍"
+    },
+    "media.stamp.title": {
+      "en": "Stamp camera",
+      "zh-Hans": "集邮相机"
+    },
+    "media.stamp.upload": {
+      "en": "Save to album",
+      "zh-Hans": "存入集邮册"
+    },
+    "roam.createdStamp.changed": {
+      "en": "The album account or session changed. Go back to continue.",
+      "zh-Hans": "集邮册账户或会话已变化，请返回后继续。"
+    },
+    "roam.createdStamp.open": {
+      "en": "View saved stamp",
+      "zh-Hans": "查看入册结果"
+    },
+    "roam.experience.caption": {
+      "en": "Add a caption (up to 30 characters)",
+      "zh-Hans": "写一句配文（最多 30 字）"
+    },
+    "roam.experience.captionLimit": {
+      "en": "Caption is too long",
+      "zh-Hans": "配文超出字数限制"
+    },
+    "roam.poi.location.openSettings": {
+      "en": "Open Settings",
+      "zh-Hans": "打开设置"
+    },
+    "roam.stamp.exchange.button": {
+      "en": "Swap for another traveler's stamp",
+      "zh-Hans": "换一张别人的印章"
+    },
+    "roam.stamp.exchange.failed": {
+      "en": "The swap did not complete. Retrying is safe and will not duplicate your stamp.",
+      "zh-Hans": "交换没有完成。重试是安全的，不会重复投递你的印章。"
+    },
+    "roam.stamp.exchange.footer": {
+      "en": "Your stamp is shared anonymously. You can hide any stamp you receive from its detail page.",
+      "zh-Hans": "你的印章会匿名分享。收到的印章可在详情页中隐藏。"
+    },
+    "roam.stamp.exchange.working": {
+      "en": "Swapping…",
+      "zh-Hans": "正在交换…"
+    },
+    "roamSub.w208.stamp.defaultPlace": {
+      "en": "This stop",
+      "zh-Hans": "这一站"
+    }
+  },
+  "accessibilityIdentifiers": [
+    "media.stamp.openSettings",
+    "media.stamp.cameraDenied",
+    "media.stamp.cameraIssue.back",
+    "roam.createdStamp.open",
+    "media.stamp.capture",
+    "media.stamp.exchange",
+    "media.stamp.caption",
+    "media.stamp.caption.limit",
+    "media.stamp.caption.remaining",
+    "media.stamp.caption.section"
+  ]
+}

@@ -1,0 +1,585 @@
+{
+  "page": "pages/publish/activity/index",
+  "native": "App/PublishingModesViews.swift",
+  "strings": {
+    "publishModes.activity": {
+      "en": "Publish an activity",
+      "zh-Hans": "发布活动"
+    },
+    "publishModes.addressName": {
+      "en": "Venue name",
+      "zh-Hans": "活动地点"
+    },
+    "publishModes.start": {
+      "en": "Start time",
+      "zh-Hans": "开始时间"
+    },
+    "publishModes.end": {
+      "en": "End time",
+      "zh-Hans": "结束时间"
+    },
+    "publishModes.choosePlace": {
+      "en": "Choose a place",
+      "zh-Hans": "选择地点"
+    },
+    "publishModes.chooseTimeRange": {
+      "en": "Activity dates",
+      "zh-Hans": "活动日期"
+    },
+    "publishModes.cover": {
+      "en": "Cover image link",
+      "zh-Hans": "封面图片链接"
+    },
+    "publishModes.coverSection": {
+      "en": "Activity cover",
+      "zh-Hans": "活动封面"
+    },
+    "publishModes.template": {
+      "en": "Template",
+      "zh-Hans": "选择模板"
+    },
+    "publishModes.selected": {
+      "en": "Selected",
+      "zh-Hans": "已选择"
+    },
+    "publishModes.collaborators": {
+      "en": "Collaborators",
+      "zh-Hans": "合作者"
+    },
+    "publishModes.remove": {
+      "en": "Delete",
+      "zh-Hans": "删除"
+    },
+    "publishModes.ticket": {
+      "en": "Ticket option",
+      "zh-Hans": "票单"
+    },
+    "publishModes.addTicket": {
+      "en": "Add ticket option",
+      "zh-Hans": "添加票单"
+    },
+    "publishModes.saveLocal": {
+      "en": "Save on this device",
+      "zh-Hans": "保存到本机"
+    },
+    "publishModes.savedLocal": {
+      "en": "Saved securely on this device for this account.",
+      "zh-Hans": "已为当前账号安全保存到本机。"
+    },
+    "publishModes.restoreLocal": {
+      "en": "Restore saved draft",
+      "zh-Hans": "恢复已保存草稿"
+    },
+    "publishModes.restoredLocal": {
+      "en": "Saved draft restored. Review it before continuing.",
+      "zh-Hans": "已恢复草稿，请检查后继续。"
+    },
+    "publishModes.noSavedLocal": {
+      "en": "No saved draft for this account and mode.",
+      "zh-Hans": "此账号和模式暂无已保存草稿。"
+    },
+    "publishModes.storageFailed": {
+      "en": "Secure storage is unavailable. Your current draft remains on this screen.",
+      "zh-Hans": "安全存储暂不可用，当前草稿仍保留在此页面。"
+    },
+    "publishModes.review": {
+      "en": "Review and publish",
+      "zh-Hans": "检查并发布"
+    },
+    "publishModes.cancel": {
+      "en": "Cancel",
+      "zh-Hans": "取消"
+    },
+    "publishModes.confirm": {
+      "en": "Publish",
+      "zh-Hans": "发布"
+    },
+    "publishModes.invalid": {
+      "en": "Check the required fields, event times and ticket windows. Publishing also requires a current club-leader role.",
+      "zh-Hans": "请检查必填项、活动时间和票种履约窗口；发布还需要当前主理人身份。"
+    },
+    "publishModes.readFailed": {
+      "en": "Could not load this list. Check your connection and sign-in, then retry.",
+      "zh-Hans": "列表加载失败，请检查网络和登录状态后重试。"
+    },
+    "publishModes.clubOnly": {
+      "en": "Only club leaders can publish activities.",
+      "zh-Hans": "仅俱乐部主理人可发布活动。"
+    },
+    "publishModes.conflict": {
+      "en": "The project changed or access is unavailable. Refresh before reviewing again.",
+      "zh-Hans": "项目已变化或暂时无权访问，请刷新后重新审核。"
+    },
+    "publishModes.rejected": {
+      "en": "This request couldn't be completed.",
+      "zh-Hans": "请求未能完成。"
+    },
+    "publishModes.clear": {
+      "en": "Clear",
+      "zh-Hans": "清除"
+    },
+    "publishModes.empty": {
+      "en": "No results",
+      "zh-Hans": "暂无结果"
+    },
+    "publishModes.retry": {
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    "publishModes.done": {
+      "en": "Done",
+      "zh-Hans": "完成"
+    },
+    "publishModes.notSelected": {
+      "en": "Not selected",
+      "zh-Hans": "未选择"
+    },
+    "publishModes.acknowledged": {
+      "en": "Submitted. Check My projects for the latest status.",
+      "zh-Hans": "已提交，可在我的项目查看最新状态。"
+    },
+    "publishModes.notSent": {
+      "en": "Nothing was sent. Access, configuration or the reviewed data changed.",
+      "zh-Hans": "未发送请求；权限、配置或审核内容发生变化。"
+    },
+    "publishModes.projects": {
+      "en": "My projects",
+      "zh-Hans": "我的项目"
+    },
+    "publishModes.abandon.title": {
+      "en": "Give up this unpublished activity?",
+      "zh-Hans": "放弃未发布的活动？"
+    },
+    "publishModes.abandon.confirm": {
+      "en": "Give up",
+      "zh-Hans": "放弃"
+    },
+    "publishModes.abandon.keepEditing": {
+      "en": "Keep editing",
+      "zh-Hans": "继续编辑"
+    },
+    "publishModes.abandon.message": {
+      "en": "What you entered in this activity will not be kept.",
+      "zh-Hans": "已填写的活动内容不会保留。"
+    },
+    "publishModes.mapUnavailable": {
+      "en": "Place search isn't available right now. Confirm a place to continue quick setup.",
+      "zh-Hans": "地点搜索暂不可用；需确认地点后才能继续快速配置。"
+    },
+    "publishModes.searchPlace": {
+      "en": "Search for a place and select a result.",
+      "zh-Hans": "搜索地点并选择结果。"
+    },
+    "publishModes.confirmPlace": {
+      "en": "Confirm this place",
+      "zh-Hans": "确认此地点"
+    },
+    "publishModes.timeRange.invalid": {
+      "en": "The end must be later than the start.",
+      "zh-Hans": "结束时间必须晚于开始时间"
+    },
+    "publishModes.timeRange.title": {
+      "en": "Activity time",
+      "zh-Hans": "设置活动时间"
+    },
+    "publishModes.wizard.next": {
+      "en": "Next",
+      "zh-Hans": "下一步"
+    },
+    "publishModes.wizard.back": {
+      "en": "Back",
+      "zh-Hans": "上一步"
+    },
+    "publishModes.wizard.step.basic": {
+      "en": "Basics",
+      "zh-Hans": "基本信息"
+    },
+    "publishModes.wizard.step.content": {
+      "en": "Activity content",
+      "zh-Hans": "活动内容"
+    },
+    "publishModes.wizard.step.ticket": {
+      "en": "Tickets and collaborators",
+      "zh-Hans": "票务与合作"
+    },
+    "publishModes.selectedCount %lld": {
+      "en": "%lld selected",
+      "zh-Hans": "已选 %lld 个"
+    },
+    "publishModes.ticketNumber %lld": {
+      "en": "Ticket option %lld",
+      "zh-Hans": "票单 %lld"
+    },
+    "publishParity.activity.title": {
+      "en": "Activity title",
+      "zh-Hans": "活动标题"
+    },
+    "publishParity.activity.description": {
+      "en": "Activity description",
+      "zh-Hans": "活动说明"
+    },
+    "publishParity.activity.type": {
+      "en": "Activity type",
+      "zh-Hans": "活动类型"
+    },
+    "publishParity.ticket.name": {
+      "en": "Ticket name",
+      "zh-Hans": "票单名称"
+    },
+    "publishParity.ticket.price": {
+      "en": "Face price (enter 0 for free)",
+      "zh-Hans": "票面价格（免费填 0）"
+    },
+    "publishParity.ticket.stock": {
+      "en": "Ticket stock",
+      "zh-Hans": "票单库存"
+    },
+    "activityWizardValidation.name": {
+      "en": "Enter an activity name.",
+      "zh-Hans": "请填写活动名称。"
+    },
+    "activityWizardValidation.venue": {
+      "en": "Enter the activity venue name.",
+      "zh-Hans": "请填写活动地点名称。"
+    },
+    "activityWizardValidation.start": {
+      "en": "Check the activity start date and time.",
+      "zh-Hans": "请检查活动开始日期和时间。"
+    },
+    "activityWizardValidation.end": {
+      "en": "Enter a valid activity end date and time later than the start.",
+      "zh-Hans": "请填写有效的活动结束日期和时间，且晚于开始时间。"
+    },
+    "activityWizardValidation.categories": {
+      "en": "Choose at least one valid activity category.",
+      "zh-Hans": "请至少选择一个有效的活动分类。"
+    },
+    "activityWizardValidation.description": {
+      "en": "Enter an activity description.",
+      "zh-Hans": "请填写活动介绍。"
+    },
+    "activityWizardValidation.template": {
+      "en": "Choose a play template for the activity.",
+      "zh-Hans": "请为活动选择玩法模板。"
+    },
+    "activityWizardValidation.cover": {
+      "en": "Add an activity cover.",
+      "zh-Hans": "请添加活动封面。"
+    },
+    "activityWizardValidation.collaborators": {
+      "en": "Check collaborators. Select valid members without duplicates.",
+      "zh-Hans": "请检查协作者，选择有效会员且不要重复。"
+    },
+    "activityWizardValidation.tickets": {
+      "en": "Check the ticket details and add at least one ticket type.",
+      "zh-Hans": "请检查票务信息，并至少添加一个票种。"
+    },
+    "activityWizardValidation.ticketName": {
+      "en": "Ticket %@: enter a name.",
+      "zh-Hans": "第 %@ 个票种：请填写名称。"
+    },
+    "activityWizardValidation.ticketPrice": {
+      "en": "Ticket %@: enter a valid price of zero or more.",
+      "zh-Hans": "第 %@ 个票种：请填写有效且不小于零的价格。"
+    },
+    "activityWizardValidation.ticketStock": {
+      "en": "Ticket %@: enter a whole-number stock greater than zero.",
+      "zh-Hans": "第 %@ 个票种：请填写大于零的整数库存。"
+    },
+    "activityWizardValidation.ticketStart": {
+      "en": "Ticket %@: check the start date and time.",
+      "zh-Hans": "第 %@ 个票种：请检查开始日期和时间。"
+    },
+    "activityWizardValidation.ticketEnd": {
+      "en": "Ticket %@: enter valid start and end dates and times, with the end after the start and both within the activity period.",
+      "zh-Hans": "第 %@ 个票种：请填写有效的起止日期和时间，结束须晚于开始，且都在活动时段内。"
+    },
+    "activityWizardValidation.none": {
+      "en": "No field-specific validation message is currently shown.",
+      "zh-Hans": "当前没有字段校验提示。"
+    },
+    "activityWizardValidation.unknown": {
+      "en": "Check the activity details before continuing. A field-specific explanation is unavailable.",
+      "zh-Hans": "请检查活动信息后继续，暂无法提供具体字段说明。"
+    },
+    "activityPublishing.step.heading.basic": {
+      "en": "What is this activity called, and where is it held?",
+      "zh-Hans": "这场活动叫什么、在哪儿办？"
+    },
+    "activityPublishing.step.heading.content": {
+      "en": "What does this activity involve?",
+      "zh-Hans": "这场活动玩什么？"
+    },
+    "activityPublishing.step.heading.ticket": {
+      "en": "How are tickets sold for this activity?",
+      "zh-Hans": "这场活动怎么卖票？"
+    },
+    "activityPublishing.review.createHeading": {
+      "en": "Summary before publishing",
+      "zh-Hans": "发布前摘要"
+    },
+    "activityPublishing.review.editHeading": {
+      "en": "Summary of changes",
+      "zh-Hans": "修改摘要"
+    },
+    "activityPublishing.review.name": {
+      "en": "Name",
+      "zh-Hans": "名称"
+    },
+    "activityPublishing.review.time": {
+      "en": "Time",
+      "zh-Hans": "时间"
+    },
+    "activityPublishing.review.place": {
+      "en": "Place",
+      "zh-Hans": "地点"
+    },
+    "activityPublishing.review.template": {
+      "en": "Linked template",
+      "zh-Hans": "关联模板"
+    },
+    "activityPublishing.review.tickets": {
+      "en": "Tickets",
+      "zh-Hans": "票种"
+    },
+    "activityPublishing.review.nameMissing": {
+      "en": "No name entered",
+      "zh-Hans": "未填写名称"
+    },
+    "activityPublishing.review.placeMissing": {
+      "en": "No place selected",
+      "zh-Hans": "未选择地点"
+    },
+    "activityPublishing.review.templateMissing": {
+      "en": "Not selected",
+      "zh-Hans": "未选择"
+    },
+    "activityPublishing.review.templateUnchanged": {
+      "en": "Keep the linked template unchanged",
+      "zh-Hans": "保持当前关联模板不变"
+    },
+    "activityPublishing.review.collaboratorNotice": {
+      "en": "Collaborators can edit content but don’t take part in settlement",
+      "zh-Hans": "合作者可编辑内容，不参与结算"
+    },
+    "activityPublishing.review.merchantFreeNotice": {
+      "en": "Merchant activities only support free tickets for now",
+      "zh-Hans": "商家活动暂时只支持免费票"
+    },
+    "activityPublishing.review.createVisibility": {
+      "en": "Public by default: once published it appears in the activity list, and continuing publishes it with the current visibility.",
+      "zh-Hans": "默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。"
+    },
+    "activityPublishing.review.editVisibility": {
+      "en": "This save only updates the items above and doesn’t change who can see the activity.",
+      "zh-Hans": "本次保存只更新上面这些内容，不会改变活动的公开范围。"
+    },
+    "activityPublishing.phase.loading": {
+      "en": "Loading…",
+      "zh-Hans": "加载中…"
+    },
+    "activityPublishing.phase.empty": {
+      "en": "No results",
+      "zh-Hans": "暂无结果"
+    },
+    "activityPublishing.phase.error": {
+      "en": "Could not load this list. Check your connection and sign-in, then retry.",
+      "zh-Hans": "列表加载失败，请检查网络和登录状态后重试。"
+    },
+    "activityPublishing.count.unknown": {
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    "activityPublishing.count.zero": {
+      "en": "0",
+      "zh-Hans": "0"
+    }
+  },
+  "accessibilityIdentifiers": [
+    {
+      "id": "publishModes.activity.wizard.progress.basic",
+      "en": "Basics",
+      "zh-Hans": "基本信息"
+    },
+    {
+      "id": "publishModes.activity.wizard.progress.content",
+      "en": "Activity content",
+      "zh-Hans": "活动内容"
+    },
+    {
+      "id": "publishModes.activity.wizard.progress.ticket",
+      "en": "Tickets and collaborators",
+      "zh-Hans": "票务与合作"
+    },
+    {
+      "id": "publishModes.activity.wizard.heading",
+      "en": "What is this activity called, and where is it held?",
+      "zh-Hans": "这场活动叫什么、在哪儿办？"
+    },
+    {
+      "id": "publishModes.activity.wizard.step.0",
+      "en": "Basics",
+      "zh-Hans": "基本信息"
+    },
+    {
+      "id": "publishModes.activity.wizard.step.1",
+      "en": "Activity content",
+      "zh-Hans": "活动内容"
+    },
+    {
+      "id": "publishModes.activity.wizard.step.2",
+      "en": "Tickets and collaborators",
+      "zh-Hans": "票务与合作"
+    },
+    {
+      "id": "publishModes.activity.wizard.validation",
+      "en": "Check the required fields, event times and ticket windows. Publishing also requires a current club-leader role.",
+      "zh-Hans": "请检查必填项、活动时间和票种履约窗口；发布还需要当前主理人身份。"
+    },
+    {
+      "id": "publishModes.activity.wizard.cancel",
+      "en": "Cancel",
+      "zh-Hans": "取消"
+    },
+    {
+      "id": "publishModes.activity.wizard.back",
+      "en": "Back",
+      "zh-Hans": "上一步"
+    },
+    {
+      "id": "publishModes.activity.wizard.next",
+      "en": "Next",
+      "zh-Hans": "下一步"
+    },
+    {
+      "id": "publishModes.activity.review",
+      "en": "Review and publish",
+      "zh-Hans": "检查并发布"
+    },
+    {
+      "id": "publishModes.activity.timeRange.open",
+      "en": "Activity dates",
+      "zh-Hans": "活动日期"
+    },
+    {
+      "id": "publishModes.activity.start",
+      "en": "Start time",
+      "zh-Hans": "开始时间"
+    },
+    {
+      "id": "activityTemplate.open",
+      "en": "Template",
+      "zh-Hans": "选择模板"
+    },
+    {
+      "id": "publishModes.message",
+      "en": "Check the required fields, event times and ticket windows. Publishing also requires a current club-leader role.",
+      "zh-Hans": "请检查必填项、活动时间和票种履约窗口；发布还需要当前主理人身份。"
+    },
+    {
+      "id": "publishModes.activity.clear.name",
+      "en": "Clear",
+      "zh-Hans": "清除"
+    },
+    {
+      "id": "publishModes.activity.clear.description",
+      "en": "Clear",
+      "zh-Hans": "清除"
+    },
+    {
+      "id": "publishModes.activity.result",
+      "en": "Submitted. Check My projects for the latest status.",
+      "zh-Hans": "已提交，可在我的项目查看最新状态。"
+    },
+    {
+      "id": "publishModes.activity.result.request",
+      "en": "Read this creation request's outcome",
+      "zh-Hans": "查看本次创建结果"
+    },
+    {
+      "id": "publishModes.activity.result.resumeProcessing",
+      "en": "Continue this request's unfinished review processing",
+      "zh-Hans": "继续本请求尚未完成的送检处理"
+    },
+    {
+      "id": "publishModes.activity.result.projects",
+      "en": "My projects",
+      "zh-Hans": "我的项目"
+    },
+    {
+      "id": "publishModes.activity.result.lockUnavailable",
+      "en": "Could not load this list. Check your connection and sign-in, then retry.",
+      "zh-Hans": "列表加载失败，请检查网络和登录状态后重试。"
+    },
+    {
+      "id": "publishModes.activity.timeRange.date",
+      "en": "Activity time",
+      "zh-Hans": "设置活动时间"
+    },
+    {
+      "id": "publishModes.activity.timeRange.invalid",
+      "en": "The end must be later than the start.",
+      "zh-Hans": "结束时间必须晚于开始时间"
+    },
+    {
+      "id": "publishModes.activity.timeRange.cancel",
+      "en": "Cancel",
+      "zh-Hans": "取消"
+    },
+    {
+      "id": "publishModes.activity.timeRange.apply",
+      "en": "Done",
+      "zh-Hans": "完成"
+    },
+    {
+      "id": "publishModes.activity.timeRange.next",
+      "en": "Next",
+      "zh-Hans": "下一步"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary",
+      "en": "Summary before publishing",
+      "zh-Hans": "发布前摘要"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.heading",
+      "en": "Summary before publishing",
+      "zh-Hans": "发布前摘要"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.merchantFreeNotice",
+      "en": "Merchant activities only support free tickets for now",
+      "zh-Hans": "商家活动暂时只支持免费票"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.visibility",
+      "en": "Public by default: once published it appears in the activity list, and continuing publishes it with the current visibility.",
+      "zh-Hans": "默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.name",
+      "en": "Name",
+      "zh-Hans": "名称"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.time",
+      "en": "Time",
+      "zh-Hans": "时间"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.address",
+      "en": "Place",
+      "zh-Hans": "地点"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.template",
+      "en": "Linked template",
+      "zh-Hans": "关联模板"
+    },
+    {
+      "id": "publishModes.activity.reviewSummary.tickets",
+      "en": "Tickets",
+      "zh-Hans": "票种"
+    }
+  ]
+}

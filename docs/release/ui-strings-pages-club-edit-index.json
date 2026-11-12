@@ -1,0 +1,229 @@
+{
+  "page": "pages/club/edit/index",
+  "title": "编辑俱乐部资料与解散",
+  "native": "App/ClubOperationsViews.swift",
+  "strings": [
+    {
+      "key": "club.ops.manage",
+      "en": "Edit profile",
+      "zh-Hans": "编辑资料",
+      "accessibilityIdentifier": "club.ops.openManage"
+    },
+    {
+      "key": "club.ops.adminNote",
+      "en": "You are an administrator · you can only edit display information",
+      "zh-Hans": "你是管理员 · 只能改展示信息",
+      "accessibilityIdentifier": "club.ops.adminNote"
+    },
+    {
+      "key": "club.ops.basics",
+      "en": "Basic information",
+      "zh-Hans": "基础信息",
+      "accessibilityIdentifier": "club.ops.basics"
+    },
+    {
+      "key": "club.ops.introduction",
+      "en": "Introduction",
+      "zh-Hans": "俱乐部介绍",
+      "accessibilityIdentifier": "club.ops.introduction"
+    },
+    {
+      "key": "club.ops.positioning",
+      "en": "Positioning",
+      "zh-Hans": "定位",
+      "accessibilityIdentifier": "club.ops.positioning"
+    },
+    {
+      "key": "club.ops.signupSettings",
+      "en": "Membership settings",
+      "zh-Hans": "会员经营配置",
+      "accessibilityIdentifier": "club.ops.signupSettings"
+    },
+    {
+      "key": "club.ops.locked.title",
+      "en": "Only the host can change membership settings",
+      "zh-Hans": "只有主理人能改经营配置",
+      "accessibilityIdentifier": "club.ops.locked.title"
+    },
+    {
+      "key": "club.ops.locked.body",
+      "en": "Member priority signup · join approval · member reserved places — these decide how tickets are split and paid once sales open, so they stay with the club leader.",
+      "zh-Hans": "成员优先报名 · 入会需要审批 · 成员保留名额 —— 这三项直接决定开卖时票怎么分、钱怎么收，所以留给主理人。",
+      "accessibilityIdentifier": "club.ops.locked.body"
+    },
+    {
+      "key": "club.ops.locked.current",
+      "en": "Current:",
+      "zh-Hans": "当前:",
+      "accessibilityIdentifier": "club.ops.locked.current"
+    },
+    {
+      "key": "club.ops.locked.priority.on",
+      "en": "Priority signup on",
+      "zh-Hans": "优先报名 已开",
+      "accessibilityIdentifier": "club.ops.locked.priority.on"
+    },
+    {
+      "key": "club.ops.locked.priority.off",
+      "en": "Priority signup off",
+      "zh-Hans": "优先报名 已关",
+      "accessibilityIdentifier": "club.ops.locked.priority.off"
+    },
+    {
+      "key": "club.ops.locked.join.on",
+      "en": "Join approval on",
+      "zh-Hans": "入会审批 已开",
+      "accessibilityIdentifier": "club.ops.locked.join.on"
+    },
+    {
+      "key": "club.ops.locked.join.off",
+      "en": "Join approval off",
+      "zh-Hans": "入会审批 已关",
+      "accessibilityIdentifier": "club.ops.locked.join.off"
+    },
+    {
+      "key": "club.ops.locked.quota %lld",
+      "en": "%lld reserved",
+      "zh-Hans": "保留 %lld 个",
+      "accessibilityIdentifier": "club.ops.locked.current"
+    },
+    {
+      "key": "club.ops.prioritySignup",
+      "en": "Member priority signup",
+      "zh-Hans": "成员优先报名",
+      "accessibilityIdentifier": "club.ops.prioritySignup"
+    },
+    {
+      "key": "club.ops.joinReview",
+      "en": "Approval to join",
+      "zh-Hans": "入会需要审批",
+      "accessibilityIdentifier": "club.ops.joinPolicy"
+    },
+    {
+      "key": "club.ops.quota",
+      "en": "Reserved member places",
+      "zh-Hans": "成员保留名额",
+      "accessibilityIdentifier": "clubQuota.visibleLabel"
+    },
+    {
+      "key": "club.ops.dissolve",
+      "en": "Dissolve club",
+      "zh-Hans": "解散俱乐部",
+      "accessibilityIdentifier": "club.ops.dissolve"
+    },
+    {
+      "key": "club.ops.dissolve.footer",
+      "en": "Dissolving first checks open deposits and settlements. To hand the club over instead, transfer ownership from the member list.",
+      "zh-Hans": "解散前会先核对未结清的保证金与结算。若想交接俱乐部，请改在成员列表中转让主理人。",
+      "accessibilityIdentifier": "club.ops.dissolve"
+    },
+    {
+      "key": "club.ops.writeGated",
+      "en": "Changes can't be saved right now.",
+      "zh-Hans": "暂时无法保存修改。",
+      "accessibilityIdentifier": "club.ops.writeGated"
+    },
+    {
+      "key": "club.ops.unknownValue",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "club.ops.unknownValue"
+    },
+    {
+      "key": "club.ops.outcomeUnknown",
+      "en": "We couldn't confirm whether this went through. Don't submit again; reload the club first.",
+      "zh-Hans": "暂时无法确认是否成功。请勿重复提交，先重新读取俱乐部。",
+      "accessibilityIdentifier": "club.ops.outcomeUnknown"
+    },
+    {
+      "key": "club.ops.readFailed",
+      "en": "Couldn't load the club. Try again.",
+      "zh-Hans": "俱乐部资料没加载成功，请重试。",
+      "accessibilityIdentifier": "club.ops.error"
+    },
+    {
+      "key": "club.ops.membersUnavailable",
+      "en": "No members yet",
+      "zh-Hans": "暂无成员",
+      "accessibilityIdentifier": "club.ops.membersUnavailable"
+    },
+    {
+      "key": "club.ops.signedOut",
+      "en": "Sign in to manage clubs.",
+      "zh-Hans": "登录后管理俱乐部。",
+      "accessibilityIdentifier": "club.ops.signedOut"
+    },
+    {
+      "key": "club.ops.unavailable",
+      "en": "Clubs can't be managed right now.",
+      "zh-Hans": "暂时无法管理俱乐部",
+      "accessibilityIdentifier": "club.ops.unavailable"
+    },
+    {
+      "key": "club.ops.reviewProfile",
+      "en": "Save changes",
+      "zh-Hans": "保存修改",
+      "accessibilityIdentifier": "club.ops.reviewProfile"
+    },
+    {
+      "key": "club.ops.close",
+      "en": "Close",
+      "zh-Hans": "关闭",
+      "accessibilityIdentifier": "club.ops.close"
+    },
+    {
+      "key": "club.ops.checking",
+      "en": "Working…",
+      "zh-Hans": "正在处理…",
+      "accessibilityIdentifier": "club.ops.loading"
+    },
+    {
+      "key": "club.ops.readBack",
+      "en": "Reload club",
+      "zh-Hans": "重新读取",
+      "accessibilityIdentifier": "club.ops.readBack"
+    },
+    {
+      "key": "club.ops.retryRead",
+      "en": "Try again",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "club.ops.retryRead"
+    },
+    {
+      "key": "club.ops.notSent",
+      "en": "Nothing was saved. Reload the club and try again.",
+      "zh-Hans": "没有保存任何修改，请重新读取俱乐部后再试。",
+      "accessibilityIdentifier": "club.ops.notSent"
+    },
+    {
+      "key": "club.ops.acknowledged",
+      "en": "Saved",
+      "zh-Hans": "已保存",
+      "accessibilityIdentifier": "club.ops.acknowledged"
+    },
+    {
+      "key": "club.ops.readbackUnavailable",
+      "en": "Saved, but the latest club details couldn't be loaded.",
+      "zh-Hans": "已保存，但暂时读不到最新的俱乐部资料。",
+      "accessibilityIdentifier": "club.ops.readbackUnavailable"
+    },
+    {
+      "key": "club.ops.error.forbidden",
+      "en": "Your current club role does not allow this action.",
+      "zh-Hans": "当前俱乐部身份无权执行此操作。",
+      "accessibilityIdentifier": "club.ops.error"
+    },
+    {
+      "key": "club.ops.owner",
+      "en": "Owner",
+      "zh-Hans": "创建者",
+      "accessibilityIdentifier": "club.ops.owner"
+    },
+    {
+      "key": "club.ops.administrator",
+      "en": "Administrator",
+      "zh-Hans": "管理员",
+      "accessibilityIdentifier": "club.ops.administrator"
+    }
+  ]
+}

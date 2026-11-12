@@ -1,0 +1,48 @@
+{
+  "page": "pages/publish/fabu/index",
+  "feature": "专业主题编辑器",
+  "native": "App/ProjectEditView.swift",
+  "status": "gated",
+  "strings": {
+    "projectEdit.fabu.loading": {
+      "en": "Loading editor…",
+      "zh-Hans": "正在加载编辑器…",
+      "accessibilityIdentifier": "projectEdit.fabu.loading"
+    },
+    "projectEdit.fabu.empty": {
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "projectEdit.fabu.empty"
+    },
+    "projectEdit.fabu.error": {
+      "en": "The project or secure draft could not be loaded. Retry before editing.",
+      "zh-Hans": "无法加载项目或安全草稿，请重试后再编辑。",
+      "accessibilityIdentifier": "projectEdit.fabu.error"
+    },
+    "projectEdit.fabu.unknown": {
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "projectEdit.fabu.unknown"
+    },
+    "projectEdit.fabu.ready": {
+      "en": "Professional theme editor",
+      "zh-Hans": "专业主题编辑器",
+      "accessibilityIdentifier": "projectEdit.fabu.ready"
+    },
+    "projectEdit.fabu.hidden": {
+      "en": "Professional editor is hidden",
+      "zh-Hans": "专业编辑暂不显示",
+      "accessibilityIdentifier": "projectEdit.fabu.hidden"
+    },
+    "projectEdit.fabu.quota": {
+      "en": "Themes remaining",
+      "zh-Hans": "剩余主题额度",
+      "accessibilityIdentifier": "projectEdit.fabu.quota"
+    },
+    "projectEdit.fabu.chapters": {
+      "en": "Chapters",
+      "zh-Hans": "章节",
+      "accessibilityIdentifier": "projectEdit.fabu.chapters"
+    }
+  }
+}

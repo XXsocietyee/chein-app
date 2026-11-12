@@ -1,0 +1,373 @@
+{
+  "page": "pages/activity/official-mine/index",
+  "native": "App/OfficialPrivateViews.swift",
+  "strings": [
+    {
+      "key": "official.published.title",
+      "en": "My published",
+      "zh-Hans": "我发布的",
+      "accessibilityIdentifier": "official.published.content"
+    },
+    {
+      "key": "official.published",
+      "en": "My published content",
+      "zh-Hans": "我发布的内容",
+      "accessibilityIdentifier": "official.published.content"
+    },
+    {
+      "key": "official.publishedLink",
+      "en": "My published",
+      "zh-Hans": "我发布的",
+      "accessibilityIdentifier": "official.publishedLink"
+    },
+    {
+      "key": "official.emptyPublished",
+      "en": "No published official content",
+      "zh-Hans": "还没有发布过官方内容",
+      "accessibilityIdentifier": "official.published.empty"
+    },
+    {
+      "key": "official.published.eventsEmpty",
+      "en": "No events yet",
+      "zh-Hans": "还没发过活动",
+      "accessibilityIdentifier": "official.published.empty.events"
+    },
+    {
+      "key": "official.published.eventsEmptyDetail",
+      "en": "Events you start from Official events appear here so you can track progress.",
+      "zh-Hans": "从官方活动页发起后，会在这里查看进度。",
+      "accessibilityIdentifier": "official.published.empty.events"
+    },
+    {
+      "key": "official.published.eventsHeader %lld",
+      "en": "Events I started · %lld",
+      "zh-Hans": "我发起的活动 · %lld",
+      "accessibilityIdentifier": "official.published.content"
+    },
+    {
+      "key": "official.published.broadcastsEmpty",
+      "en": "No notices yet",
+      "zh-Hans": "还没发过通知",
+      "accessibilityIdentifier": "official.published.empty.broadcasts"
+    },
+    {
+      "key": "official.published.broadcastsEmptyDetail",
+      "en": "After you send an official notice, its audience and reach appear here.",
+      "zh-Hans": "发出官方通知后，会在这里查看对象与触达人数。",
+      "accessibilityIdentifier": "official.published.empty.broadcasts"
+    },
+    {
+      "key": "official.published.broadcastsHeader %lld",
+      "en": "Notices I sent · %lld",
+      "zh-Hans": "我发的通知 · %lld",
+      "accessibilityIdentifier": "official.published.content"
+    },
+    {
+      "key": "official.published.reach %lld",
+      "en": "Reached %lld people in-app",
+      "zh-Hans": "站内触达 %lld 人",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.published.reachUnknown",
+      "en": "In-app reach to be confirmed",
+      "zh-Hans": "站内触达人数待确认",
+      "accessibilityIdentifier": "official.published.unknown"
+    },
+    {
+      "key": "official.broadcasts",
+      "en": "My published notices",
+      "zh-Hans": "我发布的通知",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.untitled",
+      "en": "Untitled official event",
+      "zh-Hans": "未命名官方活动",
+      "accessibilityIdentifier": "official.published.event."
+    },
+    {
+      "key": "official.privateParity.published.untitledEvent",
+      "en": "Untitled official event",
+      "zh-Hans": "未命名官方活动",
+      "accessibilityIdentifier": "official.published.event."
+    },
+    {
+      "key": "official.privateParity.published.cityUnknown",
+      "en": "City to be confirmed",
+      "zh-Hans": "城市待确认",
+      "accessibilityIdentifier": "official.published.unknown"
+    },
+    {
+      "key": "official.privateParity.published.status.draft",
+      "en": "Draft",
+      "zh-Hans": "草稿",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.privateParity.published.status.pending",
+      "en": "Pending release",
+      "zh-Hans": "待发布",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.privateParity.published.status.registration",
+      "en": "Registration open",
+      "zh-Hans": "报名中",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.privateParity.published.status.live",
+      "en": "In progress",
+      "zh-Hans": "进行中",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.privateParity.published.status.settling",
+      "en": "Settling",
+      "zh-Hans": "结算中",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.privateParity.published.status.ended",
+      "en": "Ended",
+      "zh-Hans": "已结束",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.privateParity.published.status.offline",
+      "en": "Taken offline",
+      "zh-Hans": "已下线",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.privateParity.published.status.unknown",
+      "en": "Status to be confirmed",
+      "zh-Hans": "状态待确认",
+      "accessibilityIdentifier": "official.published.eventStatus."
+    },
+    {
+      "key": "official.w206.broadcast.together",
+      "en": "Sent together",
+      "zh-Hans": "一起发",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.separate",
+      "en": "Sent separately",
+      "zh-Hans": "分开发",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.modeUnknown",
+      "en": "Send mode to be confirmed",
+      "zh-Hans": "发送方式待确认",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.audienceUnknown",
+      "en": "audience to be confirmed",
+      "zh-Hans": "对象待确认",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.scopeUnknown",
+      "en": "Scope to be confirmed",
+      "zh-Hans": "范围待确认",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.line %@ %@ %@",
+      "en": "%1$@ · to %2$@ · %3$@",
+      "zh-Hans": "%1$@ · 发给 %2$@ · %3$@",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.status.draft",
+      "en": "Draft",
+      "zh-Hans": "草稿",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.status.pending",
+      "en": "Pending",
+      "zh-Hans": "待发",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.status.sent",
+      "en": "Sent",
+      "zh-Hans": "已发",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.status.withdrawn",
+      "en": "Withdrawn",
+      "zh-Hans": "已撤",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.broadcast.status.unknown",
+      "en": "Status to be confirmed",
+      "zh-Hans": "状态待确认",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.audience.player",
+      "en": "Players",
+      "zh-Hans": "玩家",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.audience.club",
+      "en": "Clubs",
+      "zh-Hans": "俱乐部",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.w206.audience.merchant",
+      "en": "Merchants",
+      "zh-Hans": "商家",
+      "accessibilityIdentifier": "official.broadcast."
+    },
+    {
+      "key": "official.loading",
+      "en": "Loading official events",
+      "zh-Hans": "正在加载官方活动",
+      "accessibilityIdentifier": "official.published.loading"
+    },
+    {
+      "key": "official.failed",
+      "en": "Official-event content could not be loaded",
+      "zh-Hans": "官方活动内容未能加载",
+      "accessibilityIdentifier": "official.published.error"
+    },
+    {
+      "key": "official.signInRequired",
+      "en": "Sign in to view your official-event records",
+      "zh-Hans": "登录后查看我的官方活动记录",
+      "accessibilityIdentifier": "official.published.error"
+    },
+    {
+      "key": "official.notConfigured",
+      "en": "Official events aren't available right now",
+      "zh-Hans": "官方活动暂不可用",
+      "accessibilityIdentifier": "official.published.error"
+    },
+    {
+      "key": "official.noPublisherPermission",
+      "en": "Your account does not have official publishing permission",
+      "zh-Hans": "你的账号没有官方发布权限",
+      "accessibilityIdentifier": "official.published.error"
+    },
+    {
+      "key": "official.forbidden",
+      "en": "Your account cannot view this content",
+      "zh-Hans": "你的账号无权查看这些内容",
+      "accessibilityIdentifier": "official.published.error"
+    },
+    {
+      "key": "official.unavailable",
+      "en": "This record is unavailable for this account",
+      "zh-Hans": "当前账号无法查看这条记录",
+      "accessibilityIdentifier": "official.published.error"
+    },
+    {
+      "key": "official.retry",
+      "en": "Retry",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "official.retry"
+    },
+    {
+      "key": "official.signIn",
+      "en": "Sign in",
+      "zh-Hans": "登录",
+      "accessibilityIdentifier": "official.signIn"
+    },
+    {
+      "key": "official.offlineExample",
+      "en": "Example content",
+      "zh-Hans": "示例内容",
+      "accessibilityIdentifier": "official.published.content"
+    },
+    {
+      "key": "officialAction.publish",
+      "en": "Publish official event",
+      "zh-Hans": "发布官方活动",
+      "accessibilityIdentifier": "official.published.content"
+    },
+    {
+      "key": "officialAction.broadcast",
+      "en": "Official notice",
+      "zh-Hans": "官方通知",
+      "accessibilityIdentifier": "official.published.content"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    {
+      "id": "official.published.content",
+      "en": "My published",
+      "zh-Hans": "我发布的"
+    },
+    {
+      "id": "official.published.loading",
+      "en": "Loading official events",
+      "zh-Hans": "正在加载官方活动"
+    },
+    {
+      "id": "official.published.empty",
+      "en": "No published official content",
+      "zh-Hans": "还没有发布过官方内容"
+    },
+    {
+      "id": "official.published.empty.events",
+      "en": "No events yet",
+      "zh-Hans": "还没发过活动"
+    },
+    {
+      "id": "official.published.empty.broadcasts",
+      "en": "No notices yet",
+      "zh-Hans": "还没发过通知"
+    },
+    {
+      "id": "official.published.error",
+      "en": "Official-event content could not be loaded",
+      "zh-Hans": "官方活动内容未能加载"
+    },
+    {
+      "id": "official.published.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "id": "official.published.event.{id}",
+      "en": "Untitled official event",
+      "zh-Hans": "未命名官方活动"
+    },
+    {
+      "id": "official.published.eventStatus.{id}",
+      "en": "Status to be confirmed",
+      "zh-Hans": "状态待确认"
+    },
+    {
+      "id": "official.broadcast.{id}",
+      "en": "Official notice",
+      "zh-Hans": "官方通知"
+    },
+    {
+      "id": "official.publishedLink",
+      "en": "My published",
+      "zh-Hans": "我发布的"
+    },
+    {
+      "id": "official.retry",
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    {
+      "id": "official.signIn",
+      "en": "Sign in",
+      "zh-Hans": "登录"
+    }
+  ]
+}

@@ -27,7 +27,7 @@ Base: `origin/rc/20261108`. Facts come from files in this repo; verification num
 | --- | --- |
 | Debug + Release arm64 builds | Debug arm64 builds OK on the final tip; Release arm64 simulator build OK on `930acb848` (binary has no design-fixture symbols), not rebuilt after later merges (measured) |
 | App unit tests | Full serial run on `198b2d873`: 7469 pass / 130 fail of 7599. Since then hosted-window fixes (e3s, e3t2): the 13 hosted classes now 106 pass / 25 fail of 131 (was 88/43; Place 9->0, Share 7->1, Enrolled 5->4, Tile 4->3); remaining hosted: Native*Hosting 9, Workshop 5, Official 3, Enrolled 4, Tile 3, Share 1. Full suite not re-run after those fixes, expected about 112 failing (measured/derived) |
-| Contract suite | 246 failing of 5912 (was 721). Ratchet: `tools/contract_ratchet.py --check` = 246, baseline 246, new 0, `contract-failing-baseline.txt`, see `receipts/contract-ratchet.md` (measured) |
+| Contract suite | 194 failing of 5912 (was 246, was 721). Ratchet: `tools/contract_ratchet.py --check` = 194, baseline 194, new 0, fixed 0, see `receipts/cloud-x2.md` (measured) |
 | UITests | Pass (measured on `8509e7f04`/`92e078747`): Entry 7/7, Regional 4/4, TicketWallet 6/6, PageFlowGoldenPathTests 1/1, MotionTourTests 3/4 (tour 2,3,4; tour 1 failed at `MotionTourTests.swift:43`, fixed in `ui/w3u`, not re-run). Skipped: 6 merchant Coupon UITests (v1). Red: IntegratedDenied 1/2, IntegratedActivityPlay 0/2, IntegratedNativeAcceptance 0/6, NonCashReward 0/6, **Roam hub UITests 0/17 (parked, see section 6)** |
 | Core scratch package | 1254/1254 (measured earlier on `5e2aeabb1`+e1s; not re-run on the final tip) |
 | Release binary fixture symbols | 0 (reported) |
