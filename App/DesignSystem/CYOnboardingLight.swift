@@ -382,58 +382,187 @@ extension View {
 
 // MARK: - Night map
 
-/// The fogged city seen at night: indigo ground, a faint street grid, lantern-gold avenues. Lit = avenues at 60 %
-/// with a soft glow; unlit (under fog) = 30 %. No hue outside indigo / lantern.
+/// Fogged city at night, seen from above: indigo sky, a perspective street plane, near and far blocks.
+/// Lantern gold is only the five avenues (discovery). Layers parallax a little with the disc tilt FogWindow
+/// already tracks. Reduce Motion holds every layer still. No drift, no timeline. No violet, no Metal.
 struct OBNightMap: View {
     var lit: Bool
+    /// Drag tilt, about -1...1. Ignored under Reduce Motion.
+    var dragTilt: CGSize = .zero
+    var roll: Double = 0
+    var pitch: Double = 0
+
     @QuestifyReduceMotion private var reduceMotion
 
-    // Avenues as unit-space polylines (x, y), smoothed with quad curves through midpoints.
+    /// Same scale as the lantern windows (`drag * 6 + roll * 8`), so the streets sit just behind the panes.
+    private var shift: CGSize {
+        guard !reduceMotion else { return .zero }
+        return CGSize(
+            width: dragTilt.width * 6 + CGFloat(roll) * 8,
+            height: dragTilt.height * 6 - CGFloat(pitch) * 8)
+    }
+
+    /// Ground-plane across-axis. Negative is west.
+    private static let streetsU: [CGFloat] = [-1.15, -0.68, -0.24, 0.18, 0.58, 1.05]
+    /// 0 at the horizon, 1 at the near edge. Spacing is even in depth; projection packs the far rows.
+    private static let streetsV: [CGFloat] = [0.18, 0.34, 0.50, 0.66, 0.82, 1.02]
+    /// (column, row) into the gaps between the street lines. Row 2 stays open for the main avenue.
+    private static let blocks: [(Int, Int)] = [
+        (0, 0), (2, 0), (4, 0),
+        (1, 1), (3, 1),
+        (0, 3), (2, 3), (4, 3),
+        (1, 4), (3, 4),
+    ]
+    /// Five avenues in ground-plane (u, v). They follow the open streets between blocks, bent through midpoints.
     private static let avenues: [[CGPoint]] = [
-        [.init(x: 0.02, y: 0.62), .init(x: 0.25, y: 0.55), .init(x: 0.52, y: 0.60), .init(x: 0.98, y: 0.42)],
-        [.init(x: 0.10, y: 0.08), .init(x: 0.30, y: 0.34), .init(x: 0.46, y: 0.58), .init(x: 0.58, y: 0.98)],
-        [.init(x: 0.90, y: 0.05), .init(x: 0.74, y: 0.30), .init(x: 0.66, y: 0.62), .init(x: 0.80, y: 0.96)],
-        [.init(x: 0.00, y: 0.28), .init(x: 0.34, y: 0.30), .init(x: 0.70, y: 0.26), .init(x: 1.00, y: 0.18)],
-        [.init(x: 0.18, y: 0.92), .init(x: 0.40, y: 0.80), .init(x: 0.62, y: 0.82), .init(x: 0.96, y: 0.74)],
+        [CGPoint(x: -1.30, y: 0.57), CGPoint(x: -0.20, y: 0.54), CGPoint(x: 0.45, y: 0.61), CGPoint(x: 1.30, y: 0.56)],
+        [CGPoint(x: -0.70, y: 0.04), CGPoint(x: -0.66, y: 0.36), CGPoint(x: -0.72, y: 0.70), CGPoint(x: -0.64, y: 1.10)],
+        [CGPoint(x: 0.20, y: 0.06), CGPoint(x: 0.16, y: 0.40), CGPoint(x: 0.22, y: 0.74), CGPoint(x: 0.14, y: 1.08)],
+        [CGPoint(x: -1.25, y: 0.34), CGPoint(x: -0.15, y: 0.36), CGPoint(x: 0.55, y: 0.33), CGPoint(x: 1.25, y: 0.35)],
+        [CGPoint(x: -1.15, y: 0.82), CGPoint(x: -0.10, y: 0.80), CGPoint(x: 0.50, y: 0.84), CGPoint(x: 1.20, y: 0.81)],
     ]
 
     var body: some View {
+        let shift = shift
         ZStack {
-            LinearGradient(colors: [CYNight.indigo, CYNight.ink1], startPoint: .top, endPoint: .bottom)
+            LinearGradient(
+                stops: [
+                    .init(color: CYNight.ink0, location: 0),
+                    .init(color: CYNight.indigo, location: 0.20),
+                    .init(color: CYNight.indigo, location: 0.58),
+                    .init(color: CYNight.ink1, location: 1),
+                ],
+                startPoint: .top, endPoint: .bottom)
             Canvas { ctx, size in
-                // Faint grid, rotated a little so it reads as streets, not graph paper.
-                var grid = Path()
-                let step = size.width / 9
-                for i in -2...12 {
-                    let v = CGFloat(i) * step
-                    grid.move(to: CGPoint(x: v, y: -20)); grid.addLine(to: CGPoint(x: v, y: size.height + 20))
-                    grid.move(to: CGPoint(x: -20, y: v)); grid.addLine(to: CGPoint(x: size.width + 20, y: v))
-                }
-                var g = ctx
-                g.translateBy(x: size.width / 2, y: size.height / 2)
-                g.rotate(by: .degrees(-12))
-                g.translateBy(x: -size.width / 2, y: -size.height / 2)
-                g.stroke(grid, with: .color(.white.opacity(0.06)), lineWidth: 0.6)
-                // Lantern avenues: a wide soft pass, then a thin bright core.
-                for pts in Self.avenues {
-                    var path = Path()
-                    let p = pts.map { CGPoint(x: $0.x * size.width, y: $0.y * size.height) }
-                    path.move(to: p[0])
-                    for i in 1..<p.count {
-                        let mid = CGPoint(x: (p[i - 1].x + p[i].x) / 2, y: (p[i - 1].y + p[i].y) / 2)
-                        path.addQuadCurve(to: mid, control: p[i - 1])
-                    }
-                    path.addLine(to: p[p.count - 1])
-                    ctx.drawLayer { l in
-                        l.addFilter(.blur(radius: 4))
-                        l.stroke(path, with: .color(CYNight.lantern.opacity(0.5)), lineWidth: 5)
-                    }
-                    ctx.stroke(path, with: .color(CYNight.lanternHot.opacity(0.9)), lineWidth: 1.2)
-                }
+                drawCity(ctx, size: size, shift: shift)
             }
-            .opacity(lit ? 0.6 : 0.3)
+            Canvas { ctx, size in
+                drawAvenues(ctx, size: size, shift: shift)
+            }
+            .opacity(lit ? 0.85 : 0.50)
             .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9), value: lit)
-            RadialGradient(colors: [CYNight.lantern.opacity(lit ? 0.12 : 0.04), .clear], center: .center, startRadius: 0, endRadius: 140)
+            // Lens falloff. Stays put while the streets shift, so the rim does not slide off the disc.
+            Canvas { ctx, size in
+                ctx.fill(
+                    Path(CGRect(origin: .zero, size: size)),
+                    with: .radialGradient(
+                        Gradient(stops: [
+                            .init(color: .clear, location: 0.58),
+                            .init(color: CYNight.ink0.opacity(0.42), location: 1),
+                        ]),
+                        center: CGPoint(x: size.width / 2, y: size.height / 2),
+                        startRadius: 0,
+                        endRadius: size.width * 0.58))
+            }
+            .allowsHitTesting(false)
         }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// Perspective: far rows pack toward a horizon in the upper fifth; near rows spread past the disc.
+    private func project(_ u: CGFloat, _ v: CGFloat, _ size: CGSize) -> CGPoint {
+        let depth = min(1.15, max(0, v))
+        let y = size.height * (0.16 + 0.90 * depth * depth)
+        let half = size.width * (0.10 + 0.58 * depth)
+        return CGPoint(x: size.width * 0.5 + u * half, y: y)
+    }
+
+    private func shifted(_ ctx: GraphicsContext, depth: CGFloat, _ shift: CGSize) -> GraphicsContext {
+        var copy = ctx
+        copy.translateBy(x: shift.width * depth, y: shift.height * depth)
+        return copy
+    }
+
+    private func drawCity(_ ctx: GraphicsContext, size: CGSize, shift: CGSize) {
+        var sky = shifted(ctx, depth: 0.18, shift)
+        let haze = CGRect(x: -size.width * 0.12, y: size.height * 0.08, width: size.width * 1.24, height: size.height * 0.18)
+        for i in 0..<4 {
+            let inset = CGFloat(i) * size.height * 0.018
+            sky.fill(Path(ellipseIn: haze.insetBy(dx: inset * 1.6, dy: inset)), with: .color(.white.opacity(0.016)))
+        }
+
+        var far = shifted(ctx, depth: 0.32, shift)
+        var near = shifted(ctx, depth: 0.62, shift)
+        for (column, row) in Self.blocks {
+            let (path, roof) = block(column, row, size)
+            if row >= 3 {
+                near.fill(path, with: .color(CYNight.ink0.opacity(0.72)))
+                near.stroke(roof, with: .color(.white.opacity(0.14)), lineWidth: max(0.8, size.width * 0.003))
+            } else {
+                far.fill(path, with: .color(CYNight.ink0.opacity(0.40)))
+            }
+        }
+
+        var grid = shifted(ctx, depth: 0.46, shift)
+        var streets = Path()
+        for v in Self.streetsV {
+            streets.move(to: project(-1.5, v, size))
+            streets.addLine(to: project(1.5, v, size))
+        }
+        for u in Self.streetsU {
+            streets.move(to: project(u, 0.02, size))
+            streets.addLine(to: project(u, 1.14, size))
+        }
+        grid.stroke(streets, with: .color(.white.opacity(0.07)), lineWidth: max(0.6, size.width * 0.002))
+    }
+
+    private func block(_ column: Int, _ row: Int, _ size: CGSize) -> (path: Path, roof: Path) {
+        let u0 = Self.streetsU[column], u1 = Self.streetsU[column + 1]
+        let v0 = Self.streetsV[row], v1 = Self.streetsV[row + 1]
+        let du = (u1 - u0) * 0.16
+        let dv = (v1 - v0) * 0.18
+        let nw = project(u0 + du, v0 + dv, size)
+        let ne = project(u1 - du, v0 + dv, size)
+        let se = project(u1 - du, v1 - dv, size)
+        let sw = project(u0 + du, v1 - dv, size)
+        var path = Path()
+        path.move(to: nw)
+        path.addLine(to: ne)
+        path.addLine(to: se)
+        path.addLine(to: sw)
+        path.closeSubpath()
+        var roof = Path()
+        roof.move(to: nw)
+        roof.addLine(to: ne)
+        return (path, roof)
+    }
+
+    private func drawAvenues(_ ctx: GraphicsContext, size: CGSize, shift: CGSize) {
+        var gold = shifted(ctx, depth: 0.84, shift)
+        let glow = max(4, size.width * 0.02)
+        let core = max(1.1, size.width * 0.0045)
+        let blur = max(2.5, size.width * 0.012)
+        let lampR = max(2.4, size.width * 0.013)
+        for pts in Self.avenues {
+            let projected = pts.map { project($0.x, $0.y, size) }
+            let path = curve(projected)
+            gold.drawLayer { layer in
+                layer.addFilter(.blur(radius: blur))
+                layer.stroke(path, with: .color(CYNight.lantern.opacity(0.90)), lineWidth: glow)
+            }
+            gold.stroke(path, with: .color(CYNight.lanternHot), lineWidth: core)
+            guard projected.count > 1 else { continue }
+            let lamp = projected[1]
+            let dot = CGRect(x: lamp.x - lampR, y: lamp.y - lampR, width: lampR * 2, height: lampR * 2)
+            gold.drawLayer { layer in
+                layer.addFilter(.blur(radius: lampR))
+                layer.fill(Path(ellipseIn: dot), with: .color(CYNight.lantern.opacity(0.95)))
+            }
+            gold.fill(Path(ellipseIn: dot.insetBy(dx: lampR * 0.62, dy: lampR * 0.62)), with: .color(CYNight.lanternHot))
+        }
+    }
+
+    private func curve(_ pts: [CGPoint]) -> Path {
+        var path = Path()
+        guard let first = pts.first else { return path }
+        path.move(to: first)
+        guard pts.count > 1 else { return path }
+        for i in 1..<pts.count {
+            let mid = CGPoint(x: (pts[i - 1].x + pts[i].x) / 2, y: (pts[i - 1].y + pts[i].y) / 2)
+            path.addQuadCurve(to: mid, control: pts[i - 1])
+        }
+        path.addLine(to: pts[pts.count - 1])
+        return path
     }
 }

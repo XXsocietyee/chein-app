@@ -91,6 +91,12 @@ enum OBMotion {
     static let idle = Animation.easeInOut(duration: 2.6).repeatForever(autoreverses: true)
 }
 
+/// Disc fill shared by the pager and the hero, so the frame and the drawn circle match.
+enum OBHeroMetrics {
+    /// Fraction of the hero frame's short side. Accessibility sizes keep the smaller disc.
+    static func discFill(accessibility: Bool) -> CGFloat { accessibility ? 0.82 : 0.92 }
+}
+
 // MARK: - Pager
 
 struct OnboardingFlow: View {
@@ -147,13 +153,18 @@ struct OnboardingFlow: View {
         ZStack {
             OnboardingBackdrop(stepIndex: step.rawValue)
             GeometryReader { geo in
-            // The disc is the star: ~72 % of the screen width (50 % at AX1+), centred at ~35 % of the screen height,
-            // capped by 34 % of the height so short phones keep the copy and pill on screen.
+            // Normal phones: the night map fills the band under the wordmark. A reserved band keeps the
+            // hint, title and body on screen; the primary pill is pinned in the bottom inset.
+            // AX1+ keeps the smaller disc (50 % of width, 34 % of height, 380 pt), still centred.
+            // AX3+ hides the hero entirely (`heroHidden`).
+            let ax = typeSize >= .accessibility1
             let screenH = geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
-            let wide = typeSize >= .accessibility1 ? 0.50 : 0.72
-            let disc = min(geo.size.width * wide, screenH * 0.34, 380)
-            let heroH = disc / 0.82
-            let topPad = max(0, screenH * 0.35 - geo.safeAreaInsets.top - 44 - heroH / 2)
+            let copyBand: CGFloat = 256
+            let room = max(0, geo.size.height - CYSpacing.minTouchTarget - copyBand)
+            let axDisc = min(geo.size.width * 0.50, screenH * 0.34, 380)
+            let heroH = ax ? axDisc / OBHeroMetrics.discFill(accessibility: true) : min(room, geo.size.width, 500)
+            let centred = max(0, screenH * 0.35 - geo.safeAreaInsets.top - 44 - heroH / 2)
+            let topPad = ax ? centred : 0
             VStack(spacing: 0) {
                 topBar
                 if !heroHidden {
@@ -365,6 +376,7 @@ struct OnboardingHero: View {
     let done: Set<OnboardingStep>
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var gyro = OBTiltSource()
     @State private var tilt: CGSize = .zero
@@ -374,7 +386,8 @@ struct OnboardingHero: View {
     var body: some View {
         GeometryReader { geo in
             let base = min(geo.size.width, geo.size.height)
-            let size = base * (step.isFinal ? 0.62 : 0.82)
+            let fill = OBHeroMetrics.discFill(accessibility: typeSize >= .accessibility1)
+            let size = base * (step.isFinal ? 0.62 : fill)
             ZStack {
                 CityDisc(tilt: reduceMotion ? .zero : tilt, softSpecular: !reduceTransparency)
                     .frame(width: size, height: size)
@@ -470,16 +483,20 @@ struct FogWindow: View {
     @State private var ring = false
 
     var body: some View {
-        let inner = size * 0.86
+        let inner = size * 0.97
         ZStack {
-            OBNightMap(lit: revealed)
+            OBNightMap(
+                lit: revealed,
+                dragTilt: reduceMotion ? .zero : tilt,
+                roll: reduceMotion ? 0 : gyro.roll,
+                pitch: reduceMotion ? 0 : gyro.pitch)
                 .frame(width: inner, height: inner)
                 .clipShape(Circle())
             Circle()
                 .fill(RadialGradient(
-                    colors: [.clear, CYNight.indigo.opacity(0.94), CYNight.ink0.opacity(0.96)],
+                    colors: [.clear, CYNight.indigo.opacity(0.72), CYNight.ink0.opacity(0.92)],
                     center: UnitPoint(x: 0.5 + tilt.width * 0.3, y: 0.5 + tilt.height * 0.3),
-                    startRadius: inner * 0.12, endRadius: inner * 0.5))
+                    startRadius: inner * 0.24, endRadius: inner * 0.60))
                 .frame(width: inner, height: inner)
                 .scaleEffect(revealed ? 1.5 : 1)
                 .opacity(revealed ? 0 : 1)
@@ -492,7 +509,7 @@ struct FogWindow: View {
                     .scaleEffect(ring ? 1.25 : 0.35)
                     .onAppear { withAnimation(.easeOut(duration: 0.8)) { ring = true } }
             }
-            if wordmark { OBWordmarkBloom(fontSize: max(28, size * 0.2), delay: 1.4, intensity: 1) }
+            if wordmark { OBWordmarkBloom(fontSize: min(52, max(28, size * 0.2)), delay: 1.4, intensity: 1) }
         }
         .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9), value: revealed)
     }
