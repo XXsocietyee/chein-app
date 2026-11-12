@@ -4,15 +4,63 @@ import SwiftUI
 // footprint receiver, POI node card, city voucher, city stamp). Read-only: every write stays
 // with its existing dormant coordinator, and no view here samples location or opens a camera.
 
-/// `scene-roam-history` summary strip: `{n}次漫游 · {km}公里 · 探{n}家`.
+/// `scene-roam-history` total row under the big km: `{n} 次漫游 · {n} 家店 · {h:mm} 用时`, one column each.
+/// A single unknown shop count or duration makes that total unknown ("—"), never a partial sum.
 struct RoamHistoryParityStrip: View {
     let records: [RoamHistoryRecord]
     var body: some View {
         let summary = RoamHistoryStripSummary(records)
-        Text("roamSub.w208.history.strip \(summary.trips) \(summary.kilometersText) \(summary.shopsText)")
-            .font(.subheadline.weight(.semibold)).monospacedDigit()
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("roamSub.w208.history.strip")
+        HStack(alignment: .top, spacing: CYSpacing.xxl) {
+            column(Text(summary.trips, format: .number), "roamSub.w208.history.trips")
+            column(Text(verbatim: summary.shopsText), "roamSub.w208.history.shopCount")
+            column(Text(verbatim: Self.totalTime(records)), "roamSub.w208.history.duration")
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roamSub.w208.history.strip")
+    }
+    private func column(_ value: Text, _ label: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            value.font(.system(.title3, design: .rounded).weight(.heavy).italic()).monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary).lineLimit(1).minimumScaleFactor(0.7)
+            Text(label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+        }
+    }
+    /// Mini-program `h:mm` over every record's `durSec`; any record without one makes the total unknown.
+    static func totalTime(_ records: [RoamHistoryRecord]) -> String {
+        guard !records.isEmpty, records.allSatisfy({ ($0.durSec ?? -1) >= 0 }) else { return "—" }
+        let seconds = records.compactMap(\.durSec).reduce(0, +)
+        return "\(seconds / 3600):" + String(format: "%02d", seconds % 3600 / 60)
+    }
+}
+
+/// `monthHead` above the first card of each month (`2026年8月`); nil for an unusable timestamp.
+struct RoamHistoryMonthHead: View {
+    let date: Date
+    var body: some View {
+        Text(date, format: .dateTime.year().month(.wide))
+            .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+            .padding(.top, CYSpacing.sm)
+            .accessibilityAddTraits(.isHeader)
+    }
+    static func isNewMonth(_ record: RoamHistoryRecord, after previous: RoamHistoryRecord?, calendar: Calendar = .current) -> Bool {
+        guard let date = record.recordedAt else { return false }
+        guard let before = previous?.recordedAt else { return true }
+        return !calendar.isDate(date, equalTo: before, toGranularity: .month)
+    }
+}
+
+/// RunCard date `8月9日 周六 · 晚上` (dateCard); the day part follows the record's hour in quarters.
+struct RoamRunCardDateText: View {
+    let record: RoamHistoryRecord
+    var body: some View {
+        if let date = record.recordedAt {
+            let hour = Calendar.current.component(.hour, from: date)
+            (Text(date, format: .dateTime.month().day().weekday(.abbreviated)) + Text(verbatim: " · ")
+             + Text(LocalizedStringKey("roamSub.w208.history.daypart.\(min(3, max(0, hour / 6)))")))
+                .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+        } else {
+            Text("roamSub.w208.history.dateUnavailable").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+        }
     }
 }
 
@@ -34,21 +82,20 @@ struct RoamRunCardParityMeta: View {
     var body: some View {
         let card = RoamRunCardPresentation(record)
         VStack(alignment: .leading, spacing: 8) {
-            if let date = card.dateShort { Text(verbatim: date).font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
-            else { Text("roamSub.w208.history.dateUnavailable").font(.caption).foregroundStyle(.secondary) }
             HStack(spacing: 0) {
                 stat(card.distanceText, "roamSub.w208.history.km")
                 stat(card.shopsText, "roamSub.w208.history.shops")
                 stat(card.timeText, "roamSub.w208.history.duration")
             }
             if !card.medals.isEmpty || card.stamps > 0 {
+                Divider().overlay(CYColor.borderSubtle)
                 HStack(spacing: 8) {
                     ForEach(Array(card.medals.enumerated()), id: \.offset) { _, medal in
                         Image(systemName: "hexagon.fill").foregroundStyle(CYNight.lantern).accessibilityLabel(Text(verbatim: medal))
                     }
                     if card.stamps > 0 {
-                        Label { Text("roamSub.w208.history.stamps \(card.stamps)") } icon: { Image(systemName: "star") }
-                            .font(.caption)
+                        Label { Text("roamSub.w208.history.stamps \(card.stamps)") } icon: { Image(systemName: "star.fill").foregroundStyle(CYNight.lantern) }
+                            .font(.caption).foregroundStyle(CYColor.textSecondary)
                     }
                 }
             }
@@ -100,19 +147,18 @@ struct RoamExportUnavailableView: View {
     }
 }
 
-/// `subpackageRoam/session` header: 本次漫游 + `dateFull · time`.
+/// `subpackageRoam/session` page subtitle under the 本次漫游 title: `dateFull · time`.
 struct RoamSessionParityHeader: View {
     let record: RoamHistoryRecord
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("roamSub.w208.session.title").font(.title2.bold()).accessibilityAddTraits(.isHeader)
-            if let date = record.recordedAt {
-                HStack(spacing: 4) {
-                    Text(date, format: .dateTime.month().day().weekday(.abbreviated))
-                    Text(verbatim: "· " + (record.durationText ?? "—"))
-                }.font(.subheadline).foregroundStyle(.secondary)
+        if let date = record.recordedAt {
+            HStack(spacing: 4) {
+                Text(date, format: .dateTime.year().month().day().weekday(.abbreviated))
+                if let time = record.durationText { Text(verbatim: "· " + time) }
             }
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.session.header")
+            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            .accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.session.header")
+        }
     }
 }
 
