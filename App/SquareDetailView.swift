@@ -26,6 +26,7 @@ import SwiftUI
     @State private var commentsLoading = false
     @State private var generation = 0
     @State private var loadedKey: Key?
+    @QuestifyReduceMotion private var reduceMotion
     private struct Key: Hashable { let id: Int; let generation: SquareContentGeneration; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, generation: contentGeneration, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -50,7 +51,7 @@ import SwiftUI
                             NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
                                 .accessibilityIdentifier("social.viewAuthor")
                         }
-                    }
+                    }.cyMiniCardRow()
                 }
                 // Detail failure never renders orphan comments without their post context.
                 if post != nil {
@@ -67,10 +68,12 @@ import SwiftUI
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
                             CYPillButton("square.moreComments", style: .secondary) { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
                         }
-                    }
+                    }.cyMiniCardRow()
                 }
             }
         }
+        // Mini-program `.detail.theme-dark`: ink ground, elevated post card and comment card (radius 16, 12pt apart).
+        .cyMiniListScreen()
         .appNavigationTitle("square.detail")
         .toolbar {
             // Mini-program `ph-more`: edit, delete and report live in one overflow menu.
@@ -82,8 +85,15 @@ import SwiftUI
             if let post, let actions, actions.identity.accountID != nil, loadedKey == key {
                 // Source sticky bar "留下你的评论"; opens the existing reviewed comment editor.
                 Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
-                    Label("square.xcx.commentPlaceholder", systemImage: "text.bubble").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                }.buttonStyle(.bordered).disabled(!post.viewerCanComment).padding(.horizontal).padding(.vertical, 6)
+                    Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
+                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        .padding(.horizontal, CYSpacing.lg)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        .background(Capsule().fill(CYNight.ink2))
+                        .overlay(Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
+                        .contentShape(Capsule())
+                }.buttonStyle(.plain).disabled(!post.viewerCanComment).opacity(post.viewerCanComment ? 1 : 0.5)
+                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
                     .background(.bar).accessibilityIdentifier("square.commentBar")
             }
         }
@@ -124,8 +134,9 @@ import SwiftUI
     private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         HStack(spacing: 28) {
             Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
-                Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
+                Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)).contentTransition(reduceMotion ? .opacity : .numericText()) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart").symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isLiked == 1) }
             }
+            .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: post.isLiked)
             .tint(post.isLiked == 1 ? .red : .primary)
             .accessibilityLabel(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark)).accessibilityAddTraits(post.isLiked == 1 ? .isSelected : []).accessibilityIdentifier("square.detail.like")
             if post.viewerCanComment {
