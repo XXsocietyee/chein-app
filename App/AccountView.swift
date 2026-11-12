@@ -91,6 +91,7 @@ import SwiftUI
                     .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
                     .id(session.accountCollectionReader.scope)
                 MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
+                MPParityAccountLinks() // passes / promo / video bounty; hidden until their bindings are injected
                 Section {
                     if !showsPassportOverview { // Passport has the Messages circle action instead
                         NavigationLink { SessionMessagingHome(session: session) } label: {
