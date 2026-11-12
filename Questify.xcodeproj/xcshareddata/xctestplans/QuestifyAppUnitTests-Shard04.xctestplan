@@ -623,6 +623,7 @@
         "UnifiedTicketExecutionMatrixSectionViewTests",
         "WP01SeenAckRefreshTests",
         "WP07ShopNPCDisclosureTests",
+        "WP08ReceiveNativeURLAuditTests",
         "WP12QmodImportMountTests",
         "WP14NPCChatDataRevokeTests",
         "WalkingLowPowerPresentationTests",

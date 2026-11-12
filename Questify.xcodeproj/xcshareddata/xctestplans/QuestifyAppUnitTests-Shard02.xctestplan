@@ -633,6 +633,7 @@
         "VerificationPresentationAppTests",
         "WP01SeenAckRefreshTests",
         "WP07ShopNPCDisclosureTests",
+        "WP08ReceiveNativeURLAuditTests",
         "WalkingCheckpointReadRetryTests",
         "WalkingLowPowerPresentationTests",
         "WalkingSavedDestinationAppTests",

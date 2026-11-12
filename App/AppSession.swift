@@ -7209,7 +7209,7 @@ final class AppSession: ObservableObject {
     var doorReferralQueue: DoorReferralQueue? { prepareDoorRuntime(); return retainedDoorQueue }
     var doorEntryCoordinator: DoorEntryCoordinator? { prepareDoorRuntime(); return retainedDoorCoordinator }
     func receiveNativeURL(_ url: URL) {
-        if receiveCheinURL(url) || nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) { return }
+        if consumeDeepLinkSafetyAudit(url) || receiveCheinURL(url) || nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) { return }
         if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }
         guard let intent = nativeEntryLinkPolicy.parse(url) else {
             receiveNativeIntent(.routeError(.unsupported)); return
