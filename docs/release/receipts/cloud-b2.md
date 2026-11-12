@@ -1,17 +1,22 @@
 # Cloud B2 — pass and market reads
 
-Base `origin/ui/main` `72d2eb9ec498de21ded7cf9215f2638d7195786f`. Branch `ui/cloud-b2-pass` only.
+Rebased onto `origin/ui/next` `b87ab5aad675eda15e5dc2cc25e10f4debadfdce`. Branch `ui/cloud-b2-pass` only.
 
 Mini-program reference: `liboyang42-cpu/hengyin` `chengyinhub-xcx` master `1c80c5aea8f721ca8575e6108048495b100f5576`.
 
-## Bindings (`Core/MPParityBindings.swift`)
+`struct MPParityBindings` in `App/MPParityKit.swift` is the only binding type. The duplicate `enum MPParityBindings` is gone. Closures are filled from `App/MPParityPassSession.swift` (AppSession and AppCompositionRoot stay at the scaffold ceiling). `Core/PlatformPass.swift` keeps the readers. Purchase, quote, order, and claim still throw `PlatformPassWriteRefusal.unreachable`, and the read transport refuses those paths.
 
-| Binding | Mini-program | Behavior |
-|---|---|---|
-| `viewerIsMerchant` | `utils/identity/identity-policy.js` `isMerchantView` | Role `merchant`, or empty role with `userType == 2`. `debugView == "user"` stays a player. |
-| `passStoreCard` | `subpackageMember/market/passes` `loadMember` | Hidden for merchants and when overview `enabled` is not true. Side text is the coverage date, else plan prices, else library count. `purchaseReachable` is false. |
-| `passCheckoutCover` | `pages/topic/utils/checkout-view.js` | `platformPassCovered` with pay ≤ 0 is ¥0, bill line 通行证, label 免费领取, covering passes hidden. `purchaseReachable` is false. |
-| `orderDetail` | `cy-scene-member-order-detail` `id="orderDetail"` | Self-play pass (`purchaseKind == 2`, or topic order with no ticket and an expiry), until text, actual paid (0 stays 0). Pay and refund are false. |
+## Closures
+
+| Closure | Behavior |
+|---|---|
+| `viewerIsMerchant` | Role `merchant`, or an empty role with `userType == 2`. `debugView == "user"` stays a player. Presentation only. |
+| `passStoreCard` | City, period, and year passes with a cash price and covered works. Nil for merchants and when nothing is on sale. |
+| `passCheckoutCover` | `platformPassCovered` hides city-pass rows and marks the order covered. Gift and extra-seat products stay out. |
+| `orderDetail` | Existing registration order screen, without a lifecycle coordinator, so pay and refund stay off that push. |
+| market / detail / gift / membership / library | Read the platform-pass and marketing list endpoints. Detail shows prices as facts. Gift `claim()` does not send. |
+
+Unknown is an em dash (`—`). A server 0 stays 0. Missing points stay nil.
 
 ## Reads (`Core/PlatformPass.swift`)
 
@@ -26,13 +31,12 @@ Mini-program reference: `liboyang42-cpu/hengyin` `chengyinhub-xcx` master `1c80c
 
 ## Writes
 
-`purchase`, `quote`, `order`, and `claim` are compiled and return `throws -> Never` with `PlatformPassWriteRefusal.unreachable`. They do not build a payment body and do not call the transport. Paths they refuse: `api/platform-pass/orders`, `api/marketing/product/quote`, `api/marketing/product/order`, `api/marketing/product/gifts/claim`.
+`purchase`, `quote`, `order`, and `claim` return `throws -> Never`. They do not build a payment body and do not call the transport. Paths they refuse: `api/platform-pass/orders`, `api/marketing/product/quote`, `api/marketing/product/order`, `api/marketing/product/gifts/claim`.
 
-`PlatformPass.moneyEnabled` and `MPParityBindings.moneyEnabled` are false. `ReleaseMoneyWriteSwitch` payment, payout, withdrawal, and virtual goods are unchanged and off. `writesReachable` is false.
+`PlatformPass.moneyEnabled` and `MPParityBindings.moneyEnabled` are false. `ReleaseMoneyWriteSwitch` payment, payout, withdrawal, and virtual goods are unchanged and off. `writesReachable` is false. `MPCommerceGate` purchases, claims, and payout stay false.
 
 ## Tests
 
-- `Tests/CoreTests/PlatformPassReadTests.swift` — the six reads, merchant skip, string code `200`, nil count, zero points, and the four bindings.
+- `Tests/CoreTests/PlatformPassReadTests.swift` — the six reads, merchant skip, string code `200`, nil count, zero points, China clock.
 - `Tests/CoreTests/PlatformPassPurchaseUnreachableTests.swift` — purchase, quote, order, and claim throw, the transport stays on the one overview GET, money stays off.
-
-No Swift toolchain on this Linux host, so those XCTest cases were not executed here. `python3 -B tools/check_scaffold.py` passed after `tools/generate_project.py` (project diff is the two new Core sources only).
+- `Tests/AppUnitTests/MPParityPassBindingTests.swift` — the filled closures' facts, the read-only transport, and a source scan that the session file does not call the write methods.

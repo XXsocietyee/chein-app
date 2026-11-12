@@ -236,6 +236,10 @@ public struct PlatformPassLibraryCard: Equatable, Sendable {
     public let data: String
     public let free: Bool
     public let tags: [String]
+    /// Server `productType`: 1 city orienteering, 2 free explore. Nil when the row omitted it.
+    public let productType: Int?
+    /// Whole minutes from `totalTime` seconds. Nil when the duration is missing; never a stand-in 0.
+    public let minuteCount: Int?
 }
 
 public struct PlatformPassLibrary: Equatable, Sendable {
@@ -259,13 +263,16 @@ public struct PlatformPassLibrary: Equatable, Sendable {
 extension PlatformPassLibraryCard {
     static func make(_ row: [String: Any], covered: Bool) -> PlatformPassLibraryCard? {
         guard let id = PlatformPassJSON.text(row["topicId"]), let name = PlatformPassJSON.text(row["name"]) else { return nil }
-        let kind = Self.kind(PlatformPassJSON.int(row["productType"]))
+        let productType = PlatformPassJSON.int(row["productType"])
+        let kind = Self.kind(productType)
         let city = PlatformPassJSON.text(row["addressName"]) ?? ""
-        let minutes = Self.minutes(PlatformPassJSON.number(row["totalTime"]))
+        let minuteCount = Self.minuteCount(PlatformPassJSON.number(row["totalTime"]))
+        let minutes = minuteCount.map { "约 \($0) 分钟" } ?? ""
         return PlatformPassLibraryCard(
             id: id, title: name, cover: PlatformPassJSON.text(row["imgUrl"]) ?? "", city: city, kind: kind,
             data: [kind, minutes].filter { !$0.isEmpty }.joined(separator: " · "),
-            free: covered, tags: [kind, city].filter { !$0.isEmpty })
+            free: covered, tags: [kind, city].filter { !$0.isEmpty },
+            productType: productType, minuteCount: minuteCount)
     }
 
     private static func kind(_ productType: Int?) -> String {
@@ -276,9 +283,9 @@ extension PlatformPassLibraryCard {
         }
     }
 
-    private static func minutes(_ seconds: Double?) -> String {
-        guard let seconds, seconds > 0 else { return "" }
-        return "约 \(max(1, Int((seconds / 60).rounded()))) 分钟"
+    private static func minuteCount(_ seconds: Double?) -> Int? {
+        guard let seconds, seconds > 0 else { return nil }
+        return max(1, Int((seconds / 60).rounded()))
     }
 }
 
@@ -476,6 +483,8 @@ public struct PlatformPassGift: Equatable, Sendable {
     public let expires: String
     public let time: String
     public let claimReachable: Bool
+    /// Claim deadline as `yyyy.MM.dd`, or empty when this gift has no deadline. The sentence stays in `expires`.
+    public let claimDay: String
 
     static func decodeList(_ data: Any, side: String) throws -> [PlatformPassGift] {
         guard let rows = PlatformPassJSON.rows(data) else { throw APIError.malformedResponse }
@@ -495,11 +504,11 @@ public struct PlatformPassGift: Equatable, Sendable {
         }
         if side == "bought", status == 0 { state = "待领取 · 领取前你和对方都不能游玩" }
         if side == "bought", status == 3 { state = "已撤销 · 退回给你" }
-        let expires = status == 0 ? MPParityChinaClock.dotDay(PlatformPassJSON.text(row["claimExpiresAt"])) : ""
+        let claimDay = status == 0 ? MPParityChinaClock.dotDay(PlatformPassJSON.text(row["claimExpiresAt"])) : ""
         let when = PlatformPassJSON.text(row["claimedAt"]) ?? PlatformPassJSON.text(row["createdAt"])
         return PlatformPassGift(key: side + "-" + id, state: state,
-                                expires: expires.isEmpty ? "" : "领取截止 \(expires)",
-                                time: MPParityChinaClock.dotDay(when), claimReachable: false)
+                                expires: claimDay.isEmpty ? "" : "领取截止 \(claimDay)",
+                                time: MPParityChinaClock.dotDay(when), claimReachable: false, claimDay: claimDay)
     }
 }
 
@@ -593,5 +602,41 @@ enum PlatformPassJSON {
             result[key] = item
         }
         return result
+    }
+}
+
+/// China civil clock for pass dates. Midnight rolls back one millisecond for the "playable through" day,
+/// matching `order-status.js` `passUntilText`. Unknown input is empty, never today.
+enum MPParityChinaClock {
+    static func dotDay(_ raw: String?) -> String {
+        guard let ms = MoneyParityTime.timestamp(raw) else { return "" }
+        let parts = clock(ms)
+        return String(format: "%04d.%02d.%02d", parts.year, parts.month, parts.day)
+    }
+
+    /// Mini-program sentence. The App shows the same day through a localized string.
+    static func passUntil(_ raw: String?) -> String {
+        guard let shown = shown(raw) else { return "" }
+        return "可玩至 \(shown.month) 月 \(shown.day) 日"
+    }
+
+    static func shownMonthDay(_ raw: String?) -> (month: Int, day: Int)? {
+        guard let shown = shown(raw) else { return nil }
+        return (shown.month, shown.day)
+    }
+
+    private static func shown(_ raw: String?) -> (year: Int, month: Int, day: Int, hour: Int, minute: Int)? {
+        guard let ms = MoneyParityTime.timestamp(raw) else { return nil }
+        let parts = clock(ms)
+        if parts.hour == 0, parts.minute == 0, ms % 60_000 == 0 { return clock(ms - 1) }
+        return parts
+    }
+
+    private static func clock(_ ms: Int64) -> (year: Int, month: Int, day: Int, hour: Int, minute: Int) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? calendar.timeZone
+        let date = Date(timeIntervalSince1970: TimeInterval(ms + MoneyParityTime.chinaOffsetMs) / 1000)
+        let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+        return (parts.year ?? 0, parts.month ?? 0, parts.day ?? 0, parts.hour ?? 0, parts.minute ?? 0)
     }
 }

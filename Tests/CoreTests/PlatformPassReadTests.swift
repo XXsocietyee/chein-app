@@ -4,7 +4,7 @@ import XCTest
 import FoundationNetworking
 #endif
 
-/// Platform pass and market reads, plus the four pass/market bindings. No purchase or claim.
+/// Platform pass and market reads. Purchase and claim stay on the unreachable test. Bindings live on the App struct.
 final class PlatformPassReadTests: XCTestCase {
     func testReadsOverviewLibraryProductsOrdersGiftsAndPoints() async throws {
         let wire = Wire()
@@ -42,6 +42,8 @@ final class PlatformPassReadTests: XCTestCase {
         let library = try await reader.library(kind: "city", token: "session-token", viewerIsMerchant: false)
         XCTAssertEqual(library.cards.count, 1)
         XCTAssertEqual(library.cards[0].id, "5")
+        XCTAssertEqual(library.cards[0].productType, 1)
+        XCTAssertEqual(library.cards[0].minuteCount, 60)
         XCTAssertEqual(library.cards[0].data, "城市定向 · 约 60 分钟")
         XCTAssertEqual(library.cards[0].tags, ["城市定向", "外滩源"])
         XCTAssertTrue(library.cards[0].free)
@@ -123,86 +125,14 @@ final class PlatformPassReadTests: XCTestCase {
         XCTAssertTrue(wire.requests.isEmpty)
     }
 
-    func testPassAndMarketBindingsStayReadOnly() {
-        XCTAssertEqual(MPParityBindings.passAndMarket.map(\.rawValue), ["viewerIsMerchant", "passStoreCard", "passCheckoutCover", "orderDetail"])
-        XCTAssertFalse(MPParityBindings.moneyEnabled)
-        XCTAssertFalse(MPParityBindings.viewerIsMerchant(role: "player"))
-        XCTAssertTrue(MPParityBindings.viewerIsMerchant(role: "merchant"))
-        XCTAssertTrue(MPParityBindings.viewerIsMerchant(role: "", userType: "2"))
-        XCTAssertFalse(MPParityBindings.viewerIsMerchant(role: "merchant", debugView: "user"))
-        XCTAssertFalse(MPParityBindings.viewerIsMerchant(role: "", userType: "2", debugView: "user"))
-
-        let selling = PlatformPassOverview(
-            enabled: true, merchantBlocked: false, libraryCount: 12,
-            plans: [PlatformPassPlan(code: "YEAR", title: "年卡", priceFen: 29900, validDays: 365),
-                    PlatformPassPlan(code: "MONTH", title: "月卡", priceFen: 3900, validDays: 30)],
-            holding: PlatformPassHolding(active: false, validTo: nil, coverageEnd: nil),
-            jsapiAvailable: true, xpayAvailable: false)
-        let card = MPParityBindings.passStoreCard(viewerIsMerchant: false, overview: selling)
-        XCTAssertTrue(card.shown)
-        XCTAssertEqual(card.side, "¥299 · ¥39")
-        XCTAssertFalse(card.purchaseReachable)
-        XCTAssertFalse(MPParityBindings.passStoreCard(viewerIsMerchant: true, overview: selling).shown)
-        let held = PlatformPassOverview(
-            enabled: true, merchantBlocked: false, libraryCount: nil, plans: selling.plans,
-            holding: PlatformPassHolding(active: true, validTo: "2027-11-10 12:00:00", coverageEnd: "2027-12-10 12:00:00"),
-            jsapiAvailable: true, xpayAvailable: true)
-        XCTAssertEqual(MPParityBindings.passStoreCard(viewerIsMerchant: false, overview: held).side, "有效期至 2027.12.10")
-        let counted = PlatformPassOverview(
-            enabled: true, merchantBlocked: false, libraryCount: 0, plans: [],
-            holding: PlatformPassHolding(active: false, validTo: nil, coverageEnd: nil),
-            jsapiAvailable: false, xpayAvailable: false)
-        XCTAssertEqual(MPParityBindings.passStoreCard(viewerIsMerchant: false, overview: counted).side, "0 个主题全部可玩")
-        XCTAssertFalse(MPParityBindings.passStoreCard(viewerIsMerchant: false, overview: .merchantBlocked).shown)
-
-        let city = product(id: "1", name: "城市包", kind: 2, topics: ["990014"])
-        let gift = product(id: "7", name: "礼品", kind: 7, topics: ["990014"])
-        let covered = MPParityBindings.passCheckoutCover(
-            selfPlayPrice: 39, quoteState: "ready", payAmount: 0, memberDiscountYuan: 39,
-            platformPassCovered: true, products: [city, gift], topicID: "990014")
-        XCTAssertTrue(covered.covered)
-        XCTAssertEqual(covered.totalText, "¥0")
-        XCTAssertEqual(covered.payLabel, "免费领取")
-        XCTAssertEqual(covered.bill.map { ($0.label, $0.value) }, [("自玩门票 × 1", "¥39"), ("通行证", "你已可直接游玩")])
-        XCTAssertTrue(covered.passes.isEmpty)
-        XCTAssertFalse(covered.purchaseReachable)
-
-        let open = MPParityBindings.passCheckoutCover(
-            selfPlayPrice: 39, quoteState: "ready", payAmount: 31.2, memberDiscountYuan: 7.8,
-            platformPassCovered: false, products: [city, gift], topicID: "990014")
-        XCTAssertFalse(open.covered)
-        XCTAssertEqual(open.bill.map(\.value), ["¥39", "-¥7.80"])
-        XCTAssertEqual(open.passes.map(\.id), ["1"])
-        XCTAssertEqual(open.payLabel, "支付 ¥31.20")
-        XCTAssertFalse(open.purchaseReachable)
-
-        let detail = MPParityBindings.orderDetail(
-            id: "ORD-1", purchaseKind: 2, ownerType: 1, ticketID: nil, expiresAt: "2027-12-11 00:00:00",
-            wechatPaymentAmount: nil, payableAmount: 0, totalAmount: 0, pointPaymentAmount: nil)
-        XCTAssertTrue(detail.shown)
-        XCTAssertTrue(detail.selfPlayPass)
-        XCTAssertEqual(detail.untilText, "可玩至 12 月 10 日")
-        XCTAssertEqual(detail.actualPaid, 0.0 as Double?)
-        XCTAssertTrue(detail.free)
-        XCTAssertFalse(detail.payReachable)
-        XCTAssertFalse(detail.refundReachable)
-        let paid = MPParityBindings.orderDetail(
-            id: "ORD-2", purchaseKind: nil, ownerType: 1, ticketID: nil, expiresAt: "2027-12-10 12:00:00",
-            wechatPaymentAmount: 12, payableAmount: 0, totalAmount: 0, pointPaymentAmount: 0)
-        XCTAssertTrue(paid.selfPlayPass)
-        XCTAssertEqual(paid.untilText, "可玩至 12 月 10 日")
-        XCTAssertEqual(paid.actualPaid, 12.0 as Double?)
-        XCTAssertFalse(paid.free)
-        XCTAssertFalse(MPParityBindings.orderDetail(
-            id: "", purchaseKind: 2, ownerType: nil, ticketID: nil, expiresAt: nil,
-            wechatPaymentAmount: nil, payableAmount: nil, totalAmount: nil, pointPaymentAmount: nil).shown)
-    }
-
-    private func product(id: String, name: String, kind: Int, topics: [String]) -> PlatformPassProduct {
-        PlatformPassProduct(id: id, name: name, kind: "", city: "上海", validity: "", seats: "", price: "",
-                            coverCount: topics.count, topics: [], topicIDs: topics, giftOnly: kind == 7,
-                            isExtraSeat: kind == 8, cashPrice: 88, pointsPrice: nil, productKind: kind,
-                            validityKind: 1, validDays: 30)
+    func testChinaClockPassUntilRollsMidnightBackOneMillisecond() {
+        XCTAssertEqual(MPParityChinaClock.passUntil("2027-12-11 00:00:00"), "可玩至 12 月 10 日")
+        XCTAssertEqual(MPParityChinaClock.shownMonthDay("2027-12-11 00:00:00")?.month, 12)
+        XCTAssertEqual(MPParityChinaClock.shownMonthDay("2027-12-11 00:00:00")?.day, 10)
+        XCTAssertEqual(MPParityChinaClock.passUntil("2027-12-10 12:00:00"), "可玩至 12 月 10 日")
+        XCTAssertEqual(MPParityChinaClock.dotDay("2027-12-10 12:00:00"), "2027.12.10")
+        XCTAssertEqual(MPParityChinaClock.dotDay(nil), "")
+        XCTAssertNil(MPParityChinaClock.shownMonthDay(""))
     }
 
     private func make(_ wire: Wire) throws -> PlatformPass {

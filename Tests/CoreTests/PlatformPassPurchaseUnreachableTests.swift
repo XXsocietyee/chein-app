@@ -8,7 +8,6 @@ import FoundationNetworking
 final class PlatformPassPurchaseUnreachableTests: XCTestCase {
     func testPurchaseAndClaimStayUnreachableWhileMoneyIsOff() async throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
-        XCTAssertFalse(MPParityBindings.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
