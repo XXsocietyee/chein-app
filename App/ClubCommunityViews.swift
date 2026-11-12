@@ -471,6 +471,10 @@ struct ClubCommunityPostTile: View {
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
     @Environment(\.dynamicTypeSize) private var typeSize
+    private var canLike: Bool {
+        let target = clubID ?? post.clubID
+        return target != nil && identity.isSignedIn && !model.busy && model.context.coordinator?.permitsInjectedWrites == true
+    }
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
         guard let evidence, evidence.identity == identity, evidence.post == post, Date().timeIntervalSince(evidence.observedAt) < 60 else { return false }
         return evidence.allows(operation)
@@ -478,6 +482,13 @@ struct ClubCommunityPostTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             ClubPostAuthorProfile(post: post, clubID: clubID, identity: identity, model: model)
+            if post.activityCard.showsActivity {
+                SquareCloudStravaBlock(
+                    card: post.activityCard,
+                    title: post.sportName.isEmpty ? nil : post.sportName,
+                    onDoubleTapLike: canLike ? { Task { await model.prepare(.toggleLike, clubID: clubID ?? post.clubID ?? 0, post: post) } } : nil,
+                    onRepost: nil)
+            }
             ClubPostDiscussionBody(post: post, expanded: commentsExpanded, open: canOpenComments ? openComments : nil)
             ClubPostImageGallery(post: post, clubID: clubID, identity: identity, model: model)
             if !post.sportName.isEmpty, (post.refType == 1 || !post.sportCover.isEmpty) {
@@ -651,6 +662,7 @@ struct ClubCommunityComposer: View {
     let clubID: Int
     let post: ClubCommunityPost?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .body) private var editorMinHeight: CGFloat = 120
     @State private var content = ""
@@ -683,6 +695,12 @@ struct ClubCommunityComposer: View {
                         .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .accessibilityLabel(Text("club.community.content"))
                         .accessibilityIdentifier("club.community.content")
+                    if content.isEmpty {
+                        Text(verbatim: locale.pick("有什么新鲜好玩的分享吗？", "Share something new?"))
+                            .font(CYTypography.meta)
+                            .foregroundStyle(palette.textSecondary)
+                            .accessibilityHidden(true)
+                    }
                     Text(verbatim: "\(content.count)/300")
                         .font(CYTypography.meta)
                         .monospacedDigit()

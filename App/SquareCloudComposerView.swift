@@ -1,0 +1,671 @@
+import SwiftUI
+
+/// `cy/post-compose` and `cy/post-drafts` on one sheet. Drafts and activity lists are pushes, not a second sheet.
+@MainActor struct SquareCloudComposerView: View {
+    let coordinator: SocialActionCoordinator
+    var offline = false
+    var prefill = ""
+    var nickname: String?
+    var clubID: String? = nil
+    var canAnnounce = false
+    var allowsImages = false
+    var allowsLocation = false
+    var joinedHosted: () async -> SquareCloudRead<SquareComposeActivityOption> = { .permission }
+    var completed: () async -> SquareCloudRead<SquareCompletedActivity> = { .permission }
+    var editingPost: SquarePost? = nil
+    var onClose: () -> Void
+    @Environment(\.locale) private var locale
+    @State private var path: [SquareCloudComposerRoute] = []
+    @State private var contents = ""
+    @State private var address = ""
+    @State private var selectedActivity: SquareComposeActivityOption?
+    @State private var asAnnouncement = false
+    @State private var notice: String?
+    @State private var lock = SquareComposeLock()
+    @State private var review: SocialActionReview?
+    @State private var preparing = false
+    @State private var openedMember: String?
+    @State private var drafts: [SquareCloudDraftRow] = []
+    @State private var draftsLoading = false
+    @State private var undo: SquareCloudDraftUndo?
+
+    private var editing: Bool { editingPost != nil }
+    private var memberID: String? {
+        guard let id = coordinator.identity.accountID, id > 0 else { return nil }
+        return String(id)
+    }
+    private var screenTitle: String {
+        switch path.last {
+        case .drafts: return copy("草稿", "Drafts")
+        case .activities: return copy("选择活动", "Choose an activity")
+        case .completed: return copy("选择已完成的活动", "Choose a cleared activity")
+        case .review: return copy("确认发布", "Confirm publish")
+        case nil: return editing ? copy("编辑帖文", "Edit post") : copy("新建帖文", "New post")
+        }
+    }
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            root
+                .navigationTitle(Text(verbatim: screenTitle))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar(.visible, for: .navigationBar)
+                .toolbar { toolbar }
+                .navigationDestination(for: SquareCloudComposerRoute.self) { route in
+                    destination(route)
+                        .navigationTitle(Text(verbatim: screenTitle))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar(.visible, for: .navigationBar)
+                        .background(CYNight.ink0)
+                }
+        }
+        .preferredColorScheme(.dark)
+        .background(CYNight.ink0)
+        .onAppear(perform: open)
+        .onChange(of: coordinator.identity) { _, _ in identityChanged() }
+        .onDisappear {
+            persist()
+            if lock.phase != .sending && lock.phase != .unknown { releaseReview() }
+        }
+        .accessibilityIdentifier("square.cloud.composer")
+    }
+
+    @ViewBuilder private var root: some View {
+        if memberID == nil {
+            status(copy("登录后才能发帖", "Sign in to publish"), copy("这一页不会替你发出去", "This screen will not send a post for you")).accessibilityIdentifier("square.cloud.permission")
+        } else if offline || coordinator.availability == .syntheticOnly {
+            status(copy("你离线了", "You're offline"), copy("离线示例不会提交广场帖", "The offline example does not submit a square post")).accessibilityIdentifier("square.cloud.offline")
+        } else if coordinator.availability != .approved {
+            status(copy("当前账号未开放广场发布", "Square publishing is not open for this account"), copy("没有可用的发布通道", "No publish channel is available")).accessibilityIdentifier("square.cloud.permission")
+        } else {
+            editor
+        }
+    }
+
+    private var editor: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ScrollView {
+                HStack(alignment: .top, spacing: CYSpacing.md) {
+                    VStack(spacing: CYSpacing.sm) {
+                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.white.opacity(0.8))
+                            .accessibilityHidden(true)
+                        Rectangle().fill(CYNight.ink2).frame(width: 2).frame(maxHeight: .infinity)
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        Text(verbatim: displayName).font(.headline).foregroundStyle(.white).lineLimit(1)
+                            .accessibilityIdentifier("square.cloud.author")
+                        ZStack(alignment: .topLeading) {
+                            if contents.isEmpty {
+                                Text(verbatim: copy("有什么新鲜好玩的分享吗？", "Share something new?"))
+                                    .foregroundStyle(.white.opacity(0.45))
+                                    .accessibilityHidden(true)
+                            }
+                            TextEditor(text: $contents)
+                                .scrollContentBackground(.hidden)
+                                .frame(minHeight: 120)
+                                .foregroundStyle(.white)
+                                .disabled(lock.locksComposer)
+                                .accessibilityLabel(Text(verbatim: copy("帖文内容", "Post text")))
+                                .accessibilityIdentifier("square.cloud.text")
+                        }
+                        if let notice {
+                            Text(verbatim: notice).font(.footnote).foregroundStyle(.white.opacity(0.8))
+                                .accessibilityIdentifier("square.cloud.notice")
+                        }
+                        previews
+                        tools
+                    }
+                }
+                .padding(CYSpacing.lg)
+            }
+            footer
+        }
+        .background(CYNight.ink0)
+        .onChange(of: contents) { _, value in
+            if value.count > SquareComposeRules.maxLength { contents = SquareComposeRules.clip(value) }
+        }
+    }
+
+    @ViewBuilder private var previews: some View {
+        if !address.isEmpty || selectedActivity != nil {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                if !address.isEmpty {
+                    chip(address, "mappin") { address = "" }.accessibilityIdentifier("square.cloud.address")
+                }
+                if let selectedActivity {
+                    chip(selectedActivity.name, "flag") { self.selectedActivity = nil }.accessibilityIdentifier("square.cloud.activityChip")
+                }
+            }
+        }
+    }
+
+    private func chip(_ title: String, _ symbol: String, clear: @escaping () -> Void) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            Image(systemName: symbol).foregroundStyle(.white)
+            Text(verbatim: title).lineLimit(1).foregroundStyle(.white)
+            Spacer(minLength: CYSpacing.sm)
+            Button(action: clear) { Image(systemName: "xmark") }
+                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                .accessibilityLabel(Text(verbatim: copy("清除", "Clear")))
+        }
+        .padding(.horizontal, CYSpacing.md)
+        .background(CYNight.ink1, in: Capsule())
+    }
+
+    private var tools: some View {
+        HStack(spacing: CYSpacing.lg) {
+            if !editing && allowsImages {
+                tool("photo", copy("添加图片", "Add photo")) {
+                    notice = copy("图片这一版不会随帖子提交", "Photos are not sent with the post in this version")
+                }
+                .accessibilityIdentifier("square.cloud.tool.photo")
+            }
+            if !editing && allowsLocation && clubID == nil {
+                tool("mappin", copy("添加地点", "Add place")) {
+                    notice = copy("地点这一版还不能提交", "A place cannot be submitted in this version")
+                }
+                .accessibilityIdentifier("square.cloud.tool.place")
+            }
+            if !editing && clubID == nil {
+                tool("flag", copy("选择活动", "Choose activity")) { path.append(.activities) }.accessibilityIdentifier("square.cloud.tool.activity")
+            }
+            if !editing && clubID != nil {
+                tool("point.topleft.down.to.point.bottomright.curvepath", copy("带上一次游玩记录", "Attach a play record")) {
+                    notice = copy("游玩记录由俱乐部页选择", "The club page picks the play record")
+                }
+                .accessibilityIdentifier("square.cloud.tool.play")
+            }
+            if canAnnounce && clubID != nil && !editing {
+                Button { asAnnouncement.toggle() } label: {
+                    Text(verbatim: asAnnouncement ? copy("作为公告发布", "Post as an announcement") : copy("普通动态", "Ordinary post"))
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("square.cloud.announce")
+            }
+        }
+        .foregroundStyle(.white)
+    }
+
+    private func tool(_ symbol: String, _ label: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(Text(verbatim: label))
+    }
+
+    private var footer: some View {
+        HStack(spacing: CYSpacing.md) {
+            Image(systemName: "person.crop.circle.fill").foregroundStyle(.white.opacity(0.8)).accessibilityHidden(true)
+            Text(verbatim: "\(contents.count)/\(SquareComposeRules.maxLength)")
+                .font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.72))
+                .accessibilityIdentifier("square.cloud.count")
+            Spacer(minLength: CYSpacing.sm)
+            if lock.phase == .unknown {
+                Button(action: confirmResult) {
+                    Text(verbatim: copy("确认结果", "Check result")).frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("square.cloud.confirmResult")
+            } else if lock.phase == .receipt {
+                Button(action: onClose) {
+                    Text(verbatim: copy("关闭", "Close")).frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityIdentifier("square.cloud.receiptClose")
+            } else {
+                Button(action: beginPublish) {
+                    Text(verbatim: editing ? copy("保存", "Save") : copy("发布", "Publish"))
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!canSubmit || lock.phase == .sending || preparing)
+                .accessibilityIdentifier("square.cloud.publish")
+            }
+        }
+        .padding(CYSpacing.lg)
+        .background(CYNight.ink1)
+    }
+
+    @ToolbarContentBuilder private var toolbar: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(action: cancel) {
+                Text(verbatim: path.isEmpty ? copy("取消", "Cancel") : copy("关闭", "Close"))
+            }
+            .accessibilityLabel(Text(verbatim: path.isEmpty ? copy("取消并关闭", "Cancel and close") : copy("关闭", "Close")))
+            .accessibilityIdentifier("square.cloud.cancel")
+        }
+        if !editing && path.isEmpty && memberID != nil {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { openDrafts() } label: { Image(systemName: "doc.text") }
+                    .accessibilityLabel(Text(verbatim: copy("草稿箱", "Drafts")))
+                    .accessibilityIdentifier("square.cloud.drafts")
+            }
+        }
+    }
+
+    @ViewBuilder private func destination(_ route: SquareCloudComposerRoute) -> some View {
+        switch route {
+        case .drafts: draftsPage
+        case .activities:
+            SquareCloudJoinedActivityList(load: joinedHosted, onSelect: { item in
+                selectedActivity = item
+                path.removeAll()
+            }, onCompleted: { path.append(.completed) }, onClose: { if !path.isEmpty { path.removeLast() } })
+        case .completed:
+            SquareCloudCompletedActivityPicker(load: completed, onSelect: { item, _ in
+                selectedActivity = SquareComposeActivityOption(activityID: item.activityID, name: item.name, sourceLabel: copy("已通关", "Cleared"))
+                notice = copy("没有路线预览图，只记下活动名字。这一版还不能把活动写进帖子。", "No route preview was made. Only the name is kept, and this version still cannot save the activity on the post.")
+                path.removeAll()
+            }, onClose: { if !path.isEmpty { path.removeLast() } })
+        case .review: reviewPage
+        }
+    }
+
+    private var draftsPage: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if draftsLoading {
+                CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在读取草稿", "Loading drafts")))
+                    .accessibilityIdentifier("square.cloud.drafts.loading")
+            } else if drafts.isEmpty {
+                Text(verbatim: copy("还没有草稿", "No drafts yet")).font(.headline).foregroundStyle(.white)
+                    .accessibilityIdentifier("square.cloud.drafts.empty")
+                Text(verbatim: copy("写到一半退出时会自动存成草稿，回到这里就能接着写。", "Leaving mid-write keeps a draft. Come back and continue."))
+                    .font(.subheadline).foregroundStyle(.white.opacity(0.72))
+            } else {
+                ForEach(drafts) { row in
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        Button { pick(row) } label: {
+                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                HStack {
+                                    Text(verbatim: row.nickname).font(.headline).foregroundStyle(.white).lineLimit(1)
+                                    Spacer(minLength: CYSpacing.sm)
+                                    Text(verbatim: row.date).font(.caption).foregroundStyle(.white.opacity(0.62))
+                                }
+                                Text(verbatim: row.summary).font(.subheadline).foregroundStyle(.white.opacity(0.8)).lineLimit(2)
+                            }
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text(verbatim: copy("继续编辑这条草稿", "Continue this draft")))
+                        .accessibilityIdentifier("square.cloud.draft.row")
+                        Button { delete(row) } label: {
+                            Image(systemName: "trash").frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text(verbatim: copy("删除这条草稿", "Delete this draft")))
+                        .accessibilityIdentifier("square.cloud.draft.delete")
+                    }
+                }
+                Text(verbatim: copy("只有 \(drafts.count) 条草稿", "Only \(drafts.count) drafts"))
+                    .font(.caption).foregroundStyle(.white.opacity(0.62))
+                    .accessibilityIdentifier("square.cloud.drafts.count")
+            }
+            if let undo {
+                HStack {
+                    Text(verbatim: copy("草稿已删除", "Draft deleted")).foregroundStyle(.white)
+                    Spacer(minLength: CYSpacing.sm)
+                    Button { restore(undo) } label: { Text(verbatim: copy("撤销", "Undo")) }
+                        .accessibilityIdentifier("square.cloud.draft.undo")
+                }
+                .accessibilityIdentifier("square.cloud.draft.undoBar")
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(CYNight.ink0)
+        .accessibilityIdentifier("square.cloud.drafts.page")
+    }
+
+    private var reviewPage: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            Text(verbatim: contents).font(.body).foregroundStyle(.white).textSelection(.enabled)
+            if let selectedActivity {
+                Text(verbatim: copy("活动「\(selectedActivity.name)」不会写入这次提交", "Activity “\(selectedActivity.name)” is not part of this submit"))
+                    .font(.subheadline).foregroundStyle(.white.opacity(0.8))
+            }
+            if lock.phase == .unknown {
+                Text(verbatim: copy("结果还没核对。请求号 \(lock.requestID ?? SquareCountDisplay.unknownMark)", "The result is still unchecked. Request \(lock.requestID ?? SquareCountDisplay.unknownMark)"))
+                    .font(.subheadline).foregroundStyle(.white)
+                    .accessibilityIdentifier("square.cloud.unknown")
+                Button(action: confirmResult) {
+                    Text(verbatim: copy("确认结果", "Check result")).frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("square.cloud.confirmResult")
+            } else if lock.phase == .receipt {
+                Text(verbatim: copy("已收到提交回执。刷新广场核对。这张回执不是新帖子的编号。", "A submit receipt arrived. Refresh the square to check it. The receipt is not a new post id."))
+                    .font(.subheadline).foregroundStyle(.white)
+                    .accessibilityIdentifier("square.cloud.receipt")
+                Button(action: onClose) { Text(verbatim: copy("关闭", "Close")).frame(minHeight: CYSpacing.minTouchTarget) }
+                    .accessibilityIdentifier("square.cloud.receiptClose")
+            } else if lock.phase == .rejected {
+                Text(verbatim: copy("没有发出去", "It was not sent")).font(.headline).foregroundStyle(.white)
+                    .accessibilityIdentifier("square.cloud.rejected")
+            } else if preparing || lock.phase == .sending {
+                CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在提交", "Submitting")))
+                    .accessibilityIdentifier("square.cloud.submitting")
+            } else {
+                Button { Task { await submit() } } label: {
+                    Text(verbatim: editing ? copy("保存", "Save") : copy("发布", "Publish"))
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(review == nil)
+                .accessibilityIdentifier("square.cloud.reviewPublish")
+            }
+            if let notice { Text(verbatim: notice).font(.footnote).foregroundStyle(.white.opacity(0.8)) }
+            Spacer(minLength: 0)
+        }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(CYNight.ink0)
+        .task { await prepareReview() }
+        .accessibilityIdentifier("square.cloud.review")
+    }
+
+    private var displayName: String {
+        let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? copy("城瘾玩家", "Chengyin player") : trimmed
+    }
+
+    private var canSubmit: Bool {
+        SquareComposeRules.submittable(text: contents, pictureCount: 0, club: clubID != nil, editing: editing)
+    }
+
+    private func status(_ title: String, _ detail: String) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: title).font(.headline).foregroundStyle(.white)
+            Text(verbatim: detail).font(.subheadline).foregroundStyle(.white.opacity(0.72))
+            Spacer(minLength: 0)
+        }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(CYNight.ink0)
+    }
+
+    private func open() {
+        openedMember = memberID
+        if let editingPost { contents = editingPost.contents ?? ""; return }
+        if let memberID, let pending = SquareCloudDraftDisk.pending(memberID: memberID), pending.phase == .unknown || pending.phase == .sending {
+            lock = SquareComposeLock(requestID: pending.requestID, phase: .unknown)
+        }
+        guard lock.phase != .unknown else { restoreDraft(); return }
+        if !prefill.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { contents = SquareComposeRules.clip(prefill); return }
+        restoreDraft()
+    }
+
+    private func restoreDraft() {
+        guard let memberID, let topic = SquareComposeRules.topicID(memberID: memberID, clubID: clubID) else { return }
+        if case .ready(let text) = SquareComposeDraftRules.load(SquareCloudDraftDisk.load(topicID: topic), memberID: memberID) {
+            contents = SquareComposeRules.clip(text)
+        }
+    }
+
+    private func identityChanged() {
+        guard openedMember != memberID else { return }
+        if lock.phase != .sending && lock.phase != .unknown { releaseReview() }
+        persist()
+        notice = copy("登录身份已变化，请重新打开编辑器", "The signed-in account changed. Open the editor again.")
+        onClose()
+    }
+
+    private func cancel() {
+        if path.isEmpty { releaseReview(); persist(); onClose() } else { path.removeLast() }
+    }
+
+    private func releaseReview() {
+        if let review { coordinator.cancel(review) }
+    }
+
+    private func beginPublish() {
+        notice = nil
+        let text = contents.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard SquareComposeRules.submittable(text: text, pictureCount: 0, club: clubID != nil, editing: editing) else {
+            notice = clubID == nil ? copy("请输入内容", "Write something first") : copy("说点什么，或加张图", "Write something, or add a photo")
+            return
+        }
+        if clubID != nil {
+            notice = copy("俱乐部帖走俱乐部的确认页", "Club posts use the club confirm screen")
+            return
+        }
+        if selectedActivity != nil {
+            notice = copy("活动关联这一版发不出去。清掉活动后再发正文。", "This version cannot attach an activity. Clear it, then publish the text.")
+            return
+        }
+        if lock.phase == .unknown || coordinator.state(target: editingTarget).locksForm {
+            lock.phase = .unknown
+            notice = copy("上次结果还没核对，不能再发一条。", "The last result is still unchecked, so nothing new is sent.")
+            return
+        }
+        path.append(.review)
+    }
+
+    private var editingTarget: SocialActionTarget {
+        if let editingPost { return .post(editingPost.id) }
+        return .newPost
+    }
+
+    private func prepareReview() async {
+        guard review == nil, !preparing, lock.phase != .unknown, lock.phase != .receipt else { return }
+        let identity = coordinator.identity
+        preparing = true
+        defer { preparing = false }
+        let command: SocialActionCommand
+        if editing { command = .editPost(text: contents) }
+        else {
+            requestIfNeeded()
+            command = .createPost(text: contents, requestID: lock.requestID ?? UUID().uuidString)
+        }
+        do {
+            let value = try await coordinator.prepare(command, target: editingTarget, ownerID: UUID(), expectedIdentity: identity)
+            guard coordinator.identity == identity else { coordinator.cancel(value); return }
+            review = value
+        } catch {
+            notice = copy("还不能提交", "It cannot be submitted yet")
+            review = nil
+        }
+    }
+
+    private func requestIfNeeded() {
+        if lock.requestID == nil { lock = SquareComposeLock(requestID: UUID().uuidString, phase: .idle) }
+    }
+
+    private func submit() async {
+        guard let review, !lock.locksComposer else { return }
+        let identity = coordinator.identity
+        if !editing { requestIfNeeded() }
+        lock.phase = .sending
+        if let memberID, let id = lock.requestID { SquareCloudDraftDisk.savePending(memberID: memberID, requestID: id, phase: .sending) }
+        await coordinator.confirm(review)
+        guard coordinator.identity == identity else { lock.phase = .unknown; storePending(); return }
+        switch coordinator.state(target: editingTarget) {
+        case .acknowledged:
+            lock.phase = .receipt
+            if let memberID { SquareCloudDraftDisk.clearPending(memberID: memberID) }
+            clearDraft()
+        case .rejected, .notSent:
+            lock = SquareComposeLock(requestID: UUID().uuidString, phase: .rejected)
+            review = nil
+            if let memberID { SquareCloudDraftDisk.clearPending(memberID: memberID) }
+            notice = copy("没有发出去", "It was not sent")
+        default:
+            lock.phase = .unknown
+            storePending()
+            notice = copy("结果未知，先核对这一次，不要重发。", "The result is unknown. Check this one. Do not send it again.")
+        }
+    }
+
+    private func confirmResult() {
+        let observed: SquareComposeLock.Phase
+        switch coordinator.state(target: editingTarget) {
+        case .acknowledged: observed = .receipt
+        case .rejected, .notSent: observed = .rejected
+        case .outcomeUnknown, .submitting: observed = .unknown
+        default: observed = .idle
+        }
+        let saved = lock.requestID ?? SquareCloudDraftDisk.pending(memberID: memberID ?? "")?.requestID
+        lock = SquareComposeLock(requestID: saved, phase: .unknown).confirmResult(currentRequestID: saved, observed: observed)
+        if lock.phase == .receipt {
+            if let memberID { SquareCloudDraftDisk.clearPending(memberID: memberID) }
+            clearDraft()
+        } else if lock.phase == .unknown {
+            notice = copy("核对后仍未知。请求号 \(saved ?? SquareCountDisplay.unknownMark)", "Still unknown after the check. Request \(saved ?? SquareCountDisplay.unknownMark)")
+        }
+    }
+
+    private func storePending() {
+        guard let memberID, let id = lock.requestID else { return }
+        SquareCloudDraftDisk.savePending(memberID: memberID, requestID: id, phase: .unknown)
+    }
+
+    private func openDrafts() {
+        draftsLoading = true
+        path.append(.drafts)
+        drafts = readDrafts()
+        draftsLoading = false
+    }
+
+    private func readDrafts() -> [SquareCloudDraftRow] {
+        guard let memberID, let topic = SquareComposeRules.topicID(memberID: memberID, clubID: clubID),
+              case .ready(let text) = SquareComposeDraftRules.load(SquareCloudDraftDisk.load(topicID: topic), memberID: memberID) else { return [] }
+        let saved = SquareCloudDraftDisk.load(topicID: topic)?.savedAt ?? Date()
+        return [SquareCloudDraftRow(key: topic, nickname: displayName, date: SquareComposeRules.chinaMonthDay(saved), summary: text)]
+    }
+
+    private func pick(_ row: SquareCloudDraftRow) {
+        guard let memberID, case .ready(let text) = SquareComposeDraftRules.load(SquareCloudDraftDisk.load(topicID: row.key), memberID: memberID) else {
+            notice = copy("这条草稿无法打开了", "This draft cannot be opened")
+            drafts = readDrafts()
+            return
+        }
+        contents = SquareComposeRules.clip(text)
+        path.removeAll()
+    }
+
+    private func delete(_ row: SquareCloudDraftRow) {
+        drafts.removeAll { $0.key == row.key }
+        undo?.task.cancel()
+        let task = Task {
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            guard !Task.isCancelled else { return }
+            commitDelete(row)
+        }
+        undo = SquareCloudDraftUndo(row: row, task: task)
+    }
+
+    private func restore(_ pending: SquareCloudDraftUndo) {
+        pending.task.cancel()
+        undo = nil
+        drafts = readDrafts()
+    }
+
+    private func commitDelete(_ row: SquareCloudDraftRow) {
+        guard let memberID else { return }
+        let removed = SquareCloudDraftDisk.remove(topicID: row.key, memberID: memberID)
+        let left = readDrafts()
+        if !removed || left.contains(where: { $0.key == row.key }) {
+            drafts = left
+            notice = copy("删除失败，请重试", "The delete did not stick. Try again")
+        } else {
+            drafts = left
+        }
+        undo = nil
+    }
+
+    private func persist() {
+        guard lock.phase != .receipt, !editing, let memberID, let topic = SquareComposeRules.topicID(memberID: memberID, clubID: clubID) else { return }
+        let text = contents.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty { return }
+        SquareCloudDraftDisk.save(topicID: topic, memberID: memberID, contents: contents)
+    }
+
+    private func clearDraft() {
+        guard let memberID, let topic = SquareComposeRules.topicID(memberID: memberID, clubID: clubID) else { return }
+        _ = SquareCloudDraftDisk.remove(topicID: topic, memberID: memberID)
+    }
+
+    private func copy(_ zh: String, _ en: String) -> String { locale.pick(zh, en) }
+}
+
+enum SquareCloudComposerRoute: Hashable { case drafts, activities, completed, review }
+
+struct SquareCloudDraftRow: Identifiable, Equatable {
+    var id: String { key }
+    let key: String
+    let nickname: String
+    let date: String
+    let summary: String
+}
+
+struct SquareCloudDraftUndo {
+    let row: SquareCloudDraftRow
+    let task: Task<Void, Never>
+}
+
+enum SquareCloudDraftDisk {
+    private struct Envelope: Codable {
+        var memberID: String
+        var savedAt: Date
+        var contents: String
+    }
+    private struct Pending: Codable {
+        var requestID: String
+        var phase: String
+    }
+
+    static func load(topicID: String) -> SquareComposeDraftEnvelope? {
+        guard let data = UserDefaults.standard.data(forKey: draftKey(topicID)),
+              let envelope = try? JSONDecoder().decode(Envelope.self, from: data) else { return nil }
+        return SquareComposeDraftEnvelope(memberID: envelope.memberID, savedAt: envelope.savedAt, contents: envelope.contents)
+    }
+
+    static func save(topicID: String, memberID: String, contents: String) {
+        let envelope = Envelope(memberID: memberID, savedAt: Date(), contents: contents)
+        guard let data = try? JSONEncoder().encode(envelope) else { return }
+        let key = draftKey(topicID)
+        UserDefaults.standard.set(data, forKey: key)
+    }
+
+    /// True only when a following read no longer returns this member's draft.
+    static func remove(topicID: String, memberID: String) -> Bool {
+        let key = draftKey(topicID)
+        UserDefaults.standard.removeObject(forKey: key)
+        guard let left = load(topicID: topicID) else { return true }
+        return left.memberID != memberID
+    }
+
+    static func savePending(memberID: String, requestID: String, phase: SquareComposeLock.Phase) {
+        let name: String
+        switch phase {
+        case .unknown: name = "unknown"
+        case .sending: name = "sending"
+        case .receipt: name = "receipt"
+        case .rejected: name = "rejected"
+        case .idle: name = "idle"
+        }
+        guard let data = try? JSONEncoder().encode(Pending(requestID: requestID, phase: name)) else { return }
+        UserDefaults.standard.set(data, forKey: pendingKey(memberID))
+    }
+
+    static func pending(memberID: String) -> (requestID: String, phase: SquareComposeLock.Phase)? {
+        guard let data = UserDefaults.standard.data(forKey: pendingKey(memberID)),
+              let pending = try? JSONDecoder().decode(Pending.self, from: data) else { return nil }
+        let phase: SquareComposeLock.Phase
+        switch pending.phase {
+        case "unknown": phase = .unknown
+        case "sending": phase = .sending
+        case "receipt": phase = .receipt
+        case "rejected": phase = .rejected
+        default: phase = .idle
+        }
+        return (pending.requestID, phase)
+    }
+
+    static func clearPending(memberID: String) {
+        UserDefaults.standard.removeObject(forKey: pendingKey(memberID))
+    }
+
+    private static func draftKey(_ topicID: String) -> String { "pro_editor_draft_topic_" + topicID }
+    private static func pendingKey(_ memberID: String) -> String { "square_compose_lock_" + memberID }
+}

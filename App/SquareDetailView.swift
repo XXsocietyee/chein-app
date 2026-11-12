@@ -18,6 +18,7 @@ import SwiftUI
     @State private var blockNotice = false
     private struct EditorRoute: Identifiable { let id = UUID(); let purpose: SocialEditorPurpose; let target: SocialActionTarget; let text: String; var enabled = true }
     @State private var editor: EditorRoute?
+    @State private var cloudProfile: SquareDetailProfileRoute?
     @State private var post: SquarePost?
     @State private var detailIssue: Error?
     @State private var commentIssue: Error?
@@ -87,6 +88,9 @@ import SwiftUI
                     .background(.bar).accessibilityIdentifier("square.commentBar")
             }
         }
+        .navigationDestination(item: $cloudProfile) { member in
+            if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions) }
+        }
         .navigationDestination(item: $relatedTopic) { selected in
             if let context = relatedTopicContext {
                 SquareRelatedTopicDestination(selection: selected, squareReader: reader, topicReader: context.reader)
@@ -118,7 +122,41 @@ import SwiftUI
         .task(id: key) { await reload() }
         .refreshable { await reload() }
         .onDisappear { generation += 1; detailLoading = false; commentsLoading = false }
+        .environment(\.squareCloudFeed, detailCloudFeed)
         .accessibilityIdentifier("square.detail")
+    }
+    private var detailCloudFeed: SquareCloudFeedContext {
+        SquareCloudFeedContext(
+            viewerID: actions?.identity.accountID,
+            offline: reader.isOfflineExample,
+            onDoubleTapLike: actions == nil ? nil : { post in self.openReviewed(.init(purpose: .like, target: .post(post.id), text: "")) },
+            onFollow: actions == nil ? nil : { post in guard post.memberID > 0 else { return }; self.openReviewed(.init(purpose: .toggleFollow, target: .member(post.memberID), text: "")) },
+            onRepost: actions == nil ? nil : { post in
+                let card = SquareShareCard.build(id: post.id, audience: post.audience, lifecycle: post.lifecycle, contents: post.contents, images: post.images)
+                guard card.includesPost else { return }
+                self.openReviewed(.init(purpose: .createPost, target: .newPost, text: card.title))
+            },
+            onReport: actions == nil ? nil : { self.reportCloud($0) },
+            onProfile: accountReader == nil ? nil : { post in guard post.memberID > 0 else { return }; self.cloudProfile = .init(id: post.memberID) },
+            onCopyLink: { post in
+                let card = SquareShareCard.build(id: post.id, audience: post.audience, lifecycle: post.lifecycle, contents: post.contents, images: post.images)
+                guard card.includesPost else { return }
+                LocalPasteboard.copy(card.path)
+            })
+    }
+    private func openReviewed(_ route: EditorRoute) {
+        reportTarget = nil
+        showsWorkspaceEdit = false
+        editor = route
+    }
+    private func reportCloud(_ post: SquarePost) {
+        if post.generation == .legacySquare || contentGeneration == .legacySquare {
+            openReviewed(.init(purpose: .report, target: .post(post.id), text: ""))
+        } else if let target = try? SquareReportTarget(post: post) {
+            editor = nil
+            showsWorkspaceEdit = false
+            reportTarget = .init(target: target)
+        }
     }
     /// Mini-program `actions`: like, comment and favourite with their counts. Favourite only where it can work.
     private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
@@ -302,4 +340,8 @@ import SwiftUI
         } catch is CancellationError { }
         catch { if operation == generation, captured == key { commentIssue = error } }
     }
+}
+
+private struct SquareDetailProfileRoute: Identifiable, Hashable {
+    let id: Int
 }
