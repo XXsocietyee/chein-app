@@ -64,10 +64,10 @@ struct CYStarBloom<S: Shape>: View {
 
     @ViewBuilder private var glow: some View {
         if cheap {
-            Circle().fill(CYNight.glow(radius: size / 2)).frame(width: size * 3.2, height: size * 3.2).opacity(bloomIn)
+            Circle().fill(CYNight.lantern.opacity(0.22)).frame(width: size * 3.2, height: size * 3.2).opacity(bloomIn)
         } else {
             // radial light behind the object (rule d) plus three blurred copies of the shape.
-            Circle().fill(CYNight.glow(radius: size / 2)).frame(width: size * 3.2, height: size * 3.2).opacity(0.85 * bloomIn)
+            Circle().fill(CYNight.lantern.opacity(0.20)).frame(width: size * 3.2, height: size * 3.2).blur(radius: 10).opacity(0.85 * bloomIn)
             ForEach([48.0, 24, 10], id: \.self) { radius in
                 shape.fill(tint).frame(width: size, height: size).blur(radius: radius)
                     .opacity(0.5 * bloomIn).scaleEffect(1 + phase * 0.25)
@@ -76,10 +76,10 @@ struct CYStarBloom<S: Shape>: View {
     }
 
     private var silhouette: some View {
-        // Ink silhouette first, white once it has landed.
+        // Lantern from the first frame. A grey-to-white disc read as a flash on album-badges-new.
         let fill = Self.clamp(phase / 0.30)
         return shape
-            .fill(Color(white: 0.10 + 0.90 * fill))
+            .fill(CYNight.lantern.opacity(0.28 + 0.72 * fill))
             .frame(width: size, height: size)
             .scaleEffect(Self.landScale(phase))
             .opacity(Self.silhouetteOpacity(phase) * (phase > 0 ? 1 : 0))
