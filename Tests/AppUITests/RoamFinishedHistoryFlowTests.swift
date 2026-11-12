@@ -33,7 +33,7 @@ final class RoamFinishedHistoryFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Saved local journey"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Sample district"].exists) // Read the controller's new archive, not the hub's unrelated fixture.
         app.navigationBars.buttons.element(boundBy: 0).tap()
-        XCTAssertTrue(app.staticTexts["Roam complete"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Roam complete"].waitForExistence(timeout: 5) || app.descendants(matching: .any)["roam.finishReport"].firstMatch.waitForExistence(timeout: 5)) // settled walks show the finish report (B04)
         tap(app.buttons["roam.finishedHistory.history.open"], app: app)
         let rows = app.buttons.matching(identifier: "roam.experience.history.record")
         XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5)); XCTAssertEqual(rows.count, 1)

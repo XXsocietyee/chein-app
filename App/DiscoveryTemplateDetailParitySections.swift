@@ -65,14 +65,7 @@ struct DiscoveryTemplateDetailParitySections: View {
                 .accessibilityIdentifier("discovery.templateDetail.reviews")
             } header: { DiscoverySectionHeader("discovery.templateDetail.reviews") }.discoveryCardRow()
         }
-        Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("discovery.templateDetail.notice.title").font(CYTypography.label)
-                Text("discovery.templateDetail.notice.body").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("discovery.templateDetail.notice")
-        }.discoveryCardRow()
+        DiscoveryTemplateNoticeSection()
         .sheet(item: $preview) { state in
             TemplateNodePreviewSheet(state: state) { preview = nil }
         }
@@ -135,6 +128,21 @@ struct DiscoveryTemplateDetailParitySections: View {
         case .nodes: return "discovery.templateDetail.stat.nodes"
         case .totalTime: return "discovery.templateDetail.stat.totalTime"
         }
+    }
+}
+
+/// 这是玩法模板，不能直接开团: outside both tabs in the mini-program, so the 能力 tab repeats it (CU-M-130).
+struct DiscoveryTemplateNoticeSection: View {
+    @Environment(\.cyPalette) private var palette
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("discovery.templateDetail.notice.title").font(CYTypography.label)
+                Text("discovery.templateDetail.notice.body").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("discovery.templateDetail.notice")
+        }.discoveryCardRow()
     }
 }
 

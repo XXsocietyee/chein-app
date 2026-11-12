@@ -153,7 +153,8 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
     def test_growth_asserts_values_instead_of_unrelated_bare_text(self):
         view = source('App/GrowthCenterView.swift')
         self.assertIn('.accessibilityValue(pointsValue(board.me.score))', view)
-        self.assertIn('.accessibilityValue(rankValue(board.me.rank))', view)
+        self.assertIn('leaderboardRow(rank: board.me.rank)', view)
+        self.assertIn('.accessibilityValue(rankValue(rank))', view)
         self.assertIn('return Text("growth.unknownValue")', view)
         self.assertIn('return Text("growth.unranked")', view)
         tests = source('Tests/AppUITests/GrowthCenterFlowTests.swift')

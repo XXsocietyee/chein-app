@@ -16,34 +16,36 @@ final class GrowthNormalEntryPresentationTests: XCTestCase {
         for _ in 0..<12 { if element.exists && element.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(element.exists, app.debugDescription); XCTAssertTrue(element.isHittable, app.debugDescription)
     }
+    // B68 (u10-screens): the page carries the mini-program section set (score card, 我的足迹, 我的徽章);
+    // missions, check-ins and streak moved off this page (the profile growth card keeps check-ins and streak).
     func testEnglishEmptyRecordsAreExplicitWithoutInventedMissionAction() {
         launch("empty")
-        reveal(app.staticTexts["growth.completed.empty"])
-        reveal(app.staticTexts["growth.missions.empty"])
+        reveal(app.descendants(matching: .any)["growth.completedTopics"].firstMatch)
+        reveal(app.descendants(matching: .any)["growth.badges.empty"].firstMatch)
         XCTAssertFalse(app.buttons["growth.mission.complete"].exists)
         XCTAssertFalse(app.buttons["growth.checkin"].exists)
+        XCTAssertFalse(app.staticTexts["growth.missions.empty"].exists)
     }
     func testChineseLargeTypeReadOnlyEmptyStatesRemainReachable() {
         launch("empty", language: "zh-Hans", large: true)
         assertFixtureEnvironment(in: app, colorScheme: "dark", dynamicTypeSize: "accessibility3")
-        reveal(app.staticTexts["暂无已完成活动记录"])
-        reveal(app.staticTexts["暂无成长任务"])
+        reveal(app.staticTexts["还没有点亮任何徽章"])
         app.swipeDown(); app.swipeDown(); app.swipeDown()
         let refresh = app.buttons["growth.refresh"]
         XCTAssertTrue(refresh.exists)
         refresh.tap()
-        reveal(app.staticTexts["暂无已完成活动记录"])
+        reveal(app.staticTexts["还没有点亮任何徽章"])
     }
-    func testKnownCheckinsAndStreakStayAvailableAcrossNativeBoardReturn() {
+    func testFootprintMetricsStayAvailableAcrossNativeBoardReturn() {
         launch("content")
-        let checkins = app.descendants(matching: .any)["growth.checkins"].firstMatch
-        reveal(checkins)
+        let mileage = app.descendants(matching: .any)["growth.mileage"].firstMatch
+        reveal(mileage)
         for _ in 0..<4 { app.swipeDown() }
         let board = app.buttons["growth.openLeaderboard"]; reveal(board); board.tap()
         XCTAssertTrue(app.navigationBars["Leaderboard"].waitForExistence(timeout: 5))
         app.navigationBars["Leaderboard"].buttons.firstMatch.tap()
         XCTAssertTrue(app.navigationBars["Growth center"].waitForExistence(timeout: 5))
-        reveal(checkins)
-        reveal(app.descendants(matching: .any)["growth.streak"].firstMatch)
+        reveal(mileage)
+        reveal(app.descendants(matching: .any)["growth.completedTopics"].firstMatch)
     }
 }

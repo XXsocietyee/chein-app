@@ -596,16 +596,18 @@ struct RegistrationSheetView: View {
                 LabeledContent {
                     Text("mpfresh.registration.refund.full", tableName: "MpFresh").foregroundStyle(CYColor.textPrimary)
                 } label: { Text("mpfresh.registration.refund.over24 \(Text(LocalizedStringKey(clock), tableName: "MpFresh"))", tableName: "MpFresh") }
+                .accessibilityElement(children: .combine).accessibilityIdentifier("registration.refundTiers.over24")
                 LabeledContent {
                     Text("mpfresh.registration.refund.half \(50)", tableName: "MpFresh").foregroundStyle(CYColor.textPrimary)
                 } label: { Text("mpfresh.registration.refund.within24 \(Text(LocalizedStringKey(clock), tableName: "MpFresh"))", tableName: "MpFresh") }
+                .accessibilityElement(children: .combine).accessibilityIdentifier("registration.refundTiers.within24")
                 LabeledContent {
                     Text("mpfresh.registration.refund.none", tableName: "MpFresh").foregroundStyle(CYColor.textPrimary)
                 } label: { Text("mpfresh.registration.refund.afterStart", tableName: "MpFresh") }
+                .accessibilityElement(children: .combine).accessibilityIdentifier("registration.refundTiers.afterStart")
             } header: {
                 E1IconHeader(systemImage: "arrow.uturn.backward.circle", title: String(localized: LocalizedStringResource("mpfresh.registration.refund.title", table: "MpFresh", locale: locale)))
             }
-            .accessibilityIdentifier("registration.refundTiers")
         }
     }
     private var confirmationSection: some View {

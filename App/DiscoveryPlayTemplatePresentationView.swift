@@ -6,9 +6,11 @@ import SwiftUI
     let presentation: DiscoveryPlayTemplatePresentation
     let scope: UUID
     let imageReader: any RetainedPublicImageReading
+    /// The detail head (B57 `xb-head`) already names the publisher; it passes false to avoid a second row.
+    var showsPublisher = true
 
     var body: some View {
-        if let publisher = presentation.publisher {
+        if showsPublisher, let publisher = presentation.publisher {
             Section {
                 Text(verbatim: publisher)
                     .font(CYTypography.body)

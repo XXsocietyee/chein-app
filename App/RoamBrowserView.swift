@@ -37,6 +37,8 @@ struct RoamBrowserView: View {
     var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     /// Existing account-scoped topic detail; nil keeps unconfigured hosts unavailable.
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
+    /// B03 开始漫游 permission notice: a static OS location-status reader (never prompts). nil hides the notice.
+    var locationSettings: (any RoamLocationSettingsProviding)? = nil
     @State private var homeTab: RoamHomeTab = .start
     @State private var celebrations = CYCelebrationCenter()
     @State private var entryCard: RoamNearbyEventsEntrySelection?
@@ -333,9 +335,11 @@ struct RoamBrowserView: View {
             }
         }
     }
-    private var hasStartHeader: Bool { nearbyTeamsDestination != nil || entryReader != nil || recoveryBanner != nil }
+    private var hasStartHeader: Bool { nearbyTeamsDestination != nil || entryReader != nil || recoveryBanner != nil || locationSettings != nil }
     /// 开始漫游 tab body above the browser: intro cards, recovery notice and the 附近活动 peek.
     @ViewBuilder private var startHeader: some View {
+        // Mini-program order: the permission shell sits above the intro cards.
+        if let locationSettings { RoamHomeLocationNotice(provider: locationSettings) }
         if nearbyTeamsDestination != nil || liveDestination != nil {
             RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination,
                 officialRoutes: officialRouteReader.map { reader in { AnyView(OfficialRouteListView(reader: reader)) } })

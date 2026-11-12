@@ -128,7 +128,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
         attachFixtureScreenshot(self, app: app, name: "Roam explicit finish native confirmation")
         tapFixtureSheetAction("End roam", in: confirmation, app: app)
-        XCTAssertTrue(app.staticTexts["Roam complete"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Roam complete"].waitForExistence(timeout: 5) || app.descendants(matching: .any)["roam.finishReport"].firstMatch.waitForExistence(timeout: 5)) // settled walks show the finish report (B04)
         XCTAssertEqual(app.alerts.count, 0)
     }
     func testOfflineLiveUnknownBootstrapIsRecoveredBeforeExplicitResume() {

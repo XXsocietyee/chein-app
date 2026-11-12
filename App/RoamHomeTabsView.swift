@@ -367,6 +367,8 @@ struct RoamToolUnavailableView: View {
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     /// 探索目标 / 时光胶囊 / 导出 owner-only tools; nil keeps the tiles on their fallback page.
     var privateToolsReader: (any RoamPrivateToolsServing)? = nil
+    /// B62 收集册 藏品 segment. Binding stub: nil hides the chip until the host passes its object-cards screen.
+    var collectionObjectDestination: (() -> AnyView)? = nil
     @State private var homeScope: RoamPassportReaderScope?
     @State private var home: Result<RoamPassportHome, Error>?
     @State private var openedTile: OpenedTile?
@@ -515,11 +517,12 @@ struct RoamToolUnavailableView: View {
         switch tile {
         case .history:
             if let reader { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
-        case .stamp:
-            if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
-            else if let reader { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
-        case .badge:
-            if let reader { RoamBadgeWallDestination(roamReader: reader) }
+        case .stamp, .badge:
+            // B62: 邮票 and 勋章 open the same 收集册, on the tapped segment.
+            CollectionAlbumView(initial: tile == .stamp ? .stamp : .medal,
+                medal: reader.map { reader in { AnyView(RoamBadgeWallDestination(roamReader: reader)) } },
+                stamp: albumStampDestination,
+                object: collectionObjectDestination)
         case .goals:
             if let privateToolsReader { RoamExplorationGoalsView(tools: privateToolsReader) }
             else { RoamToolUnavailableView(titleKey: tile.titleKey) }
@@ -527,6 +530,11 @@ struct RoamToolUnavailableView: View {
             if let privateToolsReader { RoamCapsuleView(tools: privateToolsReader) }
             else { RoamToolUnavailableView(titleKey: tile.titleKey) }
         }
+    }
+    private var albumStampDestination: (() -> AnyView)? {
+        if let albumMetadataReader { return { AnyView(RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope)) } }
+        if let reader { return { AnyView(RoamStampAlbumView(reader: reader, stampDestination: stampDestination)) } }
+        return nil
     }
     /// 官方活动 opens the official roam tasks;
     /// 发现附近店铺 opens the nearby map. A card without a destination is not listed.
