@@ -446,21 +446,23 @@ import SwiftUI
         let nodes = snapshot?.visibleNodes ?? []
         let done = snapshot.map { snapshot in nodes.filter { snapshot.isDone($0) }.count }
         let medals = model.reward.map { PlayRewardSection.medals(in: $0, locale: locale) } ?? []
-        let title = snapshot?.result.topicName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("medalScreen.title", locale: locale)
+        let topic = snapshot?.result.topicName.flatMap { $0.isEmpty ? nil : $0 }
+        // Mini-program v13 medal screen: 主题通关 over `{topic} · 获得 N 枚勋章`; only stats it can read
+        // (用时 h:mm:ss, 节点 done/total) — a missing one is left out rather than shown as a guess.
+        let title = appLocalized("medalScreen.themeComplete", locale: locale)
+        let subtitle = (topic.map { $0 + " · " } ?? "") + appLocalized("medalScreen.earned \(max(medals.count, 1))", locale: locale)
         let stats = [
-            CYStoryStat(key: "medalScreen.stat.stops", value: done.map { "\($0)/\(nodes.count)" }, systemImage: "mappin.and.ellipse"),
-            CYStoryStat(key: "medalScreen.stat.time", value: Self.clockText(model.clock.elapsedSeconds), systemImage: "clock"),
-            CYStoryStat(key: "medalScreen.stat.xp", value: (model.reward?["xp"].tolerantInteger ?? model.reward?["score"].tolerantInteger).map(String.init), systemImage: "sparkles"),
-            CYStoryStat(key: "medalScreen.stat.medals", value: model.reward == nil ? nil : String(medals.count), systemImage: "rosette"),
-        ]
-        CYMedalScreen(items: medals, title: title, subtitle: appLocalized("medalScreen.subtitle", locale: locale), stats: stats,
-                      shareText: appLocalized("medalScreen.shareText \(title)", locale: locale),
+            CYStoryStat(key: "medalScreen.stat.time", value: Self.finishClockText(model.clock.elapsedSeconds), systemImage: "stopwatch"),
+            CYStoryStat(key: "medalScreen.stat.nodes", value: done.flatMap { nodes.isEmpty ? nil : "\($0)/\(nodes.count)" }, systemImage: "book"),
+        ].filter { $0.value != nil }
+        CYMedalScreen(items: medals, title: title, subtitle: subtitle, stats: stats,
+                      shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
+                      secondaryTitle: "medalScreen.records",
                       onClose: { finishScreen = false })
     }
-    private static func clockText(_ seconds: Int) -> String? {
+    private static func finishClockText(_ seconds: Int) -> String? {
         guard seconds > 0 else { return nil }
-        return seconds >= 3600 ? String(format: "%d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60)
-            : String(format: "%d:%02d", seconds / 60, seconds % 60)
+        return String(format: "%d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60)
     }
     private func projectAmbient() {
         guard let result = model.snapshot?.result else { return }

@@ -362,8 +362,8 @@ struct RoamPOIMissingView: View {
                     .accessibilityIdentifier("roamSub.w208.voucher.disabled")
             }
         } else {
-            CYEmptyState(systemImage: "qrcode", "roamSub.w208.voucher.missing",
-                         detail: "roamSub.w208.voucher.missingHint",
+            // Mini-program missing-param shell: one line and 返回, no extra hint.
+            CYEmptyState(systemImage: "info.circle", "roamSub.w208.voucher.missing",
                          actionTitle: "roamSub.w208.voucher.back", actionIdentifier: "roamSub.w208.voucher.back",
                          action: { dismiss() })
                 .accessibilityIdentifier("roamSub.w208.voucher.missing")

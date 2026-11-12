@@ -182110,17 +182110,18 @@
       }
     },
     "roam.experience.noTrack": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No recorded route"
+            "value": "No continuous route was recorded this time"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有已记录的轨迹"
+            "value": "这次没有记录到连续轨迹"
           }
         }
       }
@@ -259026,6 +259027,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 家"
+          }
+        }
+      }
+    },
+    "medalScreen.themeComplete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme complete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题通关"
+          }
+        }
+      }
+    },
+    "medalScreen.earned %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld medal(s) earned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获得 %lld 枚勋章"
+          }
+        }
+      }
+    },
+    "medalScreen.stat.nodes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nodes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点"
+          }
+        }
+      }
+    },
+    "medalScreen.records": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看记录"
           }
         }
       }
