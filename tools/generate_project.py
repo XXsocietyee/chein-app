@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Generate the app and pinned, source-only GLTFKit2 framework dependency. Does not install tools or invoke Xcode."""
-import hashlib, json, pathlib, re, xml.etree.ElementTree as ET
+import hashlib, json, os, pathlib, re, xml.etree.ElementTree as ET
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 def ident(name): return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
 objects = {}
 def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
-sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *ROOT.glob('App/DesignSystem/*.metal'), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
+# Metal shaders are an opt-in build dependency: the Metal Toolchain is a separate Xcode download and may be missing on a runner.
+METAL_ON = os.environ.get('CY_ENABLE_METAL') == '1'
+METAL_COND = ' CY_METAL_SHADERS' if METAL_ON else ''
+sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *(ROOT.glob('App/DesignSystem/*.metal') if METAL_ON else []), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
 ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
 # Compile this canonical demo source in the app only for Debug. Release AppUnit
 # retains the old tests by compiling that same source in the test bundle instead.
@@ -103,10 +106,11 @@ def configurations(scope):
         if scope=='target': settings['CODE_SIGN_ENTITLEMENTS']='Config/Questify.entitlements'
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
         if scope=='target' and name=='Debug':
-            settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
+            settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'+METAL_COND
             settings['ENABLE_TESTABILITY']='YES'
         if scope=='target' and name=='Release':
             settings['EXCLUDED_SOURCE_FILE_NAMES']='$(inherited) '+release_excluded_names
+            if METAL_ON: settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='$(inherited)'+METAL_COND
         extra={'baseConfigurationReference':release_config_ref if name=='Release' else config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')

@@ -138,14 +138,16 @@ struct CYPressWaveModifier: ViewModifier {
             let active = waveOn && model.waving && t < 1
             content
                 .overlay { CYTouchRipple(origin: origin, progress: t).opacity(active ? 1 : 0) }
+                #if CY_METAL_SHADERS
                 .visualEffect { view, proxy in
                     let c = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
                     let len = max(hypot(c.x - origin.x, c.y - origin.y), 1)
                     return view.distortionEffect(
                         ShaderLibrary.cyWave(.float2(origin), .float(t), .float(10), .float(0.09),
                                              .float2(CGPoint(x: (c.x - origin.x) / len, y: (c.y - origin.y) / len))),
-                        maxSampleOffset: CGSize(width: 12, height: 12), isEnabled: active)
+                        maxSampleOffset: CGSize(width: 12, height: 12), isEnabled: active && CYLightBudget.metalShadersAllowed)
                 }
+                #endif
         }
         .coordinateSpace(name: CYPressWaveModel.space)
         .scaleEffect(model.pressed ? CYWave.dipScale : (model.bump ? CYWave.releaseScale : 1))

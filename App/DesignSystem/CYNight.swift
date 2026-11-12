@@ -34,6 +34,16 @@ enum CYLightBudget {
         let info = ProcessInfo.processInfo
         return !info.isLowPowerModeEnabled && info.thermalState.rawValue < ProcessInfo.ThermalState.serious.rawValue
     }
+    /// Only the Metal `ShaderLibrary` effects (`cyWave`) also need the compiled metallib. The Metal Toolchain is an optional
+    /// build dependency (`CY_ENABLE_METAL=1 tools/generate_project.py` defines `CY_METAL_SHADERS`); without it every
+    /// shader modifier is compiled out and the non-shader fallback (scale dip, touch ripple, Canvas rings) plays.
+    static var metalShadersAllowed: Bool {
+        #if CY_METAL_SHADERS
+        return shadersAllowed
+        #else
+        return false
+        #endif
+    }
     static var gyroAllowed: Bool { shadersAllowed }
     static var particlesAllowed: Bool { shadersAllowed }
 }
