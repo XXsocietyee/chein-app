@@ -371,6 +371,7 @@ struct RoamToolUnavailableView: View {
     @State private var home: Result<RoamPassportHome, Error>?
     @State private var openedTile: OpenedTile?
     @State private var isPassportVisible = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private struct OpenedTile: Identifiable, Hashable {
         let id = UUID()
         let tile: RoamPassportHome.Tile
@@ -447,22 +448,34 @@ struct RoamToolUnavailableView: View {
         guard captured == readerScope else { return }
         homeScope = captured; home = result
     }
-    @ViewBuilder private func stats(reader: any RoamExperienceReading) -> some View {
+    /// pages/roam/index 护照读数: RoamHomeIndexPassportPresentation owns the four texts. Loading keeps
+    /// the same row geometry with an em dash per reading (mini-program R-02); unknown stays `—`, a known 0 stays 0.
+    private var passportPresentation: RoamHomeIndexPassportPresentation {
         switch currentHome {
-        case .none: ProgressView("roam.loading")
-        case .failure(let error)?: RoamExperienceIssue(error: error, retry: load)
-        case .success(let value)?:
-            HStack(spacing: 8) {
-                stat("roam.w208.passport.stat.trips", Text(value.summary.trips, format: .number), identifier: "trips")
-                stat("roam.w208.passport.stat.shops", value.summary.knownShopVisits.map { Text($0, format: .number) } ?? Text(verbatim: "—"), identifier: "shops")
-                stat("roam.w208.passport.stat.days", value.summary.activeDays.map { Text($0, format: .number) } ?? Text(verbatim: "—"), identifier: "days")
-                stat("roam.w208.passport.stat.km", value.summary.knownKilometers.map { Text($0, format: .number.precision(.fractionLength(1))) } ?? Text(verbatim: "—"), identifier: "km")
-            }.padding(.vertical, 6)
+        case .none: return RoamHomeIndexPassportPresentation(phase: .unloaded)
+        case .failure(let error)?: return RoamHomeIndexPassportPresentation(phase: .failed(error))
+        case .success(let value)?: return RoamHomeIndexPassportPresentation(phase: .loaded(value.summary))
         }
     }
-    private func stat(_ key: LocalizedStringKey, _ value: Text, identifier: String) -> some View {
+    @ViewBuilder private func stats(reader: any RoamExperienceReading) -> some View {
+        let presentation = passportPresentation
+        if presentation.read == .error, case .failure(let error)? = currentHome {
+            RoamExperienceIssue(error: error, retry: load)
+        } else {
+            HStack(spacing: 8) {
+                stat("roam.w208.passport.stat.trips", presentation.tripsText, identifier: "trips")
+                stat("roam.w208.passport.stat.shops", presentation.shopsText, identifier: "shops")
+                stat("roam.w208.passport.stat.days", presentation.daysText, identifier: "days")
+                stat("roam.w208.passport.stat.km", presentation.kilometersText, identifier: "km")
+            }
+            .padding(.vertical, 6)
+            .animation(reduceMotion ? nil : .snappy, value: presentation.read)
+        }
+    }
+    private func stat(_ key: LocalizedStringKey, _ value: String, identifier: String) -> some View {
         VStack(spacing: 2) {
-            value.font(.title3.bold()).monospacedDigit()
+            Text(verbatim: value).font(.title3.bold()).monospacedDigit()
+                .contentTransition(.numericText())
             Text(key).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -484,12 +497,13 @@ struct RoamToolUnavailableView: View {
         }
         .accessibilityIdentifier("roam.home.passport.tile.\(tile.rawValue)")
     }
-    /// A tile is listed only when it opens something; goals and capsule always open.
+    /// A tile is listed only when it opens something; goals and capsule need the owner-only tools reader
+    /// (capability absent => hidden, per the pages/roam/index page-ready note).
     private func tileAvailable(_ tile: RoamPassportHome.Tile) -> Bool {
         switch tile {
         case .history, .badge: return reader != nil
         case .stamp: return reader != nil || albumMetadataReader != nil
-        case .goals, .capsule: return true
+        case .goals, .capsule: return privateToolsReader != nil
         }
     }
     private func caption(_ tile: RoamPassportHome.Tile) -> Text {

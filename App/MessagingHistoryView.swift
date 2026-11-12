@@ -72,6 +72,9 @@ struct MessagingHistoryView: View {
     @State private var visibleMessageID: Int?
     @State private var showingPollComposer = false
     @State private var pageBlocked: Bool?
+    /// subpackageB/pages/im/chat/index page model for the last first-page read. Unknown stays unknown:
+    /// an empty first page that still reports `hasMore` is not shown as "no messages".
+    @State private var sessionPage: IMChatSessionPage?
     @State private var pageBlockedByMe: Bool?
     @State private var safety: IMSafetyPresentation?
     @Environment(\.dismiss) private var dismissHistory
@@ -274,7 +277,11 @@ struct MessagingHistoryView: View {
                     }
                 }
                 if history.messages.isEmpty {
-                    ChatHistoryEmpty(hint: emptyHintKey)
+                    if sessionPage?.phase == .unknown {
+                        ChatHistoryUnknown()
+                    } else {
+                        ChatHistoryEmpty(hint: emptyHintKey)
+                    }
                 }
                 let dividers = IMInboxTime.dividers(for: history.messages, now: Date())
                 let accountID = loadedIdentity?.accountID ?? 0
@@ -316,7 +323,7 @@ struct MessagingHistoryView: View {
         let request = generation, identity = reader.identity, source = ObjectIdentifier(reader)
         history = MessagingHistory(conversationID: conversationID)
         loadedIdentity = nil; loadedReaderID = nil; phase = .loading; earlierPhase = .idle
-        pageBlocked = nil; pageBlockedByMe = nil
+        pageBlocked = nil; pageBlockedByMe = nil; sessionPage = nil
         guard reader.isConfigured, identity != nil, conversationID > 0,
               conversation == nil || conversation?.id == conversationID else { phase = .idle; return }
         defer { if generation == request { settleLoading() } }
@@ -325,10 +332,12 @@ struct MessagingHistoryView: View {
             guard isCurrent(request, identity, source: source) else { return }
             try history.replace(with: page)
             pageBlocked = page.blocked; pageBlockedByMe = page.blockedByMe
+            sessionPage = IMChatSessionWire.fromReader(conversation: conversation, page: page)
             loadedIdentity = identity; loadedReaderID = source; visibleMessageID = history.messages.last?.id
             phase = .loaded(())
         } catch is CancellationError {} catch {
             guard isCurrent(request, identity, source: source) else { return }
+            sessionPage = IMChatSessionWire.failed(error, conversation: conversation)
             phase = .failed(MessagingLoadIssue(error), retry: nil)
         }
     }
@@ -558,6 +567,22 @@ private struct ChatHistoryEmpty: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("messaging.history.empty")
+    }
+}
+
+/// IMChatSessionPhase.unknown: the read answered, but the page cannot prove the chat is empty.
+/// The "load earlier" row above stays the way forward; nothing is shown as zero.
+private struct ChatHistoryUnknown: View {
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            CYEmptyState(systemImage: "questionmark.bubble", "im.chat.unknown.title")
+            Text("im.chat.unknown.hint")
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textTertiary)
+                .multilineTextAlignment(.center)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(IMChatSessionPage.unknownAccessibilityIdentifier)
     }
 }
 

@@ -24,8 +24,14 @@ struct PlayTaskSummaryView: View {
                     .accessibilityIdentifier("referenceTask.progress")
                     .transaction { if reduceMotion { $0.animation = nil } }
             } else {
-                Text("referenceTask.phaseOnly").font(.footnote).foregroundStyle(.secondary)
-                    .accessibilityIdentifier("referenceTask.phaseOnly")
+                // pages/play/index: UNKNOWN progress is the em dash from PlayIndexPageReadiness, never 0/0.
+                let readiness = PlayIndexPageReadiness(phase: phase, readsEnabled: true, unresolved: false, snapshot: snapshot)
+                LabeledContent("playx.progress") {
+                    Text(verbatim: readiness.progressText).monospacedDigit()
+                        .accessibilityLabel(Text("play.progress.unknown"))
+                        .accessibilityIdentifier("referenceTask.phaseOnly")
+                }
+                .font(.subheadline).foregroundStyle(.secondary)
             }
             if let selection = PlayBranchHistorySelection(snapshot: snapshot), phase == "ready" || phase == "unknown" {
                 CYPillButton(verbatim: branchHistoryLocalized("branchHistory.open", locale: locale), style: .tertiary, systemImage: "list.bullet.rectangle") {
