@@ -307,6 +307,8 @@ import SwiftUI
                 }
             default: EmptyView()
             }
+            // Source mt-report (hengyin 0d681af55): every team sheet ends with 举报队伍.
+            TeamReportEntryButton(teamID: team.id.rawValue)
         }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")

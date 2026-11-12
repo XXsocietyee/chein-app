@@ -29,7 +29,7 @@ struct TopicDetailView: View {
             else if phase.isLoading || loadedKey != key { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topic.loading")) }
             else {
                 switch phase {
-                case .failed(let issue, _): TopicIssueView(issue: issue) { loads.start { await load() } }
+                case .failed(let issue, _): TopicDetailIssueState(issue: issue) { loads.start { await load() } }
                 case .loaded(let detail): content(detail)
                 case .idle, .loading, .empty: EmptyView()
                 }
@@ -58,8 +58,12 @@ struct TopicDetailView: View {
                 let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
                 if covers.isEmpty {
                     // Mini-program `cover-brief` (no cover): type, title and one-line hint on an opaque card.
+                    // Source D3 (hengyin d31517215): no-cover header is the look gradient plus a small route mark.
                     CYCard(variant: .elevated, radius: CYRadius.lg, padding: CYSpacing.xl) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                                .font(.title2.weight(.semibold)).foregroundStyle(CYColor.accentText)
+                                .accessibilityHidden(true)
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                                 .font(CYTypography.label).foregroundStyle(CYColor.accentText)
                             Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
@@ -174,11 +178,17 @@ struct TopicDetailView: View {
             let lineup = TopicXcxFacts.lineup(value)
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
             Section("topic.availability") {
-                Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
+                // Source x-fix2 P-1 (hengyin c878fbb7d): a topic past its sale end only says 已截止, with no sign-up or unlock entry.
+                if saleClosed(value) {
+                    Label { Text("mpfresh.topic.closed", tableName: "MpFresh") } icon: { Image(systemName: "calendar.badge.exclamationmark") }
+                        .accessibilityIdentifier("topic.saleClosed")
+                } else {
+                    Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
+                }
                 if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
-                    if value.canOfferPurchase {
+                    if value.canOfferPurchase && !saleClosed(value) {
                         CYPillButton("contextSelfPlay.title", style: .secondary) { showingSelfPlay = true }
                             .accessibilityIdentifier("contextSelfPlay.open")
                     }
@@ -219,7 +229,7 @@ struct TopicDetailView: View {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
                     Text("topicXcx.paywall.detail").font(.footnote)
-                    if value.selfPlay == 1 && value.canOfferPurchase {
+                    if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
                         CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
                     }
                 }
@@ -244,6 +254,12 @@ struct TopicDetailView: View {
         }
     }
     private var detail: TopicDetail? { phase.value }
+    /// Source `topicSaleClosed`: the sale end (endDate) has passed. Mainland wall-clock source, as in the mini-program.
+    /// A purchased topic keeps its 去票夹 path; an unparsable end never closes the topic.
+    private func saleClosed(_ value: TopicDetail) -> Bool {
+        guard !value.isSignUp, let end = HomeFeedDate.parse(value.endDate, sourceTimeZone: TimeZone(identifier: "Asia/Shanghai")) else { return false }
+        return Date() >= end
+    }
     /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
     private func settleLoading() { if phase.isLoading { phase = .idle } }
     private func load() async {
@@ -319,5 +335,33 @@ struct TopicChapterView: View {
                 }
             }
         }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Source j5 H1 / 5ea8403f1: a server refusal (审核中 / 已下架 / 未通过, invisible to others) is final: say why and offer 返回,
+/// never a retry loop and never the raw backend text. Ordinary failures keep 重试.
+@MainActor private struct TopicDetailIssueState: View {
+    let issue: TopicScreenIssue
+    var retry: (() -> Void)?
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        switch issue {
+        case .unavailable:
+            CYEmptyState(systemImage: "eye.slash", "mpfresh.topic.refused.title", tableName: "MpFresh", messageIdentifier: "topic.error")
+                .safeAreaInset(edge: .bottom) {
+                    CYPillButton("mpfresh.topic.back", style: .secondary, tableName: "MpFresh") { dismiss() }
+                        .padding(CYSpacing.pageHorizontal)
+                        .accessibilityIdentifier("topic.error.back")
+                }
+        case .failed:
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Text("mpfresh.topic.failed.title", tableName: "MpFresh").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                TopicIssueView(issue: issue, retry: retry)
+            }
+            .padding(CYSpacing.pageHorizontal)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        case .notConfigured, .unauthorized:
+            TopicIssueView(issue: issue, retry: retry)
+        }
     }
 }

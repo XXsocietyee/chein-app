@@ -29,6 +29,7 @@ import SwiftUI
                               session.nearbyTeamCoordinator.session == renderedSession else { return }
                         destinationOwner = renderedOwner; destination = $0
                     }
+                    .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
                     .id(session.teamViewIdentity)
             } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
         }

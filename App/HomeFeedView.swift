@@ -111,11 +111,11 @@ import SwiftUI
                             Text("homeFeed.allCategories").tag(Int?.none)
                             ForEach(model.categories) { category in Text(verbatim: category.name).tag(Optional(category.id)) }
                         }.accessibilityIdentifier("homeFeed.category")
-                        if model.categoryFailed { retry("homeFeed.categoriesError", id: "categories") { model.schedule(.categories, reader: reader, permit: permit) } }
+                        if model.categoryFailed { retry(Text("homeFeed.categoriesError"), id: "categories") { model.schedule(.categories, reader: reader, permit: permit) } }
                         ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
                             row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger)
                         }
-                        if model.pageFailed { retry("homeFeed.loadError", id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
+                        if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
                         if model.loadingPage {
                             if model.pagination.items.isEmpty {
                                 if streamSkeleton {
@@ -165,7 +165,7 @@ import SwiftUI
     }
     @ViewBuilder private var bannerSection: some View {
         let permit = model.permit(reader)
-        if model.bannerFailed { retry("homeFeed.bannersError", id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
+        if model.bannerFailed { retry(Text("homeFeed.bannersError"), id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
         if !model.banners.isEmpty {
             // Mirrors the mini-program hero swiper: full-width rounded covers, paged, dots, no captions.
             VStack {
@@ -203,13 +203,14 @@ import SwiftUI
         return owned
     }
     /// Mini-program `sec-reco` / `sec-nearby` / `sec-upcoming`: a titled horizontal rail each, with its own
-    /// loading, failure and empty state. 即将上线 disappears once it has loaded with nothing in it.
+    /// loading and failure state. Source D5 (hengyin 8718d1e22): a rail that loaded with nothing in it disappears
+    /// with its title (编辑精选, 附近活动 and 即将上线 alike); there is no in-section empty line any more.
     @ViewBuilder private func feedSection(_ section: HomeFeedSection, order: Int) -> some View {
         let permit = model.permit(reader)
         let items = model.sections[section]
         let failed = model.failedSections.contains(section)
-        let hidesEmptyUpcoming = section == .upcoming && !failed && (items?.isEmpty ?? !model.loading)
-        if !hidesEmptyUpcoming {
+        let hidesEmpty = !failed && (items?.isEmpty ?? !model.loading)
+        if !hidesEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 switch section {
                 case .recommended: sectionHeader(Text("homeFeed.editorsPicks"))
@@ -217,13 +218,10 @@ import SwiftUI
                 case .upcoming: sectionHeader(Text("homeFeed.upcoming"))
                 }
                 if failed {
-                    retry("homeFeed.loadError", id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
+                    // Source names the failed rail: 编辑精选加载失败 / 附近活动加载失败 / 即将上线加载失败.
+                    retry(Text(LocalizedStringKey("mpfresh.home.sectionFailed." + section.rawValue), tableName: "MpFresh"), id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
                 } else if let items {
-                    if items.isEmpty {
-                        Text(section == .recommended ? LocalizedStringKey("homeFeed.editorsPicksEmpty") : LocalizedStringKey("homeFeed.activitiesEmpty"))
-                            .font(CYTypography.bodyCompact)
-                            .foregroundStyle(CYColor.textSecondary)
-                    } else if dynamicTypeSize.isAccessibilitySize {
+                    if dynamicTypeSize.isAccessibilitySize {
                         ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
                     } else if section != .nearby {
                         // Glass carousel for the editor picks and upcoming rails (nearby keeps the compact shelf).
@@ -257,7 +255,8 @@ import SwiftUI
         let slides: [CYCarouselSlide] = capped.map { item in
             CYCarouselSlide(id: item.accessibilityKey, seed: item.name, title: item.name,
                             date: QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone),
-                            place: item.place, imageURL: QuestifyCardArtwork.safeURL(item.imageURL))
+                            place: item.place, badge: section == .upcoming ? upcomingCountdown(item) : nil,
+                            imageURL: QuestifyCardArtwork.safeURL(item.imageURL))
         }
         return CYCarouselRail(phase: .loaded(slides),
                               railLabel: section == .recommended ? "carousel.editorsPicks" : "carousel.upcoming",
@@ -268,6 +267,16 @@ import SwiftUI
             ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
         }
         .accessibilityIdentifier("homeFeed.carousel.\(section.rawValue)")
+    }
+    /// Source 即将上线 countdown (hengyin 07608d68a, j1 F23): 还剩N天 / 还剩N小时 / 已开始. Unknown start shows nothing.
+    private func upcomingCountdown(_ item: HomeFeedItem) -> String? {
+        guard let start = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone) else { return nil }
+        let seconds = start.timeIntervalSinceNow
+        if seconds <= 0 { return String(localized: LocalizedStringResource("mpfresh.home.countdown.started", table: "MpFresh", locale: locale)) }
+        let days = Int(seconds / 86_400)
+        if days >= 1 { return String(localized: LocalizedStringResource("mpfresh.home.countdown.days \(days)", table: "MpFresh", locale: locale)) }
+        let hours = max(1, Int(seconds / 3_600))
+        return String(localized: LocalizedStringResource("mpfresh.home.countdown.hours \(hours)", table: "MpFresh", locale: locale))
     }
     /// Large, plain section title (mini-program `sec-title`): no small-caps grouped-list header.
     private func sectionHeader(_ title: Text) -> some View {
@@ -290,9 +299,9 @@ import SwiftUI
             .buttonStyle(QuestifyCardButtonStyle())
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
     }
-    private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () -> Void) -> some View {
+    private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Label { Text(message) } icon: { Image(systemName: "exclamationmark.triangle") }
+            Label { message } icon: { Image(systemName: "exclamationmark.triangle") }
                 .font(CYTypography.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
