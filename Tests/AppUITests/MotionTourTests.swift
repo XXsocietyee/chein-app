@@ -21,11 +21,16 @@ final class MotionTourTests: XCTestCase {
         for _ in 0..<6 where !element.isHittable { app.swipeUp(velocity: .slow) }
         element.tap()
     }
-    /// Back along the same path: the nav bar back button, else the interactive edge swipe.
+    /// Back along the same path: the nav bar back button, else the interactive edge swipe; retried until the detail's back
+    /// button is gone, so the next step always starts on the screen the tour came from.
     private func goBack() {
-        let back = app.navigationBars.buttons.element(boundBy: 0)
-        if back.exists, back.isHittable { back.tap() } else {
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5)).press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)))
+        for _ in 0..<3 {
+            let back = app.navigationBars.buttons.element(boundBy: 0)
+            if back.exists, back.isHittable { back.tap() } else {
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5)).press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)))
+            }
+            pause(1.2)
+            if !app.buttons["BackButton"].exists { return }
         }
     }
 
