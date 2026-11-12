@@ -205,7 +205,9 @@ struct RoamExperienceNotice: View {
     var body: some View {
         if offline {
             Label("roam.experience.offline", systemImage: "testtube.2")
-                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .cyNightGlass(in: Capsule())
                 .accessibilityIdentifier("roam.experience.notice")
         }
     }
@@ -236,6 +238,23 @@ struct RoamExperienceIssue: View {
             .accessibilityIdentifier("roam.experience.error")
     }
 }
+/// Ink-paper card for the player's own record (history, summary): ink1 over an indigo falloff with a 1 pt night edge.
+/// Content surface, so it is not glass (spec 2.2); the pressed state comes from the enclosing button style.
+struct RoamNightCard<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+        content.frame(maxWidth: .infinity, alignment: .leading)
+            .padding(CYSpacing.lg)
+            .background {
+                shape.fill(CYNight.ink1)
+                    .overlay(shape.fill(LinearGradient(colors: [CYNight.indigo.opacity(0.55), .clear], startPoint: .top, endPoint: .center)))
+            }
+            .overlay { shape.strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+            .clipShape(shape)
+    }
+}
 struct RoamExperienceCard<Content: View>: View {
     let content: Content
     init(@ViewBuilder content: () -> Content) { self.content = content() }
@@ -247,30 +266,49 @@ struct RoamExperienceCard<Content: View>: View {
 struct RoamRouteSketchView: View {
     let record: RoamHistoryRecord
     var visibleSegments: Int? = nil
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     var body: some View {
         let sketch = RoamRouteSketch(track: record.track, places: record.pois.map(\.point))
+        let glow = !reduceTransparency && CYLightBudget.shadersAllowed
+        let shape = RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
         ZStack {
-            RoundedRectangle(cornerRadius: 20).fill(Color.accentColor.opacity(0.09))
+            // Night map ground: indigo falloff, so the lantern route is the only light in the frame.
+            shape.fill(LinearGradient(colors: [CYNight.indigo, CYNight.ink1], startPoint: .top, endPoint: .bottom))
+            shape.strokeBorder(CYNight.glassEdgeBottom, lineWidth: 1)
             if sketch.track.isEmpty {
                 Label("roam.experience.noTrack", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                    .font(.caption).padding()
+                    .font(.caption).foregroundStyle(CYColor.textSecondary).padding()
             } else {
                 Canvas { context, size in
                     var path = Path()
                     let segmentCount = max(0, sketch.track.count - 1)
                     let pointCount = visibleSegments.map { min(segmentCount, max(0, $0)) + 1 } ?? sketch.track.count
+                    var last: CGPoint?
                     for (index, point) in sketch.track.prefix(pointCount).enumerated() {
                         let position = CGPoint(x: point.x * size.width, y: point.y * size.height)
                         if index == 0 { path.move(to: position) } else { path.addLine(to: position) }
+                        last = position
                     }
-                    context.stroke(path, with: .color(.accentColor), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                    let style = StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+                    if glow {
+                        context.drawLayer { layer in
+                            layer.addFilter(.blur(radius: 8))
+                            layer.stroke(path, with: .color(CYNight.lantern.opacity(0.55)), style: StrokeStyle(lineWidth: 8, lineCap: .round, lineJoin: .round))
+                        }
+                    }
+                    context.stroke(path, with: .color(CYNight.lantern), style: style)
                     for point in sketch.places {
-                        let rect = CGRect(x: point.x * size.width - 5, y: point.y * size.height - 5, width: 10, height: 10)
-                        context.fill(Path(ellipseIn: rect), with: .color(.primary))
+                        let rect = CGRect(x: point.x * size.width - 4, y: point.y * size.height - 4, width: 8, height: 8)
+                        context.fill(Path(ellipseIn: rect), with: .color(CYNight.lanternHot))
+                        context.stroke(Path(ellipseIn: rect.insetBy(dx: -2, dy: -2)), with: .color(CYNight.lantern.opacity(0.5)), lineWidth: 1)
                     }
-                }.padding(8).accessibilityHidden(true)
+                    if let last {
+                        context.fill(Path(ellipseIn: CGRect(x: last.x - 5, y: last.y - 5, width: 10, height: 10)), with: .color(.white))
+                    }
+                }.padding(14).accessibilityHidden(true)
             }
         }.frame(height: 180)
+            .clipShape(shape)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(sketch.track.isEmpty ? "roam.experience.noTrack" : "roam.experience.routeSketch"))
     }

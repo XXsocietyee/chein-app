@@ -42,10 +42,20 @@ import SwiftUI
         List {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
-                    Image(systemName: "figure.walk.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(.tint).accessibilityHidden(true)
-                    Text("roam.experience.subtitle").font(.title3).accessibilityAddTraits(.isHeader).bold()
+                    Image(systemName: "figure.walk.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
+                    Text("roam.experience.subtitle").font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                     RoamExperienceNotice(offline: reader.isOfflineExample)
-                }.padding(.vertical, 8)
+                }
+                .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
+                .background {
+                    // Night hero: indigo ground falling to ink, no lantern (light is for discovery, not chrome).
+                    LinearGradient(colors: [CYNight.indigo, CYNight.ink1], startPoint: .topLeading, endPoint: .bottomTrailing)
+                }
+                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
+                .padding(.vertical, 4)
             }
             RoamPassportOverviewView(phase: passport.phase(reader: reader)) { passport.load(reader: reader) }
             Section("roam.experience.yourRoam") {
