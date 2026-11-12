@@ -119,6 +119,8 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     public let safetyLabels: [String]
     public let commentPolicy: String
     public let viewerCanComment: Bool
+    /// Activity feed block. Empty when the post has no activity, so the card stays text and images.
+    public let strava: SquareStravaCard
     public init(from decoder: Decoder) throws {
         let root = try SquareValue(from: decoder)
         guard root.object != nil else { throw APIError.malformedResponse }
@@ -175,6 +177,7 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         safetyLabels = (labels.array ?? labels.parsedJSON.array ?? []).compactMap(\.nonempty)
         commentPolicy = post["commentPolicy"].text ?? "EVERYONE"
         viewerCanComment = root["viewerCanComment"].isNull || root["viewerCanComment"].truthy
+        strava = SquareStravaCard.decode(root: root, post: post, dataType: dataType, dataID: dataID)
     }
 }
 public struct SquareComment: Decodable, Equatable, Identifiable {
@@ -257,6 +260,17 @@ indirect enum SquareValue: Decodable {
         if case .integer(let v) = self { return v }
         if case .double(let v) = self, v.isFinite, v >= Double(Int.min), v < Double(Int.max) { return Int(v) }
         return nil
+    }
+    /// Finite magnitude. Missing and non-numeric values stay nil so a card never invents 0.
+    var finiteDouble: Double? {
+        switch self {
+        case .double(let v): return v.isFinite ? v : nil
+        case .integer(let v): return Double(v)
+        case .string(let v):
+            let parsed = Double(v.trimmingCharacters(in: .whitespacesAndNewlines))
+            return parsed?.isFinite == true ? parsed : nil
+        default: return nil
+        }
     }
     var integer: Int? { number ?? string.flatMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) } }
     var text: String? {

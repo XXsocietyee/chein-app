@@ -13,6 +13,8 @@ public struct ClubCommunityPost: Equatable, Identifiable {
     public let refType: Int?, refID: Int?, sportTopicID: Int?
     public let sportName: String, sportCover: String
     public let isTopicTemplate: Bool
+    /// Activity feed block. Empty when this club post has no activity, so the tile stays text and images.
+    public let activityCard: SquareStravaCard
     public var hasContent: Bool { !content.isEmpty || !images.isEmpty || (!sportName.isEmpty && (refType == 1 || !sportCover.isEmpty)) }
     public var navigableTopicID: Int? { guard let id = sportTopicID, id > 0 else { return nil }; return id }
     public init(json: [String: Any]) throws {
@@ -27,6 +29,9 @@ public struct ClubCommunityPost: Equatable, Identifiable {
         likeCount = (json["likeCount"] as? Int) ?? 0; commentCount = (json["commentCount"] as? Int) ?? 0
         refType = json["refType"] as? Int; refID = json["refId"] as? Int; sportTopicID = json["sportTopicId"] as? Int
         sportName = CCWire.text(json["sportName"]); sportCover = CCWire.text(json["sportCover"]); isTopicTemplate = CCWire.bool(json["isTopicTemplate"])
+        let linkedType = (json["dataType"] as? Int) ?? (refType == 1 ? 1 : 0)
+        let linkedID = (json["dataId"] as? Int) ?? refID
+        activityCard = SquareStravaCard.decode(json: json, dataType: linkedType, dataID: linkedID)
     }
 }
 public struct ClubCommunityComment: Equatable, Identifiable {
