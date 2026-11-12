@@ -17,7 +17,7 @@ enum CYMorphState: Equatable { case idle, working, done }
 #endif
 
 /// Three dots orbiting in a short arc. Reduce Motion: static dots, no travel.
-struct CYOrbitDots: View {
+struct CYMorphOrbitDots: View {
     var color: Color
     var dot: CGFloat = 7
     @QuestifyReduceMotion private var rm
@@ -75,7 +75,7 @@ struct CYMorphButton<DoneAccessory: View>: View {
             ZStack {
                 label.opacity(0).accessibilityHidden(true) // sizer: the idle label fixes the width in every state
                 label.opacity(state == .idle ? 1 : 0).scaleEffect(state == .idle || rm ? 1 : 0.8)
-                CYOrbitDots(color: palette.actionPrimaryFg).opacity(state == .working ? 1 : 0)
+                CYMorphOrbitDots(color: palette.actionPrimaryFg).opacity(state == .working ? 1 : 0)
                 HStack(spacing: CYSpacing.sm) {
                     Image(systemName: "checkmark").font(.system(.body).weight(.heavy))
                         .symbolEffect(.bounce, options: .nonRepeating, value: state == .done && !rm)
