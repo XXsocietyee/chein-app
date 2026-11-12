@@ -269,7 +269,13 @@ import UIKit
                 }
                 // Mini-program `正在更新…` line while a loaded rail refreshes, and the editor-picks footnote.
                 if model.loading, let items, !items.isEmpty, !failed {
-                    Text(LocalizedStringKey("homeFeed.updating.\(section.rawValue)"))
+                    Group {
+                        switch section {
+                        case .recommended: Text("homeFeed.updating.recommended")
+                        case .nearby: Text("homeFeed.updating.nearby")
+                        case .upcoming: Text("homeFeed.updating.upcoming")
+                        }
+                    }
                         .font(CYTypography.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
