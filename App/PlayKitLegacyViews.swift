@@ -7,45 +7,111 @@ extension PlayKitScreen {
         case .diyName: namingBody
         case .slowTask: PlayKitSlowTaskBody(segment: raw, enabled: enabled, requestReview: prepare)
         case .musicCorner:
+            if raw["arrived"].bool == true {
+                CYStatusChip("playkitLegacy.music.arrived", tone: .success, systemImage: "mappin").singleLine()
+                    .accessibilityIdentifier("playkit.musicCorner.arrived")
+            }
             if let track = raw["trackName"].text { Text(verbatim: track).font(.title2.bold()) }
-            if let seconds = raw["durationSeconds"].integer, seconds > 0 { LabeledContent("playkitLegacy.music.duration") { Text(verbatim: "\(seconds) s") } }
+            if let seconds = raw["durationSeconds"].integer, seconds > 0 {
+                LabeledContent("playkitLegacy.music.duration") { Text(verbatim: String(format: "%d:%02d", seconds / 60, seconds % 60)).monospacedDigit() }
+            }
             PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
         case .silentOrder:
+            // Mini-program order: rule, witness code with its caption, then the clock.
+            if let rule = raw["rule"].text, !rule.isEmpty { Text(verbatim: rule).font(.title3) }
+            VStack(spacing: CYSpacing.sm) {
+                if let qr = raw["qrUrl"].text, !qr.isEmpty { artwork(qr).frame(maxWidth: 200) }
+                else { CYStatusChip("playkitLegacy.silent.noWitnessCode", tone: .neutral, systemImage: "qrcode") }
+                Text("playkitLegacy.silent.qrCaption").font(CYTypography.meta).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("playkit.silentOrder.witness")
             PlayKitSilentOrderBody(segment: raw, active: model.isCurrent, onDirty: { dirty = true })
-            if let qr = raw["qrUrl"].text, !qr.isEmpty { artwork(qr) }
-            else { CYStatusChip("playkitLegacy.silent.noWitnessCode", tone: .neutral, systemImage: "qrcode") }
         case .timeWindow:
             NativeTimeWindowHostView(advanced: model, segment: raw)
         default: EmptyView()
         }
     }
     @ViewBuilder private var blindTasteBody: some View {
-        if let steps = raw["steps"].text, !steps.isEmpty { Text(verbatim: steps) }
-        if let steps = raw["steps"].array {
-            ForEach(Array(steps.enumerated()), id: \.offset) { index, value in
-                if let line = value.text { HStack(alignment: .top) { Text(verbatim: String(index + 1)); Text(verbatim: line) } }
+        // Three numbered steps (collect, taste with eyes closed, answer); the full sentence stays for VoiceOver.
+        HStack(spacing: CYSpacing.xl) {
+            ForEach(Array(["playkitLegacy.blind.step1", "playkitLegacy.blind.step2", "playkitLegacy.blind.step3"].enumerated()), id: \.offset) { index, key in
+                VStack(spacing: CYSpacing.xs) {
+                    Text(verbatim: String(index + 1)).font(CYTypography.bodyMedium.italic()).monospacedDigit()
+                        .frame(width: 36, height: 36).background(Circle().fill(Color.primary.opacity(0.9)))
+                        .foregroundStyle(CYColor.bgSurface)
+                    Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(.secondary)
+                }
             }
         }
-        Text("playkitLegacy.blind.instructions").font(.footnote)
-        ForEach(projection.options) { option in
-            Button { selected = [option.id]; dirty = true } label: {
-                HStack { Image(systemName: selected.contains(option.id) ? "checkmark.circle.fill" : "circle"); Text(verbatim: option.label) }
-            }.buttonStyle(.bordered).disabled(!enabled)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: stepsSentence))
+        Text("playkitLegacy.blind.question").font(CYTypography.body).foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            Divider()
+            ForEach(projection.options) { option in
+                let on = selected.contains(option.id)
+                Button { selected = [option.id]; dirty = true } label: {
+                    HStack(spacing: CYSpacing.lg) {
+                        Text(verbatim: option.id).font(CYTypography.bodyMedium.italic()).foregroundStyle(on ? .primary : .secondary)
+                        Text(verbatim: option.label).font(on ? CYTypography.cardTitle : CYTypography.body).foregroundStyle(on ? .primary : .secondary)
+                        Spacer(minLength: 0)
+                        if on { Image(systemName: "square.fill").font(.caption2).accessibilityHidden(true) }
+                    }
+                    .frame(minHeight: 56).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain).disabled(!enabled)
+                .accessibilityAddTraits(on ? .isSelected : [])
+                .accessibilityIdentifier("playkit.blindTaste.option." + option.id)
+                Divider()
+            }
         }
+        if let xp = raw["xpLabel"].text, !xp.isEmpty { Text(verbatim: xp).font(CYTypography.meta) }
         if raw["solved"].bool == true { Text("playkit.result.passed") }
         else if (raw["attempts"].integer ?? 0) > 0 { Text("playkitLegacy.blind.tryAgain") }
         attempts
         submitButton("SUBMIT_BLIND_TASTE", payload: ["key": .string(selected.first ?? "")], valid: !selected.isEmpty)
     }
+    private var stepsSentence: String {
+        if let steps = raw["steps"].text, !steps.isEmpty { return steps }
+        return (raw["steps"].array ?? []).compactMap(\.text).joined(separator: ", ")
+    }
     @ViewBuilder private var namingBody: some View {
         let maxLength = max(1, raw["maxLength"].integer ?? 16)
-        ForEach(Array((raw["suggestions"].array ?? []).enumerated()), id: \.offset) { _, value in
-            if let suggestion = value.text { Button { text = PlayKitInputContract.limitText(suggestion, toUTF16: maxLength); dirty = true } label: { Text(verbatim: suggestion) }.disabled(!enabled) }
+        if let photo = raw["photoUrl"].text, !photo.isEmpty {
+            artwork(photo).frame(maxWidth: 120, alignment: .leading)
+                .accessibilityLabel(Text("playkitLegacy.name.photo"))
         }
-        TextField("playkitLegacy.name.placeholder", text: textBinding(limit: maxLength), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
-        LabeledContent("playkit.characters") { Text(verbatim: "\(text.utf16.count) / \(maxLength)") }
+        TextField("playkitLegacy.name.placeholder", text: textBinding(limit: maxLength), axis: .vertical)
+            .font(CYTypography.cardTitle)
+            .padding(CYSpacing.md)
+            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgSurfaceSubtle))
+            .disabled(!enabled)
+            .accessibilityIdentifier("playkit.diyName.field")
+        LabeledContent("playkit.characters") { Text(verbatim: "\(text.utf16.count) / \(maxLength)").monospacedDigit() }
+        let suggestions = (raw["suggestions"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
+        if !suggestions.isEmpty {
+            Text("playkitLegacy.name.suggestions").font(CYTypography.meta).foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: CYSpacing.sm) {
+                    ForEach(Array(suggestions.enumerated()), id: \.offset) { _, suggestion in
+                        Button { text = PlayKitInputContract.limitText(suggestion, toUTF16: maxLength); dirty = true } label: {
+                            Text(verbatim: "「" + suggestion + "」").font(CYTypography.label)
+                        }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        .disabled(!enabled)
+                    }
+                }
+            }
+        }
         Text("playkitLegacy.name.audience").font(.footnote)
-        submitButton("SUBMIT_DIY_NAME", payload: ["name": .string(text.trimmingCharacters(in: .whitespacesAndNewlines))], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        Button { prepare("SUBMIT_DIY_NAME", ["name": .string(trimmed)]) } label: {
+            if let label = raw["ctaLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.name.submit") }
+        }
+        .buttonStyle(.questifyPrimary).disabled(!enabled || trimmed.isEmpty)
+        .accessibilityIdentifier("playkit.submit." + kind.rawValue)
     }
 }
 
@@ -56,12 +122,19 @@ extension PlayKitScreen {
         VStack(alignment: .leading, spacing: 16) {
             if segment["claimed"].bool == true {
                 if revealed {
-                    if let text = segment["unlockText"].text, !text.isEmpty { Text(verbatim: text).font(.title3) }
+                    if let text = segment["unlockText"].text, !text.isEmpty {
+                        Text(verbatim: text).font(CYTypography.body)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(CYSpacing.lg)
+                            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop))
+                            .accessibilityIdentifier("playkit.slowTask.unlockText")
+                    }
                     else { Text("playkitLegacy.slow.emptyReadback") }
                 } else { CYPillButton("playkitLegacy.slow.reveal") { revealed = true } }
             } else if segment["started"].bool == true {
                 if let days = segment["daysLeft"].integer, days > 0 {
-                    LabeledContent("playkitLegacy.slow.daysLeft") { Text(verbatim: String(days)) }
+                    Text("playkitLegacy.slow.daysLeftCount \(days)").font(CYTypography.dataXL).monospacedDigit()
+                        .accessibilityIdentifier("playkit.slowTask.daysLeft")
                     if let hint = segment["waitHint"].text, !hint.isEmpty { Text(verbatim: hint) }
                 } else if segment["daysLeft"].integer == 0 {
                     Text("playkitLegacy.slow.ready")
@@ -89,22 +162,27 @@ extension PlayKitScreen {
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if let rule = segment["rule"].text, !rule.isEmpty { Text(verbatim: rule).font(.title3) }
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 let seconds = elapsed + (startedAt.map { Int(max(0, ProcessInfo.processInfo.systemUptime - $0)) } ?? 0)
-                LabeledContent("playkitLegacy.silent.elapsed") { Text(verbatim: String(format: "%02d:%02d", seconds / 60, seconds % 60)).monospacedDigit() }
+                Label {
+                    Text("playkitLegacy.silent.performed \(String(format: "%02d:%02d", seconds / 60, seconds % 60))").monospacedDigit()
+                } icon: { Image(systemName: "clock") }
+                .font(CYTypography.bodyMedium.italic())
+                .foregroundStyle(CYNight.lantern)
             }
             if gaveUp { Text("playkitLegacy.silent.stopped") }
             else if startedAt == nil {
                 Button("playkitLegacy.silent.start") { startedAt = ProcessInfo.processInfo.systemUptime; onDirty() }.disabled(!active)
             } else {
-                Button("playkitLegacy.silent.giveUp", role: .destructive) {
+                Button(role: .destructive) {
                     var transition = PlayKitSilentOrderGiveUp(running: startedAt != nil, gaveUp: gaveUp)
                     transition.giveUp()
                     stop()
                     gaveUp = transition.gaveUp
                     onDirty()
-                }.disabled(!active)
+                } label: { Label("playkitLegacy.silent.giveUp", systemImage: "arrow.right").labelStyle(PlayKitTrailingIconLabelStyle()) }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .disabled(!active)
             }
         }
         .onAppear { elapsed = max(0, segment["elapsedSeconds"].integer ?? 0) }
@@ -113,4 +191,11 @@ extension PlayKitScreen {
         .onDisappear { stop() }
     }
     private func stop() { if let startedAt { elapsed += Int(max(0, ProcessInfo.processInfo.systemUptime - startedAt)); self.startedAt = nil } }
+}
+
+/// Text first, icon after: the mini-program's trailing-arrow link.
+struct PlayKitTrailingIconLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: CYSpacing.xs) { configuration.title; configuration.icon }
+    }
 }
