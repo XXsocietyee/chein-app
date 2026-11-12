@@ -22,6 +22,10 @@ enum DesignFixtureRegistry {
         case "d2-inbox": return AnyView(D2Fixture(screen: .inbox))
         case "d2-me": return AnyView(D2Fixture(screen: .me))
         case "d2-roam": return AnyView(D2Fixture(screen: .roam))
+        // Wave 3 B2: Today card tap with a self-playing synthetic finger (loops every 2.6 s).
+        case "wave-today-roam": return AnyView(WaveTodayFixture(kind: .roam))
+        case "wave-today-ticket": return AnyView(WaveTodayFixture(kind: .ticket))
+        case "wave-today-club": return AnyView(WaveTodayFixture(kind: .club))
         case "e5b-unlock": return AnyView(E5bMomentFixture(kind: .unlock))
         case "e5b-stamp": return AnyView(E5bMomentFixture(kind: .stamp))
         case "e5b-checkin": return AnyView(E5bMomentFixture(kind: .checkIn))

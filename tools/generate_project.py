@@ -6,7 +6,7 @@ def ident(name): return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
 objects = {}
 def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
-sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
+sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *ROOT.glob('App/DesignSystem/*.metal'), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
 ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
 # Compile this canonical demo source in the app only for Debug. Release AppUnit
 # retains the old tests by compiling that same source in the test bundle instead.
@@ -46,7 +46,7 @@ resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*
 refs, source_builds, resource_builds = [], [], []
 for path in sources + resources + headers:
     relative = str(path.relative_to(ROOT))
-    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h', '.xcprivacy': 'text.xml', '.png': 'image.png', '.xcassets': 'folder.assetcatalog'}.get(path.suffix, 'text.json.xcstrings' if path.suffix == '.xcstrings' else 'text'), path=relative, sourceTree='<group>')
+    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.metal': 'sourcecode.metal', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h', '.xcprivacy': 'text.xml', '.png': 'image.png', '.xcassets': 'folder.assetcatalog'}.get(path.suffix, 'text.json.xcstrings' if path.suffix == '.xcstrings' else 'text'), path=relative, sourceTree='<group>')
     refs.append(ref)
     if path in headers: continue
     options = {'settings': {'COMPILER_FLAGS': '-fobjc-arc'}} if path.suffix == '.m' else {}
