@@ -153,7 +153,9 @@ Families with the most NEW-BACKEND-ONLY paths (prefix of three segments):
 | Bank withdrawal | Withdrawal paths in `BankWithdrawalAdapter` are PROD-SERVED. | `makeBankWithdrawalContext` returns nil. No guest navigation. |
 | Virtual goods | Workshop and `/api/mod-commerce` paths are NEW-BACKEND-ONLY. | StoreKit launcher is not built. Shelf rows are not built. |
 
-No gate was turned on. `RegionalLaunchConfiguration.composition` is still `reviewed: nil`.
+No money gate was turned on. Password login, payout, withdrawal, virtual goods, and merchant/coop operator writes stay off.
+
+Owner approval 2026-11-12 (`Yes, all player writes`): the shipped China composition (`reviewedDeployment`, `playerWritesEnabled`) admits the non-money player writes. A matching China build is required. The process-default `composition` stays unconfigured when the build does not admit China. Unknown results stay on the caller's saved request id. The admitted paths are `PlayerWriteAdmission.paths` plus `api/city/nodes/{id}/favorite` and `api/city/nodes/{id}/complete`: IM send/read/mute/delete/report/block (and unblock, and the send receipt), square post/comment/like/bookmark/report, community report/appeal, club join/leave and club post/comment/like/report/repost, profile update and avatar upload, participant address writes, free registration create/cancel, team create/join/leave, roam check-in and stamp create/exchange, play answer/check-in, exploration-goal create/cancel, and consent changes. `api/registration/pay`, `api/registration/cancel-refund`, withdrawal, payout, and virtual-goods paths are not in the set.
 
 ## Every route
 

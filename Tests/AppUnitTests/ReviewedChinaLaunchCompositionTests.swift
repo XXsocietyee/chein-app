@@ -21,6 +21,7 @@ import XCTest
         XCTAssertTrue(deployment.regional.canUseDomesticChinaPhone)
         XCTAssertEqual(deployment.regional.availableCapabilities, [.domesticChinaPhone])
         XCTAssertFalse(deployment.productionGatesEnabled)
+        XCTAssertFalse(deployment.playerWritesEnabled)
         XCTAssertTrue(deployment.reads.isEmpty)
     }
 
@@ -102,6 +103,7 @@ import XCTest
         XCTAssertFalse(deployment.regional.isFeatureShown(.merchantPayout))
         XCTAssertFalse(deployment.regional.isFeatureShown(.physicalEventPayment))
         XCTAssertFalse(deployment.productionGatesEnabled)
+        XCTAssertFalse(deployment.playerWritesEnabled)
         let unverified = try RegionalConfiguration(
             market: .china,
             baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
@@ -128,9 +130,15 @@ import XCTest
         }
         let admitted = RegionalLaunchConfiguration.shippedComposition(build: .init(
             market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm))
-        guard case .reviewed = admitted.deployment else {
+        guard case .reviewed(let shipped) = admitted.deployment else {
             return XCTFail("a China host with a bundle and realm still selects the reviewed deployment")
         }
+        XCTAssertTrue(shipped.playerWritesEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
         XCTAssertFalse(RegionalLaunchConfiguration.composition.reviewed?.productionGatesEnabled == true)
+        XCTAssertFalse(RegionalLaunchConfiguration.composition.reviewed?.playerWritesEnabled == true)
     }
 }

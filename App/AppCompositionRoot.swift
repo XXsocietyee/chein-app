@@ -16,6 +16,9 @@ struct ReviewedAppDeployment {
     /// Reviewed production gate bundle (account deletion, legal catalog, Apple+SMS sign-in,
     /// wallet history/overview reads, and orders/addresses/favorites/coupons leases).
     let productionGatesEnabled: Bool
+    /// Owner approval 2026-11-12: non-money player writes on the shipped China composition.
+    /// Payment, payout, withdrawal, virtual goods, merchant/coop writes, and password login stay off.
+    let playerWritesEnabled: Bool
     /// Safe opt-in for test backends whose `/api/userInfo` projection omits `role` after `/api/auth/login/phone`.
     let allowLoginRoleFallbackOnRolelessUserInfo: Bool
     var appleSignInApproved: Bool {
@@ -42,6 +45,7 @@ struct ReviewedAppDeployment {
          nativeChannelAppeals: NativeChannelAppealPolicyStore? = nil,
          accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource? = nil,
          productionGatesEnabled: Bool = false,
+         playerWritesEnabled: Bool = false,
          allowLoginRoleFallbackOnRolelessUserInfo: Bool = false) throws {
         regional = try RegionalConfiguration(market: market, baseURL: baseURL,
             approvedBaseURLs: approvedBaseURLs, verifiedCapabilities: verifiedCapabilities)
@@ -51,6 +55,7 @@ struct ReviewedAppDeployment {
         self.nativeChannelAppeals = nativeChannelAppeals
         self.accountDeregistrationOriginalSource = accountDeregistrationOriginalSource
         self.productionGatesEnabled = productionGatesEnabled
+        self.playerWritesEnabled = playerWritesEnabled
         self.allowLoginRoleFallbackOnRolelessUserInfo = allowLoginRoleFallbackOnRolelessUserInfo
     }
 }
@@ -590,6 +595,11 @@ extension KeychainTokenStore: AppTokenStorage {}
             }
             self.roamLiveApproval = { [gates] context in
                 gates.roamLive(context)
+            }
+        }
+        if case .reviewed(let reviewed) = deployment, reviewed.playerWritesEnabled, reviewed.regional.market == .china {
+            clubOrdinaryAdmissionApproval = { context in
+                try? ClubOrdinaryAdmissionApproval(context: context, allowsWrites: true)
             }
         }
     }
@@ -3517,6 +3527,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
+        } else if deployment.playerWritesEnabled, deployment.regional.market == .china,
+                  PlayerWriteAdmission.accepts(request, baseURL: api.baseURL) {
+            guard captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
                   captured.isPublicTemplateViewer,
@@ -3553,6 +3566,46 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard current() == captured, !Task.isCancelled, readApprovalStillValid?() != false else { throw CancellationError() }
             throw error
         }
+    }
+}
+
+/// Non-money player writes approved 2026-11-12. Exact paths only. Money, merchant, coop,
+/// and password routes are not in the set, and `ReleaseMoneyWriteSwitch` still refuses them.
+private enum PlayerWriteAdmission {
+    static let paths: Set<String> = [
+        "api/im/send", "api/im/send-receipt", "api/im/read", "api/im/mute", "api/im/delete",
+        "api/im/report", "api/im/block", "api/im/unblock",
+        "api/creativesquare/action", "api/creativesquare/bookmark", "api/creativesquare/like", "api/creativesquare/report",
+        "api/comment/add", "api/v1/community/reports", "api/v1/community/appeals",
+        "api/club/join", "api/club/quit", "api/club/post/create", "api/club/post/update", "api/club/post/like",
+        "api/club/post/report", "api/club/post/comment/create", "api/club/post/comment/report", "api/club/post/repost",
+        "api/user/update", "api/common/uploadOSS", "api/user/address/action", "api/user/address/delete",
+        "api/registration/create", "api/registration/cancel",
+        "api/team/create", "api/team/join", "api/team/quit",
+        "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange",
+        "api/play/answer", "api/play/checkin",
+        "api/exploration-goals/create", "api/exploration-goals/cancel",
+        "api/compliance/consents"
+    ]
+
+    static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+        guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil,
+              let url = request.url else { return false }
+        let relative = relativePath(url, baseURL: baseURL)
+        guard !relative.isEmpty, !ReleaseMoneyWriteSwitch.blocks("/" + relative) else { return false }
+        if paths.contains(relative) { return true }
+        let parts = relative.split(separator: "/").map(String.init)
+        guard parts.count == 5, parts[0] == "api", parts[1] == "city", parts[2] == "nodes",
+              let id = Int(parts[3]), id > 0, String(id) == parts[3],
+              parts[4] == "favorite" || parts[4] == "complete" else { return false }
+        return true
+    }
+
+    private static func relativePath(_ url: URL, baseURL: URL) -> String {
+        let base = baseURL.path.hasSuffix("/") ? String(baseURL.path.dropLast()) : baseURL.path
+        let path = url.path
+        guard path == base || path.hasPrefix(base + "/") else { return "" }
+        return String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 }
 
