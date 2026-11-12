@@ -57,6 +57,9 @@ private struct MessagingConversationListView: View {
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
+                    .padding(.horizontal, CYSpacing.sm)
+                    .padding(.vertical, CYSpacing.xs)
+                    .background(Capsule().fill(CYNight.glassFill).overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1)))
                     .accessibilityIdentifier("messaging.list.scope")
                 }
                 .listRowInsets(EdgeInsets())
@@ -99,8 +102,9 @@ private struct MessagingConversationListView: View {
                     }
                 }
             }
-            .cyGroupedSurface()
             .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .cyDomainPageBackground()
             .toolbar {
                 // Leading on the tab root (no Back button here) so the trailing side keeps two actions.
                 ToolbarItem(placement: .topBarLeading) {
@@ -166,6 +170,7 @@ private struct MessagingConversationListView: View {
                 directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
                 onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
         } label: { IMInboxRow(conversation: conversation) }
+        .cyPressTracking()
         .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             rowActions(for: conversation)
