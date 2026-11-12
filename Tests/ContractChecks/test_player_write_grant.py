@@ -1,4 +1,4 @@
-"""Shipped China player writes stay off the money, merchant, and password routes."""
+"""Shipped China player writes live on the reviewed leases, not a parallel allow-list."""
 import pathlib
 import unittest
 
@@ -6,44 +6,49 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 class PlayerWriteGrantContracts(unittest.TestCase):
-    def test_admission_is_the_approved_player_set(self):
+    def test_writers_are_inside_the_reviewed_gate(self):
         source = (ROOT / "App/AppCompositionRoot.swift").read_text()
-        start = source.index("private enum PlayerWriteAdmission")
-        block = source[start:source.index("private enum ChapterWriteExit")]
+        self.assertNotIn("PlayerWriteAdmission", source)
+        self.assertNotIn("PlayerWriteCatalog", source)
+        self.assertNotIn("playerWriteCatalog", source)
+        paths = source.split("// player-write-paths-begin", 1)[1].split("// player-write-paths-end", 1)[0]
         for path in [
-            "api/im/send", "api/im/read", "api/im/mute", "api/im/delete", "api/im/report", "api/im/block",
-            "api/im/start", "api/creativesquare/action", "api/creativesquare/like", "api/creativesquare/bookmark",
-            "api/comment/add", "api/comment/delete", "api/comment/like", "api/club/join", "api/club/quit",
-            "api/club/post/delete", "api/user/update", "api/user/follow/action",
-            "api/registration/create", "api/registration/cancel", "api/team/create", "api/team/join", "api/team/quit",
-            "api/roam/checkin", "api/roam/finish", "api/roam/stamp/exchange", "api/play/answer", "api/play/arrive",
-            "api/play/advanced/start", "api/topic/create", "api/capsules/create", "api/compliance/consents",
-            "api/exploration-goals/create", "api/verify/dyncode/issue",
+            "api/im/send", "api/im/send-receipt", "api/club/post/create", "api/club/post/delete",
+            "api/club/post/like", "api/club/post/report", "api/club/post/comment/create",
+            "api/club/post/comment/delete", "api/club/post/repost", "api/v1/community/posts",
+            "api/v1/community/guidelines/ack", "api/v1/community/media/register", "api/v1/community/drafts",
+            "api/v1/community/reports", "api/v1/community/appeals", "api/user/update", "api/common/uploadOSS",
+            "api/registration/create", "api/team/command", "api/team/command/query", "api/team/command/cancel",
+            "api/play/arrive", "api/play/answer", "api/play/checkin", "api/play/photo", "api/play/sensor-result",
+            "api/play/puzzle/reveal", "api/play/help", "api/play/advanced/start", "api/play/advanced/action",
+            "api/topic/chapter/finish", "api/play/run-session/save", "api/play/journey/opening/complete",
+            "api/play/orient/session", "api/play/scan-entry", "api/roam/checkin", "api/roam/stamp/exchange",
+            "api/city/nodes/{}/favorite", "api/topic/like",
         ]:
-            self.assertIn('"' + path + '"', block)
-        for pattern in [
-            "/api/city/nodes/{}/favorite", "/api/official/events/{}/arrivals",
-            "/api/play/preference/{}", "/api/play/orient/session/task/{}/result",
-        ]:
-            self.assertIn('"' + pattern + '"', block)
+            self.assertIn('"' + path + '"', paths)
         for banned in [
             "api/registration/pay", "api/registration/cancel-refund", "api/withdrawal/create",
             "api/login", "api/merchant/", "api/club/settlement/withdraw", "api/mod-commerce",
-            "api/team/command", "api/club/apply", "api/play/help", "api/audit/appeal",
+            "api/roam/presence", "api/club/roles/assign", "api/club/roles/revoke",
         ]:
-            self.assertNotIn(banned, block)
-        self.assertIn("ReleaseMoneyWriteSwitch.blocks", block)
-        self.assertIn('object["payChannel"] == nil', block)
-        self.assertIn("freeRegistrationBody", block)
-        catalog = source[source.index("struct PlayerWriteCatalog"):source.index("private enum PlayerWriteAdmission")]
-        for name in ["im", "square", "club-community", "club-join", "profile", "registration", "team", "roam", "play", "consent"]:
-            self.assertIn('name: "' + name + '"', catalog)
+            self.assertNotIn(banned, paths)
+        route = source.split("func acceptsPlayerWrite", 1)[1].split("@MainActor private final class ReviewedProductionGateLeases", 1)[0]
+        self.assertIn("ReleaseMoneyWriteSwitch.blocks", route)
+        self.assertIn("freeRegistrationBody", route)
+        self.assertIn('object["payChannel"] == nil', route)
+        self.assertIn("stableCommunityRequestID", route)
+        self.assertIn("api/roam/presence", route)
+        self.assertIn("api/club/roles/", route)
+        self.assertIn("playerWriters", source)
         self.assertIn("clubCommunityWriteService", source)
         self.assertNotIn("reviewedInjection", (ROOT / "App/AppSession.swift").read_text())
         coordinator = (ROOT / "Core/RegistrationCoordinator.swift").read_text()
         self.assertIn("quote.payAmount == .zero", coordinator)
         self.assertIn("usesAppPaymentChannel: false", coordinator)
         self.assertIn("case paymentRequired", coordinator)
+        team = (ROOT / "Core/TeamHTTPService.swift").read_text()
+        self.assertIn("savedRequestIDs[key] = nil", team)
+        self.assertIn("return .unknown", team)
         launch = (ROOT / "App/RegionalLaunchConfiguration.swift").read_text()
         reviewed = launch.split("static func reviewedDeployment", 1)[1].split("static func reviewedComposition", 1)[0]
         market = launch.split("static func reviewedMarketDeployment", 1)[1].split("static func reviewedMarketComposition", 1)[0]

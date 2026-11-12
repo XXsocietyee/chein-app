@@ -134,16 +134,142 @@ import XCTest
             return XCTFail("a China host with a bundle and realm still selects the reviewed deployment")
         }
         XCTAssertTrue(shipped.playerWritesEnabled)
-        XCTAssertNotNil(admitted.playerWriteCatalog)
-        for name in ["im", "square", "club-community", "club-join", "profile", "registration", "team", "roam", "play", "consent"] {
-            XCTAssertNotNil(admitted.playerWriteCatalog?.feature(name))
-        }
-        XCTAssertNil(RegionalLaunchConfiguration.composition.playerWriteCatalog)
+        let player = try playerContext(admitted)
+        let grant = try XCTUnwrap(admitted.playerWriteGrant(player))
+        XCTAssertEqual(grant.imSend.paths, ["api/im/send", "api/im/send-receipt"])
+        XCTAssertTrue(grant.clubAdmission.allowsWrites)
+        XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/create"))
+        XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/repost"))
+        XCTAssertFalse(grant.clubCommunity.paths.contains("api/club/roles/assign"))
+        XCTAssertTrue(grant.square.paths.contains("api/v1/community/posts"))
+        XCTAssertTrue(grant.square.paths.contains("api/v1/community/guidelines/ack"))
+        XCTAssertEqual(grant.profile.paths, ["api/user/update", "api/common/uploadOSS"])
+        XCTAssertTrue(grant.avatar.nativePicker)
+        XCTAssertFalse(grant.avatar.approvedOrigins.isEmpty)
+        XCTAssertEqual(grant.registration.paths, ["api/registration/create"])
+        XCTAssertEqual(grant.team.paths, ["api/team/command", "api/team/command/query", "api/team/command/cancel"])
+        XCTAssertTrue(grant.play.paths.contains("api/play/arrive"))
+        XCTAssertTrue(grant.play.paths.contains("api/play/help"))
+        XCTAssertTrue(grant.play.paths.contains("api/play/scan-entry"))
+        XCTAssertTrue(grant.play.paths.contains("api/play/journey/opening/complete"))
+        XCTAssertFalse(grant.roamExtras.paths.contains("api/roam/presence"))
+        XCTAssertFalse(grant.roamExtras.paths.contains("api/roam/presence-visibility"))
+        XCTAssertTrue(grant.roamExtras.paths.contains("api/roam/checkin"))
+        XCTAssertTrue(grant.likes.paths.contains("api/topic/like"))
+        XCTAssertTrue(grant.reports.paths.contains("api/v1/community/reports"))
+        XCTAssertTrue(grant.reports.paths.contains("api/v1/community/appeals"))
+        XCTAssertTrue(grant.friends.endpoint.paths.isSuperset(of: NativeFriendApproval.writePaths))
+        XCTAssertTrue(grant.channelTextSend.allowsAnyPositiveConversation)
+        XCTAssertEqual(grant.channelTextSend.operation, .send)
+        XCTAssertEqual(grant.channelTextReceipt.operation, .receipt)
+        XCTAssertNotNil(admitted.clubCommunityWriteService(baseURL: player.baseURL, transport: PlayerWriteRecorder()))
+        XCTAssertNotNil(admitted.teamCommandWriter(context: player, transport: PlayerWriteRecorder()))
+        XCTAssertEqual(try XCTUnwrap(admitted.sessionDependencies(player).configuration).play, [
+            .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening
+        ])
+        XCTAssertEqual(try XCTUnwrap(admitted.roamLiveApproval(player)).presence, false)
+        XCTAssertNil(admitted.clubRoleAssignmentApproval(player))
+        XCTAssertNil(admitted.clubRoleRevocationApproval(player))
+        XCTAssertNil(admitted.merchantOperationsWriteApproval(player))
+        let merchant = RuntimeDependencyContext(market: .china, baseURL: player.baseURL, role: "merchant", session: player.session)
+        XCTAssertNil(admitted.playerWriteGrant(merchant))
+        XCTAssertNil(RegionalLaunchConfiguration.composition.playerWriteGrant(player))
+        let market = RegionalLaunchConfiguration.reviewedMarketComposition(
+            market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            bundleIdentifier: bundle, realm: realm)
+        XCTAssertNil(market.playerWriteGrant(player))
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
         XCTAssertFalse(RegionalLaunchConfiguration.composition.reviewed?.productionGatesEnabled == true)
         XCTAssertFalse(RegionalLaunchConfiguration.composition.reviewed?.playerWritesEnabled == true)
+    }
+
+    func testShippedChinaAdmitsFreePlayerWritesAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let base = player.baseURL
+        let free = jsonRequest(base.appendingPathComponent("api/registration/create"),
+            #"{"payAmount":0,"requestId":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}"#, token: player.session.token)
+        _ = try await transport.send(free)
+        XCTAssertEqual(recorder.paths, ["api/registration/create"])
+        let paid = jsonRequest(base.appendingPathComponent("api/registration/create"),
+            #"{"payAmount":1,"payChannel":"APP"}"#, token: player.session.token)
+        await assertClosed { try await transport.send(paid) }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/login"), "{}", token: player.session.token)) }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/registration/pay"), #"{"payAmount":1}"#, token: player.session.token)) }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/roam/presence"), #"{"lat":1}"#, token: player.session.token)) }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/club/roles/assign"), #"{"id":1}"#, token: player.session.token)) }
+        let publish = jsonRequest(base.appendingPathComponent("api/v1/community/posts/9/publish"),
+            #"{"expectedVersion":1,"requestId":"publish-workflow"}"#, token: player.session.token)
+        _ = try await transport.send(publish)
+        XCTAssertEqual(recorder.paths.last, "api/v1/community/posts/9/publish")
+        var draftParts = URLComponents(url: base.appendingPathComponent("api/v1/community/drafts"), resolvingAgainstBaseURL: false)
+        draftParts?.queryItems = [URLQueryItem(name: "limit", value: "20")]
+        var drafts = URLRequest(url: try XCTUnwrap(draftParts?.url))
+        drafts.httpMethod = "GET"
+        drafts.setValue("application/json", forHTTPHeaderField: "Accept")
+        drafts.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(drafts)
+        XCTAssertEqual(recorder.paths.last, "api/v1/community/drafts")
+        let send = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"),
+            fields: ["conversation_id": "4", "msg_type": "1", "content": "hello", "client_message_id": String(repeating: "ab", count: 16)],
+            token: player.session.token)
+        _ = try await transport.send(send)
+        XCTAssertEqual(recorder.paths.last, "api/im/send")
+        XCTAssertFalse(recorder.paths.contains("api/login"))
+        XCTAssertFalse(recorder.paths.contains("api/roam/presence"))
+        XCTAssertFalse(recorder.paths.contains("api/registration/pay"))
+
+        let gatesOnly = try ReviewedAppDeployment(market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            approvedBaseURLs: [.china: [ReviewedMarketLaunch.chinaProductionBaseURL]],
+            verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: bundle, realm: "gates-only",
+            productionGatesEnabled: true, playerWritesEnabled: false)
+        let closed = RegionalLaunchConfiguration.makeComposition(reviewed: gatesOnly, build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: "gates-only"),
+            makeTransport: { PlayerWriteRecorder() })
+        XCTAssertNil(closed.playerWriteGrant(player))
+        let closedTransport = closed.transport()
+        closedTransport.current = transport.current
+        await assertClosed { try await closedTransport.send(free) }
+    }
+
+    private func assertClosed(_ body: () async throws -> some Any) async {
+        do { _ = try await body(); XCTFail("expected the write to stay closed") }
+        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+    }
+
+    private func playerContext(_ composition: AppCompositionRoot) throws -> RuntimeDependencyContext {
+        let namespace = try XCTUnwrap(composition.reviewed?.storageScope.service)
+        let base = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        let session = try PlayExperienceSession(accountID: 7, epoch: 1, namespace: namespace, token: "player-token")
+        return RuntimeDependencyContext(market: .china, baseURL: base, role: "player", session: session)
+    }
+
+    private func jsonRequest(_ url: URL, _ body: String, token: String) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = Data(body.utf8)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
+    }
+}
+
+private final class PlayerWriteRecorder: HTTPTransport {
+    var paths: [String] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let relative = request.url?.path.split(separator: "/").drop(while: { $0 != "api" }).joined(separator: "/") ?? ""
+        paths.append(relative)
+        return (Data(#"{"code":200}"#.utf8), 200)
     }
 }
