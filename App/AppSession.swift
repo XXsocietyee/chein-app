@@ -1078,13 +1078,13 @@ final class AppSession: ObservableObject {
         personalLocationShareCaptureApproval = nil
     }
 
-    private var gate = SessionOperationGate() { didSet { if oldValue.currentStamp != gate.currentStamp { invalidatePersonalLocationShare() }; retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
+    private(set) var gate = SessionOperationGate() { didSet { if oldValue.currentStamp != gate.currentStamp { invalidatePersonalLocationShare() }; retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
     private let vault: any AppTokenStorage
     let composition: AppCompositionRoot
     private let compositionTransport: CompositionHTTPTransport
     private var compositionViewerRevision: UInt64 = 0
     private var sessionDefaults: UserDefaults { composition.storage.defaults }
-    private let storageScope:RegionalSessionStorageScope?
+    let storageScope:RegionalSessionStorageScope?
     let regionalConfiguration:RegionalConfiguration?
     var operationalMarket:RegionalMarket? { regionalConfiguration?.market ?? RegionalLaunchConfiguration.market }
     /// ADAPT-5: compile-time switch, `false` in every non-DEBUG (shipped) build. The legacy password route needs a
@@ -2017,7 +2017,7 @@ final class AppSession: ObservableObject {
     }
     var walkingNavigationFactory: NativeWalkingNavigationFactory { NativeWalkingNavigationFactory(
         dependencies: runtimeDependencies.walkingNavigation, context: { [weak self] in self?.currentRuntimeDependencyContext }) }
-    private var runtimeHTTPTransport: any HTTPTransport { compositionTransport }
+    var runtimeHTTPTransport: any HTTPTransport { compositionTransport }
     private func scopedTransport(_ injected: (any HTTPTransport)?) -> any HTTPTransport {
         guard let injected else { return compositionTransport }
         return compositionTransport.replacingUnderlying(injected)
@@ -7269,7 +7269,7 @@ final class AppSession: ObservableObject {
         retainedDoorCoordinator?.updateSession(doorReferralSession)
     }
 
-    private var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll() }; if token != newValue { invalidatePersonalLocationShare() }; if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
+    private(set) var token: String? { willSet { if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll() }; if token != newValue { invalidatePersonalLocationShare() }; if token.map({ Data($0.utf8) }) != newValue.map({ Data($0.utf8) }) { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if token != newValue { invalidateShopNPCConversations(); platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry() } }
     private var didBootstrap = false
     @Published private(set) var sessionRestorationRetry = SessionRestorationRetry()
     private let restoreBlockedKey:String
