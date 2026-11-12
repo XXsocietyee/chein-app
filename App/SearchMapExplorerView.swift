@@ -109,6 +109,7 @@ import SwiftUI
                                 .accessibilityIdentifier("searchMap.showMap")
                         }
                     }
+                    SideQuestPlayerEntry(snapshot: SideQuestPlayerFlow.production)
                     if let selectedPin, pins.filter({ $0.id == selectedPin }).count == 1 { selectedPlaceSummary(selectedPin, area: area) }
                     // Mini-program result capsule under the map (pages/searchmap): 全部 N 个结果 opens the sheet.
                     if mode == .city, reader.isConfigured, mapLayers.shows(.activities), loading || visibleCityResults != nil {
