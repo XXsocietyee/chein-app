@@ -406,7 +406,8 @@ struct OBNightMap: View {
             // Horizon: one lantern source behind the map, never over type.
             Ellipse()
                 .fill(CYNight.lantern.opacity(lit ? 0.22 : 0.07))
-                .frame(height: 90)
+                .frame(maxWidth: .infinity)
+                .frame(height: 72)
                 .blur(radius: 22)
                 .offset(x: shift.width * 0.4, y: 36)
                 .allowsHitTesting(false)
