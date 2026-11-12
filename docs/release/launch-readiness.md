@@ -1,0 +1,85 @@
+# Launch readiness: first TestFlight internal build (player app)
+
+Base: `origin/rc/20261108`. Facts come from files in this repo; verification numbers are as reported by the coordinator brief and are not re-run here (marked "reported"). Anything not proven is marked **UNVERIFIED**.
+
+## 1. What ships (player surfaces)
+
+| Surface | Receipt / spec |
+| --- | --- |
+| Onboarding pager (Create account / Guest) | `receipts/ui-onboarding.md`, `motion-spec-onboarding.md` |
+| Roam hero, GO, nearby sheet; fog engine (UI built, **switched off**) | `receipts/ui-roam.md`, `motion-spec-roam.md` |
+| Today hero card (Explore); shows "Start a roam" until host supplies ticket/club event | `receipts/ui-today-hero.md` |
+| Pass card (Passport tile to QR in 2 taps) | `receipts/ui-pass-card.md` |
+| Ticket wallet / holder, glass carousel | `motion-spec-tickets.md`, `receipts/ui-carousel.md` |
+| Club photo cards and Clubs tab | `receipts/ui-club-cards.md` |
+| Activity detail (18 sections collapsed to 5 blocks) | `receipts/ui-activity-collapse.md` |
+| Celebration, badge unlock, roam summary, state kit | `receipts/ui-celebration.md`, `motion-spec-celebration.md` |
+| QR kit (scan states; **no live camera scanner**) | `receipts/ui-qr.md`, `motion-spec-qr.md` |
+| Share card composer (walk, medal, route, activity) | `motion-spec-share.md`, `receipts/ui-tail-e3.md` |
+| Four-tab IA Explore / Roam / Clubs / Passport; Passport; deep-link parser | `receipts/ui-ia.md` |
+| Accessibility sweep | `receipts/ui-a11y-sweep.md` |
+| Loading / phase kit, purchase motion | `receipts/ui-loading.md`, `receipts/ui-phase-adoption.md`, `receipts/ui-purchase-motion-e4.md` |
+
+## 2. Verification status
+
+| Check | Result |
+| --- | --- |
+| Debug + Release arm64 builds | OK (reported) |
+| App unit tests | 7471 pass / 128 fail; 115 are the hosted-window family on the iOS 27 sim, root cause unproven, same on base `201bf147f` (reported) |
+| Contract suite | 259 failing of 5912 (was 721). Ratchet: `tools/contract_ratchet.py`, baseline `contract-failing-baseline.txt` (259 lines, confirmed), see `receipts/contract-ratchet.md` |
+| UITests | Entry 7/7, Regional 4/4, TicketWallet 6/6 pass; 14 other UITests being fixed (reported) |
+| Core scratch package | 1254/1254 (reported) |
+| Release binary fixture symbols | 0 (reported) |
+| Xcode Cloud | **NOT cloud verified** (silent; see `receipts/xcode-cloud.md`) |
+| Real device | **No real-device pass** |
+
+## 3. Safety gates
+
+| Gate | State |
+| --- | --- |
+| Reviewed logic (Core / composition) | untouched by the UI work (receipts state "no Core/Tests/Config edits") |
+| `WalletPayoutCapability` | off (reported) |
+| Password login | not compiled into Release (`app-store-pack.md`) |
+| Payment / payout / withdrawal | off |
+| Fog live reveal (`PersonalFogFeature.liveRevealEnabled`, location capability) | off (`roam-fog/location-permission-copy.md`) |
+| Closed-by-default tests | green (reported) |
+
+## 4. Release config
+
+Owner-approved (`testflight-internal.md`): API `https://www.chengyinhub.com/prod-api/`, realm `cn-prod`, market `CN`, bundle `com.chengyinhub.chengyinApp`, team `9VHY8N755R`. Lives in `Config/Release.xcconfig`. The "Release Identity Gate" build phase fails the Release build on empty, non-https or placeholder values; `tools/check_release_config.py` proves it. Exact archive and upload steps: `docs/release/testflight-internal.md`. Nothing is deployed or uploaded until the owner says "deploy now".
+
+## 5. Owner to-do
+
+| # | Item | Where |
+| --- | --- | --- |
+| 1 | Check the Xcode Cloud workflow in App Store Connect | `xcode-cloud-setup.md` |
+| 2 | Archive and upload when saying "deploy now" | `testflight-internal.md` |
+| 3 | Add internal testers | App Store Connect |
+| 4 | Version bump to 1.0 (`MARKETING_VERSION` is `0.1.0` in `Config/Base.xcconfig`); raise build number per upload | `version-scheme.md` |
+| 5 | Trim privacy manifest over-declaration (User ID, Purchase History, Email Address, Physical Address) | `Resources/PrivacyInfo.xcprivacy`, `app-store-metadata-checklist.md` |
+| 6 | Provide privacy / support / terms URLs, support contact, ICP number, copyright, demo account | `OWNER-TO-PROVIDE` in `app-store-pack.md` |
+| 7 | Confirm zh label 提现申请扣款 (**UNVERIFIED: string not found in this tree**; related: `wallet.analysis.withdrawal` now reads "Withdrawals", see section 6) | `receipts/contract-backlog-5.md` |
+| 8 | Choose location-permission wording (draft, not approved) | `docs/roam-fog/location-permission-copy.md` |
+| 9 | Decide on registering `chein://` in `Config/Info.plist` (not registered) | `receipts/ui-ia.md` |
+| 10 | Club-event Today card needs a backend start-date field | `receipts/ui-today-hero.md` |
+| 11 | Sign off fog haze 0.62 vs 0.35 `fogOverlay` token | `motion-spec-roam.md` |
+| 12 | Camera QR scanner is not built (decide scope) | `receipts/ui-qr.md` |
+
+## 6. Known gaps and real defects still open
+
+| Gap | Source |
+| --- | --- |
+| Blacklist: original identities and historical copy not rendered | `contract-backlog-3.md` |
+| Channel appeal: "receipt does not mean reversed" safety copy not rendered | `contract-backlog-3.md` |
+| Merchant template metadata hints removed from editor | `contract-backlog-3.md` |
+| Shop NPC retry copy over-promises ("won't send it twice"); needs copy decision | `contract-backlog-3.md` |
+| `ticketWallet.readOnly` ("Payment, refunds and completion rewards aren't in the app yet") no longer rendered | `contract-backlog-5.md` |
+| Wallet withdrawal label says "Withdrawals", not "Withdrawal request debits"; payout-wording call (a later commit message mentions a request-debit label fix; not re-verified here) | `contract-backlog-5.md` |
+| Per-row ticket notices (cancelled / expired / unknown) not rendered; anonymous growth leaderboard route marked `.missing`; shortened disclosure copy (shopNPC voice, roam history, playkit pair) | `contract-backlog-1.md` |
+| Unavailable club community shown as empty was fixed; `walking.saved.notice` lost a sentence; official event dates use viewer time zone | `contract-backlog-2.md` |
+| `cityGame.points.existing`, `cityGame.notEnabled`, several template/city-node notes not rendered | `contract-backlog-5.md` |
+| Remaining contract failures (259) are classed obsolete/env or hash pins needing reviewed regeneration, not hidden | `contract-backlog-1..5.md` |
+| Today card shows only "Start a roam" until ticket/club-event sources are wired | `receipts/ui-today-hero.md` |
+| Light/glass visuals, 120 Hz, VoiceOver paging, Reduce Motion: no device pass | `receipts/ui-carousel.md` |
+| Map chrome contrast over live tiles guaranteed only by scrim | `receipts/ui-a11y-sweep.md` |
+| `ios-current-ci` ledger not refreshed (as of `LAUNCH-STATUS.md` tip `67053ccb3`) | `LAUNCH-STATUS.md` |
