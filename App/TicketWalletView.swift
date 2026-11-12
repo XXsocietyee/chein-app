@@ -54,6 +54,13 @@ import SwiftUI
                                     .accessibilityIdentifier("ticketWallet.emptyHint")
                             }
                         }
+                        .padding(CYSpacing.md)
+                        .background {
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(CYNight.glassFill)
+                                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                        }
+                        .listRowBackground(Color.clear)
                     }
                     ticketCarousel(snapshot.tickets)
                     // Source preserves both lanes and row order, including repeated server IDs.
@@ -81,6 +88,7 @@ import SwiftUI
                             .questifyCardListRow()
                         } else {
                             TicketWalletRow(ticket: ticket)
+                                .cyPressTracking()
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                                 .questifyCardListRow()
                         }
@@ -90,7 +98,9 @@ import SwiftUI
                     Section {
                         NavigationLink { TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator) } label: {
                             Label("team.title", systemImage: "person.3")
-                        }.accessibilityIdentifier("ticketWallet.teams")
+                        }
+                        .cyPressTracking()
+                        .accessibilityIdentifier("ticketWallet.teams")
                     }
                 }
                 // Payment, refunds and completion rewards are not in the app; shown in every state so the wallet never implies otherwise.
@@ -102,6 +112,7 @@ import SwiftUI
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
+            .cyDomainPageBackground()
             .listSectionSpacing(20)
             .appNavigationTitle("ticketWallet.title")
             .toolbar {

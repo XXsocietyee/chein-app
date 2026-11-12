@@ -147,17 +147,17 @@ struct SettingsGuideHandoff {
 }
 
 
-/// Muted iOS Settings tile colours: one hue per group of rows, never neon.
+/// Night-city tile colours: one muted hue per group. Lantern stays off chrome; violet stays off these tiles.
 enum SettingsTint {
-    static let blue = Color(red: 0.04, green: 0.52, blue: 1.0)
-    static let green = Color(red: 0.19, green: 0.72, blue: 0.35)
-    static let orange = Color(red: 1.0, green: 0.58, blue: 0.0)
-    static let red = Color(red: 1.0, green: 0.27, blue: 0.23)
-    static let pink = Color(red: 1.0, green: 0.31, blue: 0.48)
-    static let purple = Color(red: 0.69, green: 0.32, blue: 0.87)
-    static let indigo = Color(red: 0.35, green: 0.34, blue: 0.84)
-    static let teal = Color(red: 0.19, green: 0.69, blue: 0.78)
-    static let gray = Color(red: 0.56, green: 0.56, blue: 0.58)
+    static let blue = CYRGB(hex: 0x3A4A8A).swiftUIColor
+    static let green = CYRGB(hex: 0x1E6B4A).swiftUIColor
+    static let orange = CYRGB(hex: 0x8A5A32).swiftUIColor
+    static let red = CYRGB(hex: 0x8A3A32).swiftUIColor
+    static let pink = CYRGB(hex: 0x8A4A58).swiftUIColor
+    static let purple = CYNight.indigo
+    static let indigo = CYNight.indigo
+    static let teal = CYRGB(hex: 0x1E5A68).swiftUIColor
+    static let gray = CYNight.ink2
 }
 private struct SettingsTileTintKey: EnvironmentKey { static let defaultValue: Color = SettingsTint.gray }
 extension EnvironmentValues {
@@ -177,8 +177,8 @@ struct SettingsAccountCard: View {
             Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
                 .font(.system(.title, design: .rounded, weight: .bold)).foregroundStyle(.white)
                 .frame(width: 60, height: 60)
-                .background(Circle().fill(.white.opacity(0.22)))
-                .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1.5))
+                .background(Circle().fill(CYNight.glassFill))
+                .overlay(Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1.5))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
@@ -190,12 +190,11 @@ struct SettingsAccountCard: View {
         }
         .padding(CYSpacing.lg)
         .background {
-            ZStack {
-                CYCoverArt(seed: "account-" + nickname, symbol: "person", showsDebugLabel: false, showsGlyph: false)
-                LinearGradient(colors: [.black.opacity(0.05), .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(CYNight.ink2)
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
         }
+        .cyPressTracking()
         .accessibilityElement(children: .combine)
     }
 }
