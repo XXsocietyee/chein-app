@@ -59,6 +59,7 @@
         "AudioAndMediaPipelineSectionViewTests",
         "AuthAndSessionAdmissionSectionViewTests",
         "BNDCancelTransportTests",
+        "BNDMountGuardTests",
         "BNDOrderStatusViewTests",
         "BackendSyncAndContractGateSectionViewTests",
         "BackgroundTaskAndScenePhaseLifecycleSectionViewTests",

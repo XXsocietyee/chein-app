@@ -1073,7 +1073,7 @@ final class AppSession: ObservableObject {
 
     private var gate = SessionOperationGate() { didSet { if oldValue.currentStamp != gate.currentStamp { invalidatePersonalLocationShare() }; retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
     private let vault: any AppTokenStorage
-    private let composition: AppCompositionRoot
+    let composition: AppCompositionRoot
     private let compositionTransport: CompositionHTTPTransport
     private var compositionViewerRevision: UInt64 = 0
     private var sessionDefaults: UserDefaults { composition.storage.defaults }
@@ -6523,11 +6523,11 @@ final class AppSession: ObservableObject {
         guard let owner = try? ClubChatCoordinator(clubID: clubID, identity: snapshot.identity, service: service, clubs: clubReader, messages: messagingReader) else { return nil }
         clubChatOwners[clubID] = owner; return owner
     }
-    /// G1/G2 integration hook for club channel safety composition under reviewed deployment.
+    /// G1 safety host and G2 bundle ports. Shipped factories and approvals stay nil.
     func makeClubChannelSafetyHost(clubID: Int64, channelID: Int64) -> Any? {
-        guard clubID > 0, channelID > 0 else { return nil }
-        return composition.clubChannelSafetyHostFactory?(self, clubID, channelID)
+        clubID > 0 && channelID > 0 ? composition.clubChannelSafetyHostFactory?(self, clubID, channelID) : nil
     }
+    func makeBundlePorts() -> BundleSessionPorts { composition.makeBundlePorts(session: self) }
     private struct GroupPollOwnerKey: Hashable { let scope: IMScope; let reference: GroupPollReference? }
     private var groupPollOwners: [GroupPollOwnerKey: GroupPollCoordinator] = [:]
     func groupPollCoordinator(conversationID: Int, reference: GroupPollReference?) -> GroupPollCoordinator? {
@@ -7709,7 +7709,7 @@ final class AppSession: ObservableObject {
         }
     }
 
-    private func expireIfMatching(error:Error,stamp:UInt64,credential:String?) {
+    func expireIfMatching(error:Error,stamp:UInt64,credential:String?) {
         guard error as? APIError == .unauthorized, credential != nil,
               gate.isCurrent(stamp), credential == token else { return }
         sessionRestorationRetry.discard()

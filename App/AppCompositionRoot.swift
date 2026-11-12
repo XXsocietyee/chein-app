@@ -123,17 +123,8 @@ extension KeychainTokenStore: AppTokenStorage {}
     // Proposed read-only wiring. No grant is issued by shipped composition.
     var freeExploreBundleReadApproval: @MainActor (RuntimeDependencyContext) -> FreeExploreBundleReadApproval? = { _ in nil }
     var freeExploreBundleReadStorage: @MainActor (RegionalSessionStorageScope) -> any TemplateAuthoringStorage = { TemplateAuthoringSecureStorage(scope: $0) }
-    func makeFreeExploreBundleReadHost(registrationID: Int64, context: RuntimeDependencyContext,
-        scope: RegionalSessionStorageScope, currentContext: @escaping () -> RuntimeDependencyContext?,
-        originCurrent: @escaping () -> Bool, unauthorized: @escaping () -> Void) -> FreeExploreBundleReadHost? {
-        guard let reviewed, reviewed.storageScope == scope, reviewed.regional.market == context.market,
-              reviewed.regional.apiConfiguration?.baseURL == context.baseURL,
-              context.session.namespace == scope.service else { return nil }
-        return FreeExploreBundleReadHost(registrationID: registrationID, accountID: Int64(context.session.accountID),
-            context: context, approval: freeExploreBundleReadApproval(context), currentContext: currentContext,
-            currentApproval: { self.freeExploreBundleReadApproval(context) }, originCurrent: originCurrent,
-            storage: freeExploreBundleReadStorage(scope), transport: makeTransport(), unauthorized: unauthorized)
-    }
+    /// G2 bundle approvals. Every closure stays nil, so shipped providers stay nil and money writes stay off.
+    var bundleApprovals: BundleApprovalSet = .closed
     /// Local facts/original-receipt presentation only. No game runtime or read grant is created.
     var merchantGamePlayerDestination: (@MainActor (MerchantGamePlayerCoordinator, AnyView?) -> AnyView)? = {
         AnyView(MerchantGamePlayerView(coordinator: $0, chat: $1))
@@ -175,7 +166,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let merchantReviewOriginalReadApproval: @MainActor (RuntimeDependencyContext) -> MerchantReviewOriginalReadApproval?
     let deployment: DeploymentState
     let storage: AppScopedStorageFactory
-    private let makeTransport: () -> any HTTPTransport
+    let makeTransport: () -> any HTTPTransport
     /// Distinct endpoint permissions, neither inferred from login nor ordinary club writes.
     var clubWelcomeNoteWriteApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
     var clubWelcomeNoteReceiptApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
