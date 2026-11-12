@@ -19,6 +19,9 @@ extension EnvironmentValues {
     @Environment(\.locale) private var locale
     @State private var board: TeamOrientBoardDetail?
     @State private var ranking: [TeamOrientRankingRow] = []
+    /// Mini-program `rankingState`: loading skeleton, inline error with retry, or the card (empty reads "暂无队伍排名").
+    @State private var rankingPhase: RankingPhase = .hidden
+    private enum RankingPhase: Equatable { case hidden, loading, failed, ready }
     @State private var loading = false
     @State private var loadError = false
     @State private var showingReportSheet = false
@@ -31,7 +34,27 @@ extension EnvironmentValues {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let access, access.enabled {
                     progressCard
-                    if !ranking.isEmpty {
+                    switch rankingPhase {
+                    case .hidden: EmptyView()
+                    case .loading:
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            rankingTitle
+                            CYSkeleton().accessibilityLabel(Text(verbatim: c.t("正在加载队伍排名", "Loading team ranking")))
+                        }
+                        .accessibilityIdentifier("team.orient.rankingLoading")
+                    case .failed:
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            rankingTitle
+                            HStack {
+                                CYStatusChip(verbatim: c.t("队伍排名加载失败", "Team ranking failed to load"), tone: .danger, systemImage: "exclamationmark.triangle")
+                                Spacer()
+                                CYPillButton(verbatim: c.t("重试", "Retry"), style: .secondary, fullWidth: false) {
+                                    Task { await load() }
+                                }
+                            }
+                        }
+                        .accessibilityIdentifier("team.orient.rankingError")
+                    case .ready:
                         rankingCard
                     }
                 }
@@ -126,11 +149,21 @@ extension EnvironmentValues {
         .accessibilityIdentifier("team.orient.board")
     }
 
+    private var rankingTitle: some View {
+        Text(c.t("本场队伍排名", "Session team ranking"))
+            .font(Theme.Font.sectionTitle)
+            .accessibilityAddTraits(.isHeader)
+    }
+
     private var rankingCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(c.t("本场队伍排名", "Session team ranking"))
-                .font(Theme.Font.sectionTitle)
-                .accessibilityAddTraits(.isHeader)
+            rankingTitle
+            if ranking.isEmpty {
+                Text(c.t("暂无队伍排名", "No team ranking yet"))
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("team.orient.rankingEmpty")
+            }
 
             ForEach(ranking) { row in
                 HStack(spacing: 10) {
@@ -237,9 +270,19 @@ extension EnvironmentValues {
         do {
             board = try await access.loadBoard(teamID: detail.team.id)
             if let key = detail.team.ownerKey {
-                ranking = (try? await access.loadRanking(ownerType: key.type, ownerID: key.id)) ?? []
+                rankingPhase = .loading
+                do {
+                    ranking = try await access.loadRanking(ownerType: key.type, ownerID: key.id)
+                    rankingPhase = .ready
+                } catch is CancellationError {
+                    throw CancellationError()
+                } catch {
+                    ranking = []
+                    rankingPhase = .failed
+                }
             } else {
                 ranking = []
+                rankingPhase = .hidden
             }
         } catch is CancellationError {
         } catch {
