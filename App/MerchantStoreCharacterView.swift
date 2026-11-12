@@ -3,9 +3,11 @@ import SwiftUI
 @MainActor final class StoreCharacterModel: ObservableObject {
     let coordinator: StoreCharacterCoordinator
     let reform: StoreCharacterReformContext?
+    /// Knowledge review for this merchant. Publish stays on the waiting-source capability.
+    let authorFlow: MerchantNPCKnowledgeAuthorFlow?
     @Published private(set) var revision = 0
-    init(_ coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext?) {
-        self.coordinator = coordinator; self.reform = reform
+    init(_ coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext?, authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil) {
+        self.coordinator = coordinator; self.reform = reform; self.authorFlow = authorFlow
         coordinator.onChange = { [weak self] in self?.revision += 1 }
     }
 }
@@ -23,8 +25,8 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
     @StateObject private var model: StoreCharacterModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    init(coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext? = nil) {
-        _model = StateObject(wrappedValue: .init(coordinator, reform: reform))
+    init(coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext? = nil, authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil) {
+        _model = StateObject(wrappedValue: .init(coordinator, reform: reform, authorFlow: authorFlow))
     }
     private var c: StoreCharacterCoordinator { model.coordinator }
 
