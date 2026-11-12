@@ -33,6 +33,10 @@ public struct TopicService {
         self.configuration = configuration; self.transport = transport
     }
     public func list(query: TopicQuery = TopicQuery(), pageNumber: Int = 1, token: String? = nil) async throws -> TopicPage {
+        try await listDocument(query: query, pageNumber: pageNumber, token: token).page
+    }
+    /// Same `POST api/topic/list` as `list`. `TopicPage` has no payload; favorites resolve needs the body.
+    public func listDocument(query: TopicQuery = TopicQuery(), pageNumber: Int = 1, token: String? = nil) async throws -> TopicListDocument {
         guard pageNumber > 0, query.pageSize > 0, query.pageSize <= 100 else { throw APIError.invalidRequest }
         var fields = ["is_my": "0", "pageNum": String(pageNumber), "pageSize": String(query.pageSize)]
         // Nil is omitted; an explicitly supplied empty string is retained, matching Flutter.
@@ -41,7 +45,7 @@ public struct TopicService {
         if query.recommend { fields["is_recommend"] = "1" }
         let data = try await post("api/topic/list", fields: fields, token: token)
         let envelope = try decode(TopicRowsEnvelope.self, data)
-        return TopicPage(rows: envelope.rows, pageNumber: pageNumber, pageSize: query.pageSize)
+        return TopicListDocument(page: TopicPage(rows: envelope.rows, pageNumber: pageNumber, pageSize: query.pageSize), body: data)
     }
     public func detail(id: Int, token: String? = nil) async throws -> TopicDetail {
         guard id > 0 else { throw APIError.invalidRequest }

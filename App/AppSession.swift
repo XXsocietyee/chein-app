@@ -1293,7 +1293,7 @@ final class AppSession: ObservableObject {
             guard let self, self.compositionViewerRevision == key.viewerRevision,
                   key.approval != nil, self.currentPlayReadApprovalKey == key.approval else { return }
             self.expireIfMatching(error:APIError.unauthorized,stamp:snapshot.epoch,credential:self.token)
-        })
+        }, onNodes: { [weak self] result in if let self { CloudB3SessionBridge.acceptNodes(result, session: self) } })
         playReaders[key]=reader
         return reader
     }
@@ -2017,7 +2017,7 @@ final class AppSession: ObservableObject {
     }
     var walkingNavigationFactory: NativeWalkingNavigationFactory { NativeWalkingNavigationFactory(
         dependencies: runtimeDependencies.walkingNavigation, context: { [weak self] in self?.currentRuntimeDependencyContext }) }
-    private var runtimeHTTPTransport: any HTTPTransport { compositionTransport }
+    var runtimeHTTPTransport: any HTTPTransport { compositionTransport }
     private func scopedTransport(_ injected: (any HTTPTransport)?) -> any HTTPTransport {
         guard let injected else { return compositionTransport }
         return compositionTransport.replacingUnderlying(injected)

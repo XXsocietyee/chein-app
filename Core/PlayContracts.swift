@@ -240,9 +240,14 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let nodes: [PlayNode]
     public let chapters: [PlayChapter]
     public let routeState: PlayRouteState?
+    /// Optional theme facts from the same `/api/play/nodes` object. Missing keys stay empty.
+    /// A bad `look_json` or cover does not fail the route.
+    public let themeFacts: PlayThemeServerFacts
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
+        case topicAiGenerated, productType, topicCover
+        case lookJSON = "look_json"
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -259,6 +264,11 @@ public struct PlayNodesResult: Decodable, Equatable {
         nodes = try c.decode([PlayNode].self, forKey: .nodes)
         chapters = try c.decodeIfPresent([PlayChapter].self, forKey: .chapters) ?? []
         routeState = try c.decodeIfPresent(PlayRouteState.self, forKey: .routeState)
+        themeFacts = PlayThemeServerFacts(
+            aiGenerated: (try? c.decode(Bool.self, forKey: .topicAiGenerated)) == true,
+            productType: PlayThemeServerFacts.lenientInt(c, .productType),
+            coverURL: PlayThemeServerFacts.coverURL(try? c.decode(String.self, forKey: .topicCover)),
+            look: PlayThemeLookTokens.read(c, .lookJSON))
         guard Set(nodes.map(\.id)).count == nodes.count, Set(chapters.map(\.id)).count == chapters.count,
               total.map({ $0 >= 0 }) ?? true, doneCount.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
     }

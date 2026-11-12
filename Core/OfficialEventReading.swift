@@ -69,6 +69,9 @@ public extension OfficialEventReading {
     public func events(city: String? = nil) async throws -> [OfficialEvent] {
         try await read { try await $0.events(city: city, token: $1) }
     }
+    public func officialEventsReceipt(city: String? = nil) async throws -> CloudB3RawBody {
+        try await read { try await $0.eventsReceipt(city: city, token: $1) }
+    }
     public func detail(id: Int) async throws -> OfficialEvent { try await read { try await $0.detail(id: id, token: $1) } }
     public func myEvents() async throws -> [OfficialEvent] { try await privateRead { try await $0.myEvents(token: $1) } }
     public func partyInbox() async throws -> [OfficialPartyInvite] { try await privateRead { try await $0.partyInbox(token: $1) } }

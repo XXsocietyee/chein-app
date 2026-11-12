@@ -42,6 +42,7 @@ public final class PlaySessionReader: PlayReading {
     private let currentSession: () -> PlayReadSession?
     private let onUnauthorized: (PlayReadSession) -> Void
     private let answersEnabled: Bool
+    private let onNodes: (@MainActor (PlayNodesResult) -> Void)?
     private var generation: UInt64 = 0
     private var latestSnapshot: PlaySnapshot?
     private var loadedSession: PlayReadSession?
@@ -61,9 +62,10 @@ public final class PlaySessionReader: PlayReading {
     /// user Submit action plus fresh server prerequisites. The safe default is reads.
     public init(scope: PlaySessionScope, service: PlayService?, answersEnabled: Bool = false,
                 currentSession: @escaping () -> PlayReadSession?,
-                onUnauthorized: @escaping (PlayReadSession) -> Void = { _ in }) {
+                onUnauthorized: @escaping (PlayReadSession) -> Void = { _ in },
+                onNodes: (@MainActor (PlayNodesResult) -> Void)? = nil) {
         self.scope = scope; self.service = service; self.answersEnabled = answersEnabled
-        self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
+        self.currentSession = currentSession; self.onUnauthorized = onUnauthorized; self.onNodes = onNodes
     }
     public func playSession() async throws -> PlaySnapshot {
         guard !submitting else { throw APIError.invalidRequest }
@@ -89,6 +91,7 @@ public final class PlaySessionReader: PlayReading {
                 !snapshot.visibleNodes.contains(where: { $0.id == id && snapshot.isDone($0) })
             }
             latestSnapshot = snapshot; loadedSession = session
+            onNodes?(result)
             return snapshot
         } catch {
             try check(session, requestID)
