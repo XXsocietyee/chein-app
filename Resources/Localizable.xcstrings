@@ -259149,6 +259149,23 @@
           }
         }
       }
+    },
+    "badgeWall.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No badges lit yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有点亮勋章"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
