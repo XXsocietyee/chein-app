@@ -25,6 +25,7 @@ struct IATabsFixture: View {
         }
         .cyScreenStyle()
         .cyDomainTabBar(.player)
+        .overlay { CYNightTabBar(selection: selection) }
     }
 }
 

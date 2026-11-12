@@ -42,9 +42,11 @@ import QuestifyCore
     @ObservedObject var reader: ClubFixtureReader
     let join: Bool
     @State private var show = true
+    @State private var stage = false
     @Environment(\.locale) private var locale
     var body: some View {
         ClubDetailView(id: 81, reader: reader)
+            .overlay { if stage { D4JoinStage() } }
             .sheet(isPresented: $show) {
                 if join {
                     CYConfirmSheet(
@@ -52,7 +54,7 @@ import QuestifyCore
                         message: ChannelCopy.text("城瘾跑团", "City Run Club", locale: locale) + "\n" + String(localized: LocalizedStringResource("club.action.confirm.join", locale: locale)),
                         confirmTitle: String(localized: LocalizedStringResource("club.action.join", locale: locale)),
                         isDestructive: false
-                    ) { show = false }
+                    ) { show = false; stage = true }
                 } else {
                 CYConfirmSheet(
                     title: ChannelCopy.text("退出「城瘾跑团」？", "Leave “City Run Club”?", locale: locale),
@@ -63,6 +65,26 @@ import QuestifyCore
                 ) { show = false }
                 }
             }
+    }
+}
+
+/// d4-join-confirm after Confirm: Join pill -> dots -> green check (same width) -> avatar flies into the strip -> chip.
+/// Self-driving so a video needs no taps; success haptics are logged once (`[CYHaptic]` lines).
+private struct D4JoinStage: View {
+    @State private var state: CYMorphState = .idle
+    var body: some View {
+        ZStack {
+            CYNight.ink0.opacity(0.92).ignoresSafeArea()
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Text(verbatim: "City Run Club").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                CYClubJoinStage(title: "club.action.join", state: state, seed: "club-81", memberCount: 12, identifier: "club.action.join") { state = .working }
+            }
+            .padding(CYSpacing.pageHorizontal)
+        }
+        .task {
+            try? await Task.sleep(for: .milliseconds(500)); state = .working
+            try? await Task.sleep(for: .milliseconds(1100)); state = .done
+        }
     }
 }
 
