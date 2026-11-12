@@ -256,7 +256,7 @@ public struct JourneyLoopSource {
         return isRequestID(id) ? id : nil
     }
 
-    static func randomEntropy() -> String {
+    public static func randomEntropy() -> String {
         let alphabet = Array("0123456789abcdefghijklmnopqrstuvwxyz")
         var generator = SystemRandomNumberGenerator()
         return String((0..<8).map { _ in alphabet[Int(generator.next(upperBound: UInt32(alphabet.count)))] })
