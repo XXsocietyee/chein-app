@@ -17,6 +17,8 @@ import SwiftUI
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "inbox", onLogin: onLogin,
                            issueCopy: OfficialInboxView.issueCopy, load: { try await reader.partyInbox() }) { rows in
+            // pages/activity/official-inbox/index: a path this repo does not mark live stays hidden.
+            if let page = OfficialInboxPageModel.state(loading: false, failed: false, rows: rows) {
             List {
                 // Mini-program `oi-hero`: eyebrow, headline and one explanatory paragraph above the invitations.
                 Section {
@@ -25,8 +27,9 @@ import SwiftUI
                         CYHeroHeader("officialInbox.hero.title", subtitle: "officialInbox.hero.sub")
                     }.accessibilityElement(children: .combine)
                 }
-                if rows.isEmpty {
-                    CYEmptyState(systemImage: "envelope.open", "official.inbox.empty")
+                if page == .empty {
+                    CYEmptyState(systemImage: "envelope.open", "official.inbox.empty", detail: "official.inbox.emptyDetail")
+                        .accessibilityIdentifier("official.inbox" + ".empty")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -42,9 +45,13 @@ import SwiftUI
                         if let note = row.roleNoteTuple {
                             Text(verbatim: c.t(note.zh, note.en)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
                         }
-                        if let cap = row.capacity {
-                            Text(verbatim: appLocalized("official.inbox.capacity \(cap)", locale: locale)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
-                        }
+                        // capacityFact keeps a literal 0; a missing or non-integer capacity is an em dash.
+                        Group {
+                            switch row.capacityFact {
+                            case .known(let cap): Text(verbatim: appLocalized("official.inbox.capacity \(cap)", locale: locale))
+                            case .unknown: Text("official.inbox.capacityUnknown")
+                            }
+                        }.font(CYTypography.caption).foregroundStyle(palette.textSecondary)
                         if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(CYTypography.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
                             Text(verbatim: summary).font(CYTypography.meta)
@@ -65,6 +72,7 @@ import SwiftUI
             }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(palette.bgPage)
             .themeDomain(.player)
             .accessibilityIdentifier("official.inbox.content")
+            }
         }.appNavigationTitle("official.inbox.title").navigationBarTitleDisplayMode(.inline)
     }
     private func cityText(_ row: OfficialPartyInvite) -> Text {

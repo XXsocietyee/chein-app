@@ -41,8 +41,10 @@ struct TeamPageHeader: View {
                 : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.xl))
             metaLayout {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    if let joined = detail.team.joinedCount, let max = detail.team.maxMembers { Text(verbatim: "\(joined) / \(max)").font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
-                    else { Text(verbatim: "—").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary) }
+                    // pages/team/join: a missing joined count or capacity is an em dash; a literal 0 stays "0 / max".
+                    Text(verbatim: TeamPagePresentation.memberCountText(detail.team))
+                        .font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        .contentTransition(.numericText())
                     Text("team.members.count").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {

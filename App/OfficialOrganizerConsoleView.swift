@@ -23,6 +23,8 @@ import SwiftUI
     @Published var busy = false
     @Published var outcome: Outcome?
     @Published var unconfirmedMessage: String?
+    /// True when the event-state read returned no event (page-ready empty phase).
+    @Published var eventMissing = false
     private var loadSeq = 0
 
     init(eventID: Int, access: any OfficialOrganizerAccess, defaults: UserDefaults = .standard) {
@@ -31,6 +33,17 @@ import SwiftUI
         intent = loadIntent()
     }
     var availability: [OfficialOrganizerAction: OfficialOrganizerAvailability] { OfficialOrganizerRules.availability(state) }
+    /// pages/activity/official-organizer/index projection. Unknown facts are an em dash; a server 0 stays "0".
+    var snapshot: OfficialOrganizerConsoleSnapshot {
+        let load: OfficialOrganizerConsoleLoad
+        switch phase {
+        case .loading: load = .loading
+        case .error: load = .failed
+        case .denied: load = .denied
+        case .ready: load = .allowed(check, eventMissing ? nil : state)
+        }
+        return OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: load)
+    }
     var hasPendingIntent: Bool { intent != nil }
     var controlsLocked: Bool { busy || intent != nil || refreshing }
 
@@ -60,6 +73,7 @@ import SwiftUI
             }
             let s = try await access.eventState(eventID: eventID)
             guard seq == loadSeq else { return }
+            eventMissing = s == nil
             state = s ?? OfficialOrganizerEventState(status: nil, control: nil)
             phase = .ready
         } catch is CancellationError {
@@ -168,6 +182,7 @@ struct OfficialOrganizerConsoleView: View {
     private var content: some View {
         List {
             headerSection
+            snapshotSection
             if let o = model.outcome { outcomeSection(o) }
             if model.hasPendingIntent { recoverySection }
             publishSection
@@ -198,6 +213,27 @@ struct OfficialOrganizerConsoleView: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("official.organizer.header")
+        }
+    }
+    /// Page-model facts: blocker and risk counts, plus the empty / unknown notice.
+    private var snapshotSection: some View {
+        let snapshot = model.snapshot
+        return Section {
+            Text("official.organizer.counts \(snapshot.blockerCountText) \(snapshot.riskCountText)")
+                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("official.organizer.counts")
+            switch snapshot.state {
+            case .empty:
+                Label("official.organizer.emptyNotice", systemImage: "tray")
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier(snapshot.accessibilityIdentifier ?? "")
+            case .unknown:
+                Label("official.organizer.unknownNotice", systemImage: "questionmark.circle")
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier(snapshot.accessibilityIdentifier ?? "")
+            default:
+                EmptyView()
+            }
         }
     }
     private var controlText: String {

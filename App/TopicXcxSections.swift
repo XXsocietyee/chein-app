@@ -85,6 +85,10 @@ struct TopicXcxStatBar: View {
 struct TopicXcxDurationText: View {
     let seconds: Int?
     var body: some View {
+        // pages/topic/index: a missing duration is an em dash, never "0 h". A literal 0 keeps the zero copy.
+        if let seconds, seconds >= 0 { known(seconds) } else { Text(verbatim: "—") }
+    }
+    @ViewBuilder private func known(_ seconds: Int) -> some View {
         switch TopicXcxFacts.duration(seconds: seconds) {
         case .zero: Text("topicXcx.duration.zero")
         case .underMinute: Text("topicXcx.duration.underMinute")

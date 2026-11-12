@@ -16,14 +16,43 @@ import SwiftUI
     @State private var review: PublisherLifecycleReview?
     @State private var message = ""
     @State private var busy = false
+    @State private var loadFailed = false
     @State private var generation = UUID()
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
     private func text(_ key: String) -> String { appLocalized(String.LocalizationValue(key), locale: locale) }
+    /// pages/topic/pricing/index screen from the view's own read facts (TopicPricingXcx.screen).
+    private var screen: TopicPricingXcx.Screen {
+        let read: TopicPricingXcx.Read = topicID <= 0 ? .missingTopic : busy ? .loading : loadFailed ? .failed : .idle
+        return TopicPricingXcx.screen(read: read, kept: preview, subtype: subtype, teamSize: Int(team), price: Decimal(string: price))
+    }
+    /// Confirm stays hidden unless the existing pricing grant is present; the shipped factory keeps it dormant.
+    private var showsConfirm: Bool {
+        TopicPricingXcx.showsConfirm(baseURL: client.configuration.baseURL, playerFirstEntry: false,
+                                     pricingGrantPresent: client.grants.pricing != nil)
+    }
     var body: some View {
         Form {
             CYHeroHeader(verbatim: text("publisherPricing.confirmFinalPrice"))
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            switch screen {
+            case .empty:
+                CYEmptyState(systemImage: "link", "publisherPricing.missingTopic", detail: "publisherPricing.missingTopicDetail",
+                             messageIdentifier: "publisher.pricing.empty")
+                    .listRowBackground(Color.clear)
+            case .error(let failure):
+                CYEmptyState(systemImage: "exclamationmark.triangle",
+                             LocalizedStringKey(failure == .incomplete ? "publisherPricing.incomplete" : "publisherPricing.loadFailed"),
+                             messageIdentifier: "publisher.pricing.error", actionTitle: "topic.retry",
+                             actionIdentifier: "publisher.pricing.retry", action: { Task { await load() } })
+                    .listRowBackground(Color.clear)
+            case .ready(let ready) where ready.refreshFailed:
+                Label("publisherPricing.stalePreview", systemImage: "clock.arrow.circlepath")
+                    .font(.caption).foregroundStyle(CYColor.warningText).accessibilityIdentifier("publisher.pricing.stale")
+            default:
+                EmptyView()
+            }
+            if topicID > 0 {
             Section {
                 // Source chip tabs 有人带 / 无人带.
                 Picker(text("publisherPricing.format"), selection: $subtype) {
@@ -41,14 +70,17 @@ import SwiftUI
                 }
             }
             Section {
-                CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateMinimum") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { Task { await load() } }
+                CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { Task { await load() } }
                     .listRowBackground(Color.clear).disabled(busy).accessibilityIdentifier("publisher.preview")
                 if busy { Text(text("publisherPricing.checkingTheLatestPricing")).font(.caption) }
             }
             if let preview {
-                Section(text("publisherPricing.minimumPrice")) {
-                    Text(verbatim: "¥" + NSDecimalNumber(decimal: preview.minimum).stringValue).font(.title2.bold()).accessibilityIdentifier("publisher.floor")
-                    Text(text("publisherPricing.theFinalPriceCanTBe")).font(.caption).foregroundStyle(.secondary)
+                Section(text("publisherPricing.costFloor")) {
+                    // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
+                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).font(.title2.bold()).monospacedDigit()
+                        .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
+                    Text("publisherPricing.floorIncludes").font(.caption).foregroundStyle(.secondary)
+                    Text("publisherPricing.marginNote").font(.caption).foregroundStyle(.secondary)
                 }
                 Section(text("publisherPricing.yourFinalPrice")) {
                     TextField(text("publisherPricing.finalPrice"), text: $price).keyboardType(.decimalPad).accessibilityIdentifier("publisher.finalPrice")
@@ -59,7 +91,7 @@ import SwiftUI
                         .accessibilityLabel(Text(text("publisherPricing.finalPrice")))
                         .accessibilityValue(Text(verbatim: "¥" + (Int(price).map(String.init) ?? String(floorValue))))
                     HStack {
-                        Text(verbatim: text("publisherPricing.minimum") + " ¥" + NSDecimalNumber(decimal: preview.minimum).stringValue)
+                        Text(verbatim: text("publisherPricing.floorShort") + " ¥" + TopicPricingXcx.moneyText(decimal: preview.minimum))
                         Spacer(); Text(verbatim: "¥\(maximum)")
                     }.font(.caption)
                     if let reference = preview.reference, let count = preview.sampleSize, count > 0 {
@@ -86,16 +118,21 @@ import SwiftUI
                                 }
                             }
                         }
-                    } header: { Text(text("publisherPricing.partnerLineup")) }
+                    } header: { Text(text("publisherPricing.partnerLineup")) } footer: {
+                        Text("publisherPricing.lineupLocked")
+                    }
                 }
                 Section {
                     if preview.canConfirm == false {
-                        Text(text("publisherPricing.youCanSetThePriceOnce")).font(.caption).foregroundStyle(.orange)
+                        Text("publisherPricing.phaseBlockedDetail").font(.caption).foregroundStyle(.orange)
                             .accessibilityIdentifier("publisher.phaseBlocked")
                     }
-                    CYPillButton(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")) { Task { await prepare() } }
-                        .listRowBackground(Color.clear).disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
+                    if showsConfirm {
+                        CYPillButton(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")) { Task { await prepare() } }
+                            .listRowBackground(Color.clear).disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
+                    }
                 }
+            }
             }
             if let review {
                 Section(text("publisherPricing.review")) {
@@ -137,11 +174,11 @@ import SwiftUI
     }
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     private func input() throws -> PublisherPricingInput { try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team)) }
-    private func invalidate() { generation = UUID(); preview = nil; partnerNames = [:]; review = nil; coordinator.invalidate() }
+    private func invalidate() { generation = UUID(); preview = nil; partnerNames = [:]; review = nil; loadFailed = false; coordinator.invalidate() }
     private func load() async {
         let stamp = generation; busy = true; defer { busy = false }
-        do { let result = try await client.pricing(input()); guard generation == stamp else { return }; preview = result; price = String(TopicPricingXcx.initialPrice(floor: result.minimum)); message = "" }
-        catch { if generation == stamp { preview = nil; message = PublisherLifecycleCopy.error(error, zh: isChinese) } }
+        do { let result = try await client.pricing(input()); guard generation == stamp else { return }; preview = result; loadFailed = false; price = String(TopicPricingXcx.initialPrice(floor: result.minimum)); message = "" }
+        catch { if generation == stamp { preview = nil; loadFailed = true; message = PublisherLifecycleCopy.error(error, zh: isChinese) } }
     }
     private func prepare() async {
         busy = true; defer { busy = false }; let stamp = generation
@@ -154,6 +191,7 @@ import SwiftUI
     @State private var result: PublisherPartnerInspection?
     @State private var message = ""
     @State private var loading = true
+    @State private var failed = false
     @Environment(\.locale) private var locale
     private var isClub: Bool { row.type == "club" }
     var body: some View {
@@ -168,9 +206,17 @@ import SwiftUI
                 }.accessibilityIdentifier("publisher.partner.invalid")
             } else {
                 Section {
-                    if loading { CYSkeleton() }
-                    else if let result {
-                        let profile = result.profile.object ?? [:]
+                    // pages/topic/pricing/partner/index phase (TopicPricingXcx.partnerPreviewPhase).
+                    switch TopicPricingXcx.partnerPreviewPhase(loading: loading, inspection: result, failed: failed) {
+                    case .loading: CYSkeleton()
+                    case .error:
+                        Label("publisherPricing.loadFailed", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("publisher.partner.error")
+                    case .unknown:
+                        Text(verbatim: TopicPricingXcx.unknownMoney).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("publisher.partner.unknown")
+                    case .empty(let inspection), .ready(let inspection):
+                        let profile = inspection.profile.object ?? [:]
                         Text(profile["name"]?.text ?? "—").font(.headline)
                         if let description = profile["description"]?.text, !description.isEmpty { Text(description) }
                         let rows = profileRows(profile)
@@ -179,14 +225,17 @@ import SwiftUI
                     }
                 } header: { Text(isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")) }
                 if let terms = result?.terms {
-                    Section(text("publisherPricing.partnershipTerms")) {
+                    Section {
                         LabeledContent(text("publisherPricing.settlement"), value: terms.mode == 1 ? text("publisherPricing.revenueShare") : terms.mode == 2 ? text("publisherPricing.fixed") : text("publisherPricing.referral"))
-                        if terms.mode == 1 { LabeledContent(text("publisherPricing.share"), value: "\(terms.shareRate ?? "—")%") }
-                        if terms.mode == 2 { LabeledContent(text("publisherPricing.fixedFee"), value: "¥\(terms.fixedFee ?? "—")" + text("publisherPricing.perPerson")) }
+                        // Unknown share / fee is a bare em dash (never "—%" or "¥—"); a literal 0 stays "0".
+                        if terms.mode == 1 { LabeledContent(text("publisherPricing.share"), value: partnerMoney(terms.shareRate, prefix: "", suffix: "%")) }
+                        if terms.mode == 2 { LabeledContent(text("publisherPricing.fixedFee"), value: partnerMoney(terms.fixedFee, prefix: "¥", suffix: text("publisherPricing.perPerson"))) }
                         LabeledContent(text("publisherPricing.locked"), value: text("publisherPricing.whenSalesOpen"))
                         Text(terms.mode == 1 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement")
                              : terms.mode == 2 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement44")
                              : text("publisherPricing.theLineupFreezesWhenSalesOpen")).font(.caption)
+                    } header: { Text(text("publisherPricing.partnershipTerms")) } footer: {
+                        Text("publisherPricing.partnerLocked")
                     }
                 }
             }
@@ -195,7 +244,8 @@ import SwiftUI
         .cyHeroScreen()
         .task {
             guard topicID > 0, row.partnerID > 0 else { loading = false; return }
-            do { result = try await client.partner(topicID: topicID, type: row.type, id: row.partnerID) } catch { message = PublisherLifecycleCopy.error(error, zh: zh) }
+            do { result = try await client.partner(topicID: topicID, type: row.type, id: row.partnerID); failed = false }
+            catch { failed = true; message = PublisherLifecycleCopy.error(error, zh: zh) }
             loading = false
         }
     }
@@ -228,6 +278,10 @@ import SwiftUI
             add(text("publisherPricing.address"), flat(profile["address"]))
         }
         return rows
+    }
+    private func partnerMoney(_ raw: String?, prefix: String, suffix: String) -> String {
+        let value = TopicPricingXcx.partnerMoneyText(raw)
+        return value == TopicPricingXcx.unknownMoney ? value : prefix + value + suffix
     }
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
     private func text(_ key: String) -> String { appLocalized(String.LocalizationValue(key), locale: locale) }

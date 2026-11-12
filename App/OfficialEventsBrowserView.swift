@@ -70,23 +70,31 @@ import SwiftUI
             }.frame(minHeight: 44).accessibilityIdentifier("official.inboxLink")
     }
     private func eventList(_ rows: [OfficialEvent]) -> some View {
-        let visible = query.visible(rows)
+        // pages/activity/list/index: the page model owns summary count, empty, and publish-link facts.
+        let page = OfficialActivityListCoordinator.project(query: query, list: .success(rows),
+                                                          canPublish: canPublish && publisherScope == reader.scope)
+        let visible = page.visible
         return List {
             Section {
                 Group {
-                    if query.isSearching { Text("official.summary.search \(query.trimmedKeyword) \(visible.count)") }
-                    else {
-                        switch bucket {
-                        case .live: Text("official.summary.live \(visible.count)")
-                        case .upcoming: Text("official.summary.upcoming \(visible.count)")
-                        case .ended: Text("official.summary.ended \(visible.count)")
-                        case .mine: Text("official.summary.mine \(visible.count)")
+                    if let count = page.summaryCount {
+                        if query.isSearching { Text("official.summary.search \(query.trimmedKeyword) \(count)") }
+                        else {
+                            switch bucket {
+                            case .live: Text("official.summary.live \(count)")
+                            case .upcoming: Text("official.summary.upcoming \(count)")
+                            case .ended: Text("official.summary.ended \(count)")
+                            case .mine: Text("official.summary.mine \(count)")
+                            }
                         }
+                    } else {
+                        Text(verbatim: page.summaryCountText)
                     }
                 }.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
-                if visible.isEmpty {
+                if page.phase == .empty {
                     CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))
                         .listRowBackground(Color.clear)
+                        .transition(.opacity)
                 }
             }
             ForEach(visible) { event in
