@@ -309,30 +309,31 @@ struct OBMorphPill: View {
     @ScaledMetric(relativeTo: .body) private var height: CGFloat = 56
 
     var body: some View {
+        // The check is the transition only. At rest, and always under Reduce Motion, the label stays.
+        let showCheck = done && !reduceMotion
         Button(action: action) {
             ZStack {
                 Text(titleKey)
                     .font(.system(.body).weight(.bold))
                     .multilineTextAlignment(.center)
-                    .opacity(done ? 0 : 1)
-                    .scaleEffect(done && !reduceMotion ? 0.8 : 1)
+                    .opacity(showCheck ? 0 : 1)
+                    .scaleEffect(showCheck ? 0.8 : 1)
                 Image(systemName: "checkmark")
                     .font(.system(.title3).weight(.heavy))
-                    .symbolEffect(.bounce, value: done)
-                    .opacity(done ? 1 : 0)
-                    .scaleEffect(done || reduceMotion ? 1 : 0.5)
+                    .opacity(showCheck ? 1 : 0)
+                    .scaleEffect(showCheck ? 1 : 0.5)
             }
-            .foregroundStyle(done ? CYNight.ink0 : palette.actionPrimaryFg)
+            .foregroundStyle(showCheck ? CYNight.ink0 : palette.actionPrimaryFg)
             .padding(.horizontal, CYSpacing.xxl)
             .padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: .infinity, minHeight: height)
-            .background(Capsule(style: .continuous).fill(done ? CYNight.verify : palette.actionPrimaryBg))
+            .background(Capsule(style: .continuous).fill(showCheck ? CYNight.verify : palette.actionPrimaryBg))
             .contentShape(Capsule(style: .continuous))
         }
         .buttonStyle(.cyPressable)
-        .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.4, dampingFraction: 0.7), value: done)
+        .animation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.7), value: showCheck)
         .accessibilityLabel(Text(titleKey))
-        .accessibilityValue(done ? Text("onboarding.createAccount.done") : Text(verbatim: ""))
+        .accessibilityValue(showCheck ? Text("onboarding.createAccount.done") : Text(verbatim: ""))
     }
 }
 

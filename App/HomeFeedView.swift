@@ -50,9 +50,12 @@ import UIKit
         let permit = model.permit(reader)
         CYLoadSlot(isLoading: reader.isConfigured && unavailableMessageKey == nil && !model.matches(reader), skeletonRows: 4, label: "homeFeed.loading", announces: true) {
             if !reader.isConfigured || unavailableMessageKey != nil {
-                // Night-city offline state: drawn art on the ink ground instead of the system placeholder.
-                CYStateLayout(kind: .offline, title: Text("homeFeed.unavailable"),
-                              detail: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
+                // Night-city offline state. Lookup uses the interface language, not the region locale,
+                // so zh-Hans does not keep the English kit sentences.
+                let resource = CYKitCopy(locale: locale).resourceLocale
+                CYStateLayout(kind: .offline,
+                              title: Text(verbatim: appLocalized("homeFeed.unavailable", locale: resource)),
+                              detail: Text(verbatim: appLocalized(String.LocalizationValue(stringLiteral: unavailableMessageKey ?? "auth.notConfigured"), locale: resource)))
                     .accessibilityElement(children: .combine) // one static text, as the system placeholder was: UITests and VoiceOver read a single state
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background { CYExploreGround() }
@@ -79,18 +82,19 @@ import UIKit
                             onActionBanner?(banner)
                         }
                         .cySectionReveal(order: 0, gate: reveal)
-                        // Feed search lives under the greeting. The navigation-bar drawer sat in the
-                        // status-bar band and blurred this header while the bar was hidden.
-                        HomeFeedInlineSearch(text: $keyword, onSubmit: { submitFeedSearch() })
                     }
                     if let consent = cityLocationConsent {
                         HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
-                    todayCard.cySectionReveal(order: 1, gate: reveal)
-                    if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 2, gate: reveal) }
-                    feedSection(.recommended, order: 3)
-                    // Mini-program store card (city pass entry): one feed card after the first feed block, never a paywall.
+                    // Mini-program order: 编辑精选, 附近活动, 即将上线, then the feed.
+                    // Today sits after those rails so it cannot push 编辑精选 below the fold.
+                    feedSection(.recommended, order: 1)
+                    feedSection(.nearby, order: 2)
+                    feedSection(.upcoming, order: 3)
+                    todayCard.cySectionReveal(order: 4, gate: reveal)
+                    if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 5, gate: reveal) }
+                    // Mini-program store card (city pass entry): one feed card, never a paywall.
                     MPPassExploreCard()
                     if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
                         PlayContinuationBannerView(
@@ -109,10 +113,8 @@ import UIKit
                             },
                             onRetry: onRetryContinuation
                         )
-                        .cySectionReveal(order: 4, gate: reveal)
+                        .cySectionReveal(order: 6, gate: reveal)
                     }
-                    feedSection(.nearby, order: 5)
-                    feedSection(.upcoming, order: 6)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         sectionHeader(Text("homeFeed.explore"))
                         Picker("homeFeed.content", selection: $kind) {
@@ -363,34 +365,8 @@ import UIKit
     }
 }
 
-/// Feed keyword field used when the navigation bar is hidden. It sits under the greeting so the
-/// status-bar material does not blur "Hi".
-private struct HomeFeedInlineSearch: View {
-    @Binding var text: String
-    var onSubmit: () -> Void
-    var body: some View {
-        HStack(spacing: CYSpacing.sm) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityHidden(true)
-            TextField("homeFeed.search", text: $text)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .submitLabel(.search)
-                .onSubmit(onSubmit)
-        }
-        .font(CYTypography.body)
-        .padding(.horizontal, CYSpacing.md)
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isSearchField)
-        .accessibilityIdentifier("homeFeed.search")
-    }
-}
-
-/// Keeps the system search only when the navigation bar is showing. With the bar hidden, the
-/// drawer draws in the status-bar band and blurs the greeting.
+/// Keeps the system search only when the navigation bar is showing. The hero top bar owns search
+/// when the bar is hidden, so the feed does not draw a second field.
 private struct HomeFeedNavigationSearch: ViewModifier {
     @Binding var text: String
     var enabled: Bool

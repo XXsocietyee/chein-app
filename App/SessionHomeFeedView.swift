@@ -93,7 +93,8 @@ import SwiftUI
                 onRetryContinuation: { Task { await reloadContinuationCards() } },
                 todayTicket: todayTicket,
                 onOpenTodayTicket: { showsTodayTickets=true },
-                onStartRoam: onStartRoam
+                onStartRoam: onStartRoam,
+                onOpenUnifiedSearch: { _ in showsGlobalSearch = true }
             ) { router.pushHome($0) }
                 .cyHeroNamespace(hero)
                 .toolbar {

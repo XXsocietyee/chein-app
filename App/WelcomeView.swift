@@ -50,7 +50,7 @@ struct WelcomeView: View {
                 .accessibilityIdentifier("ownerDraft.guestEntry")
             Button("settings.title", systemImage: "gearshape") { destination = .settings }
                 .accessibilityIdentifier("welcome.settings")
-            LanguageSwitcher()
+            LanguageSwitcher(showsMenuTitle: true)
         } label: {
             Image(systemName: "ellipsis.circle")
                 .foregroundStyle(CYColor.textSecondary)
@@ -127,7 +127,7 @@ struct WelcomeView: View {
                             .accessibilityIdentifier("ownerDraft.guestEntry")
                         Button("settings.title", systemImage: "gearshape") { destination = .settings }
                             .accessibilityIdentifier("welcome.settings")
-                        LanguageSwitcher()
+                        LanguageSwitcher(showsMenuTitle: true)
                     } label: {
                         Image(systemName: "ellipsis.circle").accessibilityLabel(Text("settings.title"))
                     }

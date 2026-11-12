@@ -8,8 +8,11 @@ import SwiftUI
 struct CYKitCopy {
     let locale: Locale
     func callAsFunction(_ en: String, _ zh: String) -> String {
-        locale.identifier.lowercased().hasPrefix("zh") || locale.language.languageCode?.identifier == "zh" ? zh : en
+        AppLanguage.interfaceIsChinese(locale) ? zh : en
     }
+
+    /// Catalog lookup locale. Explicit zh-Hans / en so a region locale cannot skip the translation.
+    var resourceLocale: Locale { AppLanguage.interfaceIsChinese(locale) ? Locale(identifier: "zh-Hans") : Locale(identifier: "en") }
 }
 
 // MARK: - Kind
@@ -221,11 +224,11 @@ struct CYOfflineStrip: View {
         let t = CYKitCopy(locale: locale)
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: "wifi.slash").font(.footnote.weight(.semibold))
-            Text(verbatim: t("You're offline. Showing what was saved.", "当前离线，显示已保存的内容。")).font(CYTypography.meta)
+            Text(verbatim: appLocalized("cy.kit.offline.saved", locale: t.resourceLocale)).font(CYTypography.meta)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             if let onRetry {
-                Button(action: onRetry) { Text(verbatim: t("Retry", "重试")).font(CYTypography.meta.weight(.semibold)) }
+                Button(action: onRetry) { Text(verbatim: appLocalized("cy.kit.offline.retry", locale: t.resourceLocale)).font(CYTypography.meta.weight(.semibold)) }
                     .frame(minHeight: 44)
             }
         }

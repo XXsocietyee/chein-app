@@ -134,18 +134,18 @@ struct OnboardingFlow: View {
         }
     }
 
-    /// Create account: the pill morphs to a green check in place (selection, then success at +250 ms) while the host
-    /// opens the existing sign-in gate. Outside fixtures it relaxes again so a dismissed sheet leaves a normal pill.
+    /// Create account: the pill may morph to a green check only while the transition runs, then rests on the label.
+    /// Reduce Motion never morphs. The host still opens the existing sign-in gate.
     private func registerTapped() {
-        withAnimation(CYMotion.resolve(.spring(response: 0.4, dampingFraction: 0.7), reduceMotion: reduceMotion)) { registered = true }
-        CYHaptics.selection.play()
         send(.tapPrimary)
+        guard !reduceMotion else { return }
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { registered = true }
+        CYHaptics.selection.play()
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(250))
             CYHaptics.success.play()
-            guard !autoDemo else { return }
-            try? await Task.sleep(for: .milliseconds(1250))
-            withAnimation(CYMotion.resolve(.spring(response: 0.4, dampingFraction: 0.8), reduceMotion: reduceMotion)) { registered = false }
+            try? await Task.sleep(for: .milliseconds(700))
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { registered = false }
         }
     }
 

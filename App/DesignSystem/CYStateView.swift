@@ -42,23 +42,23 @@ struct CYStateContent: Equatable {
 
     /// Offline: "You're offline". Retry is the one pill; cached content stays reachable, so the body says so.
     static func offline(locale: Locale) -> CYStateContent {
-        let c = CYKitCopy(locale: locale)
+        let resource = CYKitCopy(locale: locale).resourceLocale
         return CYStateContent(
             kind: .offline, glyph: "wifi.slash",
-            title: c("You're offline", "你离线了"),
-            body: c("Your map and lit tiles are here; new content waits for the network.", "地图和已点亮的格子还在；新内容等网络回来"),
-            primaryTitle: c("Retry", "重试"), linkTitle: nil
+            title: appLocalized("cy.kit.offline.title", locale: resource),
+            body: appLocalized("cy.kit.offline.body", locale: resource),
+            primaryTitle: appLocalized("cy.kit.offline.retry", locale: resource), linkTitle: nil
         )
     }
 
     /// Server: "Something broke on our side". Never "unavailable".
     static func server(locale: Locale) -> CYStateContent {
-        let c = CYKitCopy(locale: locale)
+        let resource = CYKitCopy(locale: locale).resourceLocale
         return CYStateContent(
             kind: .server, glyph: "exclamationmark.circle",
-            title: c("Something broke on our side", "这边出了点问题"),
-            body: c("We've logged it. Try again.", "已经记下来了，再试一次"),
-            primaryTitle: c("Retry", "重试"), linkTitle: nil
+            title: appLocalized("cy.kit.server.title", locale: resource),
+            body: appLocalized("cy.kit.server.body", locale: resource),
+            primaryTitle: appLocalized("cy.kit.offline.retry", locale: resource), linkTitle: nil
         )
     }
 

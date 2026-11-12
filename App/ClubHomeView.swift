@@ -43,11 +43,21 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             }.pickerStyle(.segmented)
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.sm)
+                .background(CYColor.bgPage)
+                .zIndex(1)
                 .accessibilityIdentifier("clubTab.topTabs")
                 .cyHaptic(.selection, trigger: topTab)
         }
         if topTab == .feed, let community {
-            ClubCommunityFeedView(context: community, identity: reader.clubIdentity)
+            // 帖文: the existing community feed (like / comment / repost / share / follow). Not rebuilt.
+            VStack(spacing: 0) {
+                MPPassExploreCard()
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.bottom, CYSpacing.sm)
+                ClubCommunityFeedView(context: community, identity: reader.clubIdentity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         } else {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
                        load: { try await loadTab() }) { loaded in
@@ -94,12 +104,29 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 } else if ClubTabPresentation.isEmpty(home, nearby: nearby, merchant: false) {
                     Section { playerEmpty }
                 } else {
-                    Section {
-                        // Created and joined clubs (row cards), then nearby (photo cards with the inline Join pill),
-                        // one list with no group headers as in the mini-program.
-                        clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)
-                        clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)
-                        clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
+                    // 俱乐部: create row above, then 你的俱乐部 (mine + joined) and 发现 (nearby).
+                    if !home.owned.isEmpty || !home.joined.isEmpty {
+                        Section {
+                            clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)
+                            clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)
+                        } header: {
+                            Text("club.home.yours")
+                                .font(CYTypography.sectionTitle)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .textCase(nil)
+                                .accessibilityIdentifier("club.home.yours")
+                        }
+                    }
+                    if !nearby.isEmpty {
+                        Section {
+                            clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
+                        } header: {
+                            Text("club.home.discover")
+                                .font(CYTypography.sectionTitle)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .textCase(nil)
+                                .accessibilityIdentifier("club.home.discover")
+                        }
                     }
                 }
                 Section {

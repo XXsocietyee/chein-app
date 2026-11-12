@@ -15,6 +15,27 @@ public enum AppLanguage: String, CaseIterable, Identifiable {
     public func isChinese(systemLanguageCode: String) -> Bool {
         self == .system ? systemLanguageCode.hasPrefix("zh") : self == .simplifiedChinese
     }
+
+    /// UI language for bilingual copy. An explicit Settings choice wins. System follows the
+    /// bundle's preferred localization (AppleLanguages), not the region locale: a zh-Hans UI
+    /// with an en_US region must not keep English kit strings.
+    public static func interfaceIsChinese(_ locale: Locale) -> Bool {
+        if let active = AppLanguageRuntime.active {
+            switch active {
+            case .english: return false
+            case .simplifiedChinese: return true
+            case .system:
+                let preferred = Bundle.main.preferredLocalizations.first ?? Locale.preferredLanguages.first ?? locale.identifier
+                return preferred.lowercased().hasPrefix("zh")
+            }
+        }
+        let identifier = locale.identifier.lowercased()
+        if identifier.hasPrefix("zh") { return true }
+        let language = locale.language.languageCode?.identifier.lowercased() ?? ""
+        if language.hasPrefix("zh") { return true }
+        let script = locale.language.script?.identifier.lowercased() ?? ""
+        return script == "hans" || script == "hant"
+    }
 }
 
 /// Persisted language choice. The market only supplies the first-launch default, so an

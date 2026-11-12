@@ -18,6 +18,8 @@ struct AppLanguageEnvironment: ViewModifier {
 /// `preferences.language` key as Settings, so both controls always agree and the choice persists.
 struct LanguageSwitcher: View {
     static let storageKey = AppLanguage.storageKey
+    /// Welcome's "…" menu nests this switcher. A globe with no title draws an empty submenu row.
+    var showsMenuTitle = false
     @AppStorage(AppLanguage.storageKey) private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
 
     private var selection: Binding<AppLanguage> {
@@ -33,7 +35,11 @@ struct LanguageSwitcher: View {
                 Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
             } label: { Text("settings.language") }
         } label: {
-            Image(systemName: "globe").frame(minWidth: 44, minHeight: 44)
+            if showsMenuTitle {
+                Label("settings.language", systemImage: "globe")
+            } else {
+                Image(systemName: "globe").frame(minWidth: 44, minHeight: 44)
+            }
         }
         .accessibilityLabel(Text("settings.language"))
         .accessibilityValue(current)

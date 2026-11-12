@@ -3110,6 +3110,6 @@ public enum ClubTabAndAdminParityCatalog {
 /// their environment locale.
 public enum ChannelCopy {
     public static let defaultLocale = Locale(identifier: "zh-Hans")
-    public static func isChinese(_ locale: Locale) -> Bool { locale.language.languageCode?.identifier == "zh" }
+    public static func isChinese(_ locale: Locale) -> Bool { AppLanguage.interfaceIsChinese(locale) }
     public static func text(_ zh: String, _ en: String, locale: Locale) -> String { isChinese(locale) ? zh : en }
 }

@@ -20,6 +20,48 @@ struct HomeHeroHeaderSectionView: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 14) {
+                if let onOpenUnifiedSearch {
+                    // One search entry, in the home top bar. It opens pages/search2 (list) or the map.
+                    // The feed no longer draws a second field under 更多玩法.
+                    HStack(spacing: 0) {
+                        Button {
+                            onOpenUnifiedSearch(.list)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundStyle(CYColor.textSecondary)
+                                Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
+                                    .font(CYTypography.bodyCompact)
+                                    .foregroundStyle(CYColor.textSecondary)
+                                    .lineLimit(1) // one line at every size; truncates instead of wrapping
+                                    .truncationMode(.tail)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.leading, CYSpacing.md)
+                            .frame(maxWidth: .infinity, minHeight: 52)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(CYPressScaleStyle(scale: 0.98))
+                        .accessibilityAddTraits(.isSearchField)
+                        .accessibilityIdentifier("homeIndex.hero.searchEntry")
+
+                        Button {
+                            onOpenUnifiedSearch(.map)
+                        } label: {
+                            Image(systemName: "map")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(CYColor.textPrimary)
+                                .frame(width: 52, height: 52)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)))
+                        .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
+                    }
+                    .background(CYColor.bgElevated, in: Capsule())
+                    .overlay { Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+                    .shadow(color: CYNight.ink0.opacity(0.25), radius: 10, y: 4)
+                }
                 // Mini-program `v3-hero-greet-row`: name on its own line, then `玩家 · 城市`, avatar trailing.
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
@@ -73,47 +115,6 @@ struct HomeHeroHeaderSectionView: View {
                     }
                     Spacer(minLength: 0)
                     HomeHeroAvatar(source: avatarSource)
-                }
-                if let onOpenUnifiedSearch {
-                    // One search pill (the single primary entry); the map search is its trailing icon.
-                    HStack(spacing: 0) {
-                        Button {
-                            onOpenUnifiedSearch(.list)
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundStyle(CYColor.textSecondary)
-                                Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
-                                    .font(CYTypography.bodyCompact)
-                                    .foregroundStyle(CYColor.textSecondary)
-                                    .lineLimit(1) // one line at every size; truncates instead of wrapping
-                                    .truncationMode(.tail)
-                                Spacer(minLength: 0)
-                            }
-                            .padding(.leading, CYSpacing.md)
-                            .frame(maxWidth: .infinity, minHeight: 52)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(CYPressScaleStyle(scale: 0.98))
-                        .accessibilityAddTraits(.isSearchField)
-                        .accessibilityIdentifier("homeIndex.hero.searchEntry")
-
-                        Button {
-                            onOpenUnifiedSearch(.map)
-                        } label: {
-                            Image(systemName: "map")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(CYColor.textPrimary)
-                                .frame(width: 52, height: 52)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)))
-                        .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
-                    }
-                    .background(CYColor.bgElevated, in: Capsule())
-                    .overlay { Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1) }
-                    .shadow(color: CYNight.ink0.opacity(0.25), radius: 10, y: 4)
                 }
                 // The three fixed action banners are demoted into one quiet menu row; every banner stays reachable.
                 Menu {
