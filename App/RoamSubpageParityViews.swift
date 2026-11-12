@@ -52,11 +52,13 @@ struct RoamHistoryMonthHead: View {
 /// RunCard date `8月9日 周六 · 晚上` (dateCard); the day part follows the record's hour in quarters.
 struct RoamRunCardDateText: View {
     let record: RoamHistoryRecord
+    private static let daypartKeys = ["roamSub.w208.history.daypart.0", "roamSub.w208.history.daypart.1",
+                                      "roamSub.w208.history.daypart.2", "roamSub.w208.history.daypart.3"]
     var body: some View {
         if let date = record.recordedAt {
             let hour = Calendar.current.component(.hour, from: date)
             (Text(date, format: .dateTime.month().day().weekday(.abbreviated)) + Text(verbatim: " · ")
-             + Text(LocalizedStringKey("roamSub.w208.history.daypart.\(min(3, max(0, hour / 6)))")))
+             + Text(LocalizedStringKey(Self.daypartKeys[min(3, max(0, hour / 6))])))
                 .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
         } else {
             Text("roamSub.w208.history.dateUnavailable").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)

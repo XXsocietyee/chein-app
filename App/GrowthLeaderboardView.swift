@@ -231,7 +231,7 @@ private struct GrowthLeaderboardPodium: View {
             if place == 1 { Image(systemName: "star").foregroundStyle(CYNight.lantern).accessibilityHidden(true) }
             ZStack(alignment: .bottom) {
                 Text(verbatim: name.map { String($0.prefix(1)) } ?? "—")
-                    .font(.system(size: side * 0.38, weight: .heavy)).foregroundStyle(.white)
+                    .font(place == 1 ? .largeTitle.weight(.heavy) : .title.weight(.heavy)).foregroundStyle(.white)
                     .frame(width: side, height: side)
                     .background(CYNight.indigo, in: Circle())
                     .overlay(Circle().strokeBorder(tint, lineWidth: 3))
