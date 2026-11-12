@@ -9,10 +9,12 @@ final class RoamFinishedHistoryFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-roam-experience", "--uitesting-roam-experience-scenario", scenario,
                                "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         runningApp = app; app.launch()
-        tap(app.buttons["roam.experience.live.open"], app: app); return app
+        let live = app.buttons["roam.experience.live.open"]
+        XCTAssertTrue(scrollToElement(live, in: app, container: app.collectionViews["roam.experience.hub"]), app.debugDescription)
+        live.tap(); return app
     }
     private func tap(_ element: XCUIElement, app: XCUIApplication) {
-        XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription)
+        XCTAssertTrue(revealFixtureElement(element, in: app) || scrollToElement(element, in: app, container: app.collectionViews.firstMatch), app.debugDescription)
         XCTAssertTrue(element.isEnabled, app.debugDescription); element.tap()
     }
     func testFinishedWalkOpensItsActualStoredRecordAndHistoryThenReturns() {
@@ -20,7 +22,7 @@ final class RoamFinishedHistoryFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["roam.finishedHistory.record.open"].exists)
         // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
         tap(app.buttons["roam.live.consent"], app: app)
-        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { tap(app.buttons["roam.live.start"], app: app) }
+        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { holdGo(app.buttons["roam.live.start"]) }
         XCTAssertFalse(app.buttons["roam.finishedHistory.record.open"].exists)
         tap(app.buttons["roam.live.finish"], app: app)
         let confirmation = app.sheets["Finish this walk?"]
@@ -41,7 +43,7 @@ final class RoamFinishedHistoryFlowTests: XCTestCase {
         let app = app("liveUnknown")
         // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
         tap(app.buttons["roam.live.consent"], app: app)
-        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { tap(app.buttons["roam.live.start"], app: app) }
+        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { holdGo(app.buttons["roam.live.start"]) }
         XCTAssertTrue(app.staticTexts["Needs a quick check"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["roam.finishedHistory.record.open"].exists)
         tap(app.buttons["roam.live.recover"], app: app)

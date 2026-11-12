@@ -12,8 +12,9 @@ final class RoamExperienceFlowTests: XCTestCase {
     }
     private func open(_ suffix: String, in app: XCUIApplication) {
         let link = app.buttons["roam.experience.\(suffix).open"]
-        if !link.isHittable { app.swipeUp() }
-        XCTAssertTrue(link.waitForExistence(timeout: 5)); link.tap()
+        // The hub is a lazy list: the row can be scrolled past (and then missing from the tree), so sweep both ways.
+        XCTAssertTrue(scrollToElement(link, in: app, container: app.collectionViews["roam.experience.hub"]), app.debugDescription)
+        link.tap()
     }
     func testHistoryDistinguishesUnknownStatsAndShowsSession() {
         let app = app(); open("history", in: app)
@@ -115,7 +116,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         XCTAssertFalse(start.isEnabled)
         // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
         tapVisible(app.buttons["roam.live.consent"], app: app)
-        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { tapVisible(app.buttons["roam.live.start"], app: app) }
+        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { holdGo(app.buttons["roam.live.start"]) }
         tapVisible(app.buttons["roam.live.pause"], app: app)
         XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.resume"], app: app)
@@ -132,7 +133,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         let app = app("liveUnknown"); open("live", in: app)
         // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
         tapVisible(app.buttons["roam.live.consent"], app: app)
-        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { tapVisible(app.buttons["roam.live.start"], app: app) }
+        if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { holdGo(app.buttons["roam.live.start"]) }
         XCTAssertTrue(app.staticTexts["Needs a quick check"].waitForExistence(timeout: 5))
         tapVisible(app.buttons["roam.live.recover"], app: app)
         XCTAssertTrue(app.staticTexts["Paused"].waitForExistence(timeout: 5))
