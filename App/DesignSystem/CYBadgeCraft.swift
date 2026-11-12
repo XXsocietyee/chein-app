@@ -88,6 +88,8 @@ struct CYCraftedMedal: View {
     var symbol: String?
     var size: CGFloat = 168
     var foilTime: Double?
+    /// Rarity foil. 0 hides it (locked). Passed through `cyFoil`'s strength.
+    var foilStrength: Double = 1
 
     private static let motifs = ["moon.stars.fill", "mappin.and.ellipse", "flame.fill", "camera.fill", "leaf.fill", "star.fill", "bolt.fill", "heart.fill",
                                  "figure.walk", "cup.and.saucer.fill", "ticket.fill", "binoculars.fill", "sun.max.fill", "bicycle"]
@@ -105,9 +107,9 @@ struct CYCraftedMedal: View {
             bevel
             glyphMark
             grain
-            foil
         }
         .frame(width: size, height: size)
+        .cyFoil(in: shape, active: foilStrength > 0, strength: foilStrength)
         .shadow(color: .black.opacity(0.45), radius: 10, y: 6)
         .accessibilityHidden(true)
     }
@@ -154,19 +156,6 @@ struct CYCraftedMedal: View {
         }
         .opacity(0.10)
         .blendMode(.overlay)
-        .clipShape(shape)
-        .allowsHitTesting(false)
-    }
-
-    private var foil: some View {
-        let t = foilTime
-        let u = t.map { UnitPoint(x: 0.5 + 0.38 * sin($0 * 1.1), y: 0.5 + 0.28 * cos($0 * 0.8)) } ?? UnitPoint(x: 0.5, y: 0.5)
-        return ZStack {
-            AngularGradient(colors: [CYNight.foilA, CYNight.foilB, CYNight.foilC, CYNight.foilA], center: u).opacity(0.30)
-            RadialGradient(colors: [CYNight.lanternHot.opacity(0.75), .clear], center: u, startRadius: 0, endRadius: size * 0.5)
-        }
-        .blendMode(.screen)
-        .opacity(t == nil ? 0.25 : 1)
         .clipShape(shape)
         .allowsHitTesting(false)
     }

@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor
 struct ProfileBadgesView: View {
     let reader: any ProfileReading
+    @State private var stagger = CYStaggerGate()
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", load: { try await reader.profileBadges() }) { wall in
             if wall.isEmpty {
@@ -21,6 +22,7 @@ struct ProfileBadgesView: View {
                         Section("profile.badges.identities") {
                             ForEach(Array(wall.identities.enumerated()), id: \.offset) { index, badge in
                                 badgeLink(.identity(badge), identifier: "profile.badge.identity.\(index)")
+                                    .cyStaggeredAppear(index: index, gate: stagger)
                             }
                         }
                     }
@@ -31,6 +33,7 @@ struct ProfileBadgesView: View {
                             Section("profile.badges.medals") {
                                 ForEach(Array(city.enumerated()), id: \.offset) { index, badge in
                                     badgeLink(.medal(badge), identifier: "profile.badge.medal.\(index)")
+                                        .cyStaggeredAppear(index: index, gate: stagger)
                                 }
                             }
                         }
@@ -38,6 +41,7 @@ struct ProfileBadgesView: View {
                             Section("profile.badges.achievements") {
                                 ForEach(Array(achievements.enumerated()), id: \.offset) { index, badge in
                                     badgeLink(.medal(badge), identifier: "profile.badge.achievement.\(index)")
+                                        .cyStaggeredAppear(index: index, gate: stagger)
                                 }
                             }
                         }
@@ -50,7 +54,7 @@ struct ProfileBadgesView: View {
     private func badgeLink(_ badge: ProfileBadgeSelection, identifier: String) -> some View {
         NavigationLink { ProfileBadgeDetailView(badge: badge) } label: {
             HStack(alignment: .center, spacing: 12) {
-                ProfileBadgeImage(rawURL: badge.image, size: 44)
+                ProfileBadgeMedal(badge: badge, size: 44)
                 VStack(alignment: .leading, spacing: 5) {
                     ProfileBadgeTitle(badge: badge).font(.headline)
                     CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
@@ -74,6 +78,15 @@ enum ProfileBadgeSelection {
         if case .identity(let value) = self { return !value.unlocked }
         return false
     }
+    var seed: String { name.isEmpty ? image : name }
+    /// Locked hides the foil. Achievements take the full strength, city medals less, identity badges least.
+    var foilStrength: Double {
+        if isLocked { return 0 }
+        switch self {
+        case .identity: return 0.45
+        case .medal(let value): return value.isAchievement ? 1 : 0.7
+        }
+    }
     var familyKey: LocalizedStringKey {
         switch self {
         case .identity: return "profile.badges.identities"
@@ -84,11 +97,19 @@ enum ProfileBadgeSelection {
 
 struct ProfileBadgeDetailView: View {
     let badge: ProfileBadgeSelection
+    @State private var revealed = false
+    @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         List {
             Section {
                 VStack(spacing: 16) {
-                    ProfileBadgeImage(rawURL: badge.image, size: 110)
+                    ProfileBadgeMedal(badge: badge, size: 168)
+                        .scaleEffect(revealed || reduceMotion ? 1 : 0.82)
+                        .opacity(revealed ? 1 : 0)
+                        .onAppear {
+                            if reduceMotion { revealed = true }
+                            else { withAnimation(CYMotion.entrance) { revealed = true } }
+                        }
                     ProfileBadgeTitle(badge: badge).font(.title2)
                     CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
                                  tone: badge.isLocked ? .neutral : .success,
@@ -119,6 +140,15 @@ private struct ProfileBadgeTitle: View {
     var body: some View {
         if badge.name.isEmpty { Text(badge.familyKey) }
         else { Text(verbatim: badge.name) }
+    }
+}
+
+private struct ProfileBadgeMedal: View {
+    let badge: ProfileBadgeSelection
+    let size: CGFloat
+    var body: some View {
+        CYCraftedMedal(kind: CYBadgeKind(seed: badge.seed), seed: badge.seed, size: size, foilStrength: badge.foilStrength)
+            .accessibilityHidden(true)
     }
 }
 
