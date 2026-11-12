@@ -217,11 +217,13 @@ private struct PassportRollingCount: View {
     }
 
     /// Earned: foil seal in this stamp's colour with the one-shot sheen. Locked: ghost silhouette, dashed outline, low opacity.
-    /// With a host (`cyPassportStampHost`) the cell is a button: the seal zooms into the stamp detail (the same seal at 2.2x).
+    /// With a host (`cyPassportStampHost`) the cell is a button: the seal zooms into the stamp detail (the same seal at 3.2x: 44 pt cell to 141 pt hero).
     @ViewBuilder private func slot(index: Int, earned: Bool) -> some View {
         let foil = CYStampSeal.foil(index)
+        let size: CGFloat = typeSize.isAccessibilitySize ? 64 : 44
         let seal = CYStampSeal(index: index, earned: earned)
-            .cyFoilSheen(active: earned, trigger: 0, cornerRadius: 64)
+            .frame(width: size, height: size)
+            .cyFoilSheen(active: earned, trigger: 0, cornerRadius: size / 2)
             .shadow(color: earned ? foil.1.opacity(0.35) : .clear, radius: 6, y: 3)
             .opacity(earned ? 1 : 0.35)
         Group {
@@ -237,8 +239,9 @@ private struct PassportRollingCount: View {
                 .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
         }
         }
-        // Outside the button so the zoom snapshots the seal, not the pressed label.
+        // Outside the button so the zoom snapshots the seal, not the pressed label. Radius >= half the side: a true circle.
         .cyHeroSourceInherited(index, cornerRadius: 64)
+        .frame(maxWidth: .infinity, minHeight: 44)
     }
 
     private var badgeRail: some View {

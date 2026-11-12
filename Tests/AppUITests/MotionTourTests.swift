@@ -39,13 +39,13 @@ final class MotionTourTests: XCTestCase {
         pause(1.5)
         goBack()
         pause(1.0)
-        let rail = app.buttons["homeFeed.recommended.topic.7"]
-        tap(rail)
+        // Present in the d2-home AX tree: the nearby shelf card, then the carousel card (both open activity 7).
+        tap(app.buttons["homeFeed.nearby.activity.7"])
         pause(1.5)
         goBack()
         pause(1.0)
-        let nearby = app.buttons["homeFeed.nearby.activity.7"]
-        if nearby.exists || nearby.waitForExistence(timeout: 5) { tap(nearby); pause(1.5); goBack(); pause(1.0) }
+        let carousel = app.descendants(matching: .any)["carousel.card.activity.7"]
+        if carousel.exists || carousel.waitForExistence(timeout: 5) { tap(carousel); pause(1.5); goBack(); pause(1.0) }
     }
 
     /// clubcards-home: club row card and photo card → club detail.

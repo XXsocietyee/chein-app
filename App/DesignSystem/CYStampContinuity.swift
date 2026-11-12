@@ -89,7 +89,7 @@ struct CYPassportStampDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: CYSpacing.xl) {
-                CYStampSeal(index: stamp.index, earned: stamp.earned, scale: 2.2)
+                CYStampSeal(index: stamp.index, earned: stamp.earned, scale: 3.2)
                     .frame(width: typeSize.isAccessibilitySize ? 160 : 64 * 2.2, height: typeSize.isAccessibilitySize ? 160 : 64 * 2.2)
                     .shadow(color: stamp.earned ? CYStampSeal.foil(stamp.index).1.opacity(0.45) : .clear, radius: 18, y: 8)
                     .accessibilityHidden(true)
