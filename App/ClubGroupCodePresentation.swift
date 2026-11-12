@@ -10,13 +10,15 @@ import UIKit
         TimelineView(.periodic(from: value.receivedAt, by: 1)) { timeline in
             if current, scenePhase == .active, value.isActive(at: timeline.date) {
                 if let bytes = value.inlinePNG, let image = UIImage(data: bytes) {
+                    // Mini `club-game-code-sheet` card: code on white inside an ink card. Save stays hidden
+                    // here (no onSave): this presentation is display-only by design.
                     VStack(spacing: Theme.Space.s2) {
                         Text("club.gov.codeAvailable").font(.headline)
-                        Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
-                            .frame(maxWidth: 300, maxHeight: 300)
-                            .background(Color.white)
-                            .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
-                            .privacySensitive().accessibilityIdentifier("club.gov.groupCode")
+                        CYClubGameCodeCard(state: .ready, name: nil) {
+                            Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
+                                .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
+                                .privacySensitive().accessibilityIdentifier("club.gov.groupCode")
+                        }
                         Text("club.gov.codeExpires \(Text(value.expiresAt, style: .timer))")
                             .font(.subheadline).monospacedDigit()
                     }.frame(maxWidth: .infinity)

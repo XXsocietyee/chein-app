@@ -11,6 +11,11 @@ import SwiftUI
     @Environment(\.squareReportContext) private var reportContext
     @Environment(\.squareRelatedTopic) private var relatedTopicContext
     @Environment(\.squareDeletion) private var deletion
+    @Environment(\.squareShareLink) private var shareLink
+    @Environment(\.squareAuthorFollowState) private var followState
+    @State private var shareRoute: ShareRoute?
+    private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
+    @State private var showsAuthorProfile = false
     @State private var relatedTopic: SquareRelatedTopicSelection?
     @State private var reportTarget: ReportRoute?
     private struct ReportRoute: Identifiable { let id = UUID(); let target: SquareReportTarget }
@@ -40,9 +45,12 @@ import SwiftUI
                 if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
                 if let post {
                     Section {
-                        SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil).accessibilityIdentifier("square.detailPost")
+                        SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
+                                          avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) }).accessibilityIdentifier("square.detailPost")
                         if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                         SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
+                        // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
+                        if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
                         if let actions, actions.identity.accountID != nil {
                             postActions(post, actions: actions)
                         }
@@ -97,6 +105,13 @@ import SwiftUI
         .sheet(item: $editor) { item in
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }
+        .sheet(item: $shareRoute) { route in CYSquareShareSheet(payload: route.payload, url: route.url) }
+        .navigationDestination(isPresented: $showsAuthorProfile) {
+            if let accountReader, let post, post.memberID > 0 {
+                SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions)
+            }
+        }
+        .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false }
         .alert(Text("square.block.title"), isPresented: $blockNotice) {
             Button("square.block.ok", role: .cancel) { }
         } message: { Text("square.block.notAvailable") }
@@ -144,10 +159,42 @@ import SwiftUI
                     .tint(.primary)
                     .accessibilityLabel(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
+            // Mini `act-share` sits right after the other actions (owner 2026-11-09, Threads-style).
+            if let route = makeShareRoute(for: post) {
+                Button { shareRoute = route } label: { Image(systemName: "paperplane") }
+                    .tint(.primary)
+                    .accessibilityLabel(Text("share.entry", tableName: "SocialParity")).accessibilityIdentifier("square.detail.share")
+            }
             Spacer(minLength: 0)
         }
         .buttonStyle(.borderless).font(.body).labelStyle(.titleAndIcon)
         .frame(minHeight: 44)
+    }
+    /// Mini `square-share.js`: a public published post links to itself; anything else uses the generic link or hides.
+    private func makeShareRoute(for post: SquarePost) -> ShareRoute? {
+        guard let shareLink else { return nil }
+        let payload = CYSquareSharePayload(post: post)
+        if let postID = payload.postID, let url = shareLink.shareURL(postID: postID) { return ShareRoute(payload: payload, url: url) }
+        guard let url = shareLink.genericShareURL else { return nil }
+        return ShareRoute(payload: .generic, url: url)
+    }
+    /// Mini `goUserInfoClcik`: follow only when the state is known and not yet following, then visit profile.
+    private func avatarMenuItems(_ post: SquarePost) -> [CYAnchoredMenuItem] {
+        guard post.memberID > 0 else { return [] }
+        var items: [CYAnchoredMenuItem] = []
+        if let actions, let viewer = actions.identity.accountID, viewer != post.memberID,
+           followState?.isFollowing(memberID: post.memberID) == false {
+            items.append(.init(id: "follow", title: "avatarMenu.follow", tableName: "SocialParity", systemImage: "plus"))
+        }
+        if accountReader != nil { items.append(.init(id: "profile", title: "avatarMenu.profile", tableName: "SocialParity")) }
+        return items
+    }
+    private func pickAvatarItem(_ key: String, post: SquarePost) {
+        switch key {
+        case "follow": editor = .init(purpose: .toggleFollow, target: .member(post.memberID), text: "")
+        case "profile": showsAuthorProfile = true
+        default: break
+        }
     }
     private func postMenu(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         Menu {
