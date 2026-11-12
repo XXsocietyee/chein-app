@@ -392,6 +392,7 @@ struct RoamToolUnavailableView: View {
             }
             RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         }
+        .roamPassportToolsDestinations(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         .onAppear { isPassportVisible = true; openedTile = nil; load() }
         .onDisappear { isPassportVisible = false }
         .refreshable { load() }

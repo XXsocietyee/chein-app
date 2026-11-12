@@ -114,6 +114,8 @@ import SwiftUI
                     .accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")
             }
         }.cyGroupedSurface().navigationTitle("roam.experience.title")
+            .roamPassportToolsDestinations(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
+            .roamPassportPrivateDestinations(tools: privateToolsReader)
             .onAppear { passport.load(reader: reader) }
             .onChange(of: RoamPassportReadOwner(reader: reader)) { _, _ in passport.load(reader: reader) }
             .refreshable { passport.load(reader: reader) }

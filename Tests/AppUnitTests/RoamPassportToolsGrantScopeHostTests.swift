@@ -120,12 +120,14 @@ import UIKit
 @MainActor private struct PassportScopeHost: View {
     @ObservedObject var rig: PassportScopeHostRig
     var body: some View {
+        let route: (String) -> AnyView = { id in
+            AnyView(Text("Synthetic route " + id).accessibilityIdentifier("passport.scope.route"))
+        }
         NavigationStack {
             List {
-                RoamPassportToolsSection(reader: rig.reader, routeDestination: { id in
-                    AnyView(Text("Synthetic route " + id).accessibilityIdentifier("passport.scope.route"))
-                })
+                RoamPassportToolsSection(reader: rig.reader, routeDestination: route)
             }
+            .roamPassportToolsDestinations(reader: rig.reader, routeDestination: route, privateTools: nil)
         }.environment(\.scenePhase, .active)
     }
 }
