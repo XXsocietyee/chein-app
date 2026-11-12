@@ -22,6 +22,8 @@ import SwiftUI
     var onOpenTodayClubEvent: (() -> Void)? = nil
     var onStartRoam: (() -> Void)? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
+    /// Mini-program `locationPrompt`: set only while the host is asking for the home-city location consent. Nil hides the card.
+    var cityLocationConsent: (agree: () -> Void, decline: () -> Void)? = nil
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @Environment(\.locale) private var locale
@@ -76,6 +78,10 @@ import SwiftUI
                             onActionBanner?(banner)
                         }
                         .cySectionReveal(order: 0, gate: reveal)
+                    }
+                    if let consent = cityLocationConsent {
+                        HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                     todayCard.cySectionReveal(order: 1, gate: reveal)
                     if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 2, gate: reveal) }
