@@ -260,7 +260,8 @@ class ReleasePaymentGatingTests(unittest.TestCase):
         self.assertIn("factory.permits(.bankConsentRead)", bank)
         workshop = func_body(session, "makeWorkshopCommerceController(")
         self.assertIn("ReleaseMoneyWriteSwitch.virtualGoodsEnabled && !readOnly", workshop)
-        deps = func_body(read("App/AppCompositionRoot.swift"), "sessionDependencies(")
+        # sessionDependencies moved to the player-write lease file; the money switches stay closed there.
+        deps = func_body(read("App/ReviewedPlayerWriteLeases.swift"), "sessionDependencies(")
         self.assertIn("externalCheckoutApproved: false", deps)
         self.assertIn("devicePaymentApproved: false", deps)
         self.assertNotIn("bankCreate", deps)

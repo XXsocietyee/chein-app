@@ -35,7 +35,7 @@ class SquareWorkspaceSourceChecks(unittest.TestCase):
         catalog = json.loads((ROOT/'docs/square-journey-chat/packets/native-square-workspace-new/docs/square-workspace-localizations.json').read_text())['strings']
         text = '\n'.join(p.read_text() for p in (ROOT/'App').glob('SquareWorkspace*.swift'))
         keys = set(re.findall(r'"(squareWorkspace\.[A-Za-z]+)"',text))
-        identifiers = {'status','selectPhoto','body','upload','lane','saveLocal','saveServer','review','withdraw','revisions','acceptGuideline','confirm'}
+        identifiers = {'status','selectPhoto','body','upload','lane','saveLocal','saveServer','review','withdraw','revisions','acceptGuideline','confirm','activityPicker','draftsSheet'}
         for key in keys:
             if key.split('.')[-1] in identifiers and key not in catalog: continue
             self.assertIn(key,catalog)

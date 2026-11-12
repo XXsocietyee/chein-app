@@ -538,5 +538,21 @@
   "searchMap.routes.recent": {
     "en": "Recent routes",
     "zh-Hans": "最近路线"
+  },
+  "searchMap.clearHistory.a11y": {
+    "en": "Clear search history",
+    "zh-Hans": "清空搜索历史"
+  },
+  "searchMap.endOfResults": {
+    "en": "That's everything",
+    "zh-Hans": "内容已加载完"
+  },
+  "searchMap.refreshResults": {
+    "en": "Refresh results",
+    "zh-Hans": "刷新搜索结果"
+  },
+  "searchMap.unknownResults": {
+    "en": "Some result types didn't load, so these counts aren't final.",
+    "zh-Hans": "部分类型的结果没有取回，数量待确认"
   }
 }

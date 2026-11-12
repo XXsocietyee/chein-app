@@ -76,7 +76,10 @@ def catalog_values():
     values = set()
     for path in (ROOT / "Resources").glob("*.xcstrings"):
         document = json.loads(path.read_text(encoding="utf-8"))
-        for entry in (document.get("strings") or {}).values():
+        for key, entry in (document.get("strings") or {}).items():
+            # Share-sheet copy reuses "转发帖文"; it is not a my-like key.
+            if key in {"share.title", "share.entry"}:
+                continue
             for node in (entry.get("localizations") or {}).values():
                 value = (node.get("stringUnit") or {}).get("value")
                 if isinstance(value, str):

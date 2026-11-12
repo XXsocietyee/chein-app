@@ -35,7 +35,8 @@ class W207GuideParity(unittest.TestCase):
                 self.assertIn(f'"guideXcx.{mode}{suffix}"', self.parity)
 
     def test_detail_shows_source_create_time(self):
-        self.assertIn('SocialText.nonempty(row.createTime)', self.view)
+        self.assertIn('created: page.createTimeDisplay', self.view)
+        self.assertIn('return SocialText.nonempty(row.createTime)', (ROOT / 'Core/ProfileGuideRead.swift').read_text())
         self.assertIn('createTime = v["createTime"].text', (ROOT / 'Core/SocialAccountContracts.swift').read_text())
 
     def test_localization_tool_is_idempotent(self):

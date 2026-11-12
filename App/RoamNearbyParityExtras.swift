@@ -225,7 +225,7 @@ struct RoamPlaceExtrasSection: View {
 
     @ViewBuilder private var infoRows: some View {
         Button {
-            UIPasteboard.general.string = extras.placeName
+            LocalPasteboard.copy(extras.placeName)
             copiedNotice = c.t("已复制地点名，去小红书搜笔记", "Place name copied. Search it on Xiaohongshu.")
         } label: {
             LabeledContent { Text(verbatim: c.t("复制地点名去搜笔记", "Copy the place name to search notes")).foregroundStyle(CYColor.textSecondary) } label: {
@@ -246,7 +246,7 @@ struct RoamPlaceExtrasSection: View {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     ForEach(extras.quotes) { quote in
                         Button {
-                            UIPasteboard.general.string = quote.url
+                            LocalPasteboard.copy(quote.url)
                             copiedNotice = c.t("已复制原文链接", "Source link copied")
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {

@@ -14,8 +14,9 @@ class SocialArticleContentChecks(unittest.TestCase):
         guide = self.read('App/SocialGuideViews.swift')
         self.assertEqual(guide.count('SocialArticleContentView(contents: contents)'), 1)
         for token in ['if id <= 0', 'reader.information(id: id)', 'requestKey: "information-\\(id)"',
-                      'if row.isRemoved', 'CYEmptyState(systemImage: "doc.text", "social.guide.noContent")']:
+                      'case .empty(.removed):', 'CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InformationDetailPageModel.Copy.noContent))']:
             self.assertIn(token, guide)
+        self.assertIn('if row.isRemoved || row.id <= 0', self.read('Core/ProfileGuideRead.swift'))
         screen = self.read('App/SocialAccountComponents.swift')
         for token in ['loadedKey != key || busy', 'try Task.checkCancellation()',
                       'guard generation == run, key == captured',

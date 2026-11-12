@@ -107,7 +107,7 @@ enum PlayEmergencyHelp {
               let text = PlayEmergencyHelp.locationText(latitude: coordinate.latitude, longitude: coordinate.longitude, market: market, locale: locale) else {
             notice = "mpd.sos.noLocation"; return
         }
-        UIPasteboard.general.string = text
+        LocalPasteboard.copy(text)
         notice = "mpd.sos.copied"
     }
 }

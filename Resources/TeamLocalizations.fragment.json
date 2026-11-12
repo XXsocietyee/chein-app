@@ -1,6 +1,40 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "team.join.empty": {
+        "extractionState": "manual",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "No team found for this invitation"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "没有找到这支队伍"
+                }
+            }
+        }
+    },
+    "team.join.emptyDetail": {
+        "extractionState": "manual",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Ask the person who invited you to send the link again."
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "请让邀请你的人重新发送邀请链接"
+                }
+            }
+        }
+    },
     "team.invite.copied": {
       "extractionState": "manual",
       "localizations": {

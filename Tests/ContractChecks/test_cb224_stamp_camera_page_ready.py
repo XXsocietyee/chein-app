@@ -90,7 +90,11 @@ class StampCameraPageReadyContract(unittest.TestCase):
         self.assertNotIn("StampCameraPageFixtureData", before)
         self.assertLess(after.index("enum StampCameraPageFixtureData"), after.index("#endif"))
         self.assertNotIn("URLSession", after)
-        self.assertNotIn("StampCameraPageReady", read(VIEW))
+        view = read(VIEW)
+        # The camera view measures the caption with the page-ready helper. It still does not register routes.
+        self.assertIn("StampCameraPageReady.captionUnits(captionText)", view)
+        self.assertNotIn("StampCameraPageReady.createPath", view)
+        self.assertNotIn("marksRouteLive", view)
 
     def test_existing_stamp_tests_remain(self):
         captions = read("Tests/CoreTests/RoamStampCaptionTests.swift")

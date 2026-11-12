@@ -92,10 +92,11 @@ class CityGameBaseContracts(unittest.TestCase):
     def test_catalog_is_complete_bilingual_and_has_no_invented_numbers(self):
         catalog = json.loads(text('Resources/CityGame.xcstrings'))['strings']
         used = set()
-        for name in APP + ['App/CityGamePanel.swift']:
+        # HUD, dice and verdict copy moved onto the city board kit; the panel still hosts the rest.
+        for name in APP + ['App/CityGamePanel.swift', 'App/DesignSystem/CYCityBoard.swift']:
             used |= {key for key in re.findall(r'"([A-Za-z0-9]+\.[A-Za-z0-9.]+)"', text(name)) if key in catalog}
-        # Four strings predate the kit restyle and are no longer rendered (not-enabled note, existing-points note, rules version, value dash).
-        orphans = {'cityGame.notEnabled', 'cityGame.points.existing', 'cityGame.rules.version', 'cityGame.value.unavailable'}
+        # Three strings predate the kit restyle and are no longer rendered. The value dash is the dice face's unknown mark.
+        orphans = {'cityGame.notEnabled', 'cityGame.points.existing', 'cityGame.rules.version'}
         self.assertEqual(used | orphans, set(catalog))
         self.assertFalse(used & orphans)
         for key, row in catalog.items():

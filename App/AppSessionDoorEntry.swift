@@ -23,7 +23,7 @@ extension AppSession {
         guard retainedDoorQueue == nil, let configuration = regionalConfiguration?.apiConfiguration, let namespace = storageScope?.service,
               let directory = safetyDirectory("DoorReferralSafety/" + namespace) else { return }
         let service = DoorReferralService(configuration: configuration, transport: runtimeHTTPTransport,
-            scanEnabled: composition.reviewed?.playerWritesEnabled == true, bindingEnabled: false,
+            scanEnabled: false, bindingEnabled: false,
             currentSession: { [weak self] in self?.doorReferralSession ?? DoorReferralSession(accountID: nil, epoch: UUID(), token: nil, restored: false) })
         retainedDoorQueue = DoorReferralQueue(store: DoorReferralFileStore(url: directory.appendingPathComponent("referrals-v1.json")), service: service,
             currentSession: { [weak self] in self?.doorReferralSession ?? DoorReferralSession(accountID: nil, epoch: UUID(), token: nil, restored: false) })

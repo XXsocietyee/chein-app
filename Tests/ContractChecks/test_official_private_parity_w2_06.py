@@ -77,7 +77,10 @@ class OfficialPrivateParityChecks(unittest.TestCase):
 
     def test_new_identifiers_are_prefixed(self):
         for path in SWIFT:
-            for ident in re.findall(r'accessibilityIdentifier\("([^"\\]+)', read(path)):
+            text = read(path)
+            idents = re.findall(r'accessibilityIdentifier\("([^"\\]+)"(?!\s*\+)', text)
+            idents += [left + right for left, right in re.findall(r'accessibilityIdentifier\("([^"\\]+)"\s*\+\s*"([^"\\]+)"', text)]
+            for ident in idents:
                 if ident.startswith('official.') and ident not in {
                         'official.inbox.content', 'official.published.content', 'official.stats.content'} \
                         and not ident.startswith(('official.invite.', 'official.broadcast.')):

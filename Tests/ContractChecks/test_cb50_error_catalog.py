@@ -61,11 +61,27 @@ class CB50ErrorCatalogTests(unittest.TestCase):
                 unit = entry["localizations"][lang]["stringUnit"]
                 self.assertEqual(unit["state"], "translated", (key, lang))
                 self.assertTrue(unit["value"].strip(), (key, lang))
-        literal = re.compile(r'String\(localized:\s*"[^"\n]*"')
+        # A table-qualified key lookup is not a sentence literal. Bare String(localized:) still fails.
+        keyed = re.compile(r'String\(localized:\s*"([^"\n]*)"(?:,\s*table:\s*"([^"\n]+)")?')
+        tables = {}
         offenders = []
         for path in (ROOT / "App").rglob("*.swift"):
             for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if literal.search(line):
+                match = keyed.search(line)
+                if not match:
+                    continue
+                key, table = match.group(1), match.group(2)
+                if table is None:
+                    offenders.append(f"{path.relative_to(ROOT)}:{number}")
+                    continue
+                if table not in tables:
+                    catalog_path = ROOT / "Resources" / f"{table}.xcstrings"
+                    if not catalog_path.is_file():
+                        offenders.append(f"{path.relative_to(ROOT)}:{number}")
+                        continue
+                    tables[table] = json.loads(catalog_path.read_text(encoding="utf-8"))["strings"]
+                entry = tables[table].get(key)
+                if entry is None or set(entry.get("localizations", {})) != {"en", "zh-Hans"}:
                     offenders.append(f"{path.relative_to(ROOT)}:{number}")
         self.assertEqual([], offenders)
 

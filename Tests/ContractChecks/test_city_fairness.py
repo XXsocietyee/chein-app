@@ -377,9 +377,13 @@ class CityFairnessContracts(unittest.TestCase):
     def test_committed_host_files_are_untouched(self):
         for relative in [
             "App/AppSession.swift", "App/AppCompositionRoot.swift", "App/QuestifyApp.swift", "App/AccountView.swift",
-            "App/CityPlayerView.swift", "App/RoamBrowserView.swift",
+            "App/RoamBrowserView.swift",
         ]:
             self.assertNotIn("CityFairness", (ROOT / relative).read_text())
+        # The city hub mounts one hidden-until-bound entry. Session, composition and account stay free of it.
+        city = (ROOT / "App/CityPlayerView.swift").read_text()
+        self.assertEqual(city.count("CityFairness"), 1)
+        self.assertIn("CityFairnessEntry()", city)
         # The project file now registers the screen, core and catalog (the host files above still do not).
         project = (ROOT / "Questify.xcodeproj/project.pbxproj").read_text()
         for path in ["App/CityFairnessView.swift", "Core/CityFairness.swift", "Resources/CityFairness.xcstrings"]:

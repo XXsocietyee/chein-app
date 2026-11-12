@@ -25,7 +25,9 @@ class BackendSyncSourceTests(unittest.TestCase):
   # E01-19 consumers: explicit type only; the legacy blank-type toggle keeps failing on DELETE0.
   users = sorted(str(p.relative_to(ROOT)) for p, v in self.swift().items() if re.search(r'"api/topic/like"', v))
   # App/AppCompositionRoot.swift hosts the reviewed-route body validator that pins the same explicit type "0".
-  self.assertEqual(users, ['App/AppCompositionRoot.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
+  # The lease file names the path in the approved like set. The type "0" body stays in TopicUnlike,
+  # and the reviewed-route validator stays in AppCompositionRoot.
+  self.assertEqual(users, ['App/AppCompositionRoot.swift', 'App/ReviewedPlayerWriteLeases.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
   root = (ROOT/'App/AppCompositionRoot.swift').read_text()
   self.assertIn('case baseURL.appendingPathComponent("api/topic/like").absoluteString:\n            requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"', root)
   value = (ROOT/'Core/TopicUnlike.swift').read_text()

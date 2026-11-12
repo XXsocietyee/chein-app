@@ -78,7 +78,8 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
         for token in ['authChannels.cancel()', 'gate.invalidate()', 'restoreBlockedKey', 'token=nil;account=nil',
                       'try vault.clear()', 'accountSessionService.logout(token:oldToken)']:
             self.assertIn(token, logout)
-        expire = block(session, 'private func expireIfMatching(', 1400)
+        # Internal so AppSessionDoorEntry can call it; the body still clears the vault.
+        expire = block(session, 'func expireIfMatching(', 1400)
         self.assertIn('try? vault.clear()', expire)
         self.assertIn('retainedCompliance?.invalidate()', session)
         self.assertIn('invalidateSession: { [weak self] captured in', session)

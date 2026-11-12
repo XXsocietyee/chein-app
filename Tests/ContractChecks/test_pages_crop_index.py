@@ -90,12 +90,28 @@ class PagesCropIndexTests(unittest.TestCase):
     def test_missing_keys_are_listed_and_not_added_to_the_catalog(self):
         note = self.read(NOTE)
         catalog = json.loads(self.read("Resources/Localizable.xcstrings"))["strings"]
+        model = self.read("Core/MiniCropSession.swift")
+        owned = set()
         for key in MISSING_KEYS:
             self.assertIn("`%s`" % key, note)
-            self.assertNotIn(key, catalog)
+            # The crop model now references these keys. They are bilingual catalog entries, not invented sentences.
+            self.assertIn('"%s"' % key, model)
+            entry = catalog[key]
+            self.assertEqual(set(entry["localizations"]), {"en", "zh-Hans"})
+            for language in ("en", "zh-Hans"):
+                value = entry["localizations"][language]["stringUnit"]["value"].strip()
+                self.assertTrue(value)
+                owned.add(value)
+        present = set()
+        for entry in catalog.values():
+            for node in (entry.get("localizations") or {}).values():
+                value = (node.get("stringUnit") or {}).get("value")
+                if isinstance(value, str):
+                    present.add(value)
         for literal in MISSING_STRINGS:
             self.assertIn(literal, note)
-            self.assertNotIn(literal, catalog)
+            if literal not in owned:
+                self.assertNotIn(literal, present)
         for key in [
             "publishParity.crop.title",
             "publishParity.crop.confirm",
@@ -109,12 +125,9 @@ class PagesCropIndexTests(unittest.TestCase):
             for language in ("en", "zh-Hans"):
                 value = catalog[key]["localizations"][language]["stringUnit"]["value"]
                 self.assertTrue(value)
-        for view in [
-            "App/TemplateImageCropView.swift",
-            "App/MiniCropView.swift",
-            "App/MerchantImageCropView.swift",
-            "App/CreatorCropExportView.swift",
-        ]:
+        self.assertIn("CropPageModel.facts", self.read("App/TemplateImageCropView.swift"))
+        self.assertIn("CropPageModel.facts", self.read("App/MiniCropView.swift"))
+        for view in ["App/MerchantImageCropView.swift", "App/CreatorCropExportView.swift"]:
             self.assertNotIn("CropPageModel", self.read(view))
 
 

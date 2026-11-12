@@ -3,8 +3,9 @@
 `fixtures/backend_route_status.csv` is the AN-1 route table (static analysis of the backend controllers at the
 time of the audit; see docs/parity/fix-plan.md). It is data, not a live backend check. Two rules:
 
-1. Default grant: every route the app grants by default in `AppCompositionRoot.sessionDependencies` must be
-   MATCH. A NO-BACKEND or MISMATCH route can never be granted by default.
+1. Default grant: every route the app grants by default in `sessionDependencies` (App/ReviewedPlayerWriteLeases.swift,
+   moved out of AppCompositionRoot for the scaffold line ceiling) must be MATCH. A NO-BACKEND or MISMATCH route
+   can never be granted by default.
 2. Ratchet: a literal path accepted by `BusinessRuntimeFeature.accepts` that the table marks NO-BACKEND must be
    listed in `fixtures/no_backend_allowlisted_routes.txt`. Adding a new such route fails until it is
    acknowledged there (and it still has no default grant under rule 1).
@@ -27,7 +28,7 @@ def load_status():
 
 
 def default_grants():
-    source = (ROOT / 'App/AppCompositionRoot.swift').read_text()
+    source = (ROOT / 'App/ReviewedPlayerWriteLeases.swift').read_text()
     body = source.split('func sessionDependencies(', 1)[1]
     body = body.split('let businessConfiguration = try? BusinessRuntimeConfiguration(', 1)[0]
     return re.findall(r'BusinessRuntimeRoute\.(post|get)\("(api/[^"]+)"\)', body)
@@ -49,7 +50,7 @@ class AllowlistRoutesHaveBackend(unittest.TestCase):
                 text = path.read_text()
                 for match in re.finditer(r'BusinessRuntimeConfiguration\(\s*market', text):
                     sites.append((str(path.relative_to(ROOT)), text[match.start():match.start() + 260]))
-        self.assertEqual([site for site, _ in sites], ['App/AppCompositionRoot.swift'])
+        self.assertEqual([site for site, _ in sites], ['App/ReviewedPlayerWriteLeases.swift'])
         self.assertIn('routes: imRoutes', sites[0][1])
 
     def test_default_configuration_has_no_routes(self):
