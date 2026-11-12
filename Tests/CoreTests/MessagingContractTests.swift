@@ -119,6 +119,19 @@ final class MessagingContractTests: XCTestCase {
         let actionOnly = try XCTUnwrap(MessagingCard.parse(#"{"cardType":"route","action":"/untrusted/source/path"}"#, fallbackTitle: nil))
         XCTAssertEqual(actionOnly.kind, .route)
         XCTAssertNil(actionOnly.topicID)
+        XCTAssertNil(actionOnly.broadcastID)
+    }
+    func testBroadcastClickUsesTheInAppCardId() throws {
+        let card = try XCTUnwrap(MessagingCard.parse(#"{"cardType":"generic","bcId":"91","title":"Notice"}"#, fallbackTitle: nil))
+        XCTAssertEqual(card.broadcastID, 91)
+        XCTAssertNil(MessagingCard.parse(#"{"bcId":0}"#, fallbackTitle: nil)?.broadcastID)
+        XCTAssertNil(MessagingCard.parse(#"{"bcId":true,"title":"Notice"}"#, fallbackTitle: nil)?.broadcastID)
+        let base = try XCTUnwrap(URL(string: "https://www.chengyinhub.com/prod-api/"))
+        let request = try XCTUnwrap(IMBroadcastClick.request(baseURL: base, id: 91))
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.path, "/prod-api/api/official/broadcast/91/click")
+        XCTAssertEqual(request.httpBody, Data(#"{"channel":"inapp"}"#.utf8))
+        XCTAssertNil(IMBroadcastClick.request(baseURL: base, id: 0))
     }
     func testGenericCardFallbackLabelsAndResultAreLiteralData() throws {
         let card = try XCTUnwrap(MessagingCard.parse(#"{"sub":"<b>Literal</b>","buttons":[{"text":"Review","action":"/untrusted","key":"write"},{"text":""}],"result":{"taskId":12,"bizId":"SYNTHETIC","outcome":"Fixture outcome","reason":"Fixture reason","followUp":"Fixture next step"}}"#, fallbackTitle: "Fallback content"))
