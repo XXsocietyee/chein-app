@@ -36,6 +36,8 @@ struct CYStampPayload: Equatable, Sendable {
     var symbol: String = "mappin.and.ellipse"
     /// Place name; nil renders as a dash, never a placeholder name.
     var place: String?
+    /// Stamps in the passport after this one; nil = unknown (an em dash), never 0.
+    var passportCount: Int?
 }
 
 struct CYBadgePayload: Equatable, Sendable {
@@ -108,15 +110,15 @@ struct CYCelebrationTimeline: Equatable, Sendable {
         switch (kind, reduceMotion) {
         // Reduce Motion: cross-fade in, one `.success`, no landing impact.
         case (.stamp, true):
-            return .init(cues: [.init(offset: 0, haptic: .success)], autoDismissAfter: assistive ? 4 : 1.6)
+            return .init(cues: [.init(offset: 0, haptic: .success)], autoDismissAfter: assistive ? 4 : 2.0)
         case (.badge, true), (.roamSummary, true):
             return .init(cues: [.init(offset: 0, haptic: .success)], autoDismissAfter: nil)
-        // Seal lands at ~0.22 s (drop + squash), then `.success` once the squash has settled.
+        // Wave 3 5A: seal drops at 120 ms (impactHeavy), `.success` at 250 ms (the 150 ms spacing rule logs it at ~270 ms).
         case (.stamp, false):
-            return .init(cues: [.init(offset: 0.22, haptic: .impactHeavy), .init(offset: 0.40, haptic: .success)], autoDismissAfter: assistive ? 4 : 1.8)
-        // Medal lands on the 0.6 s spring's first contact, `.success` 150 ms later.
+            return .init(cues: [.init(offset: 0.12, haptic: .impactHeavy), .init(offset: 0.25, haptic: .success)], autoDismissAfter: assistive ? 4 : 2.4)
+        // Wave 3 5B: medal lands on the bloom overshoot at 450 ms (impactMedium), `.success` when the stars arrive at 1000 ms.
         case (.badge, false):
-            return .init(cues: [.init(offset: 0.30, haptic: .impactMedium), .init(offset: 0.45, haptic: .success)], autoDismissAfter: nil)
+            return .init(cues: [.init(offset: 0.45, haptic: .impactMedium), .init(offset: 1.0, haptic: .success)], autoDismissAfter: nil)
         // `.success` once, after the three staggered numbers (3 x 50 ms) have rolled (0.60 s).
         case (.roamSummary, false):
             return .init(cues: [.init(offset: 0.80, haptic: .success)], autoDismissAfter: nil)
@@ -132,6 +134,8 @@ enum CYCelebrationAction: Equatable, Sendable {
     case setAssistive(Bool)
     /// Person dismissed the active celebration (button, swipe, tap).
     case dismiss
+    /// Stop the active celebration's auto-dismiss (a share sheet is open on top of it); a tap still dismisses.
+    case hold
     /// The clock reached `deadline`; drives auto-dismiss and the next item.
     case tick
 }
@@ -192,6 +196,8 @@ struct CYCelebrationState: Equatable, Sendable {
             nextID += 1
         case .dismiss:
             leave(now: now, into: &effects)
+        case .hold:
+            if active != nil { active?.autoDismissAt = nil }
         case .tick:
             if let active, let deadline = active.autoDismissAt, now >= deadline { leave(now: now, into: &effects) }
         }

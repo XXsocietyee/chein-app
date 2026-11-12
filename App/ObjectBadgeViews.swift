@@ -316,7 +316,7 @@ struct ObjectBadgeWallBadgeLabel: View {
     @State private var expiredScope = UUID()
     @State private var celebrate = false
     @State private var flipped = false
-    @State private var unlockMoment = 0
+    @State private var celebrations = CYCelebrationCenter()
     @CYAlbumSeen private var seen
     private var valid: Bool { expectedIdentity != nil && reader.identity == expectedIdentity }
     private var track: Int {
@@ -370,11 +370,12 @@ struct ObjectBadgeWallBadgeLabel: View {
         .background(CYColor.bgPage.ignoresSafeArea())
         .appNavigationTitle("profile.badges.detail").privacySensitive()
         .sensoryFeedback(.success, trigger: celebrate)
+        .cyCelebrations(celebrations)
         .onAppear { arrive() }
         .accessibilityIdentifier("objects.badge.detail")
     }
-    /// First open of a badge unlocked in the last seven days plays the unlock moment once (confetti, ring, success haptic);
-    /// every other unlocked badge keeps the quiet success tick. Locked badges arrive silently.
+    /// First open of a badge unlocked in the last seven days plays the badge bloom cover once (`CYBadgeUnlockCover`, the same
+    /// one the Growth Center uses); every other unlocked badge keeps the quiet success tick. Locked badges arrive silently.
     private func arrive() {
         guard valid, !badge.isLocked else { return }
         let key = ObjectBadgeAlbumItem.seenKey(badge)
@@ -382,7 +383,7 @@ struct ObjectBadgeWallBadgeLabel: View {
             $seen.mark(key)
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(350))
-                unlockMoment += 1
+                celebrations.enqueue(.badge(CYBadgePayload(id: key, name: displayName)))
             }
         } else {
             celebrate = true
@@ -396,7 +397,6 @@ struct ObjectBadgeWallBadgeLabel: View {
             stageBack
         }
         .frame(maxWidth: .infinity)
-        .cyUnlockCelebration(trigger: unlockMoment)
     }
     private var medal: some View {
         ZStack {
@@ -405,7 +405,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                     ZStack {
                         LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
                         Image(systemName: "medal.fill").font(.system(size: 76, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
-                            .symbolEffect(.bounce, value: (celebrate || unlockMoment > 0) && !reduceMotion)
+                            .symbolEffect(.bounce, value: celebrate && !reduceMotion)
                     }
                 } else {
                     ObjectCardArtwork(url: badge.image, label: badge.name, media: media,
