@@ -77,6 +77,14 @@ import SwiftUI
                                                                                 failure: model.coordinator.readFailure) {
                     TeamPageStateView(state: state, signIn: onLogin, reload: stateReload)
                 }
+                // pages/team/join readout: no detail, no failure, not loading is the empty invitation, never a blank page.
+                if invitationCode != nil, !model.running,
+                   TeamPagePresentation.invitationReadout(loading: model.running, detail: model.coordinator.detail,
+                                                          messageKey: model.coordinator.messageKey, failure: model.coordinator.readFailure,
+                                                          legacyTeamID: legacyTeamID) == .empty {
+                    CYEmptyState(systemImage: "person.3", "team.join.empty", detail: "team.join.emptyDetail",
+                                 messageIdentifier: "team.join.empty")
+                }
                 if let banner = TeamPagePresentation.staleBanner(kind: pageKind, messageKey: model.coordinator.messageKey, hasDetail: model.coordinator.detail != nil) {
                     TeamStaleBanner(title: banner.title, detail: banner.detail)
                 }

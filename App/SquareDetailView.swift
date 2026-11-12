@@ -62,8 +62,11 @@ import SwiftUI
                         }
                         if commentsLoading { CYSkeleton() }
                         else if comments.items.isEmpty && commentIssue == nil {
-                            // Source empty comments: 还没有评论 / 说说你对这条动态的想法吧.
-                            Text("square.xcx.noCommentsTitle").foregroundStyle(.secondary).accessibilityIdentifier("square.noComments")
+                            // Source empty comments: 还没有评论 / 说说你对这条动态的想法吧 (SquareDetailPageModel keys).
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text(LocalizedStringKey(SquareDetailPageModel.emptyCommentsTitleKey))
+                                Text(LocalizedStringKey(SquareDetailPageModel.emptyCommentsDetailKey)).font(CYTypography.meta)
+                            }.foregroundStyle(.secondary).accessibilityElement(children: .combine).accessibilityIdentifier("square.noComments")
                         }
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
                             CYPillButton("square.moreComments", style: .secondary) { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")

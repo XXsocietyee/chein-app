@@ -377,9 +377,9 @@ import SwiftUI
         Section {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: CYSpacing.sm) {
-                    kindPill(nil, title: Text("searchMap.all") + Text(verbatim: " \(value.rows.count)"))
+                    kindPill(nil, title: Text("searchMap.all") + Text(verbatim: " \(allCountText(value))"))
                     ForEach(searchKinds, id: \.self) { kind in
-                        kindPill(kind, title: Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
+                        kindPill(kind, title: Text(kind.titleKey) + Text(verbatim: " \(countText(value, kind))"))
                     }
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -417,6 +417,13 @@ import SwiftUI
         }
         let visible = value.rows.filter { !(hidesMerchants && $0.kind == .merchant) && (selectedKind == nil || $0.kind == selectedKind) }
         Section {
+            // pages/search2/index readiness: a failed/gated player lane beside empty lanes is unknown, not "no results".
+            if !loading, GlobalSearchEntryReadiness.phase(configured: reader.isConfigured, loading: loading, issueKey: nil,
+                                                          results: value) == .unknown {
+                Label("searchMap.unknownResults", systemImage: "questionmark.circle")
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("searchMap.unknown")
+            }
             if value.showsEmptyState(for: selectedKind, isLoading: loading) {
                 CYEmptyState(systemImage: "magnifyingglass", "searchMap.empty", messageIdentifier: "searchMap.empty", kind: .search)
             }
@@ -442,6 +449,14 @@ import SwiftUI
             .listRowBackground(Color.clear)
         }
     }
+    /// Player lanes read the page model (em dash when failed or gated); merchant keeps its own count.
+    private func countText(_ value: GlobalSearchResults, _ kind: GlobalSearchKind) -> String {
+        GlobalSearchEntryReadiness.countText(value, kind: kind) ?? String(value.count(kind))
+    }
+    private func allCountText(_ value: GlobalSearchResults) -> String {
+        let player = GlobalSearchEntryReadiness.playerTotalText(value)
+        return player == GlobalSearchEntryReadiness.unknownCount ? player : String(value.rows.count)
+    }
     private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind
         return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
@@ -457,7 +472,7 @@ import SwiftUI
         Picker("searchMap.resultKinds", selection: $selectedKind) {
             Text("searchMap.all").tag(GlobalSearchKind?.none)
             ForEach(searchKinds, id: \.self) { kind in
-                (Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
+                (Text(kind.titleKey) + Text(verbatim: " \(countText(value, kind))"))
                     .tag(Optional(kind))
                     .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
             }

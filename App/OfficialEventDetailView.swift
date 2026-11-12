@@ -19,6 +19,7 @@ enum OfficialDetailID {
     static let collective = leaf("collective"), rewardFootnote = leaf("rewardFootnote"), cta = leaf("cta")
     static let unavailable = leaf("unavailable"), backToList = leaf("backToList"), network = leaf("network")
     static let service = leaf("service"), topicNameError = leaf("topicNameError"), ctaTopic = leaf("ctaTopic")
+    static let empty = leaf("empty"), unknown = leaf("unknown")
     private static func leaf(_ name: String) -> String { "official.detail" + "." + name }
 }
 
@@ -64,7 +65,25 @@ enum OfficialDetailID {
             let namesKey = OfficialTopicNamesKey(eventID: event.id, ids: OfficialDetailTopicLinks.topicIDs(event),
                                                 scope: reader.scope, topicScope: topicLinks?.reader.scope)
             let namesVisit = visit
+            // pages/activity/official-detail/index phase: an incomplete record is the source empty
+            // shell (back to list), an unclassified record keeps em dashes and says so.
+            let page = OfficialEventDetailPageState.project(loading: false, event: event)
+            if page.phase == .empty {
+                CYEmptyState(systemImage: "calendar.badge.exclamationmark", "official.detailParity.unavailable.title",
+                             detail: "official.detailParity.unavailable.detail",
+                             actionTitle: "official.detailParity.unavailable.back", actionIdentifier: OfficialDetailID.backToList,
+                             action: { dismiss() })
+                .padding(CYSpacing.lg)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .cyDomainPageBackground()
+                .accessibilityIdentifier(OfficialDetailID.empty)
+            } else {
             List {
+                if page.phase == .unknown {
+                    Label("official.detailPage.unknown", systemImage: "questionmark.circle")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier(OfficialDetailID.unknown)
+                }
                 OfficialEventCard(event: event).questifyCardListRow()
                 OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                 HStack(spacing: CYSpacing.sm) {
@@ -181,7 +200,8 @@ enum OfficialDetailID {
                     if reader.isAuthenticated {
                         if event.signed == true {
                             if event.isV2 { LabeledContent("official.completedTasks", value: "\(event.completedMissionCount)/\(event.missions.count)") }
-                            else if let progress = event.myProgress { LabeledContent("official.progress", value: String(progress)) }
+                            // Missing progress is an em dash (page state), a literal 0 stays "0".
+                            else { LabeledContent("official.progress", value: page.progressText) }
                         }
                         if let eligible = event.eligible { Text(eligible ? "official.eligible" : "official.notEligible") }
                     } else {
@@ -225,6 +245,7 @@ enum OfficialDetailID {
             .accessibilityIdentifier("official.detail.content")
             .task(id: namesKey) {
                 await loadTopicNames(namesKey, detailVisit: namesVisit)
+            }
             }
         }
         .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)

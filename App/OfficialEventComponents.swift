@@ -186,7 +186,9 @@ struct OfficialEventCard: View {
             }
             // Source card meta: countdown · city · "N 人参与", then "全城已点亮 N%".
             if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown) }
+            // Source: "{{participants != null ? n + ' 人' : '—'}}参与"; a missing count is an em dash, never 0.
             if let participants = event.participants { Text("official.card.participants \(participants)") }
+            else { Text("official.card.participantsUnknown") }
             if event.collectivePercentShown {
                 if let percent = event.collective?.percent {
                     ProgressView(value: Double(min(100, max(0, percent))), total: 100).tint(CYColor.accent).accessibilityHidden(true)
