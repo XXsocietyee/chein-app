@@ -198655,13 +198655,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No games to show here yet."
+            "value": "No ready-made plays are listed yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可展示的玩法。"
+            "value": "还没有上架的现成玩法"
           }
         }
       }
@@ -198672,13 +198672,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Game templates could not be loaded. Other guide sections are still available."
+            "value": "Ready-made plays couldn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法模板加载失败，仍可查看指南的其他内容。"
+            "value": "现成玩法加载失败"
           }
         }
       }
@@ -259095,6 +259095,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看记录"
+          }
+        }
+      }
+    },
+    "social.guideTemplates.toSquare": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to the template square"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发布广场"
+          }
+        }
+      }
+    },
+    "social.guideTemplates.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始"
           }
         }
       }

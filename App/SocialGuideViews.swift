@@ -7,21 +7,22 @@ import SwiftUI
     var informationDestination: ((SocialInformation) -> AnyView)? = nil
     var body: some View {
         List {
-            Section { SocialGuideXcxHero() }
+            // Mini-program order: the three mode cards right under 城瘾玩法 (no hero line, no section title),
+            // then 现成玩法, then 玩法文档.
             Section {
                 ForEach(SocialGuideMode.allCases) { mode in
                     SocialGuideXcxModeRow(mode: mode, onOpen: onOpenDestination)
                         .listRowInsets(EdgeInsets(top: 6, leading: CYSpacing.lg, bottom: 6, trailing: CYSpacing.lg))
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
-            } header: { Text("social.guide.modes") }
+            }
             SocialGuideTemplateSection(reader: templateReader)
             Section {
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { decoded in
                     // PlayGuideInformationListPage keeps only usable rows; an all-unusable list is the empty phase.
                     let rows = decoded.filter(\.isUsable)
                     if rows.isEmpty {
-                        CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", detail: "guideXcx.docsEmptyDetail", messageIdentifier: "social.guide.docsEmpty")
+                        CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", messageIdentifier: "social.guide.docsEmpty")
                             .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                     }
                     ForEach(rows) { row in
@@ -34,10 +35,7 @@ import SwiftUI
                     }
                 }
             } header: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("guideXcx.docs")
-                    Text("guideXcx.docsHint").font(.caption).textCase(nil)
-                }
+                Text("guideXcx.docs")
             }
         }.appNavigationTitle("social.guide.title").accessibilityIdentifier("social.guide")
     }

@@ -119,20 +119,41 @@ enum SocialGuideTemplateRows {
             if !reader.isConfigured { Text("social.guideTemplates.unavailable") }
             else if scenePhase == .active, let snapshot = model.visibleSnapshot(reader: reader) {
                 if snapshot.rows.isEmpty {
-                    Text("social.guideTemplates.empty").accessibilityIdentifier("social.guideTemplates.empty")
+                    // Mini-program empty: 还没有上架的现成玩法 with 去发布广场 (the template square).
+                    CYEmptyState(systemImage: "square.grid.2x2", "social.guideTemplates.empty",
+                                 messageIdentifier: "social.guideTemplates.empty",
+                                 actionTitle: "social.guideTemplates.toSquare", action: {
+                                     guard scenePhase == .active else { return }
+                                     model.openCatalog(reader: reader, permit: catalogPermit)
+                                 })
+                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                 }
                 ForEach(Array(snapshot.rows.enumerated()), id: \.offset) { index, item in
                     Button {
                         guard scenePhase == .active else { return }
                         model.openDetail(index: index, snapshotID: snapshot.id, reader: reader)
                     } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(verbatim: SocialGuideTemplateRows.text(item.title)).font(.headline)
-                            let description = SocialGuideTemplateRows.text(item.description)
-                            if !description.isEmpty { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary).lineLimit(3) }
-                            // Mini-program `_usedText`: 已玩 N 次, only when it has been played.
-                            if let count = SocialGuideTemplateRows.useCount(item), count > 0 {
-                                Text("social.guideTemplates.playedTimes \(count)").font(.caption).foregroundStyle(.secondary)
+                        // Mini-program `gl-tpl`: cover tile, name, description, then 已玩 N 次 and the 开始 pill.
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            let title = SocialGuideTemplateRows.text(item.title)
+                            Color.clear.frame(width: 84, height: 84)
+                                .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: item.imgUrl, debugLabel: false) }
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(verbatim: title).font(.headline).lineLimit(1)
+                                let description = SocialGuideTemplateRows.text(item.description)
+                                if !description.isEmpty { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary).lineLimit(2) }
+                                HStack {
+                                    // Mini-program `_usedText`: 已玩 N 次, only when it has been played.
+                                    if let count = SocialGuideTemplateRows.useCount(item), count > 0 {
+                                        Text("social.guideTemplates.playedTimes \(count)").font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    Spacer(minLength: 0)
+                                    Text("social.guideTemplates.start").font(CYTypography.label.weight(.semibold))
+                                        .foregroundStyle(CYNight.ink0).padding(.horizontal, CYSpacing.xl).frame(minHeight: 44)
+                                        .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                }
                             }
                         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 6)
                     }.buttonStyle(.plain).accessibilityIdentifier("social.guideTemplates.detail.\(item.id)")
@@ -145,12 +166,15 @@ enum SocialGuideTemplateRows {
                 }
                     .accessibilityIdentifier("social.guideTemplates.retry")
             } else { ProgressView("discovery.loading") }
-            Button("social.guideTemplates.browse") {
-                guard scenePhase == .active else { return }
-                model.openCatalog(reader: reader, permit: catalogPermit)
+            // 更多玩法 follows the rows only; the empty state carries its own 去发布广场.
+            if model.visibleSnapshot(reader: reader)?.rows.isEmpty != true {
+                Button("social.guideTemplates.browse") {
+                    guard scenePhase == .active else { return }
+                    model.openCatalog(reader: reader, permit: catalogPermit)
+                }
+                    .disabled(!reader.isConfigured || scenePhase != .active)
+                    .accessibilityIdentifier("social.guideTemplates.browse")
             }
-                .disabled(!reader.isConfigured || scenePhase != .active)
-                .accessibilityIdentifier("social.guideTemplates.browse")
         }
         .task(id: loadKey) {
             guard scenePhase == .active else { model.invalidate(); return }
