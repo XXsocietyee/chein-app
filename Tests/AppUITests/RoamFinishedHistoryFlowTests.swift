@@ -10,8 +10,8 @@ final class RoamFinishedHistoryFlowTests: XCTestCase {
                                "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         runningApp = app; app.launch()
         let live = app.buttons["roam.experience.live.open"]
-        XCTAssertTrue(scrollToElement(live, in: app, container: app.collectionViews["roam.experience.hub"]), app.debugDescription)
-        live.tap(); return app
+        XCTAssertTrue(openListRow(live, in: app, container: app.collectionViews["roam.experience.hub"]), app.debugDescription)
+        return app
     }
     private func tap(_ element: XCUIElement, app: XCUIApplication) {
         XCTAssertTrue(revealFixtureElement(element, in: app) || scrollToElement(element, in: app, container: app.collectionViews.firstMatch), app.debugDescription)
@@ -22,6 +22,7 @@ final class RoamFinishedHistoryFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["roam.finishedHistory.record.open"].exists)
         // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
         tap(app.buttons["roam.live.consent"], app: app)
+        acceptLocationPrimerIfShown(in: app)
         if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { holdGo(app.buttons["roam.live.start"]) }
         XCTAssertFalse(app.buttons["roam.finishedHistory.record.open"].exists)
         tap(app.buttons["roam.live.finish"], app: app)
@@ -43,6 +44,7 @@ final class RoamFinishedHistoryFlowTests: XCTestCase {
         let app = app("liveUnknown")
         // First GO: the inline consent card agrees and starts the roam; the Go button is only needed if location priming intervened.
         tap(app.buttons["roam.live.consent"], app: app)
+        acceptLocationPrimerIfShown(in: app)
         if app.buttons["roam.live.start"].waitForExistence(timeout: 2), app.buttons["roam.live.start"].isEnabled { holdGo(app.buttons["roam.live.start"]) }
         XCTAssertTrue(app.staticTexts["Needs a quick check"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["roam.finishedHistory.record.open"].exists)
