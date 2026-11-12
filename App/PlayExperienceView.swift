@@ -40,6 +40,12 @@ import SwiftUI
     @State private var presentedMode: PlayGameplayMode?
     @State private var presentationMount = PlayExperiencePresentationMount()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.mpParity) private var mpParity
+    private func journeyRunScope(_ topicID: Int?, _ topicName: String?) -> JourneyRunScope {
+        var scope = JourneyRunScope(topicID: topicID.map(String.init), topicName: topicName)
+        if case .activity(let id) = model.scope { scope.activityID = String(id) }
+        return scope
+    }
     var body: some View {
         Group {
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
@@ -215,6 +221,13 @@ import SwiftUI
                     }
                     if let circleModel { NavigationLink("playx.circle.title") { PlayCircleView(model: circleModel) } }
                     if let card = finishRouteModel?.card { PlayFinishRouteCardView(card: card, destination: finishRouteDestination) }
+                    if mpParity.journeyReport != nil, let snapshot = model.snapshot, snapshot.availability == .completed {
+                        // Mini-program report/settle open at the end of a run; hidden until the journey binding exists.
+                        NavigationLink { MPParityDestination(route: .journeyReport(journeyRunScope(snapshot.result.topicID, snapshot.result.topicName))) } label: {
+                            Label("mp.entry.journeyReport", systemImage: "flag.checkered")
+                        }
+                        .accessibilityIdentifier("journeyReport.entry")
+                    }
                     if let themeRecordsModel, themeRecordsModel.isAvailable {
                         NavigationLink("playx.themeRecords.title") { PlayThemeRecordsView(model: themeRecordsModel, title: model.snapshot?.result.topicName) }
                             .accessibilityIdentifier("playx.themeRecords.open")

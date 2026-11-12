@@ -10,6 +10,7 @@ import SwiftUI
     var heroNamespace: Namespace.ID? = nil
     var heroID: Int? = nil
     @Environment(\.ticketWalletPlayProvider) private var playProvider
+    @Environment(\.mpParity) private var mpParity
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletTicket>()
@@ -58,6 +59,15 @@ import SwiftUI
                         .modifier(TicketWalletPlayButtonStyle(secondary: ticket.status == .ready))
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("ticketWallet.play.open")
+                    }
+                }
+                if mpParity.journeySeats != nil {
+                    // Mini-program order detail `goSeats`: the wallet id is the registration id; the lobby gates itself (buyer only).
+                    Section {
+                        NavigationLink { MPParityDestination(route: .journeySeats(registrationID: String(id))) } label: {
+                            Label("mp.entry.journeySeats", systemImage: "person.2")
+                        }
+                        .accessibilityIdentifier("journeySeats.entry")
                     }
                 }
                 if [ticket.registrationNumber, ticket.realName, ticket.phone, ticket.verificationTime].contains(where: { $0?.isEmpty == false }) {

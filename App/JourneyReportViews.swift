@@ -269,6 +269,7 @@ struct JourneyRankBoardView: View {
         .onAppear {
             withAnimation(CYMotion.resolve(.spring(response: 0.5, dampingFraction: 0.6).delay(0.12), reduceMotion: reduceMotion)) { heroOn = true }
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: heroOn) { _, on in on && !reduceMotion }
     }
 
     private func list(_ board: JourneyRankBoard) -> some View {
@@ -711,7 +712,7 @@ struct JourneySettleView: View {
                 case .rank:
                     ScrollView {
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            Text(verbatim: topicName ?? "").font(CYTypography.sectionTitle)
+                            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisStage")).font(CYTypography.sectionTitle)
                             JourneyRankBoardView(state: rank, onScope: onRankScope, onPeriod: onRankPeriod, onRetry: onLoadRank)
                         }
                         .padding(CYSpacing.lg)
@@ -742,6 +743,10 @@ struct JourneySettleView: View {
                     .symbolEffect(.bounce, value: overviewOn)
                 Image(systemName: "sparkles").font(CYTypography.sectionTitle).foregroundStyle(CYNight.lanternHot).offset(x: 80, y: -60)
                     .opacity(overviewOn ? 1 : 0)
+                    .animation(CYMotion.resolve(.spring(response: 0.5, dampingFraction: 0.6).delay(0.9), reduceMotion: reduceMotion), value: overviewOn)
+                Image(systemName: "sparkles").font(CYTypography.cardTitle).foregroundStyle(CYNight.lanternHot).offset(x: -84, y: -24)
+                    .opacity(overviewOn ? 1 : 0)
+                    .animation(CYMotion.resolve(.spring(response: 0.5, dampingFraction: 0.6).delay(1.1), reduceMotion: reduceMotion), value: overviewOn)
             }
             .frame(height: 220)
             .scaleEffect(overviewOn ? 1 : 0.8)
