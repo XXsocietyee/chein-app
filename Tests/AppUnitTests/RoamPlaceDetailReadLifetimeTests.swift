@@ -88,6 +88,7 @@ import UIKit
         r.wire.finish(); r.phase = .background; try await settle(); r.phase = .active; try await settle()
         XCTAssertEqual(r.wire.nodeCount, 1); XCTAssertEqual(r.wire.merchantCount, 0)
         XCTAssertNil(find("roam.detail", in: scene.window))
+        XCTAssertNil(hostedPresented(scene.window.rootViewController), "The closed sheet must stay closed")
     }
     func testOwnerChangeInBackgroundNeverReadsNewAccountIntoOldDetail() async throws {
         let r = try PlaceReadLifetimeRig(), scene = try HostedNavigationSceneWindow(); defer { scene.retire() }
@@ -111,7 +112,10 @@ import UIKit
     }
     private func open(_ rig: PlaceReadLifetimeRig, window: UIWindow) async throws {
         try await tap("place.read.open", in: window)
-        try await eventually { self.find("roam.detail", in: window) != nil }
+        // The detail's own `roam.detail` identifier sits on the sheet root and is not surfaced as an accessibility node (its
+        // descendants carry their own identifiers; in background it renders no nodes at all), so "opened" is the real UIKit
+        // sheet presentation, which is exactly what `place.read.open` toggles.
+        try await eventually { hostedPresented(window.rootViewController) != nil }
     }
     private func settle() async throws { try await Task.sleep(for: .milliseconds(150)) }
     private func eventually(_ ready: () -> Bool) async throws {

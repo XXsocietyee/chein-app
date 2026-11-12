@@ -5,6 +5,8 @@ import XCTest
 @MainActor final class CouponRuntimeChineseFlowTests: XCTestCase, CouponRuntimeJourney {
     var app: XCUIApplication!
     var chinese = false
+    /// Re-enable (set false) when merchant surfaces ship; bodies below are intentionally unchanged.
+    static let merchantSurfaceHiddenInV1 = true
     override func setUp() { super.setUp(); continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
 
@@ -13,6 +15,7 @@ import XCTest
 
 
     func testChineseNormalRootLabelsAndReadOnlyConfirmation() throws {
+        try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1 player shell (docs/release/receipts/uitest-14.md)")
         launch("readOnly", chinese: true); openCoupons(); enterDraft()
         let confirm = app.buttons["couponManagement.confirm"]
         XCTAssertTrue(revealFixtureElement(confirm, in: app, requiresHittable: false)); XCTAssertFalse(confirm.isEnabled)

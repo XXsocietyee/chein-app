@@ -278,6 +278,10 @@ import SwiftUI
                     ? #"{"code":200,"data":{"list":[{"id":52,"conversationId":901,"senderId":9,"senderName":"Synthetic sender","status":0,"msgType":1,"content":"Synthetic latest history"},{"id":53,"conversationId":901,"senderId":9,"status":1,"msgType":2,"content":"https://withheld.example/SYNTHETIC-RECALLED-PAYLOAD","extraJson":"SYNTHETIC-RECALLED-EXTRA"}],"nextCursor":42,"hasMore":true,"blocked":true,"blockedByMe":true}}"#
                     : #"{"code":200,"data":{"list":[{"id":12,"conversationId":901,"senderId":9,"senderName":"Synthetic sender","status":0,"msgType":1,"content":"Synthetic earlier history"}],"nextCursor":12,"hasMore":false,"blocked":true,"blockedByMe":true}}"#
             case "api/registration/list":
+                // The Passport tab preloads the ticket-wallet lanes (owner_type 1/2) once signed in; they are empty reads.
+                if let lane = ["1", "2"].first(where: { matchesForm(request, fields: ["owner_type": $0]) }) {
+                    fields = ["owner_type": lane]; route = "wallet-list"; json = #"{"code":200,"data":[]}"#; break
+                }
                 fields = ["owner_type": "3"]; route = "orders.list"
                 json = "{\"code\":200,\"data\":{\"rows\":[{\"id\":41,\"memberId\":\(owner),\"cmsActivity\":{\"name\":\"Owner \(owner) list snapshot\"}}],\"total\":1}}"
             case "api/registration/info":
