@@ -26,11 +26,26 @@ import SwiftUI
                             .frame(minHeight: 44)
                             .background(CYColor.bgElevated, in: Capsule()).accessibilityIdentifier("official.search")
                     }
-                    Picker("official.filter", selection: $bucket) {
+                    // Source `cy-tabs variant="chip"`: left-aligned capsules, the selected one solid.
+                    HStack(spacing: CYSpacing.sm) {
                         ForEach(OfficialEventBucket.allCases) { value in
-                            Text(LocalizedStringKey(value.tabTitleKey)).tag(value)
+                            let selected = bucket == value
+                            Button { bucket = value } label: {
+                                Text(LocalizedStringKey(value.tabTitleKey))
+                                    .font(selected ? CYTypography.label.weight(.semibold) : CYTypography.label)
+                                    .foregroundStyle(selected ? CYColor.textInverse : CYColor.textPrimary)
+                                    .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
+                                    .background(selected ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
+                            }
+                            .buttonStyle(.cyPressable)
+                            .accessibilityAddTraits(selected ? .isSelected : [])
                         }
-                    }.pickerStyle(.segmented).frame(minHeight: 44).accessibilityIdentifier("official.filter")
+                        Spacer(minLength: 0)
+                    }
+                    .sensoryFeedback(.selection, trigger: bucket)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text("official.filter"))
+                    .accessibilityIdentifier("official.filter")
                 }.padding(.horizontal)
                 OfficialReadScreen(reader: reader, isPrivate: privateList, requestID: privateList ? "mine" : "public", onLogin: onLogin,
                                    load: { if privateList { return try await reader.myEvents() }; return try await reader.events(city: nil) }) { rows in
