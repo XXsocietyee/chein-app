@@ -151,20 +151,3 @@ private struct ProfileBadgeMedal: View {
             .accessibilityHidden(true)
     }
 }
-
-private struct ProfileBadgeImage: View {
-    let rawURL: String
-    let size: CGFloat
-    private var url: URL? {
-        guard let parts = URLComponents(string: rawURL), parts.scheme == "https",
-              parts.host?.isEmpty == false, parts.user == nil, parts.password == nil else { return nil }
-        return parts.url
-    }
-    var body: some View {
-        AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: {
-            Image(systemName: "medal").resizable().scaledToFit().foregroundStyle(.secondary)
-        }
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
-    }
-}
