@@ -6,13 +6,14 @@ import SwiftUI
 struct CityGameSlot: View {
     let snapshot: CityReadSnapshot
     let factory: (@MainActor (CityReadSnapshot) -> CityGameCoordinator?)?
+    var boardLayout = false
     @State private var model: CityGameCoordinator?
     @State private var resolved = false
     var body: some View {
         // The task needs a concrete host even before model/resolved has content.
         VStack(alignment: .leading, spacing: 0) {
             // Without a coordinator the section is not shown at all, rather than saying it is unavailable.
-            if let model { CityGamePanel(model: model, read: snapshot) }
+            if let model { CityGamePanel(model: model, read: snapshot, boardLayout: boardLayout) }
         }
         .task {
             guard !resolved else { return }
@@ -26,6 +27,9 @@ struct CityGameSlot: View {
 struct CityGamePanel: View {
     let model: CityGameCoordinator
     let read: CityReadSnapshot
+    /// Night-city board layout (ring of tiles + turn HUD + verdict). Default keeps the plain list.
+    var boardLayout = false
+    @State private var selectedProperty: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("cityGame.title", tableName: "CityGame").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
@@ -56,6 +60,7 @@ struct CityGamePanel: View {
                 else { lifecycleText(snapshot.lifecycle) }
             }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.boardNotice")
         }
+        if boardLayout { boardSection(snapshot) }
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             statTile("cityGame.rules.actions", value: { () -> String? in
                 if let remaining = snapshot.rules.actionsRemaining, let total = snapshot.rules.actionsPerRound { return "\(remaining) / \(total)" }
@@ -72,7 +77,29 @@ struct CityGamePanel: View {
                 .accessibilityIdentifier("cityGame.roll")
         }
         if snapshot.properties.isEmpty { Text("cityGame.properties.empty", tableName: "CityGame").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
-        ForEach(snapshot.properties) { property in propertyRow(property) }
+        if boardLayout {
+            if let selected = snapshot.properties.first(where: { $0.propertyId == selectedProperty }) { propertyRow(selected) }
+        } else {
+            ForEach(snapshot.properties) { property in propertyRow(property) }
+        }
+    }
+
+    /// Verdict once closed, otherwise turn HUD + ring. The die shows a server face only (none is exposed yet).
+    @ViewBuilder private func boardSection(_ snapshot: CityGameSnapshot) -> some View {
+        if snapshot.lifecycle == .closed || snapshot.lifecycle == .archived {
+            CYCityVerdict(held: snapshot.heldCount, holdingLimit: snapshot.rules.holdingLimit, points: snapshot.memberPoints)
+        }
+        CYCityTurnHUD(roundSeq: snapshot.roundSeq, actionsRemaining: snapshot.rules.actionsRemaining,
+                      actionsPerRound: snapshot.rules.actionsPerRound,
+                      face: nil, // STUB for Cursor: needs a server roll face on the action outcome/receipt.
+                      rolling: model.phase == .sending && model.review?.kind == .roll)
+        if !snapshot.properties.isEmpty {
+            CYCityBoardRing(properties: snapshot.properties, title: { title(for: $0) }, selection: $selectedProperty)
+                .frame(maxWidth: 420).frame(maxWidth: .infinity)
+            if selectedProperty == nil {
+                Text("cityGame.board.selectHint", tableName: "CityGame").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            }
+        }
     }
 
     @ViewBuilder private func propertyRow(_ property: CityPropertyState) -> some View {

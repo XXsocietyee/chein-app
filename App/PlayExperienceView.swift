@@ -17,6 +17,8 @@ import SwiftUI
     var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
     var backpackModel: PlayThemeBackpackCoordinator? = nil
     var entryCode: PlayEntryCodeContext? = nil
+    /// W20 city business game. Nil (production until a reviewed endpoint and `cityActions` exist) hides the board.
+    var cityGameModel: CityGameCoordinator? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
     var ambientModel: JourneyAmbientCoordinator? = nil
@@ -128,6 +130,10 @@ import SwiftUI
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if let entryCode { PlayEntryCodeSection(context: entryCode) }
+            if let cityGameModel {
+                Section { CityGamePanel(model: cityGameModel, read: cityGameModel.read, boardLayout: true) }
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            }
             if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
