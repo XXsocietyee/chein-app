@@ -18,8 +18,12 @@ final class MotionTourTests: XCTestCase {
     /// Taps once the element exists, scrolling a little when it is below the fold.
     private func tap(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(element.waitForExistence(timeout: 20), app.debugDescription, file: file, line: line)
-        for _ in 0..<6 where !element.isHittable { app.swipeUp(velocity: .slow) }
+        for _ in 0..<6 where !element.isHittable { scrollPageUp() }
         element.tap()
+    }
+    /// Scrolls the page from its right margin: a slow swipe from the middle can land on a horizontal card shelf and open a card.
+    private func scrollPageUp() {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.985, dy: 0.72)).press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.985, dy: 0.32)))
     }
     /// Back along the same path: the nav bar back button, else the interactive edge swipe; retried until the detail's back
     /// button is gone, so the next step always starts on the screen the tour came from.
