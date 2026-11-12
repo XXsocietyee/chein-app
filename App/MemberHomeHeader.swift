@@ -20,6 +20,7 @@ import SwiftUI
     @State private var phase: Phase = .loading
     @State private var level: Int?
     @State private var streakDays: Int?
+    @QuestifyReduceMotion private var reduceMotion
 
     var body: some View {
         Section {
@@ -29,7 +30,7 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 6) {
                     name.font(.system(.title2, design: .rounded).weight(.heavy)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
                     HStack(spacing: 6) {
-                        Text(verbatim: "Lv.\(level ?? snapshot?.levelID ?? account.level)").monospacedDigit()
+                        Text(verbatim: levelText).monospacedDigit()
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
                     .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
@@ -43,7 +44,9 @@ import SwiftUI
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
                             HStack(spacing: 2) {
-                                Image(systemName: "flame.fill").symbolEffect(.pulse, options: .nonRepeating, value: streakDays)
+                                Image(systemName: "flame.fill")
+                                    .foregroundStyle(CYNight.lantern)
+                                    .symbolEffect(.pulse, options: .nonRepeating, value: reduceMotion ? 0 : streakDays)
                                 Text("member.card.streak", tableName: "MemberProfile")
                                 Text(verbatim: "\(streakDays)").monospacedDigit()
                                 Text("member.card.days", tableName: "MemberProfile")
@@ -96,12 +99,9 @@ import SwiftUI
             }
             .padding(CYSpacing.lg)
             .background {
-                ZStack {
-                    CYCoverArt(seed: "member-" + account.nickname, symbol: "person", showsDebugLabel: false, showsGlyph: false).opacity(0.38)
-                    LinearGradient(colors: [.clear, CYColor.bgElevated.opacity(0.85)], startPoint: .top, endPoint: .bottom)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.1), lineWidth: 1))
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(CYNight.ink2)
+                    .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
             }
         }
         .listRowBackground(Color.clear)
@@ -114,6 +114,32 @@ import SwiftUI
     private struct TaskKey: Equatable { let scope: UUID; let refresh: Int; let active: Bool }
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
+
+    /// Growth or the identity snapshot when present. A failed read keeps the signed-in account level.
+    /// Anything still unknown is an em dash, never a made-up zero.
+    private var knownLevel: Int? {
+        if let level { return level }
+        if let id = snapshot?.levelID { return id }
+        if case .failed = phase { return account.level }
+        return nil
+    }
+    private var levelText: String {
+        guard let knownLevel else { return MemberHomePageModel.unknownDisplay }
+        return "Lv.\(knownLevel)"
+    }
+    /// Glass ring. A known level fills an indigo arc. Lantern stays off this chrome.
+    private var levelRing: some View {
+        let fill = knownLevel.map { min(1, CGFloat($0) / 30) } ?? 0
+        return ZStack {
+            Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 3)
+            Circle()
+                .trim(from: 0, to: fill)
+                .stroke(CYNight.indigo, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .padding(1.5)
+        }
+        .accessibilityHidden(true)
+    }
 
     @ViewBuilder private var name: some View {
         let nickname = snapshot?.nickname ?? account.nickname
@@ -147,7 +173,7 @@ import SwiftUI
                     .id(AvatarKey(read: observation.readRevision, source: avatarAccess?.sourceRevision()))
             }
         }.frame(width: 72, height: 72).clipShape(Circle())
-        .overlay(Circle().strokeBorder(LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
+        .overlay { levelRing }
         .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
         .accessibilityHidden(true)
     }
@@ -158,7 +184,8 @@ import SwiftUI
             label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, minHeight: 64)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("member.card.\(id)")
     }
@@ -170,7 +197,8 @@ import SwiftUI
         }
         .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
         .padding(CYSpacing.md)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
         .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
     }
 
