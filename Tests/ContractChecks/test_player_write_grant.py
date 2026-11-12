@@ -8,10 +8,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 class PlayerWriteGrantContracts(unittest.TestCase):
     def test_writers_are_inside_the_reviewed_gate(self):
         source = (ROOT / "App/AppCompositionRoot.swift").read_text()
+        leases = (ROOT / "App/ReviewedPlayerWriteLeases.swift").read_text()
         self.assertNotIn("PlayerWriteAdmission", source)
         self.assertNotIn("PlayerWriteCatalog", source)
         self.assertNotIn("playerWriteCatalog", source)
-        paths = source.split("// player-write-paths-begin", 1)[1].split("// player-write-paths-end", 1)[0]
+        self.assertNotIn("PlayerWriteAdmission", leases)
+        paths = leases.split("// player-write-paths-begin", 1)[1].split("// player-write-paths-end", 1)[0]
         for path in [
             "api/im/send", "api/im/send-receipt", "api/club/post/create", "api/club/post/delete",
             "api/club/post/like", "api/club/post/report", "api/club/post/comment/create",
@@ -32,7 +34,7 @@ class PlayerWriteGrantContracts(unittest.TestCase):
             "api/roam/presence", "api/club/roles/assign", "api/club/roles/revoke",
         ]:
             self.assertNotIn(banned, paths)
-        route = source.split("func acceptsPlayerWrite", 1)[1].split("@MainActor private final class ReviewedProductionGateLeases", 1)[0]
+        route = leases.split("func acceptsPlayerWrite", 1)[1].split("@MainActor final class ReviewedProductionGateLeases", 1)[0]
         self.assertIn("ReleaseMoneyWriteSwitch.blocks", route)
         self.assertIn("freeRegistrationBody", route)
         self.assertIn('object["payChannel"] == nil', route)
