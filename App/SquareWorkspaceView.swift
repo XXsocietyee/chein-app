@@ -17,6 +17,9 @@ import UniformTypeIdentifiers
     @State private var referenceType = "ACTIVITY"
     @State private var options: [SquareWorkspaceOption] = []
     @State private var locationReview: SquareWorkspacePost?
+    @State private var showsDrafts = false
+    @State private var showsActivityPicker = false
+    @Environment(\.squareCompletedActivities) private var completedActivities
     private func run(_ action: @escaping @MainActor () async throws -> Void) {
         Task { do { try await action() } catch { issue = true } }
     }
@@ -93,6 +96,15 @@ import UniformTypeIdentifiers
                         ForEach(["ACTIVITY", "TOPIC", "ROUTE", "CLUB", "POI"], id: \.self) { Text(LocalizedStringKey("squareWorkspace.type." + $0)).tag($0) }
                     }
                     if let reference = draft.reference { Text("\(reference.type) #\(reference.id)"); Button("squareWorkspace.removeReference") { draft.removeReference() } }
+                    // Mini `activity-picker`: attach a finished play (shown only when the completed-play read exists).
+                    if let completedActivities, referenceType == "ACTIVITY" {
+                        Button { showsActivityPicker = true } label: { Label { Text("activityPicker.entry", tableName: "SocialParity") } icon: { Image(systemName: "flag.checkered") } }
+                            .disabled(!coordinator.grants.live)
+                            .accessibilityIdentifier("squareWorkspace.activityPicker")
+                            .sheet(isPresented: $showsActivityPicker) {
+                                CYSquareActivityPicker(provider: completedActivities) { draft.reference = .init(type: "ACTIVITY", id: $0.id) }
+                            }
+                    }
                     Button("squareWorkspace.loadReferences") { run { options = try await coordinator.referenceOptions(type: referenceType) } }.disabled(!coordinator.grants.live)
                     ForEach(options) { option in
                         Button(option.name) {
@@ -163,6 +175,28 @@ import UniformTypeIdentifiers
             }.disabled(coordinator.busy || (initialPostID != nil && !editReady))
         }
         .cyHeroScreen()
+        .toolbar {
+            // Mini `cy-post-drafts` entry on the composer.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { try? coordinator.refreshLocal(); showsDrafts = true } label: {
+                    Label { Text("drafts.title", tableName: "SocialParity") } icon: { Image(systemName: "doc.on.doc") }
+                }
+                .accessibilityIdentifier("squareWorkspace.draftsSheet")
+            }
+        }
+        .sheet(isPresented: $showsDrafts) {
+            CYSquarePostDraftsSheet(
+                loading: false,
+                drafts: coordinator.local.map { .init(id: $0.id, summary: $0.draft.body, updatedAt: $0.updatedAt, locked: $0.pending) },
+                onSelect: { id in
+                    guard let entry = coordinator.local.first(where: { $0.id == id }) else { return }
+                    run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() }
+                },
+                onDelete: { id in
+                    guard let entry = coordinator.local.first(where: { $0.id == id }), !entry.pending else { return }
+                    run { try coordinator.discard(entry) }
+                })
+        }
         .task(id: initialPostID) {
             do {
                 try coordinator.refreshLocal()

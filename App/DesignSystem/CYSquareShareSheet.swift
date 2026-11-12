@@ -1,0 +1,113 @@
+import SwiftUI
+import UIKit
+
+/// Mini `square/utils/square-share.js` (U-050) as a pure projection. Only a PUBLIC, published post
+/// shares its own excerpt and first image; everything else falls back to the generic card with no
+/// post content (a sent card is frozen in the receiver's chat, so nothing private may leak into it).
+struct CYSquareSharePayload: Equatable {
+    static let titleLimit = 28
+    let postID: Int?
+    /// Nil means the generic card ("城瘾Hub").
+    let excerpt: String?
+    let imageURL: URL?
+    var isGeneric: Bool { postID == nil }
+    static let generic = CYSquareSharePayload()
+    private init() { postID = nil; excerpt = nil; imageURL = nil }
+
+    init(post: SquarePost) {
+        let publicAudience = post.audience.isEmpty || post.audience.uppercased() == "PUBLIC"
+        let published = post.lifecycle.uppercased() == "PUBLISHED"
+        guard post.id > 0, publicAudience, published else { postID = nil; excerpt = nil; imageURL = nil; return }
+        postID = post.id
+        let text = (post.contents ?? "").split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        excerpt = text.isEmpty ? nil : (text.count > Self.titleLimit ? String(text.prefix(Self.titleLimit)) + "…" : text)
+        imageURL = post.images.lazy.compactMap { URL(string: $0.trimmingCharacters(in: .whitespaces)) }
+            .first { $0.scheme == "https" || $0.scheme == "http" }
+    }
+}
+
+/// Mini detail `act-share` (open-type=share, placed after like/comment/bookmark, Threads-style).
+/// Native: a half sheet with the card the receiver will see, then the system share sheet.
+struct CYSquareShareSheet: View {
+    let payload: CYSquareSharePayload
+    let url: URL
+    @Environment(\.dismiss) private var dismiss
+    @State private var copied = false
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            HStack {
+                Text("share.title", tableName: "SocialParity").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                Spacer()
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark").font(CYTypography.label.weight(.semibold))
+                        .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                        .background(Circle().fill(CYNight.glassFill))
+                }
+                .buttonStyle(.cyPressable)
+                .accessibilityLabel(Text("share.close", tableName: "SocialParity"))
+                .accessibilityIdentifier("square.share.close")
+            }
+            card
+            if payload.isGeneric {
+                Text("share.genericNote", tableName: "SocialParity").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            ShareLink(item: url, preview: SharePreview(payload.excerpt ?? Self.brand)) {
+                Label { Text("share.send", tableName: "SocialParity") } icon: { Image(systemName: "square.and.arrow.up") }
+                    .font(CYTypography.bodyMedium.weight(.semibold))
+                    .foregroundStyle(CYColor.textOnAccent)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Capsule().fill(CYColor.accent))
+            }
+            .buttonStyle(.cyPressable)
+            .accessibilityIdentifier("square.share.send")
+            Button {
+                UIPasteboard.general.url = url
+                withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { copied = true }
+            } label: {
+                Label { Text(LocalizedStringKey(copied ? "share.copied" : "share.copy"), tableName: "SocialParity") } icon: { Image(systemName: copied ? "checkmark" : "link") }
+                    .font(CYTypography.bodyMedium)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .buttonStyle(.cyPressable)
+            .accessibilityIdentifier("square.share.copy")
+        }
+        .padding(CYSpacing.lg)
+        .presentationDetents([.medium])
+        .presentationBackground(CYNight.ink2)
+        .accessibilityIdentifier("square.share.sheet")
+    }
+
+    private static let brand = "城瘾Hub"
+
+    private var card: some View {
+        HStack(spacing: CYSpacing.md) {
+            Group {
+                if let image = payload.imageURL {
+                    AsyncImage(url: image) { phase in
+                        if let loaded = phase.image { loaded.resizable().scaledToFill() } else { CYNight.indigo }
+                    }
+                } else {
+                    ZStack { CYNight.indigo; Image(systemName: "sparkles").foregroundStyle(CYColor.textSecondary) }
+                }
+            }
+            .frame(width: 72, height: 72)
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: payload.excerpt ?? Self.brand).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                Text(verbatim: Self.brand).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(CYSpacing.md)
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink1))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("square.share.card")
+    }
+}
