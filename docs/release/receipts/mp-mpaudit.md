@@ -57,6 +57,15 @@ Copy-gap detector (CJK string in wxml not found verbatim in catalogs or Swift) i
 | Chapter nodes / NPC forms / pickers / drafts / publish | `Project*`, `Merchant*Authoring*`, `PublishingAIDraftSheet` | not traced screen by screen | none | trace pending |
 | Play finish (medals, verdict, journey check) | `PlayFinishRouteCardView`, `RoamMedalShareView`, `PlayExperienceView` | not traced | none | trace pending |
 
+## APP-ONLY (owner clarification: features the app added; keep intact, never MISSING)
+| feature | native files | note |
+|---|---|---|
+| Message channel (channel messaging, history, pins, search, progress board, notifications) | `NativeChannel*`, `ClubChannelMessagingView`, `Messaging*` | app superset of mini-program IM |
+| City-themed Monopoly game | `App/CityGamePanel.swift`, `Core/CityGameBoardProjection.swift` | untouched in this branch |
+| Improved community | `ClubCommunity*` (feed, read composition) | untouched |
+
+Floor rule for older-version areas (IM `subpackageB/pages/im/*`, square `pages/square/*`): the app must keep every mini-program behaviour plus its extras. IM and square were only checked for native-file presence (`IM*Views`, `Messaging*`, `Square*View`) in this pass; a behaviour-by-behaviour IM/square check (e.g. `subpackageB/pages/im/chat` has 16/31 unmatched copy strings per the detector) is still to do.
+
 ## For Cursor
 - Host `PublicCatalogView` / `PublicCatalogDetailView`: feed from `PWaveCatalogCard`/`PWaveCatalogCity` (Core `PWaveP3ThemeCollection`), paging, filters (`/api/public-catalog/filters`), routes.
 - Pass `HomeFeedView.cityLocationConsent` while the home-city consent is pending; record consent `privacy_policy/home_city_location` on agree, `saveLocationDeclined` on decline.
