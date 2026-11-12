@@ -234,7 +234,7 @@ struct ClubActionPanel: View {
         // Synchronization handles old-session writes even when the view now has a new identity.
         coordinator.synchronizeSession()
         coordinator.leaveScreen(clubID: clubID ?? club.id, expectedIdentity: identity, ownerID: ownerID)
-        confirmation = nil; isWorking = false; issueKey = nil; joinMessage = ""; joinedAction = nil; revision &+= 1
+        confirmation = nil; isWorking = false; issueKey = nil; joinedAction = nil; joinMessage = ""; revision &+= 1
     }
 }
 
