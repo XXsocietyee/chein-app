@@ -59,6 +59,15 @@ import UIKit
                     if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
                     Text("chapterStory.end").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     CYPillButton("chapterStory.return") { leave() }
+                } else if model.phase == .loading && model.snapshot == nil {
+                    // Loading is not "locked": the lock state only shows once the read has settled.
+                    CYLoadingStateView(rows: 3)
+                        .accessibilityLabel(Text("homeFeed.loading"))
+                        .accessibilityIdentifier("chapterStory.loading")
+                } else if model.phase == .failed {
+                    CYErrorStateView(title: "chapterStory.unavailable", message: "chapterStory.unavailable.detail",
+                                     retryTitle: "homeFeed.retry") { Task { await model.load() } }
+                        .accessibilityIdentifier("chapterStory.error")
                 } else {
                     CYEmptyState(systemImage: "lock", "chapterStory.unavailable", detail: "chapterStory.unavailable.detail")
                 }
