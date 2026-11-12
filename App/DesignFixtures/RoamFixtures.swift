@@ -7,8 +7,9 @@ import SwiftUI
 ///
 /// | name | shows |
 /// |---|---|
-/// | `roam-go` | idle: GO with the breathing ring; press and hold for the feel, release to start walking |
-/// | `roam-walking` | walking: slow breathing ring, animated fog edge, player dot |
+/// | `roam-go` | idle: 72 pt GO pill; hold 600 ms (ring fills in three segments, ticks at 200/400 ms), release early cancels, commit shrinks the pill into the bottom-right puck with a wave across the map; Reduce Motion: tap + confirm |
+/// | `roam-go-demo` | `roam-go` scripted for video: early release (cancel), full hold, commit, walking, loop (Reduce Motion: tap-equivalent commit) |
+/// | `roam-walking` | walking: bottom-right puck, lantern fog edge breathing on a 2.2 s cycle (static under Reduce Motion), player dot |
 /// | `roam-reveal` | walking + "new area revealed" toast, percent counting up, fog edge pushes out (loops every 5 s) |
 /// | `roam-sheet-half` | nearby sheet at half detent, second card selected, its pin highlighted |
 /// | `roam-paused` | paused: static fog edge, resume glyph on the circle |
@@ -20,6 +21,7 @@ enum RoamFixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
         case "roam-go": return wrap(RoamFixtureStage(initial: .idle))
+        case "roam-go-demo": return wrap(RoamFixtureStage(initial: .idle, goDemo: true))
         case "roam-walking": return wrap(RoamFixtureStage(initial: .walking))
         case "roam-reveal": return wrap(RoamFixtureStage(initial: .walking, loopReveal: true))
         case "roam-sheet-half": return wrap(RoamFixtureStage(initial: .idle, sheet: .half, selected: "b"))
@@ -74,7 +76,11 @@ private struct RoamFixtureStage: View {
     var sheet: CYRoamSheetDetent = .peek
     var selected: String?
     var loopReveal = false
+    var goDemo = false
     @State private var phase: RoamPhase
+    @State private var wave = 0
+    @State private var demoPress = false
+    @Namespace private var goNamespace
     @State private var detent: CYRoamSheetDetent
     @State private var selectedID: String?
     @State private var toast = false
@@ -84,8 +90,8 @@ private struct RoamFixtureStage: View {
     @Environment(\.locale) private var locale
     private var items: [CYRoamNearbyItem] { RoamFixtures.items(locale: locale) }
 
-    init(initial: RoamPhase, sheet: CYRoamSheetDetent = .peek, selected: String? = nil, loopReveal: Bool = false) {
-        self.initial = initial; self.sheet = sheet; self.selected = selected; self.loopReveal = loopReveal
+    init(initial: RoamPhase, sheet: CYRoamSheetDetent = .peek, selected: String? = nil, loopReveal: Bool = false, goDemo: Bool = false) {
+        self.initial = initial; self.sheet = sheet; self.selected = selected; self.loopReveal = loopReveal; self.goDemo = goDemo
         _phase = State(initialValue: initial)
         _detent = State(initialValue: sheet)
         _selectedID = State(initialValue: selected)
@@ -119,8 +125,7 @@ private struct RoamFixtureStage: View {
                     }
                     Spacer()
                 }
-                goButton.position(x: geo.size.width * 0.5, y: geo.size.height * (sheet == .peek ? 0.74 : 0.30))
-                    .opacity(detent == .peek ? 1 : 0)
+                goControl(geo).opacity(detent == .peek ? 1 : 0)
                 CYRoamNearbySheet(detent: $detent) {
                     Text(verbatim: appLocalized("roam.nearby.header \(items.count)", locale: locale)).font(.headline).foregroundStyle(CYColor.textPrimary)
                 } content: {
@@ -132,6 +137,23 @@ private struct RoamFixtureStage: View {
                         }.padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                     }
                 }
+            }
+        }
+        .task(id: goDemo) {
+            guard goDemo else { return }
+            while !Task.isCancelled {
+                phase = .idle
+                try? await Task.sleep(for: .milliseconds(1400))
+                if reduceMotion {
+                    try? await Task.sleep(for: .milliseconds(800))
+                    commitGo()
+                } else {
+                    demoPress = true; try? await Task.sleep(for: .milliseconds(330)); demoPress = false   // early release cancels
+                    try? await Task.sleep(for: .milliseconds(1200))
+                    demoPress = true                                                                       // full hold commits at 600 ms
+                }
+                try? await Task.sleep(for: .milliseconds(5200))
+                demoPress = false
             }
         }
         .task(id: loopReveal) {
@@ -146,6 +168,41 @@ private struct RoamFixtureStage: View {
                 try? await Task.sleep(for: .seconds(1.4))
                 step = (step + 1) % 4
             }
+        }
+    }
+
+    private func commitGo() {
+        withAnimation(reduceMotion ? CYMotion.reduced : CYMotion.entrance) { phase = .walking }
+        tick += 1
+        wave += 1
+    }
+
+    /// Idle: the hold pill. Walking: the puck it shrinks into. Other phases keep the round glyph button.
+    @ViewBuilder private func goControl(_ geo: GeometryProxy) -> some View {
+        let bottom = geo.size.height * (1 - (sheet == .peek ? 0.74 : 0.30)) - 50
+        VStack {
+            Spacer()
+            HStack(spacing: 0) {
+                switch phase {
+                case .idle:
+                    Spacer(minLength: 0)
+                    CYGoHoldPill(demoPress: demoPress) { commitGo() }.matchedGeometryEffect(id: "go", in: goNamespace)
+                    Spacer(minLength: 0)
+                case .walking:
+                    Spacer(minLength: 0)
+                    CYGoPuck().matchedGeometryEffect(id: "go", in: goNamespace)
+                default:
+                    Spacer(minLength: 0)
+                    goButton
+                    Spacer(minLength: 0)
+                }
+            }
+            .padding(.horizontal, CYSpacing.lg).padding(.bottom, bottom)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            Color.clear.frame(width: 44, height: 44)
+                .overlay { CYGoWave(trigger: wave).frame(width: 1600, height: 1600) }
+                .padding(.trailing, CYSpacing.lg).padding(.bottom, bottom)
         }
     }
 
@@ -168,7 +225,7 @@ private struct RoamFixtureStage: View {
 
     private func advance() {
         switch phase {
-        case .idle, .paused: phase = .walking
+        case .idle, .paused: commitGo()
         case .walking: phase = .paused
         case .starting, .finishing, .finished, .blocked: break
         }

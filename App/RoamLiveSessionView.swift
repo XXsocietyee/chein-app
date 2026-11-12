@@ -37,6 +37,9 @@ import Combine
     @State private var revealToastTask: Task<Void, Never>?
     @State private var nearbyExpanded = true
     @State private var celebrations = CYCelebrationCenter()
+    @State private var goCommitted = false
+    @State private var goWave = 0
+    @Namespace private var goNamespace
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -300,15 +303,18 @@ import Combine
                     }
                     .buttonStyle(.cyPrimary)
                     .accessibilityIdentifier("roam.live.pause")
+                    CYGoPuck().matchedGeometryEffect(id: "go", in: goNamespace)
                 } else if canStart, owner.record == nil {
-                    Button {
-                        if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
-                        Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
-                    } label: {
-                        Label("roam.live.start", systemImage: "figure.walk").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    if goCommitted {
+                        // Committed, waiting for the controller: the pill has already shrunk into the puck.
+                        Color.clear.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        CYGoPuck().matchedGeometryEffect(id: "go", in: goNamespace)
+                    } else {
+                        Spacer(minLength: 0)
+                        CYGoHoldPill(enabled: purposeAccepted && !owner.busy) { commitGo() }
+                            .matchedGeometryEffect(id: "go", in: goNamespace)
+                        Spacer(minLength: 0)
                     }
-                    .buttonStyle(.cyPrimary)
-                    .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.start")
                 } else if canStart, owner.record?.finishRequested == false {
                     Button { Task { await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
                         Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
@@ -323,6 +329,24 @@ import Combine
                 }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+            .animation(reduceMotion ? nil : CYMotion.entrance, value: owner.phase)
+            .animation(reduceMotion ? nil : CYMotion.entrance, value: goCommitted)
+            // The wave leaves the puck (bottom-right) and crosses the map; the oversized frame never affects layout.
+            .overlay(alignment: .bottomTrailing) {
+                Color.clear.frame(width: 44, height: 44)
+                    .overlay { CYGoWave(trigger: goWave).frame(width: 1600, height: 1600) }
+                    .padding(.trailing, CYSpacing.lg).padding(.bottom, CYSpacing.sm)
+            }
+        }
+    }
+    /// Hold committed: shrink the pill into the puck, fire the wave, then start. A refused start brings the pill back.
+    private func commitGo() {
+        if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
+        goCommitted = true
+        goWave += 1
+        Task {
+            await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+            if owner.phase != .active { goCommitted = false }
         }
     }
     @ViewBuilder private var pauseAndBrowse: some View {

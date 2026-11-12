@@ -193,10 +193,16 @@ private struct CYFogCanvas: View, Animatable {
                 }
                 hole(&layer, center, playerRadius)
             }
-            // A faint cool rim where the fog starts, so the edge reads as a boundary and not just a gradient.
-            ctx.stroke(Path(ellipseIn: CGRect(x: center.x - playerRadius * 0.9, y: center.y - playerRadius * 0.9,
-                                              width: playerRadius * 1.8, height: playerRadius * 1.8)),
-                       with: .color(Color.white.opacity(0.05)), lineWidth: 1)
+            // Lantern edge: a 2 pt gold stroke plus a 14 pt blurred copy where the fog starts. Breathes on a 2.2 s cycle;
+            // `time` is 0 when motion is reduced, which holds it at the resting value (static edge).
+            let breath = 1 + 0.15 * sin(time * 2 * .pi / 2.2)
+            let rim = Path(ellipseIn: CGRect(x: center.x - playerRadius * 0.9, y: center.y - playerRadius * 0.9,
+                                             width: playerRadius * 1.8, height: playerRadius * 1.8))
+            ctx.drawLayer { layer in
+                layer.addFilter(.blur(radius: 14))
+                layer.stroke(rim, with: .color(CYNight.lantern.opacity(0.45 * breath)), lineWidth: 8)
+            }
+            ctx.stroke(rim, with: .color(CYNight.lantern.opacity(0.8 * breath)), lineWidth: 2)
         }
     }
 }
