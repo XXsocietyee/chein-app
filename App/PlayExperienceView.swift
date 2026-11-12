@@ -45,6 +45,12 @@ import SwiftUI
     @State private var finishScreen = false
     @State private var finishShownFor: String?
     @Environment(\.locale) private var locale
+    /// 切换章节: nil shows every chapter's places.
+    @State private var chapterFilter: Int?
+    @State private var showChapterPicker = false
+    @State private var showEmergencyHelp = false
+    @State private var titleCardTopic: Int?
+    @Environment(\.playThemePresentationReader) private var themeReader
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
     private func journeyRunScope(_ topicID: Int?, _ topicName: String?) -> JourneyRunScope {
@@ -57,7 +63,7 @@ import SwiftUI
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
                 FreeExplorationExperienceView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) }, rewardCollectionDestination: rewardCollectionDestination)
             } else if model.gameplayMode == .cityOrientation {
-                orientationContent
+                orientationContent.cyThemeLook(themeFacts?.look)
             } else if model.snapshot == nil {
                 if model.phase == .loading {
                     CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -90,6 +96,20 @@ import SwiftUI
         .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
         } message: { Text("playx.run.end.detail") }
+        .sheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
+        .sheet(isPresented: $showChapterPicker) {
+            if let snapshot = model.snapshot {
+                PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
+                    withAnimation(CYMotion.standard) { chapterFilter = picked }
+                }
+            }
+        }
+        .overlay { titleCardOverlay }
+        .onChange(of: model.snapshot?.result.topicID) { _, topicID in
+            chapterFilter = nil
+            presentTitleCardIfNeeded(topicID)
+        }
+        .onChange(of: model.chapterStories.count) { _, _ in presentTitleCardIfNeeded(model.snapshot?.result.topicID) }
         .task(id: PlayExperiencePresentationKey(model: model)) {
             // This task also restarts when returning from a pushed store. Preserve
             // the same owner's mode host through refresh so its open card pack survives.
@@ -107,7 +127,7 @@ import SwiftUI
         .onChange(of: model.gameplayMode) { _, mode in
             if let mode, mode != .cityOrientation { showRouteMap = false }
         }
-        .onChange(of: PlayExperiencePresentationKey(model: model)) { _, _ in showRouteMap = false }
+        .onChange(of: PlayExperiencePresentationKey(model: model)) { _, _ in showRouteMap = false; showChapterPicker = false; showEmergencyHelp = false }
         .onChange(of: model.snapshot?.result) { _, _ in if model.gameplayMode == .cityOrientation { projectAmbient() } }
         .onChange(of: model.snapshot) { _, _ in invalidateShopNPC?() }
         .onChange(of: model.snapshot?.availability) { old, new in
@@ -122,6 +142,32 @@ import SwiftUI
             if model.gameplayMode == .cityOrientation, next != .active, model.clock.phase == .running {
                 Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
             }
+        }
+    }
+    private var themeFacts: PlayThemePresentationFacts? {
+        model.snapshot?.result.topicID.flatMap { themeReader?.facts(topicID: $0) }
+    }
+    /// 主题开场标题卡: once per topic on this device, only for a story route (chapters carry story blocks)
+    /// or a product that skips the card pack.
+    private func presentTitleCardIfNeeded(_ topicID: Int?) {
+        guard let topicID, topicID > 0, !PlayThemeTitleCardMemory.seen(topicID), model.hasCurrentMediaSnapshot,
+              let snapshot = model.snapshot, (snapshot.result.topicName ?? "").isEmpty == false else { return }
+        let story = !model.chapterStories.isEmpty
+        let freeWithoutPack = model.gameplayMode == .freeExploration && themeFacts?.skipsCardPack == true
+        guard story || freeWithoutPack else { return }
+        titleCardTopic = topicID
+    }
+    @ViewBuilder private var titleCardOverlay: some View {
+        if let topicID = titleCardTopic, let snapshot = model.snapshot, snapshot.result.topicID == topicID {
+            PlayThemeTitleCard(title: snapshot.result.topicName ?? "", line: PlayThemeIntro.line(snapshot.result.topicDescription),
+                               modeKey: model.gameplayMode == .freeExploration ? "playFree.title" : "mpd.mode.cityOrientation",
+                               aiGenerated: themeFacts?.aiGenerated == true, coverURL: themeFacts?.coverURL) {
+                PlayThemeTitleCardMemory.markSeen(topicID)
+                withAnimation(CYMotion.standard) { titleCardTopic = nil }
+            }
+            .cyThemeLook(themeFacts?.look)
+            .transition(.opacity)
+            .zIndex(10)
         }
     }
     /// Action id and route session id already on the completion journal or receipt.
@@ -203,8 +249,8 @@ import SwiftUI
                         }
                     }
                 }
-                Section("playx.nodes") {
-                    ForEach(model.snapshot?.visibleNodes ?? []) { node in
+                Section {
+                    ForEach((model.snapshot?.visibleNodes ?? []).filter { chapterFilter == nil || $0.chapterID == chapterFilter }) { node in
                         Button { selectedNode = node.id } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 PlayNodeTitle(name: node.name).font(.headline)
@@ -214,6 +260,17 @@ import SwiftUI
                                 if let reason = model.snapshot?.lockReason(node) { Text(verbatim: reason).font(.footnote) }
                             }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4)
                         }.accessibilityIdentifier("playx.node.\(node.id)")
+                    }
+                } header: {
+                    HStack {
+                        Text("playx.nodes")
+                        if let chapterFilter, let chapter = model.snapshot?.result.chapters.first(where: { $0.id == chapterFilter }) {
+                            Text(verbatim: "· " + (chapter.name ?? "")).lineLimit(1)
+                            Spacer()
+                            Button("mpd.chapters.all") { withAnimation(CYMotion.standard) { self.chapterFilter = nil } }
+                                .font(CYTypography.meta).textCase(nil)
+                                .accessibilityIdentifier("play.chapterPick.clear")
+                        }
                     }
                 }
                 Section("playx.results") {
@@ -290,6 +347,11 @@ import SwiftUI
             ToolbarItem(placement: .topBarTrailing) {
                 Button { Task { await model.load() } } label: { Label("playx.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.phase == .submitting || !model.available).accessibilityIdentifier("playx.refresh")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                // 游玩工具: 切换章节 when the route has more than one chapter (also after the run is done), 紧急求助 always.
+                PlayToolsMenu(showsChapters: (model.snapshot?.result.chapters.count ?? 0) > 1, showsEmergency: model.snapshot != nil,
+                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true })
             }
         }
         .accessibilityIdentifier("playx.overview")

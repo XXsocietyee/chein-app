@@ -141,6 +141,10 @@ struct MessagingHistoryView: View {
                 ChatHistoryLoading(labelKey: "messaging.loading", identifier: "messaging.history.loading")
             }
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // System assistant (type 2): 「我的举报」 above the transcript, as in the mini-program chat page.
+            if replyPolicy.isSystemNotice, currentHistoryReady { IMReportProgressEntry() }
+        }
         .safeAreaInset(edge:.bottom) {
             if replyPolicy.isSystemNotice, currentHistoryReady {
                 Label("im.reply.systemNotice", systemImage: "info.circle")

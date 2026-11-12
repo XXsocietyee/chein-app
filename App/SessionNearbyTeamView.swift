@@ -30,6 +30,7 @@ import SwiftUI
                         destinationOwner = renderedOwner; destination = $0
                     }
                     .id(session.teamViewIdentity)
+                    .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
             } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
         }
             .task(id: session.teamViewIdentity) {
