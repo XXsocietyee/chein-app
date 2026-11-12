@@ -255,7 +255,7 @@ enum JourneyLandingPhase: Equatable {
     let binding: any JourneyLandingBinding
     var onBrowse: (() -> Void)? = nil
     var body: some View {
-        JourneyLandingView(phase: binding.phase, onRetry: binding.load, onSelectMode: binding.selectMode, onPrimary: binding.primary, onBrowse: onBrowse)
+        JourneyLandingView(phase: binding.phase, onRetry: { binding.load() }, onSelectMode: { binding.selectMode($0) }, onPrimary: { binding.primary() }, onBrowse: onBrowse)
             .task { binding.load() }
     }
 }
@@ -470,8 +470,8 @@ enum JourneySeatsPhase: Equatable {
 @MainActor struct JourneySeatsHost: View {
     let binding: any JourneySeatsBinding
     var body: some View {
-        JourneySeatsView(phase: binding.phase, onRetry: binding.load, onInvite: binding.requestInvite,
-                         onCancel: binding.cancelInvitation, onStart: binding.goToStart, onEditMe: binding.editMe)
+        JourneySeatsView(phase: binding.phase, onRetry: { binding.load() }, onInvite: { binding.requestInvite() },
+                         onCancel: { binding.cancelInvitation($0) }, onStart: { binding.goToStart() }, onEditMe: { binding.editMe() })
             .task { binding.load() }
     }
 }
@@ -727,7 +727,7 @@ enum JourneyPromoPhase: Equatable {
 @MainActor struct JourneyPromoHost: View {
     let binding: any JourneyPromoBinding
     var body: some View {
-        JourneyPromoView(phase: binding.phase, onRetry: binding.load, onSignIn: binding.signIn).task { binding.load() }
+        JourneyPromoView(phase: binding.phase, onRetry: { binding.load() }, onSignIn: { binding.signIn() }).task { binding.load() }
     }
 }
 
@@ -789,7 +789,7 @@ struct JourneyPromoView: View {
             MPRows(items: content.links) { link in
                 MPRow(title: link.title.map { Text(verbatim: $0) } ?? Text("mp.promo.topic"),
                       sub: link.expiresText.map { Text("mp.promo.link.expires \($0)") },
-                      value: Text(link.active ? "mp.promo.link.active" : "mp.promo.link.inactive"))
+                      value: (link.active ? Text("mp.promo.link.active") : Text("mp.promo.link.inactive")))
             }
         }
         if !content.hasRecords {

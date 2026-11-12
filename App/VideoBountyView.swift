@@ -97,10 +97,10 @@ struct VideoBountyState: Equatable {
         VideoBountyView(
             state: binding.state,
             campaign: campaignKey.flatMap { key in topicID.map { (key, $0) } },
-            onLoad: binding.load,
+            onLoad: { binding.load() },
             onSubmit: { binding.submit(campaignKey: $0, topicID: $1, platform: $2, sourceURL: $3, originGroupKey: $4) },
-            onAppeal: binding.appeal(submissionID:note:),
-            onCancel: binding.cancel(submissionID:)
+            onAppeal: { binding.appeal(submissionID: $0, note: $1) },
+            onCancel: { binding.cancel(submissionID: $0) }
         )
         .task { binding.load() }
     }
@@ -127,7 +127,7 @@ struct VideoBountyView: View {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 if let campaign { form(campaign) }
                 MPChipTabs(tabs: VideoBountyTab.allCases, selection: $tab, title: { tab in
-                    Text(tab == .submissions ? "mp.vb.tab.submissions" : "mp.vb.tab.accruals")
+                    (tab == .submissions ? Text("mp.vb.tab.submissions") : Text("mp.vb.tab.accruals"))
                 }, identifier: { "videoBounty.tab.\($0.rawValue)" })
                 .padding(.horizontal, -CYSpacing.pageHorizontal)
                 Group {
@@ -181,9 +181,9 @@ struct VideoBountyView: View {
             }
             if state.fieldError?.field == .sourceURL, let text = state.fieldError?.text { MPInlineError(text: Text(verbatim: text)) }
             if let error = state.submitError { MPInlineError(text: Text(verbatim: error)) }
-            CYMorphButton("mp.vb.form.submit", state: state.submitting ? .working : .idle) {
+            CYMorphButton("mp.vb.form.submit", state: state.submitting ? .working : .idle, action: {
                 onSubmit(campaign.0, campaign.1, platform, sourceURL.trimmingCharacters(in: .whitespacesAndNewlines), groupKey.trimmingCharacters(in: .whitespacesAndNewlines))
-            }
+            })
             .identifier("videoBounty.form.submit")
         }
     }

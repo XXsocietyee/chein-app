@@ -256,7 +256,7 @@ struct JourneyRankBoardView: View {
                 HStack(spacing: CYSpacing.xl) {
                     ForEach(board.stats) { stat in
                         VStack(spacing: CYSpacing.xxs) {
-                            Text(stat.kind == .teamDone ? "mp.rank.stat.teamDone" : "mp.rank.stat.active").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            (stat.kind == .teamDone ? Text("mp.rank.stat.teamDone") : Text("mp.rank.stat.active")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: stat.value).font(CYTypography.cardTitle).monospacedDigit()
                         }
                         .accessibilityElement(children: .combine)
@@ -345,8 +345,8 @@ enum JourneyReportPhase: Equatable {
         JourneyReportView(
             phase: binding.phase, memory: binding.memory, rank: binding.rank, shareURL: binding.shareURL,
             topicName: scope.topicName, hasSeats: scope.registrationID != nil && bindings.journeySeats != nil,
-            onRetry: binding.load, onSignIn: binding.signIn, onLoadMemory: binding.loadMemory, onLoadRank: binding.loadRank,
-            onRankScope: binding.selectRankScope, onRankPeriod: binding.selectRankPeriod,
+            onRetry: { binding.load() }, onSignIn: { binding.signIn() }, onLoadMemory: { binding.loadMemory() }, onLoadRank: { binding.loadRank() },
+            onRankScope: { binding.selectRankScope($0) }, onRankPeriod: { binding.selectRankPeriod($0) },
             onOpenSettle: bindings.journeySettle == nil ? nil : {
                 var settle = scope
                 if case .ready(let report) = binding.phase { settle.runID = report.runID ?? scope.runID }
@@ -460,8 +460,14 @@ struct JourneyReportView: View {
                               value: report.rank.map { Text("mp.report.rank \($0)") } ?? Text("mp.report.noRank"), strong: report.rank != nil, chevron: true)
                     }
                     .buttonStyle(.plain).accessibilityIdentifier("journeyReport.rank")
-                    if let penalty = report.penaltyText { MPDivider(); MPRow(title: Text("mp.report.penalty"), value: Text(verbatim: penalty)) }
-                    if let items = report.rewardItems, items > 0 { MPDivider(); MPRow(title: Text("mp.report.backpack"), value: Text("mp.report.items \(items)")) }
+                    if let penalty = report.penaltyText {
+                        MPDivider()
+                        MPRow(title: Text("mp.report.penalty"), value: Text(verbatim: penalty))
+                    }
+                    if let items = report.rewardItems, items > 0 {
+                        MPDivider()
+                        MPRow(title: Text("mp.report.backpack"), value: Text("mp.report.items \(items)"))
+                    }
                     if !report.legacy && report.runID != nil {
                         MPDivider()
                         Button { memoryShown = true } label: { MPRow(title: Text("mp.report.memory"), chevron: true) }
@@ -608,9 +614,9 @@ enum JourneyRateState: Equatable {
     var body: some View {
         JourneySettleView(phase: binding.phase, rank: binding.rank, rate: binding.rate, shareURL: binding.shareURL,
                           topicName: binding.topicName ?? scope.topicName,
-                          onRetry: binding.load, onSignIn: binding.signIn, onLoadRank: binding.loadRank,
-                          onRankScope: binding.selectRankScope, onRankPeriod: binding.selectRankPeriod,
-                          onSubmitRating: binding.submitRating, onDone: binding.leave)
+                          onRetry: { binding.load() }, onSignIn: { binding.signIn() }, onLoadRank: { binding.loadRank() },
+                          onRankScope: { binding.selectRankScope($0) }, onRankPeriod: { binding.selectRankPeriod($0) },
+                          onSubmitRating: { binding.submitRating(stars: $0, text: $1) }, onDone: { binding.leave() })
             .task { binding.load() }
     }
 }

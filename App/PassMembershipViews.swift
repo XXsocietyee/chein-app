@@ -66,7 +66,7 @@ enum PassMembershipPhase: Equatable {
     @State private var route: MPParityRoute?
     @Environment(\.mpParity) private var bindings
     var body: some View {
-        PassMembershipView(phase: binding.phase, onRetry: binding.load, onSelectPlan: binding.selectPlan,
+        PassMembershipView(phase: binding.phase, onRetry: { binding.load() }, onSelectPlan: { binding.selectPlan($0) },
                            onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) })
             .task { binding.load() }
             .mpParityRouteDestination($route)
@@ -155,7 +155,7 @@ struct PassMembershipView: View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("mp.member.eyebrow").font(CYTypography.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary)
-                Text(content.active ? "mp.member.active" : "mp.member.inactive").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                (content.active ? Text("mp.member.active") : Text("mp.member.inactive")).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
                 if content.active, let until = content.untilText {
                     Text("mp.pass.member.until \(until)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
@@ -281,7 +281,7 @@ enum PassLibraryPhase: Equatable {
     var initialKind: PassLibraryKind = .all
     var onOpenTopic: ((String) -> Void)? = nil
     var body: some View {
-        PassLibraryView(phase: binding.phase, initialKind: initialKind, onLoad: binding.load(kind:), onOpenTopic: onOpenTopic)
+        PassLibraryView(phase: binding.phase, initialKind: initialKind, onLoad: { binding.load(kind: $0) }, onOpenTopic: onOpenTopic)
     }
 }
 

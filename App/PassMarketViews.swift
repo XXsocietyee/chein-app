@@ -440,7 +440,7 @@ struct PassDetailState: Equatable {
     var onOpenCheckout: ((String, String?) -> Void)? = nil
 
     var body: some View {
-        PassDetailView(state: binding.state, onRetry: binding.load, onSetForGift: binding.setForGift, onOpenCheckout: onOpenCheckout)
+        PassDetailView(state: binding.state, onRetry: { binding.load() }, onSetForGift: { binding.setForGift($0) }, onOpenCheckout: onOpenCheckout)
             .task { binding.load() }
     }
 }
@@ -498,7 +498,7 @@ struct PassDetailView: View {
                 }
                 if product.giftAllowed {
                     MPChipTabs(tabs: ForWhom.allCases, selection: Binding(get: { state.forGift ? .gift : .me }, set: { onSetForGift($0 == .gift) }),
-                               title: { Text($0 == .me ? "mp.pass.detail.forMe" : "mp.pass.detail.forGift") },
+                               title: { ($0 == .me ? Text("mp.pass.detail.forMe") : Text("mp.pass.detail.forGift")) },
                                identifier: { "passDetail.for.\($0.rawValue)" })
                         .padding(.horizontal, -CYSpacing.pageHorizontal)
                 }
@@ -507,7 +507,7 @@ struct PassDetailView: View {
                     MPCard {
                         ForEach(Array(state.checkout.enumerated()), id: \.element.id) { index, row in
                             if index > 0 { MPDivider() }
-                            MPRow(title: Text(row.kind == .price ? "mp.pass.detail.price" : row.kind == .cash ? "mp.pass.detail.cash" : "mp.pass.detail.points"),
+                            MPRow(title: (row.kind == .price ? Text("mp.pass.detail.price") : row.kind == .cash ? Text("mp.pass.detail.cash") : Text("mp.pass.detail.points")),
                                   sub: row.note.map { Text(verbatim: $0) }, value: Text(verbatim: row.valueText), strong: true, muted: row.off)
                         }
                     }
@@ -526,7 +526,7 @@ struct PassDetailView: View {
         if let validity = product.validity { rows.append((Text("mp.pass.detail.validity"), validity.text)) }
         if let seats = product.seats { rows.append((Text("mp.pass.detail.seats"), Text("mp.pass.seats \(seats)"))) }
         if state.forGift || product.seats == nil {
-            rows.append((Text("mp.pass.detail.user"), Text(state.forGift ? "mp.pass.detail.userFriend" : "mp.pass.detail.userMe")))
+            rows.append((Text("mp.pass.detail.user"), (state.forGift ? Text("mp.pass.detail.userFriend") : Text("mp.pass.detail.userMe"))))
         }
         return rows
     }
@@ -641,7 +641,7 @@ struct PassGiftClaimState: Equatable {
     let binding: any PassGiftClaimBinding
     @State private var route: MPParityRoute?
     var body: some View {
-        PassGiftClaimView(state: binding.state, onClaim: binding.claim, onOpenGifts: { route = .passes(tab: .gifts) })
+        PassGiftClaimView(state: binding.state, onClaim: { binding.claim() }, onOpenGifts: { route = .passes(tab: .gifts) })
             .mpParityRouteDestination($route)
     }
 }
