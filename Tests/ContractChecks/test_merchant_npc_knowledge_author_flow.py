@@ -106,6 +106,8 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertNotIn('publishApproved', session)
         self.assertIn('characterKnowledgeAuthorFlow', session)
         self.assertIn('MerchantNPCKnowledgeAuthorFlow(scope: scope, publisher: writer', session)
+        self.assertIn('MerchantNPCKnowledgeRecoveryStore(defaults: sessionDefaults, ownerKey: ownerKey, merchantRowID: row.rawValue)', session)
+        self.assertNotIn('name:', session[session.index('func characterKnowledgeAuthorFlow'):session.index('func merchantOperationsDestination')])
         for token in ['Do not apply', 'App/AppSession.swift', 'App/AppCompositionRoot.swift',
                       'Questify.xcodeproj/project.pbxproj', 'MerchantNPCKnowledgeAuthorFlow(',
                       'publisher: nil', 'authorFlow: flow', 'Not inserted']:

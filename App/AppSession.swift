@@ -734,7 +734,9 @@ final class AppSession: ObservableObject {
             guard let self, self.merchantNPCScope(row: row) == scope else { return nil }
             return self.token
         })
-        return MerchantNPCKnowledgeAuthorFlow(scope: scope, publisher: writer, currentScope: { [weak self] in self?.merchantNPCScope(row: row) })
+        let ownerKey = scope.namespace + ":" + String(scope.accountID)
+        let recovery = MerchantNPCKnowledgeRecoveryStore(defaults: sessionDefaults, ownerKey: ownerKey, merchantRowID: row.rawValue)
+        return MerchantNPCKnowledgeAuthorFlow(scope: scope, publisher: writer, currentScope: { [weak self] in self?.merchantNPCScope(row: row) }, recovery: recovery)
     }
     func merchantOperationsDestination(_ destination: MerchantOperationsDestination, access: MerchantOperationsAccess) -> AnyView {
         // pages/merchant/decor/ai-npc keeps its page. The knowledge author flow rides along; publish stays waiting-source.
