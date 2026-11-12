@@ -471,7 +471,7 @@ struct RoamBrowserView: View {
             if loading || loadedKey != requestKey {
                 CYSkeleton().accessibilityIdentifier("roam.loading")
             } else if let issue {
-                RoamStatusView(issue: issue, onSignIn: onOpenAccount) { startLoad() }
+                RoamStatusView(issue: issue, retry: { startLoad() }, onSignIn: onOpenAccount)
             } else if visibleItems.isEmpty {
                 VStack(spacing: CYSpacing.sm) {
                     CYEmptyState(systemImage: "map", "roam.empty", actionTitle: "action.retry") { startLoad() }
