@@ -22,6 +22,9 @@ import UIKit
     @State private var confirmLeave = false
     @State private var activeInlineNodeID: Int?
     @State private var audioURL: String?
+    /// Chapter opening gate (mini-program chapter-gate): once per visit of this chapter.
+    @State private var showGate = false
+    @State private var gateSeen = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     private var chapter: ChapterStoryDocument? { model.chapterStories[chapterID] }
@@ -36,6 +39,19 @@ import UIKit
         return ChapterStoryProjection.segments(chapter: chapter, snapshot: snapshot,
             variables: model.storyVariables.merging(advancedVariables) { _, new in new },
             thoughts: model.storyThoughts, storyVoices: model.storyVoices, activeInlineNodeID: activeInlineNodeID)
+    }
+    /// Position of this chapter in the run (1-based) and the run's chapter count.
+    private var chapterPosition: (number: Int, total: Int, name: String?, next: String?)? {
+        guard let chapters = model.snapshot?.result.chapters, let index = chapters.firstIndex(where: { $0.id == chapterID }) else { return nil }
+        let next = chapters.indices.contains(index + 1) ? chapters[index + 1].name : nil
+        return (index + 1, chapters.count, chapters[index].name, next)
+    }
+    /// Stops of this chapter that the player can see, and how many of them are done.
+    private var chapterProgress: (done: Int, total: Int)? {
+        guard visible, let snapshot = model.snapshot else { return nil }
+        let nodes = snapshot.visibleNodes.filter { $0.chapterID == chapterID }
+        guard !nodes.isEmpty else { return nil }
+        return (nodes.filter { snapshot.isDone($0) }.count, nodes.count)
     }
     var body: some View {
         ScrollView {
@@ -57,8 +73,22 @@ import UIKit
                     }
                     audioSelection
                     if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
-                    Text("chapterStory.end").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    CYPillButton("chapterStory.return") { leave() }
+                    if let progress = chapterProgress, progress.done == progress.total {
+                        // Mini-program chapter-flip end card: the chapter is complete, the next stop is named.
+                        let position = chapterPosition
+                        CYChapterEndCard(number: position?.number ?? 1, title: position?.name ?? chapter.title,
+                            stats: [
+                                CYStoryStat(key: "chapterFlip.stat.stops", value: "\(progress.done)/\(progress.total)"),
+                                CYStoryStat(key: "chapterFlip.stat.chapter", value: position.map { "\($0.number)/\($0.total)" }),
+                            ],
+                            nextTitle: position?.next, onContinue: { leave() })
+                    } else {
+                        Text("chapterStory.end").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        CYPillButton("chapterStory.return") { leave() }
+                    }
+                } else if model.snapshot == nil || model.phase == .loading {
+                    // Still reading the run: a skeleton, not a "locked" claim.
+                    CYSkeleton().accessibilityIdentifier("chapterStory.loading")
                 } else {
                     CYEmptyState(systemImage: "lock", "chapterStory.unavailable", detail: "chapterStory.unavailable.detail")
                 }
@@ -73,6 +103,19 @@ import UIKit
                 ToolbarItem(placement: .topBarLeading) { Button("chapterStory.back", systemImage: "chevron.left") { leave() } }
             }
         }
+        .overlay {
+            if showGate {
+                let position = chapterPosition
+                CYChapterGate(number: position?.number ?? 1, total: position?.total ?? 1,
+                              title: chapter?.title ?? position?.name, subtitle: chapter?.description) {
+                    withAnimation(CYMotion.reduced) { showGate = false }
+                }
+                .transition(.opacity)
+            }
+        }
+        .toolbar(showGate ? .hidden : .automatic, for: .navigationBar)
+        .onAppear { if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = true } }
+        .onChange(of: visible) { _, now in if now && !gateSeen && chapter != nil { gateSeen = true; showGate = true } }
         .privacySensitive().accessibilityIdentifier("chapterStory.body")
         .interactiveDismissDisabled(!dirtyNodes.isEmpty)
         .confirmationDialog("chapterStory.discardQuestion", isPresented: $confirmLeave, titleVisibility: .visible) {

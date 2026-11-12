@@ -325,6 +325,11 @@ import SwiftUI
             }
             if model.coordinator.session == nil {
                 Section { Text("projectEdit.signIn").accessibilityIdentifier("projectEdit.signIn") }
+            } else if model.coordinator.snapshot == nil, !model.busy, !model.coordinator.isLocked,
+                      model.coordinator.state != .blocked, model.coordinator.messageKey == nil,
+                      model.coordinator.acknowledgedContinuation == nil {
+                Section { ProjectEditNotLoadedState { Task { await model.load(force: true) } } }
+                    .listRowBackground(Color.clear)
             }
             if let topicID = model.coordinator.snapshot?.topicID, let publisherClient {
                 PublisherXPBudgetSection(topicID: topicID, client: publisherClient)
@@ -620,6 +625,7 @@ import SwiftUI
                 .accessibilityElement(children: .contain)
                 ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate").dateEditing(.init(model: model, field: .start)).id("project-issue-anchor-start")
                 ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate").dateEditing(.init(model: model, field: .end)).id("project-issue-anchor-end")
+                ProjectEditScheduleSpan(start: model.draft.startDate, end: model.draft.endDate)
                 if model.draft.product == .freeExplore {
                     ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline").dateEditing(.init(model: model, field: .deadline)).id("project-issue-anchor-deadline")
                 }
