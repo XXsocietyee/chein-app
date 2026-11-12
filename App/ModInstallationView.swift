@@ -6,10 +6,16 @@ import SwiftUI
     let makeController: (ModInstallationIdentity) -> ModInstallationController?
     var makeOriginalReader: (ModInstallationIdentity) -> H5OriginalInstallReader? = { _ in nil }
     var makeInstallationPair: ((ModInstallationIdentity) -> (controller: ModInstallationController?, originalReader: H5OriginalInstallReader?)?)? = nil
+    @Environment(\.locale) private var locale
     var body: some View {
         NavigationLink {
             ModInstallationEntry(reference: reference, makeController: makeController, makeOriginalReader: makeOriginalReader, makeInstallationPair: makeInstallationPair)
-        } label: { installationText("open") }
+        } label: {
+            CYListRow(verbatim: installationString("open", locale: locale), trailing: .none) {
+                CYRowIcon(systemImage: "square.and.arrow.down")
+            }
+        }
+        .accessibilityLabel(installationText("open"))
     }
 }
 
@@ -19,6 +25,7 @@ import SwiftUI
     var makeOriginalReader: (ModInstallationIdentity) -> H5OriginalInstallReader? = { _ in nil }
     var makeInstallationPair: ((ModInstallationIdentity) -> (controller: ModInstallationController?, originalReader: H5OriginalInstallReader?)?)? = nil
     @EnvironmentObject private var session: AppSession
+    @Environment(\.locale) private var locale
     @State private var controller: ModInstallationController?
     @State private var originalReader: H5OriginalInstallReader?
     var body: some View {
@@ -26,10 +33,10 @@ import SwiftUI
             if let controller, controller.isCurrent {
                 ModInstallationView(controller: controller, originalReader: originalReader).id(ObjectIdentifier(controller))
             } else {
-                VStack(spacing: 16) {
-                    installationText("unavailable")
-                    Button { reopen() } label: { installationText("reload") }
-                }.padding()
+                Cloud25Screen(title: installationString("title", locale: locale), seed: reference.moduleId, symbol: "shippingbox.fill") {
+                    CYEmptyState(systemImage: "lock.slash", "modInstallation.unavailable", tableName: "ModInstallation")
+                    Cloud25Pill(title: installationString("reload", locale: locale), key: "reload", primary: true) { reopen() }
+                }
             }
         }
         .onAppear { if controller?.isCurrent != true { reopen() } }
@@ -53,7 +60,6 @@ import SwiftUI
 }
 
 @MainActor private struct ModInstallationView: View {
-    @Environment(\.themeDomain) private var domain
     @State var controller: ModInstallationController
     var originalReader: H5OriginalInstallReader? = nil
     @State private var originalFact: WorkshopOriginalInstallFact?
@@ -70,133 +76,26 @@ import SwiftUI
     @State private var showCancellation = false
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
-    var body: some View {
-        Form {
-            CYHeroHeader(verbatim: installationString("title", locale: locale))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            Section {
-                if let title = controller.options?.title { Text(verbatim: title).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true) }
-                InstallationFact("license", controller.identity.licenseId)
-                InstallationFact("module", controller.identity.moduleId)
-                InstallationFact("release", controller.identity.releaseId)
-                InstallationFact("contentHash", controller.identity.contentHash)
-                InstallationFact("termsHash", controller.identity.termsHash)
-                installationText("boundary").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            } header: { installationText("authorizedVersion") }
 
-            Section {
-                if let value = controller.compatibility {
-                    Text(verbatim: value.reasonCode)
-                    Text(locale.language.languageCode?.identifier == "zh" ? "客户端 \(value.clientVersion)，最低版本 \(value.minimumClientVersion)；运行时 \(value.runtimeVersion)" : "Client \(value.clientVersion), minimum \(value.minimumClientVersion); runtime \(value.runtimeVersion)")
-                }
-                if controller.compatibilityReadFailed { Text(locale.language.languageCode?.identifier == "zh" ? "兼容结果暂时未知；原安装请求保留，不会自动重装。" : "Compatibility is unknown. The original installation request is retained, never automatically reinstalled.") }
-                Button(locale.language.languageCode?.identifier == "zh" ? "读取当前兼容条件" : "Read current compatibility") {
-                    Task { await controller.readCompatibility() }
-                }.disabled(!controller.canReadCompatibility || controller.busy)
-                Text(locale.language.languageCode?.identifier == "zh" ? "技术兼容不等于安装授权。原依赖权利、资源、额度与版本仍由原安装服务确认。" : "Technical compatibility is not installation authorization. Original dependency rights, resources, quota and version checks still apply.")
-                    .font(Theme.Font.label).foregroundStyle(.secondary)
-            }
-            if controller.attempt == nil { selectionSection }
-            if let attempt = controller.attempt {
-                Section {
-                    InstallationFact("request", attempt.request.requestId)
-                    if let fact = originalFact, fact.requestID == attempt.request.requestId {
-                        installationText("state." + fact.state)
-                    }
-                    if originalReader != nil {
-                        if originalReadBusy { CYSkeleton() }
-                        if originalReadUnknown { installationText("unknown").foregroundStyle(Theme.Generated.color("--cy-color-status-warning", in: domain) ?? .orange) }
-                        Button(locale.language.languageCode?.identifier == "zh" ? "回读原安装请求" : "Read original installation request") {
-                            Task { await readOriginalInstallFact() }
-                        }.disabled(originalReadBusy || !controller.isCurrent || scenePhase != .active)
-                    }
-                    InstallationFact("merchant", attempt.merchantLabel)
-                    InstallationFact("anchor", attempt.anchorLabel)
-                    InstallationFact("region", attempt.region)
-                    if attempt.pendingAction != nil { installationText("unknown").foregroundStyle(Theme.Generated.color("--cy-color-status-warning", in: domain) ?? .orange) }
-                    if controller.canRetryOriginalPrepare {
-                        Button { Task { await controller.retryOriginalPrepare() } } label: { installationText("retryOriginal") }
-                    }
-                    if let receipt = attempt.receipt {
-                        InstallationReceiptFacts(receipt: receipt)
-                        if controller.canConfirm {
-                            Button { confirmation = receipt } label: { installationText("reviewInstall") }
-                        }
-                        if controller.canCancel {
-                            Button(role: .destructive) { cancellation = receipt; showCancellation = true } label: { installationText("cancelRequest") }
-                        }
-                        if receipt.memberTemplateID != nil, controller.isCurrent {
-                            ModInstalledTextReadEntry(makeReader: { controller.installedTextReader(receipt) })
-                            Button { editing = controller.templateEditor(receipt) } label: { installationText("editDraft") }
-                        }
-                        if receipt.topicID != nil, controller.isCurrent {
-                            Button { editingTopic = receipt } label: { installationText("editDraft") }
-                        }
-                        if controller.canStartAnother {
-                            Button { Task { await controller.startAnother() } } label: { installationText("startAnother") }
-                        }
-                    }
-                } header: { installationText("originalReceipt") }
-            }
-            if controller.receipt?.state == .installed {
-                Section {
-                    if let receipt = controller.receipt, receipt.topicID != nil, !receipt.bindings.isEmpty {
-                        Button(locale.language.languageCode?.identifier == "zh" ? "场地同意、营业窗口与现场动态码" : "Venue consent, opening hours and on-site dynamic codes") { venue = controller.venueOperations(receipt) }.disabled(controller.busy || !controller.isCurrent)
-                    }
-                    if let facts = controller.facts {
-                        installationText(facts.confirmed ? "facts.confirmed" : "facts.required")
-                        InstallationFact("facts.draftHash", facts.draftContentHash)
-                        Button { factReview = facts } label: { installationText("facts.review") }
-                        if controller.receipt?.topicID != nil, facts.hasQaEditorCandidate {
-                            Button { editingQa = controller.qaEditor() } label: { installationText("qaEdit.title") }.disabled(controller.busy || !controller.isCurrent)
-                        }
-                    }
-                    if controller.attempt?.pendingFacts != nil { installationText("facts.unknown") }
-                    Button { Task { await controller.refreshFacts() } } label: { installationText("facts.refresh") }
-                        .disabled(controller.busy)
-                    installationText("facts.boundary").font(Theme.Font.label).foregroundStyle(.secondary)
-                } header: { installationText("facts.title") }
-            }
-            if !controller.history.isEmpty {
-                Section {
-                    ForEach(controller.history) { receipt in
-                        VStack(alignment: .leading, spacing: 6) {
-                            installationText("state." + receipt.state.rawValue)
-                            Text(verbatim: receipt.requestId).font(Theme.Font.label).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                            Text(verbatim: receipt.createdAt).font(Theme.Font.label).foregroundStyle(.secondary)
-                            if controller.attempt == nil || controller.attempt?.request.requestId == receipt.requestId || (controller.receipt?.terminal == true && controller.attempt?.pendingFacts == nil) {
-                                Button { Task { await controller.restore(receipt) } } label: { installationText("restoreReceipt") }
-                                    .disabled(controller.busy || !controller.isCurrent)
-                            }
-                            if receipt.memberTemplateID != nil, controller.isCurrent {
-                                ModInstalledTextReadEntry(makeReader: { controller.installedTextReader(receipt) })
-                                Button { editing = controller.templateEditor(receipt) } label: { installationText("editDraft") }
-                            }
-                            if receipt.topicID != nil, controller.isCurrent {
-                                Button { editingTopic = receipt } label: { installationText("editDraft") }
-                            }
-                        }
-                    }
-                } header: { installationText("history") }
-            }
-            Section {
-                if controller.busy { CYSkeleton() }
-                if controller.messageKey == "error.readCapacity" {
-                    Text(locale.language.languageCode?.identifier == "zh" ?
-                        "原选项或安装历史尚未完整读取，超过本次安全读取容量。不能据此认定没有在途请求或新建安装；原请求和回执保留，请重试原回查。" :
-                        "The original options or history exceeded the safe read capacity and are incomplete. No absence of pending requests is assumed and no new installation is enabled. Original requests and receipts are retained.")
-                        .foregroundStyle(.secondary)
-                } else if controller.messageKey == "originalRecovered" {
-                    Text(locale.language.languageCode?.identifier == "zh" ?
-                        "已找到并恢复原在途安装请求；没有创建新请求。" : "An original pending installation was found and restored; no new request was created.")
-                        .foregroundStyle(.secondary)
-                } else if let key = controller.messageKey { installationText(key).foregroundStyle(.secondary) }
-                Button { Task { await controller.recover() } } label: { installationText("recover") }.disabled(controller.busy)
-                installationText("recoveryBoundary").font(Theme.Font.label).foregroundStyle(.secondary)
-            }
+    private enum Forward { case prepare, review, facts, recover }
+    private var forward: Forward {
+        if controller.attempt == nil, controller.options != nil { return .prepare }
+        if controller.canConfirm { return .review }
+        if controller.receipt?.state == .installed, let facts = controller.facts, !facts.confirmed { return .facts }
+        return .recover
+    }
+
+    var body: some View {
+        Cloud25Screen(title: installationString("title", locale: locale), seed: controller.identity.moduleId, symbol: "shippingbox.fill") {
+            identityCard
+            compatibilityCard
+            if controller.attempt == nil { selectionCard }
+            if let attempt = controller.attempt { attemptCard(attempt) }
+            if controller.receipt?.state == .installed { factsCard }
+            if !controller.history.isEmpty { historyCard }
+            messageCard
         }
-        .font(Theme.Font.body)
-        .cyHeroScreen()
+        .cyAnimation(value: controller.busy)
         .task { await controller.recover() }
         .task(id: originalInstallReadKey) { await readOriginalInstallFact() }
         .task(id: scenePhase) {
@@ -243,6 +142,280 @@ import SwiftUI
             Button(role: .cancel) { cancellation = nil } label: { installationText("keepRequest") }
         } message: { installationText("cancelBoundary") }
     }
+
+    private var identityCard: some View {
+        let rawTitle = controller.options?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let shown = rawTitle.isEmpty ? Cloud25Copy.value(controller.identity.moduleId) : rawTitle
+        return VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYImageCard(verbatim: shown, fallback: LocalizedStringKey(stringLiteral: "—"), meta: Cloud25Copy.value(controller.identity.releaseId))
+                .accessibilityLabel(installationText("authorizedVersion") + Text(verbatim: " " + shown))
+            CYInfoCard {
+                Cloud25Header(title: installationString("authorizedVersion", locale: locale))
+                InstallationFact("license", controller.identity.licenseId)
+                InstallationFact("module", controller.identity.moduleId)
+                InstallationFact("release", controller.identity.releaseId)
+                InstallationFact("contentHash", controller.identity.contentHash)
+                InstallationFact("termsHash", controller.identity.termsHash)
+                installNote("boundary")
+            }
+        }
+    }
+
+    private var compatibilityCard: some View {
+        CYInfoCard {
+            if let value = controller.compatibility {
+                CYStatusChip(verbatim: Cloud25Copy.value(value.reasonCode), tone: .info, systemImage: "checkmark.shield")
+                    .accessibilityLabel(Text(verbatim: Cloud25Copy.value(value.reasonCode)))
+                Text(verbatim: phrase(
+                    "客户端 \(value.clientVersion)，最低版本 \(value.minimumClientVersion)；运行时 \(value.runtimeVersion)",
+                    "Client \(value.clientVersion), minimum \(value.minimumClientVersion); runtime \(value.runtimeVersion)"))
+                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if controller.compatibilityReadFailed {
+                CYErrorState(
+                    LocalizedStringKey(stringLiteral: phrase(
+                        "兼容结果暂时未知；原安装请求保留，不会自动重装。",
+                        "Compatibility is unknown. The original installation request is retained, never automatically reinstalled.")),
+                    retryTitle: LocalizedStringKey(stringLiteral: phrase("读取当前兼容条件", "Read current compatibility")),
+                    onRetry: { Task { await controller.readCompatibility() } }
+                )
+                .disabled(!controller.canReadCompatibility || controller.busy)
+            } else {
+                Cloud25Pill(title: phrase("读取当前兼容条件", "Read current compatibility"), primary: false, enabled: controller.canReadCompatibility && !controller.busy) {
+                    Task { await controller.readCompatibility() }
+                }
+            }
+            installPlain(phrase(
+                "技术兼容不等于安装授权。原依赖权利、资源、额度与版本仍由原安装服务确认。",
+                "Technical compatibility is not installation authorization. Original dependency rights, resources, quota and version checks still apply."))
+        }
+    }
+
+    @ViewBuilder private var selectionCard: some View {
+        CYInfoCard {
+            Cloud25Header(title: installationString("bindings", locale: locale))
+            if let options = controller.options {
+                if options.merchants.isEmpty {
+                    CYEmptyState(systemImage: "building.2", "modInstallation.noMerchants", tableName: "ModInstallation")
+                }
+                merchantPicker(options)
+                if controller.selectedMerchantId != nil { anchorAndBindings(options) }
+                Cloud25Pill(title: installationString("prepare", locale: locale), key: "prepare", primary: forward == .prepare, systemImage: "arrow.down.circle", enabled: controller.canPrepare) {
+                    Task { await controller.prepare() }
+                }
+            } else {
+                CYSkeleton().accessibilityLabel(installationText("loadingOptions"))
+                installNote("loadingOptions")
+            }
+            installNote("bindingsBoundary")
+        }
+    }
+
+    private func merchantPicker(_ options: ModInstallationOptions) -> some View {
+        Picker(selection: Binding(get: { controller.selectedMerchantId }, set: { value in
+            Task { await controller.selectMerchant(value) }
+        })) {
+            installationText("choose").tag(Int64?.none)
+            ForEach(options.merchants) { item in Text(verbatim: item.label).tag(Optional(item.id)) }
+        } label: { installationText("merchant") }
+        .disabled(!controller.canSelect)
+        .frame(minHeight: CYSpacing.minTouchTarget)
+    }
+
+    @ViewBuilder private func anchorAndBindings(_ options: ModInstallationOptions) -> some View {
+        let anchors = options.resources.filter { $0.kind == .poi && $0.region != nil }
+        Picker(selection: Binding(get: { controller.selectedAnchorPoiId }, set: { controller.selectAnchor($0) })) {
+            installationText("choose").tag(Int64?.none)
+            ForEach(anchors) { item in
+                Text(verbatim: item.label + " · " + (item.region ?? "")).tag(Optional(item.id))
+            }
+        } label: { installationText("anchor") }
+        .disabled(!controller.canSelect)
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        if anchors.isEmpty { CYNoteBanner(text: installationText("noAnchor"), symbol: "mappin.slash", tone: .warning) }
+        if controller.selectedAnchorPoiId == nil { installNote("chooseAnchorFirst") }
+        ForEach(options.requiredBindings) { requirement in
+            let resources = controller.bindingResources(for: requirement)
+            Picker(selection: Binding(get: { controller.selections[requirement.id] }, set: { controller.select($0, for: requirement) })) {
+                installationText("choose").tag(Int64?.none)
+                ForEach(resources) { item in Text(verbatim: item.label).tag(Optional(item.id)) }
+            } label: {
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    installationText("kind." + requirement.kind.rawValue)
+                    Text(verbatim: requirement.key).font(CYTypography.meta.monospaced()).foregroundStyle(CYColor.textTertiary)
+                }
+            }
+            .disabled(!controller.canSelect || controller.selectedAnchorPoiId == nil)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            if controller.selectedAnchorPoiId != nil, resources.isEmpty {
+                CYNoteBanner(text: installationText("missingResource"), symbol: "exclamationmark.triangle", tone: .warning)
+            }
+        }
+        if options.requiredBindings.isEmpty { installNote("noPlaceholders") }
+    }
+
+    private func attemptCard(_ attempt: ModInstallationAttempt) -> some View {
+        CYInfoCard {
+            Cloud25Header(title: installationString("originalReceipt", locale: locale))
+            InstallationFact("request", attempt.request.requestId)
+            if let fact = originalFact, fact.requestID == attempt.request.requestId {
+                CYStatusChip(verbatim: catalogState(fact.state), tone: .info, systemImage: "arrow.clockwise")
+                    .accessibilityLabel(installationText("state." + fact.state))
+            }
+            if originalReader != nil {
+                if originalReadBusy { CYSkeleton().accessibilityLabel(Text("cy.state.loading")) }
+                if originalReadUnknown {
+                    CYNoteBanner(text: installationText("unknown"), symbol: "questionmark.circle", tone: .warning)
+                }
+                Cloud25Pill(title: phrase("回读原安装请求", "Read original installation request"), primary: false, enabled: !originalReadBusy && controller.isCurrent && scenePhase == .active) {
+                    Task { await readOriginalInstallFact() }
+                }
+            }
+            InstallationFact("merchant", attempt.merchantLabel)
+            InstallationFact("anchor", attempt.anchorLabel)
+            InstallationFact("region", attempt.region)
+            if attempt.pendingAction != nil {
+                CYNoteBanner(text: installationText("unknown"), symbol: "questionmark.circle", tone: .warning)
+            }
+            if controller.canRetryOriginalPrepare {
+                Cloud25Pill(title: installationString("retryOriginal", locale: locale), key: "retryOriginal", primary: false) {
+                    Task { await controller.retryOriginalPrepare() }
+                }
+            }
+            if let receipt = attempt.receipt {
+                InstallationReceiptFacts(receipt: receipt)
+                if controller.canConfirm {
+                    Cloud25Pill(title: installationString("reviewInstall", locale: locale), key: "reviewInstall", primary: forward == .review, systemImage: "checkmark.circle") {
+                        confirmation = receipt
+                    }
+                }
+                if controller.canCancel { cancelControl(receipt) }
+                draftActions(receipt)
+                if controller.canStartAnother {
+                    Cloud25Pill(title: installationString("startAnother", locale: locale), key: "startAnother", primary: false) {
+                        Task { await controller.startAnother() }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var factsCard: some View {
+        CYInfoCard {
+            Cloud25Header(title: installationString("facts.title", locale: locale))
+            if let receipt = controller.receipt, receipt.topicID != nil, !receipt.bindings.isEmpty {
+                Cloud25Pill(title: phrase("场地同意、营业窗口与现场动态码", "Venue consent, opening hours and on-site dynamic codes"), primary: false, enabled: !controller.busy && controller.isCurrent) {
+                    venue = controller.venueOperations(receipt)
+                }
+            }
+            if let facts = controller.facts {
+                installNote(facts.confirmed ? "facts.confirmed" : "facts.required")
+                InstallationFact("facts.draftHash", facts.draftContentHash)
+                Cloud25Pill(title: installationString("facts.review", locale: locale), key: "facts.review", primary: forward == .facts, systemImage: "checklist") {
+                    factReview = facts
+                }
+                if controller.receipt?.topicID != nil, facts.hasQaEditorCandidate {
+                    Cloud25Pill(title: installationString("qaEdit.title", locale: locale), key: "qaEdit.title", primary: false, enabled: !controller.busy && controller.isCurrent) {
+                        editingQa = controller.qaEditor()
+                    }
+                }
+            }
+            if controller.attempt?.pendingFacts != nil {
+                CYNoteBanner(text: installationText("facts.unknown"), symbol: "questionmark.circle", tone: .warning)
+            }
+            Cloud25Pill(title: installationString("facts.refresh", locale: locale), key: "facts.refresh", primary: false, enabled: !controller.busy) {
+                Task { await controller.refreshFacts() }
+            }
+            installNote("facts.boundary")
+        }
+    }
+
+    private var historyCard: some View {
+        CYInfoCard {
+            Cloud25Header(title: installationString("history", locale: locale))
+            ForEach(controller.history) { receipt in
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    CYStatusChip(verbatim: catalogState(receipt.state.rawValue), tone: receiptTone(receipt.state), systemImage: receiptSymbol(receipt.state))
+                        .accessibilityLabel(installationText("state." + receipt.state.rawValue))
+                    CYListRow(verbatim: Cloud25Copy.value(receipt.requestId), meta: receipt.createdAt.isEmpty ? nil : receipt.createdAt, trailing: .none) {
+                        CYRowIcon(systemImage: "doc.text")
+                    }
+                    if controller.attempt == nil || controller.attempt?.request.requestId == receipt.requestId || (controller.receipt?.terminal == true && controller.attempt?.pendingFacts == nil) {
+                        Cloud25Pill(title: installationString("restoreReceipt", locale: locale), key: "restoreReceipt", primary: false, enabled: !controller.busy && controller.isCurrent) {
+                            Task { await controller.restore(receipt) }
+                        }
+                    }
+                    draftActions(receipt)
+                }
+            }
+        }
+    }
+
+    private var messageCard: some View {
+        CYInfoCard {
+            if controller.busy { CYSkeleton().accessibilityLabel(Text("cy.state.loading")) }
+            if controller.messageKey == "error.readCapacity" {
+                CYNoteBanner(text: Text(verbatim: phrase(
+                    "原选项或安装历史尚未完整读取，超过本次安全读取容量。不能据此认定没有在途请求或新建安装；原请求和回执保留，请重试原回查。",
+                    "The original options or history exceeded the safe read capacity and are incomplete. No absence of pending requests is assumed and no new installation is enabled. Original requests and receipts are retained.")),
+                    symbol: "exclamationmark.triangle", tone: .warning)
+            } else if controller.messageKey == "originalRecovered" {
+                CYNoteBanner(text: Text(verbatim: phrase(
+                    "已找到并恢复原在途安装请求；没有创建新请求。",
+                    "An original pending installation was found and restored; no new request was created.")),
+                    symbol: "arrow.uturn.backward", tone: .info)
+            } else if let key = controller.messageKey {
+                CYNoteBanner(text: installationText(key), symbol: "info.circle", tone: .info)
+            }
+            Cloud25Pill(title: installationString("recover", locale: locale), key: "recover", primary: forward == .recover, systemImage: "arrow.clockwise", enabled: !controller.busy) {
+                Task { await controller.recover() }
+            }
+            installNote("recoveryBoundary")
+        }
+    }
+
+    @ViewBuilder private func draftActions(_ receipt: ModInstallationReceipt) -> some View {
+        if receipt.memberTemplateID != nil, controller.isCurrent {
+            ModInstalledTextReadEntry(makeReader: { controller.installedTextReader(receipt) })
+            Cloud25Pill(title: installationString("editDraft", locale: locale), key: "editDraft", primary: false) {
+                editing = controller.templateEditor(receipt)
+            }
+        }
+        if receipt.topicID != nil, controller.isCurrent {
+            Cloud25Pill(title: installationString("editDraft", locale: locale), key: "editDraft", primary: false) {
+                editingTopic = receipt
+            }
+        }
+    }
+
+    private func cancelControl(_ receipt: ModInstallationReceipt) -> some View {
+        Button(role: .destructive) {
+            cancellation = receipt
+            showCancellation = true
+        } label: {
+            installationText("cancelRequest")
+                .font(CYTypography.body.weight(.semibold))
+                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityLabel(installationText("cancelRequest"))
+    }
+
+    private func phrase(_ zh: String, _ en: String) -> String {
+        locale.language.languageCode?.identifier == "zh" ? zh : en
+    }
+    private func catalogState(_ raw: String) -> String {
+        let resolved = installationString("state." + raw, locale: locale)
+        return resolved == "modInstallation.state." + raw ? Cloud25Copy.value(raw) : resolved
+    }
+    private func installNote(_ key: String) -> some View {
+        installationText(key).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+    }
+    private func installPlain(_ text: String) -> some View {
+        Text(verbatim: text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+    }
+
     /// A request ID is stable across PREPARED/installed/cancelled; it is not a permanent read cache key.
     private var originalInstallReadKey: String {
         [controller.attempt?.request.requestId ?? "", controller.receipt?.state.rawValue ?? "",
@@ -280,46 +453,6 @@ import SwiftUI
             originalReadUnknown = true
         }
     }
-    @ViewBuilder private var selectionSection: some View {
-        Section {
-            if let options = controller.options {
-                if options.merchants.isEmpty { installationText("noMerchants") }
-                Picker(selection: Binding(get: { controller.selectedMerchantId }, set: { value in
-                    Task { await controller.selectMerchant(value) }
-                })) {
-                    installationText("choose").tag(Int64?.none)
-                    ForEach(options.merchants) { item in Text(verbatim: item.label).tag(Optional(item.id)) }
-                } label: { installationText("merchant") }.disabled(!controller.canSelect)
-                if controller.selectedMerchantId != nil {
-                    let anchors = options.resources.filter { $0.kind == .poi && $0.region != nil }
-                    Picker(selection: Binding(get: { controller.selectedAnchorPoiId }, set: { controller.selectAnchor($0) })) {
-                        installationText("choose").tag(Int64?.none)
-                        ForEach(anchors) { item in
-                            Text(verbatim: item.label + " · " + (item.region ?? "")).tag(Optional(item.id))
-                        }
-                    } label: { installationText("anchor") }.disabled(!controller.canSelect)
-                    if anchors.isEmpty { installationText("noAnchor") }
-                    if controller.selectedAnchorPoiId == nil { installationText("chooseAnchorFirst") }
-                    ForEach(options.requiredBindings) { requirement in
-                        let resources = controller.bindingResources(for: requirement)
-                        Picker(selection: Binding(get: { controller.selections[requirement.id] }, set: { controller.select($0, for: requirement) })) {
-                            installationText("choose").tag(Int64?.none)
-                            ForEach(resources) { item in Text(verbatim: item.label).tag(Optional(item.id)) }
-                        } label: {
-                            VStack(alignment: .leading) {
-                                installationText("kind." + requirement.kind.rawValue)
-                                Text(verbatim: requirement.key).font(.caption)
-                            }
-                        }.disabled(!controller.canSelect || controller.selectedAnchorPoiId == nil)
-                        if controller.selectedAnchorPoiId != nil, resources.isEmpty { installationText("missingResource") }
-                    }
-                    if options.requiredBindings.isEmpty { installationText("noPlaceholders") }
-                }
-                Button { Task { await controller.prepare() } } label: { installationText("prepare") }
-                    .disabled(!controller.canPrepare)
-            } else { installationText("loadingOptions") }
-        } header: { installationText("bindings") } footer: { installationText("bindingsBoundary") }
-    }
 }
 
 @MainActor private struct ModInstallationConfirmation: View {
@@ -331,8 +464,8 @@ import SwiftUI
     @Environment(\.locale) private var locale
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
+            Cloud25Screen(title: installationString("reviewInstall", locale: locale), seed: receipt.requestId, symbol: "checkmark.seal") {
+                CYInfoCard {
                     InstallationFact("request", receipt.requestId)
                     InstallationFact("license", receipt.licenseId)
                     InstallationFact("merchant", String(receipt.merchantId))
@@ -342,30 +475,30 @@ import SwiftUI
                     InstallationFact("termsHash", receipt.termsHash)
                     InstallationReceiptFacts(receipt: receipt)
                 }
-                if let preview {
-                    Section {
-                        ForEach(preview.fields.keys.filter { $0 != "advancedConfigJson" && $0 != "qmodTopicGraphJson" && $0 != "compositionReceiptJson" }.sorted(), id: \.self) { field in
-                            VStack(alignment: .leading) {
-                                installationText("field." + field).font(Theme.Font.label).foregroundStyle(.secondary)
-                                Text(verbatim: preview.fields[field] ?? "").textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                        if let json = preview.fields["advancedConfigJson"], let graph = try? ModInstallationNativeGraph(json: json) {
-                            InstallationNativeGraphContent(graph: graph)
-                        }
-                        if let json = preview.fields["qmodTopicGraphJson"], let graph = try? ModInstallationTopicGraph(json: json) {
-                            InstallationTopicGraphContent(graph: graph)
-                        }
-                    } header: { installationText("previewContent") }
-                }
-                Section {
-                    installationText("confirmBoundary")
-                    Button(action: confirm) { installationText("confirmInstall") }.disabled(!canConfirm)
+                if let preview { previewCard(preview) }
+                CYInfoCard {
+                    installationText("confirmBoundary").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Cloud25Pill(title: installationString("confirmInstall", locale: locale), key: "confirmInstall", primary: true, systemImage: "checkmark", enabled: canConfirm, action: confirm)
                 }
             }
-            .font(Theme.Font.body)
-            .navigationTitle(installationString("reviewInstall", locale: locale))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { installationText("back") } } }
+        }
+    }
+    private func previewCard(_ preview: ModInstallationPreview) -> some View {
+        CYInfoCard {
+            Cloud25Header(title: installationString("previewContent", locale: locale))
+            ForEach(preview.fields.keys.filter { $0 != "advancedConfigJson" && $0 != "qmodTopicGraphJson" && $0 != "compositionReceiptJson" }.sorted(), id: \.self) { field in
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    installationText("field." + field).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: preview.fields[field] ?? "").textSelection(.enabled).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            if let json = preview.fields["advancedConfigJson"], let graph = try? ModInstallationNativeGraph(json: json) {
+                InstallationNativeGraphContent(graph: graph)
+            }
+            if let json = preview.fields["qmodTopicGraphJson"], let graph = try? ModInstallationTopicGraph(json: json) {
+                InstallationTopicGraphContent(graph: graph)
+            }
         }
     }
 }
@@ -379,49 +512,50 @@ import SwiftUI
     @Environment(\.locale) private var locale
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
+            Cloud25Screen(title: installationString("facts.title", locale: locale), seed: facts.requestId, symbol: "checklist") {
+                CYInfoCard {
                     InstallationFact("request", facts.requestId)
                     InstallationFact("draft", String(facts.draftId))
                     InstallationFact("merchant", String(facts.merchantId))
                     InstallationFact("facts.draftHash", facts.draftContentHash)
                     InstallationFact("bindingHash", facts.bindingHash)
                 }
-                Section {
-                    Text(verbatim: facts.title).font(Theme.Font.sectionTitle).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: facts.rules).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                CYInfoCard {
+                    Cloud25Header(title: installationString("facts.currentContent", locale: locale))
+                    Text(verbatim: facts.title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: facts.rules).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if let json = facts.advancedConfigJson, !json.isEmpty {
                         if let graph = try? ModInstallationNativeGraph(json: json) {
                             InstallationNativeGraphContent(graph: graph)
                         } else {
-                            // The owner may have added other supported native mechanisms in the real editor.
-                            // Never hide them behind a partial graph preview during fact confirmation.
-                            installationText("graph.currentConfiguration")
-                            Text(verbatim: json).font(Theme.Font.label.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            installationText("graph.currentConfiguration").font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: json).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                } header: { installationText("facts.currentContent") }
-                Section {
+                }
+                CYInfoCard {
+                    Cloud25Header(title: installationString("bindings", locale: locale))
                     ForEach(facts.bindings) { binding in
-                        VStack(alignment: .leading) {
-                            installationText("kind." + binding.kind.rawValue)
-                            Text(verbatim: binding.key + ": " + binding.label)
-                            Text(verbatim: String(binding.resourceId)).font(Theme.Font.label)
-                            Text(verbatim: binding.fingerprint).font(Theme.Font.label).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            installationText("kind." + binding.kind.rawValue).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: binding.key + ": " + binding.label).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: String(binding.resourceId)).font(CYTypography.numericBody)
+                            Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                } header: { installationText("bindings") }
-                Section {
-                    installationText("facts.boundary")
-                    if facts.confirmed { installationText("facts.confirmed") }
-                    else {
+                }
+                CYInfoCard {
+                    installationText("facts.boundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    if facts.confirmed {
+                        CYStatusChip(verbatim: installationString("facts.confirmed", locale: locale), tone: .success, systemImage: "checkmark")
+                            .accessibilityLabel(installationText("facts.confirmed"))
+                    } else {
                         Toggle(isOn: $readFacts) { installationText("facts.readConfirmation") }
-                        Button(action: confirm) { installationText("facts.confirm") }.disabled(!readFacts || !canConfirm)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                        Cloud25Pill(title: installationString("facts.confirm", locale: locale), key: "facts.confirm", primary: true, enabled: readFacts && canConfirm, action: confirm)
                     }
                 }
             }
-            .font(Theme.Font.body)
-            .navigationTitle(installationString("facts.title", locale: locale))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { installationText("back") } } }
         }
     }
@@ -429,59 +563,84 @@ import SwiftUI
 
 private struct InstallationReceiptFacts: View {
     let receipt: ModInstallationReceipt
+    @Environment(\.locale) private var locale
     var body: some View {
-        installationText("state." + receipt.state.rawValue).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+        CYStatusChip(verbatim: stateLabel, tone: receiptTone(receipt.state), systemImage: receiptSymbol(receipt.state))
+            .accessibilityLabel(installationText("state." + receipt.state.rawValue))
         InstallationFact("region", receipt.region)
         InstallationFact("bindingHash", receipt.bindingHash)
         if let id = receipt.draftId { InstallationFact("draft", String(id)) }
         if let error = receipt.errorCode { InstallationFact("serverError", error) }
         if let composition = receipt.composition { ModCompositionInstallationReceiptView(value: composition) }
         ForEach(receipt.bindings) { binding in
-            VStack(alignment: .leading, spacing: 4) {
-                installationText("kind." + binding.kind.rawValue).font(Theme.Font.label)
-                Text(verbatim: binding.key + ": " + binding.label)
-                Text(verbatim: String(binding.resourceId)).font(Theme.Font.label)
-                Text(verbatim: binding.fingerprint).font(Theme.Font.label).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                installationText("kind." + binding.kind.rawValue).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: binding.key + ": " + binding.label).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: String(binding.resourceId)).font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             }
         }
-        ForEach(receipt.requiredGates, id: \.self) { installationText("gate." + $0).font(Theme.Font.label).foregroundStyle(.secondary) }
+        ForEach(receipt.requiredGates, id: \.self) { gate in
+            installationText("gate." + gate).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+    private var stateLabel: String {
+        let resolved = installationString("state." + receipt.state.rawValue, locale: locale)
+        return resolved == "modInstallation.state." + receipt.state.rawValue ? receipt.state.rawValue : resolved
     }
 }
+
 private struct InstallationNativeGraphContent: View {
     let graph: ModInstallationNativeGraph
+    @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            installationText("graph.title").font(Theme.Font.sectionTitle)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Cloud25Header(title: installationString("graph.title", locale: locale))
             InstallationFact("graph.start", graph.startStepId)
             ForEach(graph.steps) { step in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: step.id + " · " + step.title).font(Theme.Font.sectionTitle)
-                    Text(verbatim: step.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    Text(verbatim: step.id + " · " + step.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: step.body).font(CYTypography.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if step.terminal {
-                        InstallationFact("graph.end", (step.outcomeCode ?? "") + " · " + (step.outcomeLabel ?? ""))
+                        InstallationFact("graph.end", Cloud25Copy.joined(step.outcomeCode, step.outcomeLabel))
                     }
                     ForEach(step.options) { option in
-                        Text(verbatim: option.id + " · " + option.label + " → " + option.nextStepId).font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: option.id + " · " + option.label + " → " + option.nextStepId).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
-            installationText("graph.boundary").font(Theme.Font.label).foregroundStyle(.secondary)
+            installationText("graph.boundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
+
 private struct InstallationFact: View {
     let key: String, value: String
     init(_ key: String, _ value: String) { self.key = key; self.value = value }
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            installationText(key).font(Theme.Font.label).foregroundStyle(.secondary)
-            Text(verbatim: value).font(Theme.Font.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-        }
+        CYFactRow(label: installationText(key), value: Cloud25Copy.value(value))
     }
 }
-private func installationText(_ key: String) -> Text { Text(LocalizedStringKey("modInstallation." + key), tableName: "ModInstallation") }
-private func installationString(_ key: String, locale: Locale) -> String {
+
+func installationText(_ key: String) -> Text { Text(LocalizedStringKey("modInstallation." + key), tableName: "ModInstallation") }
+func installationString(_ key: String, locale: Locale) -> String {
     String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "modInstallation." + key), table: "ModInstallation", locale: locale))
+}
+private func receiptTone(_ state: ModInstallationReceipt.State) -> CYStatusTone {
+    switch state {
+    case .installed: return .success
+    case .prepared: return .info
+    case .failed: return .danger
+    case .cancelled: return .warning
+    }
+}
+private func receiptSymbol(_ state: ModInstallationReceipt.State) -> String {
+    switch state {
+    case .installed: return "checkmark.seal"
+    case .prepared: return "clock"
+    case .failed: return "exclamationmark.triangle"
+    case .cancelled: return "xmark.circle"
+    }
 }
 
 /// Always reachable from an owned frozen license, including revoked/suspended licenses.
@@ -489,12 +648,20 @@ private func installationString(_ key: String, locale: Locale) -> String {
 @MainActor struct ModInstallationOriginalRecoveryLink: View {
     let reference: ModInstallationIdentity
     let makeController: (ModInstallationIdentity) -> ModInstallationController?
+    @Environment(\.locale) private var locale
     var body: some View {
         NavigationLink {
             ModInstallationOriginalRecoveryEntry(reference: reference, makeController: makeController)
-        } label: { installationText("originalRecovery.open") }.accessibilityIdentifier("modInstallation.originalRecovery." + reference.licenseId)
+        } label: {
+            CYListRow(verbatim: installationString("originalRecovery.open", locale: locale), trailing: .none) {
+                CYRowIcon(systemImage: "arrow.counterclockwise")
+            }
+        }
+        .accessibilityIdentifier("modInstallation.originalRecovery." + reference.licenseId)
+        .accessibilityLabel(installationText("originalRecovery.open"))
     }
 }
+
 @MainActor private struct ModInstallationOriginalRecoveryEntry: View {
     let reference: ModInstallationIdentity
     let makeController: (ModInstallationIdentity) -> ModInstallationController?
@@ -507,16 +674,12 @@ private func installationString(_ key: String, locale: Locale) -> String {
             if phase == .active, let controller, controller.isCurrent {
                 ModInstallationOriginalRecoveryView(controller: controller).id(ObjectIdentifier(controller))
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        installationText("originalRecovery.unavailable").fixedSize(horizontal: false, vertical: true)
-                        Button { reopen() } label: { installationText("originalRecovery.reopen") }
-                            .disabled(phase != .active)
-                    }.padding()
+                Cloud25Screen(title: installationString("originalRecovery.title", locale: locale), seed: reference.licenseId, symbol: "arrow.counterclockwise") {
+                    CYEmptyState(systemImage: "lock.slash", "modInstallation.originalRecovery.unavailable", tableName: "ModInstallation")
+                    Cloud25Pill(title: installationString("originalRecovery.reopen", locale: locale), key: "originalRecovery.reopen", primary: true, enabled: phase == .active) { reopen() }
                 }
             }
         }
-        .navigationTitle(installationString("originalRecovery.title", locale: locale))
         .privacySensitive()
         .onAppear { if controller?.isCurrent != true { reopen() } }
         .onChange(of: session.sessionRevision) { _, _ in reopen() }
@@ -528,71 +691,81 @@ private func installationString(_ key: String, locale: Locale) -> String {
     private func retire() { controller?.invalidate(); controller = nil }
     private func reopen() { retire(); guard phase == .active else { return }; controller = makeController(reference) }
 }
+
 @MainActor private struct ModInstallationOriginalRecoveryView: View {
     @State var controller: ModInstallationController
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
     @State private var hasRead = false
     var body: some View {
-        Form {
+        Cloud25Screen(title: installationString("originalRecovery.title", locale: locale), seed: controller.identity.licenseId, symbol: "arrow.counterclockwise") {
             if controller.busy || !hasRead {
-                Section {
-                    ProgressView { installationText("originalRecovery.loading") }
-                        .accessibilityIdentifier("modInstallationOriginalRecovery.loading")
-                }
+                CYSkeleton()
+                    .accessibilityIdentifier("modInstallationOriginalRecovery.loading")
+                    .accessibilityLabel(installationText("originalRecovery.loading"))
             }
-            Section {
+            CYInfoCard {
+                Cloud25Header(title: installationString("originalRecovery.identitySection", locale: locale))
                 InstallationFact("license", controller.identity.licenseId)
                 InstallationFact("module", controller.identity.moduleId)
                 InstallationFact("release", controller.identity.releaseId)
-                installationText("originalRecovery.boundary").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            } header: { installationText("originalRecovery.identitySection") }
-            Section {
+                installationText("originalRecovery.boundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            }
+            CYInfoCard {
+                Cloud25Header(title: installationString("originalRecovery.localSection", locale: locale))
                 if let request = controller.originalRecoveryRequestID {
-                    Text(verbatim: request).font(Theme.Font.label).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: request).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if let saved = controller.originalRecoverySavedReceipt {
-                        installationText("originalRecovery.savedReceipt").font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                        CYStatusChip(verbatim: installationString("originalRecovery.savedReceipt", locale: locale), tone: .info, systemImage: "doc.text")
+                            .accessibilityLabel(installationText("originalRecovery.savedReceipt"))
                         ModInstallationOriginalReceiptSummary(receipt: saved)
                     }
                 } else if ModInstallationOriginalRecoveryPresentation.showsNoLocalRequest(hasRead: hasRead, busy: controller.busy,
                                                                                           requestID: controller.originalRecoveryRequestID,
                                                                                           storageUnavailable: controller.originalRecoveryStorageUnavailable) {
-                    installationText("originalRecovery.noLocalRequest").fixedSize(horizontal: false, vertical: true)
+                    CYEmptyState(systemImage: "doc", "modInstallation.originalRecovery.noLocalRequest", tableName: "ModInstallation")
                 }
-                if controller.originalRecoveryStorageUnavailable { installationText("originalRecovery.storageUnavailable").fixedSize(horizontal: false, vertical: true) }
-                if controller.originalRecoveryRequestUnknown { installationText("originalRecovery.requestUnknown").fixedSize(horizontal: false, vertical: true) }
-            } header: { installationText("originalRecovery.localSection") }
+                if controller.originalRecoveryStorageUnavailable {
+                    CYNoteBanner(text: installationText("originalRecovery.storageUnavailable"), symbol: "externaldrive.badge.exclamationmark", tone: .warning)
+                }
+                if controller.originalRecoveryRequestUnknown {
+                    CYNoteBanner(text: installationText("originalRecovery.requestUnknown"), symbol: "questionmark.circle", tone: .warning)
+                }
+            }
             if let receipt = controller.originalRecoveryReceipt {
-                Section {
+                CYInfoCard {
+                    Cloud25Header(title: installationString("originalRecovery.resultSection", locale: locale))
                     ModInstallationOriginalReceiptSummary(receipt: receipt)
-                    installationText("originalRecovery.resultBoundary").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    installationText("originalRecovery.resultBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     if receipt.memberTemplateID != nil {
                         ModInstalledTextReadEntry(makeReader: { controller.installedTextReader(receipt) })
                     }
-                } header: { installationText("originalRecovery.resultSection") }
+                }
             }
-            Section {
+            CYInfoCard {
+                Cloud25Header(title: installationString("originalRecovery.historySection", locale: locale))
                 ForEach(controller.originalRecoveryHistory) { receipt in
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         ModInstallationOriginalReceiptSummary(receipt: receipt)
-                        Button { Task { await readHistory(receipt) } } label: { installationText("originalRecovery.readRequest") }
-                            .disabled(controller.busy || !controller.isCurrent || phase != .active)
+                        Cloud25Pill(title: installationString("originalRecovery.readRequest", locale: locale), key: "originalRecovery.readRequest", primary: false, enabled: !controller.busy && controller.isCurrent && phase == .active) {
+                            Task { await readHistory(receipt) }
+                        }
                     }
                 }
                 if ModInstallationOriginalRecoveryPresentation.showsEmptyHistory(hasRead: controller.originalRecoveryHistoryRead,
                                                                                  busy: controller.busy, count: controller.originalRecoveryHistory.count,
                                                                                  unknown: controller.originalRecoveryHistoryUnknown) {
-                    installationText("originalRecovery.emptyHistory").fixedSize(horizontal: false, vertical: true)
+                    CYEmptyState(systemImage: "clock", "modInstallation.originalRecovery.emptyHistory", tableName: "ModInstallation")
                 }
-                if controller.originalRecoveryHistoryUnknown { installationText("originalRecovery.historyUnknown").fixedSize(horizontal: false, vertical: true) }
-            } header: { installationText("originalRecovery.historySection") }
-            Section {
-                Button { Task { await refresh() } } label: { installationText("originalRecovery.refresh") }
-                    .disabled(controller.busy || !controller.isCurrent || phase != .active)
+                if controller.originalRecoveryHistoryUnknown {
+                    CYNoteBanner(text: installationText("originalRecovery.historyUnknown"), symbol: "questionmark.circle", tone: .warning)
+                }
+                Cloud25Pill(title: installationString("originalRecovery.refresh", locale: locale), key: "originalRecovery.refresh", primary: true, systemImage: "arrow.clockwise", enabled: !controller.busy && controller.isCurrent && phase == .active) {
+                    Task { await refresh() }
+                }
             }
         }
-        .font(Theme.Font.body)
-        .navigationTitle(installationString("originalRecovery.title", locale: locale)).privacySensitive()
+        .privacySensitive()
         .task { await refresh() }
     }
     private func refresh() async {
@@ -621,7 +794,7 @@ enum ModInstallationOriginalRecoveryPresentation {
 struct ModInstallationOriginalReceiptSummary: View {
     let receipt: ModInstallationReceipt
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             InstallationFact("request", receipt.requestId)
             InstallationFact("license", receipt.licenseId)
             InstallationFact("release", receipt.releaseId)
@@ -629,5 +802,82 @@ struct ModInstallationOriginalReceiptSummary: View {
             InstallationFact("termsHash", receipt.termsHash)
             InstallationReceiptFacts(receipt: receipt)
         }
+    }
+}
+
+// MARK: - Lane chrome (player dark, one hero title, 16pt gutters)
+
+enum Cloud25Copy {
+    static let dash = "—"
+
+    /// Empty and the sentinel UNKNOWN become an em dash. A real 0, including `"0"`, stays.
+    static func value(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || trimmed == "UNKNOWN" { return dash }
+        return trimmed
+    }
+
+    static func joined(_ left: String?, _ right: String?) -> String {
+        let parts = [left, right].compactMap { item -> String? in
+            guard let item else { return nil }
+            let trimmed = item.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        return parts.isEmpty ? dash : parts.joined(separator: " · ")
+    }
+}
+
+struct Cloud25Header: View {
+    let title: String
+    var body: some View {
+        CYSectionHeader(LocalizedStringKey(stringLiteral: title))
+            .accessibilityLabel(Text(verbatim: title))
+    }
+}
+
+struct Cloud25Pill: View {
+    let title: String
+    var key: String? = nil
+    var primary = false
+    var systemImage: String? = nil
+    var enabled = true
+    let action: () -> Void
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        CYPillButton(verbatim: title, style: primary ? .primary : .secondary, systemImage: systemImage) {
+            if primary, !reduceMotion { CYHaptics.impactMedium.play() }
+            action()
+        }
+        .disabled(!enabled)
+        .accessibilityLabel(key.map { installationText($0) } ?? Text(verbatim: title))
+    }
+}
+
+/// One visible title, from `CYHeroHeader` / `cyHeroScreen`. Page gutters are 16pt.
+struct Cloud25Screen<Content: View>: View {
+    let title: String
+    let seed: String
+    let symbol: String
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                Color.clear
+                    .aspectRatio(16.0 / 10.0, contentMode: .fit)
+                    .overlay { CYCoverArt(seed: seed.isEmpty ? symbol : seed, symbol: symbol, showsDebugLabel: false, cornerRadius: CYRadius.lg) }
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .accessibilityHidden(true)
+                CYHeroHeader(verbatim: title)
+                content()
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.jumbo)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .cyDomainPageBackground()
+        .cyHeroScreen()
+        .themeDomain(.player)
     }
 }
