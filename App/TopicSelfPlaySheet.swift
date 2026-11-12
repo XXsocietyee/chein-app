@@ -16,12 +16,36 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                // Mini-program self-play-checkout order: 1 theme head, pass coverage, 2 single purchase,
+                // 3 city passes covering this theme, participant, 7 breakdown.
                 Section {
+                    if let cover = model.flow.topic.imageURL, !cover.isEmpty {
+                        CYCachedAsyncImage(cover)
+                            .frame(maxWidth: .infinity).frame(height: 160).clipped()
+                            .listRowInsets(EdgeInsets())
+                            .accessibilityHidden(true)
+                    }
                     Text(verbatim: model.flow.topic.name).font(.title3.weight(.semibold))
                         .fixedSize(horizontal: false, vertical: true)
-                    TopicPrice(value: model.flow.topic.selfPlayPrice, label: "topic.selfPlayPrice")
-                    Text("contextSelfPlay.validity")
-                    Text("contextSelfPlay.paymentNotice").font(.caption)
+                    if let place = model.flow.topic.addressName, !place.isEmpty {
+                        Label { Text(verbatim: place) } icon: { Image(systemName: "mappin.and.ellipse") }
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                Section {
+                    MPPassCheckoutRows(topicID: model.flow.topic.id) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Image(systemName: "largecircle.fill.circle").foregroundStyle(.primary).accessibilityHidden(true)
+                                Text("mp.pass.checkout.single").font(.body.weight(.semibold))
+                                Spacer()
+                                TopicPrice(value: model.flow.topic.selfPlayPrice, label: "topic.selfPlayPrice").labelsHidden()
+                            }
+                            Text("contextSelfPlay.validity").font(.footnote).foregroundStyle(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isSelected)
+                    }
                 }
                 if model.flow.pending == nil {
                     Section("contextSelfPlay.participant") {
@@ -30,6 +54,7 @@ import SwiftUI
                         TextField("contextSelfPlay.phone", text: Binding(get: { model.flow.phone }, set: { model.flow.phone = $0; model.flow.changed() }))
                             .keyboardType(.phonePad).textContentType(.telephoneNumber).autocorrectionDisabled().accessibilityIdentifier("contextSelfPlay.phone")
                     }.disabled(!model.flow.canEdit)
+                    billSection
                     Section {
                         if let document = model.flow.document { Link("contextSelfPlay.noticeLink", destination: document.officialURL) }
                         else { Text("contextSelfPlay.documentUnavailable").font(.caption) }
@@ -39,6 +64,7 @@ import SwiftUI
                             .disabled(!model.flow.canCreate).accessibilityIdentifier("contextSelfPlay.review")
                     }
                 }
+                if model.flow.pending != nil { billSection }
                 if let key = model.flow.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("contextSelfPlay.status") } }
                 if model.flow.phase == .creating { ProgressView("contextSelfPlay.creating") }
                 if let id = model.flow.registrationID {
@@ -79,6 +105,17 @@ import SwiftUI
                 PaymentProviderReturnSheet(flow: result) { model.flow.closeResult($0) }
             }
         }
+    }
+    /// 7 明细: line price and 合计 (no currency symbol is inferred, same as TopicPrice).
+    private var billSection: some View {
+        Section {
+            TopicPrice(value: model.flow.topic.selfPlayPrice, label: "topic.selfPlayPrice")
+            LabeledContent {
+                if let price = model.flow.topic.selfPlayPrice { Text(verbatim: NSDecimalNumber(decimal: price).stringValue).fontWeight(.semibold) }
+                else { Text("topic.priceUnknown") }
+            } label: { Text("mp.pass.checkout.total").fontWeight(.semibold) }
+            Text("contextSelfPlay.paymentNotice").font(.caption)
+        } header: { Text("mp.pass.checkout.bill") }
     }
 }
 @MainActor struct TopicSelfPlayUnavailableSheet: View {

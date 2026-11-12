@@ -129,8 +129,11 @@ struct PassMembershipView: View {
         }
         .safeAreaInset(edge: .bottom) {
             MPBottomBar {
-                if content.active, let onOpenLibrary {
-                    CYPillButton("mp.member.toLibrary", action: onOpenLibrary).accessibilityIdentifier("membership.toLibrary")
+                if content.active {
+                    // Active footer is always 去主题库 (pp__foot); without a library binding it stays read-only, never a buy label.
+                    if let onOpenLibrary {
+                        CYPillButton("mp.member.toLibrary", action: onOpenLibrary).accessibilityIdentifier("membership.toLibrary")
+                    }
                 } else {
                     buyLabel(content).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity, minHeight: 56)
@@ -374,11 +377,25 @@ struct PassLibraryCardView: View {
                     if let minutes = card.minutes { Text("mp.library.minutes \(minutes)") }
                 }
                 .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                // photo-card__bottom: tag chips (kind, city) + chevron, as on the club card.
+                HStack(spacing: CYSpacing.xs) {
+                    if let kindText { tag(kindText) }
+                    if let city = card.city { tag(Text(verbatim: city)) }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityHidden(true)
+                }
+                .padding(.top, CYSpacing.xxs)
             }
             .padding(CYSpacing.lg)
         }
         .overlay(alignment: .top) {
             HStack(spacing: CYSpacing.sm) {
+                // photo-card__logo: the 城 mark.
+                Text("mp.library.cityMark").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                    .frame(width: 28, height: 28)
+                    .cyNightGlass(in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                    .accessibilityHidden(true)
                 if card.freeWithPass {
                     Text("mp.library.free").font(CYTypography.caption).foregroundStyle(CYNight.ink0)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
@@ -397,6 +414,12 @@ struct PassLibraryCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("mp.library.open \(card.title)"))
+    }
+
+    private func tag(_ text: Text) -> some View {
+        text.font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+            .background(CYColor.textPrimary.opacity(0.14), in: Capsule())
     }
 }
 
