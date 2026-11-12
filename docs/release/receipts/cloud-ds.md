@@ -13,7 +13,7 @@ The host screens are unchanged. A primer screen is inserted before each system p
 | System prompt | Preceded by | Where the call sits |
 |---|---|---|
 | Location, When In Use | `CYPermissionPrimerScreen(kind: .location)` | Roam first GO sheet in `App/RoamLiveSessionView.swift` (marks the kind primed, then start). `App/RuntimeNativeLocationProvider.swift` `currentFix` before `requestWhenInUseAuthorization`. `App/PlayNativeDeviceProvider.swift` location capture. `App/PlayKitNativeSensorProvider.swift` heading. `App/PersonalLocationShareHost.swift` before `requestForegroundAuthorization`. |
-| Camera | `CYPermissionPrimerScreen(kind: .camera)` | Stamp capture sheet in `App/RoamStampCameraView.swift`, then again at `requestAccess` if the sheet did not already continue. `App/PlayKitCameraPresentation.swift`. `App/PlayKitSpatialRevealView.swift`. `App/PlayNativeDeviceProvider.swift` photo and scan. `App/NativeQRScanner.swift` `requestPermission`. |
+| Camera | `CYPermissionPrimerScreen(kind: .camera)` | Stamp capture sheet in `App/RoamStampCameraView.swift`, then again at `requestAccess` if the sheet did not already continue. `App/PlayKitCameraPresentation.swift`. `App/PlayKitSpatialRevealView.swift`. `App/PlayNativeDeviceProvider.swift` photo and scan. `App/NativeQRScanner.swift` `requestPermission`. Merchant evidence and club profile camera pickers call `precede(.camera)` before `UIImagePickerController` when camera access is still not determined. |
 | Notifications | `CYPermissionPrimerScreen(kind: .notification)` | `App/NativeNotificationPermissionAdapter.swift` `requestFromUserAction` before `requestAuthorization`. `App/AppleLocalReminderProvider.swift` `requestPermission` before `requestAuthorization`. |
 
 Location copy is the existing draft (light up where you walk / 点亮你走过的地方). Camera and notification cards say what the prompt is for, in English and zh-Hans. Lantern gold and violet are not used on the primer.
@@ -28,3 +28,5 @@ Mounted in `App/ChapterStoryView.swift`:
 - The locked chapter gate: `ChapterGate` wraps the existing unavailable empty state and mounts `.cyThemeLook(.ink, odd: 0)`. Identifier `chapterStory.gate`. `chapterStory.body` is unchanged.
 
 An odd level above 0 pulses the edge. Reduce Motion keeps the resting stroke and does not pulse.
+
+`python3 tools/check_design_lint.py` PASS. `python3 tools/check_scaffold.py` PASS. RegionalLaunchConfiguration grants, money, and password were not edited.
