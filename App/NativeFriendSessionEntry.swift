@@ -30,6 +30,12 @@ import SwiftUI
                     sender: session.messageSender(for: id), mediaReader: session.socialMessageMediaReader,
                     expanded: session.imExpandedNavigation))
             }).id(session.messagingViewIdentity)
+                .navigationDestination(isPresented: $showingTeamInvites) {
+                    NativeFriendTeamInviteEntry(mode: .mine, makeFlow: { session.makeNativeFriendTeamInviteFlow(mode: $0) })
+                }
+                .navigationDestination(isPresented: $showingChannelInvites) {
+                    NativeFriendChannelInviteEntry(makeFlow: { session.makeNativeFriendChannelInviteFlow(mode: .mine) })
+                }
                 .toolbar { ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button { showingTeamInvites = true } label: {
@@ -42,11 +48,5 @@ import SwiftUI
                         Label { Text("d7.friends.more", tableName: "NativeFriend") } icon: { Image(systemName: "ellipsis.circle") }
                     }
                 } }
-                .navigationDestination(isPresented: $showingTeamInvites) {
-                    NativeFriendTeamInviteEntry(mode: .mine, makeFlow: { session.makeNativeFriendTeamInviteFlow(mode: $0) })
-                }
-                .navigationDestination(isPresented: $showingChannelInvites) {
-                    NativeFriendChannelInviteEntry(makeFlow: { session.makeNativeFriendChannelInviteFlow(mode: .mine) })
-                }
     }
 }

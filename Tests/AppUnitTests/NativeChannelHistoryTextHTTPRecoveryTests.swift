@@ -16,7 +16,7 @@ import UIKit
     func testTransientHistoryEnvelopeCannotPermanentlyRetireOriginalTextRecovery() async throws {
         for status in [302, 408, 429, 500, 503] {
             for body in rejectionBodies {
-                let r = try HistoryTextHTTPRig(), window = mount(r)
+                let r = try HistoryTextHTTPRig(), window = try mount(r)
                 defer { unmount(window, rig: r) }
                 try await ready(r)
                 let text = try XCTUnwrap(r.text), protected = r.storage.rows
@@ -43,7 +43,7 @@ import UIKit
         let responses = [(#"{"code":500}"#, 403), (rejectionBodies[0], 200),
             (rejectionBodies[2], 200), (rejectionBodies[2], 409), (rejectionBodies[3], 200)]
         for response in responses {
-            let r = try HistoryTextHTTPRig(), window = mount(r)
+            let r = try HistoryTextHTTPRig(), window = try mount(r)
             defer { unmount(window, rig: r) }
             try await ready(r)
             let text = try XCTUnwrap(r.text), protected = r.storage.rows
@@ -64,7 +64,7 @@ import UIKit
 
     func testRealReaderActualAndHeader401RemainTerminalForOldTextOwner() async throws {
         for response in [(#"{"code":500}"#, 401), (#"{"code":401}"#, 200), (#"{"code":401}"#, 503)] {
-            let r = try HistoryTextHTTPRig(), window = mount(r)
+            let r = try HistoryTextHTTPRig(), window = try mount(r)
             defer { unmount(window, rig: r) }
             try await ready(r)
             let text = try XCTUnwrap(r.text), protected = r.storage.rows
@@ -83,7 +83,7 @@ import UIKit
 
     func testOrdinaryServerAndConflictFailuresDoNotBecomeAccessClosure() async throws {
         for response in [(#"{"code":500}"#, 500), (#"{"code":409}"#, 200)] {
-            let r = try HistoryTextHTTPRig(), window = mount(r)
+            let r = try HistoryTextHTTPRig(), window = try mount(r)
             defer { unmount(window, rig: r) }
             try await ready(r)
             let text = try XCTUnwrap(r.text), protected = r.storage.rows
@@ -98,7 +98,7 @@ import UIKit
     }
 
     func testHistoryRecoveryDoesNotReissueRevokedOriginalReceiptGrant() async throws {
-        let r = try HistoryTextHTTPRig(), window = mount(r)
+        let r = try HistoryTextHTTPRig(), window = try mount(r)
         defer { unmount(window, rig: r) }
         try await ready(r)
         let text = try XCTUnwrap(r.text), protected = r.storage.rows
@@ -115,7 +115,7 @@ import UIKit
     }
 
     func testConfirmedClosedReceiptAfterHistoryRecoveryStillClosesOriginalText() async throws {
-        let r = try HistoryTextHTTPRig(), window = mount(r)
+        let r = try HistoryTextHTTPRig(), window = try mount(r)
         defer { unmount(window, rig: r) }
         try await ready(r)
         let text = try XCTUnwrap(r.text), protected = r.storage.rows
@@ -130,7 +130,7 @@ import UIKit
     }
 
     func testTypeFiveAndDefaultNativeReceiptCapabilitiesStayClosed() async throws {
-        let r = try HistoryTextHTTPRig(type: 5), window = mount(r)
+        let r = try HistoryTextHTTPRig(type: 5), window = try mount(r)
         defer { unmount(window, rig: r) }
         try await renderTurn(window)
         XCTAssertEqual(r.history.conversation.kind, .unknown)
@@ -140,18 +140,18 @@ import UIKit
         XCTAssertTrue(NativeChannelTextJournal.same(try r.journal.restore(), r.original))
     }
 
-    private func mount(_ r: HistoryTextHTTPRig) -> UIWindow {
+    private func mount(_ r: HistoryTextHTTPRig) throws -> HostedNavigationSceneWindow {
+        // A frame-only UIWindow is not in the foreground scene, so on iOS 27 the history view never
+        // appears and the receipt request is never built. Same scene helper as the other hosted suites.
+        let scene = try HostedNavigationSceneWindow()
         let view = NativeChannelHistoryView(model: r.history, makeTextCoordinator: { r.makeText($0) })
-        let controller = UIHostingController(rootView: NavigationStack { view }.environment(\.scenePhase, .active))
-        let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = controller; window.makeKeyAndVisible()
-        controller.loadViewIfNeeded(); controller.view.layoutIfNeeded()
-        return window
+        _ = hostedMount(scene.window, root: NavigationStack { view }.environment(\.scenePhase, .active))
+        return scene
     }
-    private func unmount(_ window: UIWindow, rig: HistoryTextHTTPRig) {
-        window.isHidden = true; window.rootViewController = nil
+    private func unmount(_ scene: HostedNavigationSceneWindow, rig: HistoryTextHTTPRig) {
         rig.text?.stop(); rig.text?.onChange = nil; rig.text = nil
         rig.history.stop(); rig.history.onChange = nil
+        scene.retire()
     }
     private func ready(_ r: HistoryTextHTTPRig) async throws {
         try await waitFor { r.history.loaded && r.wire.receiptKeys.count == 1 && r.text?.canCheckReceipt == true }
@@ -159,14 +159,16 @@ import UIKit
     private func waitFor(_ condition: () -> Bool) async throws {
         for _ in 0..<200 {
             if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
             try await Task.sleep(nanoseconds: 10_000_000)
         }
         XCTFail("The hosted history/text transition did not occur")
         throw APIError.notConfigured
     }
-    private func renderTurn(_ window: UIWindow) async throws {
+    private func renderTurn(_ scene: HostedNavigationSceneWindow) async throws {
         for _ in 0..<10 {
-            window.rootViewController?.view.layoutIfNeeded()
+            scene.window.rootViewController?.view.layoutIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
             try await Task.sleep(nanoseconds: 10_000_000)
         }
     }

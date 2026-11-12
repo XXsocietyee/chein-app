@@ -210,16 +210,9 @@ import SwiftUI
             else { peer = ""; message = ""; addingFriend = false; model.suspend() }
         }
         .onChange(of: flow.isCurrent) { _, current in if !current { peer = ""; message = ""; addingFriend = false } }
-        .toolbar {
-            if flow.phase != .closed {
-                ToolbarItem(placement: .primaryAction) {
-                    Button { addingFriend = true } label: {
-                        Label { text("friend.new") } icon: { Image(systemName: "person.badge.plus") }
-                    }.accessibilityIdentifier("friend.add")
-                }
-            }
-        }
         // The destination is not owned by a fetched row and survives its parent's onDisappear purge.
+        // It has to sit inside the NavigationStack, before toolbar: on iOS 27 a destination after toolbar is
+        // reported as a misplaced navigationDestination(isPresented:) and never pushes.
         .navigationDestination(isPresented: Binding(get: { model.child != nil }, set: { if !$0 { model.child = nil } })) {
             if let child = model.child {
                 switch child {
@@ -314,6 +307,15 @@ import SwiftUI
                 }
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
+            }
+        }
+        .toolbar {
+            if flow.phase != .closed {
+                ToolbarItem(placement: .primaryAction) {
+                    Button { addingFriend = true } label: {
+                        Label { text("friend.new") } icon: { Image(systemName: "person.badge.plus") }
+                    }.accessibilityIdentifier("friend.add")
+                }
             }
         }
     }
