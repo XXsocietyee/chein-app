@@ -185,7 +185,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     private func closeRangeEditor() { rangeEditor?.cancel(); rangeEditor = nil }
     private var rangeDates: [Date?] { [model.core.draft.startTime, model.core.draft.endTime] }
     var body: some View {
-        let page = page
+        let page = self.page
         Form {
             CouponManagementNotice(model: model, surface: .editor)
             switch page.phase {

@@ -33,7 +33,7 @@ import SwiftUI
         return FreeExploreBundlePageReady.screen(state: lane, failed: model.failure != nil, linkMissing: false, kept: kept)
     }
     var body: some View {
-        let screen = screen
+        let screen = self.screen
         return CYCardPage {
             CYArtCoverHeader(title: text("title"), symbol: "shippingbox.fill", seed: "bundle") {
                 if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
