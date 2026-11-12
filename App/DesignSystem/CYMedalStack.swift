@@ -297,7 +297,7 @@ struct CYMedalScreen: View {
             }
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(LocalizedStringKey(stat.key)).font(CYTypography.micro).foregroundStyle(.white.opacity(0.6))
-                Text(verbatim: CYCountUp.frame(stat.value, progress: counted)).font(CYTypography.dataXL).monospacedDigit()
+                Text(verbatim: CYMedalCountUp.frame(stat.value, progress: counted)).font(CYTypography.dataXL).monospacedDigit()
                     .foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.6)
                     .contentTransition(.numericText())
             }
@@ -346,7 +346,7 @@ struct CYMedalScreen: View {
 
 /// Count-up frame for stat strings (mini-program medal-screen `frame`): "h:mm:ss" and "m:ss" by seconds,
 /// "a/b" counts only the numerator, plain numbers keep their decimals, anything else is shown as is.
-enum CYCountUp {
+enum CYMedalCountUp {
     static func frame(_ raw: String?, progress: Double) -> String {
         guard let raw, !raw.isEmpty else { return "—" }
         let k = max(0, min(1, progress))

@@ -51,12 +51,9 @@ import QuestifyCore
 @available(macOS 14.0, *)
 @MainActor struct OrientScoreView: View {
     @StateObject private var model: OrientScoreModel
-    /// Mini-program "选择其他对局": shown only when the host can list the player's other rounds (needs logic).
-    private let onChooseAnother: (() -> Void)?
 
-    init(model: OrientScoreModel, onChooseAnother: (() -> Void)? = nil) {
+    init(model: OrientScoreModel) {
         _model = StateObject(wrappedValue: model)
-        self.onChooseAnother = onChooseAnother
     }
 
     var body: some View {
@@ -76,37 +73,24 @@ import QuestifyCore
         case .loading?, nil:
             CYLoadingState("orientScore.loading", messageIdentifier: "orientScore.loading")
                 .frame(maxWidth: .infinity, minHeight: 240)
-                .accessibilityIdentifier("orientScore.loading")
-        case .empty:
-            CYEmptyStateView(
-                systemImage: "list.number",
-                title: LocalizedStringKey(W8Text.t("没有可查看的本人对局", "No round of yours to show")),
-                description: LocalizedStringKey(W8Text.t("参加一场定向后，成绩会显示在这里。", "Scores appear here after you play an orienteering round.")))
-                .accessibilityIdentifier("orientScore.empty")
-        case .failed(let message, let retryable):
-            CYErrorStateView(
-                title: LocalizedStringKey(W8Text.t("计分加载失败", "Couldn't load the score")),
-                message: LocalizedStringKey(message),
-                retryTitle: LocalizedStringKey(W8Text.t("重新读取", "Try again")),
-                onRetry: retryable ? { Task { await model.load() } } : nil)
-                .accessibilityIdentifier("orientScore.error")
-        case .ready(let summary):
-            OrientScoreReadyContent(summary: summary)
-            // Mini-program footer: "刷新计分" and, when other rounds exist, "选择其他对局".
-            VStack(spacing: CYSpacing.xs) {
-                Button(W8Text.t("刷新计分", "Refresh score")) { Task { await model.load() } }
-                    .font(CYTypography.label)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("orientScore.refresh")
-                if let onChooseAnother {
-                    Button(W8Text.t("选择其他对局", "Choose another round"), action: onChooseAnother)
-                        .font(CYTypography.label)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .accessibilityIdentifier("orientScore.chooseAnother")
-                }
+        case .empty?:
+            CYEmptyState(systemImage: "list.number", "orientScore.empty.title", detail: "orientScore.empty.detail",
+                         messageIdentifier: "orientScore.empty")
+        case .error?:
+            if case .failed(let message, let retryable) = model.state {
+                CYEmptyState(systemImage: "exclamationmark.triangle", "orientScore.error.title",
+                             detailVerbatim: message, messageIdentifier: "orientScore.error",
+                             actionTitle: retryable ? "orientScore.error.retry" : nil, actionIdentifier: "orientScore.retry",
+                             kind: .failure) { Task { await model.load() } }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, CYSpacing.md)
+        case .unknown?:
+            CYEmptyState(systemImage: "questionmark.circle", "orientScore.error.title", detailVerbatim: OrientScorePage.unknownDisplay,
+                         messageIdentifier: "orientScore.unknown", actionTitle: "orientScore.error.retry",
+                         actionIdentifier: "orientScore.retry") { Task { await model.load() } }
+        case .ready(let facts)?:
+            if case .ready(let summary) = model.state {
+                OrientScoreReadyContent(summary: summary, facts: facts)
+            }
         }
     }
 }
@@ -143,8 +127,10 @@ import QuestifyCore
                     .contentTransition(.numericText())
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityLabel(summary.totalAccessibility)
-                Text(W8Text.t("对局 \(summary.sessionID)", "Round \(summary.sessionID)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                Text(W8Text.t("计分精确到 0.01 分；积分与探索值以结算结果为准。", "Scores are exact to 0.01. Points and explore XP follow the settlement result."))
+                // Source: 对局 {{score.sessionId}}.
+                Text("orientScore.session \(String(facts?.sessionID ?? summary.sessionID))")
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("orientScore.precision")
                     .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
@@ -172,16 +158,20 @@ import QuestifyCore
     private var settlementCard: some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(W8Text.t("结算结果", "Settlement")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                if let settlement = summary.settlement {
-                    Text(W8Text.t("本局已结算 · \(settlement.total)", "Settled · \(settlement.total)")).font(CYTypography.bodyMedium)
-                    Text(W8Text.t("积分 \(settlement.points) · 探索值 \(settlement.xp)", "Points \(settlement.points) · Explore XP \(settlement.xp)"))
-                        .font(CYTypography.bodyCompact)
-                    Text(W8Text.t("结算编号 \(settlement.settlementID)", "Settlement \(settlement.settlementID)"))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    Text(W8Text.t("结算后冲正只影响展示分，不追发或追扣本局奖励。", "Corrections after settlement change only the shown score; this round's rewards are not re-issued or clawed back."))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                Text("orientScore.settlement").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                switch facts?.settlement {
+                case .settled(let total, let points, let xp)?:
+                    Text("orientScore.settled \(total)").font(CYTypography.bodyMedium)
+                    Text("orientScore.rewards \(points) \(xp)").font(CYTypography.bodyCompact)
+                case .unknown?:
+                    Text(verbatim: OrientScorePage.unknownDisplay).font(CYTypography.bodyMedium)
+                case .absent?:
+                    EmptyView()
+                case nil:
+                    if let settlement = summary.settlement {
+                        Text("orientScore.settled \(settlement.total)").font(CYTypography.bodyMedium)
+                        Text("orientScore.rewards \(String(settlement.points)) \(String(settlement.xp))").font(CYTypography.bodyCompact)
+                    }
                 }
                 Text(summary.settlementNotice).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -206,8 +196,6 @@ import QuestifyCore
                         }
                         Text("orientScore.running \(runningText(row))").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         if !row.reason.isEmpty { Text(row.reason).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                        Text(row.nodeID.map { W8Text.t("流水 \(row.entryID) · 节点 \($0)", "Entry \(row.entryID) · node \($0)") } ?? W8Text.t("流水 \(row.entryID)", "Entry \(row.entryID)"))
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         if let reversed = row.reversesEntryID {
                             Text("orientScore.reverses \(String(reversed))").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         }
