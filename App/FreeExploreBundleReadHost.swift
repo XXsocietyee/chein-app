@@ -97,6 +97,62 @@ import FoundationNetworking
                 service: service, pending: pending) // default host grant FALSE, service writer FALSE
         } catch { if current { failed = true } }
     }
+
+    /// Same owner as `load()`. Callers use it for in-memory pending stores. It does not enable a write.
+    func commerceSession() throws -> FreeExploreLaunchSession {
+        guard current else { throw FreeExploreLaunchFailure.staleSession }
+        return try FreeExploreLaunchSession(baseURL: captured.baseURL,
+            accountID: Int64(captured.session.accountID), market: captured.market.rawValue,
+            namespace: captured.session.namespace, role: captured.role, epoch: captured.session.epoch,
+            token: captured.session.token)
+    }
+
+    /// Read-only quote. The transport accepts that one GET. No refund, payout, or withdrawal is sent.
+    func readRefundQuote() async throws -> FreeExploreLaunchRefundQuote {
+        guard current else { throw FreeExploreLaunchFailure.staleSession }
+        guard let allowed = BundleCommerceReadTransport.refundQuoteURL(base: captured.baseURL, registrationID: registrationID) else {
+            throw FreeExploreLaunchFailure.invalid
+        }
+        let session = try commerceSession()
+        let service = commerceService(session: session, allowed: [allowed])
+        let quote = try await service.refundQuote(registrationID: registrationID)
+        guard current else { throw FreeExploreLaunchFailure.staleSession }
+        return quote
+    }
+
+    /// Quote GET only. `writeAllowed` stays false, and the transport has no cancel POST.
+    func makeCancel(reservationID: FreeExploreLaunchID) throws -> BundleCommerceCancelTools {
+        guard current else { throw FreeExploreLaunchFailure.staleSession }
+        let quotes = BundleCommerceReadTransport.cancelQuoteURLs(base: captured.baseURL, reservationID: reservationID)
+        guard let order = BundleCommerceReadTransport.orderURL(base: captured.baseURL, registrationID: registrationID),
+              quotes.count == 2 else { throw FreeExploreLaunchFailure.invalid }
+        let session = try commerceSession()
+        let reader = commerceService(session: session, allowed: [order])
+        let client = try BundleAPIClient(session: session, authorization: captured.session.token,
+            transport: commerceGate(allowed: quotes),
+            currentSession: { [weak self] in self?.current == true ? session : nil },
+            writeAllowed: { false },
+            onUnauthorized: { [weak self] _ in self?.commerceUnauthorized() })
+        return BundleCommerceCancelTools(canceler: BundleCancelCanceler(client: client), service: reader)
+    }
+
+    private func commerceService(session: FreeExploreLaunchSession, allowed: [String]) -> FreeExploreLaunchService {
+        FreeExploreLaunchService(session: session, transport: commerceGate(allowed: allowed),
+            currentSession: { [weak self] in self?.current == true ? session : nil },
+            reservationAllowed: { false },
+            onUnauthorized: { [weak self] _ in self?.commerceUnauthorized() })
+    }
+
+    private func commerceGate(allowed: [String]) -> BundleCommerceReadTransport {
+        BundleCommerceReadTransport(context: captured, allowed: allowed, underlying: transport,
+            current: { [weak self] in self?.current == true }, denied: { [weak self] in self?.retire() })
+    }
+
+    private func commerceUnauthorized() {
+        guard current else { return }
+        unauthorized()
+        retire()
+    }
 }
 
 @MainActor final class FreeExploreBundleReadTransport: HTTPTransport {

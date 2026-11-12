@@ -1,0 +1,521 @@
+{
+  "page": "pages/club/customer-detail/index",
+  "title": "俱乐部客户详情与标签备注",
+  "sourceLanguage": "en",
+  "strings": [
+    {
+      "key": "clubOps.customers.noName",
+      "en": "No name provided",
+      "zh-Hans": "未留姓名"
+    },
+    {
+      "key": "clubOps.customers.forbidden",
+      "en": "Your role can't view customers",
+      "zh-Hans": "当前岗位没有客户查看权限"
+    },
+    {
+      "key": "clubOps.customers.forbiddenDetail",
+      "en": "Ask the club owner to adjust your role permissions.",
+      "zh-Hans": "请联系主理人调整角色权限"
+    },
+    {
+      "key": "clubOps.customers.retry",
+      "en": "Retry",
+      "zh-Hans": "重试加载"
+    },
+    {
+      "key": "clubOps.customer.addTag",
+      "en": "Add",
+      "zh-Hans": "添加"
+    },
+    {
+      "key": "clubOps.customer.amountHidden",
+      "en": "Not permitted to view",
+      "zh-Hans": "无查看权限"
+    },
+    {
+      "key": "clubOps.customer.arrived",
+      "en": "Visits",
+      "zh-Hans": "到店次数"
+    },
+    {
+      "key": "clubOps.customer.failed",
+      "en": "Couldn't load customer details",
+      "zh-Hans": "客户详情加载失败"
+    },
+    {
+      "key": "clubOps.customer.interaction %lld %lld",
+      "en": "Last interaction %1$lld/%2$lld",
+      "zh-Hans": "最近互动 %1$lld月%2$lld日"
+    },
+    {
+      "key": "clubOps.customer.interactionRemark %lld %lld %@",
+      "en": "Last interaction %1$lld/%2$lld · %3$@",
+      "zh-Hans": "最近互动 %1$lld月%2$lld日 · %3$@"
+    },
+    {
+      "key": "clubOps.customer.issue.remarkTooLong",
+      "en": "Notes can be up to 200 characters",
+      "zh-Hans": "备注最多 200 字"
+    },
+    {
+      "key": "clubOps.customer.issue.tagTooLong",
+      "en": "Each tag can be up to 12 characters",
+      "zh-Hans": "单个标签最多 12 字"
+    },
+    {
+      "key": "clubOps.customer.issue.tooManyTags",
+      "en": "Up to 8 tags",
+      "zh-Hans": "标签最多 8 个"
+    },
+    {
+      "key": "clubOps.customer.month %lld",
+      "en": "Month %lld",
+      "zh-Hans": "%lld月"
+    },
+    {
+      "key": "clubOps.customer.noInteraction",
+      "en": "No interactions yet",
+      "zh-Hans": "尚未发生互动"
+    },
+    {
+      "key": "clubOps.customer.noRemark",
+      "en": "No note yet",
+      "zh-Hans": "还没有备注"
+    },
+    {
+      "key": "clubOps.customer.overview",
+      "en": "Customer overview",
+      "zh-Hans": "客户概览"
+    },
+    {
+      "key": "clubOps.customer.paidAmount",
+      "en": "Total paid",
+      "zh-Hans": "累计实付"
+    },
+    {
+      "key": "clubOps.customer.pending",
+      "en": "Awaiting check-in",
+      "zh-Hans": "待核销"
+    },
+    {
+      "key": "clubOps.customer.records",
+      "en": "Participation history",
+      "zh-Hans": "参与记录"
+    },
+    {
+      "key": "clubOps.customer.recordsEmpty",
+      "en": "No participation history",
+      "zh-Hans": "暂无参与记录"
+    },
+    {
+      "key": "clubOps.customer.recordsEmptyDetail",
+      "en": "This customer hasn't registered or checked in yet.",
+      "zh-Hans": "该客户还没有报名或核销过"
+    },
+    {
+      "key": "clubOps.customer.refunded",
+      "en": "Refunded",
+      "zh-Hans": "已退款"
+    },
+    {
+      "key": "clubOps.customer.remark %@",
+      "en": "Note: %@",
+      "zh-Hans": "备注：%@"
+    },
+    {
+      "key": "clubOps.customer.remarkPlaceholder",
+      "en": "Note: preferences, who they usually bring, what to watch for next time",
+      "zh-Hans": "备注：口味偏好、常带谁、下次要留意什么"
+    },
+    {
+      "key": "clubOps.customer.removeTag %@",
+      "en": "Remove tag %@",
+      "zh-Hans": "移除标签 %@"
+    },
+    {
+      "key": "clubOps.customer.status.CANCELLED",
+      "en": "Cancelled",
+      "zh-Hans": "已取消"
+    },
+    {
+      "key": "clubOps.customer.status.CONTACTED",
+      "en": "Contacted",
+      "zh-Hans": "已接洽"
+    },
+    {
+      "key": "clubOps.customer.status.PENDING",
+      "en": "Awaiting check-in",
+      "zh-Hans": "待核销"
+    },
+    {
+      "key": "clubOps.customer.status.REFUNDED",
+      "en": "Refunded",
+      "zh-Hans": "已退款"
+    },
+    {
+      "key": "clubOps.customer.status.REGISTERED",
+      "en": "Registration",
+      "zh-Hans": "报名记录"
+    },
+    {
+      "key": "clubOps.customer.status.VERIFIED",
+      "en": "Checked in",
+      "zh-Hans": "已核销"
+    },
+    {
+      "key": "clubOps.customer.tagPlaceholder",
+      "en": "Add a tag, e.g. Regular",
+      "zh-Hans": "加个标签，例如：常客"
+    },
+    {
+      "key": "clubOps.customer.tagsAndRemark",
+      "en": "Tags & note",
+      "zh-Hans": "标签与备注"
+    },
+    {
+      "key": "clubOps.customer.untitled",
+      "en": "Untitled activity",
+      "zh-Hans": "未命名活动"
+    },
+    {
+      "key": "clubOps.customer.viewTopic",
+      "en": " · View activity",
+      "zh-Hans": " · 查看活动"
+    },
+    {
+      "key": "club.customerDetail.page.loading",
+      "en": "Loading customer",
+      "zh-Hans": "正在加载客户"
+    },
+    {
+      "key": "club.customerDetail.page.empty",
+      "en": "No participation, tags, or note yet",
+      "zh-Hans": "还没有参与记录、标签或备注"
+    },
+    {
+      "key": "club.customerDetail.page.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "key": "club.customerDetail.page.error",
+      "en": "Couldn't load customer details",
+      "zh-Hans": "客户详情加载失败"
+    },
+    {
+      "key": "clubOps.customers.noName",
+      "en": "No name provided",
+      "zh-Hans": "未留姓名",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customers.forbidden",
+      "en": "Your role can't view customers",
+      "zh-Hans": "当前岗位没有客户查看权限",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customers.forbiddenDetail",
+      "en": "Ask the club owner to adjust your role permissions.",
+      "zh-Hans": "请联系主理人调整角色权限",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customers.retry",
+      "en": "Retry",
+      "zh-Hans": "重试加载",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.addTag",
+      "en": "Add",
+      "zh-Hans": "添加",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.amountHidden",
+      "en": "Not permitted to view",
+      "zh-Hans": "无查看权限",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.arrived",
+      "en": "Visits",
+      "zh-Hans": "到店次数",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.failed",
+      "en": "Couldn't load customer details",
+      "zh-Hans": "客户详情加载失败",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.interaction %lld %lld",
+      "en": "Last interaction %1$lld/%2$lld",
+      "zh-Hans": "最近互动 %1$lld月%2$lld日",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.interactionRemark %lld %lld %@",
+      "en": "Last interaction %1$lld/%2$lld · %3$@",
+      "zh-Hans": "最近互动 %1$lld月%2$lld日 · %3$@",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.issue.remarkTooLong",
+      "en": "Notes can be up to 200 characters",
+      "zh-Hans": "备注最多 200 字",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.issue.tagTooLong",
+      "en": "Each tag can be up to 12 characters",
+      "zh-Hans": "单个标签最多 12 字",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.issue.tooManyTags",
+      "en": "Up to 8 tags",
+      "zh-Hans": "标签最多 8 个",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.month %lld",
+      "en": "Month %lld",
+      "zh-Hans": "%lld月",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.noInteraction",
+      "en": "No interactions yet",
+      "zh-Hans": "尚未发生互动",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.noRemark",
+      "en": "No note yet",
+      "zh-Hans": "还没有备注",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.overview",
+      "en": "Customer overview",
+      "zh-Hans": "客户概览",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.paidAmount",
+      "en": "Total paid",
+      "zh-Hans": "累计实付",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.pending",
+      "en": "Awaiting check-in",
+      "zh-Hans": "待核销",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.records",
+      "en": "Participation history",
+      "zh-Hans": "参与记录",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.recordsEmpty",
+      "en": "No participation history",
+      "zh-Hans": "暂无参与记录",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.recordsEmptyDetail",
+      "en": "This customer hasn't registered or checked in yet.",
+      "zh-Hans": "该客户还没有报名或核销过",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.refunded",
+      "en": "Refunded",
+      "zh-Hans": "已退款",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.remark %@",
+      "en": "Note: %@",
+      "zh-Hans": "备注：%@",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.remarkPlaceholder",
+      "en": "Note: preferences, who they usually bring, what to watch for next time",
+      "zh-Hans": "备注：口味偏好、常带谁、下次要留意什么",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.removeTag %@",
+      "en": "Remove tag %@",
+      "zh-Hans": "移除标签 %@",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.status.CANCELLED",
+      "en": "Cancelled",
+      "zh-Hans": "已取消",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.status.CONTACTED",
+      "en": "Contacted",
+      "zh-Hans": "已接洽",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.status.PENDING",
+      "en": "Awaiting check-in",
+      "zh-Hans": "待核销",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.status.REFUNDED",
+      "en": "Refunded",
+      "zh-Hans": "已退款",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.status.REGISTERED",
+      "en": "Registration",
+      "zh-Hans": "报名记录",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.status.VERIFIED",
+      "en": "Checked in",
+      "zh-Hans": "已核销",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.tagPlaceholder",
+      "en": "Add a tag, e.g. Regular",
+      "zh-Hans": "加个标签，例如：常客",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.tagsAndRemark",
+      "en": "Tags & note",
+      "zh-Hans": "标签与备注",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.untitled",
+      "en": "Untitled activity",
+      "zh-Hans": "未命名活动",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "clubOps.customer.viewTopic",
+      "en": " · View activity",
+      "zh-Hans": " · 查看活动",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "club.customerDetail.page.loading",
+      "en": "Loading customer",
+      "zh-Hans": "正在加载客户",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "club.customerDetail.page.empty",
+      "en": "No participation, tags, or note yet",
+      "zh-Hans": "还没有参与记录、标签或备注",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "club.customerDetail.page.unknown",
+      "en": "—",
+      "zh-Hans": "—",
+      "table": "ClubOpsCustomer"
+    },
+    {
+      "key": "club.customerDetail.page.error",
+      "en": "Couldn't load customer details",
+      "zh-Hans": "客户详情加载失败",
+      "table": "ClubOpsCustomer"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    {
+      "id": "club.customerDetail.page.loading",
+      "role": "page-state"
+    },
+    {
+      "id": "club.customerDetail.page.empty",
+      "role": "page-state"
+    },
+    {
+      "id": "club.customerDetail.page.error",
+      "role": "page-state"
+    },
+    {
+      "id": "club.customerDetail.page.unknown",
+      "role": "page-state"
+    },
+    {
+      "id": "club.customerDetail.metric.arrived",
+      "role": "metric"
+    },
+    {
+      "id": "club.customerDetail.metric.pending",
+      "role": "metric"
+    },
+    {
+      "id": "club.customerDetail.metric.refunded",
+      "role": "metric"
+    },
+    {
+      "id": "clubOps.customer.paidAmount",
+      "role": "existing-view"
+    },
+    {
+      "id": "clubOps.customer.recordsEmpty",
+      "role": "existing-view"
+    },
+    {
+      "id": "clubOps.failure.title",
+      "role": "existing-view"
+    },
+    {
+      "id": "clubOps.failure.retry",
+      "role": "existing-view"
+    },
+    {
+      "id": "club.gov.fact.displayName",
+      "role": "existing-view"
+    },
+    {
+      "id": "club.gov.customer.topic.{topicID}",
+      "role": "existing-view"
+    },
+    {
+      "id": "clubOps.customer.removeTag.{index}",
+      "role": "existing-view"
+    },
+    {
+      "id": "club.gov.input.tags",
+      "role": "existing-view"
+    },
+    {
+      "id": "clubOps.customer.addTag",
+      "role": "existing-view"
+    },
+    {
+      "id": "club.gov.input.remark",
+      "role": "existing-view"
+    },
+    {
+      "id": "clubOps.customer.malformed",
+      "role": "existing-view"
+    }
+  ]
+}

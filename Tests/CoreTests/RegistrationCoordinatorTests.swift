@@ -76,7 +76,7 @@ final class RegistrationCoordinatorTests: XCTestCase {
         realName: "Synthetic Participant", phone: "synthetic-phone", email: "fixture@example.invalid"
     )
 
-    private func quote(_ json: String = #"{"payAmount":19.99,"quoteSign":"fixture-signature"}"#) throws -> RegistrationQuote {
+    private func quote(_ json: String = #"{"payAmount":0,"quoteSign":"fixture-signature"}"#) throws -> RegistrationQuote {
         try JSONDecoder().decode(RegistrationQuote.self, from: Data(json.utf8))
     }
     private func result(_ json: String = #"{"registrationId":41,"payableAmount":19.99}"#) throws -> RegistrationCreateResult {
@@ -147,6 +147,16 @@ final class RegistrationCoordinatorTests: XCTestCase {
         try await loadQuote(coordinator, service, value: quote(#"{"payAmount":0,"quoteSign":"fixture-zero"}"#))
         XCTAssertTrue(coordinator.canConfirm)
         XCTAssertTrue(service.creates.isEmpty, "A usable quote is not implicit confirmation")
+    }
+
+    func testPaidQuoteDoesNotCreate() async throws {
+        let service = ControlledRegistrationService()
+        let coordinator = try makeCoordinator(service)
+        try await loadQuote(coordinator, service, value: quote(#"{"payAmount":19.99,"quoteSign":"fixture-paid"}"#))
+        let action = await coordinator.confirm(participant)
+        XCTAssertEqual(action, .blocked(.paymentRequired))
+        XCTAssertTrue(service.creates.isEmpty)
+        XCTAssertNil(coordinator.retainedIntent)
     }
 
     func testSelectionAndPointsChangesInvalidateQuoteIncludingChangeAwayAndBack() async throws {

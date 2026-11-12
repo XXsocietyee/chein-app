@@ -21,6 +21,7 @@ struct SquareXcxPostCard: View {
                 Text(verbatim: contents).lineLimit(2)
                 if facts.bodyExpandable { Text("square.xcx.expand").font(.caption).foregroundStyle(.tint) }
             }
+            stravaSection
             if facts.isCompletionShare || facts.hasPlayCover { playCard }
             if showsMedia, let preview = facts.leadingRoutePreview {
                 NativeMediaGalleryEntry(sources: [preview], scope: mediaScope, titleKey: "media.destination.squareImages", compact: true)

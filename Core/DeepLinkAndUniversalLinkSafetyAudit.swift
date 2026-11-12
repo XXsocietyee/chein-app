@@ -71,6 +71,7 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
         case crossRealmRejected(linkRealm: Realm, sessionRealm: Realm)
         case unknownRealmIdentifier(String)
         case writeOrPaymentIntentRejected(keys: [String])
+        case paymentOrPasswordRoute(String)
         case unsupportedRoute(String)
     }
 
@@ -140,6 +141,39 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
         "autosubmit"
     ]
 
+    /// Path segments and query names that must never become a navigable destination.
+    /// Exact segment match only: a shorter token such as `pay` must not reject `payload`.
+    public static let closedPaymentAndPasswordSegments: Set<String> = [
+        "pay", "payment", "checkout", "cashier", "password", "passwd",
+        "login", "signin", "sign-in", "withdraw"
+    ]
+
+    private static let closedCredentialQueryNames: Set<String> = ["password", "passwd", "pwd"]
+
+    /// True when the URL is a payment screen, a password/login screen, or carries a URL password.
+    /// Custom-scheme SDK callbacks are not matched unless their path, host label, or query names the same.
+    public static func isPaymentOrPasswordRoute(_ url: URL) -> Bool {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return false }
+        return isPaymentOrPasswordRoute(components)
+    }
+
+    public static func isPaymentOrPasswordRoute(_ components: URLComponents) -> Bool {
+        if components.password != nil { return true }
+        let queryNames = (components.queryItems ?? []).map { $0.name.lowercased() }
+        if queryNames.contains(where: { closedCredentialQueryNames.contains($0) }) { return true }
+        let segments = components.path.split(separator: "/").map { $0.lowercased() }
+        if segments.contains(where: { isClosedPaymentOrPasswordSegment($0) }) { return true }
+        let host = (components.host ?? "").lowercased()
+        if !host.isEmpty, !host.contains("."), isClosedPaymentOrPasswordSegment(host) { return true }
+        return false
+    }
+
+    private static func isClosedPaymentOrPasswordSegment(_ segment: String) -> Bool {
+        if closedPaymentAndPasswordSegments.contains(segment) { return true }
+        if segment.hasSuffix("-password") || segment.hasSuffix("_password") { return true }
+        return false
+    }
+
     public static func isUntrustedOrLiteralIPHost(_ host: String, verifiedHTTPSHosts: Set<String>) -> Bool {
         let normalized = host.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !normalized.isEmpty else { return true }
@@ -188,6 +222,11 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
         guard url.absoluteString.utf8.count <= 8192,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             return AuditReport(decision: .rejected(.malformedURL))
+        }
+
+        if isPaymentOrPasswordRoute(components) {
+            let path = components.path.isEmpty ? "/" : components.path
+            return AuditReport(decision: .rejected(.paymentOrPasswordRoute(path)))
         }
 
         let rawScheme = (components.scheme ?? "").lowercased()

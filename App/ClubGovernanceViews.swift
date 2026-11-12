@@ -1352,9 +1352,11 @@ struct ClubGovernanceReadView: View {
             ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }
             Section { link(.members) }
         } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
-            ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed)) })
+            ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed)) },
+                scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value)
         } else if operation == .cases, let cases = try? ClubOpsCaseList(snapshot: snapshot) {
-            ClubOpsCaseSection(list: cases, report: cases.canReport ? AnyView(edit(.report)) : nil, appeal: cases.canAppeal ? AnyView(edit(.appeal)) : nil)
+            ClubOpsCaseSection(list: cases, report: cases.canReport ? AnyView(edit(.report)) : nil, appeal: cases.canAppeal ? AnyView(edit(.appeal)) : nil,
+                scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value)
         } else if operation == .recruit {
             ClubTopicMerchantContent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration, readGeneration: generation, access: access)
         } else if operation == .topicOverview {
@@ -1417,11 +1419,13 @@ struct ClubGovernanceReadView: View {
                 }, presentation: terminalPresentation)
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
         } else if operation == .audienceCounts {
+            let notifyPage = ClubNotifyPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
             Section {
                 if let rows = try? ClubOpsNotifyPresentation.audienceRows(value) { ClubOpsNotifyAudienceRows(rows: rows) }
                 else { ClubGovernanceFactRows(value: value["counts"], fields: ["ALL_MEMBERS", "ADMINS", "REGISTERED", "WAITLIST", "NO_SHOW", "INACTIVE"], showUnknown: true) }
-                edit(.sendNotification)
+                if !notifyPage.hidden, notifyPage.broadcastOffered { edit(.sendNotification) }
             } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.audience.title") }
+            .accessibilityValue(Text(verbatim: notifyPage.hidden ? ClubNotifyPage.unknownDisplay : (notifyPage.rows?.map(\.count.displayText).joined(separator: " ") ?? ClubNotifyPage.unknownDisplay)))
         } else if operation == .dissolutionBlockers {
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
@@ -1472,16 +1476,27 @@ struct ClubGovernanceReadView: View {
         } else if operation == .nodeAnswer {
             ClubNodeAnswerContent(value: value)
         } else if operation == .customer {
-            if let detail = try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID) {
-                ClubOpsCustomerDetailContent(detail: detail, topicAction: { record in
+            let customerPage = ClubCustomerDetailPage.project(value: value, memberID: scope.memberID, capability: .init(permissions: snapshot.permissions, scope: scope))
+            if let detail = customerPage.detail ?? (try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)) {
+                ClubOpsCustomerDetailContent(detail: detail, page: customerPage, topicAction: { record in
                     customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
                 }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]])) : nil)
+            } else if !customerPage.hidden, let metrics = customerPage.metrics {
+                Section {
+                    ClubOpsCustomerMetricTile(value: metrics.arrived, label: "clubOps.customer.arrived")
+                    ClubOpsCustomerMetricTile(value: metrics.pending, label: "clubOps.customer.pending")
+                    ClubOpsCustomerMetricTile(value: metrics.refunded, label: "clubOps.customer.refunded")
+                    if let paid = customerPage.paidAmount?.displayText {
+                        Text(verbatim: paid).font(CYTypography.numericBody).monospacedDigit().accessibilityIdentifier(ClubCustomerDetailPage.Accessibility.paidAmount)
+                    }
+                }
             } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customer.malformed") }
         } else if operation == .notificationStatus, let campaign = try? ClubOpsNotifyCampaign(value: value) {
-            Section { ClubOpsNotifyCampaignRows(campaign: campaign) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
+            let delivery = ClubNotifyDeliveryPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
+            Section { ClubOpsNotifyCampaignRows(campaign: campaign, delivery: delivery.hidden ? nil : delivery) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
             if campaign.canRetryFailed {
                 Text("club.gov.deliveryPending"); ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.retryOnlyFailed").font(.footnote).foregroundStyle(.secondary)
-                edit(.retryNotification)
+                if delivery.retryOffered { edit(.retryNotification) }
             }
         } else {
             if operation == .customers {
@@ -1533,9 +1548,17 @@ struct ClubGovernanceReadView: View {
             } }
             if operation == .checkin, let clubID = scope.clubID, let registrationID = scope.registrationID,
                let target = try? ClubOwnerRefundTarget(clubID: clubID, registrationID: registrationID) {
-                ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]))
+                let checkinPage = ClubCheckinDetailPage.bind(clientCapabilityPresent: access.isConfigured, loading: loading, failure: failure, value: value)
+                let checkinKind: ClubCheckinRail.StateKind? = {
+                    if case .error(let kind) = checkinPage.phase { return kind }
+                    return nil
+                }()
+                if checkinPage.showsContent {
+                    ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind)
+                }
+                // Dispatch stays off (ClubCheckinDetailPage.showsRefundAction). The panel only explains the saved gate.
                 Section {
-                    ClubOwnerRefundPanel(target: target, identity: identity, sourceCanRefund: value["canRefund"] == .bool(true), onReadback: { Task { await load() } })
+                    ClubOwnerRefundPanel(target: target, identity: identity, sourceCanRefund: checkinPage.showsRefundAction && value["canRefund"] == .bool(true), onReadback: { Task { await load() } })
                 }
             }
             if operation == .registrations { enrollmentLink(focusTopicID: scope.topicID) }

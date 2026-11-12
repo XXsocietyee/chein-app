@@ -102,7 +102,7 @@ struct ClubActionPanel: View {
                     confirmTitle: String(localized: String.LocalizationValue(actionKey(value.action))),
                     isDestructive: value.action == .leave,
                     confirmIdentifier: "club.action.confirm",
-                    consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale) : []
+                    consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale, needsApproval: club.needsApproval) : []
                 ) { submit(value) }
             }
         }
@@ -302,14 +302,16 @@ struct ClubActionPanel: View {
 
 /// Consequence rows of the quit-club confirmation (mini-program `pages/club/detail` quit dialog).
 enum ClubLeaveConsequences {
-    static func rows(locale: Locale) -> [CYConfirmConsequence] {
+    static func rows(locale: Locale, needsApproval: Bool = false) -> [CYConfirmConsequence] {
         [
             CYConfirmConsequence(systemImage: "rectangle.portrait.and.arrow.right",
                                  text: ChannelCopy.text("你会被移出团群，看不到成员专属内容", "You’ll be removed from the group and lose member-only content", locale: locale)),
             CYConfirmConsequence(systemImage: "ticket",
                                  text: ChannelCopy.text("会员专属活动的报名资格立即失效，已付款项不随退出自动退回", "Member-only event spots end immediately; payments already made are not refunded automatically", locale: locale)),
             CYConfirmConsequence(systemImage: "exclamationmark.triangle",
-                                 text: ChannelCopy.text("此操作不可撤销，当前的成员身份与加入时间不会保留", "This can’t be undone; your membership and join date won’t be kept", locale: locale))
+                                 text: ChannelCopy.text("此操作不可撤销，当前的成员身份与加入时间不会保留", "This can’t be undone; your membership and join date won’t be kept", locale: locale)),
+            CYConfirmConsequence(systemImage: "arrow.uturn.backward",
+                                 text: ClubPlayerCopy.quitRejoin(needsApproval: needsApproval, locale: locale))
         ]
     }
 }

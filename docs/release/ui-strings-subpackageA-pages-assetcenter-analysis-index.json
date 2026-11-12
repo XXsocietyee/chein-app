@@ -1,0 +1,242 @@
+{
+  "page": "subpackageA/pages/assetcenter/analysis/index",
+  "feature": "资产余额变动分析明细",
+  "native": "App/WalletCommerceViews.swift",
+  "mapStatus": "exists",
+  "strings": [
+    {
+      "key": "wallet.analysis.currency",
+      "en": "Currency",
+      "zh-Hans": "币种",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.currencyUnknown",
+      "en": "The currency of these records isn't known",
+      "zh-Hans": "这些记录的币种未知",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.empty",
+      "en": "No records yet",
+      "zh-Hans": "还没有收支记录",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.excluded",
+      "en": "Records with missing direction, amount, currency or date are not treated as zero. Currencies are shown separately.",
+      "zh-Hans": "缺失方向、金额、币种或日期的记录不按零计算；不同币种分别展示。",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.failed",
+      "en": "Couldn't load analysis",
+      "zh-Hans": "分析数据加载失败",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.income",
+      "en": "Income",
+      "zh-Hans": "收入",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.knownSubtotal",
+      "en": "Excludes unclassified records",
+      "zh-Hans": "不含无法归类的记录",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.loading",
+      "en": "Loading…",
+      "zh-Hans": "正在加载…",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.login",
+      "en": "Sign in to see your analysis",
+      "zh-Hans": "登录后查看分析",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.mode",
+      "en": "Type",
+      "zh-Hans": "类型",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.months",
+      "en": "Last six months",
+      "zh-Hans": "近六个月",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.more",
+      "en": "Only the received page slice is shown. Records not received are excluded from subtotals.",
+      "zh-Hans": "当前只显示已接收的分页片段，未收到的记录不计入小计。",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.noPayout",
+      "en": "This summarizes only records received in this read, not complete account income, a balance, withdrawable funds, or proof of payment.",
+      "zh-Hans": "这里只汇总本次已接收的明细，不是完整账户收入、余额、可提现金额或付款成功证明。",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.noSources",
+      "en": "No income this month",
+      "zh-Hans": "这个月还没有收入",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.received",
+      "en": "Records received this time",
+      "zh-Hans": "本次收到的记录数",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.retry",
+      "en": "Retry",
+      "zh-Hans": "重试",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.slice",
+      "en": "The end of this page sequence was reached. These pages are not an atomic snapshot or proof of complete account income.",
+      "zh-Hans": "本次已读到分页末尾；这些分页仍不是原子快照，也不证明账户完整收入。",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.source.activity",
+      "en": "Activity share",
+      "zh-Hans": "活动分成",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.source.invitation",
+      "en": "Merchant referral",
+      "zh-Hans": "商家推荐",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.source.other",
+      "en": "Other recorded source",
+      "zh-Hans": "其他原记录来源",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.source.returned",
+      "en": "Returned withdrawal request",
+      "zh-Hans": "提现驳回退回",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.source.topic",
+      "en": "Topic share",
+      "zh-Hans": "主题分成",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.sources",
+      "en": "Income sources",
+      "zh-Hans": "收入来源",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.title",
+      "en": "Analysis",
+      "zh-Hans": "分析",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.unavailable",
+      "en": "Analysis isn't available right now",
+      "zh-Hans": "暂时无法查看分析",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.unknown",
+      "en": "Unclassified records",
+      "zh-Hans": "无法归类的记录",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.unverified",
+      "en": "—",
+      "zh-Hans": "—",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.withdrawal",
+      "en": "Withdrawals",
+      "zh-Hans": "提现",
+      "table": "WalletIncomeAnalysis"
+    },
+    {
+      "key": "wallet.analysis.read.budget",
+      "en": "Based on the latest 200 records",
+      "zh-Hans": "按最近 200 条记录统计",
+      "table": "WalletIncomeAnalysisRead"
+    },
+    {
+      "key": "wallet.analysis.read.changed",
+      "en": "Page order, total or content validation changed. Reading stopped; this is not summarized as a complete snapshot.",
+      "zh-Hans": "分页顺序、总数或内容校验发生变化；停止继续读取，不按完整快照汇总。",
+      "table": "WalletIncomeAnalysisRead"
+    },
+    {
+      "key": "wallet.analysis.read.interrupted",
+      "en": "A later read was interrupted. Only records already received in the same session are retained.",
+      "zh-Hans": "后续读取中断，仅保留此前同一会话已收到的记录。",
+      "table": "WalletIncomeAnalysisRead"
+    },
+    {
+      "key": "wallet.analysis.read.noVerifiedRecords",
+      "en": "No verified record slice is available. This is not treated as an empty account or zero amount.",
+      "zh-Hans": "尚无已验证的记录片段，不按空账户或零金额处理。",
+      "table": "WalletIncomeAnalysisRead"
+    },
+    {
+      "key": "wallet.analysis.read.partial",
+      "en": "Some records couldn't be loaded",
+      "zh-Hans": "部分记录没有加载出来",
+      "table": "WalletIncomeAnalysisRead"
+    },
+    {
+      "key": "wallet.analysis.read.progress",
+      "en": "The original session and read authority are checked for every page. Leaving or changing accounts stops subsequent reads.",
+      "zh-Hans": "每页重新校验原账号会话和读取权限，离开或切换账号会停止后续读取。",
+      "table": "WalletIncomeAnalysisRead"
+    },
+    {
+      "key": "wallet.analysis.read.scope",
+      "en": "Reads at most 10 pages of 20 records through the original income endpoint. Only received records are grouped by Beijing-time month. Balances are not used to fill gaps; this creates no ledger snapshot or withdrawal authority.",
+      "zh-Hans": "仅通过原收入明细接口读取最多 10 页、每页 20 条。按北京时间月份汇总已收到的记录；不读取余额来补齐、不创建账本快照或授予提现权限。",
+      "table": "WalletIncomeAnalysisRead"
+    },
+    {
+      "key": "wallet.analysis.read.unverified",
+      "en": "The original response supplied no verifiable total. Further pages were not requested; an empty slice does not prove the account has no records.",
+      "zh-Hans": "原响应未提供可确认总数，停止追加分页；不据空片段判断账户无记录。",
+      "table": "WalletIncomeAnalysisRead"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    {
+      "id": "wallet.analysis",
+      "where": "WalletIncomeAnalysisView screen"
+    },
+    {
+      "id": "wallet.analysis.loading",
+      "where": "loading section"
+    },
+    {
+      "id": "wallet.analysis.partial.retry",
+      "where": "partial-read retry"
+    },
+    {
+      "id": "wallet.analysis.open",
+      "where": "WalletCommerceHomeView entry"
+    }
+  ]
+}

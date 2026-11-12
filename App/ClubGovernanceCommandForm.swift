@@ -72,6 +72,7 @@ import SwiftUI
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @QuestifyReduceMotion private var reduceMotion
     @State private var audienceVisible = false
     @State private var scheduleSession: ClubSeriesScheduleSession?
     @State private var draft: ClubGovernanceFormDraft
@@ -85,6 +86,8 @@ import SwiftUI
     @State private var locked = false
     @State private var showDiscard = false
     @State private var cancelConfirmReview: ClubGovernanceReview?
+    @State private var applyStep = 0
+    @State private var applyBlocked = false
     private var generation: UInt64 { presentation.generation }
     private var presentationContext: ClubGovernanceFormLifecycle.Context {
         .init(identity: identity, access: access, coordinator: coordinator, operation: route.operation,
@@ -115,23 +118,53 @@ import SwiftUI
             // The internal draft/gate notes and the raw target IDs are no longer shown: users never chose them.
             if ClubOpsGovernanceFormNotes.applies(route.operation) { Section { ClubOpsGovernanceFormNotes(operation: route.operation, seed: route.seed) } }
             if route.operation == .hostApply {
-                // Mini-program club/apply four steps, shown as four sections of one form.
-                Section {
-                    ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { fieldRow($0) }
-                } header: { Text("club.host.step.profile") } footer: { Text("club.host.contactPrivate") }
-                    .disabled(busy || locked || review != nil)
-                Section("club.host.step.experience") {
-                    ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { fieldRow($0) }
-                }.disabled(busy || locked || review != nil)
-                Section("club.host.step.skills") {
-                    ForEach(["canDesignRoute", "canDesignTask", "canNpc", "canMerchantCoop"], id: \.self) { flagRow($0) }
-                    Text("club.host.skills.selectedCount \(ClubHostApplyPort.capabilityCount(draft.flags))").font(.footnote).foregroundStyle(.secondary)
-                }.disabled(busy || locked || review != nil)
-                Section("club.host.step.credentials") {
-                    // 资质 / 案例图 upload has no working upload path yet, and picked images block submission,
-                    // so the picker stays hidden until uploads exist (ClubHostApplicationMaterialsRows).
-                    flagRow("hasGuideCert")
-                }.disabled(busy || locked || review != nil)
+                // Mini-program club/apply: intro, then one of four steps. Cert upload stays hidden.
+                if applyStep == 0 {
+                    Section {
+                        Text(verbatim: ClubPlayerCopy.applyIntroTitle(locale))
+                            .font(CYTypography.pageTitle)
+                            .accessibilityIdentifier("club.player.apply.intro")
+                    }
+                }
+                if applyStep == 1 {
+                    Section {
+                        ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { fieldRow($0) }
+                        if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                                .accessibilityIdentifier("club.player.apply.nameGap")
+                        }
+                        if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                                .accessibilityIdentifier("club.player.apply.phoneGap")
+                        }
+                    } header: { applyStepHeader(1) } footer: { Text("club.host.contactPrivate") }
+                        .disabled(busy || locked || review != nil)
+                }
+                if applyStep == 2 {
+                    Section {
+                        ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { fieldRow($0) }
+                        if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                                .accessibilityIdentifier("club.player.apply.experienceGap")
+                        }
+                    } header: { applyStepHeader(2) }
+                        .disabled(busy || locked || review != nil)
+                }
+                if applyStep == 3 {
+                    Section {
+                        ForEach(["canDesignRoute", "canDesignTask", "canNpc", "canMerchantCoop"], id: \.self) { flagRow($0) }
+                        Text("club.host.skills.selectedCount \(ClubHostApplyPort.capabilityCount(draft.flags))").font(.footnote).foregroundStyle(.secondary)
+                    } header: { applyStepHeader(3) }
+                        .disabled(busy || locked || review != nil)
+                }
+                if applyStep == 4 {
+                    Section {
+                        // 资质 / 案例图 upload has no working upload path yet, and picked images block submission,
+                        // so the picker stays hidden until uploads exist (ClubHostApplicationMaterialsRows).
+                        flagRow("hasGuideCert")
+                    } header: { applyStepHeader(4) }
+                        .disabled(busy || locked || review != nil)
+                }
             } else if route.operation == .sendNotification {
                 // Mini-program club/notify: 选择受众 list, then 内容.
                 Section("club.gov.field.audienceType") {
@@ -239,7 +272,10 @@ import SwiftUI
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {
+                if route.operation == .hostApply && applyStep < 4 { applyAdvanceButton }
+                if route.operation != .hostApply || applyStep == 4 {
                 Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
+                }
             }
             if route.operation == .createSeries {
                 ClubSeriesOriginalResultSection(scope: route.scope, identity: identity, access: access,
@@ -297,7 +333,20 @@ import SwiftUI
             } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
             Button(role: .cancel) { cancelConfirmReview = nil } label: { Text("clubOpsEvent.cancel.keep", tableName: "ClubOpsEvent") }
         } message: { Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent") }
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { if dirty || busy || locked { showDiscard = true } else { dismiss() } } } }
+        .toolbar { ToolbarItem(placement: .cancellationAction) {
+            Button {
+                if route.operation == .hostApply, applyStep > 0, !busy, !locked {
+                    applyBlocked = false
+                    setApplyStep(applyStep - 1)
+                } else if dirty || busy || locked { showDiscard = true } else { dismiss() }
+            } label: {
+                if route.operation == .hostApply, applyStep > 0 {
+                    Image(systemName: "chevron.backward").accessibilityLabel(Text(verbatim: locale.pick("上一步", "Back")))
+                } else {
+                    Text("club.gov.close")
+                }
+            }
+        } }
         .interactiveDismissDisabled(dirty || busy || locked)
         .sheet(isPresented: $showDiscard) {
             CYConfirmSheet(
@@ -413,6 +462,37 @@ import SwiftUI
     }
     private var gateKey: String {
         switch route.operation.risk { case .administrative: return "club.gov.writeGate"; case .financial: return "club.gov.financialGate"; case .identity: return "club.gov.identityGate"; case .provider: return "club.gov.providerGate" }
+    }
+    @ViewBuilder private func applyStepHeader(_ step: Int) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: ClubPlayerCopy.progress(step))
+                .font(CYTypography.meta)
+                .foregroundStyle(.secondary)
+                .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale)))
+                .accessibilityIdentifier("club.player.apply.progress")
+            Text(verbatim: ClubPlayerCopy.applyTitle(step: step, locale: locale))
+                .accessibilityIdentifier("club.player.apply.stepTitle")
+        }
+    }
+    private var applyReady: Bool {
+        applyStep == 0 || ClubHostApplyPort.canAdvance(step: applyStep, text: draft.text)
+    }
+    private var applyAdvanceButton: some View {
+        Button {
+            guard applyReady else { applyBlocked = true; return }
+            applyBlocked = false
+            setApplyStep(applyStep + 1)
+        } label: {
+            Text(verbatim: applyStep == 0 ? ClubPlayerCopy.applyStart(locale) : ClubPlayerCopy.next(locale))
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(CYPillButtonStyle())
+        .disabled(busy || locked || review != nil)
+        .listRowBackground(Color.clear)
+        .accessibilityIdentifier("club.player.apply.next")
+    }
+    private func setApplyStep(_ next: Int) {
+        if reduceMotion { applyStep = next } else { withAnimation(.easeInOut(duration: 0.2)) { applyStep = next } }
     }
     @ViewBuilder private func fieldRow(_ key: String) -> some View {
         if let choices = draft.choices(key) {

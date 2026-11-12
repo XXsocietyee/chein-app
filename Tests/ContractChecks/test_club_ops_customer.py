@@ -269,7 +269,8 @@ class ClubCustomerDetailPageReadyChecks(unittest.TestCase):
     def test_customer_detail_page_states_stay_off_player_entry(self):
         core = read("Core/ClubOpsCustomerPresentation.swift")
         view = read("App/ClubOpsCustomerViews.swift")
-        self.assertNotIn("ClubCustomerDetailPage", view)
+        self.assertIn("ClubCustomerDetailPage", view)
+        self.assertNotIn("enum ClubCustomerDetailPage", view)
         for token in [
             "case loading", "case empty", "case error(ClubGovernanceFailure)", "case unknown", "case ready",
             'public static let unknownDisplay = "—"',

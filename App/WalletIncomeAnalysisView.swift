@@ -81,6 +81,11 @@ import SwiftUI
                 LabeledContent { Text(verbatim: String(summary.unknownCount)) } label: { text("unknown") }
             }
         }
+        if model.pageModel.phase == .unknown || model.pageModel.phase == .empty {
+            Text(verbatim: model.pageModel.moneyText)
+                .font(Theme.Font.sectionTitle).monospacedDigit()
+                .accessibilityIdentifier("wallet.analysis.page")
+        }
         if slice.rows.isEmpty {
             if slice.isPartial { readText("noVerifiedRecords") }
             else {

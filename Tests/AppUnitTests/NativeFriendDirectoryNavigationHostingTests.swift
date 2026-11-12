@@ -94,7 +94,12 @@ import UIKit
         }
     }
     private func wait(_ stage: String, file: StaticString = #filePath, line: UInt = #line, _ condition: () -> Bool) async throws {
-        for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
+        // Navigation pushes are delivered on run-loop turns. Task.sleep alone never returns to that loop on the iOS 27 host.
+        for _ in 0..<150 {
+            if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTAssertTrue(condition(), stage, file: file, line: line)
         if !condition() { throw NativeFriendFailure.unavailable }
     }

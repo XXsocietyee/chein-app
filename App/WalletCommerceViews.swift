@@ -228,7 +228,7 @@ enum WalletPayoutCapability { static let isOn = false }
             } else if monthModel.pager.isLoading {
                 CYSkeleton().frame(height: 96)
             } else {
-                Text(verbatim: "—").foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity, minHeight: 96).orderCardSurface()
+                Text(verbatim: WalletIncomeDetailPageModel.unknownMoney).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity, minHeight: 96).orderCardSurface()
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
@@ -247,17 +247,21 @@ enum WalletPayoutCapability { static let isOn = false }
     /// 我的资产: icon rows with trailing amounts (— while unknown), all opening the existing assets screen.
     private var assetsSection: some View {
         Section {
-            let stages = funds.loadedScope == reader.scope ? funds.value : nil
-            let known = stages?.amountsKnown == true
+            let phase = WalletFundsStageClassifier.phase(WalletFundsStageClassifier.input(reader: reader, funds: funds))
+            let stages = WalletFundsStageClassifier.showsAmounts(phase) ? funds.value : nil
+            if WalletFundsStageClassifier.showsAmounts(phase) {
             NavigationLink { WalletAssetsView(reader: reader) } label: {
                 VStack(spacing: 0) {
-                    assetRow("creditcard", t("可提现", "Withdrawable"), known ? stages.map { assetAmount($0.withdrawable, $0.currency) } : nil)
+                    assetRow("creditcard", t("可提现", "Withdrawable"), stages.map { assetAmount($0.withdrawable, $0.currency) })
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("clock.arrow.circlepath", t("待结算", "Pending settlement"), known ? stages.map { assetAmount($0.pendingSettlement, $0.currency) } : nil)
+                    assetRow("clock.arrow.circlepath", t("待结算", "Pending settlement"), stages.map { assetAmount($0.pendingSettlement, $0.currency) })
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("exclamationmark.bubble", t("争议中", "Disputed"), known ? stages.map { assetAmount($0.disputed, $0.currency) } : nil)
+                    assetRow("exclamationmark.bubble", t("争议中", "Disputed"), stages.map { assetAmount($0.disputed, $0.currency) })
                 }.orderCardSurface(padding: CYSpacing.md)
             }.buttonStyle(.plain).questifyHidesLinkIndicator().accessibilityIdentifier("wallet.assets.open")
+            } else {
+                WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
+            }
         } header: {
             Text(verbatim: t("我的资产", "My assets")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader).textCase(nil)
@@ -273,7 +277,7 @@ enum WalletPayoutCapability { static let isOn = false }
             CYRowIcon(systemImage: icon)
             Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: value ?? "—").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value ?? WalletIncomeDetailPageModel.unknownMoney).font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
                 .lineLimit(1).minimumScaleFactor(0.7).privacySensitive()
         }.padding(.vertical, CYSpacing.sm).frame(minHeight: CYSpacing.minTouchTarget)
     }

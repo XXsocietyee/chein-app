@@ -96,26 +96,18 @@ import XCTest
     }
 
 
+    @discardableResult private func openRoamOverflow(_ app: XCUIApplication) -> Bool {
+        let menu = app.buttons["roam.more"]
+        guard menu.waitForExistence(timeout: 5), menu.isEnabled, menu.isHittable, !menu.frame.isEmpty,
+              app.frame.contains(menu.frame) else {
+            XCTFail("Expected the visible Roam overflow menu. " + app.debugDescription); return false
+        }
+        menu.tap()
+        return true
+    }
     private func tapRoamOverflowToggle(_ app: XCUIApplication) {
-        let navigation = app.navigationBars["Roam"]
-        let city = navigation.buttons["Official city"]
-        guard navigation.exists, city.exists, city.isEnabled, city.isHittable else {
-            XCTFail("Expected the visible Explore city toolbar anchor. " + app.debugDescription); return
-        }
-        // Actual run101 PNG shows the system overflow leaf to the right of City.
-        // Do not guess its localized title or tap a hidden destination directly.
-        let leaves = navigation.buttons.allElementsBoundByIndex.filter {
-            let frame = $0.frame
-            return $0.descendants(matching: .button).count == 0 && !frame.isEmpty
-                && frame.minX >= city.frame.maxX && navigation.frame.contains(frame)
-                && app.frame.contains(frame) && $0.isEnabled && $0.isHittable
-        }
-        guard leaves.count == 1, let overflow = leaves.first else {
-            XCTFail("Expected one trailing native overflow action. " + app.debugDescription); return
-        }
-        overflow.tap()
-        // Both run108 ready/denied AX trees expose this visible menu label, but
-        // the system overflow clone does not retain roam.display.toggle.
+        guard openRoamOverflow(app) else { return }
+        // The system menu clone does not retain roam.display.toggle.
         // launch() fixes en/en_US, and both journeys select list before any area.
         let exact = app.buttons.matching(NSPredicate(format: "label == %@", "Show list only"))
         guard exact.firstMatch.waitForExistence(timeout: 5), exact.count == 1 else {
@@ -220,7 +212,16 @@ import XCTest
         let button = app.tabBars.buttons[title]; XCTAssertTrue(button.waitForExistence(timeout: 5)); button.tap()
     }
     private func chooseManualArea(_ app: XCUIApplication) {
-        tap("roam.chooseArea", app)
+        guard openRoamOverflow(app) else { return }
+        let labeled = app.buttons.matching(NSPredicate(format: "label == %@", "Choose a search area"))
+        guard labeled.firstMatch.waitForExistence(timeout: 5), labeled.count == 1 else {
+            XCTFail("Native overflow must expose exactly one Choose a search area action. " + app.debugDescription); return
+        }
+        let area = labeled.element(boundBy: 0)
+        guard area.isEnabled, area.isHittable else {
+            XCTFail("The exact native Choose a search area action is not visible and enabled. " + app.debugDescription); return
+        }
+        area.tap()
         for (field, value) in [("latitude", "31.2"), ("longitude", "121.5"), ("name", "Synthetic manual area")] {
             let input = app.textFields["roam.area.\(field).input"]
             XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText(value)
@@ -271,7 +272,11 @@ import XCTest
         XCTAssertTrue(app.descendants(matching: .any)["profile.orders.unavailable"].firstMatch.waitForExistence(timeout: 5))
         let value = try evidence(app)
         XCTAssertEqual(Array(value.ledger.prefix(3)).map(\.route), ["sms-send", "phone", "userInfo"])
-        XCTAssertEqual(value.ledger.dropFirst(3).map(\.route).sorted(), home.sorted())
+        let rest = value.ledger.dropFirst(3)
+        let content = rest.map(\.route).filter { $0 != "wallet-list" && $0 != "userInfo" }
+        XCTAssertEqual(content.sorted(), home.sorted())
+        XCTAssertEqual(rest.filter { $0.route == "wallet-list" }.map { $0.fields["owner_type"] ?? "" }.sorted(), ["1", "2"])
+        XCTAssertFalse(rest.contains { ["activity-detail", "map.places"].contains($0.route) || $0.route.hasPrefix("play-") || $0.route.hasPrefix("orders.") })
         XCTAssertEqual(value.accountID, 7); XCTAssertTrue(value.manualArea)
     }
 }

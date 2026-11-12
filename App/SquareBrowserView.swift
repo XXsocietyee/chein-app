@@ -17,7 +17,13 @@ import SwiftUI
     @State private var showsWorkspace = false
     @State private var showsComposer = false
     @State private var showsReportProgress = false
+    @State private var repostPrefill = ""
+    @State private var cloudEditor: SquareCloudEditorRoute?
+    @State private var actionPost: SquarePost?
+    @State private var cloudReport: SquareCloudReportRoute?
+    @State private var profileMember: SquareCloudProfileRoute?
     var onClose: (() -> Void)? = nil
+    @Environment(\.squareReportContext) private var reportContext
     @State private var query = SquareQuery()
     @State private var keyword = ""
     @State private var cityCode = ""
@@ -93,6 +99,9 @@ import SwiftUI
             }
             .appNavigationTitle("square.xcx.navTitle")
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
+            .navigationDestination(item: $profileMember) { member in
+                if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions) }
+            }
             .toolbar { if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } } }
             .toolbar {
                 if workspace != nil || reportProgressDestination != nil {
@@ -119,18 +128,31 @@ import SwiftUI
                 }
             }
             .sheet(isPresented: $showsComposer) {
-                if let actions { NavigationStack { SocialActionEditorView(purpose: .createPost, target: .newPost, coordinator: actions) }.id(actions.identity) }
+                if let actions {
+                    SquareCloudComposerView(coordinator: actions, offline: reader.isOfflineExample, prefill: repostPrefill, joinedHosted: { reader.isOfflineExample ? .offline : .permission }, completed: { reader.isOfflineExample ? .offline : .permission }, onClose: { showsComposer = false; repostPrefill = "" })
+                        .id(actions.identity)
+                }
+            }
+            .sheet(item: $cloudEditor) { item in
+                if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: item.generation) }.id(actions.identity) }
+            }
+            .sheet(item: $actionPost) { post in
+                SquareCloudPostActions(owner: post.memberID == actions?.identity.accountID, bookmarkable: post.generation == .communityV1 && actions != nil, bookmarked: false, summary: post.contents ?? "", onEdit: editAction(post), onBookmark: bookmarkAction(post), onDelete: nil, onReport: reportAction(post), onClose: { actionPost = nil })
+            }
+            .sheet(item: $cloudReport) { item in
+                NavigationStack { SquareReportView(target: item.target, context: reportContext) }.presentationDetents([.large])
             }
             .sheet(isPresented: $showsWorkspace) {
                 if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace) }.id(workspace.session) }
             }
             .navigationDestination(isPresented: $showsReportProgress) { reportProgressDestination?() }
+            .environment(\.squareCloudFeed, cloudFeed)
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
             .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "square.search")
             .onSubmit(of: .search) { query.keyword = keyword.isEmpty ? nil : keyword }
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
-            .onChange(of: reader.scope) { _, _ in path = []; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil }
+            .onChange(of: reader.scope) { _, _ in path = []; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil; dismissCloudSheets() }
             .task(id: key) { await loadGate(); await load(reset: true) }
             .refreshable { await load(reset: true) }
             .onDisappear { generation += 1; settleLoading() }
@@ -187,4 +209,99 @@ import SwiftUI
             phase = .failed(error, retry: nil); loadedKey = captured
         }
     }
+    private var cloudFeed: SquareCloudFeedContext {
+        SquareCloudFeedContext(
+            viewerID: actions?.identity.accountID,
+            offline: reader.isOfflineExample,
+            onDoubleTapLike: actions == nil ? nil : { post in self.openCloudEditor(.like, .post(post.id), "", post.generation == .legacySquare ? .legacySquare : .communityV1) },
+            onFollow: actions == nil ? nil : { post in guard post.memberID > 0 else { return }; self.openCloudEditor(.toggleFollow, .member(post.memberID), "", .legacySquare) },
+            onRepost: actions == nil ? nil : { self.repost($0) },
+            onReport: actions == nil ? nil : { self.report($0) },
+            onProfile: accountReader == nil ? nil : { post in guard post.memberID > 0 else { return }; self.dismissCloudSheets(); self.profileMember = .init(id: post.memberID) },
+            onCopyLink: { post in
+                let card = SquareShareCard.build(id: post.id, audience: post.audience, lifecycle: post.lifecycle, contents: post.contents, images: post.images)
+                guard card.includesPost else { return }
+                LocalPasteboard.copy(card.path)
+            },
+            onActions: actions == nil ? nil : { self.presentActions($0) })
+    }
+    private func dismissCloudSheets() {
+        showsComposer = false
+        showsWorkspace = false
+        cloudEditor = nil
+        actionPost = nil
+        cloudReport = nil
+        repostPrefill = ""
+    }
+    private func openCloudEditor(_ purpose: SocialEditorPurpose, _ target: SocialActionTarget, _ text: String, _ generation: SquareContentGeneration) {
+        guard actions != nil else { return }
+        showsComposer = false
+        showsWorkspace = false
+        actionPost = nil
+        cloudReport = nil
+        cloudEditor = .init(purpose: purpose, target: target, text: text, generation: generation)
+    }
+    private func presentActions(_ post: SquarePost) {
+        showsComposer = false
+        showsWorkspace = false
+        cloudEditor = nil
+        cloudReport = nil
+        actionPost = post
+    }
+    private func presentReport(_ target: SquareReportTarget) {
+        showsComposer = false
+        showsWorkspace = false
+        cloudEditor = nil
+        actionPost = nil
+        cloudReport = .init(target: target)
+    }
+    private func repost(_ post: SquarePost) {
+        let card = SquareShareCard.build(id: post.id, audience: post.audience, lifecycle: post.lifecycle, contents: post.contents, images: post.images)
+        guard card.includesPost, actions != nil else { return }
+        cloudEditor = nil
+        actionPost = nil
+        cloudReport = nil
+        showsWorkspace = false
+        repostPrefill = card.title
+        showsComposer = true
+    }
+    private func report(_ post: SquarePost) {
+        if post.generation == .legacySquare { openCloudEditor(.report, .post(post.id), "", .legacySquare); return }
+        if let target = try? SquareReportTarget(post: post) { presentReport(target) }
+    }
+    private func editAction(_ post: SquarePost) -> (() -> Void)? {
+        guard let actions, post.memberID == actions.identity.accountID, workspace != nil || post.generation != .communityV1 else { return nil }
+        return {
+            actionPost = nil
+            if workspace != nil { showsComposer = false; cloudEditor = nil; cloudReport = nil; showsWorkspace = true }
+            else { openCloudEditor(.editPost, .post(post.id), post.contents ?? "", post.generation == .legacySquare ? .legacySquare : .communityV1) }
+        }
+    }
+    private func bookmarkAction(_ post: SquarePost) -> (() -> Void)? {
+        guard actions != nil, post.generation == .communityV1 else { return nil }
+        return { actionPost = nil; openCloudEditor(.bookmark, .post(post.id), "", .communityV1) }
+    }
+    private func reportAction(_ post: SquarePost) -> (() -> Void)? {
+        guard actions != nil else { return nil }
+        if post.generation == .legacySquare { return { actionPost = nil; openCloudEditor(.report, .post(post.id), "", .legacySquare) } }
+        guard (try? SquareReportTarget(post: post)) != nil else { return nil }
+        return { actionPost = nil; report(post) }
+    }
+}
+
+private struct SquareCloudEditorRoute: Identifiable {
+    let id = UUID()
+    let purpose: SocialEditorPurpose
+    let target: SocialActionTarget
+    let text: String
+    let generation: SquareContentGeneration
+}
+
+private struct SquareCloudReportRoute: Identifiable {
+    let id = UUID()
+    let target: SquareReportTarget
+}
+
+private struct SquareCloudProfileRoute: Identifiable, Hashable {
+    let id: Int
 }

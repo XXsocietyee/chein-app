@@ -302,7 +302,9 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
                 }
                 ProfileOrderSourceDetailSections(order: order)
-                if let lifecycleCoordinator {
+                // A read-only host still receives a coordinator. The payment/refund screen is only
+                // reachable when that coordinator can dispatch or simulate; the identifier stays for the guard.
+                if let lifecycleCoordinator, lifecycleCoordinator.canDispatch || lifecycleCoordinator.canSimulate {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
                             Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
@@ -314,6 +316,7 @@ struct ProfileOrderDetailView: View {
                 }
                 ExploreCompletionEntry(order: order, requestedID: id, origin: reader)
                 FreeExploreBundleReadEntry(order: order, requestedID: id, origin: reader)
+                BundleCommerceOrderEntry(order: order, requestedID: id, origin: reader)
                 // Source 退款与客服 (报名与客服 when free): 联系客服 opens the read-only support page.
                 Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderP2.supportSection.free" : "profile.orderP2.supportSection")) {
                     NavigationLink { ParticipationSupportView() } label: {

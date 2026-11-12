@@ -86,9 +86,15 @@ import UIKit
                         Text("chapterStory.end").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         CYPillButton("chapterStory.return") { leave() }
                     }
-                } else if model.snapshot == nil || model.phase == .loading {
-                    // Still reading the run: a skeleton, not a "locked" claim.
-                    CYSkeleton().accessibilityIdentifier("chapterStory.loading")
+                } else if model.phase == .loading && model.snapshot == nil {
+                    // Loading is not "locked": the lock state only shows once the read has settled.
+                    CYLoadingStateView(rows: 3)
+                        .accessibilityLabel(Text("homeFeed.loading"))
+                        .accessibilityIdentifier("chapterStory.loading")
+                } else if model.phase == .failed {
+                    CYErrorStateView(title: "chapterStory.unavailable", message: "chapterStory.unavailable.detail",
+                                     retryTitle: "homeFeed.retry") { Task { await model.load() } }
+                        .accessibilityIdentifier("chapterStory.error")
                 } else {
                     CYEmptyState(systemImage: "lock", "chapterStory.unavailable", detail: "chapterStory.unavailable.detail")
                 }

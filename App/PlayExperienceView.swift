@@ -38,11 +38,6 @@ import SwiftUI
     var routeActionRead: RouteActionPageReadRequest? = nil
     @State private var selectedNode: Int?
     @State private var showRouteMap = false
-    @State private var chapterFilter: Int?
-    @State private var showChapterPicker = false
-    @State private var showEmergencyHelp = false
-    @State private var titleCardTopic: Int?
-    @Environment(\.playThemePresentationReader) private var themeReader
     @State private var confirmEnd = false
     @State private var presentedMode: PlayGameplayMode?
     @State private var presentationMount = PlayExperiencePresentationMount()
@@ -50,6 +45,12 @@ import SwiftUI
     @State private var finishScreen = false
     @State private var finishShownFor: String?
     @Environment(\.locale) private var locale
+    /// 切换章节: nil shows every chapter's places.
+    @State private var chapterFilter: Int?
+    @State private var showChapterPicker = false
+    @State private var showEmergencyHelp = false
+    @State private var titleCardTopic: Int?
+    @Environment(\.playThemePresentationReader) private var themeReader
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
     private func journeyRunScope(_ topicID: Int?, _ topicName: String?) -> JourneyRunScope {

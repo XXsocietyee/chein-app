@@ -1,6 +1,30 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "club.customerDetail.page.empty": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No participation, tags, or note yet" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "还没有参与记录、标签或备注" } }
+      }
+    },
+    "club.customerDetail.page.error": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Couldn't load customer details" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "客户详情加载失败" } }
+      }
+    },
+    "club.customerDetail.page.loading": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading customer" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在加载客户" } }
+      }
+    },
+    "club.customerDetail.page.unknown": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "—" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "—" } }
+      }
+    },
     "clubOps.customer.addTag": {
       "localizations": {
         "en": {
@@ -529,6 +553,38 @@
         }
       }
     },
+    "clubOps.customers.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
+      }
+    },
+    "clubOps.customers.unknownLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customer count unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客户人数未确认"
+          }
+        }
+      }
+    },
     "clubOps.customers.empty": {
       "localizations": {
         "en": {
@@ -941,6 +997,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "可提现为 0：分润到账并客诉期结束后才能提现"
+          }
+        }
+      }
+    },
+    "club.host.apply.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载中..."
+          }
+        }
+      }
+    },
+    "club.host.apply.unknownCount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
           }
         }
       }

@@ -1,0 +1,810 @@
+{
+  "page": "pages/activity/official-detail/index",
+  "native": "App/OfficialEventDetailView.swift",
+  "strings": [
+    {
+      "key": "official.card.collective %lld",
+      "en": "City lit up %lld%%",
+      "zh-Hans": "全城已点亮 %lld%%"
+    },
+    {
+      "key": "official.card.collectiveUnknown",
+      "en": "City lit up —",
+      "zh-Hans": "全城已点亮 —"
+    },
+    {
+      "key": "official.card.participants %lld",
+      "en": "%lld joined",
+      "zh-Hans": "%lld 人参与"
+    },
+    {
+      "key": "official.city",
+      "en": "City",
+      "zh-Hans": "城市"
+    },
+    {
+      "key": "official.collective",
+      "en": "Collective progress",
+      "zh-Hans": "集体进度"
+    },
+    {
+      "key": "official.completedTasks",
+      "en": "Verified tasks",
+      "zh-Hans": "已验证任务"
+    },
+    {
+      "key": "official.countdown.days %lld",
+      "en": "%lld d",
+      "zh-Hans": "%lld 天"
+    },
+    {
+      "key": "official.countdown.end",
+      "en": "Ends in",
+      "zh-Hans": "距结束"
+    },
+    {
+      "key": "official.countdown.endingSoon",
+      "en": "Ending soon",
+      "zh-Hans": "即将结束"
+    },
+    {
+      "key": "official.countdown.hours %lld",
+      "en": "%lld h",
+      "zh-Hans": "%lld 小时"
+    },
+    {
+      "key": "official.countdown.minutes %lld",
+      "en": "%lld min",
+      "zh-Hans": "%lld 分"
+    },
+    {
+      "key": "official.countdown.start",
+      "en": "Starts in",
+      "zh-Hans": "距开始"
+    },
+    {
+      "key": "official.countdown.startingSoon",
+      "en": "Starting soon",
+      "zh-Hans": "即将开始"
+    },
+    {
+      "key": "official.detail",
+      "en": "Official event details",
+      "zh-Hans": "官方活动详情"
+    },
+    {
+      "key": "official.detailParity.card.defaultDescription",
+      "en": "Complete as described by the event",
+      "zh-Hans": "按活动说明完成"
+    },
+    {
+      "key": "official.detailParity.card.numbered %lld",
+      "en": "Event task %lld",
+      "zh-Hans": "活动任务 %lld"
+    },
+    {
+      "key": "official.detailParity.cardsHeading",
+      "en": "About the event",
+      "zh-Hans": "活动介绍"
+    },
+    {
+      "key": "official.detailParity.category.brand",
+      "en": "Brand event",
+      "zh-Hans": "品牌活动"
+    },
+    {
+      "key": "official.detailParity.category.challenge",
+      "en": "City challenge",
+      "zh-Hans": "城市挑战"
+    },
+    {
+      "key": "official.detailParity.category.cityLight",
+      "en": "City lights",
+      "zh-Hans": "城市点亮"
+    },
+    {
+      "key": "official.detailParity.category.community",
+      "en": "Community event",
+      "zh-Hans": "社区活动"
+    },
+    {
+      "key": "official.detailParity.category.custom",
+      "en": "Special project",
+      "zh-Hans": "特别企划"
+    },
+    {
+      "key": "official.detailParity.category.festival",
+      "en": "Festival event",
+      "zh-Hans": "节日活动"
+    },
+    {
+      "key": "official.detailParity.category.hidden",
+      "en": "Hidden event",
+      "zh-Hans": "隐藏活动"
+    },
+    {
+      "key": "official.detailParity.category.merchantHunt",
+      "en": "Merchant hunt",
+      "zh-Hans": "商家探索"
+    },
+    {
+      "key": "official.detailParity.category.official",
+      "en": "Official event",
+      "zh-Hans": "官方活动"
+    },
+    {
+      "key": "official.detailParity.collective.lit",
+      "en": "of the city lit up",
+      "zh-Hans": "全城已点亮"
+    },
+    {
+      "key": "official.detailParity.collective.tipAbsent",
+      "en": "No collective reward is configured; city progress is for reference only",
+      "zh-Hans": "当前未配置集体奖励，全城进度仅供了解"
+    },
+    {
+      "key": "official.detailParity.collective.tipConfigured",
+      "en": "Collective rewards are issued once enabled and the city target is met, while you stay registered and complete every task",
+      "zh-Hans": "开启且集体达标、本人保持有效报名并完成全部任务后发放集体奖励"
+    },
+    {
+      "key": "official.detailParity.cta.ended",
+      "en": "Event ended",
+      "zh-Hans": "活动已结束"
+    },
+    {
+      "key": "official.detailParity.cta.explore",
+      "en": "Explore · Complete tasks",
+      "zh-Hans": "去探索 · 完成任务"
+    },
+    {
+      "key": "official.detailParity.cta.paused",
+      "en": "Event paused",
+      "zh-Hans": "活动已暂停"
+    },
+    {
+      "key": "official.detailParity.cta.registrationSoon",
+      "en": "Registration opens soon",
+      "zh-Hans": "报名即将开放"
+    },
+    {
+      "key": "official.detailParity.cta.roamArrival",
+      "en": "Go roaming · Verify arrival",
+      "zh-Hans": "去漫游 · 验证到达"
+    },
+    {
+      "key": "official.detailParity.cta.roamLight",
+      "en": "Light up · Light up the city",
+      "zh-Hans": "去点亮 · 点亮城市"
+    },
+    {
+      "key": "official.detailParity.cta.signed",
+      "en": "Registered",
+      "zh-Hans": "已报名"
+    },
+    {
+      "key": "official.detailParity.cta.signedWaiting",
+      "en": "Registered · Not started yet",
+      "zh-Hans": "已报名 · 待开始"
+    },
+    {
+      "key": "official.detailParity.cta.signup",
+      "en": "Register now",
+      "zh-Hans": "立即报名"
+    },
+    {
+      "key": "official.detailParity.cta.themeSync",
+      "en": "Syncs automatically after you finish the bound theme",
+      "zh-Hans": "完成绑定主题后自动同步"
+    },
+    {
+      "key": "official.detailParity.cta.unavailable",
+      "en": "Registration unavailable",
+      "zh-Hans": "暂不可报名"
+    },
+    {
+      "key": "official.detailParity.cta.unsupportedTasks",
+      "en": "Tasks can't be verified yet",
+      "zh-Hans": "任务暂不支持核验"
+    },
+    {
+      "key": "official.detailParity.cta.waitTasks",
+      "en": "Waiting for verifiable tasks",
+      "zh-Hans": "等待可验证任务"
+    },
+    {
+      "key": "official.detailParity.duration.days %lld",
+      "en": "%lld days",
+      "zh-Hans": "%lld天"
+    },
+    {
+      "key": "official.detailParity.duration.hours %lld",
+      "en": "%lld hours",
+      "zh-Hans": "%lld小时"
+    },
+    {
+      "key": "official.detailParity.eligible",
+      "en": "Eligible",
+      "zh-Hans": "已满足资格"
+    },
+    {
+      "key": "official.detailParity.fact.dates",
+      "en": "Open dates",
+      "zh-Hans": "开放时间"
+    },
+    {
+      "key": "official.detailParity.fact.datesSub",
+      "en": "Beijing time",
+      "zh-Hans": "北京时间"
+    },
+    {
+      "key": "official.detailParity.fact.duration",
+      "en": "Duration",
+      "zh-Hans": "活动周期"
+    },
+    {
+      "key": "official.detailParity.fact.durationSub",
+      "en": "In total",
+      "zh-Hans": "总时长"
+    },
+    {
+      "key": "official.detailParity.fact.nationwide",
+      "en": "Nationwide",
+      "zh-Hans": "全国"
+    },
+    {
+      "key": "official.detailParity.fact.participants",
+      "en": "Participants",
+      "zh-Hans": "参与"
+    },
+    {
+      "key": "official.detailParity.fact.participantsSub",
+      "en": "registered",
+      "zh-Hans": "人已报名"
+    },
+    {
+      "key": "official.detailParity.fact.progress",
+      "en": "My progress",
+      "zh-Hans": "我的进度"
+    },
+    {
+      "key": "official.detailParity.fact.progressCompleted",
+      "en": "completed",
+      "zh-Hans": "已完成"
+    },
+    {
+      "key": "official.detailParity.fact.progressTasks",
+      "en": "valid tasks",
+      "zh-Hans": "有效任务"
+    },
+    {
+      "key": "official.detailParity.fact.scope",
+      "en": "Scope",
+      "zh-Hans": "活动范围"
+    },
+    {
+      "key": "official.detailParity.fact.tasks",
+      "en": "Event tasks",
+      "zh-Hans": "活动任务"
+    },
+    {
+      "key": "official.detailParity.fact.tasksSub",
+      "en": "tasks",
+      "zh-Hans": "项任务"
+    },
+    {
+      "key": "official.detailParity.mission.automatic",
+      "en": "Syncs automatically",
+      "zh-Hans": "自动同步"
+    },
+    {
+      "key": "official.detailParity.mission.eventPoint",
+      "en": "Event point arrival",
+      "zh-Hans": "活动点位到达"
+    },
+    {
+      "key": "official.detailParity.mission.eventPointAction",
+      "en": "Walk to the designated event point and your arrival is confirmed automatically",
+      "zh-Hans": "走到活动指定点位，系统会自动确认到达"
+    },
+    {
+      "key": "official.detailParity.mission.roamArea",
+      "en": "Roam area coverage",
+      "zh-Hans": "漫游区域覆盖"
+    },
+    {
+      "key": "official.detailParity.mission.roamPoi",
+      "en": "Roam spot arrival",
+      "zh-Hans": "漫游据点到达"
+    },
+    {
+      "key": "official.detailParity.mission.theme",
+      "en": "Complete the bound theme",
+      "zh-Hans": "完成绑定主题"
+    },
+    {
+      "key": "official.detailParity.mission.themeAction",
+      "en": "Complete the bound theme; it syncs automatically when done",
+      "zh-Hans": "完成绑定的主题，完成后自动同步"
+    },
+    {
+      "key": "official.detailParity.mission.unknown",
+      "en": "Event task",
+      "zh-Hans": "活动任务"
+    },
+    {
+      "key": "official.detailParity.mission.unknownAction",
+      "en": "Task rules not provided; follow the organizer's instructions",
+      "zh-Hans": "任务规则未提供，请以主办方说明为准"
+    },
+    {
+      "key": "official.detailParity.mission.unsupported",
+      "en": "Not supported",
+      "zh-Hans": "暂不支持"
+    },
+    {
+      "key": "official.detailParity.mission.unsupportedAction",
+      "en": "This task type can't be published or verified yet",
+      "zh-Hans": "该任务类型暂不支持发布与核验"
+    },
+    {
+      "key": "official.detailParity.mission.verify",
+      "en": "Verify",
+      "zh-Hans": "去验证"
+    },
+    {
+      "key": "official.detailParity.network.detail",
+      "en": "Event details haven't loaded yet. You can retry once you're back online.",
+      "zh-Hans": "活动详情还没加载出来，连接恢复后可以重试。"
+    },
+    {
+      "key": "official.detailParity.network.title",
+      "en": "No network connection",
+      "zh-Hans": "网络没连上"
+    },
+    {
+      "key": "official.detailParity.notEligible",
+      "en": "Complete every task to become eligible",
+      "zh-Hans": "完成全部任务后获得资格"
+    },
+    {
+      "key": "official.detailParity.organizer",
+      "en": "Hosted by 城瘾",
+      "zh-Hans": "城瘾官方 发起"
+    },
+    {
+      "key": "official.detailParity.rewardFootnote.issue",
+      "en": "Issued as configured above after you complete the event tasks",
+      "zh-Hans": "完成活动任务后按上方配置发放"
+    },
+    {
+      "key": "official.detailParity.rewardFootnote.settlement",
+      "en": "Actual rewards depend on event settlement",
+      "zh-Hans": "实际发放结果以活动结算为准"
+    },
+    {
+      "key": "official.detailParity.rewards.empty",
+      "en": "No rewards yet",
+      "zh-Hans": "暂无奖励"
+    },
+    {
+      "key": "official.detailParity.rewards.heading",
+      "en": "Event rewards",
+      "zh-Hans": "活动奖励"
+    },
+    {
+      "key": "official.detailParity.storyHeading",
+      "en": "Details",
+      "zh-Hans": "详情信息"
+    },
+    {
+      "key": "official.detailParity.tasks.empty",
+      "en": "The organizer hasn't added any tasks yet.",
+      "zh-Hans": "主办方暂未添加任务。"
+    },
+    {
+      "key": "official.detailParity.tasks.heading",
+      "en": "My event tasks",
+      "zh-Hans": "我的活动任务"
+    },
+    {
+      "key": "official.detailParity.tasks.paused %@",
+      "en": "Event temporarily paused: %@",
+      "zh-Hans": "活动暂时暂停：%@"
+    },
+    {
+      "key": "official.detailParity.tasks.pausedDefault",
+      "en": "Event temporarily paused: waiting for the operators to resume it",
+      "zh-Hans": "活动暂时暂停：等待运营处理后恢复"
+    },
+    {
+      "key": "official.detailParity.tasks.signupNote",
+      "en": "Only arrivals or theme completions after you register count toward this event.",
+      "zh-Hans": "报名后发生的新到达或主题完成才会归入本场活动。"
+    },
+    {
+      "key": "official.detailParity.unavailable.back",
+      "en": "Back to events",
+      "zh-Hans": "返回活动列表"
+    },
+    {
+      "key": "official.detailParity.unavailable.detail",
+      "en": "The event may have been taken offline, or this link has expired.",
+      "zh-Hans": "活动可能已下线，或当前链接已经失效。"
+    },
+    {
+      "key": "official.detailParity.unavailable.title",
+      "en": "Event unavailable",
+      "zh-Hans": "活动内容不可用"
+    },
+    {
+      "key": "official.eligible",
+      "en": "You're eligible",
+      "zh-Hans": "已确认资格"
+    },
+    {
+      "key": "official.facts",
+      "en": "Event information",
+      "zh-Hans": "活动信息"
+    },
+    {
+      "key": "official.failed",
+      "en": "Official-event content could not be loaded",
+      "zh-Hans": "官方活动内容未能加载"
+    },
+    {
+      "key": "official.forbidden",
+      "en": "Your account cannot view this content",
+      "zh-Hans": "你的账号无权查看这些内容"
+    },
+    {
+      "key": "official.informationIncomplete",
+      "en": "Information incomplete",
+      "zh-Hans": "信息不全"
+    },
+    {
+      "key": "official.loading",
+      "en": "Loading official events",
+      "zh-Hans": "正在加载官方活动"
+    },
+    {
+      "key": "official.noPublisherPermission",
+      "en": "Your account does not have official publishing permission",
+      "zh-Hans": "你的账号没有官方发布权限"
+    },
+    {
+      "key": "official.notAnnounced",
+      "en": "Not announced",
+      "zh-Hans": "待公布"
+    },
+    {
+      "key": "official.notConfigured",
+      "en": "Official events aren't available right now",
+      "zh-Hans": "官方活动暂不可用"
+    },
+    {
+      "key": "official.notEligible",
+      "en": "Eligibility not yet confirmed",
+      "zh-Hans": "资格尚未确认"
+    },
+    {
+      "key": "official.offlineExample",
+      "en": "Example content",
+      "zh-Hans": "示例内容"
+    },
+    {
+      "key": "official.participation",
+      "en": "Participation",
+      "zh-Hans": "参与情况"
+    },
+    {
+      "key": "official.participation.arrival",
+      "en": "Arrival verification is required",
+      "zh-Hans": "需要验证到达"
+    },
+    {
+      "key": "official.participation.explore",
+      "en": "Includes exploration tasks",
+      "zh-Hans": "包含探索任务"
+    },
+    {
+      "key": "official.participation.registrationDeferred",
+      "en": "Registration is open. Signing up in the app isn't available right now.",
+      "zh-Hans": "报名进行中，暂不支持在 App 内报名。"
+    },
+    {
+      "key": "official.participation.registrationSoon",
+      "en": "Registration opens later",
+      "zh-Hans": "报名即将开放"
+    },
+    {
+      "key": "official.participation.roam",
+      "en": "Includes roaming tasks",
+      "zh-Hans": "包含漫游任务"
+    },
+    {
+      "key": "official.participation.signed",
+      "en": "Registered",
+      "zh-Hans": "已报名"
+    },
+    {
+      "key": "official.participation.signedWaiting",
+      "en": "Registered · waiting to start",
+      "zh-Hans": "已报名，等待开始"
+    },
+    {
+      "key": "official.participation.themeSync",
+      "en": "Bound theme completion syncs automatically",
+      "zh-Hans": "完成绑定主题后自动同步"
+    },
+    {
+      "key": "official.participation.unavailable",
+      "en": "Participation is currently unavailable",
+      "zh-Hans": "当前不可参与"
+    },
+    {
+      "key": "official.participation.waitTasks",
+      "en": "Waiting for verifiable tasks",
+      "zh-Hans": "等待可验证任务"
+    },
+    {
+      "key": "official.price",
+      "en": "Price",
+      "zh-Hans": "价格"
+    },
+    {
+      "key": "official.priceNotProvided",
+      "en": "Price not available",
+      "zh-Hans": "暂无价格信息"
+    },
+    {
+      "key": "official.progress",
+      "en": "Recorded progress",
+      "zh-Hans": "已记录进度"
+    },
+    {
+      "key": "official.retry",
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    {
+      "key": "official.reward.badge",
+      "en": "Limited badge configured",
+      "zh-Hans": "已配置限定徽章"
+    },
+    {
+      "key": "official.reward.collective",
+      "en": "Collective reward configured",
+      "zh-Hans": "已配置集体奖励"
+    },
+    {
+      "key": "official.reward.coupon",
+      "en": "Coupon configured",
+      "zh-Hans": "已配置专属券"
+    },
+    {
+      "key": "official.reward.experience",
+      "en": "Experience points configured",
+      "zh-Hans": "已配置成长值"
+    },
+    {
+      "key": "official.signIn",
+      "en": "Sign in",
+      "zh-Hans": "登录"
+    },
+    {
+      "key": "official.signInForProgress",
+      "en": "Sign in to view your progress",
+      "zh-Hans": "登录后查看我的进度"
+    },
+    {
+      "key": "official.signInRequired",
+      "en": "Sign in to view your official-event records",
+      "zh-Hans": "登录后查看我的官方活动记录"
+    },
+    {
+      "key": "official.status.ended",
+      "en": "Ended",
+      "zh-Hans": "已结束"
+    },
+    {
+      "key": "official.status.live",
+      "en": "In progress",
+      "zh-Hans": "进行中"
+    },
+    {
+      "key": "official.status.paused",
+      "en": "Paused",
+      "zh-Hans": "已暂停"
+    },
+    {
+      "key": "official.status.registration",
+      "en": "Registration open",
+      "zh-Hans": "报名中"
+    },
+    {
+      "key": "official.status.settling",
+      "en": "Settling",
+      "zh-Hans": "结算中"
+    },
+    {
+      "key": "official.status.unknown",
+      "en": "Status not provided",
+      "zh-Hans": "状态未提供"
+    },
+    {
+      "key": "official.status.upcoming",
+      "en": "Upcoming",
+      "zh-Hans": "即将开始"
+    },
+    {
+      "key": "official.task.verified",
+      "en": "Verified",
+      "zh-Hans": "已验证"
+    },
+    {
+      "key": "official.unavailable",
+      "en": "This record is unavailable for this account",
+      "zh-Hans": "当前账号无法查看这条记录"
+    },
+    {
+      "key": "official.untitled",
+      "en": "Untitled official event",
+      "zh-Hans": "未命名官方活动"
+    },
+    {
+      "key": "official.w206.detail.boundTopic %@",
+      "en": "Bound topic: %@",
+      "zh-Hans": "绑定主题：%@"
+    },
+    {
+      "key": "official.w206.detail.service.detail",
+      "en": "The service is temporarily unavailable. Please try again later.",
+      "zh-Hans": "服务暂时不可用，请稍后重试。"
+    },
+    {
+      "key": "official.w206.detail.service.title",
+      "en": "Event details didn't load",
+      "zh-Hans": "活动内容没加载成功"
+    },
+    {
+      "key": "official.w206.detail.topicName.failed",
+      "en": "Couldn't read the bound topic name",
+      "zh-Hans": "绑定主题名称没读到"
+    }
+  ],
+  "inline": [
+    {
+      "en": "Verify in Roam",
+      "zh-Hans": "去漫游完成",
+      "source": "App/OfficialOrganizerConsoleView.swift"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    {
+      "id": "official.detail.organizer",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"organizer\")"
+    },
+    {
+      "id": "official.detail.facts",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"facts\")"
+    },
+    {
+      "id": "official.detail.overview",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"overview\")"
+    },
+    {
+      "id": "official.detail.story",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"story\")"
+    },
+    {
+      "id": "official.detail.cards",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"cards\")"
+    },
+    {
+      "id": "official.detail.tasks",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"tasks\")"
+    },
+    {
+      "id": "official.detail.rewards",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"rewards\")"
+    },
+    {
+      "id": "official.detail.collective",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"collective\")"
+    },
+    {
+      "id": "official.detail.rewardFootnote",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"rewardFootnote\")"
+    },
+    {
+      "id": "official.detail.cta",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"cta\")"
+    },
+    {
+      "id": "official.detail.unavailable",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"unavailable\")"
+    },
+    {
+      "id": "official.detail.backToList",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"backToList\")"
+    },
+    {
+      "id": "official.detail.network",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"network\")"
+    },
+    {
+      "id": "official.detail.service",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"service\")"
+    },
+    {
+      "id": "official.detail.topicNameError",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"topicNameError\")"
+    },
+    {
+      "id": "official.detail.ctaTopic",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "leaf(\"ctaTopic\")"
+    },
+    {
+      "id": "official.price",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": ".accessibilityIdentifier(\"official.price\")"
+    },
+    {
+      "id": "official.mission.{index}",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": "\"official.mission.\\(mission.index)\""
+    },
+    {
+      "id": "official.participationState",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": ".accessibilityIdentifier(\"official.participationState\")"
+    },
+    {
+      "id": "official.detail.content",
+      "source": "App/OfficialEventDetailView.swift",
+      "pattern": ".accessibilityIdentifier(\"official.detail.content\")"
+    },
+    {
+      "id": "official.detail.cta.roam",
+      "source": "App/OfficialOrganizerConsoleView.swift",
+      "pattern": ".accessibilityIdentifier(\"official.detail.cta.roam\")"
+    },
+    {
+      "id": "official.mission.roam.{index}",
+      "source": "App/OfficialOrganizerConsoleView.swift",
+      "pattern": ".accessibilityIdentifier(\"official.mission.roam.\\(missionIndex)\")"
+    },
+    {
+      "id": "official.issue",
+      "source": "App/OfficialEventComponents.swift",
+      "pattern": ".accessibilityIdentifier(\"official.issue\")"
+    },
+    {
+      "id": "official.signIn",
+      "source": "App/OfficialEventComponents.swift",
+      "pattern": ".accessibilityIdentifier(\"official.signIn\")"
+    },
+    {
+      "id": "official.retry",
+      "source": "App/OfficialEventComponents.swift",
+      "pattern": ".accessibilityIdentifier(\"official.retry\")"
+    }
+  ]
+}

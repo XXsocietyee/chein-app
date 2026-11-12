@@ -129,7 +129,9 @@ final class ClubActionFlowTests: XCTestCase {
     }
     func testApplicationStaysPendingWithoutMembershipAccess() {
         launch("apply")
-        confirm("apply")
+        let field = element("club.application.message")
+        reveal(field); tap(field); field.typeText("Night walks please")
+        confirm("apply", message: "Night walks please")
         assertCount(1)
         let pending = element("club.action.gated")
         XCTAssertTrue(pending.waitForExistence(timeout: 10), app.debugDescription)

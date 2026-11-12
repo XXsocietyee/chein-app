@@ -1,0 +1,113 @@
+{
+  "page": "subpackageP3/pages/badge-3d/index",
+  "native": "App/ObjectBadgeViews.swift",
+  "strings": [
+    {
+      "key": "profile.badges.detail",
+      "en": "Badge details",
+      "zh-Hans": "徽章详情"
+    },
+    {
+      "key": "profile.badges.empty",
+      "en": "No badges yet",
+      "zh-Hans": "还没有徽章"
+    },
+    {
+      "key": "badgeWall.threeD.open",
+      "en": "View 3D badge",
+      "zh-Hans": "查看 3D 徽章"
+    },
+    {
+      "key": "objects.loading",
+      "en": "Loading",
+      "zh-Hans": "加载中"
+    },
+    {
+      "key": "objects.badge3d.hint.drag",
+      "en": "Drag to rotate",
+      "zh-Hans": "拖动可旋转查看"
+    },
+    {
+      "key": "objects.badge3d.hint.pin",
+      "en": "Tap to spin, drag left or right",
+      "zh-Hans": "点一下转一圈，左右拖动"
+    },
+    {
+      "key": "objects.badge3d.hint.reduced",
+      "en": "Reduced motion is on",
+      "zh-Hans": "已减少动态效果"
+    },
+    {
+      "key": "objects.staticPreview",
+      "en": "Static badge preview",
+      "zh-Hans": "静态徽章预览"
+    },
+    {
+      "key": "objects.sessionChanged",
+      "en": "Sign in again to reopen this item",
+      "zh-Hans": "请重新登录后打开此物件"
+    },
+    {
+      "key": "nativeNav.error.title",
+      "en": "This page can’t be opened",
+      "zh-Hans": "无法打开此页面"
+    },
+    {
+      "key": "objects.enamel",
+      "en": "Enamel style",
+      "zh-Hans": "珐琅样式"
+    },
+    {
+      "key": "objects.glow",
+      "en": "Glow style",
+      "zh-Hans": "发光样式"
+    },
+    {
+      "key": "objects.pin",
+      "en": "Pin style",
+      "zh-Hans": "珐琅勋章样式"
+    },
+    {
+      "key": "objects.rarity.0",
+      "en": "Common",
+      "zh-Hans": "普通"
+    },
+    {
+      "key": "objects.rarity.1",
+      "en": "Rare",
+      "zh-Hans": "稀有"
+    },
+    {
+      "key": "objects.rarity.2",
+      "en": "Epic",
+      "zh-Hans": "史诗"
+    },
+    {
+      "key": "objects.rarity.3",
+      "en": "Legendary",
+      "zh-Hans": "传说"
+    },
+    {
+      "key": "objects.rarity.4",
+      "en": "Mythic",
+      "zh-Hans": "神话"
+    }
+  ],
+  "unknownMark": {
+    "en": "—",
+    "zh-Hans": "—"
+  },
+  "accessibilityIdentifiers": [
+    "objects.badge3d.loading",
+    "objects.badge3d.empty",
+    "objects.badge3d.error.session",
+    "objects.badge3d.error.malformed",
+    "objects.badge3d.unknown",
+    "objects.badge3d.ready",
+    "objects.badge3d.rarity",
+    "objects.badge3d.staticPreview",
+    "objects.badge.turntable",
+    "objects.badge.turntableHint",
+    "objects.badge.threeD"
+  ]
+}

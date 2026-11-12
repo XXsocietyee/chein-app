@@ -52,7 +52,10 @@ class ClubMemberPageContracts(unittest.TestCase):
         core = read('Core/ClubCheckinRail.swift')
         self.assertIn('case signed, contacted, verified, reviewed', core)
         self.assertIn('refunded = statusCode == .string("REFUNDED")', core)
-        self.assertIn('ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]))', read('App/ClubGovernanceViews.swift'))
+        view = read('App/ClubGovernanceViews.swift')
+        self.assertIn('ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"])', view)
+        self.assertIn('stateKind: checkinKind', view)
+        self.assertIn('ClubCheckinDetailPage.bind(', view)
         for key, value in {'club.checkin.rail.signed': '已报名', 'club.checkin.rail.contacted': '已接洽', 'club.checkin.rail.verified': '已核销',
                            'club.checkin.rail.reviewed': '已评价', 'club.checkin.rail.refunded': '这单已退款，履约轨迹不再推进。'}.items():
             self.assertEqual(zh(self.catalog, key), value)

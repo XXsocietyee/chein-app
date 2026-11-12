@@ -1,0 +1,334 @@
+{
+  "page": "pages/activity/official-inbox/index",
+  "native": "App/OfficialPrivateViews.swift",
+  "states": {
+    "loading": "official.loading",
+    "empty": "official.inbox.empty",
+    "error": "official.w206.inbox.failed.title",
+    "unknown": "—"
+  },
+  "strings": [
+    {
+      "key": "official.loading",
+      "en": "Loading official events",
+      "zh-Hans": "正在加载官方活动"
+    },
+    {
+      "key": "official.inbox.empty",
+      "en": "No event duties to handle",
+      "zh-Hans": "暂无待处理的活动职责"
+    },
+    {
+      "key": "official.inbox.emptyDetail",
+      "en": "When you receive an official-event invitation, confirm or decline the duty here.",
+      "zh-Hans": "收到官方活动邀约后，会在这里确认或拒绝本场职责。"
+    },
+    {
+      "key": "official.w206.inbox.failed.title",
+      "en": "Invitations didn't load",
+      "zh-Hans": "邀约没有加载出来"
+    },
+    {
+      "key": "official.w206.inbox.failed.detail",
+      "en": "Couldn't load invitations. Please try again.",
+      "zh-Hans": "邀约加载失败"
+    },
+    {
+      "key": "official.failed",
+      "en": "Official-event content could not be loaded",
+      "zh-Hans": "官方活动内容未能加载"
+    },
+    {
+      "key": "official.retry",
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    {
+      "key": "official.signIn",
+      "en": "Sign in",
+      "zh-Hans": "登录"
+    },
+    {
+      "key": "official.signInRequired",
+      "en": "Sign in to view your official-event records",
+      "zh-Hans": "登录后查看我的官方活动记录"
+    },
+    {
+      "key": "official.notConfigured",
+      "en": "Official events aren't available right now",
+      "zh-Hans": "官方活动暂不可用"
+    },
+    {
+      "key": "official.forbidden",
+      "en": "Your account cannot view this content",
+      "zh-Hans": "你的账号无权查看这些内容"
+    },
+    {
+      "key": "official.unavailable",
+      "en": "This record is unavailable for this account",
+      "zh-Hans": "当前账号无法查看这条记录"
+    },
+    {
+      "key": "official.inbox.title",
+      "en": "Official event invitations",
+      "zh-Hans": "官方活动邀约"
+    },
+    {
+      "key": "official.inbox.nationwide",
+      "en": "Nationwide",
+      "zh-Hans": "全国"
+    },
+    {
+      "key": "official.inbox.role.unknown",
+      "en": "Role to be confirmed",
+      "zh-Hans": "职责待确认"
+    },
+    {
+      "key": "official.inbox.role.organizer",
+      "en": "Organizer",
+      "zh-Hans": "主办方"
+    },
+    {
+      "key": "official.inbox.role.coOrganizer",
+      "en": "Co-organizer",
+      "zh-Hans": "协办方"
+    },
+    {
+      "key": "official.inbox.role.merchant",
+      "en": "Merchant fulfillment",
+      "zh-Hans": "商家履约"
+    },
+    {
+      "key": "official.inbox.role.club",
+      "en": "Club fulfillment",
+      "zh-Hans": "俱乐部履约"
+    },
+    {
+      "key": "official.inbox.role.sponsor",
+      "en": "Supporter",
+      "zh-Hans": "支持方"
+    },
+    {
+      "key": "official.inbox.role.promotion",
+      "en": "Promotion partner",
+      "zh-Hans": "推广伙伴"
+    },
+    {
+      "key": "official.inbox.scope.event",
+      "en": "Whole-event duty",
+      "zh-Hans": "本场整体职责"
+    },
+    {
+      "key": "official.inbox.scope.node",
+      "en": "Specific stop duty",
+      "zh-Hans": "指定站点职责"
+    },
+    {
+      "key": "official.inbox.scope.route",
+      "en": "Specific route duty",
+      "zh-Hans": "指定路线职责"
+    },
+    {
+      "key": "official.inbox.scope.chapter",
+      "en": "Specific chapter duty",
+      "zh-Hans": "指定章节职责"
+    },
+    {
+      "key": "official.inbox.scope.unknown",
+      "en": "Specific scope duty",
+      "zh-Hans": "指定范围职责"
+    },
+    {
+      "key": "official.inbox.status.invited",
+      "en": "Awaiting your confirmation",
+      "zh-Hans": "待你确认"
+    },
+    {
+      "key": "official.inbox.status.accepted",
+      "en": "Accepted",
+      "zh-Hans": "已接受"
+    },
+    {
+      "key": "official.inbox.status.active",
+      "en": "Fulfilling",
+      "zh-Hans": "履约中"
+    },
+    {
+      "key": "official.inbox.status.unknown",
+      "en": "Status to be confirmed",
+      "zh-Hans": "状态待确认"
+    },
+    {
+      "key": "official.inbox.capacity %lld",
+      "en": "Capacity %lld",
+      "zh-Hans": "承接名额 %lld"
+    },
+    {
+      "key": "official.inviteUntitled",
+      "en": "Official-event invitation",
+      "zh-Hans": "官方活动邀约"
+    },
+    {
+      "key": "official.inboxLink",
+      "en": "Invitations",
+      "zh-Hans": "邀约"
+    },
+    {
+      "key": "official.offlineExample",
+      "en": "Example content",
+      "zh-Hans": "示例内容"
+    },
+    {
+      "key": "officialInbox.hero.eyebrow",
+      "en": "Official events · Responsibilities",
+      "zh-Hans": "官方活动 · 承接关系"
+    },
+    {
+      "key": "officialInbox.hero.title",
+      "en": "Only the duties that are yours for this event",
+      "zh-Hans": "只处理属于你的本场职责"
+    },
+    {
+      "key": "officialInbox.hero.sub",
+      "en": "Events where the platform has invited you to deliver appear here — this is the only entry point for taking part in an official event. Accepting, declining and leaving are all audited; being shown on an event does not mean you have accepted it.",
+      "zh-Hans": "平台点名邀请你履约的活动都在这里，这是官方活动唯一的承接入口。接受、拒绝和退出都会保留审计；被活动展示不等于已经承接。"
+    },
+    {
+      "key": "official.privateParity.inbox.accept",
+      "en": "Accept duty",
+      "zh-Hans": "接受职责"
+    },
+    {
+      "key": "official.privateParity.inbox.decline",
+      "en": "Decline",
+      "zh-Hans": "拒绝"
+    },
+    {
+      "key": "official.privateParity.inbox.withdraw",
+      "en": "Withdraw from this event's duty",
+      "zh-Hans": "退出本场职责"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.acceptTitle",
+      "en": "Accept this event's duty",
+      "zh-Hans": "接受本场职责"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.acceptBody",
+      "en": "After accepting, this counts toward the event's fulfillment coverage.",
+      "zh-Hans": "接受后会计入活动履约覆盖。"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.acceptOrganizerTitle",
+      "en": "Accept organizer invitation",
+      "zh-Hans": "接受主办邀约"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.organizerAcceptBody",
+      "en": "After accepting, you become this event's sole organizer, or an accepted successor organizer awaiting a controlled handover.",
+      "zh-Hans": "接受后会成为本场唯一主办，或成为已接受的候任主办等待受控转交。"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.declineTitle",
+      "en": "Decline this event's invitation",
+      "zh-Hans": "拒绝本场邀约"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.organizerDeclineBody",
+      "en": "Declining is kept in the event audit.",
+      "zh-Hans": "拒绝会保留在活动审计中。"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.withdrawTitle",
+      "en": "Withdraw from this event's duty",
+      "zh-Hans": "退出本场职责"
+    },
+    {
+      "key": "official.privateParity.inbox.confirm.changeBody",
+      "en": "This decision stays in the event audit, and fulfillment gaps are recalculated.",
+      "zh-Hans": "该决定会留在活动审计中，并重新计算履约缺口。"
+    },
+    {
+      "key": "official.privateParity.inbox.organizerTransferHint",
+      "en": "The organizer must complete a handover before withdrawing",
+      "zh-Hans": "主办需先完成转交才能退出"
+    },
+    {
+      "key": "official.privateParity.inbox.organizerTransferDetail",
+      "en": "To change the organizer, first invite a successor organizer and have them accept; the current organizer then performs a controlled handover.",
+      "zh-Hans": "主办关系变更必须先邀请并接受候任主办，再由当前主办受控转交。"
+    },
+    {
+      "key": "official.privateParity.inbox.window",
+      "en": "Service window",
+      "zh-Hans": "场次时间"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    {
+      "id": "official.inbox.content",
+      "en": "Official invitation inbox list",
+      "zh-Hans": "官方活动邀约列表"
+    },
+    {
+      "id": "official.invite.{id}",
+      "en": "One invitation row",
+      "zh-Hans": "一条邀约"
+    },
+    {
+      "id": "official.inbox.failed",
+      "en": "Invitation load failure",
+      "zh-Hans": "邀约加载失败"
+    },
+    {
+      "id": "official.issue",
+      "en": "Shared read issue",
+      "zh-Hans": "读取问题"
+    },
+    {
+      "id": "official.retry",
+      "en": "Retry the inbox read",
+      "zh-Hans": "重试读取邀约"
+    },
+    {
+      "id": "official.signIn",
+      "en": "Sign in to read invitations",
+      "zh-Hans": "登录后查看邀约"
+    },
+    {
+      "id": "official.inbox.confirmation.{scope}",
+      "en": "Invitation response confirmation",
+      "zh-Hans": "邀约处理确认"
+    },
+    {
+      "id": "official.inbox.actionWindow.{id}",
+      "en": "Invitation service window",
+      "zh-Hans": "邀约服务时段"
+    },
+    {
+      "id": "official.inbox.organizerTransfer.{id}",
+      "en": "Organizer handover notice",
+      "zh-Hans": "主办转交说明"
+    },
+    {
+      "id": "official.inbox.accept.{id}",
+      "en": "Accept this invitation",
+      "zh-Hans": "接受这条邀约"
+    },
+    {
+      "id": "official.inbox.decline.{id}",
+      "en": "Decline this invitation",
+      "zh-Hans": "拒绝这条邀约"
+    },
+    {
+      "id": "official.inbox.withdraw.{id}",
+      "en": "Withdraw from this invitation",
+      "zh-Hans": "退出这条邀约"
+    },
+    {
+      "id": "official.inbox.transferHint.{id}",
+      "en": "Organizer must hand over before withdrawing",
+      "zh-Hans": "主办需先转交才能退出"
+    }
+  ]
+}

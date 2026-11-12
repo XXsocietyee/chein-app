@@ -42,8 +42,8 @@ final class CB93RouteAdaptationTests: XCTestCase {
         XCTAssertNil(ChinaReviewedRouteAdaptation.productionPath(forMissing: "/api/ugc/block"))
         XCTAssertNil(ChinaReviewedRouteAdaptation.productionPath(forMissing: "/api/growth/leaderboard/anonymous"))
         XCTAssertNil(ReviewedMarketLaunch.approvedBaseURLs[.unitedStates])
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 993)
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 385)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 996)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 374)
     }
 
     func testChinaTransportRewritesOnlyMatchingBodies() async throws {

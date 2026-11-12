@@ -48,7 +48,9 @@ class CoopInviteIndexPageReadyContract(unittest.TestCase):
             self.assertIn("`%s`" % key, note)
         self.assertIn("pages/coop/invite/index", note)
         self.assertIn("App/CooperationContextualViews.swift", note)
-        self.assertNotIn("CoopInviteIndexReadiness", VIEW.read_text())
+        view = VIEW.read_text()
+        self.assertIn("CoopInviteIndexReadiness", view)
+        self.assertNotIn("enum CoopInviteIndexReadiness", view)
 
     def test_swift_tests_were_added_without_removing_existing_ones(self):
         tests = TESTS.read_text()

@@ -307,8 +307,7 @@ import SwiftUI
                 }
             default: EmptyView()
             }
-            // Mini-program nearby card: "举报队伍" under the actions (hidden without a signed-in report path).
-            if team.mode != "leader" { NearbyTeamReportButton(teamID: team.id.rawValue) }
+            NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
         }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")

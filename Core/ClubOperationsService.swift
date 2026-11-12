@@ -152,6 +152,27 @@ public struct ClubOperationsService {
             }
         }
     }
+
+    /// Read-only name check. China production does not admit this route, so that host returns
+    /// `.unchecked` without a send. Any other failure also stays unchecked and does not block create.
+    func checkName(_ name: String, token: String) async -> ClubNameCheck.Result {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard ClubNameCheck.shouldQuery(trimmed),
+              ChinaReviewedRouteCapability.offersFeature("/" + ClubNameCheck.path, baseURL: configuration.baseURL),
+              AuthRequestBuilder.isValidToken(token) else { return .unchecked }
+        do {
+            var request = try AuthRequestBuilder.makeFormRequest(
+                url: configuration.baseURL.appendingPathComponent(ClubNameCheck.path),
+                fields: [:], token: token, includesBody: false)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: ["name": trimmed])
+            try Task.checkCancellation()
+            let (data, status) = try await transport.send(request)
+            return ClubNameCheck.decode(data: data, status: status)
+        } catch {
+            return .unchecked
+        }
+    }
 }
 
 public struct ClubOperationsSession: Equatable {
@@ -205,6 +226,11 @@ public struct ClubOperationsSession: Equatable {
         do { return try journal.pending(ownerKey: session.ownerKey, targetKey: targetKey(target)) != nil }
         catch { return true }
     }
+    public func checkClubName(_ name: String) async -> ClubNameCheck.Result {
+        guard let service, let session = currentSession(), AuthRequestBuilder.isValidToken(session.token) else { return .unchecked }
+        return await service.checkName(name, token: session.token)
+    }
+
     public func perform(_ command: ClubOperationsCommand, target: ClubOperationsTarget, expectedIdentity: ClubReadIdentity) async throws -> ClubOperationsReceipt {
         guard let service, let approval, let journal, let session = currentSession(), session.identity == expectedIdentity,
               service.isApproved(approval, session: session, path: command.path) else { throw ClubActionWriteError.notSent(.notConfigured) }

@@ -12,8 +12,9 @@ enum RegionalLaunchConfiguration {
     /// China selection uses `ReviewedAppDeployment` through `reviewedComposition` and the
     /// host already named by Config and `ReviewedMarketLaunch`. The reviewed production gate
     /// bundle is on (`productionGatesEnabled`): Apple and SMS sign-in, the legal catalog, and
-    /// wallet, orders, favorites and coupons reads. Password login, bank withdrawal, virtual
-    /// goods, and payment or payout writes are not switched on here.
+    /// wallet, orders, favorites and coupons reads. Owner approval 2026-11-12 also turns on
+    /// `playerWritesEnabled` for the non-money player writes. Password login, bank withdrawal,
+    /// virtual goods, and payment or payout writes are not switched on here.
     @MainActor static func shippedComposition(
         build: BuildMetadata = .current,
         storage: AppScopedStorageFactory? = nil,
@@ -69,6 +70,7 @@ enum RegionalLaunchConfiguration {
             realm: rawRealm,
             reads: reads,
             productionGatesEnabled: true,
+            playerWritesEnabled: true,
             allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
         )
     }

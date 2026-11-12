@@ -29,8 +29,8 @@ import XCTest
         if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn") }
         let account = app.tabBars.buttons["Passport"]
         XCTAssertTrue(account.waitForExistence(timeout: 10)); account.tap()
-        // Rewards now live on the collections page: Passport > Settings > Favorites.
-        tap("Settings"); tap("settingsNative.openFavorites"); tap("rewards.open")
+        // rewards.open is the Passport collection row, not a control inside Favorites.
+        tap("rewards.open")
     }
     /// Full-method conservative estimate: 480 seconds, unmeasured after source reconstruction.
     func testDetailDisclosesFrozenTermsExactMapOriginAndUnavailableClaimFacts() {
@@ -89,7 +89,7 @@ import XCTest
     }
     func testWithoutOptInNoExampleOrRedemptionAppears() {
         launch(nil)
-        XCTAssertTrue(app.staticTexts.matching(identifier: "rewards.unavailable").firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "rewards.unavailable").firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["rewards.row.example-0"].exists)
         XCTAssertFalse(app.buttons["rewards.present"].exists)
     }

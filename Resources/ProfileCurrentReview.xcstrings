@@ -68,6 +68,22 @@
           }
         }
       }
+    },
+    "informationDetail.state.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

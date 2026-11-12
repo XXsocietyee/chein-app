@@ -8,7 +8,7 @@ import UIKit
 @MainActor final class NativeChannelTextReadOnlyPresentationTests: XCTestCase {
     func testLosingSendGrantKeepsOriginalReceiptEntryWithoutForegroundRoundTrip() async throws {
         let r = try ReadOnlyTextRig(), original = try r.seedOriginal()
-        let flow = try await r.makeFlow(), window = mount(flow)
+        let flow = try await r.makeFlow(), window = try mount(flow)
         defer { unmount(window, flow: flow) }
         try await waitFor { r.wire.lookups.count == 1 && flow.canRetryOriginal }
         let protected = r.storage.rows
@@ -22,7 +22,7 @@ import UIKit
     }
 
     func testDispatchedWriteRetiresBeforeReadOnlyRecoveryAndLateSuccessCannotSettle() async throws {
-        let r = try ReadOnlyTextRig(), flow = try await r.makeFlow(), window = mount(flow)
+        let r = try ReadOnlyTextRig(), flow = try await r.makeFlow(), window = try mount(flow)
         defer { r.wire.resumeSend(0); unmount(window, flow: flow) }
         try await waitFor { flow.canSendNew }
         r.wire.pauseSend = true
@@ -44,7 +44,7 @@ import UIKit
     func testSuspendedReceiptIsReplacedWithoutWaitingForCancelledTransport() async throws {
         let r = try ReadOnlyTextRig(), original = try r.seedOriginal()
         r.wire.pauseReceipts = [0]
-        let flow = try await r.makeFlow(), window = mount(flow)
+        let flow = try await r.makeFlow(), window = try mount(flow)
         defer { r.wire.resumeReceipt(0); unmount(window, flow: flow) }
         try await waitFor { r.wire.lookups.count == 1 }
         let protected = r.storage.rows
@@ -61,7 +61,7 @@ import UIKit
 
     func testLosingBothGrantsDoesNotResumeAnyReadOrWrite() async throws {
         let r = try ReadOnlyTextRig(); _ = try r.seedOriginal()
-        let flow = try await r.makeFlow(), window = mount(flow)
+        let flow = try await r.makeFlow(), window = try mount(flow)
         defer { unmount(window, flow: flow) }
         try await waitFor { r.wire.lookups.count == 1 && flow.canCheckReceipt }
         let protected = r.storage.rows
@@ -75,7 +75,7 @@ import UIKit
 
     func testLostCurrentIdentityCannotUseRemainingReadIssuance() async throws {
         let r = try ReadOnlyTextRig(); _ = try r.seedOriginal()
-        let flow = try await r.makeFlow(), window = mount(flow)
+        let flow = try await r.makeFlow(), window = try mount(flow)
         defer { unmount(window, flow: flow) }
         try await waitFor { r.wire.lookups.count == 1 && flow.canCheckReceipt }
         let protected = r.storage.rows
@@ -90,7 +90,7 @@ import UIKit
         for historyReady in [false, true] {
             let r = try ReadOnlyTextRig(); _ = try r.seedOriginal()
             let flow = try await r.makeFlow()
-            let window = mount(flow, historyReady: historyReady, phase: historyReady ? .inactive : .active)
+            let window = try mount(flow, historyReady: historyReady, phase: historyReady ? .inactive : .active)
             defer { unmount(window, flow: flow) }
             try await renderTurn(window)
             let protected = r.storage.rows
@@ -104,7 +104,7 @@ import UIKit
     func testPreviouslyClosedOriginalNeverReopensWhenSendGrantIsLost() async throws {
         let r = try ReadOnlyTextRig(); _ = try r.seedOriginal()
         r.wire.receiptBody = #"{"code":409,"errorCode":"IM_CONVERSATION_CLOSED"}"#
-        let flow = try await r.makeFlow(), window = mount(flow)
+        let flow = try await r.makeFlow(), window = try mount(flow)
         defer { unmount(window, flow: flow) }
         try await waitFor { r.wire.lookups.count == 1 && flow.visibleState == .accessClosed }
         let protected = r.storage.rows
@@ -118,7 +118,7 @@ import UIKit
     func testIndependentReadOnlyMountUsesOriginalKeyAndDefaultsStayClosed() async throws {
         let r = try ReadOnlyTextRig(), original = try r.seedOriginal()
         r.write.revoke()
-        let flow = try await r.makeFlow(), window = mount(flow)
+        let flow = try await r.makeFlow(), window = try mount(flow)
         defer { unmount(window, flow: flow) }
         try await waitFor { r.wire.lookups.count == 1 && flow.canCheckReceipt }
         XCTAssertEqual(r.wire.lookups, [original.clientMessageID]); XCTAssertTrue(r.wire.sent.isEmpty)
@@ -128,29 +128,31 @@ import UIKit
         XCTAssertFalse(r.read.isRevoked)
     }
 
-    private func mount(_ flow: NativeChannelTextCoordinator, historyReady: Bool = true, phase: ScenePhase = .active) -> UIWindow {
-        let controller = UIHostingController(rootView: NativeChannelTextComposer(coordinator: flow, historyReady: historyReady)
+    private func mount(_ flow: NativeChannelTextCoordinator, historyReady: Bool = true, phase: ScenePhase = .active) throws -> HostedNavigationSceneWindow {
+        // A frame-only UIWindow never joins the foreground scene, so on iOS 27 onAppear does not run and
+        // the composer never issues the original receipt. The route parser is not what rejects that case.
+        let scene = try HostedNavigationSceneWindow()
+        _ = hostedMount(scene.window, root: NativeChannelTextComposer(coordinator: flow, historyReady: historyReady)
             .environment(\.scenePhase, phase))
-        let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = controller; window.makeKeyAndVisible()
-        controller.loadViewIfNeeded(); controller.view.layoutIfNeeded()
-        return window
+        return scene
     }
-    private func unmount(_ window: UIWindow, flow: NativeChannelTextCoordinator) {
-        window.isHidden = true; window.rootViewController = nil
+    private func unmount(_ scene: HostedNavigationSceneWindow, flow: NativeChannelTextCoordinator) {
         flow.stop(); flow.onChange = nil
+        scene.retire()
     }
     private func waitFor(_ condition: () -> Bool) async throws {
         for _ in 0..<200 {
             if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
             try await Task.sleep(nanoseconds: 10_000_000)
         }
         XCTFail("The hosted original receipt transition did not occur")
         throw APIError.notConfigured
     }
-    private func renderTurn(_ window: UIWindow) async throws {
+    private func renderTurn(_ scene: HostedNavigationSceneWindow) async throws {
         for _ in 0..<10 {
-            window.rootViewController?.view.layoutIfNeeded()
+            scene.window.rootViewController?.view.layoutIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
             try await Task.sleep(nanoseconds: 10_000_000)
         }
     }

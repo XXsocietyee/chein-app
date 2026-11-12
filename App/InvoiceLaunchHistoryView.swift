@@ -77,7 +77,7 @@ import SwiftUI
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 Text(verbatim: row.titleName).font(CYTypography.cardTitle).lineLimit(2)
                 Spacer(minLength: CYSpacing.sm)
-                Text(verbatim: invoiceAmount(row.totalAmount, locale: locale)).font(CYTypography.numericBody).monospacedDigit()
+                Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).font(CYTypography.numericBody).monospacedDigit()
             }
             HStack(spacing: CYSpacing.sm) {
                 CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
