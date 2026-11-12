@@ -29,6 +29,7 @@ struct SessionCityPlayerView: View {
                 .padding().frame(minHeight: 44)
                 .accessibilityIdentifier("city.actionBudget.entry")
             }
+            CityFairnessEntry()
             NavigationLink { SessionCityPlayerValueView() } label: {
                 Label { Text("cityValue.title", tableName: "CityValue") } icon: { Image(systemName: "map") }
                     .frame(minHeight: 44)

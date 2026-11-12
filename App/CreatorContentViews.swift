@@ -60,6 +60,8 @@ private struct CreatorContentIssueView: View {
     /// Set only after a server save receipt for this reader scope. Another account's token does not match.
     var listRefresh: MyProjectListRefreshRequest? = nil
     @StateObject private var model = CreatorContentScreenModel<CreatorContentProjectPage>()
+    /// Nil while my-project writes are gated; then no row offers a write.
+    @State private var mutation: MyProjectMutationModel?
     @State private var query = CreatorContentQuery()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -78,6 +80,9 @@ private struct CreatorContentIssueView: View {
                     picker("creatorContent.type", selection: $query.type, values: ["all", "topic", "activity", "template"])
                     picker("creatorContent.owner", selection: $query.ownerType, values: ["all", "member", "club", "merchant"])
                     picker("creatorContent.state", selection: $query.state, values: ["all", "draft", "pending", "notStarted", "running", "completed", "offline", "rejected"])
+                }
+                if let mutation, reader.isAuthenticated {
+                    MyProjectMutationStrip(model: mutation) { Task { await refresh() } }
                 }
                 // Mini myproject template tab reads the separate api/template/my-list own-shelf, never project/my rows.
                 if query.type == "template" { MyProjectTemplateTabSection(shelf: templateShelf) }
@@ -117,6 +122,8 @@ private struct CreatorContentIssueView: View {
         }
         .listStyle(.insetGrouped)
         .environment(\.myProjectMerchantScopeAccess, loadedAccess)
+        .environment(\.myProjectMutation, loadedAccess.isBrowseOnly ? nil : mutation)
+        .task(id: entryScope) { mutation = MyProjectMutationFactory.liveModel(scope: entryScope) }
         .appNavigationTitle("creatorContent.projects")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
         .onChange(of: listRefresh) { _, request in

@@ -161,11 +161,35 @@ extension EnvironmentValues {
     static func hasOperations(_ rows: [CreatorContentProject], merchantScopeAccess: MyProjectMerchantScopeAccess = .init()) -> Bool {
         rows.contains { !MyProjectListPresentation.card($0, merchantScopeAccess: merchantScopeAccess).operations.isEmpty }
     }
+    @Environment(\.myProjectMutation) private var mutation
     var body: some View {
-        // None of 上下架 / 取消 / 删除 can run yet, so the long-press menu offers nothing rather than a
-        // column of disabled rows. The operations are still computed for when an endpoint is approved.
+        // While 上下架 / 取消 / 删除 are gated the long-press menu offers nothing rather than a column of
+        // disabled rows. Once composition supplies a live mutator the list injects its model here.
         let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
-        if card.operations.isEmpty { EmptyView() }
+        if let mutation, let biz = MyProjectBiz(rawValue: project.bizType) {
+            ForEach(card.operations, id: \.self) { operation in
+                switch operation {
+                case .toggle:
+                    Button(LocalizedStringKey(card.toggleKey)) {
+                        Task { await mutation.begin(.toggleOnline(biz: biz, id: project.sourceID, currentlyOnline: card.online)) }
+                    }
+                    .accessibilityIdentifier("myProject.op.toggle.\(project.id)")
+                case .cancel where biz == .activity:
+                    // Topic cancel goes through the source cancel-preview flow, which has no native model yet.
+                    Button("myProject.op.cancel", role: .destructive) {
+                        Task { await mutation.begin(.cancelActivity(id: project.sourceID)) }
+                    }
+                    .accessibilityIdentifier("myProject.op.cancel.\(project.id)")
+                case .delete:
+                    Button("myProject.op.delete", role: .destructive) {
+                        Task { await mutation.begin(.delete(biz: biz, id: project.sourceID)) }
+                    }
+                    .accessibilityIdentifier("myProject.op.delete.\(project.id)")
+                default:
+                    EmptyView()
+                }
+            }
+        }
     }
 }
 

@@ -3,6 +3,8 @@ import SwiftUI
 @MainActor
 struct MerchantOperationsHomeView: View {
     @Environment(\.cityMerchantOperationsFactory) private var cityMerchantFactory
+    /// Source decor brand card row 常备权益 (`pages/merchant/decor/perks`). Nil hides it.
+    @Environment(\.merchantPerkTemplatesDestination) private var perkTemplatesDestination
     let reader: any MerchantOperationsReading
     var destinationFactory: ((MerchantOperationsDestination, MerchantOperationsAccess) -> AnyView)? = nil
     @State private var access: MerchantOperationsAccess?
@@ -20,6 +22,8 @@ struct MerchantOperationsHomeView: View {
         ("merchant.decor.section.character", [.character, .assets]),
         ("merchant.decor.section.coop", [.cooperation, .cityNodes, .templates]),
     ]
+    /// Source places 常备权益 in the brand card, next to 口碑.
+    private static let perksGroupIndex = 1
     var body: some View {
         let readPermit = readLifetime.permit
         List {
@@ -37,9 +41,10 @@ struct MerchantOperationsHomeView: View {
                 if !reader.canSave && access.identity.active {
                     CloseW5dGatedNotice(message: "merchant.decor.save.gated")
                 }
-                ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
+                ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
                     let visible = group.destinations.filter { access.allows($0) }
-                    if !visible.isEmpty {
+                    let perks = index == Self.perksGroupIndex && access.identity.active ? perkTemplatesDestination : nil
+                    if !visible.isEmpty || perks != nil {
                         Section(group.titleKey) {
                             ForEach(visible) { destination in
                                 NavigationLink {
@@ -49,6 +54,12 @@ struct MerchantOperationsHomeView: View {
                                     Label(LocalizedStringKey(destination.titleKey), systemImage: symbol(destination))
                                 }
                                 .accessibilityIdentifier("merchant.operations.entry." + destination.id)
+                            }
+                            if let perks {
+                                NavigationLink { perks() } label: {
+                                    Label("merchant.perks.title", systemImage: "gift")
+                                }
+                                .accessibilityIdentifier("merchant.operations.entry.perks")
                             }
                         }
                     }

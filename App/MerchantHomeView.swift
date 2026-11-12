@@ -170,6 +170,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @ObservedObject var todo: MerchantLoadModel<MerchantTodo>
     @ObservedObject var events: MerchantLoadModel<[MerchantEvent]>
     let onChildReturn: () -> Void
+    @Environment(\.merchantAuthoringDestination) private var merchantAuthoringDestination
 
     private var aftercareRoute: MerchantWorkbenchBusinessRoute? {
         guard access.canReadAftercare, let businessReader, let businessJournal else { return nil }
@@ -346,9 +347,20 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     MerchantMarketingEntry(model: marketingModel, isSourceVisible: true, suggestionDestination: marketingDestination,
                         recommendationOrigin: .init(merchantID: access.merchantID, readerScope: operationsReader?.scope))
                 }
+                if let merchantAuthoringDestination {
+                    // Store AI drafts. Hidden until composition supplies an adopted authoring coordinator.
+                    NavigationLink {
+                        merchantAuthoringDestination()
+                            .onDisappear(perform: onChildReturn)
+                    } label: { Label { Text("orphanMount.merchantAuthoring.entry", tableName: "OrphanMounts") } icon: { Image(systemName: "sparkles.rectangle.stack") } }
+                    .accessibilityIdentifier("merchant.authoring.open")
+                }
                 if let operationsReader {
                     NavigationLink {
                         MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+                            .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
+                                { AnyView(MerchantPerkTemplatesHost(reader: flowReader)) }
+                            })
                             .id(operationsReader.scope)
                             .onDisappear(perform: onChildReturn)
                     } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
