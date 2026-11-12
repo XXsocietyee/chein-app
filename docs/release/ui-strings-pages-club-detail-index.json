@@ -1,0 +1,234 @@
+{
+  "page": "pages/club/detail/index",
+  "nativeView": "App/ClubDetailView.swift",
+  "unknownNumber": {
+    "mark": "—",
+    "scalar": "U+2014"
+  },
+  "strings": [
+    {
+      "key": "club.detail",
+      "en": "Club details",
+      "zh-Hans": "俱乐部详情",
+      "accessibilityIdentifier": "club.detail.name"
+    },
+    {
+      "key": "club.detail.cityFact",
+      "en": "City",
+      "zh-Hans": "所在城市",
+      "accessibilityIdentifier": "club.detail.fact.city"
+    },
+    {
+      "key": "club.detail.levelFact",
+      "en": "Level",
+      "zh-Hans": "等级",
+      "accessibilityIdentifier": "club.detail.fact.level"
+    },
+    {
+      "key": "club.leader",
+      "en": "Host",
+      "zh-Hans": "主理人",
+      "accessibilityIdentifier": "club.detail.fact.leader"
+    },
+    {
+      "key": "club.members",
+      "en": "Members",
+      "zh-Hans": "成员",
+      "accessibilityIdentifier": "club.detail.fact.memberCount"
+    },
+    {
+      "key": "club.type",
+      "en": "Club type",
+      "zh-Hans": "俱乐部类型"
+    },
+    {
+      "key": "club.introduction",
+      "en": "About the club",
+      "zh-Hans": "俱乐部介绍"
+    },
+    {
+      "key": "club.untitled",
+      "en": "Untitled club",
+      "zh-Hans": "未命名俱乐部"
+    },
+    {
+      "key": "club.noIntroduction",
+      "en": "No introduction yet",
+      "zh-Hans": "暂无简介"
+    },
+    {
+      "key": "club.detail.joinPolicy.open",
+      "en": "Open to join",
+      "zh-Hans": "公开加入"
+    },
+    {
+      "key": "club.detail.joinPolicy.review",
+      "en": "Approval to join",
+      "zh-Hans": "需审核加入"
+    },
+    {
+      "key": "club.detail.posts.unavailable",
+      "en": "Club posts are unavailable in this build.",
+      "zh-Hans": "当前版本暂不可查看俱乐部帖子",
+      "accessibilityIdentifier": "club.detail.posts.unavailable"
+    },
+    {
+      "key": "club.detail.events.unavailable",
+      "en": "Club events are unavailable in this build.",
+      "zh-Hans": "当前版本暂不可查看俱乐部活动",
+      "accessibilityIdentifier": "club.detail.events.unavailable"
+    },
+    {
+      "key": "club.detail.tab.posts",
+      "en": "Posts",
+      "zh-Hans": "帖子",
+      "accessibilityIdentifier": "club.detail.tab.posts"
+    },
+    {
+      "key": "club.detail.tab.events",
+      "en": "Events",
+      "zh-Hans": "活动",
+      "accessibilityIdentifier": "club.detail.tab.events"
+    },
+    {
+      "key": "club.detail.tab.overview",
+      "en": "Overview",
+      "zh-Hans": "概览",
+      "accessibilityIdentifier": "club.detail.tab.overview"
+    },
+    {
+      "key": "club.detail.tab.manage",
+      "en": "Manage",
+      "zh-Hans": "管理",
+      "accessibilityIdentifier": "club.detail.tab.manage"
+    },
+    {
+      "key": "club.detail.leaderboard.title",
+      "en": "Club contribution board · This week",
+      "zh-Hans": "本团贡献榜 · 本周"
+    },
+    {
+      "key": "club.detail.leaderboard.open",
+      "en": "View contribution board",
+      "zh-Hans": "查看贡献榜",
+      "accessibilityIdentifier": "club.detail.leaderboard.open"
+    },
+    {
+      "key": "club.detail.leaderboard.locked",
+      "en": "Join to see the contribution board",
+      "zh-Hans": "加入后可看贡献榜",
+      "accessibilityIdentifier": "club.detail.leaderboard.locked"
+    },
+    {
+      "key": "club.detail.leaderboard.unavailable",
+      "en": "The contribution board can't be shown right now",
+      "zh-Hans": "暂时无法查看贡献榜",
+      "accessibilityIdentifier": "club.detail.leaderboard.unavailable"
+    },
+    {
+      "key": "club.detail.members.locked",
+      "en": "Join to see the members",
+      "zh-Hans": "加入后可看成员名单",
+      "accessibilityIdentifier": "club.members.gated"
+    },
+    {
+      "key": "club.detail.members.lockedReview",
+      "en": "Approved members can see the members",
+      "zh-Hans": "通过审核后可看成员名单",
+      "accessibilityIdentifier": "club.members.gated"
+    },
+    {
+      "key": "club.loading",
+      "en": "Loading clubs…",
+      "zh-Hans": "正在加载俱乐部…",
+      "accessibilityIdentifier": "club.detail.loading"
+    },
+    {
+      "key": "club.loadFailed",
+      "en": "Couldn’t load clubs",
+      "zh-Hans": "俱乐部加载失败",
+      "accessibilityIdentifier": "club.detail.error"
+    },
+    {
+      "key": "club.unavailable",
+      "en": "Clubs didn't load",
+      "zh-Hans": "俱乐部没加载出来",
+      "accessibilityIdentifier": "club.detail.error"
+    },
+    {
+      "key": "club.signInRequired",
+      "en": "Sign in to continue",
+      "zh-Hans": "请登录后继续",
+      "accessibilityIdentifier": "club.detail.signIn"
+    },
+    {
+      "key": "club.accessDenied",
+      "en": "Club access denied",
+      "zh-Hans": "暂无俱乐部访问权限",
+      "accessibilityIdentifier": "club.detail.error"
+    },
+    {
+      "key": "club.invalidResponse",
+      "en": "Some information couldn't be loaded. Try again.",
+      "zh-Hans": "部分信息加载失败，请重试。",
+      "accessibilityIdentifier": "club.detail.error"
+    },
+    {
+      "key": "club.membersUnavailable",
+      "en": "Member list unavailable",
+      "zh-Hans": "暂未获取到成员名单",
+      "accessibilityIdentifier": "club.detail.error"
+    },
+    {
+      "key": "club.refresh",
+      "en": "Refresh",
+      "zh-Hans": "刷新",
+      "accessibilityIdentifier": "club.detail.refresh"
+    },
+    {
+      "key": "club.signIn",
+      "en": "Sign in",
+      "zh-Hans": "登录",
+      "accessibilityIdentifier": "club.detail.signIn"
+    },
+    {
+      "key": "action.retry",
+      "en": "Retry",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "club.detail.retry"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    "club.detail.loading",
+    "club.detail.empty",
+    "club.detail.error",
+    "club.detail.refresh",
+    "club.detail.retry",
+    "club.detail.signIn",
+    "club.detail.name",
+    "club.detail.factsGrid",
+    "club.detail.fact.memberCount",
+    "club.detail.fact.level",
+    "club.detail.fact.leader",
+    "club.detail.fact.city",
+    "club.detail.posts.unavailable",
+    "club.detail.events.unavailable",
+    "club.detail.tab.posts",
+    "club.detail.tab.events",
+    "club.detail.tab.overview",
+    "club.detail.tab.manage",
+    "club.detail.events.loading",
+    "club.detail.events.error",
+    "club.detail.events.empty",
+    "club.detail.events.currentCount",
+    "club.detail.events.endedCount",
+    "club.detail.leaderboard.open",
+    "club.detail.leaderboard.locked",
+    "club.detail.leaderboard.unavailable",
+    "club.members.gated",
+    "club.openMembers",
+    "club.openManagement",
+    "club.chat.entry",
+    "club.calendar.open"
+  ]
+}

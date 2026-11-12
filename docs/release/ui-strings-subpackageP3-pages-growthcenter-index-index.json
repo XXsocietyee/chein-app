@@ -1,0 +1,183 @@
+{
+  "page": "subpackageP3/pages/growthcenter/index/index",
+  "unknownDisplay": "—",
+  "strings": {
+    "growth.badge.obtained": {
+      "en": "Earned",
+      "zh-Hans": "获得时刻"
+    },
+    "growth.badge.unnamed": {
+      "en": "Badge",
+      "zh-Hans": "徽章"
+    },
+    "growth.badgeCount": {
+      "en": "Badges",
+      "zh-Hans": "徽章"
+    },
+    "growth.badges": {
+      "en": "My badges",
+      "zh-Hans": "我的徽章"
+    },
+    "growth.badges.empty": {
+      "en": "No badges yet. Finish a route to light your first one.",
+      "zh-Hans": "还没有徽章。走完一条路线，点亮第一枚。"
+    },
+    "growth.badges.newlyLit": {
+      "en": "New badges lit",
+      "zh-Hans": "新徽章已点亮"
+    },
+    "growth.board.link": {
+      "en": "View leaderboard",
+      "zh-Hans": "查看榜单"
+    },
+    "growth.completedTopics": {
+      "en": "Completed topics",
+      "zh-Hans": "完成主题"
+    },
+    "growth.currentPoints": {
+      "en": "Current points",
+      "zh-Hans": "当前积分"
+    },
+    "growth.denied": {
+      "en": "This account cannot view growth records. Check its access and refresh.",
+      "zh-Hans": "当前账号无法查看成长记录，请确认当前账号的查看权限"
+    },
+    "growth.experience": {
+      "en": "Exploration XP",
+      "zh-Hans": "探索值"
+    },
+    "growth.failed": {
+      "en": "Growth information could not be loaded",
+      "zh-Hans": "成长信息加载失败"
+    },
+    "growth.level.value %lld": {
+      "en": "Level %lld",
+      "zh-Hans": "Lv.%lld"
+    },
+    "growth.mileage": {
+      "en": "Total distance (km)",
+      "zh-Hans": "累计距离（km）"
+    },
+    "growth.mission.experience": {
+      "en": "Listed EXP reward",
+      "zh-Hans": "标注经验奖励"
+    },
+    "growth.mission.unnamed": {
+      "en": "Mission",
+      "zh-Hans": "任务"
+    },
+    "growth.missions": {
+      "en": "Growth missions",
+      "zh-Hans": "成长任务"
+    },
+    "growth.myRank": {
+      "en": "My ranking",
+      "zh-Hans": "我的排名"
+    },
+    "growth.network": {
+      "en": "Check your connection and try again",
+      "zh-Hans": "请检查网络后重试"
+    },
+    "growth.notConfigured": {
+      "en": "Growth isn't available right now",
+      "zh-Hans": "成长功能暂不可用"
+    },
+    "growth.offlineExample": {
+      "en": "Example content",
+      "zh-Hans": "示例内容"
+    },
+    "growth.overview": {
+      "en": "My footprint",
+      "zh-Hans": "我的足迹"
+    },
+    "growth.refresh": {
+      "en": "Refresh",
+      "zh-Hans": "刷新"
+    },
+    "growth.retry": {
+      "en": "Try again",
+      "zh-Hans": "重新加载"
+    },
+    "growth.score": {
+      "en": "Total points",
+      "zh-Hans": "总积分"
+    },
+    "growth.signInRequired": {
+      "en": "Sign in to see your growth and rankings",
+      "zh-Hans": "登录后查看成长与排名"
+    },
+    "growth.title": {
+      "en": "Growth center",
+      "zh-Hans": "成长中心"
+    },
+    "growth.unavailable": {
+      "en": "This growth information is temporarily unavailable",
+      "zh-Hans": "这部分成长信息暂不可用"
+    },
+    "growth.unknown": {
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    "growth.unknownValue": {
+      "en": "Not available",
+      "zh-Hans": "暂无数据"
+    },
+    "growth.unranked": {
+      "en": "Not ranked yet",
+      "zh-Hans": "暂无排名"
+    },
+    "growthExplore.openHome": {
+      "en": "Go explore",
+      "zh-Hans": "去探索"
+    },
+    "growthNormalEntry.completed.empty": {
+      "en": "No completed activities recorded",
+      "zh-Hans": "暂无已完成活动记录",
+      "table": "GrowthNormalEntry"
+    },
+    "growthNormalEntry.leaderboard.hold": {
+      "en": "Anonymous rankings aren't available right now. Your personal growth records are shown separately.",
+      "zh-Hans": "匿名排行暂不可用，个人成长记录单独展示。",
+      "table": "GrowthNormalEntry"
+    },
+    "growthNormalEntry.missions.empty": {
+      "en": "No growth missions available",
+      "zh-Hans": "暂无成长任务",
+      "table": "GrowthNormalEntry"
+    },
+    "profile.selfGrowth.checkins": {
+      "en": "Lifetime check-ins",
+      "zh-Hans": "累计打卡"
+    },
+    "profile.selfGrowth.points": {
+      "en": "Growth points",
+      "zh-Hans": "成长积分"
+    },
+    "profile.selfGrowth.streak": {
+      "en": "Consecutive days",
+      "zh-Hans": "连续打卡天数"
+    }
+  },
+  "accessibilityIdentifiers": [
+    "growth.badge.\\(index)",
+    "growth.badges.empty",
+    "growth.badges.newlyLit",
+    "growth.checkins",
+    "growth.completed.empty",
+    "growth.completedTopics",
+    "growth.experience",
+    "growth.issue",
+    "growth.loading",
+    "growth.mileage",
+    "growth.missions.empty",
+    "growth.myRank",
+    "growth.normal.leaderboard.hold",
+    "growth.normal.points",
+    "growth.openLeaderboard",
+    "growth.points",
+    "growth.refresh",
+    "growth.retry",
+    "growth.streak",
+    "growthExplore.badges.openHome"
+  ]
+}

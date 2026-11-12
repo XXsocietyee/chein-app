@@ -1,0 +1,321 @@
+{
+  "page": "subpackageA/pages/myproject/index",
+  "title": {
+    "en": "My projects",
+    "zh-Hans": "我的项目"
+  },
+  "native": "App/CreatorContentViews.swift",
+  "strings": {
+    "creatorContent.empty": {
+      "en": "No published content",
+      "zh-Hans": "暂无发布内容"
+    },
+    "creatorContent.failed": {
+      "en": "Unable to load. Try again.",
+      "zh-Hans": "加载失败，请重试。"
+    },
+    "creatorContent.filter.activity": {
+      "en": "Activities",
+      "zh-Hans": "活动"
+    },
+    "creatorContent.filter.all": {
+      "en": "All",
+      "zh-Hans": "全部"
+    },
+    "creatorContent.filter.club": {
+      "en": "Club",
+      "zh-Hans": "俱乐部"
+    },
+    "creatorContent.filter.completed": {
+      "en": "Completed",
+      "zh-Hans": "已完成"
+    },
+    "creatorContent.filter.draft": {
+      "en": "Draft",
+      "zh-Hans": "草稿"
+    },
+    "creatorContent.filter.member": {
+      "en": "Individual",
+      "zh-Hans": "个人"
+    },
+    "creatorContent.filter.merchant": {
+      "en": "Merchant",
+      "zh-Hans": "商家"
+    },
+    "creatorContent.filter.notStarted": {
+      "en": "Not started",
+      "zh-Hans": "未开始"
+    },
+    "creatorContent.filter.offline": {
+      "en": "Offline",
+      "zh-Hans": "已下架"
+    },
+    "creatorContent.filter.pending": {
+      "en": "Under review",
+      "zh-Hans": "审核中"
+    },
+    "creatorContent.filter.rejected": {
+      "en": "Rejected",
+      "zh-Hans": "未通过"
+    },
+    "creatorContent.filter.running": {
+      "en": "Running",
+      "zh-Hans": "进行中"
+    },
+    "creatorContent.filter.template": {
+      "en": "Templates",
+      "zh-Hans": "模板"
+    },
+    "creatorContent.filter.topic": {
+      "en": "Topics",
+      "zh-Hans": "主题"
+    },
+    "creatorContent.loading": {
+      "en": "Loading…",
+      "zh-Hans": "加载中…"
+    },
+    "creatorContent.network": {
+      "en": "Connection failed. Try again.",
+      "zh-Hans": "连接失败，请重试。"
+    },
+    "creatorContent.notConfigured": {
+      "en": "This service is not configured",
+      "zh-Hans": "此服务尚未配置"
+    },
+    "creatorContent.offlineExample": {
+      "en": "Example content",
+      "zh-Hans": "示例内容"
+    },
+    "creatorContent.owner": {
+      "en": "Publisher",
+      "zh-Hans": "发布身份"
+    },
+    "creatorContent.projects": {
+      "en": "My projects",
+      "zh-Hans": "我的项目"
+    },
+    "creatorContent.retry": {
+      "en": "Try again",
+      "zh-Hans": "重试"
+    },
+    "creatorContent.signInRequired": {
+      "en": "Sign in to view your content",
+      "zh-Hans": "登录后查看你的内容"
+    },
+    "creatorContent.state": {
+      "en": "Status",
+      "zh-Hans": "状态"
+    },
+    "creatorContent.truncated": {
+      "en": "Showing the latest 200",
+      "zh-Hans": "仅显示最近 200 条"
+    },
+    "creatorContent.type": {
+      "en": "Content type",
+      "zh-Hans": "内容类型"
+    },
+    "creatorContent.unavailable": {
+      "en": "Content unavailable",
+      "zh-Hans": "内容不可用"
+    },
+    "creatorContent.untitled": {
+      "en": "Untitled",
+      "zh-Hans": "未命名"
+    },
+    "myProject.cta.activity": {
+      "en": "Publish a single-session activity",
+      "zh-Hans": "发布单场活动"
+    },
+    "myProject.cta.topic": {
+      "en": "Publish",
+      "zh-Hans": "去发布"
+    },
+    "myProject.empty.activity": {
+      "en": "No activities yet",
+      "zh-Hans": "还没有活动"
+    },
+    "myProject.empty.activityPublish": {
+      "en": "Publish your first single-session activity here",
+      "zh-Hans": "在这里发布你的第一场单场活动"
+    },
+    "myProject.empty.template": {
+      "en": "No node plays yet",
+      "zh-Hans": "还没有节点玩法"
+    },
+    "myProject.empty.templateDetail": {
+      "en": "Node interactions you build while publishing routes can be reused and managed here",
+      "zh-Hans": "发布路线时可以沉淀自己的节点互动，之后在这里复用和管理"
+    },
+    "myProject.empty.topic": {
+      "en": "No topics yet",
+      "zh-Hans": "还没有主题"
+    },
+    "myProject.empty.topicDetail": {
+      "en": "Use Publish to create your first city route",
+      "zh-Hans": "用发布按钮创建你的第一条城市路线"
+    },
+    "myProject.longPressHint": {
+      "en": "Long-press a card to list, unlist or delete",
+      "zh-Hans": "长按卡片可上下架 / 删除"
+    },
+    "myProject.op.cancel": {
+      "en": "Cancel and refund",
+      "zh-Hans": "取消并退款"
+    },
+    "myProject.op.delete": {
+      "en": "Delete",
+      "zh-Hans": "删除"
+    },
+    "myProject.op.edit": {
+      "en": "Edit",
+      "zh-Hans": "编辑"
+    },
+    "myProject.op.toggle": {
+      "en": "List / unlist",
+      "zh-Hans": "上下架"
+    },
+    "myProject.op.toggleOff": {
+      "en": "Unlist",
+      "zh-Hans": "下架"
+    },
+    "myProject.op.toggleOn": {
+      "en": "List",
+      "zh-Hans": "上架"
+    },
+    "myProject.op.unavailable": {
+      "en": "These actions aren't available in the app right now",
+      "zh-Hans": "这些操作暂不可用"
+    },
+    "myProject.op.viewApplies": {
+      "en": "Received applications",
+      "zh-Hans": "收到的申请"
+    },
+    "myProject.pendingVerify %lld": {
+      "en": "%lld to redeem",
+      "zh-Hans": "待核销 %lld"
+    },
+    "myProject.role.coHost": {
+      "en": "Co-host",
+      "zh-Hans": "承办"
+    },
+    "myProject.role.host": {
+      "en": "Host",
+      "zh-Hans": "主办"
+    },
+    "myProject.statsLine %lld %lld": {
+      "en": "%1$lld signups · %2$lld views",
+      "zh-Hans": "%1$lld 报名 · %2$lld 浏览"
+    },
+    "myProject.syncing": {
+      "en": "Syncing the latest projects…",
+      "zh-Hans": "正在同步最新项目…"
+    },
+    "myProject.tab.activity": {
+      "en": "Activities",
+      "zh-Hans": "活动"
+    },
+    "myProject.tab.template": {
+      "en": "Templates",
+      "zh-Hans": "模板"
+    },
+    "myProject.tab.topic": {
+      "en": "Topics",
+      "zh-Hans": "主题"
+    },
+    "myProject.template.open": {
+      "en": "Open my node plays",
+      "zh-Hans": "查看我的节点玩法"
+    },
+    "myProject.template.scope": {
+      "en": "Node plays come from your template shelf, not from project records",
+      "zh-Hans": "节点玩法来自你的模板列表，不与主题 / 活动混排"
+    },
+    "myProject.template.unavailable": {
+      "en": "Find node plays in your template list",
+      "zh-Hans": "节点玩法请在模板列表中查看"
+    }
+  },
+  "editorTable": {
+    "name": "MyProjectActivityEditor",
+    "strings": {
+      "unavailable %lld": {
+        "en": "Activity %lld cannot be edited for this account because the activity editor is unavailable.",
+        "zh-Hans": "活动 %lld 当前账号无法编辑，因为活动编辑器不可用。"
+      },
+      "revoked %lld": {
+        "en": "Editing for activity %lld stopped because this account is no longer the one that opened it.",
+        "zh-Hans": "活动 %lld 的编辑已停止，因为当前账号已不是打开它的账号。"
+      }
+    }
+  },
+  "unknownMark": {
+    "en": "—",
+    "zh-Hans": "—",
+    "accessibilityIdentifier": "myProject.page.unknown"
+  },
+  "states": {
+    "loading": {
+      "key": "creatorContent.loading",
+      "accessibilityIdentifier": "myProject.page.loading"
+    },
+    "empty": {
+      "accessibilityIdentifier": "myProject.page.empty",
+      "titleKeys": [
+        "myProject.empty.topic",
+        "myProject.empty.activity",
+        "myProject.empty.template"
+      ]
+    },
+    "error": {
+      "accessibilityIdentifier": "myProject.page.error",
+      "keys": [
+        "creatorContent.signInRequired",
+        "creatorContent.notConfigured",
+        "creatorContent.unavailable",
+        "creatorContent.network",
+        "creatorContent.failed"
+      ]
+    },
+    "unknown": {
+      "accessibilityIdentifier": "myProject.page.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    "ready": {
+      "key": "creatorContent.projects",
+      "accessibilityIdentifier": "myProject.page.ready"
+    }
+  },
+  "accessibilityIdentifiers": [
+    "creatorContent.issue",
+    "creatorContent.retry",
+    "creatorContent.truncated",
+    "myProject.syncing",
+    "myProject.createActivity",
+    "myProject.template.open",
+    "myProject.template.unavailable",
+    "myProject.merchant.browseOnlyNotice",
+    "myProject.mutation.working",
+    "myProject.mutation.done",
+    "myProject.mutation.failed",
+    "myProject.mutation.unavailable",
+    "myProject.state.activityEditor",
+    "myProject.state.activityEditorLoading",
+    "myProject.state.activityEditorRevoked",
+    "myProject.state.activityEditorUnavailable",
+    "myProject.state.detail",
+    "myProject.state.topicEditor",
+    "myProject.page.loading",
+    "myProject.page.empty",
+    "myProject.page.error",
+    "myProject.page.unknown",
+    "myProject.page.ready",
+    "myProject.page.signup",
+    "myProject.page.views"
+  ],
+  "accessibilityIdentifierPrefixes": [
+    "myProject.empty.",
+    "myProject.emptyCTA.",
+    "creatorContent.project."
+  ]
+}

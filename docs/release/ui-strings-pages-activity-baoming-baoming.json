@@ -1,0 +1,617 @@
+{
+  "table": "Localizable",
+  "page": "pages/activity/baoming/baoming",
+  "screen": "App/RegistrationSheetView.swift",
+  "strings": [
+    {
+      "key": "compliance.title",
+      "en": "Account privacy",
+      "zh-Hans": "账号隐私"
+    },
+    {
+      "key": "registration.form.awaitingPayment",
+      "en": "Awaiting payment",
+      "zh-Hans": "待支付"
+    },
+    {
+      "key": "registration.form.cancelled",
+      "en": "Cancelled",
+      "zh-Hans": "已取消"
+    },
+    {
+      "key": "registration.form.confirmCreate",
+      "en": "Create demo registration",
+      "zh-Hans": "创建演示报名"
+    },
+    {
+      "key": "registration.form.confirmTitle",
+      "en": "Confirm demo registration?",
+      "zh-Hans": "确认演示报名？"
+    },
+    {
+      "key": "registration.form.confirmationChanged",
+      "en": "Your selection or session changed. Review the details again.",
+      "zh-Hans": "选择或登录状态已改变，请重新核对信息。"
+    },
+    {
+      "key": "registration.form.couponDiscount",
+      "en": "Coupon deduction",
+      "zh-Hans": "优惠券抵扣"
+    },
+    {
+      "key": "registration.form.createdResponse",
+      "en": "Registration response received",
+      "zh-Hans": "已收到建单响应"
+    },
+    {
+      "key": "registration.form.creating",
+      "en": "Submitting registration…",
+      "zh-Hans": "正在提交报名…"
+    },
+    {
+      "key": "registration.form.creationDisabled",
+      "en": "Registration isn't available right now",
+      "zh-Hans": "报名暂不可用",
+      "accessibilityIdentifier": "registration.form.creationDisabled"
+    },
+    {
+      "key": "registration.form.creationDisabledHint",
+      "en": "Sign-up isn't available right now.",
+      "zh-Hans": "报名暂不可用。"
+    },
+    {
+      "key": "registration.form.currencyUnknown",
+      "en": "Currency unconfirmed",
+      "zh-Hans": "币种待确认"
+    },
+    {
+      "key": "registration.form.endDate",
+      "en": "Ends",
+      "zh-Hans": "结束日期"
+    },
+    {
+      "key": "registration.form.expired",
+      "en": "Expired",
+      "zh-Hans": "已过期"
+    },
+    {
+      "key": "registration.form.fees",
+      "en": "Price details",
+      "zh-Hans": "费用明细"
+    },
+    {
+      "key": "registration.form.fixtureConsent",
+      "en": "Demo only: confirm the contact-sharing step",
+      "zh-Hans": "仅演示：确认信息分享步骤"
+    },
+    {
+      "key": "registration.form.fixtureNotice",
+      "en": "Offline demo: no real registration, consent or payment is sent",
+      "zh-Hans": "离线演示：不会发送真实报名、同意记录或支付"
+    },
+    {
+      "key": "registration.form.incompleteQuote",
+      "en": "The price couldn't be confirmed. Refresh to try again.",
+      "zh-Hans": "价格暂时无法确认，请刷新后再试"
+    },
+    {
+      "key": "registration.form.insufficientPoints",
+      "en": "Available points do not cover a deduction on this order",
+      "zh-Hans": "当前积分不足以抵扣本单"
+    },
+    {
+      "key": "registration.form.inventoryUnknown",
+      "en": "Remaining availability is unknown",
+      "zh-Hans": "剩余名额未知"
+    },
+    {
+      "key": "registration.form.loadingParticipants",
+      "en": "Loading saved participants…",
+      "zh-Hans": "正在加载参与人…"
+    },
+    {
+      "key": "registration.form.manualEntry",
+      "en": "Enter contact details",
+      "zh-Hans": "直接填写报名信息"
+    },
+    {
+      "key": "registration.form.memberDiscount",
+      "en": "Club member deduction",
+      "zh-Hans": "俱乐部会员优惠"
+    },
+    {
+      "key": "registration.form.name",
+      "en": "Full name",
+      "zh-Hans": "姓名",
+      "accessibilityIdentifier": "registration.form.name"
+    },
+    {
+      "key": "registration.form.noPaymentProof",
+      "en": "Payment couldn't be started. This doesn't mean payment or registration is complete. Check your registration status.",
+      "zh-Hans": "未能发起支付，这不代表支付或报名已完成。请查看报名状态。"
+    },
+    {
+      "key": "registration.form.noTickets",
+      "en": "No separate ticket options were supplied. The quote is requested for this activity.",
+      "zh-Hans": "未提供独立票种，将按此活动获取报价。"
+    },
+    {
+      "key": "registration.form.otherActivityIntent",
+      "en": "A retained submission belongs to another activity. Resolve that order before starting a new registration.",
+      "zh-Hans": "保留的报名提交属于另一活动。请先核对此订单，再开始新的报名。"
+    },
+    {
+      "key": "registration.form.outcomeUnknown",
+      "en": "Registration outcome unknown",
+      "zh-Hans": "报名结果未知",
+      "accessibilityIdentifier": "registration.form.outcomeUnknown"
+    },
+    {
+      "key": "registration.form.outcomeUnknownHint",
+      "en": "A registration may already exist. Do not submit again. Check your orders before another attempt; this response did not provide a registration ID for a status check.",
+      "zh-Hans": "订单可能已经创建，请勿重复提交。再次报名前请先查看订单；本次响应未提供可用于查状态的报名编号。"
+    },
+    {
+      "key": "registration.form.participantReadFailed",
+      "en": "Saved participants could not load. You can still enter your contact details.",
+      "zh-Hans": "参与人信息加载失败，仍可直接填写报名信息。"
+    },
+    {
+      "key": "registration.form.paymentCode",
+      "en": "Payment status code",
+      "zh-Hans": "支付状态码"
+    },
+    {
+      "key": "registration.form.paymentNotStarted",
+      "en": "Payment wasn't started. Check your registration status.",
+      "zh-Hans": "尚未发起支付，请查看报名状态。"
+    },
+    {
+      "key": "registration.form.phone",
+      "en": "Mobile number",
+      "zh-Hans": "手机号",
+      "accessibilityIdentifier": "registration.form.phone"
+    },
+    {
+      "key": "registration.form.phoneHint",
+      "en": "Enter a valid mobile number.",
+      "zh-Hans": "请输入有效的手机号。"
+    },
+    {
+      "key": "registration.form.pointsDiscount",
+      "en": "Points deduction",
+      "zh-Hans": "积分抵扣"
+    },
+    {
+      "key": "registration.form.pointsUnavailable",
+      "en": "Points cannot be used for this quote",
+      "zh-Hans": "此报价不支持积分抵扣"
+    },
+    {
+      "key": "registration.form.pointsUsed",
+      "en": "Points used",
+      "zh-Hans": "使用积分"
+    },
+    {
+      "key": "registration.form.quoteDisabled",
+      "en": "Prices can't be shown right now.",
+      "zh-Hans": "暂时无法显示价格"
+    },
+    {
+      "key": "registration.form.quoteFailed",
+      "en": "The quote could not be loaded",
+      "zh-Hans": "报价加载失败"
+    },
+    {
+      "key": "registration.form.quoteNeeded",
+      "en": "Refresh to see the latest price",
+      "zh-Hans": "刷新以查看最新价格"
+    },
+    {
+      "key": "registration.form.quoting",
+      "en": "Calculating quote…",
+      "zh-Hans": "正在计算费用…",
+      "accessibilityIdentifier": "registration.form.quoting"
+    },
+    {
+      "key": "registration.form.readStatus",
+      "en": "Read registration status",
+      "zh-Hans": "读取报名状态",
+      "accessibilityIdentifier": "registration.form.readStatus"
+    },
+    {
+      "key": "registration.form.readingStatus",
+      "en": "Checking status…",
+      "zh-Hans": "正在查询状态…"
+    },
+    {
+      "key": "registration.form.refreshQuote",
+      "en": "Refresh price",
+      "zh-Hans": "刷新价格",
+      "accessibilityIdentifier": "registration.form.refreshQuote"
+    },
+    {
+      "key": "registration.form.registered",
+      "en": "Ready to use",
+      "zh-Hans": "待使用"
+    },
+    {
+      "key": "registration.form.registrationCode",
+      "en": "Registration status code",
+      "zh-Hans": "报名状态码"
+    },
+    {
+      "key": "registration.form.registrationID",
+      "en": "Registration ID",
+      "zh-Hans": "报名编号"
+    },
+    {
+      "key": "registration.form.registrationNumber",
+      "en": "Registration number",
+      "zh-Hans": "报名单号"
+    },
+    {
+      "key": "registration.form.registrationStatus",
+      "en": "Registration state",
+      "zh-Hans": "报名状态"
+    },
+    {
+      "key": "registration.form.reloadParticipants",
+      "en": "Reload saved participants",
+      "zh-Hans": "重新加载参与人",
+      "accessibilityIdentifier": "registration.form.reloadParticipants"
+    },
+    {
+      "key": "registration.form.retainedIntentHint",
+      "en": "This submission stays locked in the current app session. Closing this sheet does not cancel the order.",
+      "zh-Hans": "此提交在当前应用会话中保持锁定。关闭此页面不会取消订单。"
+    },
+    {
+      "key": "registration.form.review",
+      "en": "Register",
+      "zh-Hans": "立即报名",
+      "accessibilityIdentifier": "registration.form.review"
+    },
+    {
+      "key": "registration.form.savedParticipant",
+      "en": "Saved participant",
+      "zh-Hans": "已保存的参与人"
+    },
+    {
+      "key": "registration.form.serverStatus",
+      "en": "Current status",
+      "zh-Hans": "当前状态"
+    },
+    {
+      "key": "registration.form.sessionChanged",
+      "en": "Sign in again to view or continue this registration",
+      "zh-Hans": "请重新登录以查看或继续报名"
+    },
+    {
+      "key": "registration.form.sharingPurpose",
+      "en": "Your name and mobile number go to the organiser to verify your registration.",
+      "zh-Hans": "同意将姓名、手机号提供给主办方，用于报名核验"
+    },
+    {
+      "key": "registration.form.signupClosed",
+      "en": "Registration for this session has closed. Choose another ticket or session.",
+      "zh-Hans": "本场报名已截止，请选择其他票种或场次。",
+      "accessibilityIdentifier": "registration.form.signupClosed"
+    },
+    {
+      "key": "registration.form.soldOutAvailable",
+      "en": "This ticket is full. Check the waitlist status below. Registration requires a valid offer, a fresh quote and your confirmation.",
+      "zh-Hans": "此票种已满，请查看下方候补状态。报名需要有效候补名额、重新报价和你的确认。"
+    },
+    {
+      "key": "registration.form.soldOutHint",
+      "en": "This ticket is full. Waitlist service is unavailable in this form, so an offer cannot be reviewed here.",
+      "zh-Hans": "此票种已满。此表单的候补服务不可用，暂时无法在此核对候补名额。"
+    },
+    {
+      "key": "registration.form.soldOutOffer",
+      "en": "A waitlist place has been offered. Review the offer below for a fresh quote, then confirm contact sharing and registration. No payment is automatic.",
+      "zh-Hans": "你已获得候补名额。请在下方核对名额并获取新报价，再确认联系信息共享和报名，不会自动付款。"
+    },
+    {
+      "key": "registration.form.soldOutWaiting",
+      "en": "You are on the waitlist. No place has been offered yet. Refresh the status below to check for an offer.",
+      "zh-Hans": "你已加入候补，尚未获得名额。可在下方刷新状态，查看是否收到候补名额。"
+    },
+    {
+      "key": "registration.form.startDate",
+      "en": "Starts",
+      "zh-Hans": "开始日期"
+    },
+    {
+      "key": "registration.form.statusUnavailable",
+      "en": "Couldn't load the registration status.",
+      "zh-Hans": "暂时无法获取报名状态"
+    },
+    {
+      "key": "registration.form.ticket",
+      "en": "Ticket option",
+      "zh-Hans": "票种"
+    },
+    {
+      "key": "registration.form.ticketPrice",
+      "en": "Listed ticket price",
+      "zh-Hans": "票种价格"
+    },
+    {
+      "key": "registration.form.title",
+      "en": "Activity registration",
+      "zh-Hans": "活动报名"
+    },
+    {
+      "key": "registration.form.total",
+      "en": "Total",
+      "zh-Hans": "总计",
+      "accessibilityIdentifier": "registration.form.total"
+    },
+    {
+      "key": "registration.form.unknownAmount",
+      "en": "Amount unknown",
+      "zh-Hans": "金额未知"
+    },
+    {
+      "key": "registration.form.unknownStatus",
+      "en": "Unknown",
+      "zh-Hans": "未知"
+    },
+    {
+      "key": "registration.form.usePoints",
+      "en": "Use points",
+      "zh-Hans": "使用积分抵扣",
+      "accessibilityIdentifier": "registration.form.usePoints"
+    },
+    {
+      "key": "registration.form.verificationCode",
+      "en": "Verification status code",
+      "zh-Hans": "核销状态码"
+    },
+    {
+      "key": "registration.w206.checkOrders",
+      "en": "Check my orders",
+      "zh-Hans": "核对我的订单"
+    },
+    {
+      "key": "registration.w206.checkOrdersFailed",
+      "en": "Your orders couldn't be read right now. Check them later in My orders.",
+      "zh-Hans": "订单暂时没读到，请稍后在我的订单中查看。"
+    },
+    {
+      "key": "registration.w206.matchNotProof",
+      "en": "A matching order doesn't prove this submission created it. The form stays locked and nothing is resubmitted.",
+      "zh-Hans": "找到相关订单不代表就是这次提交生成的；表单保持锁定，不会重复提交。"
+    },
+    {
+      "key": "registration.w206.noMatchingOrder",
+      "en": "No order for this ticket is in your list yet. It may still be processing.",
+      "zh-Hans": "订单列表里暂未找到这场报名，可能仍在处理中。"
+    },
+    {
+      "key": "registration.w206.viewMySignups",
+      "en": "View my registrations",
+      "zh-Hans": "查看我的报名"
+    },
+    {
+      "key": "registration.waitlist.cancel",
+      "en": "Leave waitlist and release any offer",
+      "zh-Hans": "退出候补并放弃已获名额",
+      "accessibilityIdentifier": "registration.waitlist.cancel"
+    },
+    {
+      "key": "registration.waitlist.cancelOfferHint",
+      "en": "This releases your reserved place. It may be offered to the next person. You will need to join again if you change your mind.",
+      "zh-Hans": "这会释放为你保留的名额，系统可能将其分配给下一位。改变主意后需要重新加入候补。"
+    },
+    {
+      "key": "registration.waitlist.cancelQueueHint",
+      "en": "You will lose your place in the queue. Joining again starts a new waitlist entry.",
+      "zh-Hans": "退出后将失去当前排队位置，重新加入时需要重新排队。"
+    },
+    {
+      "key": "registration.waitlist.cancelTitle",
+      "en": "Leave the waitlist?",
+      "zh-Hans": "确认退出候补？"
+    },
+    {
+      "key": "registration.waitlist.confirmCancel",
+      "en": "Leave waitlist",
+      "zh-Hans": "确认退出候补"
+    },
+    {
+      "key": "registration.waitlist.confirmCreate",
+      "en": "Register",
+      "zh-Hans": "确认报名"
+    },
+    {
+      "key": "registration.waitlist.confirmTitle",
+      "en": "Confirm registration?",
+      "zh-Hans": "确认报名？"
+    },
+    {
+      "key": "registration.waitlist.consentUnknown",
+      "en": "We couldn’t confirm your agreement yet. Try again.",
+      "zh-Hans": "暂时无法确认你的同意记录，请重试。"
+    },
+    {
+      "key": "registration.waitlist.disabled",
+      "en": "Waitlist isn't available right now.",
+      "zh-Hans": "候补暂不可用。"
+    },
+    {
+      "key": "registration.waitlist.join",
+      "en": "Join waitlist",
+      "zh-Hans": "加入候补",
+      "accessibilityIdentifier": "registration.waitlist.join"
+    },
+    {
+      "key": "registration.waitlist.legalNotice",
+      "en": "Read the data-sharing notice",
+      "zh-Hans": "查看信息共享告知"
+    },
+    {
+      "key": "registration.waitlist.loading",
+      "en": "Checking waitlist…",
+      "zh-Hans": "正在查询候补…"
+    },
+    {
+      "key": "registration.waitlist.noAutoPayment",
+      "en": "Joining the waitlist does not create an order or charge you. An offer requires a fresh quote and your confirmation.",
+      "zh-Hans": "加入候补不会创建订单或扣费。获得名额后需重新报价并由你确认报名。"
+    },
+    {
+      "key": "registration.waitlist.readRetainedOrder",
+      "en": "Check the retained order status",
+      "zh-Hans": "查询保留订单的状态"
+    },
+    {
+      "key": "registration.waitlist.recordConsent",
+      "en": "Agree to the notice and refresh quote",
+      "zh-Hans": "同意告知并刷新报价",
+      "accessibilityIdentifier": "registration.waitlist.recordConsent"
+    },
+    {
+      "key": "registration.waitlist.recordingConsent",
+      "en": "Verifying agreement…",
+      "zh-Hans": "正在核验同意记录…"
+    },
+    {
+      "key": "registration.waitlist.refresh",
+      "en": "Refresh waitlist status",
+      "zh-Hans": "刷新候补状态",
+      "accessibilityIdentifier": "registration.waitlist.refresh"
+    },
+    {
+      "key": "registration.waitlist.remaining",
+      "en": "Offer expires in",
+      "zh-Hans": "名额有效时间"
+    },
+    {
+      "key": "registration.waitlist.retainedOrder",
+      "en": "A registration for this ticket is already in progress.",
+      "zh-Hans": "这个票种已有一笔报名正在处理中"
+    },
+    {
+      "key": "registration.waitlist.reviewConsent",
+      "en": "I have reviewed these registration details and the data-sharing notice.",
+      "zh-Hans": "我已核对本次报名信息及数据共享告知。"
+    },
+    {
+      "key": "registration.waitlist.reviewOffer",
+      "en": "Review this offer in the registration form",
+      "zh-Hans": "在当前报名页核对候补名额",
+      "accessibilityIdentifier": "registration.waitlist.reviewOffer"
+    },
+    {
+      "key": "registration.waitlist.state.EXPIRED",
+      "en": "The offer has expired. Refresh the status.",
+      "zh-Hans": "候补名额已过期，请刷新状态。"
+    },
+    {
+      "key": "registration.waitlist.title",
+      "en": "Waitlist",
+      "zh-Hans": "候补"
+    },
+    {
+      "key": "registration.waitlist.unavailable",
+      "en": "Waitlist status could not be verified.",
+      "zh-Hans": "候补状态暂时无法核验。"
+    },
+    {
+      "key": "registration.waitlist.unknown",
+      "en": "The result is unknown. Refresh the status before taking another action. Do not join again.",
+      "zh-Hans": "操作结果未知。请先刷新候补状态，不要重复加入。"
+    },
+    {
+      "key": "registrationParity.activityNamePending",
+      "en": "Activity information pending sync",
+      "zh-Hans": "活动信息待同步"
+    },
+    {
+      "key": "registrationParity.alreadyRegistered",
+      "en": "You're already registered for this activity",
+      "zh-Hans": "你已报名这场活动"
+    },
+    {
+      "key": "registrationParity.clubBenefit",
+      "en": "Club member benefit",
+      "zh-Hans": "俱乐部会员权益"
+    },
+    {
+      "key": "registrationParity.clubPriorityActive",
+      "en": "Priority registration is active",
+      "zh-Hans": "优先报名已生效"
+    },
+    {
+      "key": "registrationParity.clubPriorityReserved",
+      "en": "Some places are reserved for members first",
+      "zh-Hans": "部分名额优先留给会员"
+    },
+    {
+      "key": "registrationParity.orderAmount",
+      "en": "Order amount",
+      "zh-Hans": "订单金额"
+    },
+    {
+      "key": "registrationParity.section.activity",
+      "en": "Activity information",
+      "zh-Hans": "活动信息"
+    },
+    {
+      "key": "registrationParity.section.participants",
+      "en": "Participant information",
+      "zh-Hans": "参与人信息"
+    },
+    {
+      "key": "registrationParity.title",
+      "en": "Checkout",
+      "zh-Hans": "结算"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    "registration.recovered.statusUnavailable",
+    "registration.form.close",
+    "registration.form.sheet",
+    "registration.recovered.openOrder",
+    "registration.result.openOrder",
+    "registration.alreadyRegistered",
+    "registration.viewMySignups",
+    "registration.activity.meetingPoint",
+    "registration.activity.venue",
+    "registration.form.reloadParticipants",
+    "registration.form.participantPicker",
+    "registration.form.inspectParticipant",
+    "registration.form.addParticipant",
+    "registration.form.name",
+    "registration.form.phone",
+    "registration.form.ticketPicker",
+    "registration.form.signupClosed",
+    "registration.form.soldOutGuidance",
+    "registration.waitlist.reviewOffer",
+    "registration.waitlist.openOrder",
+    "registration.waitlist.refresh",
+    "registration.waitlist.join",
+    "registration.waitlist.cancel",
+    "registration.form.quoting",
+    "registration.fees.clubBenefit",
+    "registration.form.usePoints",
+    "registration.form.total",
+    "registration.fees.refundPolicy",
+    "registration.form.refreshQuote",
+    "registration.form.consent",
+    "registration.waitlist.recordConsent",
+    "registration.form.creationDisabled",
+    "compliance.signup.reviewSource",
+    "registration.form.review",
+    "registration.form.outcomeUnknown",
+    "registration.form.readStatus",
+    "registration.form.statusSnapshot",
+    "registration.checkOrders",
+    "registration.checkOrders.failed",
+    "registration.checkOrders.none",
+    "registration.checkOrders.matches"
+  ]
+}

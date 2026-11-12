@@ -1,0 +1,100 @@
+{
+  "page": "pages/publish/template-intro/index",
+  "strings": {
+    "creatorIntro.examples": {
+      "en": "Real play examples",
+      "zh-Hans": "真实玩法示例"
+    },
+    "creatorIntro.unnamed": {
+      "en": "Untitled example",
+      "zh-Hans": "未命名示例"
+    },
+    "creatorIntro.loading": {
+      "en": "Loading featured examples…",
+      "zh-Hans": "正在加载精选示例…"
+    },
+    "creatorIntro.failed": {
+      "en": "Featured examples could not be loaded.",
+      "zh-Hans": "精选示例暂未加载"
+    },
+    "creatorIntro.retry": {
+      "en": "Retry examples",
+      "zh-Hans": "重试示例"
+    },
+    "creatorIntro.empty": {
+      "en": "No featured examples yet. You can still create your own play.",
+      "zh-Hans": "暂时没有精选示例，你仍可直接创建自己的节点玩法。"
+    },
+    "creatorIntro.unavailable": {
+      "en": "Examples are unavailable here. You can still start creating.",
+      "zh-Hans": "此处暂不能读取示例，你仍可开始创建。"
+    },
+    "creatorIntro.scope": {
+      "en": "Examples are for inspiration and will not change your draft.",
+      "zh-Hans": "示例仅供参考，不会填入或改变你的草稿。"
+    },
+    "creatorIntro.skip": {
+      "en": "Skip examples",
+      "zh-Hans": "跳过"
+    },
+    "publishParity.intro.lead": {
+      "en": "Turn a stretch you have played",
+      "zh-Hans": "把你玩过的一段路"
+    },
+    "publishParity.intro.tail": {
+      "en": "into a play others can follow",
+      "zh-Hans": "做成别人也能走的玩法"
+    },
+    "templateAuthor.begin": {
+      "en": "Start creating",
+      "zh-Hans": "开始创建"
+    },
+    "templateIntro.count.unknown": {
+      "en": "—",
+      "zh-Hans": "—"
+    }
+  },
+  "accessibilityIdentifiers": [
+    {
+      "id": "templateAuthor.begin",
+      "locales": [
+        "en",
+        "zh-Hans"
+      ],
+      "stringKey": "templateAuthor.begin"
+    },
+    {
+      "id": "publishParity.intro.value",
+      "locales": [
+        "en",
+        "zh-Hans"
+      ],
+      "stringKeys": [
+        "publishParity.intro.lead",
+        "publishParity.intro.tail"
+      ]
+    },
+    {
+      "id": "creatorIntro.retry",
+      "locales": [
+        "en",
+        "zh-Hans"
+      ],
+      "stringKey": "creatorIntro.retry"
+    },
+    {
+      "id": "creatorIntro.example.{index}",
+      "locales": [
+        "en",
+        "zh-Hans"
+      ]
+    },
+    {
+      "id": "creatorIntro.example.category.{index}",
+      "locales": [
+        "en",
+        "zh-Hans"
+      ]
+    }
+  ]
+}

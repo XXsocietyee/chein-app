@@ -25,15 +25,25 @@ class PlayGuideInformationListPageContract(unittest.TestCase):
         self.assertNotIn("documentCount: .value(rows.count)", self.source)
 
     def test_closed_flags_and_routes_are_not_introduced(self):
+        # The list page and its coordinator must not name commerce switches.
+        # InformationDetailPageModel shares this file and keeps each switch
+        # hardcoded false; that closed declaration is the detail page's gate,
+        # and a true assignment is still refused for the whole file.
+        list_page = self.source.split("public struct PlayGuideInformationListPage", 1)[1]
+        list_page = list_page.split("public struct InformationDetailPageModel", 1)[0]
+        detail = self.source.split("public struct InformationDetailPageModel", 1)[1]
         for forbidden in (
             "showsMerchantChoice",
             "paymentEnabled",
             "payoutEnabled",
             "withdrawalEnabled",
             "virtualGoodsEnabled",
-            "infomation_delete",
-            "https://",
         ):
+            self.assertNotIn(forbidden, list_page)
+            self.assertIn("var %s: Bool { false }" % forbidden, detail)
+            self.assertNotIn("%s = true" % forbidden, self.source)
+            self.assertNotIn("%s=true" % forbidden, self.source)
+        for forbidden in ("infomation_delete", "https://"):
             self.assertNotIn(forbidden, self.source)
 
     def test_strings_have_both_languages_and_accessibility_identifiers(self):

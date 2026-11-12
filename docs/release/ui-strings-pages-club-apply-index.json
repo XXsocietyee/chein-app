@@ -1,0 +1,247 @@
+{
+  "page": "pages/club/apply/index",
+  "title": {
+    "en": "Apply to become a club host",
+    "zh-Hans": "申请成为俱乐部主理人"
+  },
+  "showsOnPlayerFirstEntry": false,
+  "showsMerchantChoice": false,
+  "strings": [
+    {
+      "key": "club.gov.hostStatus",
+      "en": "Become a host",
+      "zh-Hans": "申请成为主理人",
+      "accessibilityIdentifier": "club.gov.openHost"
+    },
+    {
+      "key": "club.ops.applyHost",
+      "en": "Go to application",
+      "zh-Hans": "前往申请",
+      "accessibilityIdentifier": "club.ops.applyHost"
+    },
+    {
+      "key": "club.gov.action.hostApply",
+      "en": "Apply as host",
+      "zh-Hans": "申请成为主理人",
+      "accessibilityIdentifier": "club.gov.action.hostApply"
+    },
+    {
+      "key": "club.gov.review",
+      "en": "Continue",
+      "zh-Hans": "下一步",
+      "accessibilityIdentifier": "club.gov.prepare"
+    },
+    {
+      "key": "club.host.apply.loading",
+      "table": "ClubOpsCustomer",
+      "en": "Loading...",
+      "zh-Hans": "加载中...",
+      "accessibilityIdentifier": "club.host.apply.loading"
+    },
+    {
+      "key": "club.gov.empty",
+      "en": "No records in this view",
+      "zh-Hans": "此视图暂无记录",
+      "accessibilityIdentifier": "club.host.apply.empty"
+    },
+    {
+      "key": "club.gov.unavailable",
+      "en": "This feature isn't available right now",
+      "zh-Hans": "此功能暂不可用",
+      "accessibilityIdentifier": "club.host.apply.hidden"
+    },
+    {
+      "key": "club.gov.denied",
+      "en": "Your current permissions do not allow this view",
+      "zh-Hans": "当前权限不允许访问此内容",
+      "accessibilityIdentifier": "club.host.apply.error"
+    },
+    {
+      "key": "club.gov.unknown",
+      "en": "We couldn’t confirm the result. Don’t submit again; check the record first.",
+      "zh-Hans": "暂时无法确认结果。请勿重复提交，先查看原记录。",
+      "accessibilityIdentifier": "club.host.apply.unknown"
+    },
+    {
+      "key": "club.gov.unknownValue",
+      "en": "Not provided or not visible",
+      "zh-Hans": "未提供或无查看权限",
+      "accessibilityIdentifier": "club.host.apply.unknown"
+    },
+    {
+      "key": "club.host.apply.unknownCount",
+      "table": "ClubOpsCustomer",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "club.host.apply.allowance"
+    },
+    {
+      "key": "club.host.intro.title",
+      "en": "Turn the people you lead into your club",
+      "zh-Hans": "把你带的人，变成你的俱乐部",
+      "accessibilityIdentifier": "club.host.apply.intro"
+    },
+    {
+      "key": "club.host.intro.instant",
+      "en": "Takes effect as soon as you finish, no review wait",
+      "zh-Hans": "填完身份立即生效，不用等审核",
+      "accessibilityIdentifier": "club.host.apply.intro"
+    },
+    {
+      "key": "club.host.intro.limit",
+      "en": "Create up to 2 clubs",
+      "zh-Hans": "最多可以建 2 个俱乐部",
+      "accessibilityIdentifier": "club.host.apply.intro"
+    },
+    {
+      "key": "club.host.merchant.title",
+      "en": "This account is already a merchant",
+      "zh-Hans": "这个账号已经是商家",
+      "accessibilityIdentifier": "club.host.apply.merchantBlocked"
+    },
+    {
+      "key": "club.gov.hostMerchantBlocked",
+      "en": "This account has a merchant record. One account can't be both a merchant and a club host.",
+      "zh-Hans": "这个账号有商家入驻记录，一个账号不能同时是商家和俱乐部主理人",
+      "accessibilityIdentifier": "club.host.apply.merchantBlocked"
+    },
+    {
+      "key": "club.host.done.title",
+      "en": "You're a club host",
+      "zh-Hans": "已成为主理人",
+      "accessibilityIdentifier": "club.host.apply.host"
+    },
+    {
+      "key": "club.host.done.active",
+      "en": "Active",
+      "zh-Hans": "已生效",
+      "accessibilityIdentifier": "club.host.apply.host"
+    },
+    {
+      "key": "club.host.done.status",
+      "en": "Status",
+      "zh-Hans": "状态",
+      "accessibilityIdentifier": "club.host.apply.host"
+    },
+    {
+      "key": "club.host.done.limitLabel",
+      "en": "Clubs you can create",
+      "zh-Hans": "可建俱乐部",
+      "accessibilityIdentifier": "club.host.apply.allowance"
+    },
+    {
+      "key": "club.host.done.limitValue",
+      "en": "Up to 2",
+      "zh-Hans": "最多 2 个",
+      "accessibilityIdentifier": "club.host.apply.host"
+    },
+    {
+      "key": "club.host.contactPrivate",
+      "en": "Your contact details are not shown publicly.",
+      "zh-Hans": "联系方式不对外展示",
+      "accessibilityIdentifier": "club.gov.input.phone"
+    },
+    {
+      "key": "club.host.step.profile",
+      "en": "About you",
+      "zh-Hans": "主理人资料",
+      "accessibilityIdentifier": "club.host.step.profile"
+    },
+    {
+      "key": "club.host.step.experience",
+      "en": "Experience",
+      "zh-Hans": "组织经验",
+      "accessibilityIdentifier": "club.host.step.experience"
+    },
+    {
+      "key": "club.host.step.skills",
+      "en": "What you can do",
+      "zh-Hans": "能力自评",
+      "accessibilityIdentifier": "club.host.step.skills"
+    },
+    {
+      "key": "club.host.step.credentials",
+      "en": "Qualifications",
+      "zh-Hans": "资质证明",
+      "accessibilityIdentifier": "club.host.step.credentials"
+    },
+    {
+      "key": "club.host.skills.selectedCount %lld",
+      "en": "%lld selected",
+      "zh-Hans": "已选 %lld 项",
+      "accessibilityIdentifier": "club.host.apply.selectedCount"
+    },
+    {
+      "key": "club.gov.field.leaderName",
+      "en": "Real name or nickname",
+      "zh-Hans": "实名/昵称",
+      "accessibilityIdentifier": "club.gov.input.leaderName"
+    },
+    {
+      "key": "club.gov.field.phone",
+      "en": "Contact",
+      "zh-Hans": "联系方式",
+      "accessibilityIdentifier": "club.gov.input.phone"
+    },
+    {
+      "key": "club.gov.field.identity",
+      "en": "About you (optional)",
+      "zh-Hans": "身份说明（选填）",
+      "accessibilityIdentifier": "club.gov.input.identity"
+    },
+    {
+      "key": "club.gov.field.coFounders",
+      "en": "Co-founders (optional)",
+      "zh-Hans": "联合创始人（选填）",
+      "accessibilityIdentifier": "club.gov.input.coFounders"
+    },
+    {
+      "key": "club.gov.field.experience",
+      "en": "Organizing experience",
+      "zh-Hans": "组织经验",
+      "accessibilityIdentifier": "club.gov.input.experience"
+    },
+    {
+      "key": "club.gov.field.maxEventSize",
+      "en": "Largest group led (optional)",
+      "zh-Hans": "最大带队人数（选填）",
+      "accessibilityIdentifier": "club.gov.input.maxEventSize"
+    },
+    {
+      "key": "club.gov.field.avgEventSize",
+      "en": "Average participants (optional)",
+      "zh-Hans": "平均参与人数（选填）",
+      "accessibilityIdentifier": "club.gov.input.avgEventSize"
+    },
+    {
+      "key": "club.gov.field.canDesignRoute",
+      "en": "Can design city routes",
+      "zh-Hans": "能设计城市路线",
+      "accessibilityIdentifier": "club.gov.input.canDesignRoute"
+    },
+    {
+      "key": "club.gov.field.canDesignTask",
+      "en": "Can design tasks and puzzles",
+      "zh-Hans": "能设计任务 · 解谜",
+      "accessibilityIdentifier": "club.gov.input.canDesignTask"
+    },
+    {
+      "key": "club.gov.field.canNpc",
+      "en": "Can play NPCs and characters",
+      "zh-Hans": "能带 NPC · 角色",
+      "accessibilityIdentifier": "club.gov.input.canNpc"
+    },
+    {
+      "key": "club.gov.field.canMerchantCoop",
+      "en": "Can work with merchants",
+      "zh-Hans": "能与商家联动",
+      "accessibilityIdentifier": "club.gov.input.canMerchantCoop"
+    },
+    {
+      "key": "club.gov.field.hasGuideCert",
+      "en": "Holds a guide or travel qualification",
+      "zh-Hans": "持导游/旅游资质",
+      "accessibilityIdentifier": "club.gov.input.hasGuideCert"
+    }
+  ]
+}

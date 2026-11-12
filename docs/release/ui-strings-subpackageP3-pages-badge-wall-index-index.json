@@ -1,0 +1,186 @@
+{
+  "page": "subpackageP3/pages/badge-wall/index/index",
+  "feature": "勋章墙展示页",
+  "screen": "App/ObjectBadgeViews.swift",
+  "strings": [
+    {
+      "key": "badgeWall.state.loading",
+      "en": "Loading badges",
+      "zh-Hans": "正在加载勋章",
+      "accessibilityIdentifier": "badgeWall.state.loading"
+    },
+    {
+      "key": "badgeWall.state.empty",
+      "en": "No badges yet",
+      "zh-Hans": "暂无勋章",
+      "accessibilityIdentifier": "badgeWall.state.empty"
+    },
+    {
+      "key": "badgeWall.state.error",
+      "en": "Badges couldn’t be loaded",
+      "zh-Hans": "勋章暂时加载失败",
+      "accessibilityIdentifier": "badgeWall.state.error"
+    },
+    {
+      "key": "badgeWall.state.unknown",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "badgeWall.state.unknown"
+    },
+    {
+      "key": "badgeWall.state.unknownDetail",
+      "en": "Some badge counts are not available yet",
+      "zh-Hans": "部分勋章数量暂时无法确认",
+      "accessibilityIdentifier": "badgeWall.state.unknown"
+    },
+    {
+      "key": "badgeWall.count.unknown",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "badgeWall.count.unknown"
+    },
+    {
+      "key": "badgeWall.count.known",
+      "en": "Known badge count",
+      "zh-Hans": "已确认的勋章数量",
+      "accessibilityIdentifier": "badgeWall.count.known"
+    },
+    {
+      "key": "badgeWall.state.signIn",
+      "en": "Sign in to see your badges",
+      "zh-Hans": "登录后查看勋章",
+      "accessibilityIdentifier": "badgeWall.state.signIn"
+    },
+    {
+      "key": "badgeWall.state.denied",
+      "en": "These badges aren’t available for this account",
+      "zh-Hans": "当前账号无法查看这些勋章",
+      "accessibilityIdentifier": "badgeWall.state.denied"
+    },
+    {
+      "key": "badgeWall.state.malformed",
+      "en": "The badge response couldn’t be read",
+      "zh-Hans": "勋章数据无法读取",
+      "accessibilityIdentifier": "badgeWall.state.malformed"
+    },
+    {
+      "key": "badgeWall.state.retry",
+      "en": "Try again",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "badgeWall.state.retry"
+    },
+    {
+      "key": "profile.badges.title",
+      "en": "My badges",
+      "zh-Hans": "我的勋章",
+      "accessibilityIdentifier": "badgeWall.state.ready"
+    },
+    {
+      "key": "profile.badges.empty",
+      "en": "No badges yet",
+      "zh-Hans": "暂无勋章",
+      "accessibilityIdentifier": "profile.badges.emptyState"
+    },
+    {
+      "key": "profile.badges.partial",
+      "en": "Some badges couldn’t be loaded",
+      "zh-Hans": "部分勋章未能加载",
+      "accessibilityIdentifier": "profile.badges.partial"
+    },
+    {
+      "key": "profile.badges.identities",
+      "en": "City identity cards",
+      "zh-Hans": "城市身份卡",
+      "accessibilityIdentifier": "profile.badges.identities"
+    },
+    {
+      "key": "profile.badges.medals",
+      "en": "City medals",
+      "zh-Hans": "城市纪念章",
+      "accessibilityIdentifier": "profile.badges.medals"
+    },
+    {
+      "key": "profile.badges.achievements",
+      "en": "Achievements",
+      "zh-Hans": "成长成就",
+      "accessibilityIdentifier": "profile.badges.achievements"
+    },
+    {
+      "key": "profile.badges.locked",
+      "en": "Locked",
+      "zh-Hans": "未点亮",
+      "accessibilityIdentifier": "profile.badges.locked"
+    },
+    {
+      "key": "profile.badges.unlocked",
+      "en": "Unlocked",
+      "zh-Hans": "已点亮",
+      "accessibilityIdentifier": "profile.badges.unlocked"
+    },
+    {
+      "key": "objects.badgeLayout.title",
+      "en": "Badge layout",
+      "zh-Hans": "徽章布局",
+      "accessibilityIdentifier": "objects.badge.layout"
+    },
+    {
+      "key": "objects.badgeLayout.list",
+      "en": "List",
+      "zh-Hans": "列表",
+      "accessibilityIdentifier": "objects.badge.layout"
+    },
+    {
+      "key": "objects.badgeLayout.wall",
+      "en": "Static wall",
+      "zh-Hans": "静态墙",
+      "accessibilityIdentifier": "objects.badge.layout"
+    },
+    {
+      "key": "badgeWall.explore",
+      "en": "Go explore",
+      "zh-Hans": "去探索",
+      "accessibilityIdentifier": "objects.badge.explore"
+    },
+    {
+      "key": "badgeWall.summary %lld %lld %lld",
+      "en": "%1$lld of %2$lld lit · %3$lld still waiting to be explored",
+      "zh-Hans": "已点亮 %1$lld / %2$lld · 还有 %3$lld 枚等待探索",
+      "accessibilityIdentifier": "objects.badge.summary"
+    },
+    {
+      "key": "badgeWall.focus.elsewhere",
+      "en": "This badge is not an identity card; it is recorded in the growth center",
+      "zh-Hans": "这枚不是身份卡，记在成长中心",
+      "accessibilityIdentifier": "objects.badge.focus"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    "badgeWall.state.hidden",
+    "badgeWall.state.loading",
+    "badgeWall.state.empty",
+    "badgeWall.state.error",
+    "badgeWall.state.unknown",
+    "badgeWall.state.ready",
+    "badgeWall.state.signIn",
+    "badgeWall.state.denied",
+    "badgeWall.state.malformed",
+    "badgeWall.state.retry",
+    "badgeWall.count.unknown",
+    "badgeWall.count.known",
+    "profile.badges.emptyState",
+    "profile.badges.loading",
+    "profile.badges.error",
+    "profile.badges.retry",
+    "profile.badges.refresh",
+    "profile.badges.signIn",
+    "profile.badges.unavailable",
+    "objects.badge.layout",
+    "objects.badge.summary",
+    "objects.badge.focus",
+    "objects.badge.explore",
+    "objects.badge.threeD",
+    "profile.badge.identity",
+    "profile.badge.medal",
+    "profile.badge.achievement"
+  ]
+}
