@@ -48,10 +48,12 @@ struct CYListRow<Leading: View>: View {
     }
 
     var body: some View {
+        // No cyPressTracking here: its simultaneous LongPressGesture swallows the NavigationLink tap in a List on the iOS 27 runtime
+        // (every hub row stopped navigating). The enclosing NavigationLink/Button already supplies the pressed highlight.
         if card {
-            row.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg).cyPressTracking()
+            row.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         } else {
-            row.cyPressTracking()
+            row
         }
     }
 
