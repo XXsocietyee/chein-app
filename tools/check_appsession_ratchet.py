@@ -7,8 +7,8 @@ import pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CEILINGS = {
-    'App/AppSession.swift':     8206,  # parity batch: characterKnowledgeAuthorFlow, bundle ports, player-write wiring; extraction pending
-    'App/AppCompositionRoot.swift':     4784,  # parity batch: reviewed player-write grant + bundle approvals; extraction pending
+    'App/AppSession.swift':     8176,
+    'App/AppCompositionRoot.swift':     4307,
 }
 
 failed = False

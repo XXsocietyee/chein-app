@@ -7076,9 +7076,9 @@ final class AppSession: ObservableObject {
     // Default-off source adapters share the existing account/session/token owner.
     private var retainedCompliance: AccountComplianceCoordinator?
     private var retainedComplianceService: AccountComplianceService?
-    private var retainedMarketing: MerchantMarketingCoordinator?
-    private var retainedDoorQueue: DoorReferralQueue?
-    private var retainedDoorCoordinator: DoorEntryCoordinator?
+    var retainedMarketing: MerchantMarketingCoordinator?
+    var retainedDoorQueue: DoorReferralQueue?
+    var retainedDoorCoordinator: DoorEntryCoordinator?
     private var doorEpoch = UUID()
     private var entryObservedStamp: UInt64 = 0
     private var entryObservedAccountID: Int?
@@ -7095,7 +7095,7 @@ final class AppSession: ObservableObject {
         guard let account, token != nil, let market = operationalMarket, let namespace = storageScope?.service else { return nil }
         return ComplianceSession(accountID: account.id, epoch: gate.currentStamp, market: market.rawValue, namespace: namespace)
     }
-    private func safetyDirectory(_ component: String) -> URL? {
+    func safetyDirectory(_ component: String) -> URL? {
         guard let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
         let directory = root.appendingPathComponent(component, isDirectory: true)
         do { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true); return directory }
@@ -7201,36 +7201,6 @@ final class AppSession: ObservableObject {
         guard let service = retainedComplianceService, let session = complianceSession else { return nil }
         return (service, session)
     }
-    /// Anonymous reader for `subpackageRoam/session?shareToken=`; nil (page shows "unavailable") unless the reviewed deployment approves it.
-    func makeRoamShareSnapshotReader() -> (any RoamShareSnapshotReading)? {
-        RoamShareSnapshotReaderFactory.make(baseURL: regionalConfiguration?.apiConfiguration?.baseURL, transport: runtimeHTTPTransport,
-            approval: composition.isRoamShareSnapshotApproved ? { [weak self] in self?.composition.isRoamShareSnapshotApproved == true } : nil)
-    }
-    var merchantMarketingCoordinator: MerchantMarketingCoordinator {
-        if let retainedMarketing { return retainedMarketing }
-        let service = MerchantMarketingService(configuration: regionalConfiguration?.apiConfiguration,
-            transport: runtimeHTTPTransport, gates: composition.merchantMarketingGates, locks: nil,
-            currentSession: { [weak self] in
-                guard let self, let account = self.account, let token = self.token, let namespace = self.storageScope?.service else { return nil }
-                return try? MerchantMarketingScope(namespace: namespace, accountID: account.id, epoch: self.gate.currentStamp, token: token)
-            }, onUnauthorized: { [weak self] captured in
-                guard let self, self.account?.id == captured.accountID, self.token == captured.token else { return }
-                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
-            })
-        let model = MerchantMarketingCoordinator(service: service); retainedMarketing = model; return model
-    }
-    private func prepareDoorRuntime() {
-        guard retainedDoorQueue == nil, let configuration = regionalConfiguration?.apiConfiguration, let namespace = storageScope?.service,
-              let directory = safetyDirectory("DoorReferralSafety/" + namespace) else { return }
-        let service = DoorReferralService(configuration: configuration, transport: runtimeHTTPTransport,
-            scanEnabled: composition.reviewed?.playerWritesEnabled == true, bindingEnabled: false,
-            currentSession: { [weak self] in self?.doorReferralSession ?? DoorReferralSession(accountID: nil, epoch: UUID(), token: nil, restored: false) })
-        retainedDoorQueue = DoorReferralQueue(store: DoorReferralFileStore(url: directory.appendingPathComponent("referrals-v1.json")), service: service,
-            currentSession: { [weak self] in self?.doorReferralSession ?? DoorReferralSession(accountID: nil, epoch: UUID(), token: nil, restored: false) })
-        retainedDoorCoordinator = DoorEntryCoordinator(session: doorReferralSession, service: service)
-    }
-    var doorReferralQueue: DoorReferralQueue? { prepareDoorRuntime(); return retainedDoorQueue }
-    var doorEntryCoordinator: DoorEntryCoordinator? { prepareDoorRuntime(); return retainedDoorCoordinator }
     func receiveNativeURL(_ url: URL) {
         if consumeDeepLinkSafetyAudit(url) || receiveCheinURL(url) || nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) { return }
         if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }
