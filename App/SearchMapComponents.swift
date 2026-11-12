@@ -48,7 +48,7 @@ struct SearchMapCard: View {
                 Label(row.kind.titleKey, systemImage: row.kind.symbol)
                     .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                     .padding(.horizontal, CYSpacing.sm + 2).padding(.vertical, 3)
-                    .background(Capsule(style: .continuous).fill(CYColor.bgRaised))
+                    .searchNightPill()
                 Group {
                     if row.title.isEmpty { Text("searchMap.untitled") } else { Text(verbatim: row.title) }
                 }
@@ -64,9 +64,17 @@ struct SearchMapCard: View {
             Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
         }
         .padding(CYSpacing.md)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
+        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1).allowsHitTesting(false))
         .accessibilityElement(children: .combine)
+    }
+}
+
+extension View {
+    /// Night glass capsule. Selected pills use violet, which is reserved for selection.
+    func searchNightPill(selected: Bool = false) -> some View {
+        background(Capsule(style: .continuous).fill(selected ? CYNight.violet : CYNight.glassFill))
+            .overlay(Capsule(style: .continuous).strokeBorder(selected ? Color.clear : CYNight.glassEdgeTop, lineWidth: 1))
     }
 }
 /// Match the source's local secure-storage history rather than writing queries to ordinary defaults.
