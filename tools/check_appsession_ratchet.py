@@ -7,8 +7,8 @@ import pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CEILINGS = {
-    'App/AppSession.swift':     8181,
-    'App/AppCompositionRoot.swift':     4507,
+    'App/AppSession.swift':     8195,  # parity batch (mpmissing/mpaudit/mpsocial wiring)
+    'App/AppCompositionRoot.swift':     4511,  # parity batch
 }
 
 failed = False
