@@ -9,7 +9,7 @@ class PlayTaskOutcomeJourneyChecks(unittest.TestCase):
     def read(self, path): return (ROOT / path).read_text()
     def test_normal_result_host_survives_missing_node_during_readback(self):
         source = self.read('App/PlayExperienceView.swift').split('@MainActor private struct PlayExperienceNodeView:', 1)[1]
-        self.assertIn('List {\n            PlayTaskOutcomeSection(model: model, nodeID: nodeID)\n            if let node {', source)
+        self.assertIn('List {\n            PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)\n            if let node {', source)
         self.assertIn('await model.submit(review)', source)
         self.assertIn('PlayExperienceNodeView(nodeID: id, model: model', self.read('App/PlayExperienceView.swift'))
 

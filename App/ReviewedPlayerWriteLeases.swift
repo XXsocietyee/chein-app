@@ -157,7 +157,7 @@ extension ReviewedProductionFormMutationRoute {
     ]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",
-        "api/roam/shop/visit", "api/roam/poi/discover", "api/roam/reveal", "api/roam/share/snapshot",
+        "api/roam/shop/visit", "api/roam/poi/discover", "api/roam/reveal",
         "api/roam/passport/record", "api/city/nodes/{}/favorite", "api/city/nodes/{}/complete"
     ]
     static let likePaths: Set<String> = ["api/topic/like", "api/comment/like", "api/creativesquare/like"]

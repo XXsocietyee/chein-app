@@ -16,7 +16,7 @@ class OfficialSourceChecks(unittest.TestCase):
         routes = set(re.findall(r'"(api/official/[^"\n]+)"', service))
         expected = {"api/official/events", r"api/official/events/\(id)", "api/official/my-events", "api/official/v2/party-inbox", "api/official/can-publish", "api/official/my-published", r"api/official/broadcast/\(id)/stats"}
         self.assertEqual(routes, expected)
-        self.assertEqual(re.findall(r'httpMethod\s*=\s*"([A-Z]+)"', service), ["GET"])
+        self.assertEqual(re.findall(r'httpMethod\s*=\s*"([A-Z]+)"', service), ["GET", "GET"])
         self.assertNotIn("request.httpBody =", service)
     def test_read_module_has_no_write_or_real_configuration(self):
         services = "\n".join(p.read_text() for p in (ROOT / "Core").glob("OfficialEvent*.swift"))
@@ -43,9 +43,11 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertIn('if bucket.isSearchable {', browser)
         self.assertNotIn('if !privateList {', browser)
         self.assertIn('private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }', browser)
-        self.assertIn('let visible = query.visible(rows)', browser)
+        self.assertIn('let visible = page.visible', browser)
+        self.assertIn('OfficialActivityListCoordinator.project(query: query', browser)
         self.assertIn('CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))', browser)
         model = read("Core/OfficialEventContracts.swift")
+        self.assertIn('let visible = query.visible(rows)', model)
         self.assertIn('.init(bucket: bucket, keyword: bucket.isSearchable ? keyword : "")', model)
         self.assertIn('var isSearchable: Bool { self != .mine }', model)
         self.assertIn('.onChange(of: reader.scope) { _, _ in keyword = "" }', browser)
@@ -85,7 +87,7 @@ class OfficialSourceChecks(unittest.TestCase):
         # Accessibility identifiers (OfficialMineAccessibility / OfficialOrganizer snapshot ids), not catalog keys.
         identifiers = {"official.published.loading", "official.published.empty", "official.published.empty.events",
                        "official.published.empty.broadcasts", "official.published.error", "official.published.unknown",
-                       "official.organizer.empty", "official.organizer.unknown"}
+                       "official.organizer.empty", "official.organizer.unknown", "official.organizer.counts"}
         ignored = identifiers | {"official.issue", "official.browser", "official.filter", "official.event.", "official.detail.content", "official.participationState", "official.mission.", "official.invite.", "official.inbox.content", "official.broadcast.", "official.published.content", "official.stats.content", "official.fixture.guest", "official.fixture.account", "official.bucket.", "official.organizer.content", "official.organizer.denied", "official.organizer.error", "official.organizer.loading", "official.organizer.formError", "official.organizer.recovery", "official.organizer.result", "official.organizer.header", "official.organizer.resume.reason", "official.detail.cta.roam"}
         literals = set()
         for directory in ["App", "Core"]:

@@ -18,7 +18,7 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
         self.assertIn('.onOpenURL { session.receiveNativeURL($0) }',root)
         for forbidden in ['CFBundleURLTypes','AssociatedDomains','applinks:']: self.assertNotIn(forbidden,root)
     def test_existing_session_and_explicit_disabled_gates(self):
-        s=self.read('App/AppSession.swift')
+        s=self.read('App/AppSession.swift')+'\n'+self.read('App/AppSessionDoorEntry.swift')
         for text in ['readsEnabled: false, writesEnabled: false','legalApproved: { _, _ in false }','authoritativeMerchantID: { nil }','gates: composition.merchantMarketingGates, locks: nil','scanEnabled: false, bindingEnabled: false','retainedCompliance?.invalidate(); retainedMarketing?.sessionChanged()','didSet { synchronizeAccountMarketingEntry() }']:
             self.assertIn(text,s)
         self.assertIn('self.complianceSession == captured',s)
@@ -30,7 +30,7 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
         self.assertIn('settlement: false',gate)
     def test_referral_storage_is_scoped_and_not_deleted(self):
         s=self.read('App/AppSession.swift')
-        self.assertIn('safetyDirectory("DoorReferralSafety/" + namespace)',s)
+        self.assertIn('safetyDirectory("DoorReferralSafety/" + namespace)',self.read('App/AppSessionDoorEntry.swift'))
         self.assertIn('try? retainedDoorQueue?.capture(inviter)',s)
         self.assertNotIn('retainedDoorQueue?.replay()',s)
         self.assertNotIn('removeItem',s[s.index('// Default-off source adapters'):s.index('private var token: String?')])

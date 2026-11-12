@@ -27,7 +27,8 @@ class OfficialPreferenceUIRegressions(unittest.TestCase):
         self.assertNotIn('.accessibilityIdentifier("official.browser")', text)
         for leaf in ['official.search', 'official.filter', 'official.inboxLink', 'official.publishedLink']:
             self.assertIn(f'.accessibilityIdentifier("{leaf}")', text)
-        self.assertIn('let visible = query.visible(rows)', text)
+        self.assertIn('let visible = page.visible', text)
+        self.assertIn('OfficialActivityListCoordinator.project(query: query', text)
         self.assertIn('isPrivate: privateList, requestID: privateList ? "mine" : "public"', text)
         self.assertIn('canPublish && publisherScope == reader.scope', text)
 

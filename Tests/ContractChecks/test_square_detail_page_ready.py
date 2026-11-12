@@ -47,7 +47,7 @@ MISSING_FIELDS = [
 ]
 
 
-UNRELATED_KEYS = {"ui.cloud05.admission.more"}
+UNRELATED_KEYS = {"ui.cloud05.admission.more", "share.title", "share.entry"}
 
 
 def catalog_values():
@@ -80,8 +80,9 @@ class SquareDetailPageReadyContract(unittest.TestCase):
             self.assertNotIn(field, DECODER.read_text(encoding="utf-8"))
         view = VIEW.read_text(encoding="utf-8")
         self.assertIn("SquareCountDisplay.text(post.likeCount)", view)
-        self.assertNotIn("SquareDetailPageModel", view)
-        self.assertIn('"square.xcx.noCommentsTitle"', view)
+        self.assertIn("SquareDetailPageModel.emptyCommentsTitleKey", view)
+        self.assertIn("SquareDetailPageModel.emptyCommentsDetailKey", view)
+        self.assertNotIn('"square.xcx.noCommentsTitle"', view)
         self.assertNotIn("square.xcx.noCommentsDetail", view)
 
     def test_model_keeps_states_unknown_dash_and_does_not_mark_a_route(self):

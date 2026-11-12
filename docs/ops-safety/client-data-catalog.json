@@ -149,6 +149,24 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/PassMembershipViews.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "AppStorage pass_reveal_seen_v1: which account already played the full key-reveal animation",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/PlayThemePresentation.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Device list cy_playTitleCardSeen of up to 200 topic ids whose title card already played",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/PrivateHomeKeychainJournal.swift",
       "kinds": [
         "keychain"
@@ -246,6 +264,15 @@
       "purpose": "preferences.language (same key as QuestifyApp)",
       "retention": "Until changed",
       "deletion": "Removed with app"
+    },
+    {
+      "file": "App/SquareCloudComposerView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "On-device square compose drafts and pending request envelopes (member id, contents, request id, phase)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
       "file": "App/SquarePostVideoViews.swift",

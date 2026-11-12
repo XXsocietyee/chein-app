@@ -21,7 +21,7 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         self.assertIn('FreeExplorationReadStoreView(nodeID: nodeID, model: model)',fallback)
     def test_free_cards_keep_server_order_variable_count_and_accessibility(self):
         source=self.read('App/FreeExplorationViews.swift')
-        for marker in ['playFree.pack.open','LazyVGrid','ForEach(presentation.stores)','typeSize.isAccessibilitySize ? 1 : 2','playFree.choiceHint']:
+        for marker in ['playFree.pack.open','LazyVGrid','let stores = presentation.stores.filter { chapterFilter == nil || $0.chapterID == chapterFilter }','ForEach(Array(stores.enumerated()), id: \\.element.id)','typeSize.isAccessibilitySize ? 1 : 2','playFree.choiceHint']:
             self.assertIn(marker,source)
         for denied in ['playx.run.resume','playx.run.pause','playx.run.end','currentNodeID','sorted(', 'prefix(6)', 'startRun(', 'CityMapPresentation']:
             self.assertNotIn(denied,source)

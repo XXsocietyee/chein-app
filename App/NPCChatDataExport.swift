@@ -11,7 +11,7 @@ import UIKit
     var body: some View {
         if let data, !data.records.isEmpty {
             Button {
-                UIPasteboard.general.string = Self.readable(data, locale: locale)
+                LocalPasteboard.copy(Self.readable(data, locale: locale))
                 copied &+= 1
             } label: { Label("mpd.aiChat.export", systemImage: "doc.on.doc") }
             .sensoryFeedback(.success, trigger: copied)

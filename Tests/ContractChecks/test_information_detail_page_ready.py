@@ -46,7 +46,14 @@ class InformationDetailPageReady(unittest.TestCase):
         catalog = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())["strings"]
         for row in document["strings"]:
             if row["key"] == "informationDetail.state.unknown":
-                self.assertNotIn(row["key"], catalog)
+                # Value mark stays an em dash on ProfileCurrentReview (the row's table).
+                # The restyled detail empty state looks the same key up from Localizable as a sentence.
+                feature = json.loads((ROOT / "Resources/ProfileCurrentReview.xcstrings").read_text())["strings"][row["key"]]
+                for language in ("en", "zh-Hans"):
+                    self.assertEqual(feature["localizations"][language]["stringUnit"]["value"], row[language])
+                    shown = catalog[row["key"]]["localizations"][language]["stringUnit"]["value"].strip()
+                    self.assertTrue(shown)
+                    self.assertNotEqual(shown, "0")
                 continue
             for language in ("en", "zh-Hans"):
                 self.assertEqual(

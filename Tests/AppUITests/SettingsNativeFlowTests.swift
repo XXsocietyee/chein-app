@@ -40,8 +40,8 @@ final class SettingsNativeFlowTests: XCTestCase {
     /// presstap: plain taps on Settings Form rows (NavigationLinks) must push their page, and back must return.
     func testSettingsRowTapsNavigate() {
         launch()
-        let sound = app.buttons["settingsNative.openSound"]
-        reveal(sound); sound.tap()
+        let openSound = app.buttons["settingsNative.openSound"]
+        reveal(openSound); openSound.tap()
         XCTAssertTrue(app.switches["settingsNative.sound.sound"].waitForExistence(timeout: 5), app.debugDescription)
         back()
         let about = app.buttons["settingsNative.openAbout"]

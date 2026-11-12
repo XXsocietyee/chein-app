@@ -46,13 +46,14 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
         self.assertEqual(len(re.findall(r'func\s+test\w+\(', source)), 10)
         for required in ['auth.channels.sendCode', 'auth.channels.phoneSignIn', 'homeFeed.nearby.activity.21', 'roam.area.select',
                          'activity.openPlay', 'profile.open.orders', 'profile.order.41',
-                         'final.ledger.dropFirst(9)', 'assertIdentity(', 'try closeFrontSheet(app)',
-                         'app.terminate(); app.launch()', 'profile.orders.unavailable']:
+                         'final.ledger.dropFirst(3)', 'assertIdentity(', 'try closeFrontSheet(app)',
+                         'app.terminate(); app.launch()', 'profile.orders.unavailable',
+                         'settings.signOut.confirm', 'Sign out of this account?']:
             self.assertIn(required, source)
         self.assertNotIn('--uitesting-module', source)
         self.assertNotIn('loginWithPhone(', source)
         self.assertNotIn('.lastMatch', source)
-        self.assertIn('tapFixtureSheetAction("Sign out", in: confirmation, app: app)', source)
+        self.assertIn('XCTAssertEqual(confirm.label, "Sign out")', source)
         self.assertIn('self.availableEvidence(app).map(condition)', source)
         self.assertIn('XCTAssertTrue(value.manualArea)', source)
 
@@ -68,14 +69,14 @@ class IntegratedNativeAcceptanceContracts(unittest.TestCase):
 
     def test_map_overflow_requires_unique_visible_native_leaf_then_exact_action(self):
         source = (self.read('Tests/AppUITests/IntegratedNativeAcceptanceFlowTests.swift') + '\n' + self.read('Tests/AppUITests/IntegratedActivityPlayJourneyFlowTests.swift'))
-        block = source.split('private func tapRoamOverflowToggle', 1)[1].split('private func tapOwnedShelfNextPage', 1)[0]
-        for required in ['navigation.buttons["Official city"]', 'frame.minX >= city.frame.maxX',
-                         'navigation.frame.contains(frame)', 'app.frame.contains(frame)',
-                         '$0.isEnabled && $0.isHittable', 'leaves.count == 1', 'overflow.tap()',
+        block = source.split('private func openRoamOverflow', 1)[1].split('private func tapOwnedShelfNextPage', 1)[0]
+        for required in ['app.buttons["roam.more"]', 'menu.isEnabled, menu.isHittable',
+                         'app.frame.contains(menu.frame)', 'menu.tap()',
                          'NSPredicate(format: "label == %@", "Show list only")', 'exact.count == 1',
-                         'toggle.isEnabled, toggle.isHittable', '!toggle.frame.isEmpty', 'app.frame.contains(toggle.frame)']:
+                         'toggle.isEnabled, toggle.isHittable', '!toggle.frame.isEmpty', 'app.frame.contains(toggle.frame)',
+                         'toggle.tap()']:
             self.assertIn(required, block)
-        self.assertEqual(block.count('overflow.tap()'), 1)
+        self.assertEqual(block.count('toggle.tap()'), 1)
         self.assertNotIn('sleep', block)
         self.assertNotIn('"More"', block)
         self.assertIn('"-AppleLanguages", "(en)", "-AppleLocale", "en_US"', source)

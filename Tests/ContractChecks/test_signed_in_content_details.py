@@ -24,7 +24,7 @@ class SignedInContentDetailContracts(unittest.TestCase):
 
     def test_activity_and_topic_session_fence_identity_only_aba_before_401(self):
         session = (ROOT / "App/AppSession.swift").read_text()
-        detail = session.split("func activityDetail(id:Int)", 1)[1].split("private func expireIfMatching", 1)[0]
+        detail = session.split("func activityDetail(id:Int)", 1)[1].split("func expireIfMatching(", 1)[0]
         self.assertIn("guard account != nil, let credential = token", detail)
         self.assertEqual(detail.count("viewerRevision == compositionViewerRevision"), 2)
         catch = detail.split("} catch {", 1)[1]
