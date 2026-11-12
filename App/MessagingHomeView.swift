@@ -19,7 +19,6 @@ struct MessagingHomeView: View {
             if let coopInviteStrip { coopInviteStrip().padding(.horizontal) }
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
         }.appNavigationTitle("messaging.title")
-        .navigationBarTitleDisplayMode(.large)
         .themeDomain(.player)
     }
 }
