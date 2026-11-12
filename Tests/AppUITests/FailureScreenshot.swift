@@ -81,7 +81,19 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
 func scrollToElement(_ element: XCUIElement, in app: XCUIApplication, container: XCUIElement? = nil,
                      maxSweeps: Int = 12) -> Bool {
     let scroller = container ?? app.collectionViews.firstMatch
-    func ready() -> Bool { element.exists && element.isHittable }
+    // A swipe leaves the list coasting; a tap during the coast only stops it and never reaches the row. Report the row
+    // ready only once its frame has stopped moving.
+    func settled() -> Bool {
+        var last = element.frame
+        for _ in 0..<12 {
+            Thread.sleep(forTimeInterval: 0.25)
+            let frame = element.frame
+            if frame == last { return element.isHittable }
+            last = frame
+        }
+        return false
+    }
+    func ready() -> Bool { element.exists && element.isHittable && settled() }
     if ready() { return true }
     guard scroller.exists else { return element.waitForExistence(timeout: 2) && element.isHittable }
     for _ in 0..<maxSweeps { scroller.swipeUp(); if ready() { return true } }
