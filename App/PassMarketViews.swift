@@ -152,6 +152,7 @@ struct PassMarketState: Equatable {
     let binding: any PassMarketBinding
     var initialTab: PassMarketTab = .shop
     @State private var route: MPParityRoute?
+    @State private var loadedOnce = false
     @Environment(\.mpParity) private var bindings
 
     var body: some View {
@@ -161,7 +162,12 @@ struct PassMarketState: Equatable {
                        onOpenMembership: { route = .reveal(paid: nil) },
                        onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) },
                        pointsDestination: nil)
-            .task { binding.load(quiet: false) }
+            // Mini-program onShow: the first appearance loads with a skeleton; coming back (from detail, reveal,
+            // membership) refreshes quietly so a list already on screen never flashes back to loading.
+            .task {
+                binding.load(quiet: loadedOnce)
+                loadedOnce = true
+            }
             .mpParityRouteDestination($route)
     }
 }
@@ -426,6 +432,24 @@ struct PassDetailState: Equatable {
     var forGift = false
     var buy: PassBuyState = .loading
     var checkout: [PassCheckoutRow] = []
+    /// r3-pass unlock steps after a self-use PAID order (never set while the purchase gate is OFF).
+    var unlockSteps: [PassUnlockStep] = []
+    /// Gift bought: the claim link from the order reply (shown once in the 礼品已买好 sheet). Never set while the gate is OFF.
+    var giftShare: PassGiftShare? = nil
+}
+
+/// pass-unlock-view.js `unlockSteps`: one step per server fact (已到账 / 可玩主题 / 有效期 / 同行); no fact, no step.
+struct PassUnlockStep: Identifiable, Equatable {
+    let id: String
+    let eyebrow: String
+    let title: String
+    let line: String?
+    let rows: [String]
+}
+
+struct PassGiftShare: Identifiable, Equatable {
+    let url: URL
+    var id: String { url.absoluteString }
 }
 
 /// Logic stub for Cursor: `/api/marketing/product/{id}`, `/quote` (fulfillment SELF / GIFT). Order / pay / unlock stay unbound.
@@ -433,15 +457,27 @@ struct PassDetailState: Equatable {
     var state: PassDetailState { get }
     func load()
     func setForGift(_ forGift: Bool)
+    /// Unlock steps finished or gift sheet closed: the mini-program redirects to passes (orders / gifts tab).
+    func dismissResult()
+}
+
+extension PassDetailBinding {
+    func dismissResult() {}
 }
 
 @MainActor struct PassDetailHost: View {
     let binding: any PassDetailBinding
     var onOpenCheckout: ((String, String?) -> Void)? = nil
+    @State private var route: MPParityRoute?
 
     var body: some View {
-        PassDetailView(state: binding.state, onRetry: { binding.load() }, onSetForGift: { binding.setForGift($0) }, onOpenCheckout: onOpenCheckout)
+        PassDetailView(state: binding.state, onRetry: { binding.load() }, onSetForGift: { binding.setForGift($0) }, onOpenCheckout: onOpenCheckout,
+                       onResultDone: { gift in
+                           binding.dismissResult()
+                           route = .passes(tab: gift ? .gifts : .orders)
+                       })
             .task { binding.load() }
+            .mpParityRouteDestination($route)
     }
 }
 
@@ -451,6 +487,8 @@ struct PassDetailView: View {
     let onSetForGift: (Bool) -> Void
     /// Activity signup for group products (activityID, ticketID). Nil hides the button and keeps the sentence.
     let onOpenCheckout: ((String, String?) -> Void)?
+    /// Unlock steps finished (false) or gift sheet closed (true).
+    var onResultDone: (Bool) -> Void = { _ in }
 
     private enum ForWhom: String, CaseIterable, Identifiable { case me, gift; var id: String { rawValue } }
 
@@ -472,6 +510,15 @@ struct PassDetailView: View {
         .background { MPNightGround(glow: state.product.value != nil) }
         .navigationTitle(state.product.value.map { Text(verbatim: $0.name) } ?? Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
+        .overlay {
+            if !state.unlockSteps.isEmpty {
+                PassUnlockStepsView(steps: state.unlockSteps, face: state.product.value?.faceText ?? state.product.value?.name ?? "") { onResultDone(false) }
+                    .transition(.opacity)
+            }
+        }
+        .sheet(item: Binding(get: { state.giftShare }, set: { if $0 == nil { onResultDone(true) } })) { share in
+            PassGiftReadySheet(share: share, productName: state.product.value?.name ?? "")
+        }
     }
 
     private func content(_ product: PassProductCard) -> some View {
@@ -567,6 +614,75 @@ struct PassDetailView: View {
     }
 }
 
+/// cy-pass-unlock: one card per server fact, 下一步 advances, 完成 returns to the orders tab.
+struct PassUnlockStepsView: View {
+    let steps: [PassUnlockStep]
+    let face: String
+    let onDone: () -> Void
+    @State private var index = 0
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        let step = steps[min(index, steps.count - 1)]
+        ZStack {
+            CYNight.ink0.opacity(0.94).ignoresSafeArea()
+            VStack(spacing: CYSpacing.xl) {
+                PassTicketHero(face: face)
+                VStack(spacing: CYSpacing.sm) {
+                    Text(verbatim: step.eyebrow).font(CYTypography.caption).tracking(0.6).foregroundStyle(CYNight.lanternHot)
+                    Text(verbatim: step.title).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                    if let line = step.line { Text(verbatim: line).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                    ForEach(step.rows, id: \.self) { Text(verbatim: $0).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                }
+                .id(step.id)
+                .transition(reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
+                HStack(spacing: CYSpacing.xs) {
+                    ForEach(steps.indices, id: \.self) { i in
+                        Capsule().fill(i == index ? CYColor.textPrimary : CYColor.textTertiary).frame(width: i == index ? 18 : 6, height: 6)
+                    }
+                }
+                .accessibilityHidden(true)
+                CYPillButton(index < steps.count - 1 ? "mp.pass.unlock.next" : "mp.pass.unlock.done") {
+                    if index < steps.count - 1 {
+                        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { index += 1 }
+                    } else {
+                        onDone()
+                    }
+                }
+                .accessibilityIdentifier("passDetail.unlock.next")
+            }
+            .padding(CYSpacing.xxl)
+        }
+        .cyHaptic(.success, trigger: index)
+        .accessibilityIdentifier("passDetail.unlock")
+    }
+}
+
+/// 礼品已买好: the claim link is shown once; neither side can play until the friend claims it.
+struct PassGiftReadySheet: View {
+    let share: PassGiftShare
+    let productName: String
+
+    var body: some View {
+        VStack(spacing: CYSpacing.lg) {
+            Image(systemName: "gift.fill").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
+                .padding(CYSpacing.lg).background { Circle().fill(CYNight.glow(radius: 40)) }
+                .accessibilityHidden(true)
+            Text("mp.pass.giftReady.title").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+            Text("mp.pass.giftReady.note").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            ShareLink(item: share.url, message: Text("mp.pass.giftReady.shareTitle \(productName)")) {
+                Text("mp.pass.giftReady.send")
+            }
+            .buttonStyle(CYPillButtonStyle(style: .primary))
+            .accessibilityIdentifier("passDetail.giftReady.send")
+        }
+        .padding(CYSpacing.xxl)
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+        .accessibilityIdentifier("passDetail.giftReady")
+    }
+}
+
 /// r3-pass hero: a lantern-gold city pass that assembles from shards on appear (cross-fade under Reduce Motion).
 struct PassTicketHero: View {
     let face: String
@@ -640,9 +756,15 @@ struct PassGiftClaimState: Equatable {
 @MainActor struct PassGiftClaimHost: View {
     let binding: any PassGiftClaimBinding
     @State private var route: MPParityRoute?
+    @State private var orderID: String?
+    @Environment(\.mpParity) private var bindings
     var body: some View {
-        PassGiftClaimView(state: binding.state, onClaim: { binding.claim() }, onOpenGifts: { route = .passes(tab: .gifts) })
-            .mpParityRouteDestination($route)
+        // Mini-program goOrder: the claimed registration's order detail when the server returned one, else 礼品 tab.
+        PassGiftClaimView(state: binding.state, onClaim: { binding.claim() }, onOpenGifts: {
+            if case .claimed(let id?) = binding.state.phase, bindings.orderDetail != nil { orderID = id } else { route = .passes(tab: .gifts) }
+        })
+        .mpParityRouteDestination($route)
+        .navigationDestination(item: $orderID) { id in bindings.orderDetail?(id) ?? AnyView(EmptyView()) }
     }
 }
 

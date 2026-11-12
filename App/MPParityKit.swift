@@ -53,6 +53,17 @@ struct MPParityBindings {
     var journeySettle: (@MainActor (_ scope: JourneyRunScope) -> any JourneySettleBinding)?
     /// Account key used to remember "reveal already played" per account. Nil plays the short (idle) reveal.
     var revealAccountKey: (@MainActor () -> String?)?
+    /// Merchant view (`roleGuard.isMerchantView`): merchants have no pass, so the 我的 row, the Explore store card and the
+    /// checkout city-pass rows hide, and the reveal shows the one-sentence merchant state. Nil = player.
+    var viewerIsMerchant: (@MainActor () -> Bool)?
+    /// Explore store card (`utils/discover-store-card.js`): nil result = nothing on sale, card hidden.
+    var passStoreCard: (@MainActor () async -> PassStoreCard?)?
+    /// Theme checkout (`self-play-checkout`): pass coverage of one topic + on-sale city passes that cover it.
+    var passCheckoutCover: (@MainActor (_ topicID: Int) async -> PassCheckoutCover?)?
+    /// Order detail (`subpackageMember/orderinfo?id=`), used by gift claim "view" when the claim returned a registration.
+    var orderDetail: (@MainActor (_ registrationID: String) -> AnyView)?
+
+    @MainActor var isMerchant: Bool { viewerIsMerchant?() ?? false }
 
     static let none = MPParityBindings()
 }
@@ -159,7 +170,7 @@ enum MPParityRoute: Hashable, Identifiable {
         case .library(let kind):
             if let make = bindings.passLibrary { PassLibraryHost(binding: make(), initialKind: kind) } else { unavailable }
         case .reveal(let paid):
-            PassRevealView(paid: paid, accountKey: bindings.revealAccountKey?())
+            PassRevealView(paid: paid, accountKey: bindings.revealAccountKey?(), isMerchant: bindings.isMerchant)
         case .journeyLanding(let link):
             if let make = bindings.journeyLanding { JourneyLandingHost(binding: make(link)) } else { unavailable }
         case .journeySeats(let id):
