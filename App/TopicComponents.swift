@@ -56,9 +56,12 @@ struct TopicIssueView: View {
 struct TopicTotalStops: View {
     let count: Int?
     let identifier: String
+    /// A page model's unknown mark (em dash). Nil keeps the shared `topic.countUnknown` copy.
+    var unknownMark: String? = nil
     var body: some View {
         LabeledContent("topic.totalStops") {
             if let count { Text(verbatim: String(count)).accessibilityIdentifier(identifier) }
+            else if let unknownMark { Text(verbatim: unknownMark).accessibilityIdentifier(identifier) }
             else { Text("topic.countUnknown").accessibilityIdentifier(identifier) }
         }
     }

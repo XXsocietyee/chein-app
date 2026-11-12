@@ -240,7 +240,7 @@ struct ParticipantFormView: View {
                     Section {
                         VStack(alignment: .leading, spacing: 4) {
                             Label("profile.participants.name", systemImage: "person").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            TextField("profile.participants.name", text: $model.draft.fullName)
+                            TextField("profile.participants.name", text: $model.draft.fullName, prompt: Text("participant.form.namePrompt"))
                             .textContentType(.name).textInputAutocapitalization(.words)
                             .submitLabel(.next).focused($focusedField, equals: .name)
                             .onSubmit { focusedField = .phone }
@@ -248,7 +248,7 @@ struct ParticipantFormView: View {
                         }
                         VStack(alignment: .leading, spacing: 4) {
                             Label("profile.participants.phone", systemImage: "phone").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            TextField("profile.participants.phone", text: $model.draft.mobilePhone)
+                            TextField("profile.participants.phone", text: $model.draft.mobilePhone, prompt: Text("participant.form.phonePrompt"))
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
                             .onSubmit { focusedField = model.reviewForSave() }
@@ -258,6 +258,11 @@ struct ParticipantFormView: View {
                         if let field = model.validationIssue {
                             Text(LocalizedStringKey(field.messageKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
+                        }
+                    } footer: {
+                        // Phone rule up front, so the red error is never the first time the rule is seen.
+                        if model.validationIssue == nil {
+                            Text("participant.form.phoneHint").accessibilityIdentifier("participant.form.phoneHint")
                         }
                     }
                     .disabled(model.operation.preventsNewMutation)
@@ -424,8 +429,8 @@ private struct ParticipantReadbackRow: View {
     let row: ProfileParticipant
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: row.fullName).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-            Text(verbatim: row.mobilePhone).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: ProfileParticipantDisplay.text(row.fullName)).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: ProfileParticipantDisplay.text(row.mobilePhone)).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
             if !row.oneLineAddress.isEmpty { Text(verbatim: row.oneLineAddress).foregroundStyle(.secondary) }
         }
         .fixedSize(horizontal: false, vertical: true)

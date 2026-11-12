@@ -83,9 +83,8 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 reviewSection(review)
             } else {
                 if model.isLoading {
-                    CYSkeleton()
-                        .accessibilityIdentifier("profile.complaint.loading")
-                        .accessibilityLabel(Text("profile.loading"))
+                    // Source copy: 正在加载可投诉的活动.
+                    CYLoadingState("profile.complaint.loadingTopics", messageIdentifier: "profile.complaint.loading")
                         .listRowBackground(Color.clear)
                 }
                 if let issue = model.issue {
@@ -94,7 +93,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                             .accessibilityIdentifier("profile.complaint.issueTitle")
                         if issue != .unavailable {
                             if model.isNetworkFailure && issue == .failed {
-                                Text(ProfileComplaintTopicLoadFailureCopy.networkSubtitle).font(.subheadline)
+                                Text("profile.complaint.read.network").font(.subheadline)
                                     .accessibilityIdentifier("profile.complaint.issueDetail")
                             } else {
                                 Text(LocalizedStringKey(issue.sourceDetailKey)).font(.subheadline)
@@ -112,6 +111,8 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     if topics.isEmpty && model.issue == nil && !model.isLoading {
                         Section {
                             Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty")
+                            Text("profile.complaint.sourceEmptyHint").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("profile.complaint.emptyHint")
                         }
                     } else if !topics.isEmpty {
                         editor(topics).disabled(!model.canEdit)
@@ -158,14 +159,14 @@ private struct ProfileComplaintPresentationKey: Hashable {
             Section("profile.complaint.topic") {
                 Picker("profile.complaint.topic", selection: Binding<Int?>(
                     get: { model.draft.topicID }, set: { value in model.change { $0.topicID = value } })) {
-                    Text("profile.complaint.chooseTopic").tag(Optional<Int>.none)
+                    Text("profile.complaint.chooseTopicPrompt").tag(Optional<Int>.none)
                     ForEach(topics) { topic in
                         topicLabel(topic).tag(Optional(topic.id))
                     }
                 }.accessibilityIdentifier("profile.complaint.topic")
                 Picker("profile.complaint.kind", selection: Binding<ProfileComplaintKind?>(
                     get: { model.draft.kind }, set: { value in model.change { $0.kind = value } })) {
-                    Text("profile.complaint.optional").tag(Optional<ProfileComplaintKind>.none)
+                    Text("profile.complaint.chooseKindPrompt").tag(Optional<ProfileComplaintKind>.none)
                     ForEach(ProfileComplaintKind.allCases) { kind in
                         Text(LocalizedStringKey(kind.titleKey)).tag(Optional(kind))
                     }
@@ -175,6 +176,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 TextEditor(text: Binding(get: { model.draft.reason }, set: { value in model.change { $0.reason = value } }))
                     .frame(minHeight: 140).focused($focused, equals: .reason)
                     .scrollContentBackground(.hidden)
+                    .overlay(alignment: .topLeading) {
+                        // Source placeholder: 请详细描述遇到的问题…
+                        if model.draft.reason.isEmpty {
+                            Text("profile.complaint.reasonPlaceholder").foregroundStyle(CYColor.textTertiary)
+                                .padding(.top, 8).padding(.leading, 5).allowsHitTesting(false).accessibilityHidden(true)
+                        }
+                    }
                     .accessibilityLabel(Text("profile.complaint.reason"))
                     .accessibilityIdentifier("profile.complaint.reason")
             } header: {
@@ -189,7 +197,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
             Section("profile.complaint.contact") {
                 TextField("profile.complaint.optional", text: Binding(get: { model.draft.contact },
-                    set: { value in model.change { $0.contact = value } }))
+                    set: { value in model.change { $0.contact = value } }), prompt: Text("profile.complaint.contactPlaceholder"))
                     .focused($focused, equals: .contact).textInputAutocapitalization(.never)
                     .accessibilityLabel(Text("profile.complaint.contact"))
                     .accessibilityIdentifier("profile.complaint.contact")

@@ -42,7 +42,15 @@ import UIKit
         Section {
             NavigationLink {
                 SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
-            } label: { Label("settingsNative.about.title", systemImage: "info.circle.fill") }
+            } label: {
+                // Source shezhi entry description: 版本、协议、联系与我的二维码.
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("settingsNative.about.title")
+                        Text("settingsNative.about.entryHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    }
+                } icon: { Image(systemName: "info.circle.fill") }
+            }
             .accessibilityIdentifier("settingsNative.openAbout")
         }
         .environment(\.settingsTileTint, SettingsTint.blue)

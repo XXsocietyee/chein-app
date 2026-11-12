@@ -24,45 +24,31 @@ import SwiftUI
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                // pages/agreement: phases, version, and date come from `SettingsLegalAgreementPage` (blank is an em dash).
+                let page = SettingsLegalAgreementPage.facts(for: model.state)
                 switch model.state {
                 case .idle, .loading:
                     CYLoadingStateView(rows: 3)
                         .accessibilityIdentifier("settingsNative.legal.loading")
                 case .failed:
-                    Label {
-                        Text("settingsNative.legal.loadFailed").accessibilityIdentifier("settingsNative.legal.error")
-                    } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                    CYPillButton("settingsNative.retry", style: .secondary) { Task { await model.load(type: type, market: market) } }
-                        .accessibilityIdentifier("settingsNative.legal.retry")
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "settingsNative.legal.loadFailed",
+                                 messageIdentifier: "settingsNative.legal.error", actionTitle: "settingsNative.retry",
+                                 actionIdentifier: SettingsLegalAgreementPage.retryAccessibilityIdentifier, kind: .failure) {
+                        Task { await model.load(type: type, market: market) }
+                    }
                 case .loaded(.missing(let reason)):
                     CYEmptyState(systemImage: "doc.questionmark", "settingsNative.legal.missingTitle", detail: LocalizedStringKey(reason.messageKey), messageIdentifier: "settingsNative.legal.missing")
-                case .loaded(.sourceDocument(let document)):
-                    Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("settingsNative.legal.sourceNotice")
-                    Text(verbatim: document.title).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                    HStack(alignment: .firstTextBaseline) {
-                        Text("settingsNative.legal.version")
-                        Text(verbatim: document.version).accessibilityIdentifier("settingsNative.legal.version")
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    Text(verbatim: document.intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
-                    ForEach(Array(document.sections.enumerated()), id: \.offset) { index, section in
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text(verbatim: section.heading).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                            ForEach(Array(SettingsLegalLine.lines(in: section.body).enumerated()), id: \.offset) { _, line in
-                                HStack(alignment: .top, spacing: 4) {
-                                    if let marker = line.marker { Text(verbatim: marker).fixedSize(horizontal: true, vertical: false) }
-                                    Text(verbatim: line.text).frame(maxWidth: .infinity, alignment: .leading)
-                                }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled).accessibilityElement(children: .combine)
-                            }
+                case .loaded(.sourceDocument):
+                    if case .ready(let document) = page.phase {
+                        readyBody(document, page: page)
+                    } else {
+                        // An all-blank shell is unknown, not a document with blank fields.
+                        CYEmptyState(systemImage: "questionmark.circle", "settingsNative.legal.unknownTitle",
+                                     detailVerbatim: SettingsLegalAgreementPage.unknownDisplay, messageIdentifier: "settingsNative.legal.unknown",
+                                     actionTitle: "settingsNative.retry", actionIdentifier: SettingsLegalAgreementPage.retryAccessibilityIdentifier) {
+                            Task { await model.load(type: type, market: market) }
                         }
-                        .accessibilityIdentifier("settingsNative.legal.section.\(index)")
                     }
-                    HStack {
-                        Text("settingsNative.legal.effectiveDate")
-                        Text(verbatim: document.effectiveDate)
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
-                    Text("settingsNative.legal.noAcceptance").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("settingsNative.legal.noAcceptance")
                 }
             }
             .frame(maxWidth: 720, alignment: .leading).padding(CYSpacing.pageHorizontal)
@@ -73,5 +59,39 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         .task(id: loadID) { await model.load(type: type, market: market) }
         .onDisappear { model.invalidate() }
+    }
+
+    @ViewBuilder private func readyBody(_ document: SettingsLegalDocument, page: SettingsLegalAgreementPage.Facts) -> some View {
+        Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .accessibilityIdentifier("settingsNative.legal.sourceNotice")
+        Text(verbatim: SettingsLegalAgreementPage.displayText(document.title)).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+        HStack(alignment: .firstTextBaseline) {
+            Text("settingsNative.legal.version")
+            Text(verbatim: page.versionText).accessibilityIdentifier(SettingsLegalAgreementPage.versionAccessibilityIdentifier)
+        }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+        if !document.intro.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Text(verbatim: document.intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
+        }
+        ForEach(Array(document.sections.enumerated()), id: \.offset) { index, section in
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(verbatim: section.heading).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                ForEach(Array(SettingsLegalLine.lines(in: section.body).enumerated()), id: \.offset) { _, line in
+                    HStack(alignment: .top, spacing: 4) {
+                        if let marker = line.marker { Text(verbatim: marker).fixedSize(horizontal: true, vertical: false) }
+                        Text(verbatim: line.text).frame(maxWidth: .infinity, alignment: .leading)
+                    }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled).accessibilityElement(children: .combine)
+                }
+            }
+            .accessibilityIdentifier(SettingsLegalAgreementPage.sectionAccessibilityIdentifier(index: index))
+        }
+        // Source footer: 生效日期：{{doc.updatedAt}}.
+        HStack {
+            Text("settingsNative.legal.effectiveDate")
+            Text(verbatim: page.effectiveDateText)
+        }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("settingsNative.legal.effectiveDate")
+        Text("settingsNative.legal.noAcceptance").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .accessibilityIdentifier("settingsNative.legal.noAcceptance")
     }
 }

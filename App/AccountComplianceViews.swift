@@ -369,20 +369,23 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 .disabled(model.state.roamCleanup == .complete).accessibilityIdentifier("compliance.revoke")
         }
     }
+    /// pages/shezhi/marketing/index read model over the coordinator state already on screen. No extra request.
+    private var marketingPage: ShezhiMarketingIndexPageModel { ShezhiMarketingIndexPageModel(state: model.state) }
     private var marketing: some View {
-        Section {
-            if model.state.marketingLoaded && model.state.marketing.isEmpty {
+        let page = marketingPage
+        return Section {
+            if page.phase == .empty {
                 Text("compliance.marketing.empty", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.empty")
             }
             Text("marketingOriginal.scope", tableName: "MarketingConsentOriginalPresentation")
             ForEach(model.state.marketingOriginalResults) { receipt in
                 MarketingConsentOriginalReceiptView(receipt: receipt)
             }
-            if !model.state.marketingLoaded {
+            if page.phase != .loading && !model.state.marketingLoaded {
                 Text("marketingOriginal.current.unconfirmed", tableName: "MarketingConsentOriginalPresentation")
             }
 
-            if !model.state.marketingUnresolved.isEmpty {
+            if page.unresolvedText != nil && !model.state.marketingUnresolved.isEmpty {
                 Text("compliance.marketing.unknown", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.unknown")
             }
             if !model.state.marketing.isEmpty {

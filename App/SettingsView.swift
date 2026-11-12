@@ -34,8 +34,33 @@ struct SettingsView: View {
                 Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
                     .accessibilityIdentifier("settingsNative.profileSignedOut")
             }
+            // pages/shezhi: `SettingsHomePage` phases beyond signed-in/out. Loading and error say so; an unknown
+            // role or market says so instead of falling through to the player rows.
+            switch homeFacts.phase {
+            case .loading, .error, .unknown:
+                Label {
+                    Text(LocalizedStringKey(homeFacts.copyKey), tableName: "MemberProfile")
+                } icon: {
+                    Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
+                }
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .padding(.horizontal, CYSpacing.lg)
+                .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
+            case .empty, .ready:
+                EmptyView()
+            }
         }
         .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+    }
+
+    /// Session facts the form already reads. Restoration in flight is loading; the raw role is kept.
+    private var homeFacts: SettingsHomePage.Facts {
+#if DEBUG
+        if designOverride != nil { return SettingsHomePage.facts(session: .signedIn(role: "player"), market: session.operationalMarket ?? .china) }
+#endif
+        return SettingsHomePage.facts(
+            session: SettingsHomePage.sessionFact(loading: !session.restorationFinished, failed: false, role: session.account?.effectiveRole),
+            market: session.operationalMarket)
     }
 
     private var language: Binding<AppLanguage> {

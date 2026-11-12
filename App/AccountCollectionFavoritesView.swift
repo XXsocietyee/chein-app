@@ -96,7 +96,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                     .accessibilityIdentifier("accountCollection.favorites.recommendNote")
                 }
                 if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
-                    CYEmptyState(systemImage: "heart", "accountCollection.favorites.empty", messageIdentifier: "accountCollection.favorites.empty", kind: .favorites)
+                    CYEmptyState(systemImage: "heart", "accountCollection.favorites.empty", detail: "accountCollection.favorites.emptyHint", messageIdentifier: "accountCollection.favorites.empty", kind: .favorites)
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
                 ForEach(Array(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }.enumerated()), id: \.element.id) { index, topic in
@@ -170,7 +170,8 @@ private struct AccountCollectionFavoriteCard: View {
                     .lineLimit(1).truncationMode(.tail)
                     .accessibilityIdentifier("accountCollection.favorite.categories.\(topic.id)")
             }
-            TopicTotalStops(count: topic.locationCount, identifier: "accountCollection.totalStops.\(topic.id)")
+            // Unknown stop count is an em dash (pages/mylike page model), never 未知 or 0.
+            TopicTotalStops(count: topic.locationCount, identifier: "accountCollection.totalStops.\(topic.id)", unknownMark: AccountCollectionFavoritesDisplay.unknownMark)
             if let place = topic.addressName, !place.isEmpty {
                 QuestifyImageEntityMetadata(label: "accountCollection.favorites.place", value: place, systemImage: "mappin.and.ellipse")
             }
@@ -248,6 +249,12 @@ private struct AccountCollectionFavoriteCard: View {
                 }
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
+            } else if case .unknown? = model.pagePhase {
+                // A missing or UNKNOWN list is not an empty collection.
+                CYEmptyState(systemImage: "questionmark.circle", "accountCollection.favorites.unknown",
+                             messageIdentifier: "accountCollection.posts.unknown", actionTitle: "accountCollection.retry",
+                             actionIdentifier: "accountCollection.retry", kind: .failure) { Task { await refresh() } }
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
             } else {
                 if model.state.visibleRows(scope: key.scope).isEmpty {
                     CYEmptyState(systemImage: "bookmark", "member.favorites.postsEmpty", tableName: "MemberProfile", messageIdentifier: "accountCollection.posts.empty", kind: .favorites)

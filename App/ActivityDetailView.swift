@@ -470,6 +470,11 @@ struct ActivityDetailView: View {
                 }.accessibilityIdentifier("activity.openCharacterCard")
             }
         }
+        if let topicID = detail.summary.linkedTopicID, topicID > 0,
+           let provider = reader as? OrientScoreEntryProviding,
+           let loader = provider.orientScoreLoader(topicID: topicID, activityID: id) {
+            OrientScoreEntryLink(loader: loader)
+        }
         if let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
             Section {
                 NavigationLink { SessionPlayRuntimeView(session: session, destination: .journey(.activity(id))) } label: {

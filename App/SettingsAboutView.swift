@@ -11,6 +11,7 @@ import UIKit
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @State private var copyStatus: CopyStatus?
+    @State private var showsPlayerCodePending = false
     private enum CopyStatus { case copied, failed }
 
     private var model: SettingsAboutPageModel { SettingsAboutPageModel(information: appInformation, market: market) }
@@ -50,12 +51,23 @@ import UIKit
                 marketRow
             } header: { Text("settingsNative.about.appSection") }
             .labelStyle(SettingsTileLabelStyle())
+            // Source section 我的二维码: the voucher stays in its error state until a real player code exists.
+            Section {
+                playerCodeVoucher
+            } header: { Text("settingsNative.about.playerCode") }
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in
                     NavigationLink {
                         SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
                     } label: {
-                        Label(LocalizedStringKey(type.titleKey), systemImage: type == .privacyPolicy ? "hand.raised.fill" : "doc.text.fill")
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(LocalizedStringKey(type.titleKey))
+                                if type == .userAgreement {
+                                    Text("settingsNative.about.agreementHint").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                                }
+                            }
+                        } icon: { Image(systemName: type == .privacyPolicy ? "hand.raised.fill" : "doc.text.fill") }
                             .environment(\.settingsTileTint, type == .privacyPolicy ? SettingsTint.blue : SettingsTint.gray)
                     }
                     .accessibilityIdentifier("settingsNative.about.openLegal.\(type.rawValue)")
@@ -63,14 +75,14 @@ import UIKit
             } header: { Text("settingsNative.about.linksSection") }
             .labelStyle(SettingsTileLabelStyle())
             if let phone = model.contactPhone {
-                Section("settingsNative.about.contact") {
+                Section {
                     Text(verbatim: phone)
                         .font(CYTypography.numericBody)
                         .foregroundStyle(palette.textPrimary)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("settingsNative.about.contactPhone")
-                }
+                } header: { Text("settingsNative.about.contact") } footer: { Text("settingsNative.about.contactSource") }
             }
             SettingsAttributionsSection(copyText: copyText)
         }
@@ -97,7 +109,64 @@ import UIKit
                 .background(palette.bgPage)
             }
         }
-        .onDisappear { copyStatus = nil }
+        .onDisappear { copyStatus = nil; showsPlayerCodePending = false }
+    }
+
+    /// `SettingsAboutPageModel.playerCode`. Production is `.error` (the player-code POST stays uninstalled), so the
+    /// voucher shows the source error copy; nothing generates or requests a code here.
+    @ViewBuilder private var playerCodeVoucher: some View {
+        let phase = model.playerCode
+        VStack(spacing: CYSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                    .fill(palette.bgRaised)
+                if case .loading = phase {
+                    CYSkeleton()
+                } else if let url = phase.imageURL {
+                    AsyncImage(url: url) { image in
+                        image.resizable().interpolation(.none).scaledToFit().padding(CYSpacing.md)
+                    } placeholder: { CYSkeleton() }
+                    .accessibilityLabel(Text("settingsNative.about.playerCode"))
+                } else {
+                    Image(systemName: "qrcode")
+                        .font(.largeTitle).imageScale(.large)
+                        .foregroundStyle(palette.textTertiary.opacity(0.5))
+                        .accessibilityHidden(true)
+                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                        .strokeBorder(palette.textTertiary.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
+                }
+            }
+            .frame(width: 168, height: 168)
+            switch phase {
+            case .ready:
+                EmptyView()
+            case .loading:
+                Text("settingsNative.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            case .error:
+                Text("settingsNative.about.playerCodeUnavailable").font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary)
+                    .accessibilityIdentifier("settingsNative.about.playerCodeUnavailable")
+                Text("settingsNative.about.playerCodeHint").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            case .empty, .unknown:
+                Text(verbatim: SettingsAboutMetadataPhase.unknownText).font(CYTypography.numericBody).foregroundStyle(palette.textSecondary)
+                    .accessibilityLabel(Text("settingsNative.about.playerCodeUnavailable"))
+            }
+            if showsPlayerCodePending {
+                CYStatusChip("settingsNative.about.playerCodePending", tone: .neutral, systemImage: "clock")
+                    .accessibilityIdentifier("settingsNative.about.playerCodePending")
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, CYSpacing.sm)
+        .contentShape(Rectangle())
+        // Source bind:retry="explainQrPending": a tap explains, it never requests a code.
+        .onTapGesture { if case .error = phase { showsPlayerCodePending = true } }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(phase == .error ? .isButton : [])
+        .accessibilityAction { if case .error = phase { showsPlayerCodePending = true } }
+        .accessibilityIdentifier("settingsNative.about.playerCode")
+        .cyAnimation(CYMotion.standard, value: showsPlayerCodePending)
     }
 
     private var appName: some View {
