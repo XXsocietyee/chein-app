@@ -36,6 +36,8 @@ import SwiftUI
     /// Loading-to-content choreography (docs/release/motion-spec-loading.md).
     @State private var streamSkeleton = false
     @State private var stagger = CYStaggerGate()
+    /// First-fold section reveal (spring, 70 ms apart, once per screen).
+    @State private var reveal = CYSectionRevealGate()
     @State private var localSelectedCity: String? = nil
     @State private var localIsNationwide: Bool = false
     private var hasHeroHeader: Bool { showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil }
@@ -45,7 +47,11 @@ import SwiftUI
         let permit = model.permit(reader)
         CYLoadSlot(isLoading: reader.isConfigured && unavailableMessageKey == nil && !model.matches(reader), skeletonRows: 4, label: "homeFeed.loading", announces: true) {
             if !reader.isConfigured || unavailableMessageKey != nil {
-                ContentUnavailableView("homeFeed.unavailable", systemImage: "network.slash", description: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
+                // Night-city offline state: drawn art on the ink ground instead of the system placeholder.
+                CYStateLayout(kind: .offline, title: Text("homeFeed.unavailable"),
+                              detail: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background { CYExploreGround() }
                     .accessibilityIdentifier("homeFeed.configurationUnavailable")
             } else if !model.matches(reader) {
                 Color.clear
@@ -68,10 +74,11 @@ import SwiftUI
                             if banner.id == "activity_list" { kind = .activities }
                             onActionBanner?(banner)
                         }
+                        .cySectionReveal(order: 0, gate: reveal)
                     }
-                    todayCard
-                    bannerSection
-                    feedSection(.recommended)
+                    todayCard.cySectionReveal(order: 1, gate: reveal)
+                    if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 2, gate: reveal) }
+                    feedSection(.recommended, order: 3)
                     if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
                         PlayContinuationBannerView(
                             cards: continuationCards,
@@ -89,9 +96,10 @@ import SwiftUI
                             },
                             onRetry: onRetryContinuation
                         )
+                        .cySectionReveal(order: 4, gate: reveal)
                     }
-                    feedSection(.nearby)
-                    feedSection(.upcoming)
+                    feedSection(.nearby, order: 5)
+                    feedSection(.upcoming, order: 6)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         sectionHeader(Text("homeFeed.explore"))
                         Picker("homeFeed.content", selection: $kind) {
@@ -132,11 +140,13 @@ import SwiftUI
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
                     }
+                    .cySectionReveal(order: 7, gate: reveal)
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.lg)
+                    .padding(.top, CYSpacing.lg)
+                    .padding(.bottom, CYSpacing.jumbo)
                 }
-                .background(CYColor.bgPage)
+                .background { CYExploreGround() }
                 .searchable(text: $keyword, placement: onOpenUnifiedSearch == nil ? .automatic : .navigationBarDrawer(displayMode: .automatic), prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
@@ -193,7 +203,7 @@ import SwiftUI
     }
     /// Mini-program `sec-reco` / `sec-nearby` / `sec-upcoming`: a titled horizontal rail each, with its own
     /// loading, failure and empty state. 即将上线 disappears once it has loaded with nothing in it.
-    @ViewBuilder private func feedSection(_ section: HomeFeedSection) -> some View {
+    @ViewBuilder private func feedSection(_ section: HomeFeedSection, order: Int) -> some View {
         let permit = model.permit(reader)
         let items = model.sections[section]
         let failed = model.failedSections.contains(section)
@@ -235,6 +245,9 @@ import SwiftUI
                     CYSkeleton().padding(.vertical, CYSpacing.md).frame(maxWidth: .infinity, minHeight: 88)
                 }
             }
+            // Skeleton, failure and content cross-fade in place; a rail never swaps instantly.
+            .cyAnimation(CYMotion.standard, value: failed ? 2 : (items == nil ? 0 : 1))
+            .cySectionReveal(order: order, gate: reveal)
         }
     }
     /// Glass carousel over the already-loaded section items. Open goes through the same guarded destination as the shelf cards.
@@ -258,9 +271,10 @@ import SwiftUI
     /// Large, plain section title (mini-program `sec-title`): no small-caps grouped-list header.
     private func sectionHeader(_ title: Text) -> some View {
         title
-            .font(.title2.weight(.bold))
+            .font(CYTypography.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
+            .padding(.top, CYSpacing.xs)
             .accessibilityAddTraits(.isHeader)
     }
     private func row(_ item: HomeFeedItem, section: String, style: CYImageCard.Style? = nil) -> some View {
@@ -285,6 +299,11 @@ import SwiftUI
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(CYSpacing.lg)
+        .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .cyNightCardDepth(radius: CYRadius.lg)
+        .transition(.opacity)
     }
 }
 
@@ -441,34 +460,41 @@ struct HomeTodayCard: View {
         return [time ?? "—", (place?.isEmpty ?? true) ? nil : place].compactMap { $0 }.joined(separator: " · ")
     }
 
+    private var isChinese: Bool { locale.identifier.lowercased().hasPrefix("zh") || locale.language.languageCode?.identifier == "zh" }
+
     var body: some View {
         let c = content
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Label { Text(verbatim: c.eyebrow) } icon: { Image(systemName: c.symbol) }
-                .font(CYTypography.meta)
-                .opacity(0.85)
+            // The one light source sits top trailing, away from the text; lantern gold only on the discovery prompt.
+            CYTodayMedallion(symbol: c.symbol, lit: c.id == "roam")
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            Spacer(minLength: CYSpacing.lg)
+            Text(verbatim: c.eyebrow)
+                .cyEyebrow(isChinese: isChinese)
+                .foregroundStyle(.white.opacity(0.78))
             Text(verbatim: c.title)
-                .font(CYTypography.sectionTitle)
+                .font(CYTypography.pageTitle)
                 .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if let meta = c.meta {
-                Text(verbatim: meta).font(CYTypography.meta).monospacedDigit().opacity(0.85)
+                Text(verbatim: meta).font(CYTypography.bodyCompact).monospacedDigit().foregroundStyle(.white.opacity(0.82))
             }
             if let action = c.action {
                 CYPillButton(verbatim: c.pill, style: .primary, fullWidth: false) {
                     wave.perform(action, waveOn: cyLightAllowed(reduceMotion: reduceMotion))
                 }
                     .cyPressWaveExcluded()
-                    .padding(.top, CYSpacing.xs)
+                    .padding(.top, CYSpacing.sm)
                     .accessibilityIdentifier("homeFeed.today.action")
             }
         }
         .foregroundStyle(.white)
-        .padding(CYSpacing.lg)
-        .padding(.top, CYSpacing.jumbo)
-        .frame(maxWidth: .infinity, minHeight: 240, alignment: .bottomLeading)
-        .background { backdrop(c) }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .padding(CYSpacing.xl)
+        .frame(maxWidth: .infinity, minHeight: 280, alignment: .bottomLeading)
+        .background { backdrop(c).cyBackdropParallax() }
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+        .cyNightCardDepth(radius: CYRadius.xl)
         .cyPressWave(wave, onTap: c.action)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("homeFeed.today.\(c.id)")
@@ -478,11 +504,14 @@ struct HomeTodayCard: View {
         ZStack {
             CYCoverArt(seed: c.title)
             if let url = c.imageURL, url.scheme?.lowercased() == "https" {
-                AsyncImage(url: url) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
+                AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: CYMotion.Duration.standard))) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) } else { Color.clear }
                 }
             }
-            LinearGradient(stops: [.init(color: .black.opacity(0.1), location: 0), .init(color: .black.opacity(0.78), location: 1)],
+            // Indigo dusk at the top, ink (never pure black) at the foot where the text sits.
+            LinearGradient(stops: [.init(color: CYNight.indigo.opacity(0.45), location: 0),
+                                   .init(color: CYNight.ink0.opacity(0.10), location: 0.35),
+                                   .init(color: CYNight.ink0.opacity(0.90), location: 1)],
                            startPoint: .top, endPoint: .bottom)
         }
     }

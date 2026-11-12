@@ -112,7 +112,8 @@ struct HomeHeroHeaderSectionView: View {
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
                     }
                     .background(CYColor.bgElevated, in: Capsule())
-                    .overlay { Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
+                    .overlay { Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1) }
+                    .shadow(color: CYNight.ink0.opacity(0.25), radius: 10, y: 4)
                 }
                 // The three fixed action banners are demoted into one quiet menu row; every banner stays reachable.
                 Menu {
