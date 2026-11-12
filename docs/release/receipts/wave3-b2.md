@@ -34,3 +34,9 @@ Target frame time at most 8 ms on `d2-home` during the 850 ms window (one `disto
 
 ## Checks run
 `swiftc -parse` on the new/changed Swift files, `tools/generate_project.py`, `tools/check_scaffold.py`, `tools/check_design_lint.py`, `tools/contract_ratchet.py --check`.
+
+## Update: non-shader fallback carries the effect (ui/w2b)
+- Metal distortion is now behind `#if CY_METAL_SHADERS` (defined for Debug and Release in `tools/generate_project.py`; behaviour unchanged when defined).
+- `CYTouchRipple` is the fallback and also draws over the shader: blurred (6) radial lanternHot 35 % to clear pulse, radius 0 to 280 pt over 600 ms; two 3 pt rings at 40 % fading (second 90 ms behind); 0.04 white card brightness lift (peak 80 ms, gone by 400 ms); dip/spring unchanged.
+- Low Power / thermal serious now shows this light pulse (shader still off); Reduce Motion stays dip only, no light, action immediate.
+- Re-record `wave-today-roam` (default and RM) to compare against `sheet-wave-today-roam-default.png`.

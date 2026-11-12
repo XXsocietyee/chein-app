@@ -103,10 +103,11 @@ def configurations(scope):
         if scope=='target': settings['CODE_SIGN_ENTITLEMENTS']='Config/Questify.entitlements'
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
         if scope=='target' and name=='Debug':
-            settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
+            settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG CY_METAL_SHADERS $(inherited)'
             settings['ENABLE_TESTABILITY']='YES'
         if scope=='target' and name=='Release':
             settings['EXCLUDED_SOURCE_FILE_NAMES']='$(inherited) '+release_excluded_names
+            settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='CY_METAL_SHADERS $(inherited)'
         extra={'baseConfigurationReference':release_config_ref if name=='Release' else config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')

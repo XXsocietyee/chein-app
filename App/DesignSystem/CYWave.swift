@@ -3,7 +3,7 @@ import SwiftUI
 /// Touch-origin wave (wave 3 B2, Jakubantalik). Press: the card dips to 0.985 over 120 ms. Release: a Metal
 /// distortion ring ripples outward from the finger for 800 ms (hard stop at 850 ms) with a thin lantern ring,
 /// the card springs 1.02 to 1.0, and the action starts a beat later so the ripple reads before the push.
-/// Reduce Motion: dip only, action immediate. Low Power / thermal serious: dip + spring, no shader, no ring.
+/// Reduce Motion: dip only, action immediate. Low Power / thermal serious: no shader; the Canvas light pulse carries the effect.
 enum CYWave {
     static let duration: TimeInterval = 0.8
     static let hardStop: TimeInterval = 0.85
@@ -122,6 +122,9 @@ extension View {
     fileprivate func isExcluded(_ point: CGPoint) -> Bool { excluded.contains { $0.contains(point) } }
 }
 
+/// Whether the light pulse (Canvas, cheap) plays: everything except Reduce Motion.
+func cyLightAllowed(reduceMotion: Bool) -> Bool { !reduceMotion }
+
 /// Whether the shader wave plays right now (not Reduce Motion, not Low Power / thermal serious).
 @MainActor func cyWaveAllowed(reduceMotion: Bool) -> Bool { !reduceMotion && CYLightBudget.shadersAllowed }
 
@@ -131,21 +134,16 @@ struct CYPressWaveModifier: ViewModifier {
     @QuestifyReduceMotion private var reduceMotion
 
     func body(content: Content) -> some View {
-        let waveOn = cyWaveAllowed(reduceMotion: reduceMotion)
+        let waveOn = cyLightAllowed(reduceMotion: reduceMotion)
+        let shaderOn = cyWaveAllowed(reduceMotion: reduceMotion)
         TimelineView(.animation(paused: !model.waving)) { timeline in
             let t = model.progress(at: timeline.date)
             let origin = model.origin
-            let active = waveOn && model.waving && t < 1
+            let lit = waveOn && model.waving && t < 1
+            let active = shaderOn && lit
             content
-                .overlay { CYTouchRipple(origin: origin, progress: t).opacity(active ? 1 : 0) }
-                .visualEffect { view, proxy in
-                    let c = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
-                    let len = max(hypot(c.x - origin.x, c.y - origin.y), 1)
-                    return view.distortionEffect(
-                        ShaderLibrary.cyWave(.float2(origin), .float(t), .float(10), .float(0.09),
-                                             .float2(CGPoint(x: (c.x - origin.x) / len, y: (c.y - origin.y) / len))),
-                        maxSampleOffset: CGSize(width: 12, height: 12), isEnabled: active)
-                }
+                .overlay { CYTouchRipple(origin: origin, progress: t).opacity(lit ? 1 : 0) }
+                .cyWaveDistortion(origin: origin, t: t, active: active)
         }
         .coordinateSpace(name: CYPressWaveModel.space)
         .scaleEffect(model.pressed ? CYWave.dipScale : (model.bump ? CYWave.releaseScale : 1))
@@ -169,25 +167,59 @@ struct CYPressWaveModifier: ViewModifier {
     }
 }
 
-/// Thin lantern ring plus a short bloom at the finger, clipped by the card. Lantern is allowed on the press ripple.
+extension View {
+    /// Metal distortion path. Without `CY_METAL_SHADERS` the light pulse in `CYTouchRipple` carries the effect alone.
+    @ViewBuilder fileprivate func cyWaveDistortion(origin: CGPoint, t: Double, active: Bool) -> some View {
+        #if CY_METAL_SHADERS
+        visualEffect { view, proxy in
+            let c = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            let len = max(hypot(c.x - origin.x, c.y - origin.y), 1)
+            return view.distortionEffect(
+                ShaderLibrary.cyWave(.float2(origin), .float(t), .float(10), .float(0.09),
+                                     .float2(CGPoint(x: (c.x - origin.x) / len, y: (c.y - origin.y) / len))),
+                maxSampleOffset: CGSize(width: 12, height: 12), isEnabled: active)
+        }
+        #else
+        self
+        #endif
+    }
+}
+
+/// Non-shader light: a soft radial lantern pulse from the touch point (0 to 280 pt over 600 ms, blurred), two 3 pt
+/// rings fading out, and a brief 0.04 white lift of the whole card. Carries the effect alone when the Metal wave is
+/// off or compiled out; sits on top of it otherwise. Lantern is allowed on the press ripple.
 struct CYTouchRipple: View {
     var origin: CGPoint
     var progress: Double
+    private static let pulseDuration = 0.6
 
     var body: some View {
-        Canvas { ctx, _ in
+        Canvas { ctx, size in
             let t = progress
-            let front = CYWave.reach * CGFloat(t)
-            let fade = 1 - t
-            let ring = Path(ellipseIn: CGRect(x: origin.x - front, y: origin.y - front, width: front * 2, height: front * 2))
+            let elapsed = t * CYWave.duration
+            let p = min(elapsed / Self.pulseDuration, 1)
+            let easeOut = 1 - pow(1 - p, 3)
             ctx.blendMode = .plusLighter
-            ctx.stroke(ring, with: .color(CYNight.lanternHot.opacity(0.5 * fade)), lineWidth: 1 + 2 * fade)
-            let bloomFade = max(0, 1 - t * 3.5)
-            if bloomFade > 0 {
-                let r: CGFloat = 34 + 30 * CGFloat(t)
-                ctx.fill(Path(ellipseIn: CGRect(x: origin.x - r, y: origin.y - r, width: r * 2, height: r * 2)),
-                         with: .radialGradient(Gradient(colors: [CYNight.lantern.opacity(0.35 * bloomFade), .clear]),
-                                               center: origin, startRadius: 0, endRadius: r))
+            // Brightness lift: peaks at 80 ms, gone by 400 ms.
+            let lift = max(0, elapsed < 0.08 ? elapsed / 0.08 : 1 - (elapsed - 0.08) / 0.32)
+            if lift > 0 { ctx.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color.white.opacity(0.04 * lift))) }
+            // Radial pulse.
+            if p < 1 {
+                let r = 280 * easeOut
+                ctx.drawLayer { layer in
+                    layer.addFilter(.blur(radius: 6))
+                    layer.fill(Path(ellipseIn: CGRect(x: origin.x - r, y: origin.y - r, width: r * 2, height: r * 2)),
+                               with: .radialGradient(Gradient(colors: [CYNight.lanternHot.opacity(0.35 * (1 - p)), .clear]),
+                                                     center: origin, startRadius: 0, endRadius: max(r, 1)))
+                }
+            }
+            // Two rings, the second 90 ms behind, 3 pt, ~40 % fading.
+            for delay in [0.0, 0.09] {
+                let q = min(max((elapsed - delay) / CYWave.duration, 0), 1)
+                guard q > 0, q < 1 else { continue }
+                let r = CYWave.reach * CGFloat(1 - pow(1 - q, 2))
+                ctx.stroke(Path(ellipseIn: CGRect(x: origin.x - r, y: origin.y - r, width: r * 2, height: r * 2)),
+                           with: .color(CYNight.lanternHot.opacity(0.4 * (1 - q))), lineWidth: 3)
             }
         }
         .allowsHitTesting(false)

@@ -425,7 +425,7 @@ struct HomeTodayCard: View {
             }
             if let action = c.action {
                 CYPillButton(verbatim: c.pill, style: .primary, fullWidth: false) {
-                    wave.perform(action, waveOn: cyWaveAllowed(reduceMotion: reduceMotion))
+                    wave.perform(action, waveOn: cyLightAllowed(reduceMotion: reduceMotion))
                 }
                     .cyPressWaveExcluded()
                     .padding(.top, CYSpacing.xs)
