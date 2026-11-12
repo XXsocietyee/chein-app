@@ -213,6 +213,7 @@ import SwiftUI
                     Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
                         .font(CYTypography.meta).textCase(nil).buttonStyle(.borderless)
                         .frame(minHeight: 44).accessibilityIdentifier("searchMap.clearHistory")
+                        .accessibilityLabel(Text("searchMap.clearHistory.a11y"))
                 }
             }
         }
@@ -427,6 +428,19 @@ import SwiftUI
                     .cyStaggeredAppear(index: index, gate: stagger)
                     .questifyCardListRow()
             }
+        }
+        // Mini-program result footer: "内容已加载完" and "刷新搜索结果".
+        if !visible.isEmpty && !loading {
+            Section {
+                VStack(spacing: CYSpacing.xs) {
+                    Text("searchMap.endOfResults").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Button("searchMap.refreshResults") { Task { await search() } }
+                        .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                        .accessibilityIdentifier("searchMap.refreshResults")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .listRowBackground(Color.clear)
         }
     }
     private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
