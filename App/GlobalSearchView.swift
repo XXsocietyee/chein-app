@@ -336,7 +336,8 @@ import SwiftUI
         Section {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: CYSpacing.sm) {
-                    kindPill(nil, title: Text("searchMap.all") + Text(verbatim: " \(allCountText(value))"))
+                    // Mini-program result tabs: 全部 carries no count; each kind tab shows its own.
+                    kindPill(nil, title: Text("searchMap.all"))
                     ForEach(searchKinds, id: \.self) { kind in
                         kindPill(kind, title: Text(kind.titleKey) + Text(verbatim: " \(countText(value, kind))"))
                     }
@@ -366,11 +367,18 @@ import SwiftUI
                     if let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
                 }
                 if !value.failedKinds.isEmpty {
-                    VStack(alignment: .leading) {
+                    // Mini-program info banner: one line of copy with 重试本页 trailing.
+                    HStack(spacing: CYSpacing.md) {
+                        Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
                         Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
-                        ForEach(value.failedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "exclamationmark.circle") }
-                        Button("searchMap.retry") { Task { await search() } }.buttonStyle(.borderless).frame(minHeight: 44)
-                    }.font(CYTypography.meta).accessibilityIdentifier("searchMap.partialFailure")
+                            .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: CYSpacing.sm)
+                        Button("searchMap.retryPage") { Task { await search() } }
+                            .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                    }
+                    .listRowBackground(CYNight.indigo)
+                    .accessibilityIdentifier("searchMap.partialFailure")
                 }
             }
         }
@@ -384,7 +392,7 @@ import SwiftUI
                     .accessibilityIdentifier("searchMap.unknown")
             }
             if value.showsEmptyState(for: selectedKind, isLoading: loading) {
-                CYEmptyState(systemImage: "magnifyingglass", "searchMap.empty", messageIdentifier: "searchMap.empty", kind: .search)
+                CYEmptyState(systemImage: "magnifyingglass", "globalSearch.empty", messageIdentifier: "searchMap.empty", kind: .search)
             }
             ForEach(Array(visible.enumerated()), id: \.element.id) { index, row in
                 NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }
@@ -394,11 +402,13 @@ import SwiftUI
                     .questifyCardListRow()
             }
         }
-        // Mini-program result footer: "内容已加载完" and "刷新搜索结果".
-        if !visible.isEmpty && !loading {
+        // Mini-program result footer: "内容已加载完" under results; "刷新搜索结果" also stays on an empty or failed page.
+        if !loading {
             Section {
                 VStack(spacing: CYSpacing.xs) {
-                    Text("searchMap.endOfResults").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    if !visible.isEmpty {
+                        Text("searchMap.endOfResults").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    }
                     Button("searchMap.refreshResults") { Task { await search() } }
                         .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
                         .accessibilityIdentifier("searchMap.refreshResults")
@@ -411,10 +421,6 @@ import SwiftUI
     /// Player lanes read the page model (em dash when failed or gated); merchant keeps its own count.
     private func countText(_ value: GlobalSearchResults, _ kind: GlobalSearchKind) -> String {
         GlobalSearchEntryReadiness.countText(value, kind: kind) ?? String(value.count(kind))
-    }
-    private func allCountText(_ value: GlobalSearchResults) -> String {
-        let player = GlobalSearchEntryReadiness.playerTotalText(value)
-        return player == GlobalSearchEntryReadiness.unknownCount ? player : String(value.rows.count)
     }
     private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind

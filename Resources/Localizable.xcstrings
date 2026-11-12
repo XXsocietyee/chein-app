@@ -192856,13 +192856,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load search results"
+            "value": "Couldn't finish the search"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索结果加载失败"
+            "value": "没能完成搜索"
           }
         }
       }
@@ -193897,13 +193897,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some results couldn't be refreshed"
+            "value": "Content search didn't finish. Retry this page"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "部分结果未能更新"
+            "value": "内容搜索未完成，重试本页"
           }
         }
       }
@@ -258352,6 +258352,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "编辑精选 · 参加条件以详情为准"
+          }
+        }
+      }
+    },
+    "searchMap.retryPage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry this page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试本页"
+          }
+        }
+      }
+    },
+    "globalSearch.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到"
           }
         }
       }
