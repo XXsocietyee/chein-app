@@ -134,7 +134,7 @@ import UIKit
     private func settle() async throws { try await Task.sleep(for: .milliseconds(150)) }
     private func eventually(_ ready: () -> Bool) async throws {
         for _ in 0..<150 { if ready() { return }; try await Task.sleep(for: .milliseconds(20)) }
-        XCTFail("Native share lifecycle did not settle"); throw APIError.notConfigured
+        XCTFail("Native share lifecycle did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {
         for _ in 0..<120 {
@@ -145,7 +145,7 @@ import UIKit
             }
             scroll(window); try await Task.sleep(for: .milliseconds(20))
         }
-        XCTFail("Missing original share action: " + id); throw APIError.notConfigured
+        XCTFail("Missing original share action: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func scroll(_ view: UIView) {
         if let value = view as? UIScrollView {

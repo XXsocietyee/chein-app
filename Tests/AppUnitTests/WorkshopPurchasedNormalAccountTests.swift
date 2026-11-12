@@ -86,6 +86,29 @@ enum HostedAccessibilityRuntime {
     }
 }
 
+/// Failure-time evidence for hosted lookups: what the process, scenes and accessibility tree actually looked like when a
+/// bounded wait gave up. Diagnostic only; it never gates a test.
+@MainActor func hostedDiagnostics() -> String {
+    var seen = Set<ObjectIdentifier>(), ids = Set<String>(), classes = Set<String>(), nodes = 0
+    func visit(_ node: NSObject, _ depth: Int) {
+        guard depth < 40, nodes < 4000, seen.insert(ObjectIdentifier(node)).inserted else { return }
+        nodes += 1; classes.insert(String(describing: type(of: node)))
+        if let id = (node as? UIAccessibilityIdentification)?.accessibilityIdentifier, !id.isEmpty { ids.insert(id) }
+        if let view = node as? UIView { view.subviews.forEach { visit($0, depth + 1) } }
+        node.accessibilityElements?.forEach { if let child = $0 as? NSObject { visit(child, depth + 1) } }
+        let count = node.accessibilityElementCount()
+        if count > 0 && count < 1000 { for i in 0..<count { if let child = node.accessibilityElement(at: i) as? NSObject { visit(child, depth + 1) } } }
+    }
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    for scene in scenes { scene.windows.forEach { visit($0, 0) } }
+    let node = NSClassFromString("SwiftUI.AccessibilityNode"), proto = objc_getProtocol("UIAccessibilityIdentification")
+    let conforms = node.flatMap { cls in proto.map { class_conformsToProtocol(cls, $0) } }
+    let sceneText = scenes.map { "\($0.activationState.rawValue):windows=\($0.windows.count),visible=\($0.windows.filter { !$0.isHidden }.count)" }
+    return "[hosted diagnostics app=\(UIApplication.shared.applicationState.rawValue) scenes=\(sceneText) nodes=\(nodes) "
+        + "swiftUINodeClass=\(node != nil) conformsToIdentification=\(String(describing: conforms)) "
+        + "voiceOver=\(UIAccessibility.isVoiceOverRunning) ids=\(ids.sorted().prefix(40)) classes=\(classes.sorted().prefix(25))]"
+}
+
 /// Mount real SwiftUI content the way the passing hosted suites do (RoamTileDenialHostTests): attach a placeholder root to the
 /// visible window first, let the first layout/run-loop turns complete, then install the real root. Content installed into an
 /// already-live hosting controller gets its accessibility tree and lifecycle callbacks; content handed to a controller that
