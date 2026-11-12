@@ -121,11 +121,19 @@ import UIKit
         XCTAssertEqual(state.tickets.reads, 1); XCTAssertTrue(state.tickets.details.isEmpty)
     }
     private func mount(_ state: EnrolledLifetimeHostState) -> UIWindow {
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        // A scene-less `UIWindow(frame:)` is not laid out/accessible on the iOS 27 simulator; attach to the foreground scene
+        // like the hosted suites that already settle (Share, Official), falling back to the old window only if none exists.
+        let owned = try? HostedNavigationSceneWindow()
+        let window = owned?.window ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        if let owned { ownedScenes.append(owned) }
         hostedMount(window, root: EnrolledLifetimeHost(state: state))
         return window
     }
-    private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
+    private var ownedScenes: [HostedNavigationSceneWindow] = []
+    private func close(_ window: UIWindow) {
+        if let index = ownedScenes.firstIndex(where: { $0.window === window }) { ownedScenes.remove(at: index).retire(); return }
+        window.isHidden = true; window.rootViewController = nil
+    }
     private func waitFor(_ condition: () -> Bool) async throws {
         for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
         XCTFail("Original enrolled-topic control/read state did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured

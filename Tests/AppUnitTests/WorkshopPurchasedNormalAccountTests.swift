@@ -126,6 +126,16 @@ enum HostedAccessibilityRuntime {
         + "voiceOver=\(UIAccessibility.isVoiceOverRunning) ids=\(ids.sorted().prefix(40)) classes=\(classes.sorted().prefix(25))]"
 }
 
+/// The sheet a hosted SwiftUI tree really presented. SwiftUI presents from the hosting controller that owns the `.sheet`
+/// modifier, which inside a NavigationStack destination is a descendant of the window's root controller, so asking only the
+/// root `presentedViewController` can miss a sheet that is on screen. Search the root, its descendants and presented chain.
+@MainActor func hostedPresented(_ root: UIViewController?) -> UIViewController? {
+    guard let root else { return nil }
+    if let presented = root.presentedViewController { return presented }
+    for child in root.children { if let found = hostedPresented(child) { return found } }
+    return nil
+}
+
 /// Mount real SwiftUI content the way the passing hosted suites do (RoamTileDenialHostTests): attach a placeholder root to the
 /// visible window first, let the first layout/run-loop turns complete, then install the real root. Content installed into an
 /// already-live hosting controller gets its accessibility tree and lifecycle callbacks; content handed to a controller that

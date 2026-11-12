@@ -103,15 +103,15 @@ import UIKit
         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
         try await wait("normal list appeared") { flow.phase == .ready && flow.incoming.count == 1 }
         flow.reviewAction(.accept, item: try XCTUnwrap(flow.incoming.first))
-        try await wait("real review sheet appeared") { host.presentedViewController != nil }
+        try await wait("real review sheet appeared") { hostedPresented(host) != nil }
         XCTAssertEqual(flow.actionReview?.command.expectedVersion, 3)
         flow.cancelReview()
-        try await wait("cancel dismissed real sheet") { host.presentedViewController == nil }
+        try await wait("cancel dismissed real sheet") { hostedPresented(host) == nil }
         XCTAssertTrue(source.writes.isEmpty); XCTAssertTrue(journal.rows.isEmpty)
         flow.reviewAction(.accept, item: try XCTUnwrap(flow.incoming.first))
-        try await wait("review reopened") { host.presentedViewController != nil }
+        try await wait("review reopened") { hostedPresented(host) != nil }
         await flow.confirmReview()
-        try await wait("result returned to the list") { host.presentedViewController == nil && flow.friends.count == 1 }
+        try await wait("result returned to the list") { hostedPresented(host) == nil && flow.friends.count == 1 }
         XCTAssertEqual(source.writes.first?.expectedVersion, 3); XCTAssertEqual(source.writes.count, 1)
         XCTAssertEqual(flow.relationship?.state, .friend); XCTAssertTrue(flow.incoming.isEmpty)
         let peer = try XCTUnwrap(flow.friends.first)
@@ -129,11 +129,11 @@ import UIKit
         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
         try await wait("normal list appeared") { flow.phase == .ready }
         flow.reviewAction(.accept, item: try XCTUnwrap(flow.incoming.first))
-        try await wait("sheet appeared") { host.presentedViewController != nil }
+        try await wait("sheet appeared") { hostedPresented(host) != nil }
         let original = try XCTUnwrap(flow.actionReview?.command)
         source.held = true
         let write = Task { await flow.confirmReview() }
-        try await wait("sheet consumed and dispatch held") { source.gate != nil && host.presentedViewController == nil }
+        try await wait("sheet consumed and dispatch held") { source.gate != nil && hostedPresented(host) == nil }
         routes.path = []
         try await wait("normal Back purged the hidden page") { flow.phase == .closed && flow.incoming.isEmpty }
         source.gate?.resume(); source.gate = nil; await write.value
@@ -154,10 +154,10 @@ import UIKit
         try await wait("normal list appeared") { flow.phase == .ready }
         let old = try XCTUnwrap(flow.incoming.first)
         flow.reviewAction(.reject, item: old)
-        try await wait("real sheet appeared") { host.presentedViewController != nil }
+        try await wait("real sheet appeared") { hostedPresented(host) != nil }
         source.isCurrent = false
         XCTAssertNil(flow.actionReview); XCTAssertTrue(flow.incoming.isEmpty)
-        try await wait("silent withdrawal dismissed sheet") { host.presentedViewController == nil }
+        try await wait("silent withdrawal dismissed sheet") { hostedPresented(host) == nil }
         await flow.confirmReview(); XCTAssertTrue(source.writes.isEmpty); XCTAssertTrue(journal.rows.isEmpty)
         source.isCurrent = true; source.version = 5
         await flow.load(); flow.reviewAction(.accept, item: old)
@@ -197,11 +197,11 @@ import UIKit
         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
         try await wait("normal list appeared") { flow.phase == .ready }
         flow.reviewAction(.accept, item: try XCTUnwrap(flow.incoming.first))
-        try await wait("sheet appeared") { host.presentedViewController != nil }
+        try await wait("sheet appeared") { hostedPresented(host) != nil }
         // Controlled SwiftUI scene environment exercises the production lifecycle observer.
         // This is not an OS background/process-kill certification.
         routes.phase = .background
-        try await wait("background clears sheet and private list") { host.presentedViewController == nil && flow.incoming.isEmpty && flow.phase == .closed }
+        try await wait("background clears sheet and private list") { hostedPresented(host) == nil && flow.incoming.isEmpty && flow.phase == .closed }
         XCTAssertNil(flow.actionReview); XCTAssertTrue(source.writes.isEmpty); XCTAssertTrue(journal.rows.isEmpty)
         source.version = 5; routes.phase = .active
         try await wait("foreground reloads replacement application") { flow.phase == .ready && flow.incoming.first?.version == 5 }
