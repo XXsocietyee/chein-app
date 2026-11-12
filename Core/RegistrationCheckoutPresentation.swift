@@ -495,7 +495,8 @@ public enum TicketWindowRule {
         } else if let endTime, now > endTime {
             return .ended
         }
-        // Source ticket-window.js: signupDeadline only closes self-guided tickets (handled above).
+        // The registration form re-checks signupDeadline. A past deadline closes a timed session too.
+        if let signupDeadline, now >= signupDeadline { return .closed }
         return .available
     }
 

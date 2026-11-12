@@ -2,6 +2,15 @@ import Foundation
 
 /// Source: lib/data/api/roam_api.dart. Unknown recovery states are errors, never NOT_FOUND.
 public enum RoamRecoveredState: String, Codable { case active = "ACTIVE", finished = "FINISHED", notFound = "NOT_FOUND" }
+/// Missing or non-positive countdown TTL falls back to 300 seconds.
+public enum CountdownTTL {
+    public static let fallbackSeconds = 300
+    public static func seconds(milliseconds: Int?) -> Int {
+        let ms = milliseconds ?? 0
+        return (ms > 0 ? ms : fallbackSeconds * 1000) / 1000
+    }
+}
+
 public struct RoamSettlement: Decodable, Equatable {
     public let tileXp: Int?
     public let poiXp: Int?
@@ -150,7 +159,7 @@ public struct RoamVoucherSnapshot: Decodable, Equatable {
     public let ttlMs: Int
     public var hasCode: Bool { !code.isEmpty }
     // Matches the retained implementation, including its <= 0 fallback (the Dart comment disagrees).
-    public var countdownSeconds: Int { (ttlMs > 0 ? ttlMs : 300_000) / 1000 }
+    public var countdownSeconds: Int { CountdownTTL.seconds(milliseconds: ttlMs) }
     enum CodingKeys: String, CodingKey { case code, qrcodeUrl, ttlMs }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)

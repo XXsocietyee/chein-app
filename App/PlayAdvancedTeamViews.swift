@@ -89,8 +89,16 @@ import SwiftUI
                 Text(metric == .elapsed ? "advancedBoard.elapsed" : metric == .units ? "advancedBoard.units" : "advancedBoard.score").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Text("advancedBoard.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 if model.leaderboardPhase == "loading" { CYLoadingStateView(rows: 1).accessibilityLabel(Text("advancedBoard.loading")) }
-                else if model.leaderboardPhase == "failed" { CYStatusChip("advancedBoard.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("advancedBoard.failed") }
-                else if model.leaderboardPhase == "ready" && model.leaderboard.isEmpty { CYEmptyState(systemImage: "list.number", "advancedBoard.empty", messageIdentifier: "advancedBoard.empty") }
+                else {
+                    switch LeaderboardFetchPresentation.resolve(phase: model.leaderboardPhase, rowCount: model.leaderboard.count) {
+                    case .error:
+                        CYStatusChip("advancedBoard.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("advancedBoard.failed")
+                    case .empty:
+                        CYEmptyState(systemImage: "list.number", "advancedBoard.empty", messageIdentifier: "advancedBoard.empty")
+                    case .ready, .other:
+                        EmptyView()
+                    }
+                }
                 ForEach(Array(model.leaderboard.enumerated()), id: \.offset) { _, row in
                     HStack {
                         Text(verbatim: String(row["rank"].integer ?? 0)).monospacedDigit()

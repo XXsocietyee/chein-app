@@ -106,8 +106,7 @@ import SwiftUI
         self.seriesUpdateReturn = seriesUpdateReturn
         self.seriesCreationReturn = seriesCreationReturn
         self.occurrenceCancellationReturn = occurrenceCancellationReturn
-        var initial = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed)
-        if route.operation == .assignRole { initial.text["roleCode"] = "" }
+        let initial = ClubGovernanceFormDraft(operation: route.operation, scope: route.scope, seed: route.seed)
         _draft = State(initialValue: initial)
     }
     var body: some View {
@@ -181,7 +180,8 @@ import SwiftUI
                 if route.operation == .assignRole {
                     ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
                         memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
-                        canEdit: { !busy && !locked && review == nil })
+                        canEdit: { !busy && !locked && review == nil },
+                        applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
                 }
                 if route.operation == .createSeries {
                     ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,

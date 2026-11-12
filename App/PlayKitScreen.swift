@@ -82,6 +82,9 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             Button("playkit.keepEditing", role: .cancel) {}
         } message: { Text("playkit.discardBoundary") }
         .onAppear { loadInitial() }
+        .onChange(of: model.playKitPresentation.playKitOpen) { _, open in
+            if !open { review = nil; reviewedCompletion = nil }
+        }
         .onChange(of: dirty) { _, next in reportDirty?(next) }
         .onChange(of: model.state?.sessionID) { _, next in
             if sessionIdentity != next { clearTransient(); sessionIdentity = next; loaded = false; loadInitial() }
@@ -194,7 +197,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
         }
     }
     func prepare(_ action: String, _ payload: [String: PlayWireValue] = [:], _ completion: @escaping () -> Void = {}) {
-        do { review = try model.review(kind: kind.rawValue, action: action, detail: payload); reviewedCompletion = completion; issue = nil }
+        do { review = try model.review(kind: kind.rawValue, action: action, detail: payload); reviewedCompletion = completion; issue = nil; model.openPlayKitSheet() }
         catch { issue = error as? PlayExperienceError ?? .invalidAction }
     }
     func submitButton(_ action: String, payload: [String: PlayWireValue], valid: Bool = true) -> some View {

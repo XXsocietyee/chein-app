@@ -94,6 +94,7 @@ import SwiftUI
     @Binding var memberID: String
     @Binding var roleCode: String
     let canEdit: () -> Bool
+    var applySelection: (String, String) -> Void = { _, _ in }
     private enum Expanded: Equatable { case member, role }
     @State private var expanded: Expanded?
     private var context: ClubGovernanceReadContext { ClubRoleAssignmentReadModel.context(scope: scope, identity: identity, access: access) }
@@ -119,7 +120,9 @@ import SwiftUI
                         ForEach(options.members) { member in
                             Button {
                                 guard canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
-                                memberID = String(member.id); expanded = nil
+                                memberID = String(member.id)
+                                applySelection(String(member.id), roleCode)
+                                expanded = nil
                             } label: {
                                 HStack {
                                     memberName(member)
@@ -141,7 +144,9 @@ import SwiftUI
                         ForEach(options.roles) { role in
                             Button {
                                 guard canEdit(), model.canSelect(options, snapshotID: readID, permit: permit, access: access) else { return }
-                                roleCode = role.code; expanded = nil
+                                roleCode = role.code
+                                applySelection(memberID, role.code)
+                                expanded = nil
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {

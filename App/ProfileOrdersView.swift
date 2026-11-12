@@ -153,6 +153,10 @@ private struct ProfileOrderRow: View {
             OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
                             systemImage: Self.symbol(historyState),
                             emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress)
+            if let explanation = UnknownPaymentState.explanation(payment: order.paymentStatus, registration: order.registrationStatus) {
+                Text(verbatim: explanation).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("profile.orders.history.unknownPayment")
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -281,7 +285,9 @@ struct ProfileOrderDetailView: View {
                         }
                     }
                     // Keep status dimensions distinct; never infer settlement/refund from registration.
-                    if let code = order.paymentStatus {
+                    if let explanation = UnknownPaymentState.explanation(payment: order.paymentStatus, registration: order.registrationStatus) {
+                        Text(verbatim: explanation).accessibilityIdentifier("profile.order.detail.unknownPayment")
+                    } else if let code = order.paymentStatus {
                         LabeledContent("profile.orderParity.payment") { ProfileOrderCodeText(label: .payment(code)) }
                     }
                     if let code = order.refundPayoutStatus {

@@ -15,18 +15,21 @@ public struct TopicSelfPlayIntent: Encodable, Equatable {
     public let realName: String
     public let phone: String
     public let requestID: String
-    public init(topic: SelfPlayTopicID, realName: String, phone: String, requestID: String) throws {
+    public let sourceClubId: Int?
+    public init(topic: SelfPlayTopicID, realName: String, phone: String, requestID: String, sourceClubId: Int? = nil) throws {
         let name = realName.trimmingCharacters(in: .whitespacesAndNewlines), phone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, phone.range(of: "^1[0-9]{10}$", options: .regularExpression) != nil,
               !requestID.isEmpty, requestID.utf16.count <= 64 else { throw APIError.invalidRequest }
         self.topic = topic; self.realName = name; self.phone = phone; self.requestID = requestID
+        self.sourceClubId = sourceClubId.flatMap { $0 > 0 ? $0 : nil }
     }
-    enum CodingKeys: String, CodingKey { case ownerType, ownerId, realName, phone, isUsePoint, payChannel, requestId }
+    enum CodingKeys: String, CodingKey { case ownerType, ownerId, realName, phone, isUsePoint, payChannel, requestId, sourceClubId }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(1, forKey: .ownerType); try c.encode(topic.rawValue, forKey: .ownerId)
         try c.encode(realName, forKey: .realName); try c.encode(phone, forKey: .phone)
         try c.encode(0, forKey: .isUsePoint); try c.encode("APP", forKey: .payChannel); try c.encode(requestID, forKey: .requestId)
+        if let sourceClubId { try c.encode(sourceClubId, forKey: .sourceClubId) }
     }
 }
 public struct TopicSelfPlayDocument: Equatable {
