@@ -249845,6 +249845,57 @@
           }
         }
       }
+    },
+    "mp.entry.journeyReport": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局战报"
+          }
+        }
+      }
+    },
+    "mp.entry.journeySeats": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion seats"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同行席位"
+          }
+        }
+      }
+    },
+    "mp.settle.thisStage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本关"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
