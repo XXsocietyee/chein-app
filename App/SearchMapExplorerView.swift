@@ -102,6 +102,7 @@ import SwiftUI
                                 .accessibilityIdentifier("searchMap.showMap")
                         }
                     }
+                    SideQuestPlayerEntry(snapshot: SideQuestPlayerFlow.production)
                     if let selectedPin, pins.filter({ $0.id == selectedPin }).count == 1 { selectedPlaceSummary(selectedPin, area: area) }
                 }
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
