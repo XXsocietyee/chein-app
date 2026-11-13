@@ -225,9 +225,22 @@ enum E2ETestHostOverride {
             bundleIdentifier: Bundle.main.bundleIdentifier,
             realm: realm
         )
-        return RegionalLaunchConfiguration.shippedComposition(build: build) {
-            E2ETestHostTransport(underlying: URLSessionTransport())
+        let transport: () -> any HTTPTransport = { E2ETestHostTransport(underlying: URLSessionTransport()) }
+        // Probe only, beyond shipped behavior: also grant signed-in topic/activity detail reads.
+        if arguments.contains("--e2e-grant-content-details"),
+           let reviewed = try? ReviewedAppDeployment(
+                market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+                approvedBaseURLs: ReviewedMarketLaunch.approvedBaseURLs,
+                verifiedCapabilities: ReviewedMarketLaunch.chinaVerifiedCapabilities,
+                bundleIdentifier: build.bundleIdentifier ?? "", realm: realm,
+                reads: [.homeAndSearch, .manualMap, .publicMapLayers, .publicTopicTemplateCatalogAndDetail,
+                        .officialPublicEventCatalogAndDetail, .playNodesAndRouteState],
+                contentDetails: .activityAndTopic,
+                productionGatesEnabled: true, playerWritesEnabled: true,
+                allowLoginRoleFallbackOnRolelessUserInfo: true) {
+            return RegionalLaunchConfiguration.makeComposition(reviewed: reviewed, build: build, makeTransport: transport)
         }
+        return RegionalLaunchConfiguration.shippedComposition(build: build, makeTransport: transport)
     }
 }
 

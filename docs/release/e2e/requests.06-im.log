@@ -1,0 +1,6 @@
+[E2E] composition refused or failed POST /prod-api/api/coop/list: notConfigured
+[E2E] POST https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/im/conversations -> 200 228ms {"msg":"操作成功","code":200,"data":[]}
+[E2E] POST https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/im/start -> 200 383ms {"msg":"操作成功","code":200,"data":{"conversationId":1}}
+[E2E] composition refused or failed POST /prod-api/api/coop/list: notConfigured
+[E2E] POST https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/im/messages -> 200 269ms {"msg":"操作成功","code":200,"data":{"nextCursor":null,"blocked":false,"blockedByMe":false,"hasMore":false,"list":[]}}
+[E2E] composition refused or failed POST /prod-api/api/im/send: notConfigured

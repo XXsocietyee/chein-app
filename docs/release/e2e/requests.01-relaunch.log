@@ -1,0 +1,2 @@
+[E2E]""
+[E2E] POST https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/userInfo -> 200 1956ms {"msg":"操作成功","appUser":{"createBy":null,"createTime":null,"updateBy":null,"updateTime":null,"remark":null,"userId":9004,"userName":"13900000004","nickName":null,"email":null,"mobile":null,"sex":null,"avatar":null,"status":null,"delFlag":null,"loginIp":null,"loginDate":null,"userType":null},"code":200}

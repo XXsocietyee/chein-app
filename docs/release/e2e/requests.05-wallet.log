@@ -1,0 +1,2 @@
+[E2E] POST https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/registration/list -> 200 271ms {"msg":"操作成功","code":200,"data":{"total":0,"rows":[],"code":200,"msg":"查询成功"}}
+[E2E] POST https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/registration/list -> 200 283ms {"msg":"操作成功","code":200,"data":{"total":0,"rows":[],"code":200,"msg":"查询成功"}}

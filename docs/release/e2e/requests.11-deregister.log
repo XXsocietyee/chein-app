@@ -1,0 +1,3 @@
+[E2E] GET https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/user/deregister/status -> error Error Domain=NSURLErrorDomain Code=-999 "cancelled" UserInfo={NSErrorFailingURLStringKey=https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/user/deregister/status, NSErrorFailingURLKey=https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/user/deregister/status, _NSURLErrorRelatedURLSessionTaskErrorKey=(
+[E2E] composition refused or failed GET /prod-api/api/user/deregister/status: CancellationError()
+[E2E] GET https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/user/deregister/status -> 200 3541ms {"msg":"操作成功","code":200,"data":{"status":"NORMAL","verificationMethod":"UNAVAILABLE","executeAfter":null,"blockers":[]}}

@@ -2579,6 +2579,17 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
 
     func send(_ request: URLRequest) async throws -> (Data, Int) {
+        #if DEBUG
+        do { return try await guardedSend(request) } catch {
+            NSLog("[E2E] composition refused or failed %@ %@: %@", request.httpMethod ?? "GET", request.url?.path ?? "", "\(error)")
+            throw error
+        }
+        #else
+        return try await guardedSend(request)
+        #endif
+    }
+
+    private func guardedSend(_ request: URLRequest) async throws -> (Data, Int) {
         if merchantDeskAnchorOnly {
             guard let scope = merchantDeskAnchorScope else { throw APIError.notConfigured }
             return try await sendMerchantDeskAnchor(request, scope: scope)
