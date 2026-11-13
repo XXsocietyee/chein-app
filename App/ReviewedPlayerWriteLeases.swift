@@ -30,6 +30,9 @@ extension ReviewedProductionFormMutationRoute {
            (ClubOrdinaryAdmissionRoute.accepts(request, baseURL: baseURL) || simpleClubMembership(request, baseURL: baseURL)) {
             return true
         }
+        if let orientScore = orientScoreReviewDecision(request, relative: relative, reports: grant.reports) {
+            return orientScore
+        }
         if relative.hasPrefix("api/v1/community/"), grant.square.paths.contains(where: { $0.hasPrefix("api/v1/community/") }) {
             if method == "GET" { return request.httpBody == nil || request.httpBody?.isEmpty == true }
             guard ["POST", "PATCH", "DELETE"].contains(method) else { return false }
@@ -164,7 +167,8 @@ extension ReviewedProductionFormMutationRoute {
     static let reportPaths: Set<String> = [
         "api/v1/community/reports", "api/v1/community/appeals", "api/comment/report", "api/topic/report",
         "api/template/report", "api/creativesquare/report", "api/im/report", "api/club/post/report",
-        "api/club/post/comment/report", "api/club/governance/cases/report", "api/club/governance/cases/appeal"
+        "api/club/post/comment/report", "api/club/governance/cases/report", "api/club/governance/cases/appeal",
+        "api/orient/scoring/appeal", "api/orient/scoring/dispute"
     ]
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening

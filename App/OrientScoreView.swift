@@ -5,12 +5,13 @@ import QuestifyCore
 
 // MARK: - Orient score (subpackageMember/orient-score) — read-only native screen
 // Shows the player's own round score, per-dimension breakdown, settlement, ledger timeline and
-// appeal/dispute status. Appeals, disputes, sync and settle are NOT offered here: they stay in the
-// existing OrientSessionCoordinator flow and this screen never reports a write as done.
+// appeal/dispute status. Appeal and dispute are offered only when the reports grant supplies a
+// submitter. Sync, settle, purchase, and payout are not offered here. An unknown write stays an em dash.
 
 @available(macOS 14.0, *)
 @MainActor final class OrientScoreModel: ObservableObject {
     @Published private(set) var state: OrientScoreLoadState = .loading
+    @Published private(set) var loadedScore: OrientSessionScore?
     /// Returns the player's own score, or nil when there is no round to show.
     private let loader: () async throws -> OrientSessionScore?
     private var generation = 0
@@ -34,9 +35,11 @@ import QuestifyCore
         generation += 1
         let stamp = generation
         state = .loading
+        loadedScore = nil
         do {
             let score = try await loader()
             guard stamp == generation else { return }
+            loadedScore = score
             readyFacts = score.map(OrientScorePage.facts(from:))
             state = score.map { .ready(OrientScorePresentation.summary(from: $0)) } ?? .empty
         } catch is CancellationError {
@@ -51,6 +54,7 @@ import QuestifyCore
 @available(macOS 14.0, *)
 @MainActor struct OrientScoreView: View {
     @StateObject private var model: OrientScoreModel
+    @Environment(\.orientScoreSession) private var orientScoreSession
 
     init(model: OrientScoreModel) {
         _model = StateObject(wrappedValue: model)
@@ -89,7 +93,7 @@ import QuestifyCore
                          actionIdentifier: "orientScore.retry") { Task { await model.load() } }
         case .ready(let facts)?:
             if case .ready(let summary) = model.state {
-                OrientScoreReadyContent(summary: summary, facts: facts)
+                OrientScoreReadyContent(summary: summary, facts: facts, score: model.loadedScore, session: orientScoreSession)
             }
         }
     }
@@ -100,6 +104,13 @@ import QuestifyCore
     let summary: OrientScoreSummary
     /// `OrientScorePage.Facts` for the same score: total, settlement, and timeline numbers (em dash when unknown).
     var facts: OrientScorePage.Facts? = nil
+    var score: OrientSessionScore? = nil
+    var session: AppSession? = nil
+
+    private var reviewSubmitter: (submitter: OrientScoreReviewModel.Submitter, makeKey: () -> String)? {
+        guard let score, let session else { return nil }
+        return OrientScoreReviewFactory.makeSubmitter(OrientScoreReviewContext(session: session, score: score, entryID: { nil }))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
@@ -109,11 +120,15 @@ import QuestifyCore
             timelineCard
             reviewsCard(title: "orientScore.appeals", emptyText: "orientScore.appeals.empty", rows: summary.appeals)
             reviewsCard(title: "orientScore.disputes", emptyText: "orientScore.disputes.empty", rows: summary.disputes)
-            CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
-                Text("orientScore.readOnly")
-                    .font(CYTypography.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            if let score, let session, reviewSubmitter != nil {
+                OrientScoreReviewSection(session: session, score: score, entries: summary.timeline)
+            } else {
+                CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
+                    Text("orientScore.readOnly")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
@@ -245,9 +260,13 @@ import QuestifyCore
 @available(macOS 14.0, *)
 @MainActor struct OrientScoreEntryLink: View {
     let loader: () async throws -> OrientSessionScore?
+    var session: AppSession? = nil
     var body: some View {
         Section {
-            NavigationLink { OrientScoreView(model: OrientScoreModel(loader: loader)) } label: {
+            NavigationLink {
+                OrientScoreView(model: OrientScoreModel(loader: loader))
+                    .environment(\.orientScoreSession, session)
+            } label: {
                 CYListRow("orientScore.title", trailing: .none) { CYRowIcon(systemImage: "list.number") }
             }
             .accessibilityIdentifier("activity.openOrientScore")

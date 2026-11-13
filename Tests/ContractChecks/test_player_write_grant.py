@@ -26,12 +26,15 @@ class PlayerWriteGrantContracts(unittest.TestCase):
             "api/topic/chapter/finish", "api/play/run-session/save", "api/play/journey/opening/complete",
             "api/play/orient/session", "api/play/scan-entry", "api/roam/checkin", "api/roam/stamp/exchange",
             "api/city/nodes/{}/favorite", "api/topic/like",
+            "api/orient/scoring/appeal", "api/orient/scoring/dispute",
         ]:
             self.assertIn('"' + path + '"', paths)
         for banned in [
             "api/registration/pay", "api/registration/cancel-refund", "api/withdrawal/create",
             "api/login", "api/merchant/", "api/club/settlement/withdraw", "api/mod-commerce",
             "api/roam/presence", "api/club/roles/assign", "api/club/roles/revoke",
+            "api/orient/scoring/session/{}/sync", "api/orient/scoring/session/{}/settle",
+            "/purchase", "/payout",
         ]:
             self.assertNotIn(banned, paths)
         route = leases.split("func acceptsPlayerWrite", 1)[1].split("@MainActor final class ReviewedProductionGateLeases", 1)[0]

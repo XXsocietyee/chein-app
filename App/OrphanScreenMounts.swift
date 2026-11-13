@@ -91,6 +91,7 @@ extension EnvironmentValues {
             Section {
                 NavigationLink {
                     OrientScoreView(model: OrientScoreModel(loader: loader))
+                        .environment(\.orientScoreSession, session)
                 } label: {
                     Label {
                         Text("orphanMount.orientScore.entry", tableName: "OrphanMounts")

@@ -3,22 +3,49 @@ import SwiftUI
 import QuestifyCore
 #endif
 
-/// Seam for the orient score appeal/dispute submitter. Returns nil in production until composition
-/// injects a closure wrapping `OrientSessionCoordinator.appeal/dispute(confirmed: true, ...)`; nil makes
-/// the form say "Not available yet" and send nothing.
-@MainActor enum OrientScoreReviewFactory {
-    static var makeSubmitter: () -> OrientScoreReviewModel.Submitter? = { nil }
+private struct OrientScoreSessionKey: EnvironmentKey {
+    static let defaultValue: AppSession? = nil
+}
 
-    static func makeModel() -> OrientScoreReviewModel {
-        OrientScoreReviewModel(submitter: makeSubmitter(), makeKey: { UUID().uuidString })
+extension EnvironmentValues {
+    /// Signed-in session for the orient score appeal / dispute form. Nil keeps the form hidden.
+    var orientScoreSession: AppSession? {
+        get { self[OrientScoreSessionKey.self] }
+        set { self[OrientScoreSessionKey.self] = newValue }
     }
 }
 
-/// Appeal / dispute form with an explicit confirm step. Attach under `OrientScoreReadyContent`.
+/// Seam for the orient score appeal/dispute submitter. Nil until the reports grant
+/// includes `/api/orient/scoring/appeal` and `/api/orient/scoring/dispute`.
+@MainActor enum OrientScoreReviewFactory {
+    static var makeSubmitter: (OrientScoreReviewContext) -> (submitter: OrientScoreReviewModel.Submitter, makeKey: () -> String)? = { context in
+        OrientScoreReviewProduction.make(context)
+    }
+}
+
+@MainActor final class OrientScoreReviewEntrySelection: ObservableObject {
+    @Published var entryID: Int?
+}
+
+/// Appeal / dispute form with an explicit confirm step. Attach under `OrientScoreReadyContent`
+/// only when `makeSubmitter` returns a submitter. Sync and settle are not on this form.
 @MainActor struct OrientScoreReviewSection: View {
-    @StateObject private var model = OrientScoreReviewFactory.makeModel()
+    @StateObject private var model: OrientScoreReviewModel
+    @StateObject private var selection: OrientScoreReviewEntrySelection
+    private let entries: [OrientScoreTimelineRow]
     @State private var reason = ""
     @State private var kind: OrientScoreReviewModel.Kind = .appeal
+
+    init(session: AppSession, score: OrientSessionScore, entries: [OrientScoreTimelineRow]) {
+        let selection = OrientScoreReviewEntrySelection()
+        if entries.count == 1 { selection.entryID = entries[0].entryID }
+        self.entries = entries
+        _selection = StateObject(wrappedValue: selection)
+        let built = OrientScoreReviewFactory.makeSubmitter(OrientScoreReviewContext(
+            session: session, score: score, entryID: { selection.entryID }))
+        _model = StateObject(wrappedValue: OrientScoreReviewModel(
+            submitter: built?.submitter, makeKey: built?.makeKey ?? { UUID().uuidString }))
+    }
 
     var body: some View {
         CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
@@ -28,6 +55,15 @@ import QuestifyCore
                     Text("orientScore.review.dispute").tag(OrientScoreReviewModel.Kind.dispute)
                 }
                 .pickerStyle(.segmented)
+                if kind == .appeal {
+                    Picker("orientScore.review.entry", selection: entryBinding) {
+                        Text("orientScore.review.needEntry").tag(0)
+                        ForEach(entries) { row in
+                            Text(verbatim: row.dimension + " " + row.delta).tag(row.entryID)
+                        }
+                    }
+                    .accessibilityIdentifier("orientScore.review.entry")
+                }
                 TextField("orientScore.review.reason", text: $reason, axis: .vertical)
                     .lineLimit(3...6)
                     .textFieldStyle(.roundedBorder)
@@ -51,6 +87,10 @@ import QuestifyCore
         }
     }
 
+    private var entryBinding: Binding<Int> {
+        Binding(get: { selection.entryID ?? 0 }, set: { selection.entryID = $0 > 0 ? $0 : nil })
+    }
+
     @ViewBuilder private var statusView: some View {
         switch model.state {
         case .submitting:
@@ -60,9 +100,15 @@ import QuestifyCore
                 .foregroundStyle(CYColor.successText)
                 .accessibilityIdentifier("orientScore.review.submitted")
         case .failed(let message):
-            Label(message, systemImage: "exclamationmark.triangle.fill")
-                .foregroundStyle(CYColor.dangerText)
-                .accessibilityIdentifier("orientScore.review.failed")
+            if message == OrientScoreReviewOutcome.unknownMark {
+                Label("orientScore.review.unknown", systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("orientScore.review.failed")
+            } else {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("orientScore.review.failed")
+            }
         case .unavailable:
             Label("orientScore.review.unavailable",
                   systemImage: "exclamationmark.circle")
