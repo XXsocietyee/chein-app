@@ -694,6 +694,70 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
     }
 
+    /// G4/G5: the shipped China composition admits the community-trust, roam-extra, template and map/search
+    /// player routes through the play lease and the owner grant (both places), and still refuses money routes.
+    func testShippedChinaAdmitsSocialRoamTemplateMapRoutesAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let base = player.baseURL
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        let token = player.session.token
+        let jsonWrites: [(String, String)] = [
+            ("api/community-trust/contributions/submit", #"{"contributionType":"ISSUE_REPORT","description":"x","idempotencyKey":"mct-5-abcdef","issueType":"OTHER","merchantId":5}"#),
+            ("api/community-trust/safety/ratings", #"{"idempotencyKey":"safety-5-a","merchantId":5,"overallLevel":"SAFE","reason":"x"}"#),
+            ("api/community-trust/reports/appeal", #"{"reason":"x","reportId":3,"requestId":"rpa-3-abcdef"}"#),
+            ("api/template/adopt-draft", #"{"originalTemplateId":"17","requestId":"adopt_1_x","scope":"","sourceVersion":"a"}"#)
+        ]
+        for (path, body) in jsonWrites {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            XCTAssertTrue(grant.play.paths.contains(path), path)
+            _ = try await transport.send(jsonRequest(base.appendingPathComponent(path), body, token: token))
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        let formWrites: [(String, String)] = [
+            ("api/roam/session/records", "sessionId=4&records=%5B%5D"), ("api/roam/shop/visitors", "sourceType=1&sourceIds=3"),
+            ("api/template/author-info", "id=5&scope="), ("api/template/author-myinfo", "id=5&scope="),
+            ("api/template/topic-template/binding", "topicId=4&scope=&slotKey=s1&nodeId=9"),
+            ("api/template/topic-template/binding-status", "topicId=4&scope="), ("api/template/topic-template/save-as", "id=4&scope="),
+            ("api/template/41/market-submit", "scope="), ("api/map/geocode", "address=x&region="),
+            ("api/map/place-search", "keyword=xx&longitude=1&latitude=1"), ("api/search/unified", "keyword=x&types=topic&pageNum=1&pageSize=12")
+        ]
+        for (path, body) in formWrites {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            _ = try await transport.send(formRequest(base.appendingPathComponent(path), body, token: token))
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        var revoke = formRequest(base.appendingPathComponent("api/roam/share/revoke"), "", token: token)
+        revoke.httpBody = Data()
+        _ = try await transport.send(revoke)
+        XCTAssertEqual(recorder.paths.last, "api/roam/share/revoke")
+        for path in ["api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
+                     "api/community-trust/safety/merchants/12", "api/template/adoption-source",
+                     "api/template/adoption-receipt", "api/template/adoption-detail", "api/map/weather"] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            var read = URLRequest(url: base.appendingPathComponent(path))
+            read.httpMethod = "GET"
+            read.setValue(token, forHTTPHeaderField: "Authorization")
+            _ = try await transport.send(read)
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        for path in ["/api/v1/community/me/posts", "/api/v1/community/me/bookmarks", "/api/v1/community/posts/7/actions/LIKE",
+                     "/api/v1/community/posts/7/actions/BOOKMARK", "/api/v1/community/comments/8/actions/LIKE"] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
+        }
+        for money in ["/api/registration/pay", "/api/pay/create", "/api/withdrawal/create", "/api/wallet/withdraw", "/api/asset/withdraw"] {
+            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
+        }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

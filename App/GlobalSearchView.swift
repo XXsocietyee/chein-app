@@ -415,6 +415,7 @@ import SwiftUI
                     .questifyCardListRow()
             }
         }
+        if !loading { UnifiedSearchEntry(keyword: filter.keyword, destination: destination) }
         // Mini-program result footer: "内容已加载完" under results; "刷新搜索结果" also stays on an empty or failed page.
         if !loading {
             Section {

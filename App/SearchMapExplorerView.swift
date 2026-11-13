@@ -81,6 +81,7 @@ import SwiftUI
                 if mode == .city {
                     TextField("searchMap.cityPlaceholder", text: $filter.keyword)
                         .textFieldStyle(.roundedBorder).accessibilityIdentifier("searchMap.cityKeyword")
+                        .modifier(MapPlaceSuggestions(keyword: filter.keyword, area: area))
                 }
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 12) { filterControls }

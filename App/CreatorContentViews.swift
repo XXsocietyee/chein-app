@@ -113,6 +113,7 @@ private struct CreatorContentIssueView: View {
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
                                 .contextMenu { MyProjectRowOperationsMenu(project: project) }
                                 .questifyCardListRow()
+                            MyProjectSaveAsTemplateEntry(project: project) { Task { await refresh() } }
                         } else {
                             card(project).questifyCardListRow()
                         }

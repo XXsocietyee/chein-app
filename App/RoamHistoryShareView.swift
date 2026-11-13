@@ -50,6 +50,7 @@ import UIKit
                         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: machine.state)
                 }
                 RoamShareLinkDormantNotice()
+                RoamShareRevokeEntry()
             }.padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xxxl)
         }
             .background(CYColor.bgPage.ignoresSafeArea())

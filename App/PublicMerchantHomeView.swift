@@ -120,6 +120,7 @@ import SwiftUI
             }
         }
         featuredCard(value)
+        if !context.reader.isOfflineExample { PublicMerchantTrustSection(merchantID: value.id) }
         if let review = value.reviewTarget, let destination = context.publicReviews {
             NavigationLink { destination(review) } label: {
                 CYListRow("merchant.publicHome.reviews", card: true) { CYRowIcon(systemImage: "star.bubble") }

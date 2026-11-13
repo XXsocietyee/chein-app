@@ -341,6 +341,9 @@ import SwiftUI
                                               TopicLocationEditorNode(id: $0.id, name: $0.name, address: $0.address, hasCoordinates: $0.hasUsableCoordinates)
                                           })
                     .id(topicID)
+            } else if let topicID = model.coordinator.snapshot?.topicID {
+                // One place to-do section: the G4/G5 mount only when the H1 binding client is not installed.
+                TemplateLocationTodosEntry(topicID: topicID, scope: model.draft.owner.rawValue, nodes: model.draft.chapters.flatMap(\.nodes))
             }
             if model.coordinator.snapshot != nil {
                 ProjectSubmissionEvidenceSection(model: model)
@@ -504,6 +507,7 @@ import SwiftUI
             }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget).padding(CYSpacing.lg).background(.regularMaterial)
         }
         .task(id: sessionRevision) { await model.load() }
+        .modifier(TemplateLocationTodosHost(topicID: model.coordinator.snapshot?.topicID, scope: model.draft.owner.rawValue))
         .modifier(ProjectEditAutosaveObservation(model: model))
         .modifier(ProjectEditExitGuard(model: model, overlaysOpen: {
             discardConfirmation || showingCopy || submittedResource != nil || submission != nil ||

@@ -306,7 +306,7 @@ public struct MemberHomeService {
         // E2E R10: /api/userInfo carries the user under `appUser`; other member reads use `data`.
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
-            if c.contains(.data), !(try c.decodeNil(forKey: .data)) { data = try c.decode(T.self, forKey: .data) }
+            if try c.contains(.data) && !c.decodeNil(forKey: .data) { data = try c.decode(T.self, forKey: .data) }
             else { data = try c.decode(T.self, forKey: .appUser) }
         }
     }
@@ -646,7 +646,8 @@ public enum MemberHomePageModel {
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
             code = try c.decode(Int.self, forKey: .code); msg = try c.decodeIfPresent(String.self, forKey: .msg)
-            let primary = (c.contains(.data) && !(try c.decodeNil(forKey: .data))) ? try c.decode(JSONBox.self, forKey: .data) : nil
+            let hasData = try c.contains(.data) && !c.decodeNil(forKey: .data)
+            let primary = hasData ? try c.decode(JSONBox.self, forKey: .data) : nil
             data = try primary ?? c.decodeIfPresent(JSONBox.self, forKey: .appUser)
         }
     }
@@ -657,7 +658,7 @@ public enum MemberHomePageModel {
         // E2E R10: /api/userInfo carries the user under `appUser`; other member reads use `data`.
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: Keys.self)
-            if c.contains(.data), !(try c.decodeNil(forKey: .data)) { data = try c.decode(T.self, forKey: .data) }
+            if try c.contains(.data) && !c.decodeNil(forKey: .data) { data = try c.decode(T.self, forKey: .data) }
             else { data = try c.decode(T.self, forKey: .appUser) }
         }
     }

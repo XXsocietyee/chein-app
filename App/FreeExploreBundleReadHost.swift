@@ -136,6 +136,23 @@ import FoundationNetworking
         return BundleCommerceCancelTools(canceler: BundleCancelCanceler(client: client), service: reader)
     }
 
+    /// G4 exit swap (`free-explore/index.js` loadExitOptions/consentSwap). The gate admits this registration's
+    /// exit-options GET and a SWAP_CONSENTED exit-decision only; REFUND_UNFULFILLED and every money route stay out.
+    func makeExitSwap() throws -> (client: BundleAPIClient, service: any FreeExploreLaunchServing) {
+        guard current else { throw FreeExploreLaunchFailure.staleSession }
+        guard let order = BundleCommerceReadTransport.orderURL(base: captured.baseURL, registrationID: registrationID) else {
+            throw FreeExploreLaunchFailure.invalid
+        }
+        let session = try commerceSession()
+        let gate = BundleExitSwapTransport(context: captured, registrationID: registrationID, underlying: transport,
+            current: { [weak self] in self?.current == true }, denied: { [weak self] in self?.retire() })
+        let client = try BundleAPIClient(session: session, authorization: captured.session.token, transport: gate,
+            currentSession: { [weak self] in self?.current == true ? session : nil },
+            writeAllowed: { [weak self] in self?.current == true },
+            onUnauthorized: { [weak self] _ in self?.commerceUnauthorized() })
+        return (client, commerceService(session: session, allowed: [order]))
+    }
+
     private func commerceService(session: FreeExploreLaunchSession, allowed: [String]) -> FreeExploreLaunchService {
         FreeExploreLaunchService(session: session, transport: commerceGate(allowed: allowed),
             currentSession: { [weak self] in self?.current == true ? session : nil },

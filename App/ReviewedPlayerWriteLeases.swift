@@ -68,9 +68,14 @@ extension ReviewedProductionFormMutationRoute {
             if ChinaReviewedRouteCapability.normalized("/" + relative) == "/api/channels/{}", grant.admission.paths.contains(receipt + "{}") {
                 return emptyBody
             }
-            return covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool)
+            if covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool) { return true }
+            // G4/G5 capability reads ride the play grant, body empty.
+            let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+            return ReviewedProductionGateLeases.capabilityReadPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+                && covers(relative, grant.play) && emptyBody
         }
-        guard method == "POST", request.httpBody?.isEmpty == false else { return false }
+        // `share/revoke` is the mini-program's `data: {}` form post: an empty body is that write.
+        guard method == "POST", request.httpBody?.isEmpty == false || relative == "api/roam/share/revoke" else { return false }
         if relative == "api/topic/chapter/supply-terms" {
             // REVSHARE carries the per-head fee a club would pay; only PERK and TRAFFIC terms are this grant.
             return covers(relative, grant.play) && supplyTermsBody(request)
@@ -344,7 +349,21 @@ enum ReviewedPlayerReadRoute {
         "api/topic/attribute-binding", "api/topic/author-edit-detail", "api/topic/author-saved-detail",
         "api/topic/play-setup", "api/topic/publish-draft", "api/topic/share-code", "api/topic/state-keys",
         "api/topic/state-keys/named", "api/topic/state-keys/{}", "api/topic/invite-chapters",
-        "api/topic/chapter/supply-terms", "api/topic/host-qrcode"
+        "api/topic/chapter/supply-terms", "api/topic/host-qrcode",
+        // G4/G5 (capability-graph section 1): community trust, roam extras, templates, map/search, bundle swap.
+        "api/community-trust/contributions/submit", "api/community-trust/safety/ratings", "api/community-trust/reports/appeal",
+        "api/roam/session/records", "api/roam/share/revoke", "api/roam/shop/visitors",
+        "api/template/adopt-draft", "api/template/author-info", "api/template/author-myinfo",
+        "api/template/topic-template/binding", "api/template/topic-template/binding-status",
+        "api/template/topic-template/save-as", "api/template/{}/market-submit",
+        "api/map/geocode", "api/map/place-search", "api/search/unified", "api/free-explore/bundle/exit-decision"
+    ].union(capabilityReadPaths)
+    /// G4/G5 GET reads. The play grant admits a GET only for these (body empty).
+    static let capabilityReadPaths: Set<String> = [
+        "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
+        "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
+        "api/template/adoption-detail", "api/map/weather", "api/free-explore/bundle/exit-options",
+        "api/free-explore/bundle/order/receipt"
     ]
     /// G2 invoice writes. A grant without every one of them leaves the invoice write entries hidden.
     static let invoiceWritePaths: Set<String> = [
