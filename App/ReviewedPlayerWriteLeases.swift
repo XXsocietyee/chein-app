@@ -118,10 +118,10 @@ extension ReviewedProductionFormMutationRoute {
 
     /// HTML/JS external games. A price or a monetization other than NONE is refused. GET may carry the signed download query.
     static func admitsExternalGame(method: String, relative: String, request: URLRequest, grant: ReviewedPlayerWriteGrant) -> Bool {
-        guard grant.play.paths.isSuperset(of: externalGamePaths) else { return false }
+        guard grant.play.paths.isSuperset(of: ReviewedPlayerReadRoute.externalGamePaths) else { return false }
         let key = ChinaReviewedRouteCapability.externalGameGrantKey(ChinaReviewedRouteCapability.normalized("/" + relative))
         let folded = key.hasPrefix("/") ? String(key.dropFirst()) : key
-        guard externalGamePaths.contains(folded) else { return false }
+        guard ReviewedPlayerReadRoute.externalGamePaths.contains(folded) else { return false }
         if method == "GET" {
             return request.httpBody == nil || request.httpBody?.isEmpty == true
         }
