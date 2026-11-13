@@ -384,6 +384,9 @@ struct SessionRootView: View {
         .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
         .environment(\.cityMerchantOperationsFactory, { session.makeCityMerchantOperationsController() })
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
+        .environment(\.orderTeamCreate, { activityID, registrationID in
+            AnyView(SessionTeamCreateView(activityID: activityID, registrationID: registrationID))
+        })
     }
 
     private func chain1<V: View>(_ v: V) -> some View {

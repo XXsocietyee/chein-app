@@ -29,6 +29,7 @@ import SwiftUI
         return runID == id && !Task.isCancelled
     }
     func prepare(_ action: TeamAction) { coordinator.prepare(action); objectWillChange.send() }
+    func refuseClosedLease() { coordinator.refuseWhenLeaseClosed(); objectWillChange.send() }
     func cancel() { coordinator.cancelReview(); objectWillChange.send() }
     func leave() {
         // The coordinator retires old results and keeps unresolved write locks.

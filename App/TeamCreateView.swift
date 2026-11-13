@@ -25,8 +25,15 @@ import SwiftUI
                 }.disabled(model.actionLocked)
                 Section {
                     Text("team.create.consequence").fixedSize(horizontal: false, vertical: true)
-                    CYPillButton("team.create.review") { model.prepare(.create(context: context, size: size, inviteOnly: inviteOnly)) }
-                        .disabled(model.actionLocked).accessibilityIdentifier("team.create.review")
+                    reviewButton(context)
+                    if !model.coordinator.canSubmit { leaseClosedNote }
+                }
+            } else if !model.coordinator.canSubmit, !model.running {
+                Section {
+                    leaseClosedNote
+                    CYPillButton("team.create.review") { model.refuseClosedLease() }
+                        .disabled(model.actionLocked)
+                        .accessibilityIdentifier("team.create.review")
                 }
             }
             if model.coordinator.pending != nil {
@@ -40,5 +47,24 @@ import SwiftUI
             .task { await model.run { await model.coordinator.loadCreation(ownerID: activityID) } }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
             .onDisappear { model.leave() }
+    }
+
+    private func reviewButton(_ context: TeamCreationContext) -> some View {
+        CYPillButton("team.create.review") {
+            if model.coordinator.canSubmit {
+                model.prepare(.create(context: context, size: size, inviteOnly: inviteOnly))
+            } else {
+                model.refuseClosedLease()
+            }
+        }
+        .disabled(model.actionLocked)
+        .accessibilityIdentifier("team.create.review")
+    }
+
+    private var leaseClosedNote: some View {
+        Text("team.create.leaseClosed")
+            .font(CYTypography.meta)
+            .foregroundStyle(palette.textTertiary)
+            .accessibilityIdentifier("team.create.leaseClosed")
     }
 }

@@ -16,6 +16,7 @@ import SwiftUI
     var finishRouteDestination: ((Int) -> AnyView)? = nil
     var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
     var backpackModel: PlayThemeBackpackCoordinator? = nil
+    var teamBackpackModel: PlayTeamBackpackCoordinator? = nil
     var entryCode: PlayEntryCodeContext? = nil
     /// W20 city business game on the real CITY read (`AppSession.playCityGame`). Nil (no CITY lease or no board) hides it.
     var cityGameModel: CityGameCoordinator? = nil
@@ -350,6 +351,10 @@ import SwiftUI
                     if let backpackModel {
                         NavigationLink("playx.backpack.title") { PlayThemeBackpackView(model: backpackModel) }
                             .accessibilityIdentifier("playx.backpack.open")
+                    }
+                    if let teamBackpackModel {
+                        NavigationLink("play.teamBackpack.title") { PlayTeamBackpackView(model: teamBackpackModel) }
+                            .accessibilityIdentifier("play.teamBackpack.open")
                     }
                 }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }

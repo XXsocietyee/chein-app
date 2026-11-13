@@ -765,6 +765,53 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
     }
 
+    /// Handover 27: team create and TEAM item commands join the existing player grant.
+    /// The China route catalog already listed these paths, so the wired pattern count does not move.
+    func testShippedChinaAdmitsTeamCreateAndTeamItemCommands() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let base = player.baseURL
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        XCTAssertTrue(grant.team.paths.contains("api/team/create"))
+        XCTAssertTrue(grant.play.paths.contains("api/game/session/command"))
+        XCTAssertTrue(grant.play.paths.contains("api/game/session/view"))
+        XCTAssertTrue(grant.play.paths.contains("api/game/session/receipt"))
+        for path in ["api/team/create", "api/game/session/command", "api/game/session/view", "api/game/session/receipt", "api/activity/list"] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        let create = jsonRequest(base.appendingPathComponent("api/team/create"),
+            #"{"joinMode":1,"maxMembers":4,"ownerId":41,"ownerType":2}"#, token: player.session.token)
+        _ = try await transport.send(create)
+        XCTAssertEqual(recorder.paths.last, "api/team/create")
+        let command = jsonRequest(base.appendingPathComponent("api/game/session/command"),
+            #"{"action":"ITEM_USE","activityId":41,"expectedRevision":3,"nodeId":null,"payload":{"contentId":"tea"},"requestId":"pg-theme-abc12345"}"#,
+            token: player.session.token)
+        _ = try await transport.send(command)
+        XCTAssertEqual(recorder.paths.last, "api/game/session/command")
+        var viewParts = URLComponents(url: base.appendingPathComponent("api/game/session/view"), resolvingAgainstBaseURL: false)
+        viewParts?.queryItems = [URLQueryItem(name: "activityId", value: "41"), URLQueryItem(name: "perspective", value: "PLAYER")]
+        var view = URLRequest(url: try XCTUnwrap(viewParts?.url))
+        view.httpMethod = "GET"
+        view.setValue("application/json", forHTTPHeaderField: "Accept")
+        view.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(view)
+        XCTAssertEqual(recorder.paths.last, "api/game/session/view")
+        let sent = recorder.paths.count
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/team/create"),
+            #"{"amount":1,"maxMembers":4,"ownerId":41,"ownerType":2}"#, token: player.session.token)) }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/game/session/command"),
+            #"{"action":"PLAYER_CHOICE","activityId":41,"expectedRevision":3,"nodeId":null,"payload":{"contentId":"tea"},"requestId":"pg-theme-abc12345"}"#,
+            token: player.session.token)) }
+        XCTAssertEqual(recorder.paths.count, sent)
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

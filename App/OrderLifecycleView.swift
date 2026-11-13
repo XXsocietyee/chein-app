@@ -19,6 +19,7 @@ import SwiftUI
     @StateObject private var model: OrderLifecycleScreenModel
     @Environment(\.scenePhase) private var phase
     @Environment(\.locale) private var locale
+    @Environment(\.orderTeamCreate) private var orderTeamCreate
     @Environment(\.dynamicTypeSize) private var typeSize
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     init(id: Int, coordinator: OrderLifecycleCoordinator) {
@@ -54,6 +55,14 @@ import SwiftUI
                     NavigationLink { OrderPassPreviewView(orderID: id, coordinator: coordinator) } label: {
                         Label("orderLifecycle.pass.title", systemImage: "ticket")
                     }.accessibilityIdentifier("orderLifecycle.pass.open")
+                }
+                if detail.teamOpen, let ownerID = detail.ownerID, let makeTeam = orderTeamCreate {
+                    Section {
+                        NavigationLink { makeTeam(ownerID, detail.id) } label: {
+                            Label("orderLifecycle.teamOpen", systemImage: "person.3")
+                        }
+                        .accessibilityIdentifier("orderLifecycle.teamOpen")
+                    }
                 }
             } else if coordinator.issue == nil {
                 // No accepted detail and no issue: unknown, never an empty order or a zero amount.

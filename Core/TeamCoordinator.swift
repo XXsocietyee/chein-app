@@ -227,6 +227,14 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         messageKey = canSimulate ? "team.fixtureNotice" : "team.writesDisabled"
     }
     public func cancelReview() { review = nil }
+    /// The create control stays on screen when the write lease is closed. This records the refusal and does not call submit.
+    public func refuseWhenLeaseClosed() {
+        synchronizeSession()
+        guard !canSubmit else { return }
+        review = nil
+        writeState = .notSent
+        messageKey = "team.writesDisabled"
+    }
     public func leaveScreen() {
         generation &+= 1; loading = false; review = nil
         if pending != nil { writeState = .unknown; messageKey = "team.unknown" }
