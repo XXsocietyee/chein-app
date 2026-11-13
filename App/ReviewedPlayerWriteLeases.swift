@@ -767,6 +767,27 @@ enum ReviewedPlayerReadRoute {
         return issued
     }
 
+    /// Static IM routes for audit, chain, check-in, poll receipts, moderation and role create.
+    /// Per-message and per-record routes are not issued here; the channel tools screen calls them.
+    static func beGapImRoutes() -> [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] {
+        func post(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute.post(path) }
+        func get(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute(method: "GET", path: path) }
+        let table: [BusinessRuntimeFeature: [BusinessRuntimeRoute?]] = [
+            .imChannelAuditRead: [get("api/im/audit-log")],
+            .imChainCreate: [post("api/im/chain/create")], .imChainJoin: [post("api/im/chain/join")],
+            .imChainWithdraw: [post("api/im/chain/withdraw")], .imChainClose: [post("api/im/chain/close")],
+            .imChainRead: [get("api/im/chain/info")], .imChainReceipt: [get("api/im/interaction/request")],
+            .imCheckinWrite: [post("api/im/channel/checkin")], .imCheckinStatus: [get("api/im/channel/checkin-status")],
+            .imCheckinRank: [get("api/im/channel/checkin-rank")], .imCheckinReceipt: [get("api/im/channel/checkin-request")],
+            .imPollCreateReceipt: [get("api/im/poll/create-receipt")],
+            .imChannelModerationRead: [get("api/im/moderation/actions")],
+            .imChannelModerationWrite: [post("api/im/moderation/timeout"), post("api/im/moderation/kick"), post("api/im/moderation/ban")],
+            .imChannelRoleRead: [get("api/im/roles")], .imChannelRoleWrite: [post("api/im/roles")],
+            .imChannelAppealRead: [get("api/im/moderation/me")], .imChannelAppealWrite: [post("api/im/appeals")]
+        ]
+        return table.mapValues { Set($0.compactMap { $0 }) }
+    }
+
     func roamLiveWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
         guard context.market == .china else { return nil }
         let key = contextKey(context)
@@ -1016,6 +1037,7 @@ enum ReviewedPlayerReadRoute {
         ]
         if socialRole(context) { imRoutes.merge(Self.imMediaRoutes()) { $0.union($1) } }
         if socialRole(context) { imRoutes.merge(Self.projectEditorRoutes(baseURL: context.baseURL)) { $0.union($1) } }
+        if socialRole(context) { imRoutes.merge(Self.beGapImRoutes()) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes

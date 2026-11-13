@@ -92,8 +92,8 @@ final class CB93RouteAdaptationTests: XCTestCase {
             post(china("api/pay/create"), Data("{}".utf8)),
             // `api/join-request/*` and `api/space/leave` are owner-granted since the channels contract (§6.10);
             // the deferred webhook and anchored audit-log routes stay hidden.
-            post(china("api/im/webhook"), Data(#"{"id":1}"#.utf8)),
-            post(china("api/im/audit-log"), Data(#"{"id":1}"#.utf8))
+            post(china("api/im/webhook/not-issued"), Data(#"{"id":1}"#.utf8)),
+            post(china("api/im/audit-log/not-issued"), Data(#"{"id":1}"#.utf8))
         ]
         for request in blocked {
             do {

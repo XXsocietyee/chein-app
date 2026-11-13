@@ -203,8 +203,15 @@ final class ChannelsContractAppSideTests: XCTestCase {
             }
             XCTAssertEqual(ChinaReviewedRouteCapability.normalized(path), path, "grant paths are already normalized")
         }
-        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/im/webhook"))
-        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/im/audit-log"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/im/webhook"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/im/audit-log"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/im/webhook/context"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/im/webhook/not-issued"))
+        for path in ChinaReviewedRouteCapability.beGapImOwnerGrant {
+            XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: path), path)
+            XCTAssertNil(ChinaReviewedRouteCapability.forcedOff(path), path)
+            XCTAssertEqual(ChinaReviewedRouteCapability.normalized(path), path, "grant paths are already normalized")
+        }
     }
 }
 
