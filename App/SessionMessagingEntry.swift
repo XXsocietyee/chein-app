@@ -24,6 +24,7 @@ import SwiftUI
 @MainActor struct SessionMessagingHome: View {
     @ObservedObject var session: AppSession
     @StateObject private var readerOwner = SessionMessagingHomeReaderOwner()
+    @StateObject private var inviteReminder = IMInviteReminderController()
     @State private var showsFriends = false
     @State private var showsReportResults = false
     var body: some View {
@@ -33,6 +34,8 @@ import SwiftUI
             predictionEntry: { AnyView(SessionMerchantPredictionEntry(session: session)) })
             .id(session.messagingViewIdentity)
             .environment(\.imCoopInviteStrip, IMCoopInviteStripFactory.make(reader: session.cooperationReader))
+            // Local preference plus the notification primer. No server write and no push topic.
+            .environment(\.imInviteReminder, inviteReminder)
             .environment(\.imReportProgressDestination, { AnyView(SquareReportProgressView(session: session)) })
             // Friends and report results share one … menu so the trailing toolbar stays short.
             // Both stay reachable even when the conversation/history reader is unavailable.

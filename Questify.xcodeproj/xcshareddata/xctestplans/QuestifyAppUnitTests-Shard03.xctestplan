@@ -157,6 +157,7 @@
         "IMChannelSourceCardSubmissionTests",
         "IMConversationReadAllAppTests",
         "IMCoopInviteCardsTests",
+        "IMInviteReminderControllerTests",
         "IMReviewAuditReaderTests",
         "ImageAndVideoDiskCacheBudgetSectionViewTests",
         "IntegratedReadCompositionTests",

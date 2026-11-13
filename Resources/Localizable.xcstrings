@@ -251794,6 +251794,40 @@
         }
       }
     },
+    "mpd.im.inviteReminder.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
+      }
+    },
+    "mpd.im.inviteReminder.unknownLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite alert status unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀约提醒状态未知"
+          }
+        }
+      }
+    },
     "mpd.im.reportUnread %lld": {
       "extractionState": "manual",
       "localizations": {

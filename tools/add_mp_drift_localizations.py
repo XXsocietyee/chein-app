@@ -49,6 +49,8 @@ S = {
     'mpd.im.inviteReminder': ('Invite alerts', '邀约提醒'),
     'mpd.im.inviteReminder.on': ('Invite alerts on', '已开启邀约提醒'),
     'mpd.im.inviteReminder.denied': ('Invite alerts not turned on', '未开启邀约提醒'),
+    'mpd.im.inviteReminder.unknown': ('—', '—'),
+    'mpd.im.inviteReminder.unknownLabel': ('Invite alert status unknown', '邀约提醒状态未知'),
     'mpd.im.reportUnread %lld': ('%lld new updates', '%lld 条新进度'),
     'mpd.review.task': ('Review task', '审核任务'),
     'mpd.review.business': ('Business', '业务'),
