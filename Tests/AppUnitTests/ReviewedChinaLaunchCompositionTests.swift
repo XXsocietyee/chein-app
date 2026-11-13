@@ -251,18 +251,6 @@ import XCTest
         state.setValue(player.session.token, forHTTPHeaderField: "Authorization")
         _ = try await transport.send(state)
         XCTAssertEqual(recorder.paths.last, "api/play/theme/state")
-        for help in ["api/play/help/use", "api/play/help/skip"] {
-            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + help))
-            XCTAssertTrue(grant.play.paths.contains(help))
-            let request = jsonRequest(base.appendingPathComponent(help),
-                #"{"runId":9,"nodeId":3,"requestId":"help-request-01"}"#, token: player.session.token)
-            _ = try await transport.send(request)
-            XCTAssertEqual(recorder.paths.last, help)
-        }
-        for money in ["/api/registration/pay", "/api/pay/create", "/api/withdrawal/create", "/api/wallet/withdraw", "/api/asset/withdraw"] {
-            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
-        }
-        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/wallet/withdraw"), #"{"amount":1}"#, token: player.session.token)) }
         let appeal = formRequest(base.appendingPathComponent("api/orient/scoring/appeal"),
             "entryId=30&idempotencyKey=score-key-01&reason=wrong&sessionId=9", token: player.session.token)
         _ = try await transport.send(appeal)
@@ -295,6 +283,32 @@ import XCTest
         await assertClosed { try await closedTransport.send(free) }
         await assertClosed { try await closedTransport.send(replay) }
         await assertClosed { try await closedTransport.send(state) }
+    }
+
+    func testShippedChinaAdmitsHintLadderUseAndSkipAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let base = player.baseURL
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        for help in ["api/play/help/use", "api/play/help/skip"] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + help))
+            XCTAssertTrue(grant.play.paths.contains(help))
+            let request = jsonRequest(base.appendingPathComponent(help),
+                #"{"runId":9,"nodeId":3,"requestId":"help-request-01"}"#, token: player.session.token)
+            _ = try await transport.send(request)
+            XCTAssertEqual(recorder.paths.last, help)
+        }
+        for money in ["/api/registration/pay", "/api/pay/create", "/api/withdrawal/create", "/api/wallet/withdraw", "/api/asset/withdraw"] {
+            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
+        }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/wallet/withdraw"), #"{"amount":1}"#, token: player.session.token)) }
     }
 
     private func assertClosed(_ body: () async throws -> some Any) async {
