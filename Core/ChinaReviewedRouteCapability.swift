@@ -43,6 +43,7 @@ public enum ChinaReviewedRouteCapability {
         // Owner approval of the non-money player writes: the CITY board (gaps A). Member game
         // points only; no CITY route moves money.
         if CityGameProductionLease.paths.contains(key) { return true }
+        if imRecipientPreviewGrant.contains(key) { return true }
         if channelsSocialOwnerGrant.contains(key) { return true }
         if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
         if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
@@ -54,6 +55,11 @@ public enum ChinaReviewedRouteCapability {
         if creatorStudioOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
+
+    /// Contract §7 item 18. The six recipient-preview patterns (`IMPreviewRouteTemplates`).
+    /// Marks stay `.missing`. A concrete id is admitted only through the existing `{}` normalizer;
+    /// the conversation binding is the per-template lease, not this set.
+    public static let imRecipientPreviewGrant: Set<String> = IMPreviewRouteTemplates.grantPatterns
 
     /// Owner approval 2026-11-13. Channels, channel messages, governance, notifications, admission, IM media attach,
     /// friends, the team shared resource pool and the in-team board, as served by hengyin `feature/im-channels`
@@ -98,6 +104,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/welcome-screen/get", "/api/onboarding/get", "/api/onboarding/submit",
         // §6.14 IM media, polls, route share
         "/api/im/file/upload", "/api/im/file/receipt", "/api/im/file/scan", "/api/im/file/delete",
+        // §7 item 18. Same patterns as `imRecipientPreviewGrant` / `IMPreviewRouteTemplates`. Not marked live.
         "/api/im/file/message/{}/authorization", "/api/im/file/message/{}/preview",
         "/api/im/video/upload", "/api/im/video/receipt", "/api/im/video/delete", "/api/im/video/policy",
         "/api/im/video/message/{}/authorization", "/api/im/video/message/{}/preview",
