@@ -77,6 +77,24 @@
       "deletion": "No in-app deletion yet (pending privacy review)"
     },
     {
+      "file": "App/HomeCityLocationConsentHost.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Home city location consent card: one flag that the player declined location (home_city_location_declined); no coordinates",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/IMInviteReminderController.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "IM co-op invite reminder: local on/off choice only (imCoopInviteReminderEnabled); cleared when notification permission is not a visible grant",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/ImageUploadSecureStorage.swift",
       "kinds": [
         "keychain"
@@ -163,6 +181,15 @@
         "userDefaults"
       ],
       "purpose": "Device list cy_playTitleCardSeen of up to 200 topic ids whose title card already played",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/PlayThemeReplayProduction.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Theme replay pending attempt per account/topic/session: request id and session ids only, so a redraw reuses the same request id",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
