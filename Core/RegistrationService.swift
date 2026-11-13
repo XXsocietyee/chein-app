@@ -63,6 +63,46 @@ public struct RegistrationService {
 
     /// One explicit read for a known registration ID. This cannot reconcile an unknown ID
     /// after a create timeout; no lookup-by-requestId contract has been established here.
+    /// Records activity sign-up consent. The server stamps the document version.
+    /// The body is the sorted JSON the composition route admits. No payment field is sent.
+    public func agreeToActivitySignup(requestID: String, token: String) async throws {
+        let trimmed = requestID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard AuthRequestBuilder.isValidToken(token), !trimmed.isEmpty, trimmed.utf16.count <= 64 else {
+            throw APIError.invalidRequest
+        }
+        let fields: [String: Any] = [
+            "docType": "activity_host_data_sharing",
+            "eventType": "AGREE",
+            "requestId": trimmed,
+            "scene": "activity_signup"
+        ]
+        let body = try JSONSerialization.data(withJSONObject: fields, options: .sortedKeys)
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent("api/compliance/consents"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.httpBody = body
+        try Task.checkCancellation()
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let parsed = try JSONSerialization.jsonObject(with: data)
+        guard let object = parsed as? [String: Any] else { throw APIError.malformedResponse }
+        let code = object["code"]
+        let accepted: Bool
+        if let number = code as? NSNumber {
+            accepted = number.intValue == 200
+        } else if let number = code as? Int {
+            accepted = number == 200
+        } else {
+            accepted = false
+        }
+        guard accepted else { throw APIError.malformedResponse }
+    }
+
     public func readStatus(registrationID: Int, token: String) async throws -> RegistrationStatusSnapshot {
         guard registrationID > 0, AuthRequestBuilder.isValidToken(token) else {
             throw APIError.invalidRequest

@@ -13,6 +13,7 @@ private final class UIRegistrationService: RegistrationCoordinatingService {
     private(set) var quotes: [RegistrationQuoteRequest] = []
     private(set) var creates: [RegistrationCreateIntent] = []
     private(set) var reads: [Int] = []
+    private(set) var consentIDs: [String] = []
     var createContinuation: CheckedContinuation<RegistrationCreateResult, Error>?
     private var createWaiter: CheckedContinuation<Void, Never>?
     func quote(_ selection: RegistrationQuoteRequest, token: String) async throws -> RegistrationQuote {
@@ -28,6 +29,10 @@ private final class UIRegistrationService: RegistrationCoordinatingService {
         }
         if let createError { throw createError }
         return try JSONDecoder().decode(RegistrationCreateResult.self, from: Data(createJSON.utf8))
+    }
+    func agreeToActivitySignup(requestID: String, token: String) async throws {
+        guard token == "fixture-only-token" else { throw APIError.unauthorized }
+        consentIDs.append(requestID)
     }
     func readStatus(registrationID: Int, token: String) async throws -> RegistrationStatusSnapshot {
         reads.append(registrationID)
@@ -205,6 +210,51 @@ final class RegistrationUIFlowTests: XCTestCase {
         await flow.confirm()
         XCTAssertTrue(service.creates.isEmpty)
         XCTAssertNil(flow.coordinator.retainedIntent)
+    }
+    func testFreePolicyConfirmsOnlyAKnownZeroQuote() async throws {
+        let service = UIRegistrationService()
+        service.quoteJSON = #"{"payAmount":0,"pointsUsable":true,"quoteSign":"fixture-sign"}"#
+        let reader = UIRegistrationParticipants()
+        let flow = try makeFlow(service, reader: reader, policy: .free)
+        flow.open()
+        flow.setName("玩家小城")
+        flow.setPhone("13900000004")
+        XCTAssertEqual(flow.confirmationBlock, .missingConsent)
+        flow.setConsent(true)
+        XCTAssertEqual(flow.confirmationBlock, .quoteUnavailable)
+        await flow.recordSignupConsent()
+        XCTAssertEqual(service.consentIDs.count, 1)
+        XCTAssertNil(flow.confirmationBlock)
+        XCTAssertTrue(flow.prepareConfirmation())
+        await flow.confirm()
+        XCTAssertEqual(service.creates.count, 1)
+        XCTAssertFalse(service.creates[0].usesAppPaymentChannel)
+        XCTAssertEqual(service.creates[0].phone, "13900000004")
+
+        let paid = UIRegistrationService()
+        paid.quoteJSON = #"{"payAmount":1,"pointsUsable":true,"quoteSign":"fixture-sign"}"#
+        let paidFlow = try makeFlow(paid, reader: UIRegistrationParticipants(), policy: .free)
+        paidFlow.open()
+        paidFlow.setName("玩家小城")
+        paidFlow.setPhone("13900000004")
+        paidFlow.setConsent(true)
+        await paidFlow.recordSignupConsent()
+        XCTAssertEqual(paidFlow.confirmationBlock, .paymentRequired)
+        XCTAssertFalse(paidFlow.prepareConfirmation())
+        await paidFlow.confirm()
+        XCTAssertTrue(paid.creates.isEmpty)
+
+        let unknown = UIRegistrationService()
+        unknown.quoteJSON = #"{"pointsUsable":true,"quoteSign":"fixture-sign"}"#
+        let unknownFlow = try makeFlow(unknown, reader: UIRegistrationParticipants(), policy: .free)
+        unknownFlow.open()
+        unknownFlow.setName("玩家小城")
+        unknownFlow.setPhone("13900000004")
+        unknownFlow.setConsent(true)
+        await unknownFlow.recordSignupConsent()
+        XCTAssertEqual(unknownFlow.confirmationBlock, .quoteUnavailable)
+        await unknownFlow.confirm()
+        XCTAssertTrue(unknown.creates.isEmpty)
     }
     func testExplicitQuoteGateAndEmptyTicketsPreserveNilSelection() async throws {
         let service = UIRegistrationService(), reader = UIRegistrationParticipants()

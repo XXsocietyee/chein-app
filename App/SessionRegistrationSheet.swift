@@ -11,7 +11,14 @@ import SwiftUI
                               participantCoordinator:session.participantCoordinator,
                               currentIdentity:{ session.profileReader.identity },
                               quoteEnabled:session.isConfigured,
-                              creationPolicy:session.registrationCreationPolicy(activityID:activity.summary.id),
+                              creationPolicy:Self.freeWhenUnapproved(session.registrationCreationPolicy(activityID:activity.summary.id)),
                               waitlistService:session.registrationWaitlistService(activityID:activity.summary.id))
+    }
+
+    /// The integrator button opens this sheet. An unapproved session still cannot pay.
+    /// Only the disabled policy becomes the free path; an approved grant is left as issued.
+    static func freeWhenUnapproved(_ issued: RegistrationUICreationPolicy) -> RegistrationUICreationPolicy {
+        if case .disabled = issued { return .free }
+        return issued
     }
 }
