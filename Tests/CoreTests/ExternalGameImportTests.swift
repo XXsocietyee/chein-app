@@ -322,7 +322,7 @@ import CryptoKit
     func testAgeGateIsPerGameAndKillSwitchRemovesUnpublished() throws {
         let (store, tempDir) = makeTempStore()
         defer { try? FileManager.default.removeItem(at: tempDir) }
-        let archive = sample(id: "rpg.keep.one", contentRating: "12+", permissions: [], allowedDomains: [])
+        let archive = sample(id: "rpg.keep.one", permissions: [], contentRating: "12+", allowedDomains: [])
         _ = try store.prepareImport(archive: archive, source: .file(URL(fileURLWithPath: "/tmp/keep.json")))
         let installed = try store.confirmInstall()
         XCTAssertTrue(store.ageGateNeedsConfirmation(installed.manifest))

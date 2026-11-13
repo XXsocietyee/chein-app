@@ -46,7 +46,7 @@ enum ExternalGameSessionRead {
             host = baseURL.host ?? ""
         } else {
             let raw = bundle.object(forInfoDictionaryKey: "QUESTIFY_API_BASE_URL") as? String ?? ""
-            host = host(from: raw)
+            host = Self.host(from: raw)
         }
         return ReviewedAreaSwitch.externalGames(host: host, testOrDebug: ReviewedAreaSwitch.compiledTestOrDebug)
     }
