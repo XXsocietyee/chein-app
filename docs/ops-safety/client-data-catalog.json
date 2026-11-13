@@ -77,6 +77,15 @@
       "deletion": "No in-app deletion yet (pending privacy review)"
     },
     {
+      "file": "App/AppSessionRoamConsent.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Removes the local roam 'Agree and go' acceptance flag (roamLivePurposeAcceptedV1) when roam location consent is withdrawn; writes nothing",
+      "retention": "Device-local flag owned by RoamLiveSessionView; cleared on withdraw",
+      "deletion": "Cleared by the roam consent withdraw path"
+    },
+    {
       "file": "App/HomeCityLocationConsentHost.swift",
       "kinds": [
         "userDefaults"
@@ -345,6 +354,15 @@
       "purpose": "Records that onboarding was completed (onboarding.completed.v1, a boolean) so the welcome flow is not shown again",
       "retention": "Device-local until the app is deleted",
       "deletion": "No in-app deletion (pending privacy review)"
+    },
+    {
+      "file": "Core/CNAccountSessionService.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Role committed with the signed-in account (<scope>.restoreRole = accountID|role) so a cold restore survives a /api/userInfo without role; no token or personal data",
+      "retention": "Per storage scope; overwritten on each sign-in or restore",
+      "deletion": "Cleared on logout, session expiry and unauthorized restore"
     },
     {
       "file": "Core/AccountScopedPersistence.swift",

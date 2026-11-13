@@ -83,6 +83,19 @@ import FoundationNetworking
         await owner.start(purposeAccepted: false)
         XCTAssertEqual(location.calls, 0); XCTAssertEqual(service.reveals, 0)
     }
+    /// E2E-20261112 F3: the server consent is recorded before any fix or reveal; a failure leaves the walk unstarted.
+    func testLocationConsentRunsBeforeRevealAndFailureLeavesWalkUnstarted() async throws {
+        let (owner, service, location, _, _) = try fixture()
+        var order: [String] = []
+        owner.locationConsent = { order.append("consent:\(location.calls):\(service.reveals)"); throw ComplianceFailure.unavailable }
+        await owner.start(purposeAccepted: true)
+        XCTAssertEqual(order, ["consent:0:0"]); XCTAssertEqual(location.calls, 0); XCTAssertEqual(service.reveals, 0)
+        XCTAssertNil(owner.record); XCTAssertEqual(owner.phase, .ready)
+        XCTAssertEqual(owner.error as? RoamLiveFailure, .consentRequired)
+        owner.locationConsent = { order.append("consent:\(location.calls):\(service.reveals)") }
+        await owner.start(purposeAccepted: true)
+        XCTAssertEqual(order, ["consent:0:0", "consent:0:0"]); XCTAssertEqual(owner.phase, .active); XCTAssertEqual(service.reveals, 1)
+    }
     func testStartUsesDurableKeyBeforeRevealAndDoesNotInventRewards() async throws {
         let (owner, service, location, storage, scope) = try fixture()
         service.onReveal = { XCTAssertEqual(try? RoamLiveJournal(storage: storage).read(scope: scope)?.pendingWrite, .reveal) }

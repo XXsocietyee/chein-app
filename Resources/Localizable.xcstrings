@@ -29913,6 +29913,54 @@
         }
       }
     },
+    "compliance.roamAgree": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree to roam location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意漫游定位"
+          }
+        }
+      }
+    },
+    "compliance.roamConsent.agreed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roam location consent is on"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已同意漫游定位"
+          }
+        }
+      }
+    },
+    "compliance.roamConsent.notAgreed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roam location consent is not on yet. Agree to light up tiles while you walk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未同意漫游定位。同意后，漫游时才能点亮格子。"
+          }
+        }
+      }
+    },
     "compliance.revoke": {
       "localizations": {
         "en": {

@@ -1069,7 +1069,7 @@ final class AppSession: ObservableObject {
         retainedPersonalLocationShareHost = host
         return host
     }
-    private func invalidatePersonalLocationShare() {
+    func invalidatePersonalLocationShare() {
         // Shut down under the old identity before replacing account/token; never delete its journal.
         retainedPersonalLocationShareHost?.sessionWillChange()
         personalLocationShareEpoch &+= 1
@@ -6127,7 +6127,7 @@ final class AppSession: ObservableObject {
                   gate.currentStamp == stamp, token == credential, account?.id == accountID,
                   compositionViewerRevision == viewerRevision else { return }
             do {
-                let fresh=try await accountSessionService.currentAccount(token:credential)
+                let fresh=try await accountSessionService.currentAccount(token:credential,storedRole:storedRoles?.read())
                 guard !Task.isCancelled,gate.currentStamp == stamp,token == credential,account?.id == accountID,fresh.id == accountID,
                       ownAccountRefreshRequestID == requestID, compositionViewerRevision == viewerRevision else { return }
                 account=fresh
@@ -6190,6 +6190,7 @@ final class AppSession: ObservableObject {
             location = RuntimeNativeLocationProvider(enabled: true)
         }
         let controller = RoamLiveSessionController(service: liveService, location: location, journal: journal, history: roamHistoryStore)
+        if liveService != nil { controller.locationConsent = roamLocationConsentHook() }
         retainedRoamLiveSession = controller
         return controller
     }
@@ -7145,19 +7146,6 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
             })
     }
-    @MainActor private final class ReviewedComplianceRoamEffects: ComplianceRoamEffects {
-        weak var session: AppSession?
-        init(session: AppSession) { self.session = session }
-        func stopTracking() async throws {
-            session?.invalidatePersonalLocationShare()
-        }
-        func clearMapPrivacy() async throws {
-            session?.invalidatePersonalLocationShare()
-        }
-        func invalidateMapPrivacyCaches() {
-            session?.invalidatePersonalLocationShare()
-        }
-    }
     private func makeReviewedAccountComplianceService(configuration: APIConfiguration, journal: ComplianceFileJournal) -> AccountComplianceService {
         AccountComplianceService(configuration: configuration, transport: runtimeHTTPTransport,
             journal: journal, current: { [weak self] in self?.complianceSession }, token: { [weak self] in self?.token },
@@ -7449,8 +7437,11 @@ final class AppSession: ObservableObject {
         committingAuthenticatedSession = true
         self.token = token; self.account = account
         committingAuthenticatedSession = false
+        storedRoles?.record(account)
         _ = runtimeDependencies
     }
+    /// E2E-20261112 F1: a roleless `/api/userInfo` restore keeps the role committed for the same account.
+    private var storedRoles: StoredSessionRoleStore? { storageScope.map { .init(defaults: sessionDefaults, scope: $0) } }
 
     func bootstrap() async {
         guard !didBootstrap else { return }
@@ -7477,7 +7468,7 @@ final class AppSession: ObservableObject {
         }
         do {
             guard let saved=try vault.read() else { retryableRestoration = false; return }
-            let restored=try await accountSessionService.currentAccount(token:saved)
+            let restored=try await accountSessionService.currentAccount(token:saved,storedRole:storedRoles?.read())
             guard !Task.isCancelled, gate.isCurrent(operation) else { return }
             retryableRestoration = false
             commitAuthenticatedSession(token: saved, account: restored)
@@ -7490,6 +7481,7 @@ final class AppSession: ObservableObject {
             guard !Task.isCancelled, !(error is CancellationError), gate.isCurrent(operation) else { return }
             if error as? APIError == .unauthorized {
                 sessionDefaults.set(true,forKey:restoreBlockedKey)
+                storedRoles?.clear()
                 try? vault.clear()
             }
             // Offline or server failure never silently deletes a valid saved credential.
@@ -7571,7 +7563,7 @@ final class AppSession: ObservableObject {
         do {
             try Task.checkCancellation()
             guard !sessionDefaults.bool(forKey: restoreBlockedKey), let saved = try vault.read() else { return }
-            let restored = try await accountSessionService.currentAccount(token: saved)
+            let restored = try await accountSessionService.currentAccount(token: saved, storedRole: storedRoles?.read())
             try Task.checkCancellation()
             guard sessionRestorationRetry.owns(attempt), gate.isCurrent(attempt.epoch),
                   account == nil, token == nil,
@@ -7589,6 +7581,7 @@ final class AppSession: ObservableObject {
             guard !Task.isCancelled, !(error is CancellationError) else { return }
             if error as? APIError == .unauthorized {
                 sessionDefaults.set(true, forKey: restoreBlockedKey)
+                storedRoles?.clear()
                 try? vault.clear()
             }
             errorKey = Self.messageKey(for: error)
@@ -7643,6 +7636,7 @@ final class AppSession: ObservableObject {
         // Persist a non-secret tombstone before deletion. A Keychain failure cannot
         // silently restore a logged-out account at the next cold start.
         sessionDefaults.set(true,forKey:restoreBlockedKey)
+        storedRoles?.clear()
         roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey=nil
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()
@@ -7700,6 +7694,7 @@ final class AppSession: ObservableObject {
         ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
         gate.invalidate()
         sessionDefaults.set(true,forKey:restoreBlockedKey)
+        storedRoles?.clear()
         roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey="auth.expired"
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()

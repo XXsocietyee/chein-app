@@ -22,6 +22,9 @@ import Foundation
     public private(set) var foreground = true
     public private(set) var busy = false
     public var onChange: (() -> Void)?
+    /// Records the server `roam_location` AGREE for an explicit local acceptance (E2E-20261112 F3). It runs on every
+    /// start before the first `/api/roam/reveal` and must be idempotent; a failure leaves the walk unstarted.
+    public var locationConsent: (@MainActor () async throws -> Void)?
     public var isAvailable: Bool { service?.isAvailable == true && location != nil }
     public var presenceAvailable: Bool { service?.presenceAvailable == true }
     public var pendingActionCount: Int { record?.unresolvedActions.count ?? 0 }
@@ -171,6 +174,13 @@ import Foundation
         guard purposeAccepted else { error = RoamLiveFailure.consentRequired; changed(); return }
         guard let token = begin() else { return }
         defer { end(token) }
+        if let locationConsent {
+            do { try await locationConsent() } catch {
+                guard operation == token else { return }
+                self.error = RoamLiveFailure.consentRequired; changed(); return
+            }
+            guard operation == token else { return }
+        }
         do {
             try checkForeground(); guard let location, let identity = boundIdentity else { throw RoamLiveFailure.unavailable }
             phase = .acquiring; error = nil; changed()
