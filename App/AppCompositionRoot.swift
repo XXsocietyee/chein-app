@@ -3298,7 +3298,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = { [weak self] in
                 self?.clubPublicTopicsApproval(publicTopicsContext, route.clubID) == issued
             }
-        } else if ClubPublicRosterRoute.accepts(request, baseURL: api.baseURL) {
+        } else if ClubPublicRosterRoute.accepts(request, baseURL: api.baseURL), !(deployment.productionGatesEnabled && deployment.playerWritesEnabled && deployment.regional.market == .china && ReviewedPlayerReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token)) { // E2E F4: China player club/detail is the owner-approved player read below
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, account > 0, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
