@@ -49,7 +49,7 @@ public enum SquareRouteMapVerified {
         var segments: [[Point]] = []
         for chapter in detail.chapters {
             let raw = rawChapters.first { $0.id == chapter.id }
-            let chapterStops = stops(in: chapter, raw: raw, seen: &seen)
+            let chapterStops = Self.stops(in: chapter, raw: raw, seen: &seen)
             if chapterStops.isEmpty { continue }
             guard let segment = raw?.verifiedSegment(), segment.count >= 2 else { return nil }
             stops.append(contentsOf: chapterStops)

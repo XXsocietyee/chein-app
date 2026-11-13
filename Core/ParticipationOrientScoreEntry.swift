@@ -37,7 +37,7 @@ public enum ParticipationOrientScoreEntry {
         default:
             break
         }
-        if let topic, !isZeroOrNull(raw["topicId"]), positive(raw["topicId"]) != topic {
+        if let matched = topic, !isZeroOrNull(raw["topicId"]), positive(raw["topicId"]) != matched {
             topic = nil
             if ownerCode(raw["ownerType"]) == 1 { activity = nil }
         }

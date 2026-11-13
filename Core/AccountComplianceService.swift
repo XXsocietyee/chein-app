@@ -218,7 +218,8 @@ import FoundationNetworking
             fields["expectedRequestId"] = try HomeCityLocationConsentRecord.expectedRequestID(consent, rawRequestID: prior?["requestId"])
         }
         let request = try request("/api/compliance/consents", body: fields, session: session)
-        let retryHomeCity = subject == .homeCityLocation && event == .agree && (try unresolved(subject.operation, session: session) != nil)
+        var retryHomeCity = false
+        if subject == .homeCityLocation, event == .agree { retryHomeCity = try unresolved(subject.operation, session: session) != nil }
         if retryHomeCity {
             guard readsEnabled, writesEnabled else { throw ComplianceFailure.unavailable }
             guard !busy else { throw ComplianceFailure.busy }

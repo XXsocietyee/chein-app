@@ -132,7 +132,7 @@ public struct PWaveReader {
     public func affiliateSummary(token: String, scope: PWaveSessionScope,
                                  currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveAffiliateSummaryFact> {
         if productionLease != nil { throw PWaveRefusal.productionEndpoint }
-        try await performPresentation(feature: .affiliateCenter, token: token, scope: scope, currentScope: currentScope,
+        return try await performPresentation(feature: .affiliateCenter, token: token, scope: scope, currentScope: currentScope,
                                       request: { try self.makeGET(self.url("api/marketing/affiliate/summary", query: [URLQueryItem(name: "limit", value: String(PWaveAffiliateCenter.limit))]), token: token) },
                                       decode: { PWaveAffiliateCenter.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
     }
@@ -157,7 +157,7 @@ public struct PWaveReader {
     public func products(city: String? = nil, kind: String? = nil, token: String, scope: PWaveSessionScope,
                          currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
         if productionLease != nil { throw PWaveRefusal.productionEndpoint }
-        try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
+        return try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
                                       request: { try self.productList(city: city, kind: kind, token: token) },
                                       decode: { PWaveCityPass.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities, frozenSnapshot: false) })
     }
@@ -174,7 +174,7 @@ public struct PWaveReader {
     public func productOrders(token: String, scope: PWaveSessionScope,
                               currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
         if productionLease != nil { throw PWaveRefusal.productionEndpoint }
-        try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
+        return try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
                                       request: { try self.makeGET(self.url("api/marketing/product/orders"), token: token) },
                                       decode: { PWaveCityPass.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities, frozenSnapshot: true) })
     }

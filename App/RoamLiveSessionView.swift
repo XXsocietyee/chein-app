@@ -234,22 +234,27 @@ import Combine
         .onChange(of: albumMetadataReader?.scope) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
         .onChange(of: albumMetadataReader.map { ObjectIdentifier($0) }) { _, _ in browse.retireIfStale(owner: owner, reader: currentBrowseReader) }
     }
+    /// Split out of `body`: the closure made the modifier chain too large for the type checker.
+    private func settledSessionChanged(_ id: Int?) {
+        if id == nil {
+            finishReport = nil
+        } else {
+            if var report = RoamFinishReport(controller: owner, history: model.finishedHistory) {
+                report.currentAddress = model.finishAddress.text(chinese: AppLanguage.interfaceIsChinese(locale))
+                finishReport = report
+            } else {
+                finishReport = nil
+            }
+        }
+        // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
+        guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
+        celebrations.enqueue(.roamSummary(payload))
+    }
     var body: some View {
         sessionObservers
         .task(id: owner.phase) { await pulseWhileActive() }
         .cyCelebrations(celebrations)
-        .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in
-            if id == nil {
-                finishReport = nil
-            } else {
-                var report = RoamFinishReport(controller: owner, history: model.finishedHistory)
-                report.currentAddress = model.finishAddress.text(chinese: AppLanguage.interfaceIsChinese(locale))
-                finishReport = report
-            }
-            // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
-            guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
-            celebrations.enqueue(.roamSummary(payload))
-        }
+        .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in settledSessionChanged(id) }
         .overlay(alignment: .top) {
             if revealToastShown {
                 CYRevealToast(percent: RoamLiveCoveragePresentation(controller: owner).percentage)

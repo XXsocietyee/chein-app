@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Production readers for square stubs 18 and 19. Share links, route maps, deletion, and bookmarks stay unwired.
 @MainActor enum CloudSquareSessionBridge {
-    private final class Slot {
+    @MainActor private final class Slot {
         weak var session: AppSession?
         let activities: SquareCompletedActivityConformer
         let follow: SquareAuthorFollowConformer
@@ -74,7 +74,7 @@ import SwiftUI
 
     private func adoptOwner() {
         let next = session.account.map { ($0.id, session.sessionRevision) }
-        if next != owner {
+        if next?.0 != owner?.0 || next?.1 != owner?.1 {
             serverFlag.removeAll()
             displayFlag.removeAll()
             owner = next
