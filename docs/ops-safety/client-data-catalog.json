@@ -23,6 +23,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/AppSessionG6.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "G6 AI theme draft V2: pending request ids (g6.request.*) so an unconfirmed draft identity is read back instead of re-prepared; no draft content",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/AppSessionRoamConsent.swift",
       "kinds": [
         "userDefaults"
