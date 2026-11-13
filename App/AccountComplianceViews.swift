@@ -364,10 +364,21 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         Section {
             NavigationLink { SettingsLegalDocumentView(type: .privacyPolicy, market: market, reader: legalReader) } label: { Text("compliance.readPrivacy") }
             Text("compliance.roamExplanation")
-            Text(LocalizedStringKey("compliance.cleanup." + String(describing: model.state.roamCleanup)))
-            Button("compliance.revoke", role: .destructive) { Task { await model.coordinator.revokeRoam(explicitlyConfirmed: true) } }
-                .disabled(model.state.roamCleanup == .complete).accessibilityIdentifier("compliance.revoke")
+            // E2E-20261112 F3: offer Agree while the latest server row is not a current AGREE.
+            if model.state.roamConsent == .notAgreed {
+                Text("compliance.roamConsent.notAgreed").accessibilityIdentifier("compliance.roamConsent.notAgreed")
+                Button("compliance.roamAgree") { Task { await model.coordinator.agreeRoam(explicitlyConfirmed: true) } }
+                    .accessibilityIdentifier("compliance.roamAgree")
+            } else {
+                if model.state.roamConsent == .agreed {
+                    Text("compliance.roamConsent.agreed").accessibilityIdentifier("compliance.roamConsent.agreed")
+                }
+                Text(LocalizedStringKey("compliance.cleanup." + String(describing: model.state.roamCleanup)))
+                Button("compliance.revoke", role: .destructive) { Task { await model.coordinator.revokeRoam(explicitlyConfirmed: true) } }
+                    .disabled(model.state.roamCleanup == .complete).accessibilityIdentifier("compliance.revoke")
+            }
         }
+        .task { if model.state.roamConsent == .unknown { await model.coordinator.loadRoamConsent() } }
     }
     /// pages/shezhi/marketing/index read model over the coordinator state already on screen. No extra request.
     private var marketingPage: ShezhiMarketingIndexPageModel { ShezhiMarketingIndexPageModel(state: model.state) }

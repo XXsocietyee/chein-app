@@ -32,7 +32,8 @@ public enum HomeCityLocationConsentRecord {
     }
 
     /// `expectedRequestId` the location consent write requires. No row sends an empty id, not a guessed one.
-    public static func expectedRequestID(_ prior: ComplianceConsent?, rawRequestID: Any?) throws -> String {
+    /// `scene` is `home_city_location` or `roam_location` (E2E-20261112 F3); both share this contract.
+    public static func expectedRequestID(_ prior: ComplianceConsent?, rawRequestID: Any?, scene: String = scene) throws -> String {
         guard let prior else {
             guard rawRequestID == nil else { throw ComplianceFailure.malformed }
             return ""
@@ -46,12 +47,13 @@ public enum HomeCityLocationConsentRecord {
         return trimmed
     }
 
-    /// Other scenes ignore the raw request id. Home-city agree accepts only this request id and the current policy version.
+    /// Other scenes ignore the raw request id. A location agree (home city or roam) accepts only this request id
+    /// and the current policy version.
     public static func acceptsEcho(_ result: ComplianceConsent, subject: ComplianceSubject, event: ComplianceEvent,
                                    requestID: String, rawRequestID: Any?) -> Bool {
-        guard subject == .homeCityLocation, event == .agree else { return true }
+        guard subject.isLocationScene, event == .agree else { return true }
         guard let rawRequestID, let echoed = rawRequestID as? String, echoed == requestID else { return false }
-        return result.docType == docType && result.scene == scene
+        return result.docType == docType && result.scene == subject.scene
             && result.docVersion == UsageConsentDocument.privacyPolicy.currentVersion
     }
 
@@ -66,4 +68,9 @@ public enum HomeCityLocationConsentRecord {
             && consent.eventType == ComplianceEvent.agree.rawValue
             && consent.docVersion == UsageConsentDocument.privacyPolicy.currentVersion && !id.isEmpty
     }
+}
+
+extension ComplianceSubject {
+    /// Location consents whose AGREE carries `expectedRequestId` and reuses an unresolved request id.
+    public var isLocationScene: Bool { self == .homeCityLocation || self == .roamLocation }
 }

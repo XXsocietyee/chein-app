@@ -45,8 +45,9 @@ class HomeCityLocationConsentWiring(unittest.TestCase):
         self.assertEqual(catalog['homeCityConsent.unknown']['localizations']['zh-Hans']['stringUnit']['value'], '\u2014')
 
     def test_glue_files_stay_at_the_ratchet_ceiling(self):
-        self.assertEqual(len((ROOT / 'App/AppSession.swift').read_text().splitlines()), 8176)
-        self.assertEqual(len((ROOT / 'App/AppCompositionRoot.swift').read_text().splitlines()), 4307)
+        # Never above the ratchet ceilings (lowered by E2E-20261112 when code moved out of the glue files).
+        self.assertLessEqual(len((ROOT / 'App/AppSession.swift').read_text().splitlines()), 8171)
+        self.assertLessEqual(len((ROOT / 'App/AppCompositionRoot.swift').read_text().splitlines()), 4184)
 
 
 if __name__ == '__main__':

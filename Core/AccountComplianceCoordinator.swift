@@ -2,6 +2,8 @@ import Foundation
 
 public enum ComplianceStep: Equatable { case idle, notice, blocked, verify, verificationUnavailable, review, pending, completed, freshLogin, unknown }
 public enum ComplianceRoamCleanup: Equatable { case idle, serverConfirmed, trackingStopped, complete }
+/// Server `privacy_policy` / `roam_location` state from the latest row. Unknown until read.
+public enum ComplianceRoamConsent: Equatable { case unknown, agreed, notAgreed }
 public struct ComplianceState {
     public var step: ComplianceStep = .idle
     public var status: ComplianceDeregistration?
@@ -17,6 +19,7 @@ public struct ComplianceState {
     public var smsSent = false
     public var error: String?
     public var roamCleanup: ComplianceRoamCleanup = .idle
+    public var roamConsent: ComplianceRoamConsent = .unknown
     public init() {}
 }
 /// Inject existing roam controller/privacy store; ordering is server readback -> stop -> clear.
@@ -451,7 +454,45 @@ public struct AccountMarketingReadIntent {
                 catch { try self.fence(session, stamp); self.effects.invalidateMapPrivacyCaches(); throw error }
                 self.effects.invalidateMapPrivacyCaches(); self.state.roamCleanup = .complete
             }
+            self.state.roamConsent = .notAgreed
         }
+    }
+    /// E2E-20261112 F3. Reads the latest `roam_location` row so settings can offer Agree when not yet consented.
+    public func loadRoamConsent() async {
+        await run { session, stamp in
+            let latest = try await self.service.latest(.roamLocation, session: session)
+            try self.fence(session, stamp)
+            self.state.roamConsent = Self.isCurrentRoamAgree(latest) ? .agreed : .notAgreed
+        }
+    }
+    /// Explicit settings Agree: records `privacy_policy` / `roam_location` / `AGREE`.
+    public func agreeRoam(explicitlyConfirmed: Bool) async {
+        guard explicitlyConfirmed else { return }
+        await run { session, stamp in
+            _ = try await self.recordRoamLocationAgree(session: session)
+            try self.fence(session, stamp)
+            self.state.roamConsent = .agreed; self.state.roamCleanup = .idle
+        }
+    }
+    /// The roam "Agree and go" path, before `/api/roam/reveal`: records `roam_location` AGREE unless the latest row already
+    /// is a current-version AGREE with no unresolved write. Same contract as the mini-program `utils/compliance`:
+    /// `expectedRequestId` from the latest row (empty when none), and an unresolved request id is reused, not regenerated.
+    public func ensureRoamLocationAgree() async throws {
+        guard let session = current(), session.valid else { throw ComplianceFailure.staleSession }
+        _ = try await recordRoamLocationAgree(session: session)
+        guard current() == session else { throw ComplianceFailure.staleSession }
+        state.roamConsent = .agreed; state.roamCleanup = .idle; changed()
+    }
+    private func recordRoamLocationAgree(session: ComplianceSession) async throws -> ComplianceConsent {
+        if try service.unresolved(ComplianceSubject.roamLocation.operation, session: session) == nil,
+           let latest = try await service.latest(.roamLocation, session: session), Self.isCurrentRoamAgree(latest) {
+            return latest
+        }
+        return try await service.consent(.roamLocation, event: .agree, requestID: UUID().uuidString.lowercased(), session: session)
+    }
+    private static func isCurrentRoamAgree(_ consent: ComplianceConsent?) -> Bool {
+        guard let consent, consent.matches(.roamLocation, event: .agree) else { return false }
+        return consent.docVersion == UsageConsentDocument.privacyPolicy.currentVersion
     }
     /// Latest `privacy_policy` / `home_city_location` row. Empty data is no row, not an agreement.
     public func latestHomeCityLocationConsent() async throws -> HomeCityLocationConsentBaseline {

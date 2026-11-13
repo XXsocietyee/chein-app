@@ -224,6 +224,42 @@ import UIKit
         XCTAssertEqual(recorder.requests.count, 1)
     }
 
+    /// E2E-20261112 F1: a cold restore whose `/api/userInfo` omits `role` keeps the role committed at
+    /// sign-in for the same account, and never signs the player out for that omission alone.
+    func testColdRestoreKeepsStoredLoginRoleWhenUserInfoOmitsRole() async throws {
+        let recorder = CompositionRecorder(), vault = CompositionMemoryVault()
+        let storage = storage(vault), deployment = try deployment()
+        let root = AppCompositionRoot(deployment: .reviewed(deployment), storage: storage, makeTransport: { recorder })
+        await signIn(root.makeSession(), recorder: recorder)
+        XCTAssertEqual(storage.defaults.string(forKey: StoredSessionRole.key(for: deployment.storageScope)), "7|player")
+        recorder.overrides["userInfo"] = (#"{"code":200,"appUser":{"userId":7,"userName":"13900000004","nickName":null}}"#, 200)
+        let restored = root.makeSession()
+        await restored.bootstrap()
+        XCTAssertEqual(restored.account?.id, 7); XCTAssertEqual(restored.account?.role, "player")
+        XCTAssertEqual(vault.value, "synthetic-7"); XCTAssertNil(restored.errorKey)
+        XCTAssertFalse(storage.defaults.bool(forKey: deployment.storageScope.restoreBlockedKey))
+        // A server role still wins over the stored one.
+        recorder.overrides["userInfo"] = (#"{"code":200,"appUser":{"userId":7,"role":"club"}}"#, 200)
+        let promoted = root.makeSession()
+        await promoted.bootstrap()
+        XCTAssertEqual(promoted.account?.role, "club")
+        // Logout clears the stored role; a later roleless restore of a foreign credential stays refused.
+        await promoted.logout()
+        XCTAssertNil(storage.defaults.string(forKey: StoredSessionRole.key(for: deployment.storageScope)))
+    }
+    func testColdRestoreNeverAppliesStoredRoleToAnotherAccount() async throws {
+        let recorder = CompositionRecorder(), vault = CompositionMemoryVault()
+        let storage = storage(vault), deployment = try deployment()
+        storage.defaults.set("8|merchant", forKey: StoredSessionRole.key(for: deployment.storageScope))
+        vault.value = "synthetic-old-session"
+        recorder.overrides["userInfo"] = (#"{"code":200,"appUser":{"userId":7}}"#, 200)
+        let session = AppCompositionRoot(deployment: .reviewed(deployment), storage: storage,
+            makeTransport: { recorder }).makeSession()
+        await session.bootstrap()
+        XCTAssertNil(session.account); XCTAssertEqual(vault.value, "synthetic-old-session")
+        XCTAssertEqual(session.errorKey, "auth.invalidResponse")
+    }
+
     func testCancelPendingPhoneExchangeCannotStartReadbackAndReentryWorks() async throws {
         let recorder = CompositionRecorder(), vault = CompositionMemoryVault()
         let session = AppCompositionRoot(deployment: .reviewed(try deployment()),

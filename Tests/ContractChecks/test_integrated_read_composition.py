@@ -64,7 +64,9 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
         for grant in ['manualMap', 'playNodesAndRouteState']:
             self.assertEqual(launch.count('.' + grant), 1, grant)
             self.assertIn('.' + grant, admitted.split('reads: [', 1)[1].split(']', 1)[0])
-        self.assertNotIn('contentDetails', launch)
+        # Owner approval 2026-11-12 (E2E-20261112 F2): only the shipped China branch grants signed-in detail reads.
+        self.assertEqual(launch.count('.activityAndTopic'), 1)
+        self.assertIn('contentDetails: .activityAndTopic', admitted.split('return reviewedComposition(', 1)[1].split('storage: storage', 1)[0])
 
     def test_cross_family_regressions_are_authored_and_in_apple_target(self):
         source = self.read('Tests/AppUnitTests/IntegratedReadCompositionTests.swift')

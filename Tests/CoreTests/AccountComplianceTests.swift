@@ -167,3 +167,55 @@ extension AccountComplianceTests {
     }
 #endif
 }
+
+/// Echoes the last posted `requestId` on the readback, like the backend's latest-row read.
+private final class RoamConsentFake: HTTPTransport {
+    var requests: [URLRequest] = []
+    var latest: [String: Any]?
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        if request.url?.path == "/api/compliance/consents/latest" {
+            let body: [String: Any] = latest.map { ["code": 200, "data": $0] } ?? ["code": 200]
+            return (try JSONSerialization.data(withJSONObject: body), 200)
+        }
+        let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+        latest = ["docType": "privacy_policy", "scene": "roam_location", "eventType": fields["eventType"] as Any,
+                  "docVersion": "v2.1", "requestId": fields["requestId"] as Any]
+        return (Data(#"{"code":200}"#.utf8), 200)
+    }
+    var posted: [[String: Any]] {
+        requests.filter { $0.url?.path == "/api/compliance/consents" }
+            .compactMap { $0.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } }
+    }
+}
+extension AccountComplianceTests {
+    /// E2E-20261112 F3: "Agree and go" records `roam_location` AGREE with the backend's `expectedRequestId` contract.
+    func testRoamAgreeSendsExpectedRequestIdAndIsIdempotent() async throws {
+        let context = ComplianceTestContext(); let fake = RoamConsentFake()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("journal.json")
+        let service = AccountComplianceService(configuration: try APIConfiguration(baseURL: URL(string: "https://fixture.example")!), transport: fake,
+            journal: ComplianceFileJournal(url: url), current: { context.session }, token: { "synthetic-test-token" },
+            readsEnabled: true, writesEnabled: true, legalApproved: { subject, _ in subject == .roamLocation }, authoritativeMerchantID: { nil })
+        let coordinator = AccountComplianceCoordinator(service: service, auth: ComplianceAuthFake(), effects: ComplianceEffectsFake(),
+            current: { context.session }, invalidateSession: { _ in })
+        await coordinator.loadRoamConsent()
+        XCTAssertEqual(coordinator.state.roamConsent, .notAgreed)
+        try await coordinator.ensureRoamLocationAgree()
+        XCTAssertEqual(fake.posted.count, 1)
+        let first = try XCTUnwrap(fake.posted.first)
+        XCTAssertEqual(first["scene"] as? String, "roam_location"); XCTAssertEqual(first["eventType"] as? String, "AGREE")
+        XCTAssertEqual(first["expectedRequestId"] as? String, "", "no prior row sends an empty expectedRequestId")
+        XCTAssertEqual(coordinator.state.roamConsent, .agreed)
+        // A current AGREE on record is not posted again on the next start.
+        try await coordinator.ensureRoamLocationAgree()
+        XCTAssertEqual(fake.posted.count, 1)
+        // After a withdraw, settings Agree chains expectedRequestId to the latest (revoke) row.
+        await coordinator.revokeRoam(explicitlyConfirmed: true)
+        XCTAssertEqual(coordinator.state.roamConsent, .notAgreed)
+        let revokeID = try XCTUnwrap(fake.latest?["requestId"] as? String)
+        await coordinator.agreeRoam(explicitlyConfirmed: true)
+        XCTAssertEqual(fake.posted.count, 3)
+        XCTAssertEqual(fake.posted.last?["expectedRequestId"] as? String, revokeID)
+        XCTAssertEqual(coordinator.state.roamConsent, .agreed); XCTAssertEqual(coordinator.state.roamCleanup, .idle)
+    }
+}

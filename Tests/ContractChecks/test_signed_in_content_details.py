@@ -20,7 +20,9 @@ class SignedInContentDetailContracts(unittest.TestCase):
         for proof in ('request.httpMethod == "POST"', "request.httpBodyStream == nil", "url.query == nil", "url.fragment == nil", "id > 0", "String(id) == value", "canonical.httpBody == body"):
             self.assertIn(proof, route)
         launch = (ROOT / "App/RegionalLaunchConfiguration.swift").read_text()
-        self.assertNotIn(".activityAndTopic", launch)
+        # Owner approval 2026-11-12 (E2E-20261112 F2): granted once, inside the shipped China branch only.
+        self.assertEqual(launch.count(".activityAndTopic"), 1)
+        self.assertIn(".activityAndTopic", launch.split("admitsShippedChina", 1)[1].split("static func reviewedDeployment", 1)[0])
 
     def test_activity_and_topic_session_fence_identity_only_aba_before_401(self):
         session = (ROOT / "App/AppSession.swift").read_text()

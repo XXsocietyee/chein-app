@@ -6,7 +6,10 @@ enum RegionalLaunchConfiguration {
     /// Selects the reviewed China deployment when the build matches it. An empty build and
     /// every United States build stay unconfigured and call no backend.
     @MainActor static var composition: AppCompositionRoot {
-        shippedComposition(build: .current)
+        #if DEBUG
+        if let e2e = E2ETestHostOverride.selected() { return e2e }
+        #endif
+        return shippedComposition(build: .current)
     }
 
     /// China selection uses `ReviewedAppDeployment` through `reviewedComposition` and the
@@ -41,6 +44,8 @@ enum RegionalLaunchConfiguration {
                 .homeAndSearch, .manualMap, .publicMapLayers, .publicTopicTemplateCatalogAndDetail,
                 .officialPublicEventCatalogAndDetail, .playNodesAndRouteState
             ],
+            // Owner approval 2026-11-12 (E2E-20261112 F2): signed-in player topic/activity/route detail.
+            contentDetails: .activityAndTopic,
             storage: storage,
             makeTransport: makeTransport
         )
@@ -49,6 +54,7 @@ enum RegionalLaunchConfiguration {
     static func reviewedDeployment(
         build: BuildMetadata = .current,
         reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        contentDetails: SignedInContentDetailReadApproval? = nil,
         allowLoginRoleFallbackOnRolelessUserInfo: Bool = true
     ) throws -> ReviewedAppDeployment {
         guard let market = try? RegionalConfiguration.market(buildValue: build.market) else {
@@ -69,6 +75,7 @@ enum RegionalLaunchConfiguration {
             bundleIdentifier: rawBundle,
             realm: rawRealm,
             reads: reads,
+            contentDetails: contentDetails,
             productionGatesEnabled: true,
             playerWritesEnabled: true,
             allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
@@ -78,6 +85,7 @@ enum RegionalLaunchConfiguration {
     @MainActor static func reviewedComposition(
         build: BuildMetadata = .current,
         reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        contentDetails: SignedInContentDetailReadApproval? = nil,
         allowLoginRoleFallbackOnRolelessUserInfo: Bool = true,
         storage: AppScopedStorageFactory? = nil,
         makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() }
@@ -85,6 +93,7 @@ enum RegionalLaunchConfiguration {
         guard let deployment = try? reviewedDeployment(
             build: build,
             reads: reads,
+            contentDetails: contentDetails,
             allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
         ) else {
             return .init(deployment: .incompatibleBuild, storage: storage, makeTransport: makeTransport)
@@ -203,3 +212,52 @@ enum RegionalLaunchConfiguration {
         market?.language(storedValue:stored) ?? stored.map(AppLanguage.init(storedValue:)) ?? .system
     }
 }
+
+#if DEBUG
+/// DEBUG-only end-to-end override. `--e2e-test-host <url>` admits exactly one TEST host and
+/// nothing else; Release builds compile none of this. The shipped reviewed composition is
+/// reused unchanged, and only the outgoing production host is rewritten to the TEST host,
+/// after every reviewed route guard has run. The session realm is separate from production.
+enum E2ETestHostOverride {
+    static let testHost = "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+    static let realm = "cn-e2e-test"
+
+    @MainActor static func selected(arguments: [String] = ProcessInfo.processInfo.arguments) -> AppCompositionRoot? {
+        guard let i = arguments.firstIndex(of: "--e2e-test-host"), arguments.indices.contains(i + 1),
+              arguments[i + 1] == testHost else { return nil }
+        let build = RegionalLaunchConfiguration.BuildMetadata(
+            market: RegionalMarket.china.rawValue,
+            baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            bundleIdentifier: Bundle.main.bundleIdentifier,
+            realm: realm
+        )
+        let transport: () -> any HTTPTransport = { E2ETestHostTransport(underlying: URLSessionTransport()) }
+        return RegionalLaunchConfiguration.shippedComposition(build: build, makeTransport: transport)
+    }
+}
+
+struct E2ETestHostTransport: HTTPTransport {
+    let underlying: any HTTPTransport
+
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        var outgoing = request
+        if let url = request.url?.absoluteString, url.hasPrefix(ReviewedMarketLaunch.chinaProductionBaseURL) {
+            let rest = url.dropFirst(ReviewedMarketLaunch.chinaProductionBaseURL.count)
+            outgoing.url = URL(string: E2ETestHostOverride.testHost + "/" + rest)
+        } else if request.url?.host?.lowercased() == "www.chengyinhub.com" {
+            throw APIError.notConfigured
+        }
+        let started = Date()
+        do {
+            let (data, status) = try await underlying.send(outgoing)
+            let body = String(decoding: data.prefix(600), as: UTF8.self)
+            NSLog("[E2E] %@ %@ -> %d %.0fms %@", outgoing.httpMethod ?? "GET", outgoing.url?.absoluteString ?? "",
+                  status, Date().timeIntervalSince(started) * 1000, body)
+            return (data, status)
+        } catch {
+            NSLog("[E2E] %@ %@ -> error %@", outgoing.httpMethod ?? "GET", outgoing.url?.absoluteString ?? "", "\(error)")
+            throw error
+        }
+    }
+}
+#endif

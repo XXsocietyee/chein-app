@@ -1,0 +1,27 @@
+POST /api/userInfo [form ] -> {"msg":"操作成功","appUser":{"createBy":null,"createTime":null,"updateBy":null,"updateTime":null,"remark":null,"userId":9004,"userName":"13900000004","nickName":null,"email":null,"mobile":null,"sex":null,"avatar":null,"statu
+POST /api/user/info [form ] -> {"msg":"操作成功","code":200,"data":{"id":9004,"userType":1,"role":"player","phone":"13900000004","name":"","wechat":"","levelId":1,"nickname":"玩家小城","avatar":"","casePics":"","caseIntroducton":"","website":"","introduction"
+GET /api/user/info [form ] -> {"msg":"Request method 'GET' is not supported","code":500}
+POST /api/club/home [json {}] -> {"msg":"操作成功","code":200,"data":{"leaderStatus":{"isClubLeader":false,"maxOwned":2,"canCreate":true,"ownedCount":0},"owned":[],"joined":[],"nearby":[{"createBy":null,"createTime":"2026-11-13 12:40:30","updateBy":null,"up
+POST /api/club/list [json {}] -> {"msg":"操作成功","code":200,"data":[{"id":7001,"memberId":9003,"name":"城瘾跑团","logo":null,"cover":null,"description":null,"clubTypes":null,"activityPrefs":null,"clubType":null,"city":null,"keywords":null,"style":null,"leader
+POST /api/club/join [form clubId=7001] -> 
+POST /api/coop/list [json {}] -> {"msg":"操作成功","code":200,"data":{"slots":{"byTopic":{},"byGame":{}},"received":[],"sent":[]}}
+POST /api/im/start [form targetId=9009] -> 
+POST /api/im/send [json {"conversationId":1,"type":"text","content":"E2E curl hello"}] -> 
+POST /api/im/messages [form conversationId=1] -> 
+POST /api/im/conversations [form ] -> 
+POST /api/compliance/consents [json {"docType":"privacy_policy","scene":"roam_location","eventType":"AGREE","requestId":"e2e-1794552300"}] -> {"msg":"定位授权状态已变化，请重新明确选择","code":409}
+POST /api/roam/reveal [json {"lat":31.2304,"lng":121.4737}] -> {"msg":"没有要点亮的格子","code":500}
+POST /api/public-catalog/list [json {}] -> {"msg":"操作成功","code":200,"data":{"total":1,"rows":[{"id":"990013","canonicalPath":"/quest/990013","cityCode":null,"cityName":null,"name":"E2E 探店日一期","subtitle":"隔离验收样板","summary":"仅用于本机 cy_e2e_ 免费流程入口验收","imgUrl":null,"p
+POST /api/public-catalog/city/list [json {}] -> {"msg":"操作成功","code":200,"data":{"total":1,"rows":[{"cityCode":null,"cityName":null,"cityPath":null,"topicCount":1,"onSaleCount":0,"groupEligibleCount":0,"schoolEligibleCount":0}],"code":200,"msg":"查询成功"}}
+POST /api/square/list [json {}] -> {"msg":"请求路径不存在","code":404}
+POST /api/journey/list [json {}] -> {"msg":"请求路径不存在","code":404}
+POST /api/im/start [form targetId=9009] -> {"msg":"对象不存在","code":500}
+POST /api/im/start [json {"targetId":9009}] -> {"msg":"对象不存在","code":500}
+POST /api/im/send [json {"conversationId":1,"msgType":"text","content":"E2E curl hello","clientMsgId":"e2e-1"}] -> {"msg":"内容不能为空","code":500}
+POST /api/im/send [form conversationId=1&content=E2E+curl+hello&type=text] -> {"msg":"缺少会话或对象","code":500}
+POST /api/im/messages [form conversationId=1] -> {"msg":"无权查看该会话","code":403}
+POST /api/im/conversations [form ] -> {"msg":"操作成功","code":200,"data":[{"lastMsgType":null,"unread":0,"conversationId":1,"counterparty":{"nickname":"玩家小城","id":9004,"avatar":""},"type":1,"lastMsgAt":null,"lastMsgText":"","muted":0}]}
+POST /api/compliance/consents [json {"docType":"privacy_policy","scene":"roam_location","eventType":"AGREE","requestId":"e2e-1794552370","expectedRequestId":""}] -> {"msg":"操作成功","code":200,"data":{"occurredAt":"2026-11-13T14:46:18.000+08:00","requestId":"e2e-1794552370","docType":"privacy_policy","eventType":"AGREE","docVersion":"v2.1","scene":"roam_location"}}
+POST /api/club/join [form clubId=7001] -> {"msg":"Content-Type 'application/x-www-form-urlencoded;charset=UTF-8' is not supported","code":500}
+POST /api/im/send [form conversation_id=1&msg_type=1&content=E2E+curl+hello&client_message_id=<uuid>] -> {"msg":"内容审核暂时不可用，请联系平台","code":500}
+POST /api/im/messages (as 9009) [form conversation_id=1] -> {"msg":"操作成功","code":200,"data":{"nextCursor":null,"blocked":false,"blockedByMe":false,"hasMore":false,"list":[]}}

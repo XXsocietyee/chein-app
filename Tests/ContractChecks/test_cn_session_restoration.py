@@ -10,7 +10,7 @@ class CNSessionRestorationTests(unittest.TestCase):
         source = (ROOT / 'App/AppSession.swift').read_text()
         bootstrap = source.split('func bootstrap() async {', 1)[1].split('func login(', 1)[0]
         self.assertIn('accountSessionService.storageScope == storageScope', bootstrap)
-        self.assertIn('accountSessionService.currentAccount(token:saved)', bootstrap)
+        self.assertIn('accountSessionService.currentAccount(token:saved,storedRole:storedRoles?.read())', bootstrap)
         self.assertNotIn('guard let service', bootstrap)
         self.assertNotIn('canUsePassword', bootstrap)
         self.assertNotIn('usernamePassword', bootstrap)
@@ -22,7 +22,7 @@ class CNSessionRestorationTests(unittest.TestCase):
         source = (ROOT / 'App/AppSession.swift').read_text()
         refresh = source.split('func refreshOwnAccount() async {', 1)[1].split('private var currentClubActionSession', 1)[0]
         self.assertIn('accountSessionService.storageScope == storageScope', refresh)
-        self.assertIn('accountSessionService.currentAccount(token:credential)', refresh)
+        self.assertIn('accountSessionService.currentAccount(token:credential,storedRole:storedRoles?.read())', refresh)
         self.assertNotIn('guard let service', refresh)
         self.assertIn('gate.currentStamp == stamp,token == credential,account?.id == accountID,fresh.id == accountID', refresh)
         self.assertIn('!Task.isCancelled', refresh)

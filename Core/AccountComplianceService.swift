@@ -208,18 +208,19 @@ import FoundationNetworking
         if event == .agree, !legalApproved(subject, session) { throw ComplianceFailure.unavailable }
         var sentRequestID = requestID
         var fields = try subject.fields(); fields["eventType"] = event.rawValue
-        if subject == .homeCityLocation, event == .agree, let pending = try unresolved(subject.operation, session: session) {
+        if subject.isLocationScene, event == .agree, let pending = try unresolved(subject.operation, session: session) {
             sentRequestID = pending.requestID
         }
         fields["requestId"] = sentRequestID
-        if subject == .homeCityLocation, event == .agree {
+        if subject.isLocationScene, event == .agree {
             let prior = try await latestObject(subject, session: session)
             let consent = try prior.map { try decode($0, as: ComplianceConsent.self) }
-            fields["expectedRequestId"] = try HomeCityLocationConsentRecord.expectedRequestID(consent, rawRequestID: prior?["requestId"])
+            fields["expectedRequestId"] = try HomeCityLocationConsentRecord.expectedRequestID(consent, rawRequestID: prior?["requestId"],
+                scene: subject.scene)
         }
         let request = try request("/api/compliance/consents", body: fields, session: session)
         var retryHomeCity = false
-        if subject == .homeCityLocation, event == .agree { retryHomeCity = try unresolved(subject.operation, session: session) != nil }
+        if subject.isLocationScene, event == .agree { retryHomeCity = try unresolved(subject.operation, session: session) != nil }
         if retryHomeCity {
             guard readsEnabled, writesEnabled else { throw ComplianceFailure.unavailable }
             guard !busy else { throw ComplianceFailure.busy }

@@ -285,6 +285,124 @@ import XCTest
         await assertClosed { try await closedTransport.send(state) }
     }
 
+    /// E2E-20261112 F2: the shipped China composition grants signed-in topic/activity/route detail reads.
+    func testShippedChinaGrantsSignedInContentDetailReads() async throws {
+        let recorder = PlayerReadRecorder()
+        let composition = shipped(recorder)
+        XCTAssertEqual(composition.reviewed?.contentDetails, .activityAndTopic)
+        let player = try playerContext(composition)
+        let identity = CompositionHTTPTransport.SessionIdentity(epoch: player.session.epoch, accountID: player.session.accountID,
+            role: player.role, token: player.session.token)
+        XCTAssertEqual(composition.readAvailability(.contentDetail, identity: identity), .available)
+        let guest = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil)
+        XCTAssertEqual(composition.readAvailability(.contentDetail, identity: guest), .signInRequired)
+        let transport = signedIn(composition, player)
+        for path in ["api/topic/info-to-user", "api/activity/info"] {
+            let request = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent(path),
+                fields: ["id": "990013"], token: player.session.token)
+            _ = try await transport.send(request)
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        let market = RegionalLaunchConfiguration.reviewedMarketComposition(market: .china,
+            baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm)
+        XCTAssertNil(market.reviewed?.contentDetails)
+    }
+
+    /// E2E-20261112 F4/F5: every live player read and write the owner approved is admitted for a signed-in player in the
+    /// shipped China composition; money routes stay refused.
+    func testShippedChinaAdmitsLivePlayerReadsAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerReadRecorder()
+        let composition = shipped(recorder)
+        let player = try playerContext(composition)
+        let transport = signedIn(composition, player)
+        let base = player.baseURL, token = player.session.token
+        let api = try APIConfiguration(baseURL: base)
+        // Real service request builders, so a drift in their wire shape fails here.
+        _ = try await ClubService(configuration: api, transport: transport).homeBody(token: token)
+        XCTAssertEqual(recorder.paths.last, "api/club/home")
+        _ = try await ClubService(configuration: api, transport: transport).detailBody(id: 7001, token: token)
+        XCTAssertEqual(recorder.paths.last, "api/club/detail")
+        _ = try await ClubService(configuration: api, transport: transport).directory(token: token)
+        XCTAssertEqual(recorder.paths.last, "api/club/list")
+        _ = try await MessagingService(configuration: api, transport: transport).conversations(token: token)
+        XCTAssertEqual(recorder.paths.last, "api/im/conversations")
+        _ = try await transport.send(jsonPost(base.appendingPathComponent("api/coop/list"), [:], token: token))
+        XCTAssertEqual(recorder.paths.last, "api/coop/list")
+        var profile = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/user/info"), fields: [:],
+            token: token, includesBody: false)
+        profile.setValue("multipart/form-data; boundary=ProfileRead-1", forHTTPHeaderField: "Content-Type")
+        profile.httpBody = Data("--ProfileRead-1--\r\n".utf8)
+        _ = try await transport.send(profile)
+        XCTAssertEqual(recorder.paths.last, "api/user/info")
+        // Live-route sweep: player profile, journey and launch reads, each in its service's wire shape.
+        _ = try await transport.send(LaunchFeatureFlagsReader.request(baseURL: base, token: token))
+        XCTAssertEqual(recorder.paths.last, "api/config/features")
+        for path in ["api/medal/wall", "api/badge/wall-v2"] {
+            _ = try await transport.send(jsonPost(base.appendingPathComponent(path), [:], token: token))
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        _ = try await transport.send(AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/growth/leaderboard"),
+            fields: ["metric": "XP", "period": "WEEK", "limit": "20"], token: token))
+        XCTAssertEqual(recorder.paths.last, "api/growth/leaderboard")
+        _ = try await transport.send(AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/registration/my-joined"),
+            fields: [:], token: token, includesBody: false))
+        XCTAssertEqual(recorder.paths.last, "api/registration/my-joined")
+        var cards = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/object-card/list"), fields: [:],
+            token: token, includesBody: false)
+        cards.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        cards.httpShouldHandleCookies = false
+        cards.httpBody = Data("pageNum=1&pageSize=40&category=npc".utf8)
+        _ = try await transport.send(cards)
+        XCTAssertEqual(recorder.paths.last, "api/object-card/list")
+        let send = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"),
+            fields: ["conversation_id": "1", "msg_type": "1", "content": "E2E hello", "client_message_id": String(repeating: "cd", count: 16)],
+            token: token)
+        _ = try await transport.send(send)
+        XCTAssertEqual(recorder.paths.last, "api/im/send")
+        // An expired or revoked channel lease is re-minted for the same signed-in context, not left refusing every send.
+        try XCTUnwrap(composition.playerWriteGrant(player)).channelTextSend.revoke()
+        _ = try await transport.send(send)
+        XCTAssertEqual(recorder.paths.last, "api/im/send")
+        XCTAssertFalse(try XCTUnwrap(composition.playerWriteGrant(player)).channelTextSend.isRevoked)
+
+        let before = recorder.paths.count
+        for path in ["api/registration/pay", "api/withdrawal/create", "api/wallet/withdraw", "api/pay/create",
+                     "api/club/settlement/withdraw", "api/coop/accept"] {
+            await assertClosed { try await transport.send(self.jsonPost(base.appendingPathComponent(path), ["id": 1], token: token)) }
+        }
+        // A read path with a money field or a nested body is not a read; a guest or a foreign token is not this player.
+        await assertClosed { try await transport.send(self.jsonPost(base.appendingPathComponent("api/coop/list"), ["payAmount": 1], token: token)) }
+        await assertClosed { try await transport.send(AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/growth/leaderboard"),
+            fields: ["payChannel": "APP"], token: token)) }
+        await assertClosed { try await transport.send(self.jsonPost(base.appendingPathComponent("api/club/home"), ["filter": ["a": 1]], token: token)) }
+        await assertClosed { try await transport.send(self.jsonPost(base.appendingPathComponent("api/club/home"), [:], token: "other-token")) }
+        XCTAssertEqual(recorder.paths.count, before)
+        let guest = composition.transport()
+        guest.current = { .init(epoch: 1, accountID: nil, role: nil, token: nil) }
+        await assertClosed { try await guest.send(self.jsonPost(base.appendingPathComponent("api/coop/list"), [:], token: token)) }
+    }
+
+    private func shipped(_ recorder: PlayerReadRecorder) -> AppCompositionRoot {
+        RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+    }
+
+    private func signedIn(_ composition: AppCompositionRoot, _ player: RuntimeDependencyContext) -> CompositionHTTPTransport {
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        return transport
+    }
+
+    private func jsonPost(_ url: URL, _ json: [String: Any], token: String) throws -> URLRequest {
+        var request = try AuthRequestBuilder.makeFormRequest(url: url, fields: [:], token: token, includesBody: false)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: json, options: [.sortedKeys])
+        return request
+    }
+
     func testShippedChinaAdmitsHintLadderUseAndSkipAndKeepsMoneyClosed() async throws {
         let recorder = PlayerWriteRecorder()
         let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
@@ -350,5 +468,13 @@ private final class PlayerWriteRecorder: HTTPTransport {
         let relative = request.url?.path.split(separator: "/").drop(while: { $0 != "api" }).joined(separator: "/") ?? ""
         paths.append(relative)
         return (Data(#"{"code":200}"#.utf8), 200)
+    }
+}
+
+private final class PlayerReadRecorder: HTTPTransport {
+    var paths: [String] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        paths.append(request.url?.path.split(separator: "/").drop(while: { $0 != "api" }).joined(separator: "/") ?? "")
+        return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
     }
 }
