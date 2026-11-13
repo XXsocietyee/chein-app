@@ -82,6 +82,10 @@ public struct PlayExperienceDocument: Decodable, Equatable {
     public let storyVariables: [String: PlayWireValue]
     public let storyVoices: [String: PlayWireValue]
     public let storyThoughts: [PlayWireValue]
+    /// U04-03 server verdict; nil when the server sends none.
+    public let compatibility: PlayContentCompatibility?
+    /// Content identity (frozen run snapshot version, else published config version). Nil is unknown, never 0.
+    public let contentVersion: String?
     public init(from decoder: Decoder) throws {
         base = try PlayNodesResult(from: decoder)
         let raw = try PlayWireValue(from: decoder)
@@ -101,6 +105,10 @@ public struct PlayExperienceDocument: Decodable, Equatable {
         storyVariables = raw["vars"].object ?? [:]
         storyVoices = raw["storyVoices"].object ?? [:]
         storyThoughts = raw["routeState"]["thoughts"].array ?? []
+        compatibility = PlayContentCompatibility(raw: raw["compatibility"])
+        if let frozen = raw["contentSnapshotVersion"].tolerantInteger, frozen > 0 { contentVersion = "s\(frozen)" }
+        else if let published = raw["publishedConfigVersion"].tolerantInteger, published > 0 { contentVersion = "p\(published)" }
+        else { contentVersion = nil }
     }
 }
 public struct PlayNodeExtras: Equatable {

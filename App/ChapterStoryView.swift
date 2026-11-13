@@ -25,6 +25,14 @@ import UIKit
     /// Chapter opening gate (mini-program chapter-gate): once per visit of this chapter.
     @State private var showGate = false
     @State private var gateSeen = false
+    /// U04-04 reading resume: the segment at the top of the viewport, restored once per visit.
+    @State private var readingSegmentID: String?
+    @State private var resumeTried = false
+    @State private var zoomedImage: ChapterStoryZoomedImage?
+    private let readingStore = ChapterReadingPositionStore()
+    private var readingKey: String? {
+        ChapterReadingPositionStore.key(runIdentity: model.identity, contentVersion: model.contentVersion, chapterID: chapterID)
+    }
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     private var chapter: ChapterStoryDocument? { model.chapterStories[chapterID] }
@@ -54,6 +62,7 @@ import UIKit
         return (nodes.filter { snapshot.isDone($0) }.count, nodes.count)
     }
     var body: some View {
+        ScrollViewReader { reader in
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 if visible, let chapter {
@@ -64,6 +73,20 @@ import UIKit
                             .cyThemeEdge(mood: segment.mood, odd: segment.odd)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("chapterStory.segment." + segment.id)
+                            .id(segment.id)
+                            .background(GeometryReader { proxy in
+                                Color.clear.preference(key: ChapterSegmentOffsetKey.self,
+                                                       value: [segment.id: proxy.frame(in: .named(Self.scrollSpace)).minY])
+                            })
+                    }
+                    if let snapshot = model.snapshot, let stop = ChapterStoryProjection.lockedStop(chapter: chapter, snapshot: snapshot) {
+                        // Lock reason is the server's text; without one the reader still learns the flow is waiting, not over.
+                        Label {
+                            if let reason = snapshot.lockReason(stop) { Text(verbatim: reason) }
+                            else { Text("chapterStory.lockedStop", tableName: "PlayFullStory") }
+                        } icon: { Image(systemName: "lock") }
+                        .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("chapterStory.lockedStop")
                     }
                     if model.thoughtSyncPhase == .syncing { ProgressView("chapterStory.thought.syncing") }
                     if model.thoughtSyncPhase == .disabled { Text("chapterStory.thought.disabled").font(.footnote).foregroundStyle(.secondary) }
@@ -76,6 +99,11 @@ import UIKit
                     audioSelection
                     if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
                     if let progress = chapterProgress, progress.done == progress.total {
+                        if let closing = chapter.closingLine {
+                            Text(verbatim: closing).font(CYTypography.body).italic().foregroundStyle(CYColor.textSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .accessibilityIdentifier("chapterStory.closingLine")
+                        }
                         // Mini-program chapter-flip end card: the chapter is complete, the next stop is named.
                         let position = chapterPosition
                         CYChapterEndCard(number: position?.number ?? 1, title: position?.name ?? chapter.title,
@@ -102,6 +130,25 @@ import UIKit
                 }
             }.padding(CYSpacing.pageHorizontal).frame(maxWidth: 720).frame(maxWidth: .infinity)
         }
+        .coordinateSpace(.named(Self.scrollSpace))
+        .onPreferenceChange(ChapterSegmentOffsetKey.self) { offsets in
+            // The last segment whose top has reached the upper band is where the reader is.
+            let order = segments.map(\.id)
+            let reached = order.last { (offsets[$0] ?? .infinity) <= 120 } ?? order.first
+            guard let reached, reached != readingSegmentID, resumeTried else { return }
+            readingSegmentID = reached
+            readingStore.save(reached, key: readingKey)
+        }
+        .task(id: "\(readingKey ?? ""):\(segments.count)") {
+            guard !resumeTried, visible, !segments.isEmpty else { return }
+            resumeTried = true
+            await Task.yield()
+            if let target = ChapterReadingPositionStore.resumeTarget(saved: readingStore.read(readingKey), rendered: segments.map(\.id)) {
+                reader.scrollTo(target, anchor: .top)
+            }
+        }
+        }
+        .fullScreenCover(item: $zoomedImage) { item in ChapterStoryImageViewer(image: item.image, alt: item.alt) }
         .background(CYColor.bgPage.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("chapterStory.title").navigationBarTitleDisplayMode(.inline)
@@ -115,7 +162,7 @@ import UIKit
             if showGate {
                 let position = chapterPosition
                 CYChapterGate(number: position?.number ?? 1, total: position?.total ?? 1,
-                              title: chapter?.title ?? position?.name, subtitle: chapter?.description) {
+                              title: chapter?.title ?? position?.name, subtitle: chapter?.openingLine ?? chapter?.description) {
                     withAnimation(CYMotion.reduced) { showGate = false }
                 }
                 .transition(.opacity)
@@ -133,15 +180,34 @@ import UIKit
         .task(id: "\(model.identity ?? ""):chapter=\(chapterID)") { if visible { await model.claimVisibleThoughts(chapterID: chapterID) } }
         .onChange(of: model.snapshot) { _, _ in if visible { Task { await model.claimVisibleThoughts(chapterID: chapterID) } } }
         .onChange(of: model.storyVariables) { _, next in advancedVariables.merge(next) { _, new in new } }
-        .onChange(of: model.identity) { _, _ in advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil }
+        .onChange(of: model.identity) { _, _ in advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; resumeTried = false; readingSegmentID = nil }
         .onChange(of: scenePhase) { _, phase in if phase != .active { audioURL = nil } }
         .onDisappear { audioURL = nil; advancedVariables = [:]; dirtyNodes = [] }
     }
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
         case .text(let text): Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).textSelection(.enabled)
-        case .image(let url): ChapterStoryArtwork(url: url, reader: imageReader)
-        case .audio(let url): Button("chapterStory.listen", systemImage: "speaker.wave.2") { audioURL = url }
+        case .image(let url):
+            ChapterStoryArtwork(url: url, alt: segment.alt, reader: imageReader) { image in zoomedImage = .init(image: image, alt: segment.alt) }
+        case .audio(let url):
+            VStack(alignment: .leading, spacing: 8) {
+                Button("chapterStory.listen", systemImage: "speaker.wave.2") { audioURL = url }
+                if let transcript = segment.alt {
+                    // Same-version text of the audio: muted, interrupted or slow audio still gives the evidence.
+                    DisclosureGroup {
+                        Text(verbatim: transcript).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                            .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+                    } label: { Text("chapterStory.transcript", tableName: "PlayFullStory") }
+                    .accessibilityIdentifier("chapterStory.transcript." + segment.id)
+                }
+            }
+        case .divider:
+            Rectangle().fill(CYColor.borderSubtle).frame(height: 1).frame(maxWidth: .infinity).padding(.vertical, 4)
+                .accessibilityHidden(true)
+        case .unsupported:
+            Label { Text("chapterStory.unsupportedBlock", tableName: "PlayFullStory") } icon: { Image(systemName: "square.dashed") }
+                .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("chapterStory.unsupported")
         case .voice(let speaker, let text):
             VStack(alignment: .leading, spacing: 8) {
                 if !speaker.isEmpty { Text(verbatim: speaker).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
@@ -158,7 +224,7 @@ import UIKit
             VStack(alignment: .leading, spacing: 12) {
                 if let title { Text(verbatim: title).font(.headline) }
                 ForEach(Array(images.enumerated()), id: \.offset) { _, item in
-                    ChapterStoryArtwork(url: item.url, reader: imageReader)
+                    ChapterStoryArtwork(url: item.url, alt: item.line, reader: imageReader) { image in zoomedImage = .init(image: image, alt: item.line) }
                     if let line = item.line, !line.isEmpty { Text(verbatim: line).font(.subheadline) }
                 }
             }
@@ -303,19 +369,86 @@ import UIKit
     }
 }
 
+private struct ChapterSegmentOffsetKey: PreferenceKey {
+    static let defaultValue: [String: CGFloat] = [:]
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) { value.merge(nextValue()) { $1 } }
+}
+extension ChapterStoryView { static let scrollSpace = "chapterStory.scroll" }
+
+struct ChapterStoryZoomedImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+    let alt: String?
+}
+
+/// U04-04 image zoom: pinch / double-tap, alt text kept as the label, Close always reachable.
+@MainActor private struct ChapterStoryImageViewer: View {
+    let image: UIImage
+    let alt: String?
+    @Environment(\.dismiss) private var dismiss
+    @State private var scale: CGFloat = 1
+    @State private var settled: CGFloat = 1
+    var body: some View {
+        NavigationStack {
+            GeometryReader { proxy in
+                ScrollView([.horizontal, .vertical]) {
+                    Image(uiImage: image).resizable().scaledToFit()
+                        .frame(width: proxy.size.width * scale)
+                        .frame(minHeight: proxy.size.height)
+                        .accessibilityLabel(alt.map { Text(verbatim: $0) } ?? Text("chapterStory.artwork"))
+                        .accessibilityIdentifier("chapterStory.zoom.image")
+                }
+            }
+            .gesture(MagnifyGesture().onChanged { scale = min(4, max(1, settled * $0.magnification)) }.onEnded { _ in settled = scale })
+            .onTapGesture(count: 2) { withAnimation(CYMotion.reduced) { scale = scale > 1 ? 1 : 2; settled = scale } }
+            .background(CYColor.bgPage.ignoresSafeArea())
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: { Text("chapterStory.zoom.close", tableName: "PlayFullStory") }
+                        .accessibilityIdentifier("chapterStory.zoom.close")
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
 @MainActor private struct ChapterStoryArtwork: View {
     let url: String
+    var alt: String? = nil
     let reader: (any RetainedPublicImageReading)?
+    var zoom: ((UIImage) -> Void)? = nil
     @State private var image: UIImage?
     @State private var loading = false
     @State private var failed = false
+    @State private var attempt = 0
     var body: some View {
         Group {
-            if let image { Image(uiImage: image).resizable().scaledToFit().accessibilityLabel(Text("chapterStory.artwork")) }
+            if let image {
+                Button { zoom?(image) } label: { Image(uiImage: image).resizable().scaledToFit() }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(alt.map { Text(verbatim: $0) } ?? Text("chapterStory.artwork"))
+                    .accessibilityHint(Text("chapterStory.zoom.hint", tableName: "PlayFullStory"))
+                    .accessibilityIdentifier("chapterStory.image")
+            }
             else if loading { ProgressView("chapterStory.loadingImage") }
-            else { Label(failed ? "chapterStory.imageFailed" : "chapterStory.imageGated", systemImage: "photo") }
+            else if failed {
+                // Slow or failed media: the alt text still carries the evidence, and the reader can retry.
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("chapterStory.imageFailed", systemImage: "photo")
+                    if let alt { Text(verbatim: alt).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                    Button { attempt += 1 } label: { Text("chapterStory.image.retry", tableName: "PlayFullStory") }
+                        .accessibilityIdentifier("chapterStory.image.retry")
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+            else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("chapterStory.imageGated", systemImage: "photo")
+                    if let alt { Text(verbatim: alt).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
         }.frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 18))
-        .task(id: url) {
+        .task(id: "\(url)#\(attempt)") {
             image = nil; failed = false
             guard let reader, reader.enabled, let source = URL(string: url) else { return }
             loading = true

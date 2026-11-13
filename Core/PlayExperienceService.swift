@@ -4,7 +4,9 @@ import FoundationNetworking
 #endif
 
 public enum PlayExperienceCapability: Hashable {
-    case directorCommands, reads, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks, journeyOpening
+    /// `capabilityDeclaration` is dormant: it sends `PlayClientCapabilities` on `/api/play/nodes`, which lets the
+    /// server refuse to create a new run this build cannot render. Enabling it is an integration acceptance gate.
+    case directorCommands, reads, capabilityDeclaration, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks, journeyOpening
 }
 public enum PlayCompletionEvidence: Codable, Equatable {
     case answer(String)
@@ -49,7 +51,11 @@ public struct PlayExperienceService {
     @MainActor func checkReadLifetime() throws { try readLifetime?.check() }
     @MainActor private func checkReturnedMode(_ value: Int?) throws { try readLifetime?.checkReturnedMode(value) }
     public func nodes(scope: PlaySessionScope, token: String) async throws -> PlayExperienceDocument {
-        let document: PlayExperienceDocument = try await request("api/play/nodes", query: scopeFields(scope), capability: .reads, token: token).decoded()
+        var query = try scopeFields(scope)
+        if enabled.contains(.capabilityDeclaration) {
+            query.merge(PlayClientCapabilities.nodesQuery(clientVersion: PlayClientCapabilities.bundleVersion)) { current, _ in current }
+        }
+        let document: PlayExperienceDocument = try await request("api/play/nodes", query: query, capability: .reads, token: token).decoded()
         try await checkReturnedMode(document.base.mode)
         if case .topic(let id) = scope, let returnedID = document.base.topicID, returnedID != id { throw PlayExperienceError.malformed }
         return document

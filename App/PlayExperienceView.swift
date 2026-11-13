@@ -188,8 +188,16 @@ import SwiftUI
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
                 if model.phase == .loading { CYSkeleton().accessibilityIdentifier("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
+                    // The server refused to open this run for this build; nothing was skipped or started.
+                    Text("playCompat.refused.next", tableName: "PlayFullStory").font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("playCompat.refused")
+                }
                 PlayResyncAction(model: model)
                 if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(CYColor.warningText) }
+            }
+            if let compatibility = model.compatibility, model.hasCurrentMediaSnapshot {
+                PlayCompatibilitySection(compatibility: compatibility)
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if let entryCode { PlayEntryCodeSection(context: entryCode) }
@@ -671,6 +679,43 @@ import SwiftUI
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {
         do { review = try model.review(nodeID: nodeID, evidence: evidence, context: context); showReview = true; localIssue = nil }
         catch { localIssue = error as? PlayExperienceError ?? .invalidAction }
+    }
+}
+
+/// U04-03: the server's compatibility verdict before play. Unconfirmed (old/undeclared client) shows
+/// nothing; a damaged declaration is "not confirmed", never "supported"; missing keys are listed as sent.
+struct PlayCompatibilitySection: View {
+    let compatibility: PlayContentCompatibility
+    var body: some View {
+        switch compatibility.verdict {
+        case .supported: EmptyView()
+        case .unconfirmed(let source):
+            if source == "MALFORMED" || source == "DECLARED_MALFORMED" {
+                Section {
+                    Label { Text("playCompat.unconfirmed", tableName: "PlayFullStory") } icon: { Image(systemName: "questionmark.circle") }
+                        .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("playCompat.unconfirmed")
+                }
+            }
+        case .unsupported(let missing):
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label { Text("playCompat.unsupported.title", tableName: "PlayFullStory").font(CYTypography.cardTitle) }
+                        icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
+                    Text("playCompat.unsupported.body", tableName: "PlayFullStory").font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    if !missing.isEmpty {
+                        DisclosureGroup {
+                            ForEach(missing, id: \.key) { row in
+                                Text(verbatim: row.key + " ≥ v" + String(row.minVersion)).font(CYTypography.meta).monospaced()
+                                    .foregroundStyle(CYColor.textSecondary)
+                            }
+                        } label: { Text("playCompat.unsupported.details", tableName: "PlayFullStory").font(CYTypography.caption) }
+                        .accessibilityIdentifier("playCompat.missing")
+                    }
+                }.accessibilityIdentifier("playCompat.unsupported")
+            }
+        }
     }
 }
 

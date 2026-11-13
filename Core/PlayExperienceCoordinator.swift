@@ -103,6 +103,10 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var storyVariables: [String: PlayWireValue] = [:]
     public private(set) var storyVoices: [String: PlayWireValue] = [:]
     public private(set) var storyThoughts: [PlayWireValue] = []
+    /// U04-03 verdict for the current read; nil when the server sent none.
+    public private(set) var compatibility: PlayContentCompatibility?
+    /// Content identity of the current read; reading positions are kept per identity.
+    public private(set) var contentVersion: String?
     public private(set) var thoughtSyncPhase: ChapterThoughtSyncPhase = .idle
     public private(set) var pendingThoughtKeys: Set<String> = []
     private var thoughtClaimSessionID: Int?
@@ -239,6 +243,7 @@ public struct PlayCompletionReview: Equatable {
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
             authorityOwner = session
             chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
+            compatibility = nil; contentVersion = nil
             pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncInFlight = false; thoughtSyncPhase = .idle; thoughtSyncNonce = UUID()
         }
         loadedSession = nil
@@ -280,6 +285,7 @@ public struct PlayCompletionReview: Equatable {
                 remoteRunSaveFailed = false; localRecoveryFailed = false
             }
             chapterStories = document.chapterStories
+            compatibility = document.compatibility; contentVersion = document.contentVersion
             storyVariables.merge(document.storyVariables) { _, new in new }
             storyVoices.merge(document.storyVoices) { _, new in new }
             storyThoughts = snapshot.route?.thoughts ?? document.storyThoughts
@@ -696,6 +702,7 @@ public struct PlayCompletionReview: Equatable {
         pausedLease = nil; pausedOwner = nil; retryReadbackVerified = false
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
+        compatibility = nil; contentVersion = nil
         generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
     }
