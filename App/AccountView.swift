@@ -93,6 +93,7 @@ import SwiftUI
                     .id(session.accountCollectionReader.scope)
                 MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 MPParityAccountLinks() // passes / promo / video bounty; hidden until their bindings are injected
+                SquareMineAccountLinks() // 我的帖文 / 我的收藏; hidden without the G4 capability bundle
                 Section {
                     if !showsPassportOverview { // Passport has the Messages circle action instead
                         NavigationLink { SessionMessagingHome(session: session) } label: {

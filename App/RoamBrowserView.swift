@@ -44,6 +44,7 @@ struct RoamBrowserView: View {
     @State private var entryCard: RoamNearbyEventsEntrySelection?
     @State private var recoveryEntry = RoamHomeRecoveryEntry()
     @Environment(\.scenePhase) private var recoveryScenePhase
+    @StateObject private var shopVisitors = RoamShopVisitorsModel()
     private var recoveryReadOwner: RoamHomeRecoveryOwner? { experienceReader.map { RoamHomeRecoveryOwner(reader: $0) } }
     private var recoveryBanner: RoamHomeRecoveryBanner? { recoveryEntry.banner(reader: experienceReader) }
     @State private var layer: RoamLayer = .places
@@ -467,6 +468,7 @@ struct RoamBrowserView: View {
             interactionID: AnyHashable(key), fillsHeight: true, onSelect: { item in
             select(item, key: key, snapshot: items)
         }).id(scope)
+        .modifier(RoamMapWeather(area: scope.area))
     }
     private func resultsList(renderedKey: PresentationKey, renderedItems: [RoamMapItem]) -> some View {
         List {
@@ -515,11 +517,17 @@ struct RoamBrowserView: View {
             ForEach(visibleItems) { item in
                 Button {
                     select(item, key: renderedKey, snapshot: renderedItems)
-                } label: { RoamItemRow(item: item, showsCurrentReadStatus: true) }
+                } label: {
+                    VStack(alignment: .leading, spacing: 0) {
+                        RoamItemRow(item: item, showsCurrentReadStatus: true)
+                        RoamPlaceVisitorsLine(item: item, model: shopVisitors)
+                    }
+                }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("roam.row.\(item.id)")
             }
         }
+        .modifier(RoamShopVisitorsLoad(items: visibleItems, model: shopVisitors))
         .modifier(RoamMapListStyle(plain: mapMode))
         .listRowBackground(Color.clear)
         .scrollContentBackground(.hidden)

@@ -78,6 +78,7 @@ struct DiscoveryTemplateDetailView: View {
                             TemplateXbShareButton(url: shareURL ?? PublicContentShareLink.discoveryTemplate(id: id), label: "u10.template.share")
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
+                        TemplateAdoptEntry(sourceTemplateID: id) // server adopt-draft; hidden without the G5 bundle
                         TemplateXbTabs(selection: $tab)
                             .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))
                     }

@@ -67,6 +67,21 @@ struct TemplateAdoptButton: View {
     }
 }
 
+/// Last confirmed `binding-status` read for one topic. A failed read keeps the last confirmed view; it never
+/// draws 「没有待办」. Owned by a modifier on an always-present host (a `.task` on an empty section never runs).
+@MainActor final class TemplateLocationTodosStore: ObservableObject {
+    @Published private(set) var todos: TemplateAdoptionService.LocationTodos?
+    private var loadedTopic: Int?
+
+    func load(topicID: Int, scope: String, client: PlayerCapabilityClient) async {
+        if loadedTopic != topicID { todos = nil; loadedTopic = topicID }
+        if let value = try? await TemplateAdoptionService(client: client).bindingStatus(topicID: topicID, scope: scope),
+           loadedTopic == topicID {
+            todos = value
+        }
+    }
+}
+
 /// U02-03/U02-04 地点待办. Only `level=error` blocks publishing; warn is advisory. No contract: nothing is drawn.
 struct TemplateLocationTodosSection: View {
     let topicID: Int
@@ -74,8 +89,9 @@ struct TemplateLocationTodosSection: View {
     let client: PlayerCapabilityClient
     /// Author nodes that have a place (`bindableNodes`): id and 「名称 · 地址」.
     let bindableNodes: [(id: Int, label: String)]
+    @ObservedObject var store: TemplateLocationTodosStore
     @Environment(\.locale) private var locale
-    @State private var todos: TemplateAdoptionService.LocationTodos?
+    private var todos: TemplateAdoptionService.LocationTodos? { store.todos }
     @State private var busySlot: String?
     @State private var rowError: [String: String] = [:]
     @State private var picking: TemplateAdoptionService.LocationRow?
@@ -115,7 +131,6 @@ struct TemplateLocationTodosSection: View {
                 }
             }
         }
-        .task(id: topicID) { await load() }
         .confirmationDialog(PlayerCapabilityCopy.text("绑定到哪个节点", "Bind to which node", locale),
                             isPresented: Binding(get: { picking != nil }, set: { if !$0 { picking = nil } })) {
             ForEach(bindableNodes, id: \.id) { node in
@@ -125,10 +140,7 @@ struct TemplateLocationTodosSection: View {
     }
 
     private func load() async {
-        // A failed read keeps the last confirmed view; it never draws 「没有待办」.
-        if let value = try? await TemplateAdoptionService(client: client).bindingStatus(topicID: topicID, scope: scope) {
-            todos = value
-        }
+        await store.load(topicID: topicID, scope: scope, client: client)
     }
 
     private func bind(_ row: TemplateAdoptionService.LocationRow, nodeID: Int) async {

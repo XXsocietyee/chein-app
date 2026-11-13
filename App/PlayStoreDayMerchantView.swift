@@ -107,6 +107,7 @@ import SwiftUI
                     }
                     if model.consent == .agree { consentSection }
                     if let address = node.address { infoSection(node, address: address) }
+                    PlayStoreDaySafetyRatingEntry(ownerMemberID: node.merchantID)
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.top, CYSpacing.lg).padding(.bottom, CYSpacing.xxl)
             }
@@ -244,6 +245,7 @@ import SwiftUI
                     }
                 } icon: { Image(systemName: "mappin").foregroundStyle(CYColor.textTertiary) }
                 mapControl(node, label: L("playStoreDay.info.navigate"), id: "storeDayPage.info.navigate")
+                if !node.hasCoordinates { PlayStoreDayGeocodeEntry(name: node.name ?? "", address: address) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.lg)

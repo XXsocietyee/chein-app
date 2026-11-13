@@ -379,6 +379,7 @@ struct SessionRootView: View {
         }
         .environmentObject(session)
         .modifier(MPParityPassEnvironment(session: session))
+        .modifier(SocialRoamCapabilityRoot(session: session)) // G4/G5 entries (mount-g45)
         .modifier(PassMarketPointsRootModifier(session: session))
         .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
         .environment(\.cityMerchantOperationsFactory, { session.makeCityMerchantOperationsController() })

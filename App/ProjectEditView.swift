@@ -334,6 +334,9 @@ import SwiftUI
             if let topicID = model.coordinator.snapshot?.topicID, let publisherClient {
                 PublisherXPBudgetSection(topicID: topicID, client: publisherClient)
             }
+            if let topicID = model.coordinator.snapshot?.topicID {
+                TemplateLocationTodosEntry(topicID: topicID, scope: model.draft.owner.rawValue, nodes: model.draft.chapters.flatMap(\.nodes))
+            }
             if model.coordinator.snapshot != nil {
                 ProjectSubmissionEvidenceSection(model: model)
                 OwnedTopicCoverEntrySection(model: model, controller: ownedCover)
@@ -490,6 +493,7 @@ import SwiftUI
             }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget).padding(CYSpacing.lg).background(.regularMaterial)
         }
         .task(id: sessionRevision) { await model.load() }
+        .modifier(TemplateLocationTodosHost(topicID: model.coordinator.snapshot?.topicID, scope: model.draft.owner.rawValue))
         .modifier(ProjectEditAutosaveObservation(model: model))
         .modifier(ProjectEditExitGuard(model: model, overlaysOpen: {
             discardConfirmation || showingCopy || submittedResource != nil || submission != nil ||

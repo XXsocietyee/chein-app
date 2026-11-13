@@ -7,7 +7,8 @@ struct MerchantSafetySummaryRow: View {
     @State private var summary: CommunityTrustPlayerService.SafetySummary?
 
     var body: some View {
-        Group {
+        // A VStack, not a Group: a `.task` on an empty Group never runs, so the summary would never load.
+        VStack(alignment: .leading, spacing: 0) {
             if let summary {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Label { Text(verbatim: summary.text) } icon: { Image(systemName: "shield.lefthalf.filled") }
