@@ -382,7 +382,7 @@ struct CityFavoriteNodesSection: View {
 }
 
 /// BL-69 merchant public page node with its favorite toggle; no node hides the block.
-struct MerchantCityNodeRow: View {
+struct MerchantCityNodeFavoriteRow: View {
     @Environment(\.playerGapService) private var service
     let merchantID: Int
     @State private var node: CityMerchantNode?
