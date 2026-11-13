@@ -33,6 +33,8 @@ INFOPLIST_KEY_QuestifySessionRealm = $(QUESTIFY_SESSION_REALM)
 
 // CITY board region (backend city_game_board.region_id). Empty means no CITY board lease.
 QUESTIFY_CITY_GAME_REGION =
+// DEBUG e2e only: the TEST backend board region. Release stays empty until production ships a board.
+QUESTIFY_CITY_GAME_REGION[config=Debug] = gaps-a-test
 INFOPLIST_KEY_QuestifyCityGameRegion = $(QUESTIFY_CITY_GAME_REGION)
 
 #include? "Local.xcconfig"
