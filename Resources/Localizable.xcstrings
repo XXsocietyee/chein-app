@@ -250128,6 +250128,227 @@
         }
       }
     },
+    "mp.vb.form.platform": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a platform"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择平台"
+          }
+        }
+      }
+    },
+    "mp.vb.form.urlMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the video link"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写视频链接"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.pendingSubmit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result is unconfirmed. Refresh My submissions before submitting again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果待确认，请刷新我的投稿后再提交"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result is unconfirmed. Please refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果待确认，请刷新"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.incomplete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The submission did not finish. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交未完成，请稍后再试"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.alreadySubmitted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This video was already submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条视频已经投过稿"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.platformMismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The link does not match the selected platform"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接与所选平台不一致"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.platformUnsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only TikTok, Instagram Reels, and YouTube are supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只支持 TikTok、Instagram Reels、YouTube"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.videoIdMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a video page link, not a profile link"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写视频页链接，不是主页链接"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.httpsOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only public https links are supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只支持 https 公开链接"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.topicMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This theme is missing or not published"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题不存在或未上架"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.campaignClosed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submissions are not open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不接受投稿"
+          }
+        }
+      }
+    },
+    "mp.vb.reason.cancelDenied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This status cannot be cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前状态不能取消"
+          }
+        }
+      }
+    },
     "searchMap.endOfResults": {
       "extractionState": "manual",
       "localizations": {
