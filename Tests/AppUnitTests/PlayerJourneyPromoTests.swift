@@ -81,7 +81,7 @@ import XCTest
             makeTransport: { wire })
         let source = try XCTUnwrap(composition.playerJourneySource())
         let bindings = MPParityBindings.none.fillingPlayerJourneyReads(source: source, token: { "player-token" })
-        let model = try XCTUnwrap(bindings.journeyPromo?())
+        let model = try XCTUnwrap(bindings.journeyPromo?() as? PlayerJourneyPromoModel)
         await model.reload()
         guard case .ready(let content) = model.phase else { return XCTFail("expected ready") }
         XCTAssertEqual(content.buckets.count, 4)
