@@ -168,7 +168,7 @@ import XCTest
         XCTAssertNotNil(admitted.clubCommunityWriteService(baseURL: player.baseURL, transport: PlayerWriteRecorder()))
         XCTAssertNotNil(admitted.teamCommandWriter(context: player, transport: PlayerWriteRecorder()))
         XCTAssertEqual(try XCTUnwrap(admitted.sessionDependencies(player).configuration).play, [
-            .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening
+            .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
         ])
         XCTAssertEqual(try XCTUnwrap(admitted.roamLiveApproval(player)).presence, false)
         XCTAssertNil(admitted.clubRoleAssignmentApproval(player))
