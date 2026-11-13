@@ -281,6 +281,7 @@ private struct TicketTopHeightKey: PreferenceKey {
 private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
     var showsPendingOrderAction = false
+    @Environment(\.ticketWalletCompletionReader) private var completionReader
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var topHeight: CGFloat = 140
     /// Generated cover art (no ticket image exists in the model): muted dark gradients keyed by id.
@@ -308,6 +309,7 @@ private struct TicketWalletRow: View {
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                         .font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
                         .fixedSize(horizontal: false, vertical: true)
+                    completionCaption
                 }
                 .padding(CYSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -363,6 +365,19 @@ private struct TicketWalletRow: View {
         .opacity(dimmed ? 0.62 : 1)
         .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
         .padding(.horizontal, CYSpacing.pageHorizontal)
+    }
+    /// Completed shows 已通关. Absent hides that line. A non-boolean shows an em dash.
+    @ViewBuilder private var completionCaption: some View {
+        if let completionReader, completionReader.topicCompleted(ticket) == true {
+            Text("mpfresh.ticketWallet.filter.completed", tableName: "MpFresh")
+                .font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.92))
+                .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")
+        } else if let completionReader, completionReader.topicCompleted(ticket) == nil, ticket.topicCompletion == .unknown {
+            Text("mpfresh.ticketWallet.completion.unknown", tableName: "MpFresh")
+                .font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.92))
+                .accessibilityLabel(Text("mpfresh.ticketWallet.completion.unknownLabel", tableName: "MpFresh"))
+                .accessibilityIdentifier("ticketWallet.topicCompleted.unknown.\(ticket.id)")
+        }
     }
     private struct Line: Shape {
         func path(in rect: CGRect) -> Path { var p = Path(); p.move(to: CGPoint(x: rect.minX, y: rect.midY)); p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)); return p }

@@ -356,6 +356,7 @@ struct SessionRootView: View {
         v
         .modifier(CloudB3RootModifier(session: session))
         .modifier(CloudSquareStubModifier(session: session))
+        .modifier(TicketWalletCompletionRootModifier())
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
         .environment(presentation)
         .onChange(of: session.pendingDeepLink, initial: true) { _, _ in

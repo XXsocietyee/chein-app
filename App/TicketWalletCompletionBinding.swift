@@ -1,10 +1,9 @@
 import SwiftUI
 
-/// BINDING STUB for Cursor (mp-mpfresh receipt): the source wallet filter splits tickets by the server
-/// `topicCompleted` flag (`subpackageMember/signup` 全部 / 即将开始 / 已通关). `TicketWalletTicket` does not decode
-/// that flag yet. Until a Core reader is injected, the filter stays hidden (capability absent => hidden).
+/// Source wallet filter (`subpackageMember/signup` 全部 / 即将开始 / 已通关) reads the server
+/// `topicCompleted` flag. Until a reader is injected, the filter stays hidden.
 @MainActor protocol TicketWalletCompletionReading {
-    /// `nil` = unknown; unknown tickets only appear under 全部.
+    /// `true` completed, `false` upcoming. `nil` stays in 全部 only (absent hides the completed state; a non-boolean is unknown).
     func topicCompleted(_ ticket: TicketWalletTicket) -> Bool?
 }
 
