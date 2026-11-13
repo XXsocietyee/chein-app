@@ -211,6 +211,8 @@ import SwiftUI
     private(set) var unknown = false
     private(set) var error = ""
     private(set) var preview: Preview?
+    /// The shown pack no longer matches the discard choice (its re-read failed); confirm stays off.
+    private(set) var previewStale = false
     private(set) var pendingCommand: [String: PlayWireValue]?
 
     func start(operation: String, contentID: String, costOption: Int?, choiceKey: String?, view: PlayWireValue,
@@ -227,6 +229,7 @@ import SwiftUI
             busy = false
             guard let pack = read.pack else { error = read.error; return }
             preview = Preview(operation: operation, contentID: contentID, selections: selections, pack: pack)
+            previewStale = false
             return
         }
         guard let command = PlayThemeGameplayExchange.command(view: view, operation: operation, contentID: contentID,
@@ -234,8 +237,46 @@ import SwiftUI
         await send(command, client: client, applied: applied)
     }
 
+    /// `changeThemeRewardDiscard`: the player gives up part of this action's own new rewards, and the preview
+    /// is read again with `discardRewards`. Until that read succeeds the old pack cannot be confirmed.
+    func setDiscard(itemID: String, quantity: Int, view: PlayWireValue, client: PlayRuntimeClient?) async {
+        guard !busy, let client, let preview, let owner = preview.pack.owners.first(where: \.own),
+              let row = owner.rewards.first(where: { $0.itemId == itemID }) else { return }
+        guard quantity >= 0, quantity <= row.quantity else {
+            error = W8Text.t("放弃数量须为 0 到本次奖励数量之间的整数", "Give up a whole number from 0 to this reward’s quantity"); return
+        }
+        let rows = owner.rewards.map { reward -> PlayThemeRewardGrantRow in
+            var reward = reward
+            if reward.itemId == itemID { reward.discard = quantity }
+            return reward
+        }
+        var selections = preview.selections
+        selections["discardRewards"] = .array(PlayThemeRewardsRules.selection(rows).map {
+            .object(["itemId": .string($0.itemId), "quantity": .integer(Int64($0.quantity))])
+        })
+        await reread(preview: preview, selections: selections, view: view, client: client)
+    }
+
+    /// 重新读取: after a failed read the discard choice is cleared and every reward is read again.
+    func rereadPreview(view: PlayWireValue, client: PlayRuntimeClient?) async {
+        guard !busy, let client, let preview else { return }
+        var selections = preview.selections
+        if previewStale { selections["discardRewards"] = nil }
+        await reread(preview: preview, selections: selections, view: view, client: client)
+    }
+
+    private func reread(preview: Preview, selections: [String: PlayWireValue], view: PlayWireValue, client: PlayRuntimeClient) async {
+        busy = true; error = ""
+        let read = await PlayThemeGameplayExchange.preview(client: client, view: view, operation: preview.operation,
+            contentID: preview.contentID, choices: selections)
+        busy = false
+        guard let pack = read.pack else { previewStale = true; error = read.error; return }
+        previewStale = false
+        self.preview = Preview(operation: preview.operation, contentID: preview.contentID, selections: selections, pack: pack)
+    }
+
     func confirmPreview(view: PlayWireValue, client: PlayRuntimeClient?, applied: @escaping @MainActor (PlayWireValue) async -> Void) async {
-        guard !busy, let client, let preview, !preview.pack.overflow else { return }
+        guard !busy, let client, let preview, !preview.pack.overflow, !previewStale else { return }
         var selections = preview.selections
         selections["previewVersion"] = .string(preview.pack.previewVersion)
         self.preview = nil
@@ -244,7 +285,7 @@ import SwiftUI
         await send(command, client: client, applied: applied)
     }
 
-    func cancelPreview() { if !busy { preview = nil } }
+    func cancelPreview() { if !busy { preview = nil; previewStale = false } }
 
     func retry(client: PlayRuntimeClient?, applied: @escaping @MainActor (PlayWireValue) async -> Void) async {
         guard !busy, let client, let pendingCommand else { return }
@@ -279,20 +320,35 @@ import SwiftUI
         if flow.preview != nil || !flow.error.isEmpty || flow.busy {
             Section {
                 if let preview = flow.preview {
+                    let copy = CYKitCopy(locale: locale)
                     ForEach(preview.pack.owners.filter(\.own)) { owner in
                         ForEach(owner.rewards) { reward in
                             LabeledContent(reward.name) { Text(verbatim: "×\(reward.quantity)").monospacedDigit() }
+                            // `changeThemeRewardDiscard`: give up part of this reward; the preview is read again.
+                            Stepper(value: Binding(get: { reward.discard }, set: { quantity in
+                                Task { await flow.setDiscard(itemID: reward.itemId, quantity: quantity, view: view, client: client()) }
+                            }), in: 0...max(0, reward.quantity)) {
+                                Text(verbatim: copy("Give up \(reward.name): \(reward.discard) of \(reward.quantity)",
+                                                    "放弃 \(reward.name)：\(reward.discard) / 本次共 \(reward.quantity) 件"))
+                                    .font(.footnote)
+                            }
+                            .disabled(flow.busy)
+                            .accessibilityIdentifier("play.gameplay.discard.\(reward.itemId)")
                         }
-                        LabeledContent(CYKitCopy(locale: locale)("Backpack", "背包")) { Text(verbatim: "\(owner.finalUsed) / \(owner.capacity)").monospacedDigit() }
+                        LabeledContent(copy("Backpack", "背包")) { Text(verbatim: "\(owner.finalUsed) / \(owner.capacity)").monospacedDigit() }
                     }
                     if preview.pack.overflow {
-                        // Discarding to make room is not offered natively yet; the button stays off.
-                        Text(verbatim: CYKitCopy(locale: locale)("Your backpack is full. Make room before claiming.", "背包放不下，请先腾出空间"))
+                        Text(verbatim: copy("Not enough room. Give up part of this reward to continue.", "容量不足，需调整本次奖励"))
                             .foregroundStyle(CYColor.warningText)
                     }
-                    CYPillButton(verbatim: CYKitCopy(locale: locale)("Confirm", "确认")) {
+                    if flow.previewStale {
+                        Button { Task { await flow.rereadPreview(view: view, client: client()) } } label: {
+                            Text(verbatim: copy("Read again", "重新读取"))
+                        }.disabled(flow.busy).accessibilityIdentifier("play.gameplay.reread")
+                    }
+                    CYPillButton(verbatim: copy("Confirm", "确认")) {
                         Task { await flow.confirmPreview(view: view, client: client(), applied: applied) }
-                    }.disabled(preview.pack.overflow || flow.busy).accessibilityIdentifier("play.gameplay.confirm")
+                    }.disabled(preview.pack.overflow || flow.previewStale || flow.busy).accessibilityIdentifier("play.gameplay.confirm")
                     Button { flow.cancelPreview() } label: { Text(verbatim: CYKitCopy(locale: locale)("Cancel", "取消")) }
                 }
                 if flow.busy { ProgressView() }

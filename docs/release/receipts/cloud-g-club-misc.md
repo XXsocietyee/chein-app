@@ -23,14 +23,14 @@ City: `origin/ui/citygame-prod` is not merged into ui/main and does not call eit
 
 | Path | Verb | Native | Status |
 |---|---|---|---|
-| /api/official/active-for-roam | GET | `PlayerGapService.activeOfficialForRoam`; `OfficialRoamActiveCardView` in `RoamPassportOverviewView` | PARTIAL: card shows; tapping it does not navigate yet (no event route is passed into the passport header) |
+| /api/official/active-for-roam | GET | `PlayerGapService.activeOfficialForRoam`; `OfficialRoamActiveCardView` in `RoamPassportOverviewView` | DONE (g-partials): `onPassportPlayTap('event')` — one open event opens `OfficialEventDetailView` (official-detail?id=), several open the roam official-task list (`openRoamTasks`); `RoamActiveOfficialEventDestination` |
 | /api/official/signup-command | POST | `OfficialSignupCommandFlow.start/retry`; `OfficialSignupCommandSection` in `OfficialParticipationActions` (replaces the `.signup` button when the grant is present) | DONE |
 | /api/official/signup-command/query | POST | `OfficialSignupCommandFlow.query` (body `{requestId}` only) | DONE |
 | /api/official/signup-command/cancel | POST | `OfficialSignupCommandFlow.cancel` | DONE |
 | /api/team/invite-qrcode | POST | `teamInviteQRCode` + `TeamInviteQRView.normalizeJoinCode`; `TeamInviteQRSection` in `TeamDetailView` (member/leader of a recruiting team) | DONE |
 | /api/team/trail/state | GET | `TeamTrailModel.load`; `TeamTrailSection` in `PlayLeadSection` | DONE |
 | /api/team/trail/consent | POST | `TeamTrailModel.consent` (unconfirmed off stays off) | DONE |
-| /api/team/trail/sync | POST | `TeamTrailModel.tick/finish` (12 s, back-off to 60 s, ≤40 new points, `finished` on exit) | PARTIAL: the section does not pass the run's walked points yet (`points` defaults to `[]`), so it syncs `done` and reads teams but uploads no route; the team rail is a list, not map polylines |
+| /api/team/trail/sync | POST | `TeamTrailModel.tick/finish` (12 s, back-off to 60 s, ≤40 new points, `finished` on exit) | DONE (g-partials): `TeamWalkedTrail` (`play-trail.js`: ≤60 m accuracy, ≥8 m step, simplify past 4000) fed by `TeamTrailForegroundRecorder` (GCJ-02, foreground only, never requests permission, no background location); sync runs only while sharing, active and location already granted; `done` = done visible nodes. The team rail remains a list, not map polylines. |
 | /api/registration/join_info | POST form | `joinInfo(memberID:)`; `PlayerCodeAndJoinSection` (Account → My invite code) | DONE |
 | /api/registration/payment-readiness | POST | — | HIDDEN: money (pre-payment check) |
 | /api/registration/scan_group_member_ticket | POST | — | HIDDEN: club leader-only ticket verification |
@@ -64,3 +64,7 @@ City: `origin/ui/citygame-prod` is not merged into ui/main and does not call eit
 - `xcrun swiftc -parse` on every changed Swift file: clean.
 - Core tests: see the commit message for the `swift test --filter PlayerGapRoutesTests` result.
 - Not run here (integrator): the xcodebuild app build and `ReviewedChinaLaunchCompositionTests`.
+
+## g-partials follow-up
+
+Both PARTIAL rows were closed on `ui/g-partials`; see `docs/release/receipts/g-partials.md`.

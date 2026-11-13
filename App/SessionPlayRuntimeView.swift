@@ -28,7 +28,7 @@ import UIKit
                         preferenceModel: { nodeID in session.playPreference(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) },
                         summaryModel: { session.playOperatingSummary(topicID: $0) },
                         playerModel: session.playPlayer(scope: scope),
-                        circleModel: session.playCircle(topicID: model.snapshot?.result.topicID),
+                        circleModel: session.playCircle(topicID: model.snapshot?.result.topicID) ?? session.productionPlayCircle(topicID: model.snapshot?.result.topicID),
                         themeRecordsModel: auxiliary.records,
                         backpackModel: auxiliary.backpack,
                         prefabModel: session.playPrefab(scope: scope),

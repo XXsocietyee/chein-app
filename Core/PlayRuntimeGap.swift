@@ -293,9 +293,15 @@ public enum PlayCoopHelp {
     public struct Skip: Equatable { public let level: Int; public let usable: Bool; public let reason: String }
     public enum Outcome: Equatable { case ok(PlayWireValue), rejected(String), unknown }
 
-    static let typeText = ["TEXT": "文字提示", "IMAGE": "图片提示", "LETTER": "揭示字母", "DIGIT": "揭示数字", "ANSWER": "查看答案"]
-    static let reasonText = ["REAL_OPERATION_REQUIRED": "需要现场完成，不能跳过", "HELP_TYPE_UNSUPPORTED": "暂不支持这种提示",
-                             "INSUFFICIENT_POINTS": "积分不足"]
+    static var typeText: [String: String] {
+        ["TEXT": W8Text.t("文字提示", "Text hint"), "IMAGE": W8Text.t("图片提示", "Picture hint"), "LETTER": W8Text.t("揭示字母", "Reveal a letter"),
+         "DIGIT": W8Text.t("揭示数字", "Reveal a digit"), "ANSWER": W8Text.t("查看答案", "Show the answer")]
+    }
+    static var reasonText: [String: String] {
+        ["REAL_OPERATION_REQUIRED": W8Text.t("需要现场完成，不能跳过", "Must be done on site; it can’t be skipped"),
+         "HELP_TYPE_UNSUPPORTED": W8Text.t("暂不支持这种提示", "This hint type isn’t supported yet"),
+         "INSUFFICIENT_POINTS": W8Text.t("积分不足", "Not enough points")]
+    }
 
     /// The open instance for `questKey`, else the last one.
     public static func question(_ cooperation: PlayWireValue, questKey: String) -> PlayWireValue? {
@@ -335,21 +341,21 @@ public enum PlayCoopHelp {
             let reason = l["reason"].text.flatMap { reasonText[$0] }
             if l["type"].text == "SKIP" {
                 let usable = l["usable"].bool == true
-                skip = Skip(level: level, usable: usable, reason: reason ?? (usable ? "" : "暂不可跳过")); continue
+                skip = Skip(level: level, usable: usable, reason: reason ?? (usable ? "" : W8Text.t("暂不可跳过", "Can’t be skipped now"))); continue
             }
             if l["type"].text == "LOCATION" { continue }
             let state: Row.State, text: String
-            if l["unlocked"].bool == true { state = .unlocked; text = "重看" }
-            else if l["usable"].bool != true { state = .off; text = reason ?? "不可用" }
-            else if l["free"].bool == true || !((l["costPoints"].integer ?? 0) > 0) { state = .free; text = "免费" }
-            else { state = .cost; text = "消耗 \(l["costPoints"].integer ?? 0) 积分" }
-            rows.append(Row(level: level, title: l["type"].text.flatMap { typeText[$0] } ?? "提示", state: state, actionText: text))
+            if l["unlocked"].bool == true { state = .unlocked; text = W8Text.t("重看", "View again") }
+            else if l["usable"].bool != true { state = .off; text = reason ?? W8Text.t("不可用", "Unavailable") }
+            else if l["free"].bool == true || !((l["costPoints"].integer ?? 0) > 0) { state = .free; text = W8Text.t("免费", "Free") }
+            else { state = .cost; text = W8Text.t("消耗 \(l["costPoints"].integer ?? 0) 积分", "Costs \(l["costPoints"].integer ?? 0) points") }
+            rows.append(Row(level: level, title: l["type"].text.flatMap { typeText[$0] } ?? W8Text.t("提示", "Hint"), state: state, actionText: text))
         }
         return (rows, skip)
     }
 
     public static func freeText(_ remaining: PlayWireValue) -> String {
-        remaining.integer.map { "本局剩余免费 \($0) 次" } ?? ""
+        remaining.integer.map { W8Text.t("本局剩余免费 \($0) 次", "\($0) free left this run") } ?? ""
     }
 
     public static func newRequestID() -> String { "coop-" + UUID().uuidString.lowercased() }

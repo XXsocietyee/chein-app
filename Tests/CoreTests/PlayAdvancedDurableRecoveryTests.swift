@@ -58,7 +58,8 @@ import FoundationNetworking
         let refreshed = try owner(epoch: 2), freshStore = try journal(a, b, owner: refreshed), freshWire = wire()
         let fresh = try model(freshWire, freshStore, current: { refreshed }); await fresh.start()
         XCTAssertEqual(fresh.phase, "retryable"); XCTAssertEqual(fresh.pending, pending)
-        XCTAssertEqual(freshWire.requests.map { $0.url?.path }, [state])
+        // The original's receipt is asked first (none here), then the state read leaves only the exact replay.
+        XCTAssertEqual(freshWire.requests.map { $0.url?.path }, ["/api/play/advanced/receipt", state])
         XCTAssertFalse(fresh.canInteract); XCTAssertThrowsError(try fresh.review(kind: "coinFlip", action: "FLIP_COIN"))
         freshWire.responses[action] = .reply(reply(3), 200); await fresh.retryExact()
         XCTAssertNil(fresh.pending); XCTAssertEqual(fresh.phase, "ready")
@@ -123,10 +124,25 @@ import FoundationNetworking
         let w = wire(), viewer = try model(w, journal(a, b), current: { s })
         await viewer.start()
         XCTAssertEqual(viewer.phase, "retryable"); XCTAssertEqual(viewer.pending, dispatched.value.pending)
-        XCTAssertEqual(w.requests.map { $0.url?.path }, [state])
+        XCTAssertEqual(w.requests.map { $0.url?.path }, ["/api/play/advanced/receipt", state])
         w.responses[action] = .reply(reply(3), 200); await viewer.retryExact()
         let raw = try JSONDecoder().decode(PlayWireValue.self, from: XCTUnwrap(w.requests.last?.httpBody))
         XCTAssertEqual(raw["idempotencyKey"].text, dispatched.value.pending?.key)
+    }
+    func testPreviousProcessDispatchIsSettledByItsOwnReceiptWithoutReplay() async throws {
+        let a = Anchors(), b = Blobs(), s = try owner(), j = try journal(a, b)
+        let prepared = try await j.prepare(record()), dispatched = try await j.transition(prepared, to: .dispatching, startedSessionID: nil)
+        let key = try XCTUnwrap(dispatched.value.pending?.key)
+        let view = PlayExperienceSyntheticFixtures.advanced.replacingOccurrences(of: "\"version\":2", with: "\"version\":3")
+        let w = wire()
+        w.responses["/api/play/advanced/receipt"] = .reply(PlayExperienceSyntheticFixtures.envelope(
+            #"{"sessionId":601,"idempotencyKey":"\#(key)","view":\#(view)}"#), 200)
+        let viewer = try model(w, journal(a, b), current: { s })
+        await viewer.start()
+        XCTAssertNil(viewer.pending); XCTAssertEqual(viewer.phase, "ready"); XCTAssertEqual(viewer.state?.version, 3)
+        XCTAssertEqual(w.requests.map { $0.url?.path }, ["/api/play/advanced/receipt"], "no state read, no replay")
+        let stored = try await journal(a, b).read()
+        XCTAssertNil(stored, "the settled original is cleared from the journal")
     }
     func testPersistedAcknowledgementResumesWithReadAndClearWithoutReplay() async throws {
         let a = Anchors(), b = Blobs(), s = try owner(), j1 = try journal(a, b)

@@ -47,6 +47,8 @@ extension ReviewedProductionFormMutationRoute {
         }
         if ReviewedProductionGateLeases.playRuntimeReadPaths.contains(relative) {
             // G1 play runtime reads: GET with a query and no body. A POST to a read path is not this grant.
+            // The game session view is the player's own projection only; CLUB / MERCHANT perspectives are not this grant.
+            if relative == "api/game/session/view", playerPerspective(url) == false { return false }
             return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true) && covers(relative, grant.play)
         }
         if method == "GET" {
@@ -61,6 +63,13 @@ extension ReviewedProductionFormMutationRoute {
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
+    }
+
+    /// `perspective=PLAYER` exactly once, as `game-session-client.js loadProjection('player')` sends it.
+    static func playerPerspective(_ url: URL) -> Bool {
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        let values = items.filter { $0.name == "perspective" }.map(\.value)
+        return values == ["PLAYER"]
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -196,12 +205,18 @@ extension ReviewedProductionFormMutationRoute {
         // personal gameplay preview/action, the player-side shared preview, and circle record/answer.
         "api/play/check/roll", "api/play/check/reroll", "api/play/check/settle", "api/play/help/shared",
         "api/play/run-session/clear", "api/play/theme/gameplay-action", "api/play/theme/gameplay-preview",
-        "api/game/session/shared/preview", "api/circle-theme/session/answer", "api/circle-theme/session/record"
+        "api/game/session/shared/preview", "api/circle-theme/session/answer", "api/circle-theme/session/record",
+        // g-partials: the circle page's own player reads and open/join, so answer/record reach production.
+        // `circle-theme/instance/configure` (merchant host write) stays out.
+        "api/circle-theme/instance/{}/offers", "api/circle-theme/session", "api/circle-theme/session/join",
+        "api/circle-theme/session/{}/card"
     ].union(playRuntimeReadPaths)
     /// G1 play runtime GET reads. Host control/export and circle instance configure are not here.
     static let playRuntimeReadPaths: Set<String> = [
         "api/play/encounter", "api/play/check/receipt", "api/play/advanced/receipt", "api/play/history",
-        "api/play/setup", "api/play/contact"
+        "api/play/setup", "api/play/contact",
+        // g-partials: TEAM backpack projection, `perspective=PLAYER` only (see `playerPerspective`).
+        "api/game/session/view"
     ]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",

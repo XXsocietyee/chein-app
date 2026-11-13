@@ -85,17 +85,20 @@ struct OfficialSignupCommandSection: View {
     }
 }
 
-/// BL-41 roam passport official-events card. One open event links to its detail; several go to the list.
+/// BL-41 roam passport official-events card. `onPassportPlayTap('event')`: one open event navigates to
+/// `official-detail?id=`; several open the roam official-task list (`openRoamTasks`).
 struct OfficialRoamActiveCardView: View {
     @Environment(\.playerGapService) private var service
-    var openEvent: ((Int?) -> Void)? = nil
+    /// Host-supplied destination for the card's tap; nil keeps the card as a plain label.
+    var destination: ((Int?) -> AnyView)? = nil
     @State private var card: OfficialRoamActiveCard?
 
     var body: some View {
         Group {
             if let card {
-                if let openEvent {
-                    Button { openEvent(card.eventID) } label: { label(card) }.accessibilityIdentifier("gap.roamEvents")
+                if let destination {
+                    NavigationLink { destination(card.eventID) } label: { label(card) }
+                        .accessibilityIdentifier("gap.roamEvents")
                 } else {
                     label(card).accessibilityIdentifier("gap.roamEvents")
                 }
@@ -111,6 +114,24 @@ struct OfficialRoamActiveCardView: View {
             else { Text("playerGap.roamEvents.one \(card.firstTitle)").font(CYTypography.meta) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Where the BL-41 card leads: the one open event's detail, or (several open) the roam official-task list.
+/// Same session-reader guard as `RoamOfficialTasksDestination`; a stale reader shows the changed state.
+@MainActor struct RoamActiveOfficialEventDestination: View {
+    @EnvironmentObject private var session: AppSession
+    let roamReader: any RoamExperienceReading
+    let eventID: Int?
+    var body: some View {
+        if let eventID {
+            if ObjectIdentifier(roamReader) == ObjectIdentifier(session.roamExperienceReader), roamReader.identity != nil {
+                OfficialEventDetailView(id: eventID, reader: session.officialEventReader, actions: session.officialActionCoordinator)
+                    .id(session.sessionRevision)
+            } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
+        } else {
+            RoamOfficialTasksDestination(roamReader: roamReader)
+        }
     }
 }
 
@@ -157,14 +178,20 @@ struct TeamInviteQRSection: View {
     }
 }
 
-/// Round 9 m2 #2: teams on the same activity. Consent first; polling only while the player shares.
+/// Round 9 m2 #2: teams on the same activity. Consent first; polling only while the player shares,
+/// the app is foreground, and location is already granted (the mini-program starts the poller from its
+/// location watch). Each sync uploads only the points walked since the last success (≤40).
 struct TeamTrailSection: View {
     @Environment(\.playerGapService) private var service
+    @Environment(\.scenePhase) private var scenePhase
     let activityID: Int
-    var points: () -> [TeamTrailPoint] = { [] }
+    /// Count of done nodes on the run (`team-trail.js` `done()`).
     var done: () -> Int = { 0 }
     @State private var model: TeamTrailModel?
+    @State private var recorder = TeamTrailForegroundRecorder()
     @State private var share = true
+
+    private var recording: Bool { scenePhase == .active && model?.canRun == true }
 
     var body: some View {
         Group {
@@ -176,6 +203,9 @@ struct TeamTrailSection: View {
                             .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                             .accessibilityIdentifier("gap.trail.confirm")
                     } else if model.state.share {
+                        if !TeamTrailForegroundRecorder.isAuthorized {
+                            Text("playerGap.trail.needsLocation").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        }
                         ForEach(model.teams) { team in
                             HStack {
                                 Text(verbatim: team.initial.isEmpty ? team.name : team.initial).font(CYTypography.label)
@@ -201,12 +231,16 @@ struct TeamTrailSection: View {
             var wait = TeamTrailModel.interval
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(wait))
-                guard !Task.isCancelled, trail.canRun else { continue }
-                let ok = await trail.tick(points: points(), done: done())
+                guard !Task.isCancelled, trail.canRun, scenePhase == .active, TeamTrailForegroundRecorder.isAuthorized else { continue }
+                let ok = await trail.tick(points: recorder.points, done: done())
                 wait = ok ? TeamTrailModel.interval : min(wait * 2, TeamTrailModel.maxInterval)
             }
         }
-        .onDisappear { if let model { Task { await model.finish() } } }
+        .onChange(of: recording, initial: true) { _, on in if on { recorder.start() } else { recorder.stop() } }
+        .onDisappear {
+            recorder.stop()
+            if let model { Task { await model.finish() } }
+        }
     }
 }
 

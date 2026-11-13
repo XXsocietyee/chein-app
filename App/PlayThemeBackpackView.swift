@@ -20,6 +20,8 @@ import SwiftUI
     /// Personal gameplay rows from the last theme-state read when the host passed no coordinator.
     @State private var liveGameplay: PlayThemeGameplayCoordinator?
     @State private var gameplayFlow = PlayThemeGameplayFlow()
+    /// A ROUTE team run shows the TEAM backpack instead of the personal projection.
+    @State private var teamActive = false
     private struct ActionSelection: Identifiable {
         let id = UUID()
         let operation: PlayThemeBackpackOperation
@@ -45,8 +47,9 @@ import SwiftUI
             case .loading where model.backpack == nil: ProgressView("playx.loading")
             default: EmptyView()
             }
-            if let actions = model.actions { actionStatus(actions) }
-            if let bag = model.displayedBackpack { content(bag) }
+            if !teamActive, let actions = model.actions { actionStatus(actions) }
+            if !teamActive, let bag = model.displayedBackpack { content(bag) }
+            PlayTeamBackpackSections(active: $teamActive)
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)

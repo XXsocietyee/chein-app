@@ -425,6 +425,29 @@ import XCTest
             _ = try await client.get(path, query: query)
             XCTAssertEqual(recorder.paths.last, path)
         }
+        // g-partials: the TEAM backpack reads the player's own game-session projection only.
+        _ = try await client.get("api/game/session/view", query: ["activityId": "5", "perspective": "PLAYER"])
+        XCTAssertEqual(recorder.paths.last, "api/game/session/view")
+        let viewCount = recorder.paths.count
+        for perspective in ["CLUB", "MERCHANT"] {
+            var other = URLRequest(url: URL(string: player.baseURL.appendingPathComponent("api/game/session/view").absoluteString
+                + "?activityId=5&perspective=" + perspective)!)
+            other.httpMethod = "GET"; other.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+            await assertClosed { try await transport.send(other) }
+        }
+        XCTAssertEqual(recorder.paths.count, viewCount)
+        // g-partials: the circle page's own player reads, open/join, answer and record.
+        for circle in ["api/circle-theme/instance/{}/offers", "api/circle-theme/session", "api/circle-theme/session/join",
+                       "api/circle-theme/session/{}/card", "api/circle-theme/session/answer", "api/circle-theme/session/record"] {
+            XCTAssertTrue(grant.play.paths.contains(circle), circle)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + circle.replacingOccurrences(of: "{}", with: "12")), circle)
+        }
+        var card = URLRequest(url: player.baseURL.appendingPathComponent("api/circle-theme/session/12/card")); card.httpMethod = "GET"
+        card.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(card)
+        XCTAssertEqual(recorder.paths.last, "api/circle-theme/session/12/card")
+        _ = try await client.postJSON("api/circle-theme/session", body: ["topicId": .integer(12)])
+        XCTAssertEqual(recorder.paths.last, "api/circle-theme/session")
         // A read path is not a write grant, and host-only controls stay closed for players.
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/play/history"), #"{"topicId":12}"#, token: player.session.token)) }
         XCTAssertFalse(grant.play.paths.contains("api/game/session/shared/control"))

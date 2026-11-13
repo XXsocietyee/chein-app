@@ -327,6 +327,9 @@ import SwiftUI
                 if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
                     PlayContactSection(currentNodeID: PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                                        finished: snapshot.availability == .completed)
+                    // 已完成章节 from `GET api/play/history` that the live route no longer lists.
+                    PlayCompletedHistorySection(routeSessionID: snapshot.route?.sessionID,
+                                                liveChapterIDs: Set(snapshot.result.chapters.map(\.id)))
                 }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }
                 if let ending = model.ending {
@@ -838,7 +841,12 @@ struct PlayExperienceIssueView: View {
                 if model.leaderOutcomeUnknown { Text("playx.lead.unknown") }
                 if model.leadReadFailed { PlayRuntimePhaseText(phase: "failed") }
             }
-            if case .activity(let activityID) = model.scope { TeamTrailSection(activityID: activityID) }
+            if case .activity(let activityID) = model.scope {
+                TeamTrailSection(activityID: activityID, done: { [model] in
+                    guard let snapshot = model.snapshot else { return 0 }
+                    return snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
+                })
+            }
         }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
         .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {
