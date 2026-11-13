@@ -223,9 +223,11 @@ import XCTest
         drafts.setValue(player.session.token, forHTTPHeaderField: "Authorization")
         _ = try await transport.send(drafts)
         XCTAssertEqual(recorder.paths.last, "api/v1/community/drafts")
-        let send = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"),
+        var send = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"),
             fields: ["conversation_id": "4", "msg_type": "1", "content": "hello", "client_message_id": String(repeating: "ab", count: 16)],
             token: player.session.token)
+        // Same shape as NativeChannelTextService: the channel text route requires cookie handling off.
+        send.httpShouldHandleCookies = false
         _ = try await transport.send(send)
         XCTAssertEqual(recorder.paths.last, "api/im/send")
         XCTAssertFalse(recorder.paths.contains("api/login"))
@@ -354,9 +356,11 @@ import XCTest
         cards.httpBody = Data("pageNum=1&pageSize=40&category=npc".utf8)
         _ = try await transport.send(cards)
         XCTAssertEqual(recorder.paths.last, "api/object-card/list")
-        let send = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"),
+        var send = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"),
             fields: ["conversation_id": "1", "msg_type": "1", "content": "E2E hello", "client_message_id": String(repeating: "cd", count: 16)],
             token: token)
+        // Same shape as NativeChannelTextService: the channel text route requires cookie handling off.
+        send.httpShouldHandleCookies = false
         _ = try await transport.send(send)
         XCTAssertEqual(recorder.paths.last, "api/im/send")
         // An expired or revoked channel lease is re-minted for the same signed-in context, not left refusing every send.
