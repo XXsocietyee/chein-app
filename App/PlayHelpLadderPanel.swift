@@ -12,7 +12,7 @@ import SwiftUI
     func remember(_ requestID: String, for key: String) -> Bool {
         var next = all; next[key] = requestID
         defaults.set(next, forKey: Self.key)
-        return requestID(for: key) == requestID
+        return self.requestID(for: key) == requestID
     }
     func forget(_ key: String) {
         var next = all; next.removeValue(forKey: key)

@@ -1644,6 +1644,9 @@ public enum ChinaReviewedRouteCapability {
         "/api/play/help",
         "/api/play/help/advanced/receipt",
         "/api/play/help/receipt",
+        // Owner-approved non-money player writes (2026-11-12): hint ladder use and skip, H8.
+        "/api/play/help/skip",
+        "/api/play/help/use",
         "/api/play/hint/unlock",
         "/api/play/journey/ask",
         "/api/play/journey/backpack",
