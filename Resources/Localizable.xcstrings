@@ -177994,13 +177994,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount unknown"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "金额未知"
+            "value": "—"
           }
         }
       }
@@ -178011,13 +178011,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unknown"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未知"
+            "value": "—"
           }
         }
       }

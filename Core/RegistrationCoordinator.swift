@@ -7,6 +7,13 @@ public protocol RegistrationCoordinatingService {
     func quote(_ selection: RegistrationQuoteRequest, token: String) async throws -> RegistrationQuote
     func create(_ intent: RegistrationCreateIntent, token: String) async throws -> RegistrationCreateResult
     func readStatus(registrationID: Int, token: String) async throws -> RegistrationStatusSnapshot
+    func agreeToActivitySignup(requestID: String, token: String) async throws
+}
+
+extension RegistrationCoordinatingService {
+    public func agreeToActivitySignup(requestID: String, token: String) async throws {
+        throw APIError.notConfigured
+    }
 }
 
 extension RegistrationService: RegistrationCoordinatingService {}
@@ -207,6 +214,22 @@ public final class RegistrationCoordinator {
             quoteState = .unavailable(RegistrationCoordinatorIssue(error))
         }
         return .applied
+    }
+
+    /// Records activity sign-up consent when the backing service can. A missing service stays blocked.
+    @discardableResult
+    public func recordFreeSignupConsent() async -> RegistrationCoordinatorAction {
+        guard let token else { return .blocked(.signedOut) }
+        let requestID = makeRequestID()
+        guard !requestID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, requestID.utf16.count <= 64 else {
+            return .blocked(.invalidRequest)
+        }
+        do {
+            try await service.agreeToActivitySignup(requestID: requestID, token: token)
+            return .applied
+        } catch {
+            return .blocked(.invalidRequest)
+        }
     }
 
     /// Call only for explicit user confirmation after the separate required consent flow.

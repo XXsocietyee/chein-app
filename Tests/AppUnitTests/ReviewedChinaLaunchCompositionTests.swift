@@ -1016,6 +1016,44 @@ import XCTest
         XCTAssertEqual(recorder.paths.count, 7)
     }
 
+    func testShippedChinaAdmitsAFreeQuoteAndSignupConsentAndRefusesAPaidQuote() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let base = player.baseURL
+        let quoteFields: [String: Any] = ["isUsePoint": 0, "ownerId": 992031, "ownerType": 2, "ticketId": 992041]
+        let quoteBody = try JSONSerialization.data(withJSONObject: quoteFields, options: .sortedKeys)
+        var quote = URLRequest(url: base.appendingPathComponent("api/registration/quote"))
+        quote.httpMethod = "POST"
+        quote.httpBody = quoteBody
+        quote.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        quote.setValue("application/json", forHTTPHeaderField: "Accept")
+        quote.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(quote)
+        XCTAssertEqual(recorder.paths.last, "api/registration/quote")
+        let consentFields: [String: Any] = [
+            "docType": "activity_host_data_sharing", "eventType": "AGREE",
+            "requestId": "app-9004-free", "scene": "activity_signup"
+        ]
+        var consent = URLRequest(url: base.appendingPathComponent("api/compliance/consents"))
+        consent.httpMethod = "POST"
+        consent.httpBody = try JSONSerialization.data(withJSONObject: consentFields, options: .sortedKeys)
+        consent.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        consent.setValue("application/json", forHTTPHeaderField: "Accept")
+        consent.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(consent)
+        XCTAssertEqual(recorder.paths.last, "api/compliance/consents")
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/registration/quote"), #"{"ownerType":2,"payAmount":1}"#, token: player.session.token)) }
+        XCTAssertEqual(SessionRegistrationSheet.freeWhenUnapproved(.disabled), .free)
+        XCTAssertEqual(SessionRegistrationSheet.freeWhenUnapproved(.free), .free)
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }
