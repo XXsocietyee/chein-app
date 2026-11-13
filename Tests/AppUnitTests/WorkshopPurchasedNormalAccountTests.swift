@@ -569,7 +569,9 @@ enum HostedAccessibilityRuntime {
                      namespace: String? = nil, base: URL? = nil, market: RegionalMarket = .china) throws -> RuntimeDependencyContext {
             .init(market: market, baseURL: base ?? self.base, role: role ?? wire.role,
                 session: try .init(accountID: account ?? wire.accountID, epoch: epoch ?? session.sessionRevision,
-                    namespace: namespace ?? deployment.storageScope.service, token: token ?? wire.token))
+                    namespace: namespace ?? deployment.storageScope.service, token: token ?? wire.token,
+                    // The session carries the account's real role (merchant/club stay merchant/club), not a fixed "player".
+                    role: role ?? wire.role))
         }
         func approve() throws {
             let issued = try WorkshopPurchasedReadApproval(context: context(), expiresAt: .distantFuture)
