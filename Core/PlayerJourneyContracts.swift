@@ -66,6 +66,18 @@ public struct ParticipationDetail: Decodable, Equatable, Identifiable {
     public let verified: Int?
     public var pending: Int? { if let total, let verified { return total - verified }; return nil }
     public let refundDeadline: String?
+    /// Topic id from this registration payload. Owner type 1 keeps `cmsTopic.id` only when it
+    /// matches `ownerId`. Owner type 2 keeps `cmsActivity.topicId` only when `cmsActivity.id`
+    /// matches `ownerId`. Nil when the payload has no consistent topic id. The registration id
+    /// is never copied into this field.
+    public let topicID: Int?
+    /// Activity id for the score read. Owner type 1 uses the payload rule activity id 0
+    /// (self-play, not an activity record). Owner type 2 keeps `cmsActivity.id` when it matches
+    /// `ownerId`. Nil when neither is present.
+    public let activityID: Int?
+    /// `cmsActivity.productType` when that object is present, otherwise `cmsTopic.productType`.
+    /// Only an exact integer is kept.
+    public let productType: Int?
     public func canCancel(now: Date = Date()) -> Bool {
         // Current mini replaced Flutter's obsolete three-day heuristic with order status.
         let state = record.order.summary(now: now).state
@@ -88,6 +100,10 @@ public struct ParticipationDetail: Decodable, Equatable, Identifiable {
            total >= 0, verified >= 0, verified <= total { self.total = total; self.verified = verified }
         else { total = nil; verified = nil }
         refundDeadline = ParticipationRecord.text(raw["refundDeadlineDisplay"])
+        let score = ParticipationOrientScoreEntry.keys(raw: raw, registrationID: record.id)
+        topicID = score.topicID
+        activityID = score.activityID
+        productType = score.productType
     }
 }
 public struct CompletedPlayRecord: Decodable, Equatable {
