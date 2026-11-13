@@ -385,6 +385,9 @@ enum ReviewedPlayerReadRoute {
         // `circle-theme/instance/configure` is granted below (parity-b) for the personal host only (scope "").
         "api/circle-theme/instance/{}/offers", "api/circle-theme/session", "api/circle-theme/session/join",
         "api/circle-theme/session/{}/card",
+        // Owner approval 2026-11-13: the player TEAM backpack command (mini-program game-session-client.js:395,
+        // theme-backpack.js:494). Non-money; the server checks the run, team and perspective.
+        "api/game/session/command",
         // parity-b (PlayerGapService.parityBPaths): organiser shared-run control/export/anchor, the lead's group
         // member ticket scan and its seat receipt, editor orient alternatives with their author readback,
         // the circle host's project read + instance configure, and the analytics batch. No money path.

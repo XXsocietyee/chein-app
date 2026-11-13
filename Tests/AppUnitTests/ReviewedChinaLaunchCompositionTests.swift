@@ -691,6 +691,11 @@ import XCTest
         let merchant = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/project/my"),
             fields: ["type": "all", "state": "all", "ownerType": "all", "scope": "MERCHANT", "pageNum": "1", "pageSize": "200"], token: token)
         await assertClosed { try await transport.send(merchant) }
+        // g-partials owner item: the player TEAM backpack command is a reviewed player write.
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/game/session/command"))
+        XCTAssertTrue(try XCTUnwrap(composition.playerWriteGrant(player)).play.paths.contains("api/game/session/command"))
+        _ = try await transport.send(jsonRequest(player.baseURL.appendingPathComponent("api/game/session/command"), #"{"activityId":41,"type":"ITEM_USE"}"#, token: token))
+        XCTAssertEqual(recorder.paths.last, "api/game/session/command")
         // R12: the player's own journey reads.
         for path in ["api/registration/my-joined", "api/play/my-completed"] {
             _ = try await transport.send(try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false))
