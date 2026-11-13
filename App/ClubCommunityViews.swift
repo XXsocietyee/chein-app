@@ -782,10 +782,13 @@ struct ClubCommunityReviewView: View {
                     case let .pin(pinned, _): Text(pinned ? "club.community.pin" : "club.community.unpin")
                     default: Text("club.community.deleteWarning").fixedSize(horizontal: false, vertical: true)
                     }
-                    Text("club.community.offline")
-                        .font(CYTypography.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    // E2E R13: the note follows the same grant that admits the write; a granted Confirm never says "unavailable".
+                    if model.context.coordinator?.permitsInjectedWrites != true {
+                        Text("club.community.offline")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     CYPillButton("club.community.confirm") {
                         Task { if await model.confirm(expected: review, refresh: refresh) { dismiss() } }
                     }

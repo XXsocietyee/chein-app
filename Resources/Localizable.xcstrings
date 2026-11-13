@@ -265520,6 +265520,57 @@
           }
         }
       }
+    },
+    "homeContinuation.journeyReadNotApproved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your recent plays can't be shown in this build yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本暂不能显示你最近的玩法。"
+          }
+        }
+      }
+    },
+    "homeContinuation.signInRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to continue where you left off."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后可继续上次的玩法。"
+          }
+        }
+      }
+    },
+    "homeContinuation.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your recent plays. Pull to refresh."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的玩法加载失败，请下拉刷新。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

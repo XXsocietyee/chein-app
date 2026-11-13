@@ -109,7 +109,7 @@ public struct FinalTwentyBatchMasterCompletionManifest: Sendable, Equatable {
             id: "batch-14",
             batchNumber: 14,
             laneRangeText: "Lanes 149–160",
-            focusSummary: "w2-14/15/16 /api/club/access/me POST form fix, governance permission gates, enrollment formatting & settlement readback"
+            focusSummary: "w2-14/15/16 /api/club/access/me POST JSON contract, governance permission gates, enrollment formatting & settlement readback"
         ),
         CompletedBatchLedgerEntry(
             id: "batch-15",

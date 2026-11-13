@@ -35,7 +35,7 @@ final class ClubAccessAndSettlementSectionViewTests: XCTestCase {
         )
         XCTAssertEqual(
             view.accessMeRouteSummaryText,
-            "Access Route: POST /api/club/access/me (Form-Encoded • Session-Scoped)"
+            "Access Route: POST /api/club/access/me (JSON • Session-Scoped)"
         )
         XCTAssertEqual(
             view.governanceSummaryText,
@@ -65,7 +65,7 @@ final class ClubAccessAndSettlementSectionViewTests: XCTestCase {
         )
         let violatingSnapshot = ClubAccessAndSettlementSnapshot(
             rows: modifiedRows,
-            accessMeUsesPOSTForm: false,
+            accessMeUsesPOSTJSON: false,
             governanceRoleVerified: false,
             liveSettlementPayoutEnabled: true
         )
@@ -76,7 +76,7 @@ final class ClubAccessAndSettlementSectionViewTests: XCTestCase {
         XCTAssertEqual(view.statusBadgeText, "Club Access & Settlement Gate: REVIEW REQUIRED")
         XCTAssertEqual(
             view.accessMeRouteSummaryText,
-            "Access Route: MISMATCH (Expected POST Form-Encoded /api/club/access/me)"
+            "Access Route: MISMATCH (Expected POST JSON /api/club/access/me)"
         )
         XCTAssertEqual(
             view.governanceSummaryText,

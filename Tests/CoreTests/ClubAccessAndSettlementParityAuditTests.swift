@@ -7,7 +7,7 @@ final class ClubAccessAndSettlementParityAuditTests: XCTestCase {
             accessMeContract: ClubAccessMeContractAuditInput(
                 path: "/api/club/access/me",
                 httpMethod: "POST",
-                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                contentType: "application/json",
                 acceptHeader: "application/json",
                 hasValidAuthToken: true
             ),

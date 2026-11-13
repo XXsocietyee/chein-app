@@ -37,24 +37,24 @@ public struct ClubAccessSettlementRow: Identifiable, Equatable, Sendable {
 }
 
 /// Self-contained presentation snapshot for:
-/// 1. `/api/club/access/me` POST form
+/// 1. `/api/club/access/me` POST JSON
 /// 2. `ClubGovernanceCoordinator` permission checks
 /// 3. `ClubEnrollmentReader`
 /// 4. `w2-16` settlement parity
 public struct ClubAccessAndSettlementSnapshot: Equatable, Sendable {
     public let rows: [ClubAccessSettlementRow]
-    public let accessMeUsesPOSTForm: Bool
+    public let accessMeUsesPOSTJSON: Bool
     public let governanceRoleVerified: Bool
     public let liveSettlementPayoutEnabled: Bool
 
     public init(
         rows: [ClubAccessSettlementRow] = Self.defaultRows,
-        accessMeUsesPOSTForm: Bool = true,
+        accessMeUsesPOSTJSON: Bool = true,
         governanceRoleVerified: Bool = true,
         liveSettlementPayoutEnabled: Bool = false
     ) {
         self.rows = rows
-        self.accessMeUsesPOSTForm = accessMeUsesPOSTForm
+        self.accessMeUsesPOSTJSON = accessMeUsesPOSTJSON
         self.governanceRoleVerified = governanceRoleVerified
         self.liveSettlementPayoutEnabled = liveSettlementPayoutEnabled
     }
@@ -63,8 +63,8 @@ public struct ClubAccessAndSettlementSnapshot: Equatable, Sendable {
         ClubAccessSettlementRow(
             id: "club-access-me-post",
             code: "POST /api/club/access/me",
-            title: "Club Access Me POST Form Contract",
-            contractDetail: "Dispatches POST form-encoded /api/club/access/me bound to account, epoch, and token; missing openness or role facts fail conservatively",
+            title: "Club Access Me POST JSON Contract",
+            contractDetail: "Dispatches POST JSON /api/club/access/me bound to account, epoch, and token; missing openness or role facts fail conservatively",
             isPermissionScoped: true,
             liveMutationOrPayoutEnabled: false
         ),
@@ -98,14 +98,14 @@ public struct ClubAccessAndSettlementSnapshot: Equatable, Sendable {
 
     public var isAllScopedAndFailClosed: Bool {
         rows.count == 4 &&
-        accessMeUsesPOSTForm &&
+        accessMeUsesPOSTJSON &&
         governanceRoleVerified &&
         !liveSettlementPayoutEnabled &&
         rows.allSatisfy { $0.isPermissionScoped && !$0.liveMutationOrPayoutEnabled }
     }
 }
 
-/// SwiftUI Section View rendering `/api/club/access/me` POST form, `ClubGovernanceCoordinator` permission checks,
+/// SwiftUI Section View rendering `/api/club/access/me` POST JSON, `ClubGovernanceCoordinator` permission checks,
 /// `ClubEnrollmentReader`, and `w2-16` settlement parity using `Text(verbatim:)` throughout.
 @MainActor
 public struct ClubAccessAndSettlementSectionView: View {
@@ -122,9 +122,9 @@ public struct ClubAccessAndSettlementSectionView: View {
     }
 
     public var accessMeRouteSummaryText: String {
-        snapshot.accessMeUsesPOSTForm
-            ? "Access Route: POST /api/club/access/me (Form-Encoded • Session-Scoped)"
-            : "Access Route: MISMATCH (Expected POST Form-Encoded /api/club/access/me)"
+        snapshot.accessMeUsesPOSTJSON
+            ? "Access Route: POST /api/club/access/me (JSON • Session-Scoped)"
+            : "Access Route: MISMATCH (Expected POST JSON /api/club/access/me)"
     }
 
     public var governanceSummaryText: String {
@@ -154,7 +154,7 @@ public struct ClubAccessAndSettlementSectionView: View {
 
             Text(verbatim: accessMeRouteSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.accessMeUsesPOSTForm ? Color.secondary : CYColor.dangerText)
+                .foregroundStyle(snapshot.accessMeUsesPOSTJSON ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("clubAccessSettlement.accessMeRouteSummary")
 
             Text(verbatim: governanceSummaryText)

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Pure self-contained value-type auditor for `w2-14/15/16` club access, enrollment & settlement parity:
-/// 1. `/api/club/access/me` `POST` `application/x-www-form-urlencoded` contract (Wave-1 P0 fix),
+/// 1. `/api/club/access/me` `POST` `application/json` contract (E2E-20261113 R4: the backend serves JSON only),
 /// 2. `ClubGovernanceCoordinator` operation permission check (`pending.command.operation.permission`),
 /// 3. `ClubEnrollmentReader` `nonisolated` static formatting (`formatHeaderLine`, `formatPaymentRefundSummary`, `failureTitle`),
 /// 4. `w2-16` `ClubOpsJoinNotifyPresentation` & `ClubOpsSettlementPresentation`.
@@ -16,11 +16,11 @@ public enum ClubAccessAndSettlementParityViolation: Equatable, Sendable {
     case unverifiedSettledStatusPresentation
 }
 
-/// Pillar 1 (`w2-14` / Wave-1 P0 fix): `/api/club/access/me` POST form-urlencoded contract input.
+/// Pillar 1 (`w2-14`, corrected by E2E-20261113 R4): `/api/club/access/me` POST JSON contract input.
 public struct ClubAccessMeContractAuditInput: Equatable, Sendable {
     public static let expectedPath = "/api/club/access/me"
     public static let expectedMethod = "POST"
-    public static let expectedContentType = "application/x-www-form-urlencoded"
+    public static let expectedContentType = "application/json"
     public static let expectedAccept = "application/json"
 
     public let path: String
@@ -43,7 +43,7 @@ public struct ClubAccessMeContractAuditInput: Equatable, Sendable {
         self.hasValidAuthToken = hasValidAuthToken
     }
 
-    public var isFormURLEncodedPOST: Bool {
+    public var isJSONPOST: Bool {
         path == Self.expectedPath
             && httpMethod.uppercased() == Self.expectedMethod
             && contentType?.lowercased().hasPrefix(Self.expectedContentType) == true
@@ -237,7 +237,7 @@ public enum ClubAccessAndSettlementParityAuditor {
         var violations: [ClubAccessAndSettlementParityViolation] = []
 
         // 1. /api/club/access/me POST form-urlencoded check
-        if !accessMeContract.isFormURLEncodedPOST {
+        if !accessMeContract.isJSONPOST {
             violations.append(.accessMeMethodOrContentTypeMismatch)
         }
         if !accessMeContract.hasValidAuthToken {

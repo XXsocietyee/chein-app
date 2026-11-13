@@ -644,9 +644,9 @@ import XCTest
         // (3) club/access/me is a reviewed player read in both lists and is sent.
         XCTAssertTrue(ReviewedPlayerReadRoute.paths.contains("api/club/access/me"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/access/me"))
-        let access = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/club/access/me"),
-            fields: ["clubId": "7001"], token: player.session.token)
-        _ = try await transport.send(access)
+        // E2E R4: the backend serves JSON only; ClubGovernanceService sends access/me as JSON.
+        XCTAssertFalse(ClubGovernanceRead.access.usesForm)
+        _ = try await transport.send(jsonRequest(player.baseURL.appendingPathComponent("api/club/access/me"), #"{"clubId":7001}"#, token: player.session.token))
         XCTAssertEqual(recorder.paths.last, "api/club/access/me")
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
     }
@@ -691,6 +691,13 @@ import XCTest
         let merchant = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/project/my"),
             fields: ["type": "all", "state": "all", "ownerType": "all", "scope": "MERCHANT", "pageNum": "1", "pageSize": "200"], token: token)
         await assertClosed { try await transport.send(merchant) }
+        // R12: the player's own journey reads.
+        for path in ["api/registration/my-joined", "api/play/my-completed"] {
+            _ = try await transport.send(try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false))
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        _ = try await transport.send(try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/registration/info"), fields: ["id": "41"], token: token))
+        XCTAssertEqual(recorder.paths.last, "api/registration/info")
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
     }
 

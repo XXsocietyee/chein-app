@@ -96,6 +96,8 @@ public enum ClubGovernanceRead: String, CaseIterable {
     case eventTopics, series, seriesDetail, occurrences, occurrenceStatus, roster, bans, cases, roles
     case audienceCounts, notificationPreview, notificationStatus, topics, topicOverview, topicSettings, topicCustomers, topicStats, recruit, nodeAnswer
     case editions, dissolutionBlockers, leaderboard, feed, posts, registrations
+    /// Body format. Only the topic overview is a form; `access` (club/access/me) is JSON, as the backend serves it (E2E R4).
+    public var usesForm: Bool { self == .topicOverview }
     public var path: String {
         switch self {
         case .access: return "api/club/access/me"

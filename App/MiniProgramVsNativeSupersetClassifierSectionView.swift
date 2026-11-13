@@ -89,7 +89,7 @@ public struct MiniProgramVsNativeClassifierSnapshot: Sendable, Equatable {
                 id: "w2_01_to_w2_08_core_api",
                 scopeRange: "w2-01..w2-08",
                 title: "Auth, Profile.career, Club Access Form & Roam Readbacks",
-                detail: "1:1 backend contract (/api/club/access/me POST form, /api/user/stamps/received, AccountSessionGate)",
+                detail: "1:1 backend contract (/api/club/access/me POST JSON, /api/user/stamps/received, AccountSessionGate)",
                 bucket: .strictAPIAndCopyAlignment,
                 preservesBackendContract: true,
                 preservesNativeSuperset: true

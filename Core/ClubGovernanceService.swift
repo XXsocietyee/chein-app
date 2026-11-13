@@ -45,7 +45,7 @@ public struct ClubGovernanceService {
     }
     private func post(_ operation: ClubGovernanceRead, scope: ClubGovernanceScope, options: [String: ClubGovernanceValue], token: String, validating: Bool = true, check: () throws -> Void) async throws -> ClubGovernanceValue {
         let fields = try operation.fields(scope: scope, options: options)
-        let request = try request(path: operation.path, fields: fields, form: operation == .topicOverview, token: token)
+        let request = try request(path: operation.path, fields: fields, form: operation.usesForm, token: token)
         try check()
         let (data, status) = try await transport.send(request)
         try check()

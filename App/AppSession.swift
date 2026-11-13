@@ -1250,7 +1250,7 @@ final class AppSession: ObservableObject {
         return try? PlayerJourneySession(accountID: account.id, epoch: gate.currentStamp, namespace: namespace, token: token)
     }
     lazy var playerJourneyReader = PlayerJourneySessionReader(service: regionalConfiguration?.apiConfiguration.map {
-        PlayerJourneyService(configuration: $0, transport: runtimeHTTPTransport)
+        PlayerJourneyService(configuration: $0, transport: runtimeHTTPTransport, readsEnabled: composition.reviewed?.playerWritesEnabled == true && composition.reviewed?.regional.market == .china) // E2E R12: own journey reads with the China player grant
     }, currentSession: { [weak self] in self?.currentPlayerJourneySession }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentPlayerJourneySession == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
