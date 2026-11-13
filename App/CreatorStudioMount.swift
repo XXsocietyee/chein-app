@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// One creator topic the studio screens can scope a read to.
 struct CreatorStudioTopic: Identifiable, Hashable {

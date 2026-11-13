@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// U06 turn block in the session team view. Every member sees the current and next turn and when theirs comes;
 /// only the leader sees which role holds them and the full order (the server sends the order to the leader only).

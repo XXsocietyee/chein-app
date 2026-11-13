@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// U08-04 "复报 · 分析适配入口": the B8 post-game outcome report scoped to the creator's own topics.
 /// Owner rules: `mature=false` reads "not mature" (never 0%), a null count reads "—", watermarks, basis version and
