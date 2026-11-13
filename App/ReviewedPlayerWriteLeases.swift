@@ -255,7 +255,7 @@ enum ReviewedPlayerReadRoute {
         "api/orient/scoring/appeal", "api/orient/scoring/dispute"
     ]
     static let playCapabilities: Set<PlayExperienceCapability> = [
-        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening
+        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
     ]
     // player-write-paths-end
 

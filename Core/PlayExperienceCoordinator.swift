@@ -86,6 +86,16 @@ public struct PlayCompletionReview: Equatable {
         self.nodeID = nodeID; self.evidence = evidence; self.advance = advance; self.session = session
         self.generation = generation; self.routeSessionID = routeSessionID; self.id = id; self.gameplayMode = gameplayMode
     }
+    /// UG-09: the same review carrying the server's action context. A branch review keeps the action
+    /// id and expected version it was reviewed with; a linear review gets one new action id here,
+    /// before anything is journaled. `routeSessionID` stays the snapshot value used by readback.
+    func bound(to context: PlayBasicActionContext) throws -> PlayCompletionReview {
+        let advance = try PlayRouteAdvance(actionID: self.advance?.actionID ?? UUID().uuidString,
+            expectedVersion: self.advance?.expectedVersion ?? context.expectedRouteVersion,
+            routeSessionID: context.routeSessionID, runtimeInstance: context.runtimeInstance, authorityEpoch: context.authorityEpoch)
+        return .init(nodeID: nodeID, evidence: evidence, advance: advance, session: session, generation: generation,
+                     routeSessionID: routeSessionID, id: id, gameplayMode: gameplayMode)
+    }
 }
 /// Independent of the existing linear-answer reader. A successful write invalidates the
 /// snapshot; only authoritative readback changes progress. No hidden write retries.
@@ -122,6 +132,15 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var clock = PlayRunClock()
     public private(set) var remoteRunSaveFailed = false
     public private(set) var unresolved = false
+    /// U05-03: recovery state of this run's last basic submission (checking the original receipt,
+    /// still pending, confirmed, definitely failed, or a run conflict). Nil when there is none.
+    public private(set) var submitRecovery: PlaySubmitRecoveryState?
+    /// U05-01/02: the last definite arrival refusal for this run, with server-approved replacements.
+    public private(set) var arrivalFailure: PlayArrivalFailure?
+    /// §23.2: the arrival reading from a real success receipt only; never from a refusal or a read.
+    public var arrivalReading: PlayArrivalReading? { reward.flatMap(PlayArrivalReading.init(receipt:)) }
+    /// U05-02: route-level notice (configuration withdrawn, ended, switched to the fallback route).
+    public var routeNotice: PlayRouteNotice? { PlayRouteNotice(route: snapshot?.route) }
     public private(set) var leaderOutcomeUnknown = false
     /// The latest applied team-progress read failed; the last applied lead stays as read.
     public private(set) var leadReadFailed = false
@@ -202,6 +221,12 @@ public struct PlayCompletionReview: Equatable {
         issuedInteractionLifetime = lifetime
         return lifetime
     }
+    /// U05-04: download model bound to this run's current reader. Nil without a current read.
+    public func makeOfflinePackModel(store: PlayContentPrefetchStore, fetch: @escaping @Sendable (URL) async throws -> Data) -> PlayOfflinePackModel? {
+        guard service.enabled.contains(.reads), let session = loadedSession, session == currentSession() else { return nil }
+        let currentSession = self.currentSession
+        return PlayOfflinePackModel(scope: scope, service: service, session: session, isCurrent: { currentSession() == session }, store: store, fetch: fetch)
+    }
     private func retireChildRead(generation request: UInt64) {
         guard generation == request else { return }
         generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]
@@ -238,7 +263,7 @@ public struct PlayCompletionReview: Equatable {
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
             reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false
-            advancedReadyNodeIDs = []
+            advancedReadyNodeIDs = []; submitRecovery = nil; arrivalFailure = nil
             hintUnknownNodes = Set((unknownHintRequests[PlayRunStorageKey.make(session: session, scope: scope)] ?? [:]).keys)
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
             authorityOwner = session
@@ -252,6 +277,32 @@ public struct PlayCompletionReview: Equatable {
             var pending = try await recovery.read(key)
             try check(session, request)
             if let pending { guard pending.value.intent.owner.matches(session) else { throw PlayExperienceError.persistenceUnavailable } }
+            // U05-03: after a restart (or a later visit) an unsettled journal is settled only by its
+            // original receipt, read with the journaled action id. Never resubmitted from here.
+            var settledArrival: (nodeID: Int, refusal: PlayCommandRefusal)?
+            if service.enabled.contains(.actionContextBinding), let captured = pending,
+               captured.value.state == .unknown || (captured.value.state == .dispatching && captured.value.dispatchProcess != recovery.processID),
+               let stored = captured.value.intent.advance?.actionID,
+               let actionID = PlayActionReceiptIdentity.retained(original: stored, proposed: stored) {
+                let nodeID = captured.value.intent.nodeID
+                submitRecovery = .checking(nodeID: nodeID)
+                let outcome = try? await service.originalActionReceipt(scope: scope, nodeID: nodeID, routeActionID: actionID, token: session.token)
+                try check(session, request)
+                switch outcome {
+                case .confirmed(let value)? where Self.receipt(value, names: nodeID):
+                    try await recovery.clear(captured, key: key)
+                    try check(session, request); pending = nil
+                    reward = value; submitRecovery = .confirmed(nodeID: nodeID)
+                case .failed(let refusal)?:
+                    try await recovery.clear(captured, key: key)
+                    try check(session, request); pending = nil
+                    submitRecovery = .failed(nodeID: nodeID, refusal: refusal)
+                    if case .location = captured.value.intent.evidence { settledArrival = (nodeID, refusal) }
+                default:
+                    // No settled receipt (or no answer): still waiting, which is not a failure.
+                    submitRecovery = .pending(nodeID: nodeID)
+                }
+            }
             let document = try await service.nodes(scope: scope, token: session.token)
             try check(session, request)
             let route = document.base.routeState?.isBranch == true ? try await service.route(scope: scope, token: session.token) : nil
@@ -260,6 +311,11 @@ public struct PlayCompletionReview: Equatable {
             if let captured = pending, landed(captured.value.intent, snapshot: snapshot) {
                 try await recovery.clear(captured, key: key)
                 try check(session, request); pending = nil
+                // Authoritative readback settled it; the receipt state no longer applies.
+                if submitRecovery?.nodeID == captured.value.intent.nodeID { submitRecovery = nil }
+            }
+            if let settledArrival {
+                arrivalFailure = PlayArrivalFailure(nodeID: settledArrival.nodeID, refusal: settledArrival.refusal, snapshot: snapshot)
             }
             cachedCompletion = pending; retryReadbackVerified = true
             var hintRequests = unknownHintRequests[key] ?? [:]
@@ -381,7 +437,54 @@ public struct PlayCompletionReview: Equatable {
               review.generation == generation, !unresolved else { return }
         do { try review.evidence.validateNewLocationMeasurement() }
         catch { issue = .invalidAction; return }
-        await dispatch(review)
+        arrivalFailure = nil; submitRecovery = nil
+        guard service.enabled.contains(.actionContextBinding) else { await dispatch(review); return }
+        // UG-09: read the run identity first. Nothing is journaled or sent until it is known.
+        let session = review.session, request = generation
+        phase = .submitting
+        let bound: PlayCompletionReview
+        do {
+            let context = try await service.actionContext(scope: scope, nodeID: review.nodeID, token: session.token)
+            try check(session, request)
+            if review.advance != nil, let held = review.routeSessionID, held != context.routeSessionID {
+                // The branch run changed after review. Refresh; never write into another run.
+                submitRecovery = .conflict(nodeID: review.nodeID); phase = .needsReadback; await load(); return
+            }
+            bound = try review.bound(to: context)
+        } catch {
+            guard generation == request else { return }
+            guard currentSession() == session else { invalidate(); return }
+            if (error as? PlayExperienceError) == .unauthorized { fail(error, session: session, generation: request); return }
+            // A failed identity read changes nothing on the server; the player can try again.
+            issue = error as? PlayExperienceError ?? .unknownResult; phase = .ready; return
+        }
+        await dispatch(bound)
+    }
+    static func receipt(_ value: PlayWireValue, names nodeID: Int) -> Bool {
+        value["nodeId"].tolerantInteger == nodeID || value["data"]["nodeId"].tolerantInteger == nodeID
+    }
+    /// The original action settled as not applied (terminal receipt, or proof nothing ran):
+    /// retire its journal and show why. Returns false when the journal could not be retired.
+    private func settleFailed(_ ticket: PlayCompletionRecoverySnapshot, refusal: PlayCommandRefusal, review: PlayCompletionReview,
+                              session: PlayExperienceSession, request: UInt64, key: String) async -> Bool {
+        do {
+            try await recovery.clear(ticket, key: key)
+            try check(session, request)
+        } catch {
+            guard currentSession() == session, generation == request else { return true }
+            localRecoveryFailed = true; issue = .persistenceUnavailable; phase = .unknown; return false
+        }
+        cachedCompletion = nil
+        unresolved = !hintUnknownNodes.isEmpty || leaderOutcomeUnknown || !pendingThoughtKeys.isEmpty
+        issue = .rejected(refusal.code, refusal.message)
+        submitRecovery = .failed(nodeID: review.nodeID, refusal: refusal)
+        var arrival = refusal.arrivalReason != nil
+        if case .location = review.evidence { arrival = true }
+        if arrival { arrivalFailure = PlayArrivalFailure(nodeID: review.nodeID, refusal: refusal, snapshot: snapshot) }
+        if refusal.refreshRequired || refusal.code == 409 {
+            submitRecovery = .conflict(nodeID: review.nodeID); phase = .needsReadback; await load()
+        } else { phase = unresolved ? .unknown : .ready }
+        return true
     }
     private func dispatch(_ review: PlayCompletionReview, recovering: PlayCompletionRecoverySnapshot? = nil) async {
         let session = review.session, request = generation, key = PlayRunStorageKey.make(session: review.session, scope: scope)
@@ -410,7 +513,7 @@ public struct PlayCompletionReview: Equatable {
             guard receipt["nodeId"].tolerantInteger == review.nodeID else { throw PlayExperienceError.malformed }
             let acknowledged = try await recovery.transition(dispatched, to: .acknowledged, key: key)
             ticket = acknowledged; try check(session, request); cachedCompletion = acknowledged
-            reward = receipt; phase = .needsReadback; await load()
+            reward = receipt; submitRecovery = nil; arrivalFailure = nil; phase = .needsReadback; await load()
         } catch {
             guard generation == request else { return }
             guard currentSession() == session else { invalidate(); return }
@@ -418,19 +521,36 @@ public struct PlayCompletionReview: Equatable {
             if error as? PlayExperienceError == .persistenceUnavailable {
                 localRecoveryFailed = true; issue = .persistenceUnavailable; phase = .unknown; return
             }
+            if let ticket, sent, let refusal = error as? PlayCommandRefusal, refusal.settlesAsFailed {
+                _ = await settleFailed(ticket, refusal: refusal, review: review, session: session, request: request, key: key)
+                return
+            }
+            if let refusal = error as? PlayCommandRefusal, refusal.errorCode == PlayCommandRefusal.actionReused {
+                // The action id answers for another input; its outcome stays unknown. Refresh first.
+                submitRecovery = .conflict(nodeID: review.nodeID)
+            }
+            let mayHaveApplied: Bool = {
+                if case PlayExperienceError.unknownResult = error { return true }
+                return (error as? PlayCommandRefusal)?.isPending == true
+            }()
             if let ticket, sent {
-                if case PlayExperienceError.unknownResult = error,
+                if mayHaveApplied,
                    let actionID = ticket.value.intent.advance?.actionID,
                    let retained = PlayActionReceiptIdentity.retained(original: actionID, proposed: actionID) {
                     let outcome = try? await service.originalActionReceipt(
                         scope: scope, nodeID: review.nodeID, routeActionID: retained, token: session.token)
-                    if let outcome, case .confirmed(let value) = outcome,
-                       value["nodeId"].tolerantInteger == review.nodeID || value["data"]["nodeId"].tolerantInteger == review.nodeID {
+                    if case .failed(let refusal)? = outcome {
+                        _ = await settleFailed(ticket, refusal: refusal, review: review, session: session, request: request, key: key)
+                        return
+                    }
+                    if service.enabled.contains(.actionContextBinding) { submitRecovery = .pending(nodeID: review.nodeID) }
+                    if let outcome, case .confirmed(let value) = outcome, Self.receipt(value, names: review.nodeID) {
                         do {
                             let acknowledged = try await recovery.transition(ticket, to: .acknowledged, key: key)
                             try check(session, request)
                             cachedCompletion = acknowledged
                             reward = value
+                            submitRecovery = service.enabled.contains(.actionContextBinding) ? .confirmed(nodeID: review.nodeID) : nil
                             phase = .needsReadback
                             await load()
                             return
@@ -733,6 +853,7 @@ public struct PlayCompletionReview: Equatable {
         compatibility = nil; contentVersion = nil
         generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
+        submitRecovery = nil; arrivalFailure = nil
     }
     private func landed(_ review: PlayCompletionIntent, snapshot: PlaySnapshot) -> Bool {
         // Legacy records without mode stay unresolved; another mode's same node

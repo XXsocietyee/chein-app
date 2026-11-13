@@ -55,7 +55,11 @@ import SwiftUI
                     case .unavailable: Text("playx.device.disabled")
                     }
                 }
-                if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                if let issue = model.issue {
+                    // U05-01: permission off / unusable fix are device states, not a server refusal.
+                    if kind == .location, issue == .disabled || issue == .invalidAction { PlayLocationCaptureIssueView(issue: issue) }
+                    else { PlayExperienceIssueView(issue: issue) }
+                }
                 Button("playx.cancel", role: .cancel) { model.cancel() }
             } else if task == .merchantVerify { Text("playx.merchant.consentGate") }
             else { Text("playx.unsupported") }

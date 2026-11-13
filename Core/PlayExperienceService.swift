@@ -7,6 +7,10 @@ public enum PlayExperienceCapability: Hashable {
     /// `capabilityDeclaration` is dormant: it sends `PlayClientCapabilities` on `/api/play/nodes`, which lets the
     /// server refuse to create a new run this build cannot render. Enabling it is an integration acceptance gate.
     case directorCommands, reads, capabilityDeclaration, runPersistence, classicCompletion, hints, leader, advanced, playerCommands, circle, preference, tags, mediaUpload, thoughtClaims, journeyChecks, journeyEggCollection, journeyAsks, journeyOpening
+    /// UG-09 / U05-03: bind each new basic command to `GET /api/play/action-context` and, after a
+    /// restart, re-read the original receipt by its journaled action id. Reviewed production sets
+    /// enable it; fixtures that script exact request order do not.
+    case actionContextBinding
 }
 public enum PlayCompletionEvidence: Codable, Equatable {
     case answer(String)
@@ -105,16 +109,24 @@ public struct PlayExperienceService {
             // Freshness is checked before creating a new command, not on replay.
             try PlayLocationMeasurement.validate(accuracyMeters: accuracyMeters, measuredAt: measuredAt, now: nil)
             fields["longitude"] = String(longitude); fields["latitude"] = String(latitude)
-            // Frozen BK-GPS defines only accuracy on the wire. Keep sample time in the
-            // local evidence/journal; do not invent a backend timestamp parameter.
             if let accuracyMeters { fields["accuracy"] = String(accuracyMeters) }
+            // §23.2: optional `locationTimestamp` (sampling time, epoch ms). Only sent on intents bound
+            // to the server action context, so a journal written by an older build replays its
+            // original request fingerprint unchanged.
+            if advance?.isContextBound == true, let measuredAt, measuredAt.timeIntervalSince1970.isFinite {
+                fields["locationTimestamp"] = String(Int64((measuredAt.timeIntervalSince1970 * 1000).rounded(.down)))
+            }
         case .photo(let url):
             guard Self.validHTTPS(url) else { throw APIError.invalidRequest }
             fields["picUrl"] = url
         case .sensor(let type, let payload):
             guard ["still", "steps", "audio_clip"].contains(type), !payload.isEmpty else { throw APIError.invalidRequest }
             var json = scopeJSON(scope); json["nodeId"] = .int(nodeID); json["sensorType"] = .string(type); json["payload"] = .object(payload)
-            if let advance { json["routeActionId"] = .string(advance.actionID); json["expectedRouteVersion"] = .int(advance.expectedVersion) }
+            if let advance {
+                json["routeActionId"] = .string(advance.actionID); json["expectedRouteVersion"] = .int(advance.expectedVersion)
+                if let session = advance.routeSessionID { json["routeSessionId"] = .int(session) }
+                if let instance = advance.runtimeInstance, let epoch = advance.authorityEpoch { json["runtimeInstance"] = .string(instance); json["authorityEpoch"] = .int(epoch) }
+            }
             return try makeRequest("api/play/sensor-result", json: json, token: token)
         }
         fields.merge(advance?.fields ?? [:]) { _, new in new }
@@ -262,6 +274,7 @@ public struct PlayExperienceService {
             throw PlayExperienceError.persistenceUnavailable
         }
         let protected = ["answer", "checkin", "arrive", "photo", "sensor-result", "run-session/save", "run-session/clear"].contains { configuration.baseURL.appendingPathComponent("api/play/" + $0) == route.url }
+        let basicCommand = ["answer", "checkin", "arrive", "photo", "sensor-result"].contains { configuration.baseURL.appendingPathComponent("api/play/" + $0) == route.url }
         if capability == .classicCompletion || capability == .runPersistence {
             guard protected else { throw PlayExperienceError.persistenceUnavailable }
         }
@@ -289,10 +302,31 @@ public struct PlayExperienceService {
         // A transport error or malformed envelope cannot prove a write was rejected.
         guard (200..<300).contains(status) else { throw PlayExperienceError.unknownResult }
         guard let code else { throw PlayExperienceError.malformed }
+        // U05-01 / UG-09: a basic command refusal that carries the B5 contract keeps its machine
+        // fields. Older replies (code + msg only) stay the generic rejection.
+        if code != 200, basicCommand, let envelope, let refusal = PlayCommandRefusal(envelope: envelope), refusal.carriesContract { throw refusal }
         guard code == 200 else { throw PlayExperienceError.rejected(code, envelope?["msg"].text) }
         return envelope?["data"] ?? .null
     }
 
+    /// UG-09: identity a new basic command must carry. A read only; it creates no intent.
+    @MainActor func actionContext(scope: PlaySessionScope, nodeID: Int, token: String) async throws -> PlayBasicActionContext {
+        guard nodeID > 0 else { throw APIError.invalidRequest }
+        var query = try scopeFields(scope); query["nodeId"] = String(nodeID)
+        return try PlayBasicActionContext(raw: await request("api/play/action-context", query: query, capability: .reads, token: token))
+    }
+    /// U05-04: `GET /api/play/content-manifest`. Read-only: it does not create a run, record arrival
+    /// or grant anything. `revisionID` is passed only when the caller already holds one.
+    public func contentManifest(scope: PlaySessionScope, revisionID: Int? = nil, token: String) async throws -> PlayContentManifest {
+        var query = try scopeFields(scope)
+        if let revisionID { guard revisionID > 0 else { throw APIError.invalidRequest }; query["revisionId"] = String(revisionID) }
+        let manifest = try PlayContentManifest(raw: await request("api/play/content-manifest", query: query, capability: .reads, token: token))
+        switch scope {
+        case .activity(let id): guard manifest.activityID == nil || manifest.activityID == id else { throw PlayExperienceError.malformed }
+        case .topic(let id): guard manifest.topicID == id else { throw PlayExperienceError.malformed }
+        }
+        return manifest
+    }
     /// Reads the original write. Code 520 stays pending and is not turned into a rejection.
     @MainActor func originalActionReceipt(scope: PlaySessionScope, nodeID: Int, routeActionID: String, token: String) async throws -> PlayActionReceiptOutcome {
         guard nodeID > 0, let routeActionID = PlayActionReceiptIdentity.retained(original: routeActionID, proposed: routeActionID) else {
