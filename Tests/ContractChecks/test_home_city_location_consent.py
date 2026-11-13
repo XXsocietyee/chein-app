@@ -1,0 +1,53 @@
+import json
+import pathlib
+import unittest
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+
+class HomeCityLocationConsentWiring(unittest.TestCase):
+    def test_row_17_wires_the_existing_card_without_a_second_search_or_a_new_order(self):
+        host = (ROOT / 'App/SessionHomeFeedView.swift').read_text()
+        feed = (ROOT / 'App/HomeFeedView.swift').read_text()
+        self.assertIn('cityLocationConsent: cityConsent.asks ? (agree: { cityConsent.agree(session) }, decline: { cityConsent.decline() }) : nil', host)
+        self.assertNotIn('TextField', host)
+        self.assertNotIn('.searchable', host)
+        self.assertEqual(host.count('magnifyingglass'), 1)
+        card = feed.index('if let consent = cityLocationConsent')
+        rails = feed.index('feedSection(.recommended, order: 1)')
+        self.assertLess(card, rails)
+        self.assertLess(rails, feed.index('feedSection(.nearby, order: 2)'))
+        self.assertLess(feed.index('feedSection(.nearby, order: 2)'), feed.index('feedSection(.upcoming, order: 3)'))
+
+    def test_agree_records_privacy_policy_home_city_and_decline_saves_locally(self):
+        model = (ROOT / 'App/HomeCityLocationConsentHost.swift').read_text()
+        service = (ROOT / 'Core/AccountComplianceService.swift').read_text()
+        subject = (ROOT / 'Core/AccountComplianceContracts.swift').read_text()
+        self.assertIn('HomeCityLocationDeclineStore.saveLocationDeclined(true, defaults: defaults)', model)
+        self.assertIn('HomeCityLocationDeclineStore.saveLocationDeclined(false, defaults: defaults)', model)
+        self.assertIn('coordinator.recordHomeCityLocationAgree()', model)
+        self.assertIn('case .homeCityLocation: return "home_city_location"', subject)
+        self.assertIn('case .roamLocation, .homeCityLocation: return "privacy_policy"', subject)
+        self.assertIn('fields["expectedRequestId"]', service)
+        self.assertIn('subject == .cancellation || subject == .roamLocation || subject == .homeCityLocation', (ROOT / 'App/AppSession.swift').read_text())
+
+    def test_unknown_is_an_em_dash_in_both_languages(self):
+        record = (ROOT / 'Core/HomeCityLocationConsent.swift').read_text()
+        self.assertIn('public static let unknownDisplay = "\u2014"', record)
+        catalog = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
+        for key in ('homeCityConsent.title', 'homeCityConsent.body', 'homeCityConsent.agree', 'homeCityConsent.decline', 'homeCityConsent.saveFailed', 'homeCityConsent.unknown'):
+            entry = catalog[key]['localizations']
+            for language in ('en', 'zh-Hans'):
+                unit = entry[language]['stringUnit']
+                self.assertEqual(unit['state'], 'translated')
+                self.assertTrue(unit['value'].strip())
+        self.assertEqual(catalog['homeCityConsent.unknown']['localizations']['en']['stringUnit']['value'], '\u2014')
+        self.assertEqual(catalog['homeCityConsent.unknown']['localizations']['zh-Hans']['stringUnit']['value'], '\u2014')
+
+    def test_glue_files_stay_at_the_ratchet_ceiling(self):
+        self.assertEqual(len((ROOT / 'App/AppSession.swift').read_text().splitlines()), 8176)
+        self.assertEqual(len((ROOT / 'App/AppCompositionRoot.swift').read_text().splitlines()), 4307)
+
+
+if __name__ == '__main__':
+    unittest.main()

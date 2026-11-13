@@ -17,12 +17,12 @@ public struct ComplianceSession: Equatable {
     public var journalScope: String { "\(namespace)|\(market)|\(accountID)" }
 }
 public enum ComplianceSubject: Equatable {
-    case signup, merchantOnsite(authoritativeMerchantID: Int), roamLocation, cancellation
+    case signup, merchantOnsite(authoritativeMerchantID: Int), roamLocation, homeCityLocation, cancellation
     public var docType: String {
         switch self {
         case .signup: return "activity_host_data_sharing"
         case .merchantOnsite: return "merchant_onsite_data_sharing"
-        case .roamLocation: return "privacy_policy"
+        case .roamLocation, .homeCityLocation: return "privacy_policy"
         case .cancellation: return "account_cancellation_notice"
         }
     }
@@ -31,6 +31,7 @@ public enum ComplianceSubject: Equatable {
         case .signup: return "activity_signup"
         case .merchantOnsite: return "merchant_redeem"
         case .roamLocation: return "roam_location"
+        case .homeCityLocation: return "home_city_location"
         case .cancellation: return "account_cancel"
         }
     }

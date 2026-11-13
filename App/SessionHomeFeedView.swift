@@ -21,11 +21,15 @@ import SwiftUI
     @State private var showsProjectEditor=false
     @State private var showsClubApplication=false
     @State private var showsMerchantApplication=false
+    @StateObject private var cityConsent = HomeCityLocationConsentModel()
     var body:some View {
         navigationRoot
         .id(session.homeFeedReader.scope)
         .task(id:session.playerJourneyReader.scope) { await reloadContinuationCards() }
         .task(id:session.ticketWalletReader.scope) { await reloadTodayTicket() }
+        .task(id:session.homeFeedReader.scope) { await cityConsent.refresh(session) }
+        .task(id:session.sessionRevision) { await cityConsent.refresh(session) }
+        .cyToast(message: $cityConsent.toast)
         .sheet(isPresented:$showsTodayTickets) {
             TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTodayTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope)
         }
@@ -94,6 +98,7 @@ import SwiftUI
                 todayTicket: todayTicket,
                 onOpenTodayTicket: { showsTodayTickets=true },
                 onStartRoam: onStartRoam,
+                cityLocationConsent: cityConsent.asks ? (agree: { cityConsent.agree(session) }, decline: { cityConsent.decline() }) : nil,
                 onOpenUnifiedSearch: { _ in showsGlobalSearch = true }
             ) { router.pushHome($0) }
                 .cyHeroNamespace(hero)
