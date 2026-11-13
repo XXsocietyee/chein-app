@@ -139,5 +139,6 @@
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "发送验证码" } }
       }
     }
-  }
+  },
+  "version" : "1.0"
 }
