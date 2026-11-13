@@ -78,7 +78,7 @@ import FoundationNetworking
     func testOpenTicketSendsTheContractBodyAndDecodesTheReportedTicket() async throws {
         let stub = Stub(); stub.replies = [(Fixture.ticketOpened, 200)]
         let request = CreatorTicketOpenRequest(topicId: 992001, title: "入口标识", note: nil, feedbackIds: [2])
-        let outcome = await service(stub).openTicket(request)
+        let outcome = try await service(stub).openTicket(request)
         XCTAssertEqual(stub.last.httpMethod, "POST")
         XCTAssertEqual(stub.lastPath, "/fixture/api/creator/maintenance/tickets")
         XCTAssertNil(stub.last.url?.query)
@@ -94,7 +94,7 @@ import FoundationNetworking
     func testOpenWithLostResponseIsUnknownAndTheRequestReadRecoversIt() async throws {
         let stub = Stub(); stub.fails = true
         let request = CreatorTicketOpenRequest(topicId: 992001, title: "入口标识", note: "note", feedbackIds: [2])
-        let lost = await service(stub).openTicket(request)
+        let lost = try await service(stub).openTicket(request)
         XCTAssertEqual(lost, .unknown)
         stub.fails = false; stub.replies = [(Fixture.requestApplied, 200), (Fixture.requestNotFound, 200)]
         let state = try await service(stub).openRequest(request.requestId)
@@ -107,17 +107,17 @@ import FoundationNetworking
 
     func testCloseSendsVersionCASAndMapsFixNotPublished() async throws {
         let stub = Stub(); stub.replies = [(Fixture.fixNotPublished, 409), (Fixture.ticketClosed, 200)]
-        let fixed = await service(stub).closeTicket(id: 2, .init(expectedVersion: 1, resolution: .fixed, reason: nil))
+        let fixed = try await service(stub).closeTicket(id: 2, .init(expectedVersion: 1, resolution: .fixed, reason: nil))
         XCTAssertEqual(stub.lastPath, "/fixture/api/creator/maintenance/tickets/2/close")
         XCTAssertEqual(Set(stub.lastBody.keys), ["requestId", "expectedVersion", "resolution"])
         XCTAssertEqual(fixed, .rejected(.rejected(status: 409, code: "FIX_NOT_PUBLISHED", message: "修复还没有发布成新版本")))
-        let noChange = await service(stub).closeTicket(id: 2, .init(expectedVersion: 1, resolution: .noChange, reason: "r2 冒烟：已人工核实"))
+        let noChange = try await service(stub).closeTicket(id: 2, .init(expectedVersion: 1, resolution: .noChange, reason: "r2 冒烟：已人工核实"))
         XCTAssertEqual(stub.lastBody["resolution"] as? String, "NO_CHANGE")
         XCTAssertEqual(stub.lastBody["expectedVersion"] as? Int, 1)
         guard case .applied(let ticket) = noChange else { return XCTFail("\(noChange)") }
         XCTAssertEqual(ticket.knownStage, .closed)
         let count = stub.requests.count
-        let empty = await service(stub).closeTicket(id: 2, .init(expectedVersion: 2, resolution: .noChange, reason: " "))
+        let empty = try await service(stub).closeTicket(id: 2, .init(expectedVersion: 2, resolution: .noChange, reason: " "))
         XCTAssertEqual(stub.requests.count, count, "a NO_CHANGE without a reason is not sent")
         XCTAssertEqual(empty, .rejected(.rejected(status: 400, code: "CLOSE_REASON_REQUIRED", message: nil)))
     }

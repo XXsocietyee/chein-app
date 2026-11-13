@@ -379,7 +379,8 @@ import FoundationNetworking
         guard case .ready(let product) = ready else { return XCTFail() }
         XCTAssertEqual(product.name, "City pass")
         XCTAssertEqual(product.topics, ["Old town"])
-        XCTAssertEqual(G6MarketingProduct.outcome(try await source.marketingProduct(id: "89", token: token)), .failed(reasonCode: "PRODUCT_NOT_FOUND"))
+        let missing = try await source.marketingProduct(id: "89", token: token)
+        XCTAssertEqual(G6MarketingProduct.outcome(missing), .failed(reasonCode: "PRODUCT_NOT_FOUND"))
         XCTAssertEqual(wire.requests.map { $0.url?.path }, ["/api/marketing/product/88", "/api/marketing/product/89"])
         XCTAssertTrue(wire.requests.allSatisfy { $0.httpMethod == "GET" && $0.httpBody == nil })
         for id in ["list", "orders", "quote", "gifts", "../pay", ""] {
@@ -403,7 +404,7 @@ import FoundationNetworking
                      "/api/marketing/product/orders/77/pay", "/api/registration/pay", "/api/pay/create", "/api/withdrawal/create"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 672)
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677) // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution
         let wire = Wire(body: Data(#"{"code":200,"data":[]}"#.utf8))
         let china = G6CapabilitySource(configuration: try APIConfiguration(baseURL: URL(string: "https://www.chengyinhub.com/prod-api/")!), transport: wire)
         _ = try await china.authorRevenue(token: token)

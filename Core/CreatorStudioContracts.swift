@@ -243,7 +243,9 @@ public struct CreatorPostGameOutcomeReport: Decodable, Equatable, Sendable {
         basisVersion = try c.decodeIfPresent(String.self, forKey: .basisVersion)
         historicalReplayable = try c.decodeIfPresent(Bool.self, forKey: .historicalReplayable)
         snapshotNote = try c.decodeIfPresent(String.self, forKey: .snapshotNote)
+        // The server sends `CODE：explanation` (e.g. `NO_SERVER_MARKER：…`); the basis is the leading code.
         testExclusionBasis = try c.decodeIfPresent(String.self, forKey: .testExclusionBasis)
+            .map { String($0.split(whereSeparator: { $0 == "：" || $0 == ":" }).first ?? Substring($0)).trimmingCharacters(in: .whitespaces) }
         metricCodes = try c.decodeIfPresent([String].self, forKey: .metricCodes)
     }
 }
