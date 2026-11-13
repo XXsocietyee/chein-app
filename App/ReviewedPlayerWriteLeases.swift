@@ -79,8 +79,8 @@ extension ReviewedProductionFormMutationRoute {
             return covers(relative, grant.play) && emptyBody
         }
         if relative == "api/user/player-code" { return method == "POST" && covers(relative, grant.play) }
-        // `share/revoke` is the mini-program's `data: {}` form post: an empty body is that write.
-        guard method == "POST", request.httpBody?.isEmpty == false || relative == "api/roam/share/revoke" else { return false }
+        // `share/revoke` and the personal `publish_precheck` are the mini-program's `data: {}` form posts: an empty body is that call.
+        guard method == "POST", request.httpBody?.isEmpty == false || ["api/roam/share/revoke", "api/activity/publish_precheck"].contains(relative) else { return false }
         if relative == "api/topic/chapter/supply-terms" {
             // REVSHARE carries the per-head fee a club would pay; only PERK and TRAFFIC terms are this grant.
             return covers(relative, grant.play) && supplyTermsBody(request)
