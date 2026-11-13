@@ -160,6 +160,7 @@
         "IMCoopInviteCardsTests",
         "IMInviteReminderControllerTests",
         "IMPreviewTemplateLeaseFactoryTests",
+        "IMRecipientPreviewConversationSourceTests",
         "IMReviewAuditReaderTests",
         "ImageAndVideoDiskCacheBudgetSectionViewTests",
         "IntegratedReadCompositionTests",

@@ -172,6 +172,7 @@
         "IMConversationReplyPolicyAppTests",
         "IMConversationRowActionsAppTests",
         "IMCoopInviteStripFactoryTests",
+        "IMRecipientPreviewConversationSourceTests",
         "IMReviewAuditReaderTests",
         "ImageAndVideoDiskCacheBudgetSectionViewTests",
         "InAppCustomerSupportAndFeedbackSectionViewTests",

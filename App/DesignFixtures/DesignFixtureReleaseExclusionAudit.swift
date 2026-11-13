@@ -136,6 +136,8 @@ enum DesignFixtureReleaseExclusionAudit {
         "IAExploreCreateFixture",
         "IAPassportFixture",
         "IATabsFixture",
+        "IMRecipientPreviewFixtureScreen",
+        "IMRecipientPreviewFixtures",
         "JoinMorphCard",
         "KitGalleryFixture",
         "KitNightLightSection",
