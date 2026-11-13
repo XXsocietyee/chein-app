@@ -418,7 +418,7 @@ final class UGGameplayTests: XCTestCase {
 
     func testReaderRefusesProductionWritesAndAnAbsentGrant() async throws {
         let wire = Wire()
-        let awaited = try await makeReader(wire, granted: []).help(runID: "9", nodeID: "3", token: "session-token", scope: try scope(), currentScope: { try? scope() }).phase
+        let awaited = try await makeReader(wire, granted: []).help(runID: "9", nodeID: "3", token: "session-token", scope: try scope(), currentScope: { try? self.scope() }).phase
         XCTAssertEqual(awaited, nil)
         XCTAssertTrue(wire.requests.isEmpty)
         let reader = try makeReader(wire, granted: [.hintLadder, .helpReceipt])

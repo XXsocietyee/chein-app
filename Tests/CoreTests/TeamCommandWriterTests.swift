@@ -13,7 +13,8 @@ final class TeamCommandWriterTests: XCTestCase {
         wire.status = 503
         let first = await writer.submit(key: "join-9", path: "api/team/command", fields: ["action": "join"])
         XCTAssertEqual(first, .unknown)
-        let saved = try XCTUnwrap(await writer.savedRequestID(for: "join-9"))
+        let savedAwaited = await writer.savedRequestID(for: "join-9")
+        let saved = try XCTUnwrap(savedAwaited)
         XCTAssertEqual(saved.count, 32)
         wire.status = 500
         _ = await writer.submit(key: "join-9", path: "api/team/command/query", fields: [:])

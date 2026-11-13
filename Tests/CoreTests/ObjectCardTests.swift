@@ -182,7 +182,8 @@ final class ObjectCardTests: XCTestCase {
             } catch {
                 XCTFail("unexpected \(error)")
             }
-            let request = try XCTUnwrap(await transport.requests.first)
+            let requestAwaited = await transport.requests.first
+            let request = try XCTUnwrap(requestAwaited)
             XCTAssertEqual(request.url?.path, "/api/object-card/list")
             XCTAssertEqual(request.httpMethod, "POST")
             let raw = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
@@ -259,7 +260,8 @@ final class ObjectCardTests: XCTestCase {
         XCTAssertEqual(model.totalText, "—")
         XCTAssertEqual(model.withheldCards.map(\.id), ["903"])
         XCTAssertFalse(model.failed)
-        let request = try XCTUnwrap(await withheld.requests.first)
+        let requestAwaited = await withheld.requests.first
+        let request = try XCTUnwrap(requestAwaited)
         XCTAssertEqual(request.url?.path, "/api/object-card/list")
 
         let zero = ObjectCardTestTransport(json: #"{"code":200,"data":{"list":[],"total":0}}"#)

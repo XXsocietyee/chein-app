@@ -9,6 +9,7 @@ private actor MemberHomePageWire: HTTPTransport {
     let status: Int
     private(set) var requests: [URLRequest] = []
     init(_ json: String, status: Int = 200) { self.json = json; self.status = status }
+    init(_ body: Data, status: Int = 200) { self.init(String(decoding: body, as: UTF8.self), status: status) }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         return (Data(json.utf8), status)
@@ -121,7 +122,8 @@ private actor MemberHomePageWire: HTTPTransport {
         XCTAssertEqual(unknown, .unknown)
         let roleWire = MemberHomePageWire(MemberHomeFixtureData.envelope(MemberHomeFixtureData.readyRoleJSON))
         _ = try await service(roleWire).roleInfoPage(token: "synthetic-member")
-        let roleRequest = try XCTUnwrap(await roleWire.requests.first)
+        let roleRequestAwaited = await roleWire.requests.first
+        let roleRequest = try XCTUnwrap(roleRequestAwaited)
         XCTAssertEqual(roleRequest.url, base.appendingPathComponent(MemberRoleInfoReadRoute.path))
         XCTAssertTrue(MemberRoleInfoReadRoute.accepts(roleRequest, baseURL: base))
     }
