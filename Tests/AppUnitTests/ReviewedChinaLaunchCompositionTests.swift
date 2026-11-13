@@ -623,6 +623,34 @@ import XCTest
         XCTAssertTrue(test[.projectWrite]?.contains(where: { $0.path == ProjectEditRequestContract.submitPath }) == true)
     }
 
+    /// E2E-20261113 (2)+(3): club public activities are approved and club/access/me is a player read in the shipped
+    /// China composition; money stays closed.
+    func testShippedChinaApprovesClubPublicActivitiesAndAccessMe() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        // (2) the public activities/topics approval is issued and stable per viewer and club.
+        let context = ClubPublicTopicsContext(identity: ClubReadIdentity(accountID: player.session.accountID, epoch: player.session.epoch),
+            viewerRevision: 1, role: player.role, baseURL: player.baseURL, namespace: player.session.namespace)
+        let first = try XCTUnwrap(composition.clubPublicTopicsApproval(context, 7001))
+        XCTAssertEqual(composition.clubPublicTopicsApproval(context, 7001), first)
+        XCTAssertNil(composition.clubPublicTopicsApproval(context, 0))
+        // (3) club/access/me is a reviewed player read in both lists and is sent.
+        XCTAssertTrue(ReviewedPlayerReadRoute.paths.contains("api/club/access/me"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/access/me"))
+        let access = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/club/access/me"),
+            fields: ["clubId": "7001"], token: player.session.token)
+        _ = try await transport.send(access)
+        XCTAssertEqual(recorder.paths.last, "api/club/access/me")
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }
