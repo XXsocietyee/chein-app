@@ -5,7 +5,7 @@ import XCTest
 
 @MainActor
 private final class UIRegistrationService: RegistrationCoordinatingService {
-    var quoteJSON = #"{"payAmount":12.5,"pointsUsable":true,"quoteSign":"fixture-sign"}"#
+    var quoteJSON = #"{"payAmount":0,"pointsUsable":true,"quoteSign":"fixture-sign"}"#
     var createJSON = #"{"registrationId":41,"payableAmount":0}"#
     var statusJSON = #"{"id":41,"registrationStatus":3,"paymentStatus":2}"#
     var createError: Error?

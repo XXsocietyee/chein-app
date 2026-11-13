@@ -202,7 +202,8 @@ public enum ClubDetailPageModel {
         guard let payload else { return loading ? .loading : .empty }
         let trimmed = payload.trimmingWhitespace()
         guard !trimmed.isEmpty else { return loading ? .loading : .empty }
-        guard let raw = try? JSONSerialization.jsonObject(with: trimmed) else { return .error(titleKey: "club.loadFailed") }
+        // A bare `null` body is empty, like an empty object; top-level fragments need `.fragmentsAllowed` to parse.
+        guard let raw = try? JSONSerialization.jsonObject(with: trimmed, options: .fragmentsAllowed) else { return .error(titleKey: "club.loadFailed") }
         if raw is NSNull { return loading ? .loading : .empty }
         guard let object = raw as? [String: Any] else { return .error(titleKey: "club.loadFailed") }
         if object["id"] != nil { return project(object, signedIn: signedIn, grant: grant, hasCommunity: hasCommunity, hasGovernance: hasGovernance, eventsSummary: eventsSummary) }
