@@ -429,7 +429,7 @@ enum HostedAccessibilityRuntime {
             }
 #endif
             XCTAssertNil(h.session.workshopOwnedBrowser,"Paid approval cannot enable FREE library")
-            let host=UIHostingController(rootView:NavigationStack{WorkshopPurchasedLibraryView(browser:browser,navigation:navigation).environmentObject(h.session)})
+            let host=UIHostingController(rootView:NavigationStack{WorkshopPurchasedLibraryView(browser:browser,navigation:navigation)}.environmentObject(h.session))
             let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window
             window.rootViewController=host;window.makeKeyAndVisible();defer{sceneWindow.retire()}
             // Synthetic state/counts only. Keep the exact readiness predicates and wait budget.
