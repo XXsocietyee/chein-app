@@ -42,8 +42,10 @@ extension AppSession: OrientScoreEntryProviding {
         weak var session: AppSession?
         let facts: PlayThemeFactsStore
         let emergency: PlayEmergencyLocationConformer
+        let reviewAudit: IMReviewAuditSessionReader
         init(session: AppSession) {
             self.session = session
+            reviewAudit = IMReviewAuditSessionReader(session: session)
             facts = PlayThemeFactsStore(currentOwner: { [weak session] in
                 guard let session, let account = session.account else { return nil }
                 return PlayThemeFactsStore.Owner(accountID: account.id, epoch: session.sessionRevision)
@@ -68,6 +70,8 @@ extension AppSession: OrientScoreEntryProviding {
     static func facts(for session: AppSession) -> PlayThemeFactsStore { slot(for: session).facts }
 
     static func emergency(for session: AppSession) -> PlayEmergencyLocationConformer { slot(for: session).emergency }
+
+    static func reviewAudit(for session: AppSession) -> IMReviewAuditSessionReader { slot(for: session).reviewAudit }
 
     static func filingNumber(_ session: AppSession) async -> String? {
         let owner = session.account?.id
@@ -171,6 +175,7 @@ struct CloudB3RootModifier: ViewModifier {
         content
             .environment(\.playThemePresentationReader, CloudB3SessionBridge.facts(for: session))
             .environment(\.playEmergencyLocationProvider, CloudB3SessionBridge.emergency(for: session))
+            .environment(\.imReviewAuditReader, CloudB3SessionBridge.reviewAudit(for: session))
             .environment(\.imReportProgressUnread, reportUnread)
             .environment(\.aigcFilingNumber, filingNumber)
             .task(id: session.account?.id) {

@@ -227,7 +227,7 @@ struct MessagingMessageDetailView: View {
                         messageFact("messaging.card.outcome", result.outcome, symbol: "flag")
                         messageFact("messaging.card.reason", result.reason, symbol: "text.quote")
                         messageFact("messaging.card.followUp", result.followUp, symbol: "arrow.turn.down.right")
-                        IMReviewCurrentRecordSection(taskID: result.taskID)
+                        IMReviewCurrentRecordSection(taskID: result.taskID, cardTitle: currentSnapshot?.card?.title)
                     }
                     .listStyle(.insetGrouped)
                     .cyGroupedSurface()

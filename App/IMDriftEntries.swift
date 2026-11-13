@@ -106,8 +106,9 @@ extension EnvironmentValues {
 
 // MARK: - Review result: current audit record
 
-/// Mini-program chat 「生成时记录」 sheet, second half: 「当前审核记录」 (status + timeline) read from the
-/// card's audit detail. BINDING STUB for Cursor: inject an `IMReviewAuditReading`; nil ⇒ section hidden.
+/// Mini-program chat 「生成时记录」 sheet, second half: 「当前审核记录」 (status + timeline) read from
+/// `GET /api/audit/{taskId}/detail` (`data.task`). Nil reader hides the section. Closed-group
+/// card titles skip the read. The reader does not mark notifications read and does not write.
 struct IMReviewAuditRecord: Equatable {
     struct Step: Equatable, Identifiable { let id: Int; let time: String; let label: String; let reason: String? }
     let statusLabel: String?
@@ -128,12 +129,13 @@ extension EnvironmentValues {
 
 @MainActor struct IMReviewCurrentRecordSection: View {
     let taskID: String?
+    var cardTitle: String? = nil
     @Environment(\.imReviewAuditReader) private var reader
     @State private var phase: Phase = .loading
     enum Phase: Equatable { case loading, failed, ready(IMReviewAuditRecord) }
 
     var body: some View {
-        if let reader, let taskID, !taskID.isEmpty {
+        if let reader, let taskID, !taskID.isEmpty, !IMReviewAuditDetail.hidesDetail(cardTitle: cardTitle) {
             Section {
                 switch phase {
                 case .loading:
