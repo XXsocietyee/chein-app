@@ -402,11 +402,11 @@ import WebKit
                             Label(W8Text.t("举报此游戏包", "Report this game"), systemImage: "exclamationmark.bubble")
                         }
                         .accessibilityIdentifier("externalGame.report")
-                        Button(action: onReport) label: {
+                        Button(action: onReport) {
                             Label(W8Text.t("向服务器举报", "Report to the server"), systemImage: "flag")
                         }
                         .accessibilityIdentifier("externalGame.reportServer")
-                        Button(role: .destructive) { confirmsBlock = true } label: {
+                        Button(role: .destructive, action: { confirmsBlock = true }) {
                             Label(W8Text.t("屏蔽此游戏及创作者", "Block this game and its creator"), systemImage: "hand.raised")
                         }
                         .accessibilityIdentifier("externalGame.block")
