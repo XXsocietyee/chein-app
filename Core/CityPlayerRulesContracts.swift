@@ -133,7 +133,7 @@ public struct CityPlayerRulesSnapshot: Decodable, Equatable {
     public let grantsParticipation, grantsAction: Bool
     func valid(read: CityReadSnapshot) -> Bool {
         guard contract == "CITY_PLAYER_RULES_V1", scope == "CITY", status == "AVAILABLE", board == read.board,
-              board.valid, board.servesFrozenReads, (1...9_007_199_254_740_991).contains(releaseId),
+              board.valid, board.servesBoundedReads, (1...9_007_199_254_740_991).contains(releaseId),
               !grantsParticipation, !grantsAction, eligibility.valid(read: read),
               sections.count == CityPlayerRulesSection.fields.count, Set(sections.map(\.id)) == Set(CityPlayerRulesSection.fields.keys),
               sections.allSatisfy(\.valid) else { return false }

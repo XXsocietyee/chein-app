@@ -21,7 +21,7 @@ import Observation
    let current = try await read(.current(regionID))
    guard valid(ticket) else { return }
    if current.status == "NO_CURRENT_BOARD" { guard current.regionId == regionID, current.board == nil else { throw CityReadError.invalidResponse }; notPublished = true; return }
-   guard current.status == "AVAILABLE", let board = current.board, board.valid, board.regionId == regionID, board.servesFrozenReads,
+   guard current.status == "AVAILABLE", let board = current.board, board.valid, board.regionId == regionID, board.servesBoundedReads,
          let membership = current.participationStatus, membership != .unavailable, current.pointsStatus == "AVAILABLE",
          let descriptor = current.mapRead, descriptor.valid else { throw CityReadError.pointsUnavailable }
    let query = try CityValueBoundedQuery(bounds:descriptor.initialViewport,datum:descriptor.datum,zoom:descriptor.initialZoom)

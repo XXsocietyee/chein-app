@@ -2247,7 +2247,7 @@ final class AppSession: ObservableObject {
               !visit.closed, let capture = owner.originalCapture, owner.reader.capture == capture,
               visit.regionId == capture.board.regionId, visit.boardId == capture.board.boardId,
               visit.seasonId == capture.board.seasonId, visit.rulesReleaseId == capture.board.rulesReleaseId,
-              capture.board.servesFrozenReads,
+              capture.board.servesBoundedReads,
               let page = try? CityPlayerValueMapPage(read: capture, query: capture.query, watermark: capture.watermark, page: capture.page),
               page.availablePointIDs.contains(visit.pointId),
               let poiID = Int(exactly: visit.poiId), let context = currentRuntimeDependencyContext,

@@ -22,7 +22,7 @@ public struct CityPlayerValueMapPage: Equatable, Sendable {
     public let pointIDs: [String]
     public let availablePointIDs: Set<String>
     public init(read: CityValueBoundedCapture, query: CityValueBoundedQuery, watermark: String, page: Int) throws {
-        guard read.board.valid, read.board.servesFrozenReads, read.points.count <= 50,
+        guard read.board.valid, read.board.servesBoundedReads, read.points.count <= 50,
               read.points.allSatisfy({ $0.boundedValid && query.bounds.contains($0) && $0.datum == query.datum && query.layers.contains($0.domain ?? "") }),
               Set(read.points.map(\.pointId)).count == read.points.count, read.points.map(\.pointId) == read.points.map(\.pointId).sorted(),
               watermark.range(of: "\\A[a-f0-9]{64}\\z", options: .regularExpression) != nil, (1...4).contains(page),
@@ -66,7 +66,7 @@ public struct CityPlayerValueServiceReference: Decodable, Equatable, Identifiabl
     func valid(for read: CityValueBoundedCapture) -> Bool {
         CityReadRoute.validID(pointId) && (1...9_007_199_254_740_991).contains(poiId) && serviceType == "CITY_NODE_COUPON_REDEMPTION" &&
         read.points.contains(where: { $0.pointId == pointId }) == true &&
-        (visitId.map(CityReadRoute.validID) ?? true) && !(canBegin && visitId != nil) && (!canBegin || (read.board.servesFrozenReads && read.points.contains(where: { $0.pointId == pointId && $0.boundedValid && $0.domain == "POI" && $0.availability == "AVAILABLE" }) == true))
+        (visitId.map(CityReadRoute.validID) ?? true) && !(canBegin && visitId != nil) && (!canBegin || (read.board.servesBoundedReads && read.points.contains(where: { $0.pointId == pointId && $0.boundedValid && $0.domain == "POI" && $0.availability == "AVAILABLE" }) == true))
     }
 }
 struct CityPlayerValueServices: Decodable {

@@ -26,7 +26,7 @@ public enum CityValueBoundedRoute: Equatable {
   switch self {
   case .current(let region): guard CityReadRoute.validID(region) else { throw APIError.invalidRequest }; path = "current"; fields = ["regionId":region]
   case .points(let board, let query):
-   guard board.valid, board.servesFrozenReads else { throw APIError.invalidRequest }
+   guard board.valid, board.servesBoundedReads else { throw APIError.invalidRequest }
    path = "points"; fields = ["regionId":board.regionId,"boardId":board.boardId,"seasonId":board.seasonId,"rulesReleaseId":board.rulesReleaseId,"revision":String(board.revision)]
    fields.merge(query.fields) { _, new in new }
   }

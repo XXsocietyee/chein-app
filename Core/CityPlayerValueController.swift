@@ -20,7 +20,7 @@ import Observation
     public var visit: CityPlayerValueVisit? { configured ? visitValue : nil }
     public var busy: Bool { configured && loading }
     public var issue: String? { configured ? issueValue : "NOT_CONFIGURED" }
-    public var canBegin: Bool { (pageVerified || (issueValue == "BIND_UNKNOWN" && selected.map { requestIDs[$0.poiId] != nil } == true)) && !busy && selected?.canBegin == true && service.allows(.begin) && read.board.servesFrozenReads && service.mapPage != nil }
+    public var canBegin: Bool { (pageVerified || (issueValue == "BIND_UNKNOWN" && selected.map { requestIDs[$0.poiId] != nil } == true)) && !busy && selected?.canBegin == true && service.allows(.begin) && read.board.servesBoundedReads && service.mapPage != nil }
     public var canOpenSource: Bool { pageVerified && !busy && configured && visit?.closed == false && selected != nil }
     public var canFeedback: Bool { !busy && visit?.closed == false && pendingFeedback == nil && service.allows(.feedback) }
     public var canRetryFeedback: Bool { !busy && pendingFeedback != nil && service.allows(.feedback) }

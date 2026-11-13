@@ -172,8 +172,10 @@ import XCTest
         await frozen.load()
         XCTAssertEqual(frozen.phase, .ready); XCTAssertNotNil(frozen.snapshot)
         XCTAssertEqual(frozen.boardNotice, .boardNotOpen); XCTAssertFalse(frozen.canRoll)
-        XCTAssertTrue(read(lifecycle: "FROZEN").board.servesFrozenReads); XCTAssertFalse(read(lifecycle: "FROZEN").board.acceptsNewActions)
-        XCTAssertTrue(read().board.acceptsNewActions); XCTAssertFalse(read().board.servesFrozenReads)
+        XCTAssertTrue(read(lifecycle: "FROZEN").board.servesBoundedReads); XCTAssertFalse(read(lifecycle: "FROZEN").board.acceptsNewActions)
+        // One lifecycle: OPEN accepts actions and also serves the bounded reads; CLOSED serves neither.
+        XCTAssertTrue(read().board.acceptsNewActions); XCTAssertTrue(read().board.servesBoundedReads)
+        XCTAssertFalse(read(lifecycle: "CLOSED").board.servesBoundedReads); XCTAssertFalse(read(lifecycle: "CLOSED").board.acceptsNewActions)
         XCTAssertThrowsError(try CityPlayerRulesRoute(read: read()))
         XCTAssertNoThrow(try CityPlayerRulesRoute(read: read(lifecycle: "FROZEN")))
         XCTAssertThrowsError(try CityActionIntent(kind: .roll, board: read(lifecycle: "FROZEN").board, lifecycle: .open,

@@ -22,16 +22,17 @@ public enum CityBoardLifecycle: String, Decodable, Sendable {
     /// One lifecycle for both CITY generations, as the backend serves it: only an OPEN board
     /// accepts new player actions (quote, action); FROZEN/CLOSING settle in-flight work only.
     public var acceptsNewActions: Bool { self == .open }
-    /// The bounded read-only surfaces (state snapshot, player rules, city-value map) are
-    /// served for a FROZEN board only. The game snapshot and receipts stay readable in any state.
-    public var servesFrozenReads: Bool { self == .frozen }
+    /// The bounded read-only surfaces (state snapshot, player rules, city-value map) are served for
+    /// an OPEN or a FROZEN board (backend: one lifecycle, reads accept both). The game snapshot and
+    /// receipts stay readable in any state.
+    public var servesBoundedReads: Bool { self == .open || self == .frozen }
 }
 
 extension CityReadBoard {
     /// The read board's lifecycle on the shared scale; nil for a value the app does not know.
     public var phase: CityBoardLifecycle? { CityBoardLifecycle(rawValue: lifecycle) }
     public var acceptsNewActions: Bool { phase?.acceptsNewActions == true }
-    public var servesFrozenReads: Bool { phase?.servesFrozenReads == true }
+    public var servesBoundedReads: Bool { phase?.servesBoundedReads == true }
 }
 
 public enum CityActionKind: String, Codable, Sendable {

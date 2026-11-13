@@ -562,6 +562,9 @@ import XCTest
             #"{"runId":41,"category":"STUCK","content":"stop 2 will not open","requestId":"feedback-request-01"}"#, token: player.session.token)
         _ = try await transport.send(feedback)
         XCTAssertEqual(recorder.paths.last, "api/play/feedback/submit")
+        // The NPC route egg was removed by the owner (2026-09-07): no route, no capability, no entry.
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/egg/collect"))
+        XCTAssertEqual(try XCTUnwrap(composition.sessionDependencies(player).configuration).journeyCollect, false)
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
     }
 
