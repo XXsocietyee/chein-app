@@ -137,7 +137,8 @@ import SwiftUI
         ProjectOwnedContentBrowser(reader: session.creatorContentReader, revision: session.sessionRevision,
             makeEditor: { session.projectEditor(target: $0) }, detail: { destination in
                 switch destination {
-                case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session).id(session.topicReader.scope))
+                case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session).id(session.topicReader.scope)
+                    .toolbar { TopicCreatorToolsToolbar(session: session, topicID: id, entryScope: entryScope) })
                 case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session)
                     .toolbar { MyProjectActivityDetailWriteToolbar(session: session, activityID: id) })
                 case .playTemplate(let id): return AnyView(DiscoveryTemplateDetailView(id: id, reader: session,

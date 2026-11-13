@@ -311,6 +311,83 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/wallet/withdraw"), #"{"amount":1}"#, token: player.session.token)) }
     }
 
+    /// G2 + G3 (owner approval 2026-11-13): invoice, order-center and creator topic-editor routes are in
+    /// the shipped China grant in both places (lease playPaths and the China route capability), the
+    /// composition transport sends them, and pay, refund, and withdraw stay closed.
+    func testShippedChinaAdmitsInvoiceOrderCenterAndTopicEditorAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let base = player.baseURL
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        let posts = ["api/invoice/list", "api/invoice/detail", "api/invoice/orders/eligible", "api/invoice/apply",
+                     "api/invoice/request", "api/invoice/cancel", "api/invoice/titles", "api/invoice/titles/save",
+                     "api/invoice/titles/save-request", "api/invoice/titles/request", "api/invoice/titles/delete",
+                     "api/order-center/detail", "api/topic/author-edit-detail", "api/topic/author-saved-detail",
+                     "api/topic/publish-draft", "api/topic/share-code", "api/topic/invite-chapters", "api/topic/host-qrcode"]
+        for path in posts {
+            XCTAssertTrue(grant.play.paths.contains(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            _ = try await transport.send(formRequest(base.appendingPathComponent(path), "id=9", token: player.session.token))
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        let named = jsonRequest(base.appendingPathComponent("api/topic/state-keys/named"),
+            #"{"kind":"clue","label":"Door","topicId":9}"#, token: player.session.token)
+        _ = try await transport.send(named)
+        XCTAssertEqual(recorder.paths.last, "api/topic/state-keys/named")
+        for read in ["api/topic/play-setup", "api/topic/attribute-binding", "api/topic/state-keys"] {
+            var parts = URLComponents(url: base.appendingPathComponent(read), resolvingAgainstBaseURL: false)
+            parts?.queryItems = [URLQueryItem(name: "topicId", value: "9")]
+            var get = URLRequest(url: try XCTUnwrap(parts?.url))
+            get.httpMethod = "GET"
+            get.setValue("application/json", forHTTPHeaderField: "Accept")
+            get.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+            _ = try await transport.send(get)
+            XCTAssertEqual(recorder.paths.last, read)
+        }
+        for (path, body) in [("api/topic/play-setup", #"{"playWindow":{"mode":"any"},"prepItems":[],"topicId":9}"#),
+                             ("api/topic/state-keys/clue.door", #"{"key":{"label":"Front"},"topicId":9}"#)] {
+            var put = jsonRequest(base.appendingPathComponent(path), body, token: player.session.token)
+            put.httpMethod = "PUT"
+            _ = try await transport.send(put)
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        let perk = formRequest(base.appendingPathComponent("api/topic/chapter/supply-terms"),
+            "chapterId=31&maxMerchant=3&termsMode=PERK", token: player.session.token)
+        _ = try await transport.send(perk)
+        XCTAssertEqual(recorder.paths.last, "api/topic/chapter/supply-terms")
+        XCTAssertNotNil(composition.invoiceLaunchReadApproval(player))
+        XCTAssertTrue(ReviewedProductionGateLeases.grantsInvoiceWrites(grant))
+
+        let sent = recorder.paths.count
+        await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent("api/topic/chapter/supply-terms"),
+            "chapterId=31&maxMerchant=3&maxPerHeadFee=8&termsMode=REVSHARE", token: player.session.token)) }
+        var pricedPut = jsonRequest(base.appendingPathComponent("api/topic/play-setup"), #"{"amount":1,"topicId":9}"#, token: player.session.token)
+        pricedPut.httpMethod = "PUT"
+        await assertClosed { try await transport.send(pricedPut) }
+        var otherPut = jsonRequest(base.appendingPathComponent("api/topic/update"), #"{"topicId":9}"#, token: player.session.token)
+        otherPut.httpMethod = "PUT"
+        await assertClosed { try await transport.send(otherPut) }
+        for money in ["api/registration/pay", "api/pay/create", "api/withdrawal/create", "api/wallet/withdraw",
+                      "api/asset/withdraw", "api/registration/cancel-refund", "api/coop/deposit/refund/retry"] {
+            XCTAssertFalse(grant.play.paths.contains(money), money)
+            XCTAssertFalse(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(
+                formRequest(base.appendingPathComponent(money), "id=9", token: player.session.token),
+                baseURL: base, token: player.session.token, context: player, grant: grant), money)
+        }
+        for money in ["api/registration/pay", "api/pay/create", "api/withdrawal/create", "api/wallet/withdraw", "api/asset/withdraw"] {
+            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + money), money)
+            await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent(money), "id=9", token: player.session.token)) }
+        }
+        XCTAssertEqual(recorder.paths.count, sent)
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

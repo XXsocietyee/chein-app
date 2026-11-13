@@ -40,7 +40,30 @@ public enum ChinaReviewedRouteCapability {
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
+        if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
         return videoBountyOwnerGrant.contains(key)
+    }
+
+    /// Owner approval 2026-11-13, G2 + G3. The order-center summary read and the creator topic
+    /// editor calls. The invoice routes are already wired above. Pay, refund, and withdraw stay out.
+    private static let creatorEditorAndOrderCenterOwnerGrant: Set<String> = [
+        "/api/order-center/detail",
+        "/api/topic/attribute-binding",
+        "/api/topic/author-edit-detail",
+        "/api/topic/author-saved-detail",
+        "/api/topic/play-setup",
+        "/api/topic/publish-draft",
+        "/api/topic/share-code",
+        "/api/topic/state-keys/named",
+        "/api/topic/invite-chapters",
+        "/api/topic/chapter/supply-terms",
+        "/api/topic/host-qrcode"
+    ]
+
+    /// `PUT /api/topic/state-keys/{stateKey}` names a key such as `clue.door`, not a numeric id.
+    public static func isTopicStateKey(_ segment: String) -> Bool {
+        segment.range(of: "^(clue|relation|tag|counter)\\.[a-z][a-z0-9_]{0,47}$", options: .regularExpression) != nil
     }
 
     /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,

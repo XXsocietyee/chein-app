@@ -49,8 +49,8 @@ final class AppSession: ObservableObject {
             }), let coordinator = try? InvoiceLaunchCoordinator(service: service,
                 store: InvoiceLaunchPendingStore(session: service.session,
                     storage: composition.storage.invoiceJournal(storageScope))) else { return nil }
-        let presentation = InvoiceLaunchPresentation(coordinator: coordinator, isCurrent: { current() == context })
-        // permits intentionally omitted: all mutation entries remain hidden.
+        let presentation = InvoiceLaunchPresentation(coordinator: coordinator, isCurrent: { current() == context },
+            permits: { [composition] _ in composition.playerWriteGrant(context).map(ReviewedProductionGateLeases.grantsInvoiceWrites) == true }) // G2 grant only.
         retainedInvoiceLaunch = (context, viewer, configuration, approval.revision, presentation)
         return presentation
     }
