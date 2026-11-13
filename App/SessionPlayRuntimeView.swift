@@ -10,6 +10,8 @@ import UIKit
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.playThemeAuxiliaryProvider) private var auxiliaryProvider
     @State private var auxiliaryStore = PlayThemeAuxiliaryStore()
+    @State private var finishRoute: PlayFinishRouteRecommendationCoordinator?
+    @State private var teamBackpack: PlayTeamBackpackCoordinator?
     var body: some View {
         Group {
             switch destination {
@@ -31,6 +33,8 @@ import UIKit
                         circleModel: session.playCircle(topicID: model.snapshot?.result.topicID) ?? session.productionPlayCircle(topicID: model.snapshot?.result.topicID),
                         themeRecordsModel: auxiliary.records,
                         backpackModel: auxiliary.backpack,
+                        teamBackpackModel: teamBackpack,
+                        finishRouteModel: finishRoute,
                         cityGameModel: session.playCityGame,
                         prefabModel: session.playPrefab(scope: scope),
                         journeyModel: { session.journeyCheck(scope: scope, topicID: model.snapshot?.result.topicID, nodeID: $0) },
@@ -51,6 +55,7 @@ import UIKit
                         .environment(\.playThemeReplay, PlayThemeReplayBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
                         .task(id: session.cityPlayerReadIdentity) { await session.loadCityGamePlayRead() }
                         .environment(\.playRuntimeGap, PlayRuntimeGapBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
+                        .task(id: session.sessionRevision) { await mountTeamAndFinish(scope: scope, model: model) }
                 } else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
                 }
             case .director(let activityID):
@@ -73,5 +78,27 @@ import UIKit
         .onChange(of: session.sessionRevision) { _, _ in session.playNativeDeviceProvider.cancel() }
         .onChange(of: scenePhase) { _, phase in if phase == .background { session.nativePlatformRuntime?.suspendMotion() }; if phase == .active { Task { await session.nativePlatformRuntime?.reconcileOwnedRequests() } }; if phase == .background || (phase != .active && !session.playNativeDeviceProvider.authorizationInFlight) { session.playNativeDeviceProvider.cancel() } }
         .onDisappear { session.playNativeDeviceProvider.cancel() }
+    }
+
+    private func mountTeamAndFinish(scope: PlaySessionScope, model: PlayExperienceCoordinator) async {
+        let activityID: Int?
+        if case .activity(let id) = scope {
+            activityID = id
+            teamBackpack = session.playTeamBackpack(activityID: id)
+        } else {
+            activityID = nil
+            teamBackpack = nil
+        }
+        let enabled = await session.finishNearbyRouteEnabled()
+        guard !Task.isCancelled else { return }
+        let topicID = model.snapshot?.result.topicID
+        let coordinator = PlayFinishRouteRecommendationCoordinator(featureEnabled: enabled, reader: session.playFinishRouteReader(),
+            currentActivityID: activityID, currentTopicID: topicID)
+        finishRoute = coordinator
+        guard model.snapshot?.availability == .completed, let snapshot = model.snapshot else { return }
+        let origin = PlayFinishOrigin.resolve(snapshot.visibleNodes.map { node in
+            (done: snapshot.isDone(node), latitude: node.latitude, longitude: node.longitude, doneAt: nil as Double?)
+        })
+        await coordinator.show(origin: origin)
     }
 }

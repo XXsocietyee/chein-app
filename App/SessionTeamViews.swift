@@ -24,12 +24,16 @@ import SwiftUI
             .sheet(isPresented: $login) { LoginView(intent: .player) }
     }
 }
-/// Awaiting the source activity registration projection with teamMode/teamMaxMembers.
-/// This adapter has no live creation-context capability; it cannot manufacture eligibility.
+/// Owned-registration team creation. The screen stays on screen when the write lease is closed;
+/// the review control remains and does not send `api/team/create`.
 @MainActor struct SessionTeamCreateView: View {
     let activityID: Int
+    let registrationID: Int
     @EnvironmentObject private var session: AppSession
-    var body: some View { TeamCreateView(activityID: activityID, coordinator: session.makeTeamCoordinator()).id(session.teamViewIdentity) }
+    var body: some View {
+        TeamCreateView(activityID: activityID, coordinator: session.teamCreateCoordinator(registrationID: registrationID))
+            .id(session.teamViewIdentity)
+    }
 }
 
 /// Normal-root TEAM adapters restored from the retained source. CLUB-only destinations

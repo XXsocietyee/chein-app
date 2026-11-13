@@ -91,6 +91,15 @@ extension ReviewedProductionFormMutationRoute {
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
             return covers(relative, grant.team) && teamRequestID(request)
         }
+        if relative == "api/team/create" {
+            return covers(relative, grant.team) && teamCreateBody(request)
+        }
+        if relative == "api/game/session/command" {
+            return covers(relative, grant.play) && teamItemCommandBody(request)
+        }
+        if relative == "api/game/session/view" || relative == "api/game/session/receipt" {
+            return false
+        }
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
@@ -209,6 +218,20 @@ extension ReviewedProductionFormMutationRoute {
               let value = object["requestId"] as? String, value.count == 32,
               value.allSatisfy({ ("0"..."9").contains($0) || ("a"..."f").contains($0) }) else { return false }
         return true
+    }
+
+    /// `POST api/team/create` body from `TeamWriteContract`: ownerType 2, ownerId, maxMembers, optional joinMode 1.
+    static func teamCreateBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody else { return false }
+        return TeamCreateWriteBody.accepts(body)
+    }
+
+    /// TEAM backpack commands only: ITEM_USE, ITEM_DISCARD, ITEM_RECEIVE.
+    static func teamItemCommandBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody else { return false }
+        return PlayTeamItemCommandBody.accepts(body)
     }
 
     static func simpleClubMembership(_ request: URLRequest, baseURL: URL) -> Bool {
@@ -364,6 +387,8 @@ enum ReviewedPlayerReadRoute {
     static let profilePaths: Set<String> = ["api/user/update", "api/common/uploadOSS"]
     static let registrationPaths: Set<String> = ["api/registration/create"]
     static let teamCommandPaths: Set<String> = ["api/team/command", "api/team/command/query", "api/team/command/cancel"]
+    /// `POST api/team/create` for an owned activity registration. Not a command receipt.
+    static let teamCreatePaths: Set<String> = ["api/team/create"]
     static let playPaths: Set<String> = Set<String>([
         "api/play/arrive", "api/play/answer", "api/play/checkin", "api/play/photo", "api/play/sensor-result",
         "api/play/puzzle/reveal", "api/play/action-context", "api/play/action-receipt", "api/play/help",
@@ -442,7 +467,9 @@ enum ReviewedPlayerReadRoute {
         "api/play/encounter", "api/play/check/receipt", "api/play/advanced/receipt", "api/play/history",
         "api/play/setup", "api/play/contact",
         // g-partials: TEAM backpack projection, `perspective=PLAYER` only (see `playerPerspective`).
-        "api/game/session/view"
+        "api/game/session/view",
+        // cur-team-u0802: the TEAM command receipt re-read.
+        "api/game/session/receipt"
     ]
     /// G2 invoice writes. A grant without every one of them leaves the invoice write entries hidden.
     static let invoiceWritePaths: Set<String> = [
@@ -545,7 +572,7 @@ enum ReviewedPlayerReadRoute {
               let square = makeEndpoint(context, paths: Self.squarePaths),
               let profile = makeEndpoint(context, paths: Self.profilePaths),
               let registration = makeEndpoint(context, paths: Self.registrationPaths),
-              let team = makeEndpoint(context, paths: Self.teamCommandPaths),
+              let team = makeEndpoint(context, paths: Self.teamCommandPaths.union(Self.teamCreatePaths)),
               let play = makeEndpoint(context, paths: Self.playPaths.union(Self.creatorStudioPaths)),
               let roamExtras = makeEndpoint(context, paths: Self.roamExtraPaths),
               let likes = makeEndpoint(context, paths: Self.likePaths),
