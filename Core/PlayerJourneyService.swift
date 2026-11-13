@@ -29,6 +29,24 @@ public struct PlayerJourneyService {
     public func completed(token: String) async throws -> [CompletedPlayRecord] {
         try await read("api/play/my-completed", token: token)
     }
+    /// Square activity picker. GET `SquareActivityPicker.completedPath` with `for_public_reference=true`.
+    /// Read only. This does not open the history grant: `completed(token:)` still requires `readsEnabled`.
+    public func completedForPublicReference(token: String) async throws -> [CompletedPlayRecord] {
+        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        let path = SquareActivityPicker.completedPath
+        guard !path.isEmpty, !path.hasPrefix("/"), !path.contains("?"), !path.contains(" ") else { throw APIError.invalidRequest }
+        var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)
+        components?.queryItems = [URLQueryItem(name: "for_public_reference", value: "true")]
+        guard let url = components?.url else { throw APIError.invalidRequest }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        let rows: [CompletedPlayRecord] = try await finish(request)
+        return rows
+    }
     public func memberTemplate(id: MemberPlayTemplateID, token: String) async throws -> MemberTemplateDetail {
         let result: MemberTemplateDetail = try await read("api/template/myinfo", fields: ["id": String(id.rawValue)], token: token)
         guard result.id == id else { throw APIError.malformedResponse }
@@ -39,6 +57,9 @@ public struct PlayerJourneyService {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path),
             fields: fields ?? [:], token: token, includesBody: fields != nil)
+        return try await finish(request)
+    }
+    private func finish<Value: Decodable>(_ request: URLRequest) async throws -> Value {
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation()
@@ -87,6 +108,9 @@ public struct PlayerJourneySession: Equatable {
     public func participations() async throws -> [ParticipationRecord] { try await read { try await $0.participations(token: $1) } }
     public func detail(id: Int) async throws -> ParticipationDetail { try await read { try await $0.detail(id: id, token: $1) } }
     public func completed() async throws -> [CompletedPlayRecord] { try await read { try await $0.completed(token: $1) } }
+    public func completedForPublicReference() async throws -> [CompletedPlayRecord] {
+        try await read { try await $0.completedForPublicReference(token: $1) }
+    }
     public func memberTemplate(id: MemberPlayTemplateID) async throws -> MemberTemplateDetail {
         try await read { try await $0.memberTemplate(id: id, token: $1) }
     }

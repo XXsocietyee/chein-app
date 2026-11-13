@@ -44,6 +44,56 @@ final class PlayerJourneyTests: XCTestCase {
         XCTAssertTrue(detailBody.contains("name=\"id\"\r\n\r\n71\r\n"))
         XCTAssertFalse(detailBody.contains("merchant"))
     }
+    func testPublicReferenceReadIsGetAndLeavesTheHistoryGrantClosed() async throws {
+        let body = Data(#"{"code":200,"data":[{"activityId":7,"name":"Night","doneCount":0,"total":2,"topicId":4}]}"#.utf8)
+        let transport = JourneyTestTransport(replies: [body])
+        let rows = try await makeService(transport, enabled: false).completedForPublicReference(token: "synthetic-token")
+        XCTAssertEqual(rows.map(\.activityID), [7])
+        XCTAssertEqual(rows[0].doneCount, 0)
+        let requests = await transport.requests
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertEqual(requests[0].httpMethod, "GET")
+        XCTAssertNil(requests[0].httpBody)
+        XCTAssertEqual(requests[0].url?.path, "/api/play/my-completed")
+        XCTAssertEqual(URLComponents(url: requests[0].url!, resolvingAgainstBaseURL: false)?.queryItems,
+                       [URLQueryItem(name: "for_public_reference", value: "true")])
+        XCTAssertEqual(requests[0].value(forHTTPHeaderField: "Authorization"), "synthetic-token")
+        let blocked = JourneyTestTransport(replies: [])
+        do { _ = try await makeService(blocked).completed(token: "synthetic-token"); XCTFail("History read stays closed") }
+        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        let count = await blocked.requests.count
+        XCTAssertEqual(count, 0)
+    }
+    func testPublicReferenceReadRejectsMalformedUnauthorizedAndABadToken() async throws {
+        let malformed = JourneyTestTransport(replies: [Data(#"{"code":200,"data":{}}"#.utf8)])
+        do { _ = try await makeService(malformed).completedForPublicReference(token: "synthetic-token"); XCTFail("Object is not a list") }
+        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+        let denied = JourneyTestTransport(replies: [Data(#"{"code":401}"#.utf8)], status: 401)
+        do { _ = try await makeService(denied).completedForPublicReference(token: "synthetic-token"); XCTFail("Unauthorized") }
+        catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+        let quiet = JourneyTestTransport(replies: [])
+        do { _ = try await makeService(quiet).completedForPublicReference(token: " bad"); XCTFail("Bad token") }
+        catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+        let count = await quiet.requests.count
+        XCTAssertEqual(count, 0)
+    }
+    func testPublicReferenceRowsKeepLiteralZeroAndUnknownAsAnEmDash() throws {
+        let raw = #"[{"activityId":7,"name":" Night ","cover":" https://cdn.example/a.jpg ","doneCount":0,"total":3,"topicId":9},{"activityId":8,"topicId":0,"doneCount":-1,"total":"no"},{"activityId":0,"name":"drop"},{"name":"noid"},{"activityId":"4","name":""}]"#
+        let records = try JSONDecoder().decode([CompletedPlayRecord].self, from: Data(raw.utf8))
+        let rows = SquareActivityPicker.publicReferenceRows(records)
+        XCTAssertEqual(rows.map(\.id), [7, 8, 4])
+        XCTAssertEqual(rows[0].name, "Night")
+        XCTAssertEqual(rows[0].cover, "https://cdn.example/a.jpg")
+        XCTAssertEqual(rows[0].doneCount, 0)
+        XCTAssertEqual(rows[0].total, 3)
+        XCTAssertEqual(rows[0].topicID, 9)
+        XCTAssertEqual(rows[1].name, SquareCountDisplay.unknownMark)
+        XCTAssertNil(rows[1].doneCount)
+        XCTAssertNil(rows[1].total)
+        XCTAssertNil(rows[1].topicID)
+        XCTAssertNotEqual(rows[1].name, "0")
+        XCTAssertEqual(rows[2].name, SquareCountDisplay.unknownMark)
+    }
     func testDisabledServiceNeverDispatches() async throws {
         let transport = JourneyTestTransport(replies: [])
         do { _ = try await makeService(transport).completed(token: "synthetic-token"); XCTFail("Expected disabled read") }
@@ -84,8 +134,9 @@ private extension Data { var utf8String: String { String(decoding: self, as: UTF
 private actor JourneyTestTransport: HTTPTransport {
     var requests: [URLRequest] = []
     var replies: [Data]
-    init(replies: [Data]) { self.replies = replies }
-    func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return (replies.removeFirst(), 200) }
+    var status: Int
+    init(replies: [Data], status: Int = 200) { self.replies = replies; self.status = status }
+    func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return (replies.removeFirst(), status) }
 }
 private actor JourneySuspendedTransport: HTTPTransport {
     private var continuation: CheckedContinuation<Data, Never>?

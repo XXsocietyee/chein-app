@@ -151,6 +151,11 @@ public struct SquareStravaCard: Equatable, Sendable {
     }
 }
 
+extension SquarePost {
+    /// `isFollowTheUser` from the decode above. Nil is unknown and is not stored as false.
+    public var isFollowTheUser: Bool? { strava.followed }
+}
+
 public struct SquareRoutePoint: Equatable, Sendable {
     public let latitude: Double
     public let longitude: Double
