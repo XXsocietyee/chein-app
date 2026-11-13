@@ -110,7 +110,7 @@ extension PlayThemeReplayAttempt {
 
 /// One binding per signed-in play scope. A redraw does not mint a new request id.
 @MainActor enum PlayThemeReplayBridge {
-    private final class Slot {
+    @MainActor private final class Slot {
         weak var session: AppSession?
         let scope: PlaySessionScope
         let topicID: Int

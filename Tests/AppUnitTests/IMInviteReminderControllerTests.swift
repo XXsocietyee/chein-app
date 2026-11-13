@@ -98,7 +98,8 @@ import XCTest
         permission.requestValue = .denied
         primer.outcome = .allowed
         let controller = make()
-        XCTAssertFalse(await controller.setEnabled(true))
+        let result = await controller.setEnabled(true)
+        XCTAssertFalse(result)
         XCTAssertEqual(controller.presentation, .off)
         XCTAssertFalse(defaults.bool(forKey: IMInviteReminderController.storageKey))
     }
@@ -108,7 +109,8 @@ import XCTest
         permission.requestValue = .unknown
         primer.outcome = .allowed
         let controller = make()
-        XCTAssertFalse(await controller.setEnabled(true))
+        let result = await controller.setEnabled(true)
+        XCTAssertFalse(result)
         XCTAssertEqual(controller.presentation, .unknown)
         XCTAssertFalse(controller.isEnabled)
         XCTAssertFalse(defaults.bool(forKey: IMInviteReminderController.storageKey))
@@ -119,7 +121,8 @@ import XCTest
         primer.outcome = .allowed
         permission.requestValue = .authorized(alerts: true)
         let controller = make()
-        XCTAssertFalse(await controller.setEnabled(true))
+        let result = await controller.setEnabled(true)
+        XCTAssertFalse(result)
         XCTAssertEqual(controller.presentation, .unknown)
         XCTAssertEqual(primer.calls, 0)
         XCTAssertEqual(permission.requestCount, 0)
@@ -130,7 +133,8 @@ import XCTest
         permission.currentValue = .denied
         primer.outcome = .allowed
         let controller = make()
-        XCTAssertFalse(await controller.setEnabled(true))
+        let result = await controller.setEnabled(true)
+        XCTAssertFalse(result)
         XCTAssertEqual(controller.presentation, .off)
         XCTAssertEqual(primer.calls, 0)
         XCTAssertEqual(permission.requestCount, 0)
@@ -139,7 +143,8 @@ import XCTest
     func testExistingVisibleGrantStoresTheLocalChoiceWithoutASecondPrompt() async {
         permission.currentValue = .authorized(alerts: true)
         let controller = make()
-        XCTAssertTrue(await controller.setEnabled(true))
+        let result = await controller.setEnabled(true)
+        XCTAssertTrue(result)
         XCTAssertEqual(controller.presentation, .on)
         XCTAssertEqual(primer.calls, 0)
         XCTAssertEqual(permission.requestCount, 0)
@@ -150,7 +155,8 @@ import XCTest
         defaults.set(true, forKey: IMInviteReminderController.storageKey)
         permission.currentValue = .authorized(alerts: true)
         let controller = make()
-        XCTAssertFalse(await controller.setEnabled(false))
+        let result = await controller.setEnabled(false)
+        XCTAssertFalse(result)
         XCTAssertEqual(controller.presentation, .off)
         XCTAssertFalse(defaults.bool(forKey: IMInviteReminderController.storageKey))
         XCTAssertEqual(primer.calls, 0)
@@ -165,8 +171,8 @@ import XCTest
         XCTAssertEqual(IMInviteReminderSystemPermission.classify(authorization: .ephemeral, alerts: .enabled), .ephemeral)
         XCTAssertEqual(IMInviteReminderSystemPermission.classify(authorization: .denied, alerts: .enabled), .denied)
         XCTAssertEqual(IMInviteReminderSystemPermission.classify(authorization: .notDetermined, alerts: .notSupported), .notDetermined)
-        XCTAssertEqual(IMInviteReminderSystemPermission.classify(authorization: UNAuthorizationStatus(rawValue: 91), alerts: .enabled), .unknown)
-        XCTAssertEqual(IMInviteReminderSystemPermission.classify(authorization: .authorized, alerts: UNNotificationSetting(rawValue: 91)), .unknown)
+        XCTAssertEqual(IMInviteReminderSystemPermission.classify(authorization: UNAuthorizationStatus(rawValue: 91)!, alerts: .enabled), .unknown)
+        XCTAssertEqual(IMInviteReminderSystemPermission.classify(authorization: .authorized, alerts: UNNotificationSetting(rawValue: 91)!), .unknown)
         XCTAssertEqual(IMInviteReminderController.resolve(stored: true, permission: .unknown), .unknown)
         XCTAssertFalse(IMInviteReminderController.resolve(stored: true, permission: .unknown).isEnabled)
         XCTAssertEqual(IMInviteReminderController.resolve(stored: true, permission: .provisional), .off)
