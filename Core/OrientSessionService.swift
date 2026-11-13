@@ -145,6 +145,22 @@ public enum OrientSessionWriteReceipt: Equatable {
         return try await receiptValue(request(path, method: "POST", fields: fields, json: json, token: token), pending: pending)
     }
 
+    /// GET `/api/orient/scoring/receipt` for one saved appeal or dispute key.
+    /// This does not open a session view and does not call sync, settle, purchase, or payout.
+    public func scoringReviewReceipt(_ pending: OrientSessionPending, token: String) async throws -> OrientSessionWriteReceipt {
+        try pending.validate()
+        let kind: String
+        switch pending.operation {
+        case .appeal: kind = "APPEAL"
+        case .dispute: kind = "DISPUTE"
+        default: throw APIError.invalidRequest
+        }
+        guard contract == .currentC6 else { throw OrientSessionFlowError.unsupportedContract }
+        guard let id = pending.operation.sessionID, id > 0 else { throw OrientSessionFlowError.sessionRequired }
+        let fields = ["sessionId": String(id), "idempotencyKey": pending.key, "kind": kind]
+        return try await receiptValue(request("api/orient/scoring/receipt", fields: fields, token: token), pending: pending)
+    }
+
     /// Prepare's session ID must come from a real route-state/session read. The
     /// freeze lacks /current; absence of an ID keeps the original operation pending.
     /// Frozen alternatives recover by explicitly replaying the same stored command.

@@ -158,6 +158,9 @@ import XCTest
         XCTAssertTrue(grant.likes.paths.contains("api/topic/like"))
         XCTAssertTrue(grant.reports.paths.contains("api/v1/community/reports"))
         XCTAssertTrue(grant.reports.paths.contains("api/v1/community/appeals"))
+        XCTAssertTrue(grant.reports.paths.contains("api/orient/scoring/appeal"))
+        XCTAssertTrue(grant.reports.paths.contains("api/orient/scoring/dispute"))
+        XCTAssertFalse(grant.reports.paths.contains { $0.hasSuffix("/sync") || $0.hasSuffix("/settle") || $0.contains("purchase") || $0.contains("payout") })
         XCTAssertTrue(grant.friends.endpoint.paths.isSuperset(of: NativeFriendApproval.writePaths))
         XCTAssertTrue(grant.channelTextSend.allowsAnyPositiveConversation)
         XCTAssertEqual(grant.channelTextSend.operation, .send)
@@ -248,6 +251,24 @@ import XCTest
         state.setValue(player.session.token, forHTTPHeaderField: "Authorization")
         _ = try await transport.send(state)
         XCTAssertEqual(recorder.paths.last, "api/play/theme/state")
+        let appeal = formRequest(base.appendingPathComponent("api/orient/scoring/appeal"),
+            "entryId=30&idempotencyKey=score-key-01&reason=wrong&sessionId=9", token: player.session.token)
+        _ = try await transport.send(appeal)
+        XCTAssertEqual(recorder.paths.last, "api/orient/scoring/appeal")
+        var receiptParts = URLComponents(url: base.appendingPathComponent("api/orient/scoring/receipt"), resolvingAgainstBaseURL: false)
+        receiptParts?.queryItems = [
+            URLQueryItem(name: "idempotencyKey", value: "score-key-01"),
+            URLQueryItem(name: "kind", value: "APPEAL"),
+            URLQueryItem(name: "sessionId", value: "9")
+        ]
+        var receipt = URLRequest(url: try XCTUnwrap(receiptParts?.url))
+        receipt.httpMethod = "GET"
+        receipt.setValue("application/json", forHTTPHeaderField: "Accept")
+        receipt.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(receipt)
+        XCTAssertEqual(recorder.paths.last, "api/orient/scoring/receipt")
+        await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/sync"), "idempotencyKey=score-key-01&sessionId=9", token: player.session.token)) }
+        await assertClosed { try await transport.send(self.formRequest(base.appendingPathComponent("api/orient/scoring/session/9/settle"), "idempotencyKey=score-key-01&sessionId=9", token: player.session.token)) }
 
         let gatesOnly = try ReviewedAppDeployment(market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
             approvedBaseURLs: [.china: [ReviewedMarketLaunch.chinaProductionBaseURL]],
@@ -274,6 +295,16 @@ import XCTest
         let base = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
         let session = try PlayExperienceSession(accountID: 7, epoch: 1, namespace: namespace, token: "player-token")
         return RuntimeDependencyContext(market: .china, baseURL: base, role: "player", session: session)
+    }
+
+    private func formRequest(_ url: URL, _ body: String, token: String) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = Data(body.utf8)
+        request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
     }
 
     private func jsonRequest(_ url: URL, _ body: String, token: String) -> URLRequest {

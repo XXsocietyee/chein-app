@@ -7,6 +7,14 @@ import Foundation
 // the player reaches the confirm step and is reused for every retry until the server accepts, so a retry
 // can never become a second appeal.
 
+/// A confirmed server rejection releases the saved request id. `.unknown` keeps it.
+/// The unknown mark is an em dash in both English and zh-Hans.
+public enum OrientScoreReviewOutcome: Error, Equatable {
+    public static let unknownMark = "—"
+    case rejected(String)
+    case unknown
+}
+
 @MainActor public final class OrientScoreReviewModel: ObservableObject {
     public enum Kind: Equatable { case appeal, dispute }
 
@@ -50,6 +58,14 @@ import Foundation
             try await submitter(kind, reason, key)
             retainedKey = nil
             state = .submitted(kind)
+        } catch let outcome as OrientScoreReviewOutcome {
+            // A confirmed rejection releases the id. An unknown result keeps it.
+            if case .rejected(let message) = outcome {
+                retainedKey = nil
+                state = .failed(message)
+            } else {
+                state = .failed(OrientScoreReviewOutcome.unknownMark)
+            }
         } catch {
             // Key kept: the next confirm replays the same request.
             state = .failed(error.localizedDescription)
