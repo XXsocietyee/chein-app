@@ -365,6 +365,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/TopicCreatorToolsView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "G3 creator tools: pending publish-draft request id per owner/topic, so an unconfirmed publish re-asks with the same id; cleared on a confirmed result",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/UsageConsentGateView.swift",
       "kinds": [
         "userDefaults"
