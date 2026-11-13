@@ -352,6 +352,14 @@ import SwiftUI
                             .accessibilityIdentifier("playx.backpack.open")
                     }
                 }
+                // 联系主办 / 联系商家 (`GET api/play/contact`); no phone, no row.
+                if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
+                    PlayContactSection(currentNodeID: PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
+                                       finished: snapshot.availability == .completed)
+                    // 已完成章节 from `GET api/play/history` that the live route no longer lists.
+                    PlayCompletedHistorySection(routeSessionID: snapshot.route?.sessionID,
+                                                liveChapterIDs: Set(snapshot.result.chapters.map(\.id)))
+                }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }
                 if let ending = model.ending {
                     Section("playx.ending") {
@@ -585,6 +593,7 @@ import SwiftUI
             }
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
+                else { PlayCheckRuntimeSection(nodeID: node.id, routeSessionID: model.snapshot?.route?.sessionID, nodeDone: node.done == true) }
                 if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
                     NavigationLink("journey.record.questions") {
                         JourneyNarrativeView(model: narrative, onChanged: { await model.load() })
@@ -874,6 +883,7 @@ struct PlayExperienceIssueView: View {
     @State private var action: PlayLeadAction?
     @State private var review = false
     @State private var actionContext: PlayInteractionContext?
+    @Environment(\.playerGapService) private var gapService
     var body: some View {
         let context = model.interactionContext
         Section("playx.lead.title") {
@@ -887,7 +897,11 @@ struct PlayExperienceIssueView: View {
                     Label { if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") } }
                         icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? CYColor.successText : CYColor.textTertiary) }
                 }
-                if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
+                if gapService != nil, case .activity(let activityID) = model.scope, lead.exists, !lead.isLeader {
+                    // leadArrive (one approved GCJ-02 fix) and the member broadcast; leader tools stay hidden.
+                    LeadMemberActionsSection(activityID: activityID, meArrived: lead.meArrived,
+                                             reload: { Task { await model.loadLead(context: context) } })
+                } else if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
                     if !lead.exists { actionButton(context: context, .start) }
@@ -895,6 +909,12 @@ struct PlayExperienceIssueView: View {
                 }
                 if model.leaderOutcomeUnknown { Text("playx.lead.unknown") }
                 if model.leadReadFailed { PlayRuntimePhaseText(phase: "failed") }
+            }
+            if case .activity(let activityID) = model.scope {
+                TeamTrailSection(activityID: activityID, done: { [model] in
+                    guard let snapshot = model.snapshot else { return 0 }
+                    return snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
+                })
             }
         }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: context))

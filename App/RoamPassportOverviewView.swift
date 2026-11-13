@@ -4,6 +4,8 @@ import SwiftUI
 @MainActor struct RoamPassportOverviewView: View {
     let phase: RoamPassportOverviewState.Phase
     let retry: () -> Void
+    /// BL-41 official-events card destination (single event detail, or the official task list).
+    var officialEventDestination: ((Int?) -> AnyView)? = nil
     var body: some View {
         Section("roam.passport.title") {
             switch phase {
@@ -28,6 +30,7 @@ import SwiftUI
                         Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km")
                     } else { Text("roam.passport.unknown").accessibilityLabel(Text("roam.passport.unknown.a11y")) }
                 }.accessibilityIdentifier("roam.passport.distance")
+                OfficialRoamActiveCardView(destination: officialEventDestination)
                 if summary.trips == 0 {
                     CYEmptyState(systemImage: "figure.walk", "roam.experience.historyEmpty")
                         .accessibilityIdentifier("roam.passport.empty")

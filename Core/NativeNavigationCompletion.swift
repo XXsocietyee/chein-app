@@ -52,6 +52,7 @@ public enum NativeNavigationContract {
                   query.values.allSatisfy({ $0.utf8.count <= 2048 && $0.rangeOfCharacter(from: .controlCharacters) == nil }) else { return nil }
             return .badge(ObjectBadgeDetailParameters(query: query, fallbackName: ""))
         }
+        if let page = MiniProgramPageLink(path: path, query: query) { return .miniProgramPage(page) }
         return nil
     }
 }

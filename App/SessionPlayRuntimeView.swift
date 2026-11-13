@@ -28,7 +28,7 @@ import UIKit
                         preferenceModel: { nodeID in session.playPreference(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) },
                         summaryModel: { session.playOperatingSummary(topicID: $0) },
                         playerModel: session.playPlayer(scope: scope),
-                        circleModel: session.playCircle(topicID: model.snapshot?.result.topicID),
+                        circleModel: session.playCircle(topicID: model.snapshot?.result.topicID) ?? session.productionPlayCircle(topicID: model.snapshot?.result.topicID),
                         themeRecordsModel: auxiliary.records,
                         backpackModel: auxiliary.backpack,
                         cityGameModel: session.playCityGame,
@@ -50,6 +50,7 @@ import UIKit
                         })
                         .environment(\.playThemeReplay, PlayThemeReplayBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
                         .task(id: session.cityPlayerReadIdentity) { await session.loadCityGamePlayRead() }
+                        .environment(\.playRuntimeGap, PlayRuntimeGapBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
                 } else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
                 }
             case .director(let activityID):

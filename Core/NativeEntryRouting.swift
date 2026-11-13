@@ -12,6 +12,8 @@ public enum NativeEntryIntent: Equatable {
     case content(NativeContentTarget)
     /// Public catalog list, filters, or info. Parsing does not enable an origin, a charge, or a read.
     case publicCatalog(PublicCatalogLink)
+    /// A mini-program page with a native parity screen. Parsing grants nothing; the screen keeps its own gating.
+    case miniProgramPage(MiniProgramPageLink)
 }
 /// Positive server ids for public content destinations. Parsing grants no access: the destination screen
 /// still reads through its own approved, authenticated source.

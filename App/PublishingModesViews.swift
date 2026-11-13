@@ -205,7 +205,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         let _ = timeRange.bind(account: account, draftID: draftID, draft: draft, editable: mayEditTimeRange)
         // The modifier chain is split in two stages for the type checker;
         // the modifiers keep their original order.
-        publishingForm(templateSelectionAction: templateSelectionAction, templateReadID: templateReadID)
+        // Mini-program guardPublisherRole: publish_precheck admits the form; 403 shows the server's reason.
+        ActivityPublishPrecheckGate { publishingForm(templateSelectionAction: templateSelectionAction, templateReadID: templateReadID) }
         .background {
             if let original = timeRange.presentation {
                 ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in

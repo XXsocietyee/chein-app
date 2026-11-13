@@ -79,6 +79,8 @@ import SwiftUI
                     if !detail.gallery.isEmpty {
                         NativeMediaGalleryEntry(sources: detail.gallery, scope: reader.scope,
                             titleKey: "memberTemplate.title", reader: imageReader)
+                        // U02-05: per-image attribution for the first eight; a failed or unreviewed read draws nothing.
+                        ForEach(Array(detail.gallery.prefix(8).enumerated()), id: \.offset) { AssetCreditText(reference: $0.element) }
                     }
                 }
                 textSection("discovery.introduction", value: item.description)

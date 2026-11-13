@@ -158,6 +158,10 @@ import SwiftUI
                 }
             }
         }
+        if let merchantID = value.id, merchantID > 0 {
+            // BL-69: the merchant's city node and its favorite toggle; no node hides the row.
+            Section { MerchantCityNodeRow(merchantID: merchantID) }
+        }
         if !(value.storyTitle ?? "").isEmpty || !(value.description ?? "").isEmpty {
             Section("merchant.publicHome.about") { field(value.storyTitle); field(value.description) }
         }

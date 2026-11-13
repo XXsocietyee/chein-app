@@ -173,6 +173,7 @@
         "LocalizationCompletenessSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
         "LocationShareAndSideQuestViewTests",
+        "MPParityDeepLinkRouteTests",
         "MPParityPassBindingTests",
         "ManualMapCompositionTests",
         "MapVisualAndMerchantGameViewTests",

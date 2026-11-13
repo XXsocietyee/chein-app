@@ -187,6 +187,7 @@
         "LBSGeofenceAndBatteryThermalSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
         "LocationShareAndSideQuestViewTests",
+        "MPParityDeepLinkRouteTests",
         "ManualMapCompositionTests",
         "MapPublicLayerAppIntegrationTests",
         "MapVisualMV01ToMV41ComplianceSectionViewTests",

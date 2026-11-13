@@ -57,7 +57,8 @@ import SwiftUI
                 .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
                 .padding(.vertical, 4)
             }
-            RoamPassportOverviewView(phase: passport.phase(reader: reader)) { passport.load(reader: reader) }
+            RoamPassportOverviewView(phase: passport.phase(reader: reader), retry: { passport.load(reader: reader) },
+                                     officialEventDestination: { [reader] in AnyView(RoamActiveOfficialEventDestination(roamReader: reader, eventID: $0)) })
             Section("roam.experience.yourRoam") {
                 NavigationLink { RoamEnrolledChaptersDestination(roamReader: reader) } label: { CYListRow("roam.chapters.title", trailing: .none) { CYRowIcon(systemImage: "map.fill") } }
                     .disabled(reader.identity == nil)

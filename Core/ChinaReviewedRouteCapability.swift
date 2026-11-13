@@ -47,7 +47,9 @@ public enum ChinaReviewedRouteCapability {
         if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
         if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
         if socialRoamOwnerGrant.contains(key) { return true }
-        return videoBountyOwnerGrant.contains(key)
+        if playRuntimeOwnerGrant.contains(key) { return true }
+        if videoBountyOwnerGrant.contains(key) { return true }
+        return playerGapOwnerGrant.contains(key)
     }
 
     /// Owner approval 2026-11-13. Channels, channel messages, governance, notifications, admission, IM media attach,
@@ -163,6 +165,29 @@ public enum ChinaReviewedRouteCapability {
         "/api/map/place-search",
         "/api/map/weather",
         "/api/search/unified"
+
+    /// G7/G8 owner approval: non-money player reads and writes the mini-program calls (PlayerGapService).
+    /// Payment readiness, payout receiver, club settlement, lead settle, and club host-only routes stay out.
+    private static let playerGapOwnerGrant: Set<String> = [
+        "/api/official/active-for-roam",
+        "/api/official/signup-command",
+        "/api/official/signup-command/query",
+        "/api/official/signup-command/cancel",
+        "/api/team/invite-qrcode",
+        "/api/team/trail/state",
+        "/api/team/trail/consent",
+        "/api/team/trail/sync",
+        "/api/registration/join_info",
+        "/api/city/nodes/favorites",
+        "/api/city/nodes/merchant/{}",
+        "/api/activity/publish_precheck",
+        "/api/media/asset/attribution",
+        "/api/object-card/rename",
+        "/api/user/player-code",
+        "/api/club/event-ops/host/request",
+        "/api/club/lead/arrive",
+        "/api/club/lead/broadcast",
+        "/api/club/post/like-state"
     ]
 
     /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,
@@ -187,6 +212,17 @@ public enum ChinaReviewedRouteCapability {
         "/api/public-catalog/filters",
         "/api/public-catalog/info",
         "/api/marketing/affiliate/summary"
+    ]
+
+    /// Owner approval (G1 play runtime). Non-money player reads and writes the mini-program play page
+    /// calls that were not wired: shared team help, the completed-run history read, and the circle
+    /// record/answer writes. Check, setup, contact, gameplay and shared preview were already wired.
+    /// Circle instance configure is a host write and stays out. Every money path stays out.
+    private static let playRuntimeOwnerGrant: Set<String> = [
+        "/api/play/help/shared",
+        "/api/play/history",
+        "/api/circle-theme/session/answer",
+        "/api/circle-theme/session/record"
     ]
 
     /// Handover 14, stub-ledger row 24. Author video-bounty reads and the three non-money writes.

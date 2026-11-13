@@ -502,6 +502,11 @@ struct RegistrationSheetView: View {
                     CYPillButton("registration.waitlist.refresh", style: .secondary) { Task { await flow.loadWaitlist() } }
                         .disabled(!flow.canEdit || flow.isReadingWaitlist)
                         .accessibilityIdentifier("registration.waitlist.refresh")
+                    if let ticket = flow.selectedTicket {
+                        // §27.6 request a host; the result is the reread waitlist state, never this reply.
+                        ClubHostRequestButton(activityID: flow.activity.summary.id, ticketID: ticket.id,
+                                              reload: { Task { await flow.loadWaitlist() } })
+                    }
                     if flow.canJoinWaitlist {
                         CYPillButton("registration.waitlist.join", style: .secondary) { Task { await flow.joinWaitlist() } }
                             .accessibilityIdentifier("registration.waitlist.join")

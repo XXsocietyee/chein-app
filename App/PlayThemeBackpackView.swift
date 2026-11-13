@@ -16,6 +16,12 @@ import SwiftUI
     @State private var selection: ActionSelection?
     @State private var discardQuantities: [String: Int] = [:]
     @State private var actionError: String?
+    @Environment(\.playRuntimeGap) private var runtimeGap
+    /// Personal gameplay rows from the last theme-state read when the host passed no coordinator.
+    @State private var liveGameplay: PlayThemeGameplayCoordinator?
+    @State private var gameplayFlow = PlayThemeGameplayFlow()
+    /// A ROUTE team run shows the TEAM backpack instead of the personal projection.
+    @State private var teamActive = false
     private struct ActionSelection: Identifiable {
         let id = UUID()
         let operation: PlayThemeBackpackOperation
@@ -41,17 +47,19 @@ import SwiftUI
             case .loading where model.backpack == nil: ProgressView("playx.loading")
             default: EmptyView()
             }
-            if let actions = model.actions { actionStatus(actions) }
-            if let bag = model.displayedBackpack { content(bag) }
+            if !teamActive, let actions = model.actions { actionStatus(actions) }
+            if !teamActive, let bag = model.displayedBackpack { content(bag) }
+            PlayTeamBackpackSections(active: $teamActive)
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .navigationTitle(Text("playx.backpack.title"))
         .accessibilityIdentifier("playx.backpack")
-        .refreshable { await model.refresh() }
+        .refreshable { await model.refresh(); await syncLiveGameplay() }
         .task {
             model.actions?.activate()
             if model.actions != nil || model.backpack == nil { await model.refresh() }
+            await syncLiveGameplay()
         }
         .onDisappear {
             selection = nil; discardQuantities = [:]; actionError = nil
@@ -175,7 +183,7 @@ import SwiftUI
                 .accessibilityIdentifier("playx.backpack.clue")
             }
         case .game:
-            if let gameplay {
+            if let gameplay = gameplay ?? liveGameplay {
                 gameTabContent(gameplay)
             } else {
                 Text("playx.backpack.gameUnavailable").accessibilityIdentifier("playx.backpack.gameUnavailable")
@@ -221,15 +229,22 @@ import SwiftUI
                             Text(verbatim: row.costText).font(.caption2).foregroundStyle(.secondary)
                         }
                         Button(row.actionLabel) {
-                            _ = gameplay.tapGameplayAction(index: idx)
+                            let tap = gameplay.tapGameplayAction(index: idx)
+                            if let operation = tap.immediateOperation, let content = tap.contentId, self.gameplay == nil {
+                                Task { await gameplayFlow.start(operation: operation, contentID: content, costOption: tap.costOption,
+                                    choiceKey: tap.choiceKey, view: gameplay.rawView, client: runtimeGap?.client(),
+                                    applied: { receipt in gameplay.applyView(receipt); await model.refresh(); await syncLiveGameplay() }) }
+                            }
                         }
-                        .disabled(!row.enabled)
+                        .disabled(!row.enabled || gameplayFlow.busy)
                     }
                 }
             }
         } else {
             Text("playx.backpack.gameUnavailable").accessibilityIdentifier("playx.backpack.gameUnavailable")
         }
+        if self.gameplay == nil { PlayThemeGameplayFlowSection(flow: gameplayFlow, view: gameplay.rawView, client: { runtimeGap?.client() },
+            applied: { receipt in gameplay.applyView(receipt); await model.refresh(); await syncLiveGameplay() }) }
         if !gameplay.plans.isEmpty {
             Section(copy("共同计划", "Shared Plans")) {
                 ForEach(gameplay.plans) { plan in
@@ -258,6 +273,12 @@ import SwiftUI
                 }
             }
         }
+    }
+
+    /// Personal (SOLO) theme state only: TEAM commands are not offered on this page.
+    private func syncLiveGameplay() async {
+        guard gameplay == nil, let runtimeGap, let raw = await runtimeGap.themeState(), raw["scope"].text != "TEAM" else { return }
+        if let liveGameplay { liveGameplay.applyView(raw) } else { liveGameplay = PlayThemeGameplayCoordinator(rawView: raw) }
     }
 
     private func copy(_ chinese: String, _ english: String) -> String {

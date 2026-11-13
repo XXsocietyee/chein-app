@@ -164,6 +164,17 @@ extension PlayExperienceService {
         ], capability: .advanced, token: token))
         guard state.sessionID == pending.sessionID, state.version > pending.version else { throw PlayExperienceError.malformed }; return state
     }
+    /// `advanced-game resolveUnknown`: `GET api/play/advanced/receipt {sessionId, idempotencyKey}`. Proof for this one
+    /// request only: the same session and key, and a view the action produced (version past the one it was sent at).
+    public func advancedReceipt(_ pending: PlayAdvancedPending, token: String) async throws -> PlayAdvancedState {
+        guard pending.sessionID > 0, !pending.key.isEmpty else { throw APIError.invalidRequest }
+        let raw = try await request("api/play/advanced/receipt", query: ["sessionId": String(pending.sessionID), "idempotencyKey": pending.key],
+                                    capability: .reads, token: token)
+        guard raw["sessionId"].tolerantInteger == pending.sessionID, raw["idempotencyKey"].text == pending.key else { throw PlayExperienceError.malformed }
+        let state = try PlayAdvancedState(raw["view"])
+        guard state.sessionID == pending.sessionID, state.version > pending.version else { throw PlayExperienceError.malformed }
+        return state
+    }
     public func advancedLeaderboard(activityID: Int, topicID: Int, nodeID: Int, token: String) async throws -> [PlayWireValue] {
         guard activityID >= 0, topicID > 0, nodeID > 0 else { throw APIError.invalidRequest }
         let value = try await request("api/play/advanced/leaderboard", query: ["activityId": String(activityID), "topicId": String(topicID), "nodeId": String(nodeID)], capability: .reads, token: token)
@@ -419,6 +430,14 @@ extension PlayExperienceService {
             }
             guard let pending else { throw PlayExperienceError.persistenceUnavailable }
             if modRecord?.receipt != nil { try await finishModReadback(session: session, generation: generation); return }
+            // The original request's own receipt settles it; anything else leaves only the exact replay.
+            if modRecord == nil, let receipt = try? await service.advancedReceipt(pending, token: session.token) {
+                try validate(receipt, session: session, generation: generation)
+                settleFromReceipt(receipt, pending: pending, session: session)
+                try accept(state.flatMap { $0.sessionID == receipt.sessionID && $0.version > receipt.version ? $0 : nil } ?? receipt,
+                           session: session, generation: generation)
+                return
+            }
             let result = try await service.advancedState(sessionID: pending.sessionID, token: session.token)
             try validate(result, session: session, generation: generation)
             guard result.version >= pending.version else { throw PlayExperienceError.malformed }
@@ -596,6 +615,16 @@ extension PlayExperienceService {
                 phase = "unknown"; issue = .unknownResult; return
             }
             guard let sessionID = stored.value.sessionID else { throw PlayExperienceError.persistenceUnavailable }
+            if !stored.value.canClear, !modProofRequired, let pending,
+               let receipt = try? await service.advancedReceipt(pending, token: session.token) {
+                try validate(receipt, session: session, generation: generation)
+                try await retireDurably(stored, recovery: recovery, session: session, generation: generation)
+                settleFromReceipt(receipt, pending: pending, session: session)
+                recoverySnapshot = nil; startOutcomeUnknown = false
+                try accept(state.flatMap { $0.sessionID == receipt.sessionID && $0.version > receipt.version ? $0 : nil } ?? receipt,
+                           session: session, generation: generation)
+                return
+            }
             let result = try await service.advancedState(sessionID: sessionID, token: session.token)
             try validate(result, session: session, generation: generation)
             if let pending { guard result.version >= pending.version else { throw PlayExperienceError.malformed } }
@@ -699,6 +728,29 @@ extension PlayExperienceService {
         recoverySnapshot = nil; pending = nil; pendingRequestedCard = false; startOutcomeUnknown = false
     }
 
+    /// A matching receipt proves the original request committed: retire it like an acknowledged action.
+    private func settleFromReceipt(_ receipt: PlayAdvancedState, pending: PlayAdvancedPending, session: PlayExperienceSession) {
+        cardReceipts.accept(receipt, owner: session, pending: pending, requestedCard: pendingRequestedCard)
+        self.pending = nil; pendingRequestedCard = false
+    }
+    /// unknown/prepared/other-process dispatching → dispatching (this process) → acknowledged → cleared.
+    /// If a step fails, a record this process left dispatching goes back to unknown so it is not stuck "in flight".
+    private func retireDurably(_ stored: PlayAdvancedRecoverySnapshot, recovery: any PlayAdvancedRecovery,
+                               session: PlayExperienceSession, generation: UInt64) async throws {
+        var snapshot = try await recovery.transition(stored, to: .dispatching, startedSessionID: nil)
+        do {
+            try checkDurableOwner(session, generation)
+            snapshot = try await recovery.transition(snapshot, to: .acknowledged, startedSessionID: nil)
+            try checkDurableOwner(session, generation)
+            try await recovery.clear(snapshot)
+            try checkDurableOwner(session, generation)
+        } catch {
+            if snapshot.value.phase == .dispatching,
+               let unknown = try? await recovery.transition(snapshot, to: .unknown, startedSessionID: nil) { recoverySnapshot = unknown }
+            else { recoverySnapshot = snapshot }
+            throw error
+        }
+    }
     private func validate(_ state: PlayAdvancedState, session: PlayExperienceSession, generation: UInt64) throws {
         guard self.generation == generation, currentSession() == session, !Task.isCancelled else { throw PlayExperienceError.staleSession }
         guard state.activityID == activityID, state.topicID == topicID, state.nodeID == nodeID,

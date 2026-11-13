@@ -57,6 +57,12 @@ extension ReviewedProductionFormMutationRoute {
                 && covers(relative, grant.templateAdoption)
         }
         if let creator = creatorEditorDecision(request, relative: relative, method: method, grant: grant) { return creator }
+        if ReviewedProductionGateLeases.playRuntimeReadPaths.contains(relative) {
+            // G1 play runtime reads: GET with a query and no body. A POST to a read path is not this grant.
+            // The game session view is the player's own projection only; CLUB / MERCHANT perspectives are not this grant.
+            if relative == "api/game/session/view", playerPerspective(url) == false { return false }
+            return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true) && covers(relative, grant.play)
+        }
         if method == "GET" {
             let emptyBody = request.httpBody?.isEmpty ?? true
             // Admission receipts use the client's own `adm-<uuid>` request ids (contract §0.3 management form).
@@ -69,11 +75,10 @@ extension ReviewedProductionFormMutationRoute {
                 return emptyBody
             }
             if covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool) { return true }
-            // G4/G5 capability reads ride the play grant, body empty.
-            let key = ChinaReviewedRouteCapability.normalized("/" + relative)
-            return ReviewedProductionGateLeases.capabilityReadPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
-                && covers(relative, grant.play) && emptyBody
+            // G4/G5 capability reads and the other play-grant reads (parity-a): GET with no body.
+            return covers(relative, grant.play) && emptyBody
         }
+        if relative == "api/user/player-code" { return method == "POST" && covers(relative, grant.play) }
         // `share/revoke` is the mini-program's `data: {}` form post: an empty body is that write.
         guard method == "POST", request.httpBody?.isEmpty == false || relative == "api/roam/share/revoke" else { return false }
         if relative == "api/topic/chapter/supply-terms" {
@@ -120,6 +125,13 @@ extension ReviewedProductionFormMutationRoute {
               let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
               let topic = object["topicId"] as? NSNumber, topic.int64Value > 0 else { return false }
         return ["payChannel", "payAmount", "price", "amount", "maxPerHeadFee"].allSatisfy { object[$0] == nil }
+    }
+
+    /// `perspective=PLAYER` exactly once, as `game-session-client.js loadProjection('player')` sends it.
+    static func playerPerspective(_ url: URL) -> Bool {
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        let values = items.filter { $0.name == "perspective" }.map(\.value)
+        return values == ["PLAYER"]
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -356,14 +368,37 @@ enum ReviewedPlayerReadRoute {
         "api/template/adopt-draft", "api/template/author-info", "api/template/author-myinfo",
         "api/template/topic-template/binding", "api/template/topic-template/binding-status",
         "api/template/topic-template/save-as", "api/template/{}/market-submit",
-        "api/map/geocode", "api/map/place-search", "api/search/unified", "api/free-explore/bundle/exit-decision"
-    ]).union(capabilityReadPaths)
+        "api/map/geocode", "api/map/place-search", "api/search/unified", "api/free-explore/bundle/exit-decision",
+        // G7/G8 owner-approved non-money player routes (PlayerGapService.paths).
+        "api/official/active-for-roam", "api/official/signup-command", "api/official/signup-command/query",
+        "api/official/signup-command/cancel", "api/team/invite-qrcode", "api/team/trail/state",
+        "api/team/trail/consent", "api/team/trail/sync", "api/registration/join_info", "api/city/nodes/favorites",
+        "api/city/nodes/merchant/{}", "api/activity/publish_precheck", "api/media/asset/attribution",
+        "api/object-card/rename", "api/user/player-code", "api/club/event-ops/host/request",
+        "api/club/lead/arrive", "api/club/lead/broadcast", "api/club/post/like-state",
+        // G1 play runtime (owner-approved, non-money): server-rolled checks, shared team help, run clear,
+        // personal gameplay preview/action, the player-side shared preview, and circle record/answer.
+        "api/play/check/roll", "api/play/check/reroll", "api/play/check/settle", "api/play/help/shared",
+        "api/play/run-session/clear", "api/play/theme/gameplay-action", "api/play/theme/gameplay-preview",
+        "api/game/session/shared/preview", "api/circle-theme/session/answer", "api/circle-theme/session/record",
+        // g-partials: the circle page's own player reads and open/join, so answer/record reach production.
+        // `circle-theme/instance/configure` (merchant host write) stays out.
+        "api/circle-theme/instance/{}/offers", "api/circle-theme/session", "api/circle-theme/session/join",
+        "api/circle-theme/session/{}/card"
+    ]).union(capabilityReadPaths).union(playRuntimeReadPaths)
     /// G4/G5 GET reads. The play grant admits a GET only for these (body empty).
     static let capabilityReadPaths: Set<String> = [
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
         "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
         "api/template/adoption-detail", "api/map/weather", "api/free-explore/bundle/exit-options",
         "api/free-explore/bundle/order/receipt"
+    ]
+    /// G1 play runtime GET reads. Host control/export and circle instance configure are not here.
+    static let playRuntimeReadPaths: Set<String> = [
+        "api/play/encounter", "api/play/check/receipt", "api/play/advanced/receipt", "api/play/history",
+        "api/play/setup", "api/play/contact",
+        // g-partials: TEAM backpack projection, `perspective=PLAYER` only (see `playerPerspective`).
+        "api/game/session/view"
     ]
     /// G2 invoice writes. A grant without every one of them leaves the invoice write entries hidden.
     static let invoiceWritePaths: Set<String> = [

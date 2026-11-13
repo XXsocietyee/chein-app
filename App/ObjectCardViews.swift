@@ -90,6 +90,7 @@ import ImageIO
     @State private var frame = 0
     @State private var drag: CGFloat = 0
     @State private var flipped = false
+    @State private var renamedTitle: String?
     @Environment(\.locale) private var locale
     private var isFoil: Bool { card.cardStyle != "plain" }
     var body: some View {
@@ -117,7 +118,11 @@ import ImageIO
                     if !card.caption.isEmpty { Text(verbatim: card.caption) }
                 }
                 Section("objects.information") {
-                    LabeledContent("objects.name", value: card.title)
+                    HStack {
+                        LabeledContent("objects.name", value: renamedTitle ?? card.title)
+                        // BL-79: rename; the server's saved title replaces the shown one.
+                        ObjectCardRenameButton(cardID: Int(card.id) ?? 0, title: renamedTitle ?? card.title) { renamedTitle = $0 }
+                    }
                     if !card.category.isEmpty {
                         LabeledContent("objects.category") {
                             if let category = ObjectCardCategory(rawValue: card.category) { Text(LocalizedStringKey(category.localizationKey)) }

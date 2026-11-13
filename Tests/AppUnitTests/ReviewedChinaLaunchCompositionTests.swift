@@ -765,6 +765,158 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
     }
 
+    func testShippedChinaAdmitsPlayerGapRoutesAndKeepsMoneyAndHostClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        for path in PlayerGapService.paths {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            XCTAssertTrue(grant.play.paths.contains(path), path)
+        }
+        let service = PlayerGapService(baseURL: player.baseURL, accountID: player.session.accountID,
+                                       token: { player.session.token }, transport: transport)
+        func sent(_ path: String, file: StaticString = #filePath, line: UInt = #line) {
+            XCTAssertEqual(recorder.paths.last, path, file: file, line: line)
+        }
+        _ = await service.activeOfficialForRoam(); sent("api/official/active-for-roam")
+        let command = try XCTUnwrap(OfficialSignupCommand(eventID: 71, requestID: OfficialSignupCommand.newRequestID()))
+        _ = await service.signupCommand(.submit, command: command); sent("api/official/signup-command")
+        _ = await service.signupCommand(.query, command: command); sent("api/official/signup-command/query")
+        _ = await service.signupCommand(.cancel, command: command); sent("api/official/signup-command/cancel")
+        _ = await service.teamInviteQRCode(teamID: 4); sent("api/team/invite-qrcode")
+        _ = await service.teamTrailState(activityID: 9); sent("api/team/trail/state")
+        _ = await service.teamTrailConsent(activityID: 9, share: true); sent("api/team/trail/consent")
+        _ = await service.teamTrailSync(activityID: 9, points: [.init(latitude: 31.2, longitude: 121.4)], done: 1); sent("api/team/trail/sync")
+        _ = await service.joinInfo(memberID: player.session.accountID); sent("api/registration/join_info")
+        _ = await service.requestHost(activityID: 3, ticketID: 8); sent("api/club/event-ops/host/request")
+        _ = await service.publishPrecheck(merchantHost: false); sent("api/activity/publish_precheck")
+        _ = await service.leadArrive(activityID: 3, latitude: 31.2, longitude: 121.4); sent("api/club/lead/arrive")
+        _ = await service.leadBroadcast(activityID: 3, text: "go"); sent("api/club/lead/broadcast")
+        _ = await service.clubPostLikeState(postID: 5, clubID: 2); sent("api/club/post/like-state")
+        _ = await service.favoriteCityNodes(); sent("api/city/nodes/favorites")
+        _ = await service.merchantCityNode(merchantID: 12); sent("api/city/nodes/merchant/12")
+        _ = await service.assetCredit(reference: "https://m/1.jpg"); sent("api/media/asset/attribution")
+        _ = await service.renameObjectCard(id: 4, title: "Lamp"); sent("api/object-card/rename")
+        _ = await service.playerCode(); sent("api/user/player-code")
+        let before = recorder.paths.count
+        let base = player.baseURL
+        // Moderator pin and the leader tools are host-only; the player grant does not name them.
+        for host in ["api/club/post/pin", "api/club/lead/start", "api/club/lead/settle", "api/club/lead/unlock-chapter"] {
+            XCTAssertFalse(grant.play.paths.contains(host), host)
+        }
+        for money in ["api/registration/payment-readiness", "api/club/personal-receiver/bind", "api/club/personal-receiver/unbind",
+                      "api/club/settlement/mine", "api/club/settlement/withdraw", "api/wallet/withdraw", "api/registration/pay",
+                      "api/club-compensation/editions/empty-reason", "api/club/lead/release-station",
+                      "api/registration/scan_group_member_ticket"] {
+            XCTAssertFalse(grant.play.paths.contains(money), money)
+            await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(money), #"{"activityId":3}"#, token: player.session.token)) }
+        }
+        var status = URLRequest(url: base.appendingPathComponent("api/club/personal-receiver/status")); status.httpMethod = "GET"
+        status.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        await assertClosed { try await transport.send(status) }
+        XCTAssertEqual(recorder.paths.count, before)
+    }
+
+    /// G1 play runtime: every owner-approved player read/write the play page needs reaches the network
+    /// through the shipped China composition, built by the app's own `PlayRuntimeClient`. Money stays closed.
+    func testShippedChinaAdmitsPlayRuntimeAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        let client = try PlayRuntimeClient(configuration: APIConfiguration(baseURL: player.baseURL), transport: transport, token: player.session.token)
+        let posts: [(String, [String: String])] = [
+            ("api/play/check/roll", ["topicId": "12", "activityId": "0", "sessionId": "41", "nodeId": "34", "checkId": "c_1"]),
+            ("api/play/check/reroll", ["topicId": "12", "activityId": "0", "sessionId": "41", "nodeId": "34", "checkId": "c_1"]),
+            ("api/play/check/settle", ["topicId": "12", "activityId": "0", "sessionId": "41", "nodeId": "34", "checkId": "c_1"]),
+            ("api/play/run-session/clear", ["savedAt": "1700000000000", "topicId": "12"])
+        ]
+        for (path, fields) in posts {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            XCTAssertTrue(grant.play.paths.contains(path), path)
+            _ = try await client.postForm(path, fields: fields)
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        let jsons: [(String, [String: PlayWireValue])] = [
+            ("api/play/help/shared", ["activityId": .integer(5), "operation": .string("VIEW"), "capabilities": .string("game.teamCooperation@1")]),
+            ("api/play/theme/gameplay-action", ["sessionId": .integer(41), "expectedVersion": .integer(6), "actionId": .string("theme_1"),
+                                                "operation": .string("QUEST_START"), "contentId": .string("q1")]),
+            ("api/play/theme/gameplay-preview", ["sessionId": .integer(41), "expectedVersion": .integer(6),
+                                                 "operation": .string("QUEST_RESOLVE"), "contentId": .string("q1")]),
+            ("api/game/session/shared/preview", ["activityId": .integer(5), "action": .string("TRADE_OPEN"), "payload": .object([:])]),
+            ("api/circle-theme/session/answer", ["sessionId": .integer(9), "stage": .string("s1"), "value": .string("a")]),
+            ("api/circle-theme/session/record", ["sessionId": .integer(9), "offerId": .integer(3), "note": .string("")])
+        ]
+        for (path, body) in jsons {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            XCTAssertTrue(grant.play.paths.contains(path), path)
+            _ = try await client.postJSON(path, body: body)
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        let reads: [(String, [String: String])] = [
+            ("api/play/encounter", ["topicId": "12", "nodeId": "34"]),
+            ("api/play/check/receipt", ["sessionId": "41", "nodeId": "34", "checkId": "c_1", "action": "roll"]),
+            ("api/play/advanced/receipt", ["sessionId": "9", "idempotencyKey": "k-1"]),
+            ("api/play/history", ["activityId": "0", "topicId": "12", "routeSessionId": "41"]),
+            ("api/play/setup", ["topicId": "12"]),
+            ("api/play/contact", ["topicId": "12", "nodeId": "34"])
+        ]
+        for (path, query) in reads {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            _ = try await client.get(path, query: query)
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        // g-partials: the TEAM backpack reads the player's own game-session projection only.
+        _ = try await client.get("api/game/session/view", query: ["activityId": "5", "perspective": "PLAYER"])
+        XCTAssertEqual(recorder.paths.last, "api/game/session/view")
+        let viewCount = recorder.paths.count
+        for perspective in ["CLUB", "MERCHANT"] {
+            var other = URLRequest(url: URL(string: player.baseURL.appendingPathComponent("api/game/session/view").absoluteString
+                + "?activityId=5&perspective=" + perspective)!)
+            other.httpMethod = "GET"; other.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+            await assertClosed { try await transport.send(other) }
+        }
+        XCTAssertEqual(recorder.paths.count, viewCount)
+        // g-partials: the circle page's own player reads, open/join, answer and record.
+        for circle in ["api/circle-theme/instance/{}/offers", "api/circle-theme/session", "api/circle-theme/session/join",
+                       "api/circle-theme/session/{}/card", "api/circle-theme/session/answer", "api/circle-theme/session/record"] {
+            XCTAssertTrue(grant.play.paths.contains(circle), circle)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + circle.replacingOccurrences(of: "{}", with: "12")), circle)
+        }
+        var card = URLRequest(url: player.baseURL.appendingPathComponent("api/circle-theme/session/12/card")); card.httpMethod = "GET"
+        card.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(card)
+        XCTAssertEqual(recorder.paths.last, "api/circle-theme/session/12/card")
+        _ = try await client.postJSON("api/circle-theme/session", body: ["topicId": .integer(12)])
+        XCTAssertEqual(recorder.paths.last, "api/circle-theme/session")
+        // A read path is not a write grant, and host-only controls stay closed for players.
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/play/history"), #"{"topicId":12}"#, token: player.session.token)) }
+        XCTAssertFalse(grant.play.paths.contains("api/game/session/shared/control"))
+        XCTAssertFalse(grant.play.paths.contains("api/game/session/shared/export"))
+        XCTAssertFalse(grant.play.paths.contains("api/game/session/shared/export/anchor"))
+        XCTAssertFalse(grant.play.paths.contains("api/circle-theme/instance/configure"))
+        for money in ["/api/registration/pay", "/api/pay/create", "/api/withdrawal/create", "/api/wallet/withdraw", "/api/asset/withdraw"] {
+            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
+        }
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/wallet/withdraw"), #"{"amount":1}"#, token: player.session.token)) }
+        XCTAssertFalse(recorder.paths.contains("api/pay/create"))
+        XCTAssertFalse(recorder.paths.contains("api/wallet/withdraw"))
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }
