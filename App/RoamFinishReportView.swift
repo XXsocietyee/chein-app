@@ -16,7 +16,7 @@ struct RoamFinishReport: Equatable {
     let story: String?
     let track: [RoamHistoryPoint]
     let record: RoamHistoryRecord?
-    /// Binding stub for the settle chip `currentAddress` (a reverse-geocoded place name). No native source yet: nil hides it.
+    /// Settle chip. Nil hides it. The live session passes `RoamFinishAddress` (no endpoint).
     var currentAddress: String? = nil
 
     @MainActor init?(controller: RoamLiveSessionController, history: RoamFinishedHistoryReader) {
