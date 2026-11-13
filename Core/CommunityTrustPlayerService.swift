@@ -72,7 +72,7 @@ public struct CommunityTrustPlayerService {
 
     /// `buildPayload`: `{merchantId, contributionType: ISSUE_REPORT, issueType, description, idempotencyKey}`; no evidence.
     func contributionRequest(merchantID: Int, issueType: String, description: String, idempotencyKey: String) throws -> URLRequest {
-        guard merchantID > 0, issueLabels.contains(where: { $0.0 == issueType }),
+        guard merchantID > 0, Self.issueLabels.contains(where: { $0.0 == issueType }),
               let text = Self.checkedDescription(description), (8...96).contains(idempotencyKey.count) else {
             throw PlayerCapabilityFailure.invalid
         }
@@ -140,7 +140,7 @@ public struct CommunityTrustPlayerService {
     /// `merchantId` here is `mms_merchant.id` (resolved by the caller through `api/merchant/public-home`).
     func safetyRequest(merchantID: Int, level: String, reason: String, idempotencyKey: String) throws -> URLRequest {
         let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard merchantID > 0, levelLabels.contains(where: { $0.0 == level }), !text.isEmpty, text.count <= 1000,
+        guard merchantID > 0, Self.levelLabels.contains(where: { $0.0 == level }), !text.isEmpty, text.count <= 1000,
               !idempotencyKey.isEmpty else { throw PlayerCapabilityFailure.invalid }
         return try client.jsonRequest(Self.safetyRatingPath, body: [
             "merchantId": .integer(merchantID), "overallLevel": .string(level), "reason": .string(text),
