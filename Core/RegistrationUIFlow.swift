@@ -143,7 +143,8 @@ public final class RegistrationUIFlow {
         if activeWaitlistOffer != nil && !hasActiveWaitlistOffer { return .soldOut }
         if selectedTicket?.isSoldOut == true && !hasActiveWaitlistOffer { return .soldOut }
         if case .approved = creationPolicy, quoteReceivedAt.map({ now().timeIntervalSince($0) >= 0 && now().timeIntervalSince($0) < 120 }) != true { return .quoteUnavailable }
-        if case .free = creationPolicy {
+        // Free path: consent first (missingConsent), then a fresh known-zero quote.
+        if case .free = creationPolicy, consented {
             let age = quoteReceivedAt.map { now().timeIntervalSince($0) }
             let fresh = age.map { $0 >= 0 && $0 < 120 } == true
             if !fresh { return .quoteUnavailable }
