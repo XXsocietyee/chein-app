@@ -12,7 +12,9 @@ final class UGGameplayTests: XCTestCase {
         XCTAssertFalse(UGGameplay.offersSkipButton)
         XCTAssertFalse(UGGameplay.recordsGemBalance)
         XCTAssertFalse(UGGameplay.hasCoinWallet)
-        XCTAssertFalse(UGGameplay.accusationPublishable)
+        XCTAssertTrue(UGGameplay.accusationPublishable)
+        XCTAssertEqual(PlayKitPublishedWrites.accusationAction, "SUBMIT_QA")
+        XCTAssertNil(PlayKitActionCatalog.actions["accusation"])
         XCTAssertFalse(UGGameplay.catalogSynced)
         XCTAssertFalse(UGPaidWorkshopInstall.completesInstall)
         XCTAssertEqual(UGPaidWorkshopInstall.unavailableReason, "PAID_INSTALL_AUTHORITY_UNAVAILABLE")
@@ -440,8 +442,9 @@ final class UGGameplayTests: XCTestCase {
             XCTAssertEqual($0 as? UGRefusal, .writesNotAvailable)
         }
         XCTAssertThrowsError(try reader.useHelp(runID: "9", nodeID: "3", level: 1, requestID: "req-1", token: "session-token"))
-        XCTAssertThrowsError(try reader.submitHangman(requestID: "req-1", token: "session-token"))
-        XCTAssertThrowsError(try reader.submitAccusation(requestID: "req-1", token: "session-token"))
+        XCTAssertThrowsError(try reader.submitAccusation(requestID: "req-1", token: "session-token")) {
+            XCTAssertEqual($0 as? UGRefusal, .writesNotAvailable)
+        }
         XCTAssertEqual(wire.requests.count, 3)
         XCTAssertThrowsError(try UGSessionScope(accountID: 0, epoch: 1, namespace: "cn"))
         for host in ["https://api.chengyinhub.cn", "https://www.chengyinhub.com", "https://47.103.124.64"] {
@@ -450,6 +453,46 @@ final class UGGameplayTests: XCTestCase {
         XCTAssertThrowsError(try makeReader(wire, granted: [.hintLadder], endpoint: .production)) {
             XCTAssertEqual($0 as? UGRefusal, .productionEndpoint)
         }
+    }
+
+    func testHangmanSubmitPostsTheAdvancedActionAndKeepsAnUnknownRequestID() async throws {
+        let wire = Wire()
+        let locked = try makeReader(wire, granted: [])
+        do {
+            _ = try await locked.submitHangman(sessionID: "501", version: 1, requestID: "req-1", slots: ["1": "N"], token: "session-token")
+            XCTFail("hangman without a grant must not be sent")
+        } catch { XCTAssertEqual(error as? UGRefusal, .writesNotAvailable) }
+        XCTAssertTrue(wire.requests.isEmpty)
+        let reader = try makeReader(wire, granted: [.hangman])
+        do {
+            _ = try await reader.submitHangman(sessionID: "0", version: 1, requestID: "req-1", slots: ["1": "N"], token: "session-token")
+            XCTFail("a leading-zero session must not be sent")
+        } catch { XCTAssertEqual(error as? UGRefusal, .invalidRequest) }
+        XCTAssertTrue(wire.requests.isEmpty)
+        wire.body = envelope(#"{"sessionId":501,"version":2,"status":"RUNNING"}"#)
+        let accepted = try await reader.submitHangman(sessionID: "501", version: 1, requestID: "req-1", slots: ["1": "N"], token: "session-token")
+        XCTAssertEqual(accepted, .accepted(requestID: "req-1"))
+        let request = try XCTUnwrap(wire.requests.first)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.path, "/api/play/advanced/action")
+        let body = try JSONDecoder().decode(PlayWireValue.self, from: XCTUnwrap(request.httpBody))
+        XCTAssertEqual(body["action"], .string("SUBMIT_HANGMAN"))
+        XCTAssertEqual(body["idempotencyKey"], .string("req-1"))
+        XCTAssertEqual(body["sessionId"], .int(501))
+        XCTAssertEqual(body["payload"]["slots"]["1"], .string("N"))
+        XCTAssertEqual(body["payload"]["answer"], .null)
+        XCTAssertEqual(body["amount"], .null)
+        wire.status = 500
+        let unknown = try await reader.submitHangman(sessionID: "501", version: 1, requestID: "req-1", slots: ["1": "N"], token: "session-token")
+        XCTAssertEqual(unknown, .unknown(requestID: "req-1"))
+        wire.status = 200
+        wire.body = Data(#"{"code":400,"msg":"no"}"#.utf8)
+        let failed = try await reader.submitHangman(sessionID: "501", version: 1, requestID: "req-1", slots: ["1": "N"], token: "session-token")
+        XCTAssertEqual(failed, .failed)
+        XCTAssertNil(failed.requestID)
+        wire.failure = URLError(.timedOut)
+        let dropped = try await reader.submitHangman(sessionID: "501", version: 1, requestID: "req-keep", slots: ["1": "N"], token: "session-token")
+        XCTAssertEqual(dropped, .unknown(requestID: "req-keep"))
     }
 
     func testHangmanDropsPrivateKeysAndKeepsASeparator() throws {

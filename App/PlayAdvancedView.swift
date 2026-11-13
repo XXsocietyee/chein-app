@@ -8,10 +8,11 @@ import SwiftUI
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
-    /// UG-01 / UG-03 writes stay NOT_RUN in Core; nil keeps both screens read-only with an explanation.
+    /// Override for SUBMIT_HANGMAN. Nil uses the advanced-action review on this screen.
     var ugHangmanWrite: PlayKitHangmanWrite? = nil
+    /// Override for accusation. Nil lets the qa screen publish SUBMIT_QA when UG-03 is publishable.
     var ugAccusationWrite: PlayKitAccusationWrite? = nil
-    /// Album photo completion (upload + SUBMIT_ALBUM). Nil hides the completion button.
+    /// Override for album completion. Nil uploads one photo, then posts SUBMIT_ALBUM.
     var albumComplete: (() -> Void)? = nil
     let onReady: (PlayAdvancedState) -> Void
     @State private var teamSurfaceID = UUID()
@@ -20,6 +21,7 @@ import SwiftUI
     /// The one playkit sheet over the pack. Opening another replaces it; closing the panel closes it.
     @State private var openKit: PlayAdvancedKitSheet?
     @State private var kitDirty = false
+    @State private var albumCapture = false
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -111,7 +113,7 @@ import SwiftUI
         .onAppear { teamSurfaceVisible = true; model.beginTeamSurface(id: teamSurfaceID) }
         .task(id: model.state?.version) { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) }
         .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID); model.closeAdvancedPanel() }
-        .sheet(item: $openKit, onDismiss: { kitDirty = false; model.closePlayKitSheet() }) { sheet in
+        .sheet(item: $openKit, onDismiss: { kitDirty = false; albumCapture = false; model.closePlayKitSheet() }) { sheet in
             NavigationStack { kitSheet(sheet) }
                 .presentationDetents(sheet.halfSheet ? [.medium, .large] : [.large])
                 .presentationDragIndicator(.visible)
@@ -155,8 +157,9 @@ extension PlayAdvancedView {
         case .hangman:
             Group {
                 if let segment = model.state?.playKit["hangman"], segment.object != nil {
+                    if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                     PlayKitHangmanView(projection: PlayKitHangmanProjection(segment: segment), enabled: model.canInteract,
-                        submit: ugHangmanWrite, close: { openKit = nil })
+                        submit: ugHangmanWrite ?? hangmanWrite, close: { openKit = nil })
                         .padding()
                 } else { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }
             }
@@ -165,11 +168,65 @@ extension PlayAdvancedView {
             Group {
                 if let state = model.state, let album = PlayKitAlbumProjection(state: state) {
                     ScrollView {
-                        PlayKitAlbumView(projection: album, approvedHosts: approvedArtworkHosts, complete: albumComplete, close: { openKit = nil })
+                        PlayKitAlbumView(projection: album, approvedHosts: approvedArtworkHosts, complete: albumComplete ?? albumFinish, close: { openKit = nil })
+                        albumCapturePanel
+                        if let issue = model.issue { PlayExperienceIssueView(issue: issue).padding(.horizontal) }
                     }
                 } else { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }
             }
             .modifier(PlayAdvancedKitSheetChrome(key: sheet.key, close: { openKit = nil }))
+        }
+    }
+
+    /// SUBMIT_HANGMAN through the advanced review. An unknown result keeps the saved request id.
+    private var hangmanWrite: PlayKitHangmanWrite {
+        { payload in
+            Task { await model.submit(kind: PlayKitPublishedWrites.hangmanKind, action: PlayKitPublishedWrites.hangmanAction, detail: payload) }
+        }
+    }
+
+    /// R5 albums that are not done open the photo step. An in-flight unknown SUBMIT_ALBUM does not start another.
+    private var albumFinish: (() -> Void)? {
+        guard model.phase != "unknown", model.pending?.action != PlayKitPublishedWrites.albumAction,
+              let state = model.state, let album = PlayKitAlbumProjection(state: state),
+              album.completionEnabled, !album.done, model.canInteract else { return nil }
+        return { albumCapture = true }
+    }
+
+    @ViewBuilder private var albumCapturePanel: some View {
+        if model.phase == "unknown", let pending = model.pending, pending.action == PlayKitPublishedWrites.albumAction {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("playkit.pendingBoundary")
+                Text(verbatim: pending.key).font(CYTypography.meta).textSelection(.enabled)
+                    .accessibilityIdentifier("playkit.album.requestId")
+                Button("playkit.reconcile") { Task { await model.recover() } }
+                    .accessibilityIdentifier("playkit.album.reconcile")
+            }
+            .padding(.horizontal)
+            .accessibilityIdentifier("playkit.album.unknown")
+        } else if albumCapture {
+            Group {
+                if let device {
+                    PlayKitPhotoInput(model: device, identity: albumIdentity, enabled: model.canInteract && model.pending == nil,
+                                      onDirty: { kitDirty = true }, onURL: submitAlbum(url:))
+                } else {
+                    Label("playkit.camera.gated", systemImage: "camera")
+                }
+            }
+            .padding(.horizontal)
+            .accessibilityIdentifier(device == nil || device?.issue != nil ? "playkit.album.uploadFailed" : "playkit.album.upload")
+        }
+    }
+
+    private var albumIdentity: String { "\(model.state?.sessionID ?? -1):\(model.state?.version ?? -1):album" }
+
+    /// Upload failure stays failed and does not post. A ready https URL posts SUBMIT_ALBUM.
+    private func submitAlbum(url: String) {
+        guard model.pending == nil, model.phase != "unknown",
+              case .ready(let accepted) = PlayAlbumUploadOutcome.resolve(url: url, issue: device?.issue) else { return }
+        Task {
+            await model.submit(kind: PlayKitPublishedWrites.albumKind, action: PlayKitPublishedWrites.albumAction,
+                               detail: PlayKitPublishedWrites.albumDetail(imageURL: accepted))
         }
     }
 }

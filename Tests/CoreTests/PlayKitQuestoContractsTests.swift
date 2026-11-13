@@ -66,6 +66,32 @@ final class PlayKitQuestoContractsTests: XCTestCase {
         XCTAssertEqual(r5Done.photos.map(\.url), ["https://a/9.png"])
     }
 
+    func testHangmanAndAlbumActionsValidateAndRefuseMoneyFields() throws {
+        XCTAssertEqual(PlayKitActionCatalog.actions["hangman"], Set(["SUBMIT_HANGMAN"]))
+        XCTAssertEqual(PlayKitActionCatalog.actions["album"], Set(["SUBMIT_ALBUM"]))
+        XCTAssertEqual(PlayKitActionCatalog.actions["qa"], Set(["SUBMIT_QA"]))
+        XCTAssertNil(PlayKitActionCatalog.actions["accusation"])
+        XCTAssertEqual(UGGameplay.contractExecution, "NOT_RUN")
+        let open = try wire(#"{"solved":false,"slots":[{"i":0,"kind":"PREFILLED","ch":"E"},{"i":1,"kind":"BLANK"},{"i":2,"kind":"SEPARATOR","ch":" "}]}"#)
+        let slots: [String: PlayWireValue] = ["slots": .object(["1": .string("N")])]
+        XCTAssertNoThrow(try PlayKitInputContract.validate(kind: "hangman", action: "SUBMIT_HANGMAN", payload: slots, segment: open))
+        XCTAssertEqual(try PlayKitActionCatalog.payload(kind: "hangman", action: "SUBMIT_HANGMAN", detail: slots), slots)
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "hangman", action: "SUBMIT_HANGMAN", payload: ["slots": .object(["1": .string("N")]), "amount": .int(1)], segment: open))
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "hangman", action: "SUBMIT_HANGMAN", payload: slots, segment: try wire(#"{"solved":true,"slots":[{"i":1,"kind":"BLANK"}]}"#)))
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "hangman", action: "SUBMIT_HANGMAN", payload: ["slots": .object(["1": .string("NO")])], segment: open))
+        let album = try wire(#"{"done":false}"#)
+        let photo = PlayKitPublishedWrites.albumDetail(imageURL: "https://cdn.example/a.jpg")
+        XCTAssertNoThrow(try PlayKitInputContract.validate(kind: "album", action: "SUBMIT_ALBUM", payload: photo, segment: album))
+        XCTAssertEqual(Set(photo.keys), ["imageUrls"])
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "album", action: "SUBMIT_ALBUM", payload: ["imageUrls": .array([.string("https://cdn.example/a.jpg")]), "amount": .int(1)], segment: album))
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "album", action: "SUBMIT_ALBUM", payload: ["imageUrls": .array([.string("http://cdn.example/a.jpg")])], segment: album))
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "album", action: "SUBMIT_ALBUM", payload: photo, segment: try wire(#"{"done":true}"#)))
+        XCTAssertEqual(PlayAlbumUploadOutcome.resolve(url: nil, issue: .unknownResult), .failed)
+        XCTAssertEqual(PlayAlbumUploadOutcome.resolve(url: "https://cdn.example/a.jpg", issue: .rejected(400, nil)), .failed)
+        XCTAssertEqual(PlayAlbumUploadOutcome.resolve(url: "https://cdn.example/a.jpg", issue: nil), .ready("https://cdn.example/a.jpg"))
+        XCTAssertEqual(PlayKitPublishedWrites.accusationDetail(optionID: "a"), ["optionId": .string("a")])
+    }
+
     func testClosingThePlayKitSheetKeepsTheAdvancedPanel() {
         let open = AdvancedPlayKitPresentation(advancedOpen: true, playKitOpen: true)
         XCTAssertEqual(open.closingPlayKitSheet(), AdvancedPlayKitPresentation(advancedOpen: true, playKitOpen: false))

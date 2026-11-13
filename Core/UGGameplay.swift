@@ -261,7 +261,8 @@ public enum UGGameplay {
     /// Points already redeemable on the member ledger. There is no second wallet.
     public static let recordsGemBalance = false
     public static let hasCoinWallet = false
-    public static let accusationPublishable = false
+    /// UG-03 publishes as the existing qa action SUBMIT_QA. There is no second action name.
+    public static let accusationPublishable = true
     public static let catalogSynced = false
     public static let rendererSynced = false
 }
