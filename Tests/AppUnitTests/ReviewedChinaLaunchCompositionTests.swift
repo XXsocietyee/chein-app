@@ -545,6 +545,26 @@ import XCTest
         XCTAssertEqual(recorder.paths.count, sent)
     }
 
+    /// H7 U08-02: report-a-problem after a run is admitted for a signed-in China player; money stays closed.
+    func testShippedChinaAdmitsRunFeedbackAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/feedback/submit"))
+        XCTAssertTrue(try XCTUnwrap(composition.playerWriteGrant(player)).play.paths.contains("api/play/feedback/submit"))
+        let feedback = jsonRequest(player.baseURL.appendingPathComponent("api/play/feedback/submit"),
+            #"{"runId":41,"category":"STUCK","content":"stop 2 will not open","requestId":"feedback-request-01"}"#, token: player.session.token)
+        _ = try await transport.send(feedback)
+        XCTAssertEqual(recorder.paths.last, "api/play/feedback/submit")
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

@@ -310,7 +310,7 @@ enum ReviewedPlayerReadRoute {
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
         "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
-        "api/play/theme/replay",
+        "api/play/theme/replay", "api/play/feedback/submit",
         // G2 (owner-approved 2026-11-13): invoices are tax documents, not payments. Reads and the
         // requestId-receipted non-money writes the mini-program's subpackageMember/invoice* pages send.
         "api/invoice/list", "api/invoice/detail", "api/invoice/orders/eligible", "api/invoice/apply",

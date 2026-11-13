@@ -131,6 +131,8 @@ public enum ChinaReviewedRouteCapability {
     /// seat invite/claim/cancel, and the boards those screens read.
     /// The affiliate summary GET is admitted. Referral-token issue, gift claim, and every money path stay out.
     private static let playerJourneyOwnerGrant: Set<String> = [
+        // Owner approval 2026-11-13 (H7 U08-02): report-a-problem after a run. Non-money player write.
+        "/api/play/feedback/submit",
         "/api/play/player-journey/report",
         "/api/play/player-journey/memory",
         "/api/play/player-journey/choices",
