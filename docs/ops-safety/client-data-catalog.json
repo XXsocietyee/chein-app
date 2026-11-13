@@ -194,6 +194,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/PlayRuntimeGapProduction.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Journey check pending write per owner/route session/node/check: action and server actionId only, so an unconfirmed roll is re-read, never re-rolled",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/PlayThemeReplayProduction.swift",
       "kinds": [
         "userDefaults"

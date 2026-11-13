@@ -40,6 +40,7 @@ public enum ChinaReviewedRouteCapability {
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        if playRuntimeOwnerGrant.contains(key) { return true }
         if videoBountyOwnerGrant.contains(key) { return true }
         return playerGapOwnerGrant.contains(key)
     }
@@ -88,6 +89,17 @@ public enum ChinaReviewedRouteCapability {
         "/api/public-catalog/filters",
         "/api/public-catalog/info",
         "/api/marketing/affiliate/summary"
+    ]
+
+    /// Owner approval (G1 play runtime). Non-money player reads and writes the mini-program play page
+    /// calls that were not wired: shared team help, the completed-run history read, and the circle
+    /// record/answer writes. Check, setup, contact, gameplay and shared preview were already wired.
+    /// Circle instance configure is a host write and stays out. Every money path stays out.
+    private static let playRuntimeOwnerGrant: Set<String> = [
+        "/api/play/help/shared",
+        "/api/play/history",
+        "/api/circle-theme/session/answer",
+        "/api/circle-theme/session/record"
     ]
 
     /// Handover 14, stub-ledger row 24. Author video-bounty reads and the three non-money writes.
