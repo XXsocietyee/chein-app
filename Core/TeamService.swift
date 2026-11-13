@@ -24,6 +24,8 @@ public enum TeamWriteOutcome: Equatable {
     case joinModeSimulated(operationID: UUID, teamID: Int, mode: TeamJoinMode)
     case joinModeAcknowledged(operationID: UUID, teamID: Int, mode: TeamJoinMode)
     case rejected, notSent, unknown
+    /// A business rejection carrying the source `errorCode` (B6). The UI branches on the code, never on the message.
+    case rejectedCode(String)
 }
 @MainActor public protocol TeamServing: AnyObject {
     var authority: TeamServiceAuthority { get }

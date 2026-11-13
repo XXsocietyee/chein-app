@@ -153,7 +153,7 @@ struct TeamMemberRow: View {
                             : "Only the joining mode changes; membership and registration stay unchanged. An unknown outcome remains locked without automatic retry.")
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
-                        Text(LocalizedStringKey(review.action.consequenceKey)).fixedSize(horizontal: false, vertical: true)
+                        Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail))).fixedSize(horizontal: false, vertical: true)
                     }
                     TeamNotice(coordinator: model.coordinator)
                     Button(LocalizedStringKey(model.coordinator.canSimulate ? "team.simulate" : "team.confirmLive")) {

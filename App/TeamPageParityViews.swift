@@ -113,10 +113,12 @@ struct TeamClosedInvitationButton: View {
 
 /// Source join page `cy-inline-error` 暂时无法加入; the retry button below opens a new review.
 struct TeamJoinRetryNotice: View {
+    /// U06-01: the `/join` errorCode copy (INVITE_EXPIRED, TEAM_FULL, TICKET_REQUIRED…) when the server sent one.
+    var reasonKey: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Label("team.page.joinFailed", systemImage: "exclamationmark.circle").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.dangerText)
-            Text("team.page.joinFailed.detail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(LocalizedStringKey(reasonKey ?? "team.page.joinFailed.detail")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.dangerSoft, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.joinFailed")
