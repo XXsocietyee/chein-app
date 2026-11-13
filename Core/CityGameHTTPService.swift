@@ -23,7 +23,16 @@ public struct CityGameProductionLease: Equatable, Sendable {
         "/api/city-game/team-participation/command", "/api/city-game/team-participation/request/{}",
         "/api/city-game/game/snapshot", "/api/city-game/game/deltas", "/api/city-game/game/quote",
         "/api/city-game/game/action", "/api/city-game/game/action/{}",
-        "/api/city-game/fairness/report", "/api/city-game/fairness/outing"
+        "/api/city-game/fairness/report", "/api/city-game/fairness/outing",
+        "/api/city-game/action-budget/state", "/api/city-game/action-budget/command", "/api/city-game/action-budget/request/{}",
+        "/api/city-game/acquisition/state", "/api/city-game/acquisition/titles", "/api/city-game/acquisition/quote/{}",
+        "/api/city-game/acquisition/command", "/api/city-game/acquisition/request/{}",
+        "/api/city-game/neutral-tasks/state", "/api/city-game/neutral-tasks/command", "/api/city-game/neutral-tasks/request/{}",
+        "/api/city-game/onsite-tasks/state", "/api/city-game/onsite-tasks/command", "/api/city-game/onsite-tasks/request/{}",
+        "/api/city-game/onsite-tasks/result/{}",
+        "/api/city-game/arrival-evidence/state", "/api/city-game/arrival-evidence/merchant", "/api/city-game/arrival-evidence/command",
+        "/api/city-game/arrival-evidence/request/{}", "/api/city-game/arrival-evidence/evidence/{}",
+        "/api/city-game/merchant/operations/availability", "/api/city-game/merchant/operations/request/{}"
     ]
 
     public init?(host: String, regionID: String) {

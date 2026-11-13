@@ -216,6 +216,12 @@ import SwiftUI
                 Section { CityGamePanel(model: cityGameModel, read: cityGameModel.read, boardLayout: true) }
                     .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             }
+            Section {
+                NavigationLink { PlayGapMiscSurfaces() } label: {
+                    Text("playGap.entry", tableName: "PlayGapMisc")
+                }
+                .accessibilityIdentifier("playGap.entry")
+            }
             if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
                let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
                let node = snapshot.visibleNodes.first(where: { $0.id == id }) {

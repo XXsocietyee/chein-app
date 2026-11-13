@@ -351,6 +351,7 @@
         "PersonalLocationShareNormalEntryTests",
         "PlayAnswerReviewTests",
         "PlayBranchHistoryFixtureHandshakeTests",
+        "PlayGapOwnerGrantTests",
         "PlayKitGLBDecoderTests",
         "PlayKitSensorStageLifecycleTests",
         "PlayKitShortMessageLimitTests",

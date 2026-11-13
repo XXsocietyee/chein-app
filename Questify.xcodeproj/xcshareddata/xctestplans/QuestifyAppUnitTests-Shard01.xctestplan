@@ -348,6 +348,7 @@
         "PlayBranchHistoryAppTests",
         "PlayBranchHistoryFixtureHandshakeTests",
         "PlayExperiencePresentationMountTests",
+        "PlayGapOwnerGrantTests",
         "PlayKitGLBDecoderTests",
         "PlayKitSensorStageLifecycleTests",
         "PlayKitShortMessageLimitTests",

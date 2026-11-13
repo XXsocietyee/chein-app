@@ -18,6 +18,7 @@ extension EnvironmentValues {
     @State private var work: Task<Void, Never>?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.playGapAPIHost) private var playGapAPIHost
     private let table = "CityMerchantOperations"
     var body: some View {
         Form {
@@ -119,9 +120,14 @@ extension EnvironmentValues {
         }
         .alert(Text("cityMerchant.confirm.title", tableName: table), isPresented: Binding(get: { controller.confirmation != nil }, set: { if !$0 { controller.dismissConfirmation() } })) {
             Button(role: .cancel) { controller.dismissConfirmation() } label: { Text("cityMerchant.cancel", tableName: table) }
-            Button { if let captured = controller.confirmation, controller.admitConfirmation(captured) { perform { await controller.confirm(captured) } } } label: { Text("cityMerchant.confirm.submit", tableName: table) }
+            Button {
+                guard !ReviewedAreaSwitch.merchantWritesBlocked(host: playGapAPIHost) else { return }
+                if let captured = controller.confirmation, controller.admitConfirmation(captured) { perform { await controller.confirm(captured) } }
+            } label: { Text("cityMerchant.confirm.submit", tableName: table) }
         } message: {
-            if let value = controller.confirmation {
+            if ReviewedAreaSwitch.merchantWritesBlocked(host: playGapAPIHost) {
+                Text("cityMerchant.status.writesClosed", tableName: table)
+            } else if let value = controller.confirmation {
                 Text(LocalizedStringKey(value.kind == .pause ? "cityMerchant.confirm.pause" : "cityMerchant.confirm.restore"), tableName: table)
                 + Text(verbatim: "\n")
                 + Text("cityMerchant.confirm.detail \(value.merchantID) \(String(value.version)) \(value.reason)", tableName: table)
