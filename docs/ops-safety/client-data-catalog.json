@@ -23,6 +23,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/AppSessionRoamConsent.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Removes the local roam 'Agree and go' acceptance flag (roamLivePurposeAcceptedV1) when roam location consent is withdrawn; writes nothing",
+      "retention": "Device-local flag owned by RoamLiveSessionView; cleared on withdraw",
+      "deletion": "Cleared by the roam consent withdraw path"
+    },
+    {
       "file": "App/AppStorePrivacyManifestSectionView.swift",
       "kinds": [
         "userDefaults"
@@ -75,15 +84,6 @@
       "purpose": "Remembers the last four map entry routes (city, nearby, layers, shops) under globalSearch.recentRoutes.v1 to order the shortcut shelf; route names only, no search text or location",
       "retention": "Device-local; at most 4 route names, overwritten by use; removed when the app is deleted",
       "deletion": "No in-app deletion yet (pending privacy review)"
-    },
-    {
-      "file": "App/AppSessionRoamConsent.swift",
-      "kinds": [
-        "userDefaults"
-      ],
-      "purpose": "Removes the local roam 'Agree and go' acceptance flag (roamLivePurposeAcceptedV1) when roam location consent is withdrawn; writes nothing",
-      "retention": "Device-local flag owned by RoamLiveSessionView; cleared on withdraw",
-      "deletion": "Cleared by the roam consent withdraw path"
     },
     {
       "file": "App/HomeCityLocationConsentHost.swift",
@@ -185,20 +185,29 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
-      "file": "App/PlayThemePresentation.swift",
-      "kinds": [
-        "userDefaults"
-      ],
-      "purpose": "Device list cy_playTitleCardSeen of up to 200 topic ids whose title card already played",
-      "retention": "待隐私评审确定 / pending privacy review",
-      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
-    },
-    {
       "file": "App/PlayHelpLadderPanel.swift",
       "kinds": [
         "userDefaults"
       ],
       "purpose": "Hint ladder pending use/skip per account/run/node/level: request id only (play-help-pending:v1), so an unknown result is rechecked with the same request id; no hint content, answer or balance",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/PlayRecoveryViews.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Per-run offline content pack (U05-04): account-private, content-identity-scoped play media files and index in Caches/PlayContentPrefetch (not backed up), at most 50 MB per asset; the player can clear downloads",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "页面内可清除下载；退出/注销清理路径未逐项核验 / in-app clear downloads; logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/PlayThemePresentation.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Device list cy_playTitleCardSeen of up to 200 topic ids whose title card already played",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
@@ -374,15 +383,6 @@
       "deletion": "No in-app deletion (pending privacy review)"
     },
     {
-      "file": "Core/CNAccountSessionService.swift",
-      "kinds": [
-        "userDefaults"
-      ],
-      "purpose": "Role committed with the signed-in account (<scope>.restoreRole = accountID|role) so a cold restore survives a /api/userInfo without role; no token or personal data",
-      "retention": "Per storage scope; overwritten on each sign-in or restore",
-      "deletion": "Cleared on logout, session expiry and unauthorized restore"
-    },
-    {
       "file": "Core/AccountScopedPersistence.swift",
       "kinds": [
         "userDefaults"
@@ -410,11 +410,29 @@
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
     },
     {
+      "file": "Core/CNAccountSessionService.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Role committed with the signed-in account (<scope>.restoreRole = accountID|role) so a cold restore survives a /api/userInfo without role; no token or personal data",
+      "retention": "Per storage scope; overwritten on each sign-in or restore",
+      "deletion": "Cleared on logout, session expiry and unauthorized restore"
+    },
+    {
       "file": "Core/ChannelDiscordMessaging.swift",
       "kinds": [
         "userDefaults"
       ],
       "purpose": "UserDefaults-backed channel rules acceptance and blocked-user list, namespaced per account scope",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ChapterReadingPosition.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Chapter reading resume: last read segment id per run/content version/chapter (cy.chapterRead.v1:), capped at 40 entries; no story text",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },

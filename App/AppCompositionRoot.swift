@@ -711,7 +711,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.roamLiveApproval = roamLiveApproval
         return transport
     }
-    func makeSession() -> AppSession { AppSession(composition: self) }
+    func makeSession() -> AppSession { installTemplateAdoption(AppSession(composition: self)) }
 }
 
 /// Existing CN auth and independently reviewed bounded reads; coupon mutations additionally
@@ -2566,7 +2566,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let path = url.path
         guard path == base || path.hasPrefix(base + "/") else { return false }
         let relative = String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state"
+        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution"
     }
 
     private func signedInRuntime(_ captured: SessionIdentity) -> RuntimeDependencyContext? {
@@ -3639,7 +3639,7 @@ struct ReviewedPlayerWriteGrant {
     let play: OperationEndpointApproval
     let roamExtras: OperationEndpointApproval
     let likes: OperationEndpointApproval
-    let reports: OperationEndpointApproval
+    let reports: OperationEndpointApproval, templateAdoption: OperationEndpointApproval
     let friends: NativeFriendApproval
     let channelTextSend: NativeChannelTextApproval
     let channelTextReceipt: NativeChannelTextApproval

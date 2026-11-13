@@ -45,6 +45,10 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
+        if relative == "api/media/asset/attribution" {
+            return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true)
+                && covers(relative, grant.templateAdoption)
+        }
         if method == "GET" { return covers(relative, grant.friends.endpoint) }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
@@ -53,6 +57,7 @@ extension ReviewedProductionFormMutationRoute {
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
+            || covers(relative, grant.templateAdoption)
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -248,6 +253,11 @@ enum ReviewedPlayerReadRoute {
         "api/roam/shop/visit", "api/roam/poi/discover", "api/roam/reveal",
         "api/roam/passport/record", "api/city/nodes/{}/favorite", "api/city/nodes/{}/complete"
     ]
+    /// H1 template adoption: copy, place to-do status and binding are form POSTs; image credit is one GET.
+    static let templateAdoptionPaths: Set<String> = [
+        "api/template/topic-template/use", "api/template/topic-template/binding-status",
+        "api/template/topic-template/binding", "api/media/asset/attribution"
+    ]
     static let likePaths: Set<String> = ["api/topic/like", "api/comment/like", "api/creativesquare/like"]
     static let reportPaths: Set<String> = [
         "api/v1/community/reports", "api/v1/community/appeals", "api/comment/report", "api/topic/report",
@@ -304,6 +314,7 @@ enum ReviewedPlayerReadRoute {
               let roamExtras = makeEndpoint(context, paths: Self.roamExtraPaths),
               let likes = makeEndpoint(context, paths: Self.likePaths),
               let reports = makeEndpoint(context, paths: Self.reportPaths),
+              let templateAdoption = makeEndpoint(context, paths: Self.templateAdoptionPaths),
               let friendEndpoints = makeEndpoint(context, paths: NativeFriendApproval.readPaths.union(NativeFriendApproval.writePaths)),
               let friends = try? NativeFriendApproval(endpoint: friendEndpoints, expiresAt: expires),
               let avatar = try? ProfileAvatarApproval(baseURL: context.baseURL, namespace: context.session.namespace,
@@ -315,7 +326,7 @@ enum ReviewedPlayerReadRoute {
                   expiresAt: expires, allowsAnyPositiveConversation: true) else { return nil }
         return ReviewedPlayerWriteGrant(imSend: im, clubAdmission: clubAdmission, clubCommunity: clubCommunity, square: square,
             profile: profile, avatar: avatar, registration: registration, team: team, play: play, roamExtras: roamExtras,
-            likes: likes, reports: reports, friends: friends, channelTextSend: channelTextSend, channelTextReceipt: channelTextReceipt)
+            likes: likes, reports: reports, templateAdoption: templateAdoption, friends: friends, channelTextSend: channelTextSend, channelTextReceipt: channelTextReceipt)
     }
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {

@@ -1783,6 +1783,10 @@ public enum ChinaReviewedRouteCapability {
         "/api/template/topic-template/info",
         "/api/template/topic-template/list",
         "/api/template/topic-template/use",
+        // Owner-approved non-money template adoption (2026-11-13, H1): place to-dos and image credits.
+        "/api/template/topic-template/binding",
+        "/api/template/topic-template/binding-status",
+        "/api/media/asset/attribution",
         "/api/template/updateLibraryStatus",
         "/api/topic/beta/graduate",
         "/api/topic/cancel",

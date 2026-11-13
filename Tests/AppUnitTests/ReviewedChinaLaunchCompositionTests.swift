@@ -429,6 +429,41 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/wallet/withdraw"), #"{"amount":1}"#, token: player.session.token)) }
     }
 
+    /// H1: template copy, place to-dos and image credits are admitted for a signed-in China player; money stays closed.
+    func testShippedChinaAdmitsTemplateAdoptionAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        for path in ["api/template/topic-template/use", "api/template/topic-template/binding-status",
+                     "api/template/topic-template/binding", "api/media/asset/attribution"] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            XCTAssertTrue(grant.templateAdoption.paths.contains(path), path)
+        }
+        let token = player.session.token
+        let service = TopicTemplateAdoptionService(configuration: try APIConfiguration(baseURL: player.baseURL),
+            transport: transport, token: { token })
+        _ = await service.use(TopicTemplateUseRequest(id: 41, scope: "SAME_CITY"))
+        XCTAssertEqual(recorder.paths.last, "api/template/topic-template/use")
+        _ = try? await service.status(topicId: 41, scope: nil)
+        XCTAssertEqual(recorder.paths.last, "api/template/topic-template/binding-status")
+        _ = await service.bind(topicId: 41, scope: nil, slotKey: "stop-1", nodeId: "n-1", expectedRevision: 1)
+        XCTAssertEqual(recorder.paths.last, "api/template/topic-template/binding")
+        _ = await service.credit(reference: "cover-1")
+        XCTAssertEqual(recorder.paths.last, "api/media/asset/attribution")
+        XCTAssertEqual(recorder.paths.count, 4)
+        for money in ["/api/registration/pay", "/api/pay/create", "/api/wallet/withdraw"] {
+            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
+        }
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

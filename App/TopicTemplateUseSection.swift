@@ -29,6 +29,18 @@ import QuestifyCore
     }
 }
 
+extension AppCompositionRoot {
+    /// H1: template copy, place to-dos and image credits go live only with the reviewed China player-write grant;
+    /// every request still passes the session transport's player-write lease.
+    func installTemplateAdoption(_ session: AppSession) -> AppSession {
+        guard reviewed?.playerWritesEnabled == true, reviewed?.regional.market == .china,
+              let api = reviewed?.regional.apiConfiguration else { return session }
+        TopicTemplateAdoptionFactory.install(TopicTemplateAdoptionService(configuration: api,
+            transport: session.runtimeHTTPTransport, token: { [weak session] in session?.token }))
+        return session
+    }
+}
+
 /// Drop-in "Use this template" row for the topic-template detail screen. On a server-confirmed copy it
 /// calls `onCopied(topicID)` so the host can open the draft in the editor (mini: pages/publish/fabu?id=).
 /// A second tap after the copy reopens that same draft; an unconfirmed result re-asks with the same requestId.
