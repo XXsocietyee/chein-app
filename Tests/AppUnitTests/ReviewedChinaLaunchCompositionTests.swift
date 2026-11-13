@@ -147,7 +147,8 @@ import XCTest
         XCTAssertTrue(grant.avatar.nativePicker)
         XCTAssertFalse(grant.avatar.approvedOrigins.isEmpty)
         XCTAssertEqual(grant.registration.paths, ["api/registration/create"])
-        XCTAssertEqual(grant.team.paths, ["api/team/command", "api/team/command/query", "api/team/command/cancel"])
+        // cur-team-u0802 adds the player team create (owner-approved, non-money) to the team grant.
+        XCTAssertEqual(grant.team.paths, ["api/team/create", "api/team/command", "api/team/command/query", "api/team/command/cancel"])
         XCTAssertTrue(grant.play.paths.contains("api/play/arrive"))
         XCTAssertTrue(grant.play.paths.contains("api/play/help"))
         XCTAssertTrue(grant.play.paths.contains("api/play/scan-entry"))
@@ -694,8 +695,8 @@ import XCTest
         // g-partials owner item: the player TEAM backpack command is a reviewed player write.
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/game/session/command"))
         XCTAssertTrue(try XCTUnwrap(composition.playerWriteGrant(player)).play.paths.contains("api/game/session/command"))
-        _ = try await transport.send(jsonRequest(player.baseURL.appendingPathComponent("api/game/session/command"), #"{"activityId":41,"type":"ITEM_USE"}"#, token: token))
-        XCTAssertEqual(recorder.paths.last, "api/game/session/command")
+        // Only a TEAM item command body passes (PlayTeamItemCommandBody); valid bodies are covered by the team-command test.
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/game/session/command"), #"{"activityId":41,"type":"ITEM_USE"}"#, token: token)) }
         // R12: the player's own journey reads.
         for path in ["api/registration/my-joined", "api/play/my-completed"] {
             _ = try await transport.send(try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false))
