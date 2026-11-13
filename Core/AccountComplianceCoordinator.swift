@@ -453,4 +453,14 @@ public struct AccountMarketingReadIntent {
             }
         }
     }
+    /// Latest `privacy_policy` / `home_city_location` row. Empty data is no row, not an agreement.
+    public func latestHomeCityLocationConsent() async throws -> HomeCityLocationConsentBaseline {
+        guard let session = current(), session.valid else { throw ComplianceFailure.staleSession }
+        return try await service.homeCityLocationBaseline(session: session)
+    }
+    /// Existing consent write: `privacy_policy` / `home_city_location` / `AGREE`, with the preflight request id.
+    public func recordHomeCityLocationAgree() async throws -> ComplianceConsent {
+        guard let session = current(), session.valid else { throw ComplianceFailure.staleSession }
+        return try await service.consent(.homeCityLocation, event: .agree, requestID: UUID().uuidString.lowercased(), session: session)
+    }
 }

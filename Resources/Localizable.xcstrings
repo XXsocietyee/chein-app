@@ -69,6 +69,40 @@
         }
       }
     },
+    "homeCityConsent.saveFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location consent was not saved. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位同意记录未保存，请重试"
+          }
+        }
+      }
+    },
+    "homeCityConsent.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
+      }
+    },
     "publicCatalog.title": {
       "extractionState": "manual",
       "localizations": {

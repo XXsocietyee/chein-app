@@ -110,11 +110,22 @@ import FoundationNetworking
         if let id = subject.scopeID, authoritativeMerchantID() != id { throw ComplianceFailure.staleSession }
     }
     public func latest(_ subject: ComplianceSubject, session: ComplianceSession) async throws -> ComplianceConsent? {
+        guard let object = try await latestObject(subject, session: session) else { return nil }
+        return try decode(object, as: ComplianceConsent.self)
+    }
+    /// Same latest read as `latest`, keeping the raw object so a home-city agree can echo `requestId`
+    /// without teaching every other consent row a new field.
+    private func latestObject(_ subject: ComplianceSubject, session: ComplianceSession) async throws -> [String: Any]? {
         try checkScope(subject)
         let data = try await read("/api/compliance/consents/latest", body: subject.fields(), session: session)
         try checkScope(subject)
         guard let object = data as? [String: Any], !object.isEmpty else { return nil }
-        return try decode(object, as: ComplianceConsent.self)
+        return object
+    }
+    public func homeCityLocationBaseline(session: ComplianceSession) async throws -> HomeCityLocationConsentBaseline {
+        let object = try await latestObject(.homeCityLocation, session: session)
+        let consent = try object.map { try decode($0, as: ComplianceConsent.self) }
+        return HomeCityLocationConsentBaseline(consent: consent, requestID: object?["requestId"] as? String)
     }
     private func start(_ operation: String, requestID: String, session: ComplianceSession) throws {
         try check(session)
@@ -195,11 +206,33 @@ import FoundationNetworking
             return result
         }
         if event == .agree, !legalApproved(subject, session) { throw ComplianceFailure.unavailable }
-        var fields = try subject.fields(); fields["eventType"] = event.rawValue; fields["requestId"] = requestID
+        var sentRequestID = requestID
+        var fields = try subject.fields(); fields["eventType"] = event.rawValue
+        if subject == .homeCityLocation, event == .agree, let pending = try unresolved(subject.operation, session: session) {
+            sentRequestID = pending.requestID
+        }
+        fields["requestId"] = sentRequestID
+        if subject == .homeCityLocation, event == .agree {
+            let prior = try await latestObject(subject, session: session)
+            let consent = try prior.map { try decode($0, as: ComplianceConsent.self) }
+            fields["expectedRequestId"] = try HomeCityLocationConsentRecord.expectedRequestID(consent, rawRequestID: prior?["requestId"])
+        }
         let request = try request("/api/compliance/consents", body: fields, session: session)
-        try start(subject.operation, requestID: requestID, session: session); defer { busy = false }
+        let retryHomeCity = subject == .homeCityLocation && event == .agree && (try unresolved(subject.operation, session: session) != nil)
+        if retryHomeCity {
+            guard readsEnabled, writesEnabled else { throw ComplianceFailure.unavailable }
+            guard !busy else { throw ComplianceFailure.busy }
+            busy = true
+        } else {
+            try start(subject.operation, requestID: sentRequestID, session: session)
+        }
+        defer { busy = false }
         _ = try await write(request, operation: subject.operation, session: session)
-        guard let result = try await latest(subject, session: session), result.matches(subject, event: event) else { throw ComplianceFailure.readbackMismatch }
+        guard let echoed = try await latestObject(subject, session: session) else { throw ComplianceFailure.readbackMismatch }
+        let result = try decode(echoed, as: ComplianceConsent.self)
+        guard result.matches(subject, event: event),
+              HomeCityLocationConsentRecord.acceptsEcho(result, subject: subject, event: event, requestID: sentRequestID, rawRequestID: echoed["requestId"])
+        else { throw ComplianceFailure.readbackMismatch }
         try journal.resolve(scope: session.journalScope, operation: subject.operation)
         return result
     }

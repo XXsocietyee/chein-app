@@ -7164,7 +7164,7 @@ final class AppSession: ObservableObject {
             readsEnabled: true, writesEnabled: true,
             legalApproved: { [weak self] subject, session in
                 guard let self, self.composition.isAccountComplianceEnabled, self.complianceSession == session else { return false }
-                return subject == .cancellation || subject == .roamLocation
+                return subject == .cancellation || subject == .roamLocation || subject == .homeCityLocation
             }, authoritativeMerchantID: { nil },
             marketingOriginal: { [weak self] in self?.merchantMarketingConsentOriginalClient() },
             deregistrationOriginal: { [weak self] in self?.accountDeregistrationOriginalClient() })
