@@ -55,6 +55,7 @@ public enum ChinaReviewedRouteCapability {
         if playerGapOwnerGrant.contains(key) { return true }
         if creatorStudioOwnerGrant.contains(key) { return true }
         if clubAndMerchantCoopOwnerGrant.contains(key) { return true }
+        if playGapOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -334,6 +335,62 @@ public enum ChinaReviewedRouteCapability {
         "/api/club/roles",
         "/api/club/workbench",
         "/api/coop"
+    ]
+
+    /// Handover 23. Non-money reads and native routes. Merchant intent, marketing order/pay/quote,
+    /// and password login stay out. SMS send is `/api/sms/send`, not a password grant.
+    static let playGapOwnerGrant: Set<String> = [
+        "/api/city-game/action-budget/state", "/api/city-game/action-budget/command", "/api/city-game/action-budget/request/{}",
+        "/api/city-game/acquisition/state", "/api/city-game/acquisition/titles", "/api/city-game/acquisition/quote/{}",
+        "/api/city-game/acquisition/command", "/api/city-game/acquisition/request/{}",
+        "/api/city-game/neutral-tasks/state", "/api/city-game/neutral-tasks/command", "/api/city-game/neutral-tasks/request/{}",
+        "/api/city-game/onsite-tasks/state", "/api/city-game/onsite-tasks/command", "/api/city-game/onsite-tasks/request/{}",
+        "/api/city-game/onsite-tasks/result/{}",
+        "/api/city-game/arrival-evidence/state", "/api/city-game/arrival-evidence/merchant", "/api/city-game/arrival-evidence/command",
+        "/api/city-game/arrival-evidence/request/{}", "/api/city-game/arrival-evidence/evidence/{}",
+        "/api/city-game/merchant/operations/availability", "/api/city-game/merchant/operations/request/{}",
+        "/api/game/session/view", "/api/game/session/command", "/api/game/session/receipt",
+        "/api/play/check/roll", "/api/play/check/reroll", "/api/play/check/settle",
+        "/api/play/theme/history", "/api/play/theme/card",
+        "/api/play/city-orientation/answer", "/api/play/city-orientation/receipt",
+        "/api/free-explore/bundle/catalog", "/api/free-explore/bundle/shelf",
+        "/api/location-share/personal/context", "/api/location-share/personal/grants", "/api/location-share/personal/owned",
+        "/api/location-share/personal/received", "/api/location-share/personal/received/events",
+        "/api/location-share/personal/requests/{}", "/api/location-share/personal/requests/{}/revoke",
+        "/api/location-share/personal/grants/{}/observations",
+        "/api/roam/passport/history", "/api/roam/passport/record", "/api/roam/passport/summary",
+        "/api/user/address/list", "/api/user/address/info", "/api/user/address/action", "/api/user/address/delete", "/api/user/address/setDefault",
+        "/api/user/deregister/status", "/api/user/deregister/result", "/api/user/deregister/precheck", "/api/user/deregister/apply",
+        "/api/sms/send",
+        "/api/v1/community/capabilities", "/api/v1/community/feeds/{}", "/api/v1/community/posts/{}",
+        "/api/v1/community/posts/{}/comments", "/api/v1/community/posts/{}/comments/{}",
+        "/api/v1/community/posts/{}/comments/{}/approve", "/api/v1/community/posts/{}/actions",
+        "/api/v1/community/posts/{}/actions/{}", "/api/v1/community/comments/{}/actions",
+        "/api/v1/community/comments/{}/actions/LIKE", "/api/v1/community/me/enforcements",
+        "/api/v1/community/notifications", "/api/v1/community/notifications/{}/read",
+        "/api/v1/community/notification-preferences", "/api/v1/community/appeals",
+        "/api/v1/community/guidelines/active", "/api/v1/community/drafts", "/api/v1/community/posts/{}/revisions",
+        "/api/v1/community/reference-options/{}", "/api/v1/community/reports", "/api/v1/community/media/register",
+        "/api/topic/cover/selection/current", "/api/topic/cover/upload", "/api/topic/cover/selection",
+        "/api/topic/cover/selection/status", "/api/topic/cover/{}/content",
+        "/api/template/report-receipt",
+        "/api/support/tickets/list", "/api/support/tickets/detail",
+        "/api/friend/directory", "/api/friend/directory/detail", "/api/friend/remark", "/api/friend/group/save",
+        "/api/friend/group/delete", "/api/friend/metadata", "/api/friend/metadata/receipt", "/api/friend/group/list",
+        "/api/friend/metadata/settle", "/api/friend/progress", "/api/friend/relationship", "/api/friend/removal/receipt",
+        "/api/friend/remove", "/api/friend/removal/settle", "/api/friend/list", "/api/friend/requests", "/api/friend/receipt",
+        "/api/friend/request", "/api/friend/accept", "/api/friend/reject", "/api/friend/cancel",
+        "/api/registration/original-event",
+        "/api/official/v2/events/{}", "/api/official/v2/events/{}/publish-check",
+        "/api/npc/chat/delete",
+        "/api/marketing/product/list", "/api/marketing/product/{}", "/api/marketing/product/orders",
+        "/api/marketing/product/gifts/bought", "/api/marketing/product/gifts/received",
+        "/api/content-draft/save", "/api/content-draft/restore", "/api/content-draft/list", "/api/content-draft/delete",
+        "/api/common/uploadOSS/receipt",
+        "/api/compliance/usage-records",
+        "/api/native/device/enroll", "/api/native/device/enrollment-challenge", "/api/native/device/revoke", "/api/native/device/status",
+        "/api/native/home", "/api/native/home/return/policy", "/api/native/home/return/runs", "/api/native/home/return/account",
+        "/api/native/home/return/verify", "/api/native/home/return/restore", "/api/native/home/return/receipt"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {

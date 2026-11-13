@@ -75,6 +75,8 @@ struct CYCityDie: View {
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
             if let face, (1...6).contains(face) {
                 pipGrid(face).transition(.opacity)
+            } else if let face {
+                Text(verbatim: String(face)).font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textPrimary)
             } else {
                 Text(verbatim: "—").font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textTertiary)
             }

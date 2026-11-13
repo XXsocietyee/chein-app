@@ -341,6 +341,7 @@
         "PlayAnswerReviewTests",
         "PlayBranchHistoryAppTests",
         "PlayExperiencePresentationMountTests",
+        "PlayGapOwnerGrantTests",
         "PlayOperatingSummaryPresentationTests",
         "PlayPlayerActionReviewControllerTests",
         "PlayPlayerJournalCompositionTests",

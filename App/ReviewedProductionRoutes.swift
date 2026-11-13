@@ -139,3 +139,16 @@ enum ReviewedProductionFormMutationRoute {
 
 }
 
+/// Handover 23 non-money paths. Merchant intent and marketing order/pay are not in this set.
+enum ReviewedPlayGapRoute {
+    static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+        guard let url = request.url, url.fragment == nil, url.user == nil, url.password == nil else { return false }
+        let base = baseURL.path
+        let path = url.path
+        guard path == base || path.hasPrefix(base.hasSuffix("/") ? base : base + "/") else { return false }
+        let relative = path.dropFirst(base.count)
+        let key = ChinaReviewedRouteCapability.normalized(String(relative))
+        return ChinaReviewedRouteCapability.playGapOwnerGrant.contains(key)
+    }
+}
+

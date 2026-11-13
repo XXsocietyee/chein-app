@@ -1,6 +1,23 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "cityMerchant.status.writesClosed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant writes are closed on this server. Nothing was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前服务器未开放商家写入。没有发送。"
+          }
+        }
+      }
+    },
     "cityMerchant.entry": {
       "extractionState": "manual",
       "localizations": {

@@ -17,7 +17,7 @@ import SwiftUI
     }
     var body: some View {
         Group {
-            if matches { CityMerchantOperationsView(controller: controller) }
+            if matches { CityMerchantOperationsView(controller: controller).environment(\.playGapAPIHost, context?.baseURL.host) }
             else { Text("cityMerchant.status.disabled", tableName: "CityMerchantOperations") }
         }
         .onAppear {
