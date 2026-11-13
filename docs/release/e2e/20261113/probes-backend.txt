@@ -1,0 +1,37 @@
+registration/quote 9004 -> 200 {"msg": "操作成功", "code": 200, "data": {"payAmount": 0.0, "pointsUsed": 0, "pointsDeductYuan": 0.0, "couponDeductYuan": 0, "quoteSign": "5e9ae975c5ec9df5b998173c830e1a77", "memberDiscountYuan": 0.0, "clubMember": true, "prioritySignupEnabled": false, "refundDeadline": "2026-11-12T22:37:59.000+08:00", 
+registration/create 9004 -> 200 {"msg": "请先完成报名信息提供的单独同意", "code": 500}
+consent activity_signup AGREE 9004 -> 200 {"msg": "操作成功", "code": 200, "data": {"occurredAt": "2026-11-13T23:49:32.000+08:00", "requestId": "49ea1574-7a41-4564-b5d8-46109d3e3c40", "docType": "activity_host_data_sharing", "eventType": "AGREE", "docVersion": "v2.1", "scene": "activity_signup"}}
+registration/create 9004 -> 200 {"msg": "请先补全参与人姓名，再购买", "code": 400}
+== 9 POST /api/club/chat json {"clubId":7001}
+200 {"msg": "缺少俱乐部ID", "code": 500}
+== 9 GET /api/support/tickets
+404 {"msg": "请求路径不存在", "code": 404}
+== 9 GET /api/city-game/current q {"regionId":"gaps-a-test"}
+200 {"msg": "操作成功", "code": 200, "data": {"contract": "CITY_PLAYER_READ_V1", "scope": "CITY", "status": "AVAILABLE", "regionId": "gaps-a-test", "board": {"gameId": "city-game", "boardId": "gapsa-board-1", "regionId": "gaps-a-test", "seasonId": "s2026w46", "rulesReleaseId": "rel-gapsa-1", "rulesHash": "0d183b8ccc86faed4e665f68d7bfd21e6829c6eb46987dcaf68214c2fd60048b", "lifecycle": "OPEN", "title": "测试城
+== 9 GET /api/play/help q {"activityId":992031,"topicId":992001}
+200 {"msg": "参数有误", "code": 400}
+== 9 POST /api/template/topic-template/list json {"pageNum":1,"pageSize":10}
+200 {"msg": "操作成功", "code": 200, "data": []}
+participant 9004 -> 200 {"msg": "操作成功", "code": 200, "data": {"createBy": null, "createTime": "2026-11-14 00:28:28", "updateBy": null, "updateTime": null, "remark": null, "id": 12, "memberId": 9004, "fullName": "E2E 玩家小城", "
+registration/create 9004 (harness, app CTA missing F8) -> 200 {"msg": "报名创建成功", "code": 200, "data": {"registrationId": 75, "registrationNo": "A20261114BFD9A9D0", "payableAmount": 0.0, "expireTime": "2026-11-14T00:58:32.045+08:00", "expiresAt": null, "paymentType": 1, "registrationIds": [75]}}
+== 9 GET /api/v1/community/feeds/LATEST
+200 {"msg": "操作成功", "code": 200, "data": {"nextCursor": 1, "mode": "LATEST", "nextCursorScore": 0, "hasMore": false, "items": [{"viewerIsAuthor": false, "post": {"createBy": null, "createTime": "2026-11-13 22:38:49", "updateBy": null, "updateTime": "2026-11-13 22:38:49", "remark": null, "id": 1, "authorId": 9004, "communityId": null, "clientRequestId":
+== 9 POST /api/public-catalog/list json {}
+200 {"msg": "操作成功", "code": 200, "data": {"total": 2, "rows": [{"id": "992001", "canonicalPath": "/quest/992001", "cityCode": null, "cityName": null, "name": "E2E 城市定向·老城三章", "subtitle": "钟楼 · 骑楼 · 码头", "summary": "三章六站的老城定向：问答、选择、拍照、D20 检定、骰子指路与提示阶梯各一。", "imgUrl": null, "productType": 1, "totalTime": 90, "totalMileage": null, "locationCount": 6, "chap
+== 9 GET /api/play/help q {"topicId":992001,"activityId":992031,"nodeId":1}
+200 {"msg": "参数有误", "code": 400}
+== 9 GET /api/play/nodes q {"activityId":992031,"topicId":992001}
+200 {"msg": "操作成功", "code": 200, "data": {"topicId": 992001, "topicDesc": "三章六站的老城定向：问答、选择、拍照、D20 检定、骰子指路与提示阶梯各一。", "topicName": "E2E 城市定向·老城三章", "topicCover": null, "topicAiGenerated": false, "topicAudioUrl": null, "look": null, "mode": 1, "productType": 1, "playable": true, "timeNote": null, "total": 6, "doneCount": 0, "registered": true, "leadSpecta
+== 9 POST /api/club/post/list json {"clubId":7001}
+200 {"msg": "操作成功", "code": 200, "data": [{"createBy": null, "createTime": "2026-11-13 22:37:59", "updateBy": null, "updateTime": null, "remark": null, "id": 992051, "clubId": 7001, "authorMemberId": 9003, "content": "本周六老城三章免费体验场开放报名，钟楼广场 9:00 集合。", "images": null, "refType": null, "refId": null, "sportName": null, "sportCover": null, "sportTopicId": 
+== 9 POST /api/club/chat json {"id":7001}
+200 {"msg": "操作成功", "code": 200, "data": {"conversationId": 1}}
+== 9 POST /api/club/access/me form {"clubId":"7001"}
+200 {"msg": "Content-Type 'application/x-www-form-urlencoded;charset=UTF-8' is not supported", "code": 500}
+== 9 POST /api/project/my json {}
+200 {"msg": "操作成功", "code": 200, "data": {"total": 0, "activeTotal": 0, "rows": []}}
+== 9 POST /api/support/tickets json {}
+404 {"msg": "请求路径不存在", "code": 404}
+== 9 POST /api/club/access/me json {"clubId":7001}
+200 {"msg": "操作成功", "code": 200, "data": {"active": true, "club": {"id": 7001, "name": "城瘾跑团", "logo": null}, "activityId": null, "roleCodes": ["CLUB_MEMBER"], "permissions": ["club:read", "club:activity:read"], "eventAccesses": [], "canManageRoles": false}}
+0
