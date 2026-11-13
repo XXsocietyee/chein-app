@@ -248,6 +248,15 @@
       "deletion": "Removed with app"
     },
     {
+      "file": "App/ReviewedCityGameLease.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Application Support 'CityGameActions' dir: CITY board pending-action recovery JSON (requestId, board/participation ids, quote consent ids; no location, no money)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/RoamExperienceHubView.swift",
       "kinds": [
         "userDefaults"

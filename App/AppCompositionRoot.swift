@@ -442,7 +442,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// Reporter history and public progress only; no source or issuer is installed.
     let memberReportProgressSelection = MemberReportProgressSourceSelection()
     let usageConsentReadSelection = UsageConsentReadSourceSelection()
-    private let productionGateLeases = ReviewedProductionGateLeases()
+    let productionGateLeases = ReviewedProductionGateLeases()
     var sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
     init(deployment: DeploymentState = .unconfigured, storage: AppScopedStorageFactory? = nil,
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
@@ -554,7 +554,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.growthNormalReadApproval = growthNormalReadApproval
-        self.cityPlayerReadApproval = cityPlayerReadApproval
+        self.cityPlayerReadApproval = { [gates] context in cityPlayerReadApproval(context) ?? gates.cityGame(context)?.readApproval }
         self.teamReadApproval = { [gates] context in
             teamReadApproval(context) ?? (productionGatesEnabled ? gates.teamRead(context) : nil)
         }
@@ -594,7 +594,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else {
             grantPlayerWrites = false
         }
-        productionGateLeases.notePlayerWrites(grantPlayerWrites)
+        notePlayerWrites(grantPlayerWrites)
         if grantPlayerWrites {
             clubOrdinaryAdmissionApproval = { [gates] context in gates.playerWriters(context)?.clubAdmission }
             nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }

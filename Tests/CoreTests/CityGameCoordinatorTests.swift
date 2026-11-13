@@ -94,11 +94,7 @@ import XCTest
         try snapshot(points: nil, actions: nil, limit: nil).validate(against: read())
     }
 
-    func testEndpointAllowlistIsEmptyAndCapabilityIsOffByDefault() async {
-        for market in RegionalMarket.allCases {
-            XCTAssertFalse(CityGameEndpointAllowlist.playable(market: market))
-            XCTAssertTrue(CityGameOperation.allCases.allSatisfy { !CityGameEndpointAllowlist.allows($0, market: market) })
-        }
+    func testCapabilityIsOffByDefault() async {
         let service = Service(snapshot())
         let off = model(service, capabilities: .disabled)
         XCTAssertEqual(off.phase, .disabled)

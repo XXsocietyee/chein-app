@@ -31,6 +31,10 @@ INFOPLIST_KEY_NSCameraUsageDescription = Use the camera to scan QR codes or take
 QUESTIFY_SESSION_REALM =
 INFOPLIST_KEY_QuestifySessionRealm = $(QUESTIFY_SESSION_REALM)
 
+// CITY board region (backend city_game_board.region_id). Empty means no CITY board lease.
+QUESTIFY_CITY_GAME_REGION =
+INFOPLIST_KEY_QuestifyCityGameRegion = $(QUESTIFY_CITY_GAME_REGION)
+
 #include? "Local.xcconfig"
 
 // Declares the explicit iPhone step-reading purpose; does not grant or enable access.

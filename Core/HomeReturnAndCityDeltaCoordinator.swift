@@ -309,7 +309,7 @@ public enum CityCoordinatorPhase: Equatable, Sendable {
     public var canAcceptNewActions: Bool {
         capabilities.allows(.cityActions)
             && lifecycle.acceptsNewActions
-            && board.lifecycle == "OPEN"
+            && board.acceptsNewActions
             && participation != nil
             && pendingAction.intent == nil
             && !needsSnapshotReload
@@ -317,7 +317,7 @@ public enum CityCoordinatorPhase: Equatable, Sendable {
 
     public func stageQuote(_ quote: CityActionQuote) throws {
         guard capabilities.allows(.cityActions) else { throw CityActionIssue.disabled }
-        guard lifecycle.acceptsNewActions, board.lifecycle == "OPEN" else { throw CityActionIssue.boardNotOpen }
+        guard lifecycle.acceptsNewActions, board.acceptsNewActions else { throw CityActionIssue.boardNotOpen }
         guard participation != nil else { throw CityActionIssue.notJoined }
         guard pendingAction.intent == nil else { throw CityActionIssue.busy }
         try quote.validate()

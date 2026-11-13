@@ -40,6 +40,9 @@ public enum ChinaReviewedRouteCapability {
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        // Owner approval of the non-money player writes: the CITY board (gaps A). Member game
+        // points only; no CITY route moves money.
+        if CityGameProductionLease.paths.contains(key) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
 

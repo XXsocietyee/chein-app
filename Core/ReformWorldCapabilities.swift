@@ -33,6 +33,11 @@ public struct ReformWorldCapabilities: Equatable, Sendable {
     public static let disabled = ReformWorldCapabilities(enabled: [])
     private init(enabled: Set<Feature>) { self.enabled = enabled }
     public func allows(_ feature: Feature) -> Bool { enabled.contains(feature) }
+    /// Owner-approved CITY game writes (member game points only, never money). Reachable only
+    /// with a `CityGameProductionLease`, which only the shipped China composition mints.
+    public static func cityGame(_ lease: CityGameProductionLease) -> ReformWorldCapabilities {
+        ReformWorldCapabilities(enabled: [.cityActions])
+    }
     #if DEBUG
     /// Offline fixtures and Core tests only. Never reachable from release code.
     public static func syntheticFixture(_ features: Set<Feature>) -> ReformWorldCapabilities {
