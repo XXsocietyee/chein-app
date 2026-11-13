@@ -371,6 +371,7 @@
         "PlayerJourneyProductionTests",
         "PlayerJourneyPromoTests",
         "PlayerTaskEvidenceReviewControllerTests",
+        "PostGameProjectionTests",
         "PrivacyAndSecurityRedactionSectionViewTests",
         "PrivateHomeAppTests",
         "PrivateHomeCompositionTests",

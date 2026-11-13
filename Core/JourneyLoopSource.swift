@@ -40,6 +40,8 @@ public enum JourneyRequestKey {
     public static func seatInvite(_ registrationID: String) -> String { "journey-seat-invite:" + registrationID }
     public static func seatClaim(_ token: String) -> String { "journey-claim:seat:" + String(token.suffix(24)) }
     public static func seatCancel(_ invitationID: String) -> String { "journey-seat-cancel:" + invitationID }
+    /// U08-02: one retained id per run until the server gives a finished answer.
+    public static func runFeedback(_ runID: String) -> String { "journey-run-feedback:" + runID }
 }
 
 public protocol JourneyRequestStoring: AnyObject, Sendable {
@@ -240,6 +242,34 @@ public struct JourneyLoopSource {
         guard Self.isID(invitationID) else { throw JourneyRefusal.invalidRequest }
         return try await reread(.seatCancel, key: key, token: token, invitationID: invitationID) { requestID in
             ["requestId": requestID]
+        }
+    }
+
+    // MARK: Post-game feedback (U08-02)
+
+    /// On the reviewed production host the write goes out only once the path is in the owner's grant
+    /// (`ChinaReviewedRouteCapability`); until then the entry stays hidden rather than failing as "unknown".
+    public var sendsRunFeedback: Bool {
+        productionLease == nil || ChinaReviewedRouteCapability.admitsChinaProductionCall(Self.journey(.runFeedback).path)
+    }
+
+    /// `POST /api/play/feedback/submit`. A retained id is reused until the answer is final; the caller keeps the
+    /// draft unchanged while the answer is unknown, because new text under the same id is a 409.
+    public func runFeedback(_ draft: PostGameFeedbackDraft, token: String) async throws -> JourneyEnvelope {
+        try await write(.runFeedback, key: JourneyRequestKey.runFeedback(draft.runID), prefix: "runfb", token: token) { requestID in
+            draft.body(requestID: requestID)
+        } validate: {
+            guard sendsRunFeedback else { throw JourneyRefusal.productionEndpoint }
+            guard draft.problem == nil else { throw JourneyRefusal.invalidRequest }
+        }
+    }
+
+    /// Same request id, same draft: the server returns the stored receipt instead of writing again.
+    public func rereadRunFeedback(_ draft: PostGameFeedbackDraft, token: String) async throws -> JourneyEnvelope {
+        guard sendsRunFeedback else { throw JourneyRefusal.productionEndpoint }
+        guard draft.problem == nil else { throw JourneyRefusal.invalidRequest }
+        return try await reread(.runFeedback, key: JourneyRequestKey.runFeedback(draft.runID), token: token) { requestID in
+            draft.body(requestID: requestID)
         }
     }
 
@@ -459,6 +489,8 @@ extension JourneyLoopSource {
         case seatClaim
         case seatCancel
         case giftClaim
+        /// Not a `journey-api.js` export: U08-02 problem feedback, backend `ApiPlayFeedbackController`.
+        case runFeedback
     }
 
     public struct JourneyCase: Equatable, Sendable {
@@ -489,7 +521,8 @@ extension JourneyLoopSource {
         JourneyCase(name: .seatInvitation, method: "GET", path: "/api/play/seat-invitations/{invitationId}", json: false, form: false, money: false),
         JourneyCase(name: .seatClaim, method: "POST", path: "/api/play/seat-invitations/claim", json: true, form: false, money: false),
         JourneyCase(name: .seatCancel, method: "POST", path: "/api/play/seat-invitations/{invitationId}/cancel", json: true, form: false, money: false),
-        JourneyCase(name: .giftClaim, method: "POST", path: "/api/marketing/product/gifts/claim", json: true, form: false, money: true)
+        JourneyCase(name: .giftClaim, method: "POST", path: "/api/marketing/product/gifts/claim", json: true, form: false, money: true),
+        JourneyCase(name: .runFeedback, method: "POST", path: "/api/play/feedback/submit", json: true, form: false, money: false)
     ]
 
     public static func journey(_ name: Journey) -> JourneyCase {
