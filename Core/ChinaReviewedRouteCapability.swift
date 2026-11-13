@@ -46,6 +46,7 @@ public enum ChinaReviewedRouteCapability {
         if channelsSocialOwnerGrant.contains(key) { return true }
         if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
         if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
+        if admitsRewardPledge(key) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
 
@@ -161,6 +162,17 @@ public enum ChinaReviewedRouteCapability {
         "/api/video-bounty/submission/{}/appeal",
         "/api/video-bounty/submission/{}/cancel"
     ]
+
+    /// Handover 21, owner correction 2026-11-13. Points, badges and non-cash rewards stay callable.
+    /// Cash value is refused by the server (`CASH_CLOSED`) and, when the area switch is off, by the screen.
+    /// `/api/coupon` is the exact root. `command-receipt` and every other coupon child stay out.
+    /// Opaque ids shorter than 32 characters and 64-hex award ids do not collapse, so the two trees match by prefix.
+    public static func admitsRewardPledge(_ key: String) -> Bool {
+        if key == "/api/coupon" { return true }
+        if key == "/api/reward-pledge" || key.hasPrefix("/api/reward-pledge/") { return true }
+        if key == "/api/rewards/noncash" || key.hasPrefix("/api/rewards/noncash/") { return true }
+        return false
+    }
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
         guard targetsChinaProduction(url), let relative = relativePath(url) else { return false }

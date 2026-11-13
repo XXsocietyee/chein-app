@@ -807,7 +807,10 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
 
     public func openSupport(reason: String, entry: RewardPledgeEntry) async {
         let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard text != "CASH_REFUND" else { notice = "CASH_CLOSED"; return }
+        if text == "CASH_REFUND" {
+            let cashOpen = ReviewedAreaSwitch.moneyPayments && ReviewedAreaSwitch.payout
+            guard cashOpen else { notice = "CASH_CLOSED"; return }
+        }
         guard !text.isEmpty, text.count <= 128, !text.contains("\n") else { notice = "validity"; return }
         guard let row = selected, RewardPledgeRoutes.id(row.awardId), let caller = admitted(entry, { $0.support }), !busy else { return }
         busy = true
@@ -827,7 +830,10 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             playerResult = read
             notice = state + " " + why
         } catch {
-            if businessRejection(error) == nil { note(error) } else { notice = "unknown" }
+            let rejected = businessRejection(error)
+            if rejected == nil { note(error) }
+            else if rejected == "CASH_CLOSED" { notice = "CASH_CLOSED" }
+            else { notice = "unknown" }
         }
     }
 

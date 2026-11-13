@@ -16,6 +16,10 @@ extension ReviewedProductionFormMutationRoute {
         if method != "GET", url.query != nil { return false }
         guard !relative.isEmpty, !ReleaseMoneyWriteSwitch.blocks("/" + relative),
               ChinaReviewedRouteCapability.forcedOff("/" + relative) == nil else { return false }
+        if admitsRewardPledgeWrite(relative) {
+            if method == "GET" { return request.httpBody == nil || request.httpBody?.isEmpty == true }
+            return method == "POST"
+        }
         if relative == "api/roam/presence" || relative == "api/roam/presence-visibility" { return false }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         if relative == "api/registration/create" {
@@ -108,6 +112,16 @@ extension ReviewedProductionFormMutationRoute {
               let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
               let topic = object["topicId"] as? NSNumber, topic.int64Value > 0 else { return false }
         return ["payChannel", "payAmount", "price", "amount", "maxPerHeadFee"].allSatisfy { object[$0] == nil }
+    }
+
+    /// Exact roots from `rewardPledgePaths`, plus their id children. Coupon children stay out.
+    static func admitsRewardPledgeWrite(_ relative: String) -> Bool {
+        if relative == "api/coupon" { return true }
+        if relative.hasPrefix("api/coupon/") { return false }
+        if ReviewedProductionGateLeases.rewardPledgePaths.contains(relative) { return true }
+        return ReviewedProductionGateLeases.rewardPledgePaths.contains { root in
+            root != "api/coupon" && relative.hasPrefix(root + "/")
+        }
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -358,6 +372,17 @@ enum ReviewedPlayerReadRoute {
     ]
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
+    ]
+    /// Handover 21. Non-cash pledge, claim and the exact coupon root. Cash refund is not in this set.
+    static let rewardPledgePaths: Set<String> = [
+        "api/reward-pledge", "api/reward-pledge/awards", "api/reward-pledge/drafts",
+        "api/reward-pledge/fulfilment/awards", "api/reward-pledge/fulfilment/expire",
+        "api/reward-pledge/fulfilment/preview", "api/reward-pledge/fulfilment/redeem",
+        "api/reward-pledge/fulfilment/resolve", "api/reward-pledge/ops", "api/reward-pledge/pledges",
+        "api/reward-pledge/review", "api/reward-pledge/versions",
+        "api/rewards/noncash", "api/rewards/noncash/cases", "api/rewards/noncash/claims",
+        "api/rewards/noncash/claims/recover", "api/rewards/noncash/subjects", "api/rewards/noncash/versions",
+        "api/coupon"
     ]
     // player-write-paths-end
 
@@ -819,11 +844,19 @@ enum ReviewedPlayerReadRoute {
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes
         )
+        let rewardPledge = context.market == .china
         return NativeRuntimeDependencies(
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
-            orderLifecycleConfiguration: orderConfiguration
+            orderLifecycleConfiguration: orderConfiguration,
+            nonCashRewardApproved: rewardPledge, nonCashRewardClaimApproved: rewardPledge,
+            nonCashRewardPreviewApproved: rewardPledge, nonCashRewardRedeemApproved: rewardPledge,
+            nonCashRewardDraftApproved: rewardPledge, nonCashRewardFreezeApproved: rewardPledge,
+            nonCashRewardHoldApproved: rewardPledge, nonCashRewardWithdrawApproved: rewardPledge,
+            nonCashRewardExpireApproved: rewardPledge, nonCashRewardReturnApproved: rewardPledge,
+            nonCashRewardCaseApproved: rewardPledge, nonCashRewardStatsApproved: rewardPledge,
+            nonCashRewardCatalogApproved: rewardPledge, nonCashRewardManageApproved: rewardPledge
         )
     }
 
