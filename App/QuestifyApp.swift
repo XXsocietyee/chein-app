@@ -6,6 +6,7 @@ struct QuestifyApp: App {
     @AppStorage(AppLanguage.storageKey) private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     init() {
         CYTabBarAppearance.install()
+        MPNotificationTapRouter.shared.attach()
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
             UserDefaults.standard.set(AppLanguage.system.rawValue,forKey:"preferences.language")
@@ -348,7 +349,7 @@ struct SessionRootView: View {
         case .roamGo: break
         case .referral, .gift, .seat:
             // Intake only. The landing does not claim a seat, claim a gift, pay, or start a run.
-            if let intake = link.journeyIntake { presentation.noteJourney(intake) }
+            if let intake = link.journeyIntake { presentation.noteJourney(intake); session.openJourneyLanding(intake) }
         }
     }
 
@@ -379,6 +380,7 @@ struct SessionRootView: View {
         }
         .environmentObject(session)
         .modifier(MPParityPassEnvironment(session: session))
+        .onAppear { MPNotificationTapRouter.shared.install(session) }
         .modifier(PassMarketPointsRootModifier(session: session))
         .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
         .environment(\.cityMerchantOperationsFactory, { session.makeCityMerchantOperationsController() })
@@ -486,7 +488,7 @@ struct SessionRootView: View {
         .onDisappear { session.setOwnerDraftPresentationActive(false) }
         .onDisappear { session.setWorkshopOwnedPresentationActive(false) }
         .onOpenURL { session.receiveNativeURL($0) }
-        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveWeChatUserActivity($0) }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveUniversalLink($0) }
         // One presentation at a time: the consent gate goes first, native entry and the area picker queue behind it.
         .sheet(item: Binding(get: { presentation.allowsSecondaryRootSheet ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })

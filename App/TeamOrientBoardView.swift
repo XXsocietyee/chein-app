@@ -25,8 +25,6 @@ extension EnvironmentValues {
     @State private var loading = false
     @State private var loadError = false
     @State private var showingReportSheet = false
-    @State private var reportReason = ""
-    @State private var reportState: TeamReportState = .idle
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
@@ -69,7 +67,8 @@ extension EnvironmentValues {
                 await load()
             }
             .sheet(isPresented: $showingReportSheet) {
-                reportSheet
+                // Source `team-report-sheet`: five fixed reasons, sent verbatim.
+                TeamReportReasonSheet(teamID: detail.team.id)
             }
         }
     }
@@ -199,67 +198,6 @@ extension EnvironmentValues {
         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("team.orient.ranking")
-    }
-
-    private var reportSheet: some View {
-        NavigationStack {
-            Form {
-                CYHeroHeader(verbatim: c.t("举报队伍", "Report team"))
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                if reportState == .submitted {
-                    Section {
-                        CYStatusChip(verbatim: c.t("举报已记录，平台将核查处理", "Report recorded. Platform support will review it."),
-                                     tone: .success, systemImage: "checkmark.circle.fill")
-                            .accessibilityIdentifier("team.orient.reportSuccess")
-                    }
-                } else if reportState == .unavailable {
-                    Section {
-                        CYStatusChip(verbatim: c.t("举报功能暂不可用，请稍后再试", "Reporting is currently unavailable. Please try again later."),
-                                     tone: .warning, systemImage: "exclamationmark.triangle")
-                            .accessibilityIdentifier("team.orient.reportUnavailable")
-                    }
-                } else {
-                    Section(c.t("举报原因", "Reason for report")) {
-                        TextField(c.t("请描述该队伍的违规情况", "Describe the issue with this team"),
-                                  text: $reportReason, axis: .vertical)
-                            .lineLimit(3...6)
-                            .accessibilityIdentifier("team.orient.reportReason")
-                    }
-                    if case .failed = reportState {
-                        Section {
-                            Text(c.t("举报未能提交，请检查网络后重试", "Your report could not be submitted. Check your connection and try again."))
-                                .font(.footnote)
-                                .foregroundStyle(CYColor.dangerText)
-                                .accessibilityIdentifier("team.orient.reportError")
-                        }
-                    }
-                    Section {
-                        CYPillButton(verbatim: reportState == .submitting ? c.t("提交中…", "Submitting…") : c.t("提交举报", "Submit report")) {
-                            Task { await submitReport() }
-                        }
-                        .disabled(reportState == .submitting
-                                  || TeamReportRules.trimmedReason(reportReason).isEmpty
-                                  || TeamReportRules.trimmedReason(reportReason).count > TeamReportRules.reasonLimit)
-                        .accessibilityIdentifier("team.orient.reportSubmit")
-                    }
-                }
-            }
-            .cyHeroScreen()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(c.t("关闭", "Close")) {
-                        showingReportSheet = false
-                        reportState = .idle
-                        reportReason = ""
-                    }
-                }
-            }
-        }
-    }
-
-    private func submitReport() async {
-        reportState = .submitting
-        reportState = await TeamReportSubmission.run(access: access, teamID: detail.team.id, reason: reportReason)
     }
 
     private func load() async {

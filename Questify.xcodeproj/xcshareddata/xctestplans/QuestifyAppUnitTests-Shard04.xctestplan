@@ -191,6 +191,7 @@
         "LanguageSwitcherTests",
         "LocalizationCompletenessSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
+        "MPParityDeepLinkRouteTests",
         "MPParityPassBindingTests",
         "MapPublicLayerAppIntegrationTests",
         "MapVisualAndMerchantGameViewTests",

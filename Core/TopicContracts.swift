@@ -276,6 +276,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let merchantCount: Int?
     public let isOwner: Bool
     public let betaFlag: Int
+    /// Source `publishMode` (`ai_simple` marks generated content for the AIGC label). Absent stays nil.
+    public let publishMode: String?
     public let merchantClosed: Bool
     /// Source venue `名称（地址）`, finish medal, completion coupon, club and comment count (topic/index extras).
     public let addressName: String?
@@ -310,6 +312,7 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         imageURL = c.text("imgUrl") ?? c.text("picUrl")
         images = c.images("imgArr")
         clubName = c.text("clubName")
+        publishMode = c.text("publishMode")
         averageRating = c.number("averageRating")
         totalTimeSeconds = c.int("totalTime")
         startDate = c.text("startDate") ?? c.text("start_date")

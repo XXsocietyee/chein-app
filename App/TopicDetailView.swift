@@ -76,6 +76,8 @@ struct TopicDetailView: View {
                     Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
                 }
                 TopicXcxHero(topic: value)
+                // P0-14 生成式 AI 内容显式标识 (`utils/aigc-label.js`): only for `publishMode == ai_simple`.
+                if AIGCDisclosure.isAIGenerated(publishMode: value.publishMode) { AIGCLabel() }
                 if value.betaFlag == 1 {
                     // Source topic-beta block: badge plus feedback note.
                     HStack(spacing: 8) {

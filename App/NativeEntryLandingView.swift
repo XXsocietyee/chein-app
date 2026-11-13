@@ -50,6 +50,8 @@ import SwiftUI
                     PublicCatalogViews(link: link, host: PublicCatalogHostWiring.host,
                                        scope: { PublicCatalogHostWiring.scope }, token: { PublicCatalogHostWiring.token })
                         .id(session.sessionRevision)
+                case .miniProgramPage(let link):
+                    MPParityPageEntry(link: link, session: session, goHome: goHome)
                 case .merchantInvitation(let route):
                     MerchantOperatorInvitationLandingView(invitation: route.invitation,
                         reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,

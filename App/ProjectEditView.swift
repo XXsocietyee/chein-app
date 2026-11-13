@@ -392,6 +392,7 @@ import SwiftUI
                 NativeRpgEnvironmentAuthorEntry(model: model)
                 NativeRpgGrowthAuthorEntrySection(model: model)
                 NativeRpgPassiveRulesAuthorEntry(model: model)
+                Section { NativeStoryWalkingAuthorEntry(model: model) }
                 ProjectTeamConfigurationEntry(model: model)
                 ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
                 ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
