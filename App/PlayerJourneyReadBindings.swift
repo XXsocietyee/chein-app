@@ -14,7 +14,7 @@ extension MPParityBindings {
 
 extension AppSession {
     func mpParityPlayerReads() -> MPParityBindings {
-        let base = mpParityPassBindings()
+        let base = mpParityPassBindings().fillingVideoBounty(session: self)
         guard let source = composition.playerJourneySource() else { return base }
         return base.fillingPlayerJourneyReads(source: source, token: { [weak self] in self?.token })
     }

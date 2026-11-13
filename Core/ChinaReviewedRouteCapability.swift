@@ -39,7 +39,8 @@ public enum ChinaReviewedRouteCapability {
         if ReleaseMoneyWriteSwitch.blocks(key) { return false }
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
-        return playerJourneyOwnerGrant.contains(key)
+        if playerJourneyOwnerGrant.contains(key) { return true }
+        return videoBountyOwnerGrant.contains(key)
     }
 
     /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,
@@ -61,6 +62,17 @@ public enum ChinaReviewedRouteCapability {
         "/api/public-catalog/list",
         "/api/public-catalog/filters",
         "/api/public-catalog/info"
+    ]
+
+    /// Handover 14, stub-ledger row 24. Author video-bounty reads and the three non-money writes.
+    /// Accrual amounts stay display-only. Payout, withdraw, redeem, wallet, and attribution stay out.
+    private static let videoBountyOwnerGrant: Set<String> = [
+        "/api/video-bounty/submission/mine",
+        "/api/video-bounty/accrual/mine",
+        "/api/video-bounty/campaign/list",
+        "/api/video-bounty/submission",
+        "/api/video-bounty/submission/{}/appeal",
+        "/api/video-bounty/submission/{}/cancel"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
