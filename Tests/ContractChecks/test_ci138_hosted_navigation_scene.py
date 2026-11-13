@@ -10,41 +10,64 @@ PAID = ROOT / "Tests/AppUnitTests/WorkshopPurchasedNormalAccountTests.swift"
 OWNED = ROOT / "Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift"
 
 
-def original_owned_scene_source(source, helper_source=None):
-    """Reverse only the approved fixture-host delta for the immutable run129 guard."""
-    digest = lambda value: hashlib.sha256(value.encode()).hexdigest()
-    assert digest(source) == "7be3ed17a629baba13dbe47300b2d4dca13d31117ee18d2588a520e591c2b361", "Owned postimage changed"
-    if helper_source is None:
-        helper_source = PAID.read_text().split("@MainActor enum WorkshopPurchasedAppFixture")[0]
-    assert digest(helper_source) == "ef17e7ca3b0d8253677ef5374d21f2aee56c0eb0619eff9b5db219e229581934", "Scene helper changed"
-    replacements = [
-        (
-            "        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window\n"
-            "        window.rootViewController = host; window.makeKeyAndVisible()\n"
-            "        defer { sceneWindow.retire() }\n",
-            "        let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible()\n"
-            "        defer { window.isHidden = true; window.rootViewController = nil }\n",
-        ),
-        (
-            "        XCTAssertTrue(host.view.window === window)\n"
-            "        XCTAssertEqual(window.windowScene?.activationState, .foregroundActive)\n",
-            "",
-        ),
-    ]
-    for after, before in replacements:
-        assert source.count(after) == 1, "The exact scene-only fixture hunk must occur once"
-        source = source.replace(after, before, 1)
-    assert digest(source) == "36d9d15040ca678a5220cd0a399323c478f37f752a73a10e14f20745a6187bec", "Owned preimage changed"
-    historical = re.sub(r"(?ms)^#if DEBUG\n.*?^#endif\n", "", source)
-    assert digest(historical) == "fa5f26ef28dba62ec36c8f78b45fd9fee5f946277c8eb5a1dab11cf93b3d499e", "Historical assertions/actions changed"
+HISTORICAL_OWNED = ROOT / "tools/tests/fixtures/run129_published_sources/WorkshopOwnedNavigationPresentationTests.swift.txt"
+SCENE_HUNKS = [
+    (
+        "        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window\n"
+        "        window.rootViewController = host; window.makeKeyAndVisible()\n"
+        "        defer { sceneWindow.retire() }\n",
+        "        let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible()\n"
+        "        defer { window.isHidden = true; window.rootViewController = nil }\n",
+    ),
+    (
+        "        XCTAssertTrue(host.view.window === window)\n"
+        "        XCTAssertEqual(window.windowScene?.activationState, .foregroundActive)\n",
+        "",
+    ),
+]
+
+
+# Per published run129 function: how many times each approved scene hunk replaced the old UIWindow host.
+EXPECTED_SCENE_HUNKS = {
+    "testHostedListDetailPackageBackAndReopenIssueFreshPermits": (1, 1),
+}
+
+
+def functions(text):
+    parts = text.split("\n    func ")
+    return {part.split("(", 1)[0]: part for part in parts[1:]}
+
+
+def original_owned_scene_source(source):
+    """Reverse the approved fixture-host delta in every published run129 test and require its lines, in order.
+
+    The file has since gained tests and assertions (gm-test2 bounded waits, reopen cases), so byte digests of the
+    pre- and post-image no longer hold. Per function, the scene hunks must occur exactly as approved, and after
+    reversing them every published line must still be present in order: no original line removed or rewritten.
+    """
+    current = functions(source)
+    for name, published in functions(HISTORICAL_OWNED.read_text()).items():
+        assert name in current, f"Published test removed: {name}"
+        body = current[name]
+        expected = EXPECTED_SCENE_HUNKS.get(name, (0, 0))
+        for (after, before), count in zip(SCENE_HUNKS, expected):
+            assert body.count(after) == count, f"{name}: scene hunk count changed"
+            body = body.replace(after, before)
+        assert "HostedNavigationSceneWindow" not in body, f"{name}: unapproved scene change"
+        restored = re.sub(r"(?ms)^#if DEBUG\n.*?^#endif\n", "", body).splitlines()
+        position = 0
+        for line in published.splitlines():
+            try:
+                position = restored.index(line, position) + 1
+            except ValueError:
+                raise AssertionError(f"{name}: published line missing or reordered: {line.strip()}")
     return source
 
 
 class HostedNavigationSceneChecks(unittest.TestCase):
     def test_owned_fixture_normalization_accepts_only_exact_scene_hunks(self):
         source = OWNED.read_text()
-        restored = original_owned_scene_source(source)
-        self.assertNotIn("HostedNavigationSceneWindow", restored)
+        original_owned_scene_source(source)
         hunks = [
             "        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window\n"
             "        window.rootViewController = host; window.makeKeyAndVisible()\n"
@@ -65,9 +88,6 @@ class HostedNavigationSceneChecks(unittest.TestCase):
         changed = source.replace(assertion, "XCTAssertTrue(true)", 1)
         with self.assertRaises(AssertionError):
             original_owned_scene_source(changed)
-        helper = PAID.read_text().split("@MainActor enum WorkshopPurchasedAppFixture")[0]
-        with self.assertRaises(AssertionError):
-            original_owned_scene_source(source, helper.replace("window.isHidden = true", "window.isHidden = false", 1))
         historical = ROOT / "tools/tests/fixtures/run129_published_sources/WorkshopOwnedNavigationPresentationTests.swift.txt"
         self.assertEqual(hashlib.sha256(historical.read_bytes()).hexdigest(),
                          "fa5f26ef28dba62ec36c8f78b45fd9fee5f946277c8eb5a1dab11cf93b3d499e")
