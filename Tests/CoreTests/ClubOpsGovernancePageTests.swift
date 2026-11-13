@@ -100,7 +100,7 @@ final class ClubOpsGovernancePageTests: XCTestCase {
         XCTAssertEqual(unknown.counts?.cases?.displayText, "0")
         XCTAssertEqual(unknown.counts?.members?.displayText, "0")
         XCTAssertEqual(unknown.counts?.activeBan?.displayText, "0")
-        let numericString = ClubOpsGovernancePage.project(bans: ClubOpsGovernancePageFixtureData.numericStringZero, members: .null, cases: .object(["data": .string("0"), "activeBan": .null]), scope: scope, capability: manage)
+        let numericString = ClubOpsGovernancePage.project(bans: ClubOpsGovernancePageFixtureData.numericStringZero, cases: .object(["data": .string("0"), "activeBan": .null]), members: .null, scope: scope, capability: manage)
         XCTAssertEqual(numericString.phase, .some(.unknown))
         XCTAssertNil(numericString.counts?.bans?.literal)
         XCTAssertEqual(numericString.counts?.bans?.displayText, "—")
@@ -121,7 +121,7 @@ final class ClubOpsGovernancePageTests: XCTestCase {
         }
         XCTAssertEqual(ClubOpsGovernanceCount.parse(.integer(0)).literal, 0)
         XCTAssertEqual(ClubOpsGovernanceCount.parse(.integer(0)).displayText, "0")
-        let missingFact = ClubOpsGovernancePage.project(members: .array([]), cases: .array([]), scope: scope, capability: manage)
+        let missingFact = ClubOpsGovernancePage.project(cases: .array([]), members: .array([]), scope: scope, capability: manage)
         XCTAssertEqual(missingFact.phase, .some(.unknown))
         XCTAssertEqual(missingFact.counts?.bans?.displayText, "—")
         XCTAssertNotEqual(missingFact.counts?.bans?.displayText, "0")

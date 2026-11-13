@@ -13,7 +13,7 @@ import SwiftUI
                 LabeledContent("advancedTeam.progress") { Text("\(team.completedUnits) / \(team.requiredTurns)").monospacedDigit() }
                 LabeledContent("advancedTeam.turnIndex") { Text(verbatim: String(team.turnIndex + 1)) }
                 LabeledContent("advancedTeam.myRole") {
-                    if let role = team.myRole { Text(verbatim: team.roleLabel(role)) }
+                    if let role = team.myRoleDisplay { Text(verbatim: role) }
                     else { Text("advancedTeam.unassigned") }
                 }
                 Text(team.assignment == "AUTO" ? "advancedTeam.auto" : team.isLeader ? "advancedTeam.leader" : "advancedTeam.leaderOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)

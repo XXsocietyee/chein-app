@@ -442,7 +442,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// Reporter history and public progress only; no source or issuer is installed.
     let memberReportProgressSelection = MemberReportProgressSourceSelection()
     let usageConsentReadSelection = UsageConsentReadSourceSelection()
-    private let productionGateLeases = ReviewedProductionGateLeases()
+    let productionGateLeases = ReviewedProductionGateLeases()
     var sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
     init(deployment: DeploymentState = .unconfigured, storage: AppScopedStorageFactory? = nil,
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
@@ -554,7 +554,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.growthNormalReadApproval = growthNormalReadApproval
-        self.cityPlayerReadApproval = cityPlayerReadApproval
+        self.cityPlayerReadApproval = { [gates] context in cityPlayerReadApproval(context) ?? gates.cityGame(context)?.readApproval }
         self.teamReadApproval = { [gates] context in
             teamReadApproval(context) ?? (productionGatesEnabled ? gates.teamRead(context) : nil)
         }
@@ -594,7 +594,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else {
             grantPlayerWrites = false
         }
-        productionGateLeases.notePlayerWrites(grantPlayerWrites)
+        notePlayerWrites(grantPlayerWrites)
         if grantPlayerWrites {
             clubOrdinaryAdmissionApproval = { [gates] context in gates.playerWriters(context)?.clubAdmission }
             nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
@@ -711,7 +711,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.roamLiveApproval = roamLiveApproval
         return transport
     }
-    func makeSession() -> AppSession { AppSession(composition: self) }
+    func makeSession() -> AppSession { installTemplateAdoption(AppSession(composition: self)) }
 }
 
 /// Existing CN auth and independently reviewed bounded reads; coupon mutations additionally
@@ -2566,7 +2566,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let path = url.path
         guard path == base || path.hasPrefix(base + "/") else { return false }
         let relative = String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state"
+        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution" || relative == "api/orient/scoring/receipt"
     }
 
     private func signedInRuntime(_ captured: SessionIdentity) -> RuntimeDependencyContext? {
@@ -3298,7 +3298,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = { [weak self] in
                 self?.clubPublicTopicsApproval(publicTopicsContext, route.clubID) == issued
             }
-        } else if ClubPublicRosterRoute.accepts(request, baseURL: api.baseURL) {
+        } else if ClubPublicRosterRoute.accepts(request, baseURL: api.baseURL), !(deployment.productionGatesEnabled && deployment.playerWritesEnabled && deployment.regional.market == .china && ReviewedPlayerReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token)) { // E2E F4: China player club/detail is the owner-approved player read below
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, account > 0, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
@@ -3579,6 +3579,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
+        } else if ReviewedPlayerReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.playerWritesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if deployment.playerWritesEnabled, deployment.regional.market == .china,
                   let context = signedInRuntime(captured),
                   let grant = playerWriteGrant(context),
@@ -3636,7 +3639,7 @@ struct ReviewedPlayerWriteGrant {
     let play: OperationEndpointApproval
     let roamExtras: OperationEndpointApproval
     let likes: OperationEndpointApproval
-    let reports: OperationEndpointApproval
+    let reports: OperationEndpointApproval, templateAdoption: OperationEndpointApproval
     let friends: NativeFriendApproval
     let channelTextSend: NativeChannelTextApproval
     let channelTextReceipt: NativeChannelTextApproval
@@ -4179,140 +4182,3 @@ enum ReviewedMerchantOperationsRoute {
         return .write(path: path)
     }
 }
-
-/// Exact requests emitted by `NearbyTeamHTTPWriteAdapter` for apply, withdraw and handle (`NearbyTeamRequest.action`:
-/// sorted-key JSON, `teamId` / `memberId` positive, `approved` a JSON boolean). `kick`, `quit`, `disband` and the
-/// other team mutations are not matched.
-enum ReviewedNearbyTeamWriteRoute {
-    static let approvalPaths: Set<String> = ["api/team/apply", "api/team/withdraw", "api/team/handle"]
-
-    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
-        guard let token, AuthRequestBuilder.isValidToken(token),
-              request.httpMethod == "POST", request.httpBodyStream == nil,
-              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
-              request.value(forHTTPHeaderField: "Accept") == "application/json",
-              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
-              request.value(forHTTPHeaderField: "Cookie") == nil,
-              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
-              let url = request.url, url.fragment == nil,
-              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
-              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              parts.user == nil, parts.password == nil, parts.query == nil,
-              let body = request.httpBody, body.count <= 96,
-              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
-              let teamID = object["teamId"] as? Int, teamID > 0 else { return false }
-        func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
-        func canonical(_ value: [String: Any]) -> Bool {
-            (try? JSONSerialization.data(withJSONObject: value, options: .sortedKeys)) == body
-        }
-        if exactPath("api/team/apply") || exactPath("api/team/withdraw") {
-            return object.count == 1 && canonical(["teamId": teamID])
-        }
-        guard exactPath("api/team/handle"), object.count == 3,
-              let memberID = object["memberId"] as? Int, memberID > 0,
-              let approved = object["approved"] as? Bool else { return false }
-        return canonical(["teamId": teamID, "memberId": memberID, "approved": approved])
-    }
-}
-
-/// Anonymous receiver-side read of a shared footprint: exactly `RoamShareToken.request` (GET, one lowercase-hex `token`
-/// query item, no Authorization, cookie or body).
-enum ReviewedRoamShareSnapshotReadRoute {
-    static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
-        guard request.httpMethod == "GET", request.httpBody == nil, request.httpBodyStream == nil,
-              request.value(forHTTPHeaderField: "Authorization") == nil,
-              request.value(forHTTPHeaderField: "Cookie") == nil,
-              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
-              request.value(forHTTPHeaderField: "Content-Type") == nil,
-              request.value(forHTTPHeaderField: "Accept") == "application/json",
-              let url = request.url, url.fragment == nil,
-              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
-              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              parts.user == nil, parts.password == nil,
-              parts.path == baseURL.appendingPathComponent(RoamShareSnapshot.path).path,
-              let items = parts.queryItems, items.count == 1, items[0].name == "token",
-              let value = items[0].value, RoamShareToken(value) != nil else { return false }
-        return true
-    }
-}
-
-/// Exact requests emitted by `MerchantMarketingService.home()` (with the fixed 30-day window) and `.insight()`.
-/// `api/merchant/access/me` and the query-less `marketing-home` stay on the coupon-management read lease. Settlement,
-/// subscription, commerce and prediction-inbox routes are not matched.
-enum ReviewedMerchantMarketingReadRoute {
-    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
-        guard let token, AuthRequestBuilder.isValidToken(token),
-              request.httpMethod == "POST", request.httpBody == nil, request.httpBodyStream == nil,
-              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
-              request.value(forHTTPHeaderField: "Accept") == "application/json",
-              request.value(forHTTPHeaderField: "Content-Type") == nil,
-              request.value(forHTTPHeaderField: "Cookie") == nil,
-              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
-              let url = request.url, url.fragment == nil,
-              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
-              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              parts.user == nil, parts.password == nil else { return false }
-        func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
-        if exactPath("api/merchant/marketing-home") {
-            guard let items = parts.queryItems, items.count == 1, items[0].name == "windowDays",
-                  items[0].value == String(MerchantMarketingHome.windowDays) else { return false }
-            return true
-        }
-        return exactPath("api/ai/merchant/insight") && parts.query == nil
-    }
-}
-
-enum ReviewedProductionFormMutationRoute {
-    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
-        guard let token, AuthRequestBuilder.isValidToken(token),
-              request.httpMethod == "POST", request.httpBodyStream == nil,
-              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
-              let url = request.url, url.query == nil, url.fragment == nil,
-              let type = request.value(forHTTPHeaderField: "Content-Type"),
-              type.hasPrefix("multipart/form-data; boundary="),
-              let body = request.httpBody, body.count <= 1024,
-              let text = String(data: body, encoding: .utf8) else { return false }
-        let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
-        let requiredKeys: Set<String>
-        let positiveKey: String
-        let requiredTypeField: String?
-        switch url.absoluteString {
-        case baseURL.appendingPathComponent("api/registration/cancel").absoluteString,
-             baseURL.appendingPathComponent("api/registration/cancel-refund").absoluteString:
-            requiredKeys = ["id"]; positiveKey = "id"; requiredTypeField = nil
-        case baseURL.appendingPathComponent("api/coupon/qr-token").absoluteString,
-             baseURL.appendingPathComponent("api/coupon/status").absoluteString:
-            requiredKeys = ["couponHistoryId"]; positiveKey = "couponHistoryId"; requiredTypeField = nil
-        case baseURL.appendingPathComponent("api/verify/citynode/issue").absoluteString:
-            requiredKeys = ["poiId"]; positiveKey = "poiId"; requiredTypeField = nil
-        case baseURL.appendingPathComponent("api/topic/like").absoluteString:
-            requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"
-        case baseURL.appendingPathComponent("api/im/delete").absoluteString,
-             baseURL.appendingPathComponent("api/im/read").absoluteString:
-            requiredKeys = ["conversation_id"]; positiveKey = "conversation_id"; requiredTypeField = nil
-        case baseURL.appendingPathComponent("api/im/mute").absoluteString:
-            requiredKeys = ["conversation_id", "muted"]; positiveKey = "conversation_id"; requiredTypeField = nil
-        case baseURL.appendingPathComponent("api/im/report").absoluteString:
-            requiredKeys = ["message_id", "reason"]; positiveKey = "message_id"; requiredTypeField = nil
-        case baseURL.appendingPathComponent("api/im/block").absoluteString,
-             baseURL.appendingPathComponent("api/im/unblock").absoluteString,
-             baseURL.appendingPathComponent("api/im/start").absoluteString:
-            requiredKeys = ["target_member_id"]; positiveKey = "target_member_id"; requiredTypeField = nil
-        default:
-            return false
-        }
-        var fields: [String: String] = [:]
-        for key in requiredKeys {
-            let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
-            guard let range = text.range(of: marker),
-                  let end = text[range.upperBound...].range(of: "\r\n") else { return false }
-            fields[key] = String(text[range.upperBound..<end.lowerBound])
-        }
-        guard let rawID = fields[positiveKey], let id = Int(rawID), id > 0, String(id) == rawID else { return false }
-        if let requiredTypeField, fields["type"] != requiredTypeField { return false }
-        guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else { return false }
-        return canonical.httpBody == body
-    }
-
-}
-

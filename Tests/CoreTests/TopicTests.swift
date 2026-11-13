@@ -129,7 +129,8 @@ final class TopicTests: XCTestCase {
         XCTAssertTrue(String(decoding: doc.body, as: UTF8.self).contains("routeGeometry"))
         XCTAssertEqual(t.requests.count, 1)
         XCTAssertEqual(t.requests[0].url?.path, "/test/api/topic/info-to-user")
-        XCTAssertEqual(try await service(t).detail(id: 7).id, 7)
+        let awaited = try await service(t).detail(id: 7).id
+        XCTAssertEqual(awaited, 7)
         XCTAssertEqual(t.requests.count, 2)
     }
     func testDetailUsesOnlyInfoToUserAndRejectsWrongResource() async throws {

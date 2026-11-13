@@ -44,6 +44,8 @@ enum RegionalLaunchConfiguration {
                 .homeAndSearch, .manualMap, .publicMapLayers, .publicTopicTemplateCatalogAndDetail,
                 .officialPublicEventCatalogAndDetail, .playNodesAndRouteState
             ],
+            // Owner approval 2026-11-12 (E2E-20261112 F2): signed-in player topic/activity/route detail.
+            contentDetails: .activityAndTopic,
             storage: storage,
             makeTransport: makeTransport
         )
@@ -52,6 +54,7 @@ enum RegionalLaunchConfiguration {
     static func reviewedDeployment(
         build: BuildMetadata = .current,
         reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        contentDetails: SignedInContentDetailReadApproval? = nil,
         allowLoginRoleFallbackOnRolelessUserInfo: Bool = true
     ) throws -> ReviewedAppDeployment {
         guard let market = try? RegionalConfiguration.market(buildValue: build.market) else {
@@ -72,6 +75,7 @@ enum RegionalLaunchConfiguration {
             bundleIdentifier: rawBundle,
             realm: rawRealm,
             reads: reads,
+            contentDetails: contentDetails,
             productionGatesEnabled: true,
             playerWritesEnabled: true,
             allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
@@ -81,6 +85,7 @@ enum RegionalLaunchConfiguration {
     @MainActor static func reviewedComposition(
         build: BuildMetadata = .current,
         reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        contentDetails: SignedInContentDetailReadApproval? = nil,
         allowLoginRoleFallbackOnRolelessUserInfo: Bool = true,
         storage: AppScopedStorageFactory? = nil,
         makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() }
@@ -88,6 +93,7 @@ enum RegionalLaunchConfiguration {
         guard let deployment = try? reviewedDeployment(
             build: build,
             reads: reads,
+            contentDetails: contentDetails,
             allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
         ) else {
             return .init(deployment: .incompatibleBuild, storage: storage, makeTransport: makeTransport)
@@ -226,20 +232,6 @@ enum E2ETestHostOverride {
             realm: realm
         )
         let transport: () -> any HTTPTransport = { E2ETestHostTransport(underlying: URLSessionTransport()) }
-        // Probe only, beyond shipped behavior: also grant signed-in topic/activity detail reads.
-        if arguments.contains("--e2e-grant-content-details"),
-           let reviewed = try? ReviewedAppDeployment(
-                market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
-                approvedBaseURLs: ReviewedMarketLaunch.approvedBaseURLs,
-                verifiedCapabilities: ReviewedMarketLaunch.chinaVerifiedCapabilities,
-                bundleIdentifier: build.bundleIdentifier ?? "", realm: realm,
-                reads: [.homeAndSearch, .manualMap, .publicMapLayers, .publicTopicTemplateCatalogAndDetail,
-                        .officialPublicEventCatalogAndDetail, .playNodesAndRouteState],
-                contentDetails: .activityAndTopic,
-                productionGatesEnabled: true, playerWritesEnabled: true,
-                allowLoginRoleFallbackOnRolelessUserInfo: true) {
-            return RegionalLaunchConfiguration.makeComposition(reviewed: reviewed, build: build, makeTransport: transport)
-        }
         return RegionalLaunchConfiguration.shippedComposition(build: build, makeTransport: transport)
     }
 }

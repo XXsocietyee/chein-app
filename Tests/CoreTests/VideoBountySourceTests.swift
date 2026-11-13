@@ -180,13 +180,15 @@ final class VideoBountySourceTests: XCTestCase {
             "/api/video-bounty/payout",
             "/api/video-bounty/withdraw",
             "/api/video-bounty/redeem",
-            "/api/video-bounty/wallet",
-            "/api/marketing/affiliate/summary"
+            "/api/video-bounty/wallet"
         ] {
             XCTAssertFalse(VideoBountySource.paths.contains(path), path)
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 672)
+        // The affiliate summary GET is admitted by the separate player-journey owner grant (cloud-stubs-affiliate); never a bounty path.
+        XCTAssertFalse(VideoBountySource.paths.contains("/api/marketing/affiliate/summary"))
+        // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution (owner-approved 2026-11-13).
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
         XCTAssertFalse(VideoBountySource.paths.contains { path in
             ["payout", "withdraw", "redeem", "wallet", "attribution"].contains { path.contains($0) }
         })

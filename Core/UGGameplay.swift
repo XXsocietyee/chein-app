@@ -256,7 +256,8 @@ public enum UGPaidWorkshopInstall {
 
 public enum UGGameplay {
     public static let contractExecution = "NOT_RUN"
-    /// Runtime verification has not run. This slice does not offer a skip control.
+    /// These zip-v35 decoders do not offer a skip control. The player skip row lives in `PlayHelpLadderModel`
+    /// and appears only when `GET /api/play/help` returns a usable SKIP layer.
     public static let offersSkipButton = false
     /// Points already redeemable on the member ledger. There is no second wallet.
     public static let recordsGemBalance = false

@@ -49,12 +49,20 @@ public struct TeamMember: Decodable, Equatable, Identifiable {
     public let id: Int
     public let name: String
     public let role: Int?
+    /// False on invitation previews: the source strips member ids for non-members (j4 F10).
+    /// Such rows carry a negative local index as `id` and can never be a write target.
+    public let identified: Bool
     public var isCaptain: Bool { role == 1 }
     enum CodingKeys: String, CodingKey { case memberId, memberName, role }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        guard let id = try c.teamInt(.memberId), id > 0 else { throw TeamFailure.invalidContract }
-        self.id = id; name = try c.decodeIfPresent(String.self, forKey: .memberName) ?? ""; role = try c.teamInt(.role)
+        let id = try c.teamInt(.memberId)
+        guard id == nil || id! > 0 else { throw TeamFailure.invalidContract }
+        self.id = id ?? 0; identified = id != nil
+        name = try c.decodeIfPresent(String.self, forKey: .memberName) ?? ""; role = try c.teamInt(.role)
+    }
+    fileprivate init(preview: TeamMember, index: Int) {
+        id = -(index + 1); name = preview.name; role = preview.role; identified = false
     }
 }
 public struct TeamDetail: Decodable, Equatable {
@@ -63,16 +71,28 @@ public struct TeamDetail: Decodable, Equatable {
     /// Missing membership/leadership facts remain unknown, never guessed from a list.
     public let joined: Bool?
     public let leader: Bool?
-    enum CodingKeys: String, CodingKey { case team, members, joined, leader }
+    /// U06-01 B6 projections. Absent or malformed sections stay nil (unknown), never zero.
+    public let seats: TeamSeatFacts?
+    public let invite: TeamInviteFacts?
+    public let viewer: TeamViewerFacts?
+    enum CodingKeys: String, CodingKey { case team, members, joined, leader, seats, invite, viewer }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         if c.contains(.team) { team = try c.decode(OwnedTeam.self, forKey: .team) }
         else { team = try OwnedTeam(from: decoder) } // Source invitation page supports flat data.
-        members = try c.decodeIfPresent([TeamMember].self, forKey: .members) ?? []
-        guard Set(members.map(\.id)).count == members.count else { throw TeamFailure.invalidContract }
         joined = try c.decodeIfPresent(Bool.self, forKey: .joined)
         leader = try c.decodeIfPresent(Bool.self, forKey: .leader)
         guard leader != true || joined == true else { throw TeamFailure.invalidContract }
+        let rows = try c.decodeIfPresent([TeamMember].self, forKey: .members) ?? []
+        // A member must see ids; only a non-member invitation preview may omit them, and then all of them.
+        if rows.contains(where: { !$0.identified }) {
+            guard joined != true, rows.allSatisfy({ !$0.identified }) else { throw TeamFailure.invalidContract }
+            members = rows.enumerated().map { TeamMember(preview: $0.element, index: $0.offset) }
+        } else { members = rows }
+        guard Set(members.map(\.id)).count == members.count else { throw TeamFailure.invalidContract }
+        seats = try? c.decodeIfPresent(TeamSeatFacts.self, forKey: .seats)
+        invite = try? c.decodeIfPresent(TeamInviteFacts.self, forKey: .invite)
+        viewer = try? c.decodeIfPresent(TeamViewerFacts.self, forKey: .viewer)
     }
 }
 public enum TeamLookup: Equatable {
@@ -136,7 +156,7 @@ public enum TeamAction: Equatable {
         case .join(_, let code): return TeamLookup.validInvite(code) && detail.joined == false && detail.team.status == .recruiting && (detail.team.inviteCode == nil || detail.team.inviteCode == code)
         case .leave: return detail.joined == true && [.recruiting, .full].contains(detail.team.status)
         case .disband: return detail.leader == true && detail.joined == true && [.recruiting, .full].contains(detail.team.status)
-        case .remove(_, let memberID): return detail.leader == true && [.recruiting, .full].contains(detail.team.status) && detail.members.contains { $0.id == memberID && $0.role == 0 }
+        case .remove(_, let memberID): return detail.leader == true && [.recruiting, .full].contains(detail.team.status) && detail.members.contains { $0.id == memberID && $0.identified && $0.role == 0 }
         case .changeJoinMode(_, let mode):
             return detail.joined == true && detail.leader == true && detail.team.status == .recruiting
                 && detail.team.joinMode != .unknown && mode != .unknown && mode != detail.team.joinMode

@@ -334,6 +334,14 @@ import SwiftUI
             if let topicID = model.coordinator.snapshot?.topicID, let publisherClient {
                 PublisherXPBudgetSection(topicID: topicID, client: publisherClient)
             }
+            // U02-03 place to-dos for an adopted template copy. Hidden while gated or without a place contract.
+            if let topicID = model.coordinator.snapshot?.topicID, TopicTemplateAdoptionFactory.bindingIsLive {
+                TopicLocationTodosSection(topicID: topicID, scope: model.draft.owner == .merchant ? "MERCHANT" : nil,
+                                          nodes: model.draft.chapters.flatMap(\.nodes).compactMap {
+                                              TopicLocationEditorNode(id: $0.id, name: $0.name, address: $0.address, hasCoordinates: $0.hasUsableCoordinates)
+                                          })
+                    .id(topicID)
+            }
             if model.coordinator.snapshot != nil {
                 ProjectSubmissionEvidenceSection(model: model)
                 OwnedTopicCoverEntrySection(model: model, controller: ownedCover)

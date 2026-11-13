@@ -81,7 +81,7 @@ final class ClubPlayerFlowTests: XCTestCase {
         XCTAssertFalse(ChinaReviewedRouteCapability.offersFeature("/" + ClubNameCheck.path, baseURL: china))
         XCTAssertNil(ChinaReviewedRouteCapability.mark(for: "/" + ClubNameCheck.path))
         let transport = NameCheckHTTP(status: 200, body: #"{"code":200,"data":{"available":false}}"#)
-        let service = ClubOperationsService(configuration: .init(baseURL: china), transport: transport)
+        let service = try ClubOperationsService(configuration: .init(baseURL: china), transport: transport)
         let result = await service.checkName("夜行", token: "synthetic-token")
         XCTAssertEqual(result, .unchecked)
         XCTAssertTrue(transport.requests.isEmpty)
@@ -89,7 +89,7 @@ final class ClubPlayerFlowTests: XCTestCase {
 
     func testOfferedHostPostsTheTrimmedNameAndStopsWhenTaken() async throws {
         let transport = NameCheckHTTP(status: 200, body: #"{"code":200,"data":{"available":false,"reason":""}}"#)
-        let service = ClubOperationsService(configuration: .init(baseURL: URL(string: "https://name-check.test")!), transport: transport)
+        let service = try ClubOperationsService(configuration: .init(baseURL: URL(string: "https://name-check.test")!), transport: transport)
         let blank = await service.checkName("  ", token: "synthetic-token")
         XCTAssertEqual(blank, .unchecked)
         XCTAssertTrue(transport.requests.isEmpty)
@@ -104,9 +104,9 @@ final class ClubPlayerFlowTests: XCTestCase {
         XCTAssertEqual(json["name"], "夜行")
     }
 
-    func testNameCheckFailureStaysUnchecked() async {
+    func testNameCheckFailureStaysUnchecked() async throws {
         let transport = NameCheckHTTP(status: 200, body: #"{"code":200,"data":{"available":true}}"#, fail: true)
-        let service = ClubOperationsService(configuration: .init(baseURL: URL(string: "https://name-check.test")!), transport: transport)
+        let service = try ClubOperationsService(configuration: .init(baseURL: URL(string: "https://name-check.test")!), transport: transport)
         let result = await service.checkName("夜行", token: "synthetic-token")
         XCTAssertEqual(result, .unchecked)
         XCTAssertEqual(transport.requests.count, 1)

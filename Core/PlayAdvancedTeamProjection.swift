@@ -7,6 +7,8 @@ public struct PlayAdvancedTeamProjection: Equatable {
     public struct Role: Equatable, Identifiable { public let id: String; public let label: String; public let maximum: Int }
     public let members: [Member]; public let roles: [Role]
     public let assignment: String; public let myRole: String?
+    /// Server `myRoleLabel` (U06-02). Non-leaders never receive the role table, so this is their only label.
+    public let myRoleLabel: String?
     public let turnIndex: Int; public let completedUnits: Int; public let requiredTurns: Int
     public let isLeader: Bool
     public init?(state: PlayAdvancedState, actorID: Int) {
@@ -37,7 +39,10 @@ public struct PlayAdvancedTeamProjection: Equatable {
             }
         }
         self.members = members; self.roles = roles; self.assignment = assignment; self.isLeader = isLeader
-        self.myRole = value["myRole"].text.flatMap { $0.isEmpty || $0.utf16.count > 64 ? nil : $0 }
+        let mine = value["myRole"].text.flatMap { $0.isEmpty || $0.utf16.count > 64 ? nil : $0 }
+        let label = value["myRoleLabel"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.myRole = mine
+        self.myRoleLabel = mine == nil ? nil : label.flatMap { $0.isEmpty || $0.utf16.count > 256 ? nil : $0 }
         self.turnIndex = index; completedUnits = Set(units.compactMap(\.text)).count; requiredTurns = required
     }
     public var canRequestUnit: Bool { myRole != nil && completedUnits < requiredTurns }
@@ -47,6 +52,8 @@ public struct PlayAdvancedTeamProjection: Equatable {
         return member.roleID != roleID && members.filter { $0.roleID == roleID }.count < role.maximum
     }
     public func roleLabel(_ id: String) -> String { roles.first { $0.id == id }?.label ?? id }
+    /// My story role as the server names it; the raw id only when no label was sent.
+    public var myRoleDisplay: String? { myRole.map { myRoleLabel ?? roleLabel($0) } }
 }
 
 public struct PlayAdvancedTeamReview: Identifiable {

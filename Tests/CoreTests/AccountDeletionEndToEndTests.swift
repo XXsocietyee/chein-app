@@ -140,7 +140,7 @@ import FoundationNetworking
     var journal: ComplianceFileJournal
     var session: ComplianceSession
     var context: RuntimeDependencyContext
-    var client: AccountDeregistrationOriginalClient
+    var client: AccountDeregistrationOriginalClient!
     var loseApplyResponse = false
     var terminalStatus = "PENDING"
     var initialStatus = "NORMAL"

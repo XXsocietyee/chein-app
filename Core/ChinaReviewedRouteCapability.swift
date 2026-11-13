@@ -40,6 +40,9 @@ public enum ChinaReviewedRouteCapability {
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        // Owner approval of the non-money player writes: the CITY board (gaps A). Member game
+        // points only; no CITY route moves money.
+        if CityGameProductionLease.paths.contains(key) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
 
@@ -1644,6 +1647,9 @@ public enum ChinaReviewedRouteCapability {
         "/api/play/help",
         "/api/play/help/advanced/receipt",
         "/api/play/help/receipt",
+        // Owner-approved non-money player writes (2026-11-12): hint ladder use and skip, H8.
+        "/api/play/help/skip",
+        "/api/play/help/use",
         "/api/play/hint/unlock",
         "/api/play/journey/ask",
         "/api/play/journey/backpack",
@@ -1777,6 +1783,10 @@ public enum ChinaReviewedRouteCapability {
         "/api/template/topic-template/info",
         "/api/template/topic-template/list",
         "/api/template/topic-template/use",
+        // Owner-approved non-money template adoption (2026-11-13, H1): place to-dos and image credits.
+        "/api/template/topic-template/binding",
+        "/api/template/topic-template/binding-status",
+        "/api/media/asset/attribution",
         "/api/template/updateLibraryStatus",
         "/api/topic/beta/graduate",
         "/api/topic/cancel",

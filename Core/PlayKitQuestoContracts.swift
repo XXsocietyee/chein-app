@@ -110,6 +110,15 @@ public struct PlayKitHangmanProjection: Equatable {
         return n >= 0 && n < list.count ? list[n].index : nil
     }
 
+    /// SUBMIT_HANGMAN `{input: "整词"}`: the whole word as typed. The server ignores spaces and rebuilds the
+    /// answer itself; nothing is cut or completed here. Nil when only whitespace was typed.
+    public static func wholeWordPayload(_ text: String) -> [String: PlayWireValue]? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.unicodeScalars.count <= wholeWordLimit else { return nil }
+        return ["input": .string(trimmed)]
+    }
+    public static let wholeWordLimit = 64
+
     /// SUBMIT_HANGMAN `{slots: {"i": ch}}` once every editable cell has a character, otherwise nil.
     public func payload(typed: [Int: String]) -> [String: PlayWireValue]? {
         var out: [String: PlayWireValue] = [:]
@@ -310,5 +319,41 @@ public enum PlayAlbumUploadOutcome: Equatable, Sendable {
     public static func resolve(url: String?, issue: PlayExperienceError?) -> Self {
         guard issue == nil, let url, PlayExperienceService.validHTTPS(url) else { return .failed }
         return .ready(url)
+    }
+}
+
+// MARK: - UG-02 image options
+
+/// A PICK option with its picture (mini-program playkit-questo.js qaOptions). Only an https picture is kept;
+/// `media-asset:`, http, data and protocol-relative references fall back to text. Correctness and feedback are
+/// never read; the submit still carries the original option id.
+public struct PlayKitImageOption: Equatable, Identifiable {
+    public let id: String
+    /// A, B, C, D, then the 1-based position.
+    public let key: String
+    public let label: String
+    public let image: String?
+    /// Author alt text, read only when the picture is kept. Empty when the author wrote none.
+    public let alt: String
+
+    /// The accessibility name: label first, then the alt text when it adds something.
+    public var spokenDescription: String {
+        let extra = alt.trimmingCharacters(in: .whitespacesAndNewlines)
+        return extra.isEmpty || extra == label ? label : label + "，" + extra
+    }
+
+    static let keys = ["A", "B", "C", "D"]
+
+    /// Nil unless at least one option has a picture this build can show: text-only questions keep the plain rows.
+    public static func read(_ segment: PlayWireValue) -> [PlayKitImageOption]? {
+        var seen = Set<String>()
+        let rows: [PlayKitImageOption] = (segment["options"].array ?? []).enumerated().compactMap { offset, row in
+            guard let id = row["id"].text, !id.isEmpty, seen.insert(id).inserted else { return nil }
+            let image = PlayKitAccusationProjection.displayable(row["img"].text)
+            let key = offset < keys.count ? keys[offset] : String(offset + 1)
+            return PlayKitImageOption(id: id, key: key, label: row["label"].text ?? row["t"].text ?? id, image: image,
+                                      alt: image == nil ? "" : (row["alt"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+        return rows.contains { $0.image != nil } ? rows : nil
     }
 }

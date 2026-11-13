@@ -8,10 +8,11 @@ import QuestifyCore
 // itself until its capability or binding exists; nothing here grants a write or invents data.
 // The bindings below are stubs for Cursor (composition/logic): their defaults keep every entry hidden.
 
-/// Cursor binding: the CITY fairness reader for the signed-in player. Nil hides the entry.
+/// The CITY fairness reader for the signed-in player, scoped to the board the CITY lease last
+/// loaded. Nil (no lease, no board yet) hides the entry.
 /// Return a factory, not a reader, so a render never constructs a reader.
 @MainActor enum CityFairnessEntryBinding {
-    static var makeReader: @MainActor (AppSession) -> (@MainActor () -> CityFairnessReader)? = { _ in nil }
+    static var makeReader: @MainActor (AppSession) -> (@MainActor () -> CityFairnessReader)? = { $0.makeCityFairnessReaderFactory() }
 }
 
 /// The player's own orienteering score for one participation. Mini-program

@@ -64,12 +64,31 @@ extension PlayExperienceSession {
 public struct PlayRouteAdvance: Codable, Equatable {
     public let actionID: String
     public let expectedVersion: Int
+    /// UG-09 / U05-03: original run identity from `GET /api/play/action-context`, journaled with the
+    /// action id so an exact retry and a receipt read name the same run. Nil on journals written
+    /// before this binding existed; those requests keep their original shape.
+    public let routeSessionID: Int?
+    public let runtimeInstance: String?
+    public let authorityEpoch: Int?
     public init(actionID: String, expectedVersion: Int) throws {
-        let id = actionID.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !id.isEmpty, id.count <= 96, expectedVersion >= 0 else { throw APIError.invalidRequest }
-        self.actionID = id; self.expectedVersion = expectedVersion
+        try self.init(actionID: actionID, expectedVersion: expectedVersion, routeSessionID: nil, runtimeInstance: nil, authorityEpoch: nil)
     }
-    var fields: [String: String] { ["routeActionId": actionID, "expectedRouteVersion": String(expectedVersion)] }
+    public init(actionID: String, expectedVersion: Int, routeSessionID: Int?, runtimeInstance: String?, authorityEpoch: Int?) throws {
+        let id = actionID.trimmingCharacters(in: .whitespacesAndNewlines)
+        // The backend accepts `[A-Za-z0-9:_-]{1,80}` action ids; UUID strings satisfy it.
+        guard !id.isEmpty, id.count <= 96, expectedVersion >= 0, routeSessionID.map({ $0 >= 0 }) ?? true,
+              (runtimeInstance == nil) == (authorityEpoch == nil) else { throw APIError.invalidRequest }
+        self.actionID = id; self.expectedVersion = expectedVersion
+        self.routeSessionID = routeSessionID; self.runtimeInstance = runtimeInstance; self.authorityEpoch = authorityEpoch
+    }
+    /// Bound from the server's action context (not minted from a local route snapshot).
+    public var isContextBound: Bool { routeSessionID != nil }
+    var fields: [String: String] {
+        var fields = ["routeActionId": actionID, "expectedRouteVersion": String(expectedVersion)]
+        if let routeSessionID { fields["routeSessionId"] = String(routeSessionID) }
+        if let runtimeInstance, let authorityEpoch { fields["runtimeInstance"] = runtimeInstance; fields["authorityEpoch"] = String(authorityEpoch) }
+        return fields
+    }
 }
 public enum PlayExperienceError: Error, Equatable {
     case disabled, staleSession, busy, invalidAction, unknownResult, unsupported, malformed, persistenceUnavailable
@@ -82,6 +101,10 @@ public struct PlayExperienceDocument: Decodable, Equatable {
     public let storyVariables: [String: PlayWireValue]
     public let storyVoices: [String: PlayWireValue]
     public let storyThoughts: [PlayWireValue]
+    /// U04-03 server verdict; nil when the server sends none.
+    public let compatibility: PlayContentCompatibility?
+    /// Content identity (frozen run snapshot version, else published config version). Nil is unknown, never 0.
+    public let contentVersion: String?
     public init(from decoder: Decoder) throws {
         base = try PlayNodesResult(from: decoder)
         let raw = try PlayWireValue(from: decoder)
@@ -101,6 +124,10 @@ public struct PlayExperienceDocument: Decodable, Equatable {
         storyVariables = raw["vars"].object ?? [:]
         storyVoices = raw["storyVoices"].object ?? [:]
         storyThoughts = raw["routeState"]["thoughts"].array ?? []
+        compatibility = PlayContentCompatibility(raw: raw["compatibility"])
+        if let frozen = raw["contentSnapshotVersion"].tolerantInteger, frozen > 0 { contentVersion = "s\(frozen)" }
+        else if let published = raw["publishedConfigVersion"].tolerantInteger, published > 0 { contentVersion = "p\(published)" }
+        else { contentVersion = nil }
     }
 }
 public struct PlayNodeExtras: Equatable {

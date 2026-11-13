@@ -23,8 +23,18 @@ public struct CNAccountSessionService {
     /// Bodyless POST, raw Authorization, authoritative public appUser projection.
     /// A legacy cached projection without an explicit server role cannot restore a session.
     public func currentAccount(token: String) async throws -> Account {
+        try await currentAccount(token: token, storedRole: nil)
+    }
+
+    /// `storedRole` is the role this device committed for the same account at sign-in. It fills
+    /// only an omitted server role for that exact account id; a server role always wins, and an
+    /// unknown or mismatched account still cannot restore.
+    public func currentAccount(token: String, storedRole: StoredSessionRole?) async throws -> Account {
         try Task.checkCancellation()
-        let account = try await auth.currentAccount(token: token)
+        var account = try await auth.currentAccount(token: token)
+        if account.role.isEmpty, let storedRole, storedRole.accountID == account.id, account.id > 0 {
+            account = account.withFallbackRole(storedRole.role)
+        }
         guard ["player", "club", "merchant"].contains(account.role) else { throw APIError.malformedResponse }
         try Task.checkCancellation()
         return account
@@ -38,6 +48,39 @@ public struct CNAccountSessionService {
     }
 }
 
+
+/// Non-secret record of the role committed with a signed-in account, kept per storage scope so
+/// a cold restore survives a `/api/userInfo` projection that omits `role`.
+public struct StoredSessionRole: Equatable {
+    public let accountID: Int
+    public let role: String
+    public init?(accountID: Int, role: String) {
+        guard accountID > 0, ["player", "club", "merchant"].contains(role) else { return nil }
+        self.accountID = accountID; self.role = role
+    }
+    public init?(encoded: String?) {
+        guard let parts = encoded?.split(separator: "|", omittingEmptySubsequences: false), parts.count == 2,
+              let id = Int(parts[0]) else { return nil }
+        self.init(accountID: id, role: String(parts[1]))
+    }
+    public var encoded: String { "\(accountID)|\(role)" }
+    public static func key(for scope: RegionalSessionStorageScope) -> String { scope.service + ".restoreRole" }
+}
+
+/// Defaults-backed `StoredSessionRole` for one storage scope. Written on every committed session, cleared on logout/expiry.
+public struct StoredSessionRoleStore {
+    private let defaults: UserDefaults
+    private let key: String
+    public init(defaults: UserDefaults, scope: RegionalSessionStorageScope) {
+        self.defaults = defaults; key = StoredSessionRole.key(for: scope)
+    }
+    public func read() -> StoredSessionRole? { StoredSessionRole(encoded: defaults.string(forKey: key)) }
+    public func record(_ account: Account) {
+        if let stored = StoredSessionRole(accountID: account.id, role: account.role) { defaults.set(stored.encoded, forKey: key) }
+        else { clear() }
+    }
+    public func clear() { defaults.removeObject(forKey: key) }
+}
 
 extension CNAccountSessionService {
     /// Exact bounded wire shapes from the native SMS/session adapter. This is a transport

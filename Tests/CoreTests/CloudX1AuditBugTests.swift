@@ -110,7 +110,7 @@ final class CloudX1AuditBugTests: XCTestCase {
             "You can’t continue yet. This step is not ready. This device will not collect payment or mark an order paid."))
     }
 
-    func testCreateResponseDataIsAScalarTopicId() throws {
+    @MainActor func testCreateResponseDataIsAScalarTopicId() throws {
         let session = try ProjectEditSession(accountID: 701, epoch: 1, storageNamespace: "test-cn")
         let pending = try ProjectEditPending(
             operationID: UUID(),

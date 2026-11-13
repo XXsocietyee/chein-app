@@ -67,7 +67,10 @@ import FoundationNetworking
         let envelope = try? OperationAdapterHTTP.envelope(data)
         if status == 401 || status == 403 { return .rejected }
         guard (200..<300).contains(status), let code = envelope?["code"]?.integer else { return .unknown }
-        guard code == 200 else { return .rejected }
+        guard code == 200 else {
+            if let errorCode = envelope?["errorCode"]?.text, TeamSeatPresentation.isMachineCode(errorCode) { return .rejectedCode(errorCode) }
+            return .rejected
+        }
         if case .changeJoinMode(let teamID, let requested) = action {
             guard teamID > 0, requested != .unknown,
                   let raw = envelope?["data"]?.object?["joinMode"]?.integer,

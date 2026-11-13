@@ -24,11 +24,11 @@ class BackendSyncSourceTests(unittest.TestCase):
  def test_topic_like_write_is_only_the_explicit_type0_unlike(self):
   # E01-19 consumers: explicit type only; the legacy blank-type toggle keeps failing on DELETE0.
   users = sorted(str(p.relative_to(ROOT)) for p, v in self.swift().items() if re.search(r'"api/topic/like"', v))
-  # App/AppCompositionRoot.swift hosts the reviewed-route body validator that pins the same explicit type "0".
-  # The lease file names the path in the approved like set. The type "0" body stays in TopicUnlike,
-  # and the reviewed-route validator stays in AppCompositionRoot.
-  self.assertEqual(users, ['App/AppCompositionRoot.swift', 'App/ReviewedPlayerWriteLeases.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
-  root = (ROOT/'App/AppCompositionRoot.swift').read_text()
+  # App/ReviewedProductionRoutes.swift hosts the reviewed-route body validator that pins the same explicit type "0"
+  # (moved out of AppCompositionRoot for the glue-file ratchet). The lease file names the path in the approved like set.
+  # The type "0" body stays in TopicUnlike.
+  self.assertEqual(users, ['App/ReviewedPlayerWriteLeases.swift', 'App/ReviewedProductionRoutes.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
+  root = (ROOT/'App/ReviewedProductionRoutes.swift').read_text()
   self.assertIn('case baseURL.appendingPathComponent("api/topic/like").absoluteString:\n            requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"', root)
   value = (ROOT/'Core/TopicUnlike.swift').read_text()
   self.assertIn('fields: ["id": String(topicID), "type": "0"]', value)

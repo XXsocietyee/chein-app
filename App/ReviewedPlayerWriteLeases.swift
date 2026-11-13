@@ -45,6 +45,10 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
+        if relative == "api/media/asset/attribution" {
+            return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true)
+                && covers(relative, grant.templateAdoption)
+        }
         if method == "GET" { return covers(relative, grant.friends.endpoint) }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
@@ -53,6 +57,7 @@ extension ReviewedProductionFormMutationRoute {
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
+            || covers(relative, grant.templateAdoption)
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -126,6 +131,70 @@ extension ReviewedProductionFormMutationRoute {
     }
 }
 
+/// Owner approval 2026-11-12 (E2E-20261112 F4/F5 and the live-route sweep): signed-in player reads that
+/// `ChinaReviewedRouteCapability` marks live but the shipped China composition had no admission for. Exact paths only; each
+/// still has to be a live, wired, non-money production route. Bodies are the flat shapes the read services send: none, a
+/// JSON object, a canonical multipart form, or a URL-encoded form. Nested values and money fields are not a read.
+enum ReviewedPlayerReadRoute {
+    // player-read-paths-begin
+    static let paths: Set<String> = [
+        "api/club/home", "api/club/detail", "api/coop/list", "api/user/info",
+        "api/config/features", "api/medal/wall", "api/badge/wall-v2", "api/growth/leaderboard",
+        "api/object-card/list", "api/registration/my-joined"
+    ]
+    // player-read-paths-end
+    static let moneyKeys: Set<String> = ["payAmount", "payChannel", "amount", "price", "payableAmount"]
+
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, url.query == nil, url.fragment == nil, url.user == nil, url.password == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port else { return false }
+        let relative = ReviewedProductionFormMutationRoute.relativePath(url, baseURL: baseURL)
+        guard paths.contains(relative), ChinaReviewedRouteCapability.mark(for: "/" + relative) == .liveInProduction,
+              ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + relative) else { return false }
+        let body = request.httpBody ?? Data()
+        guard body.count <= 4096, let fields = flatFields(body, type: request.value(forHTTPHeaderField: "Content-Type")) else { return false }
+        return fields.allSatisfy { !moneyKeys.contains($0) }
+    }
+
+    /// Field names of a flat read body, or nil when the body is not one of the read shapes.
+    private static func flatFields(_ body: Data, type: String?) -> [String]? {
+        guard let type else { return body.isEmpty ? [] : nil }
+        if type == "application/json" {
+            guard let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+                  object.values.allSatisfy({ $0 is String || $0 is NSNumber }) else { return nil }
+            return Array(object.keys)
+        }
+        if type.hasPrefix("application/x-www-form-urlencoded") {
+            guard let text = String(data: body, encoding: .utf8) else { return nil }
+            if text.isEmpty { return [] }
+            var parts = URLComponents(); parts.percentEncodedQuery = text
+            guard let items = parts.queryItems, Set(items.map(\.name)).count == items.count else { return nil }
+            return items.map(\.name)
+        }
+        let prefix = "multipart/form-data; boundary="
+        guard type.hasPrefix(prefix), let text = String(data: body, encoding: .utf8) else { return nil }
+        let boundary = String(type.dropFirst(prefix.count))
+        let terminator = "--\(boundary)--\r\n"
+        guard !boundary.isEmpty, text.hasSuffix(terminator) else { return nil }
+        let parts = String(text.dropLast(terminator.count)).components(separatedBy: "--\(boundary)\r\n")
+        guard parts.first == "" else { return nil }
+        var fields: [String: String] = [:]
+        let header = "Content-Disposition: form-data; name=\""
+        for part in parts.dropFirst() {
+            guard part.hasPrefix(header), part.hasSuffix("\r\n"), let separator = part.range(of: "\"\r\n\r\n") else { return nil }
+            let name = String(part[part.index(part.startIndex, offsetBy: header.count)..<separator.lowerBound])
+            guard !name.isEmpty, fields[name] == nil else { return nil }
+            fields[name] = String(part[separator.upperBound...].dropLast("\r\n".count))
+        }
+        return Array(fields.keys)
+    }
+}
+
 @MainActor final class ReviewedProductionGateLeases {
     private var walletHistoryByContext: [String: WalletHistoryReadApproval] = [:]
     private var messagingHistoryByContext: [String: MessagingHistoryReadApproval] = [:]
@@ -152,6 +221,7 @@ extension ReviewedProductionFormMutationRoute {
     private var playerWritesEnabled = false
     private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
     private var playConfigurationByContext: [String: RuntimeDependencyConfiguration] = [:]
+    private var cityGameByContext: [String: CityGameCapabilityLease] = [:]
 
     // player-write-paths-begin
     static let imPaths: Set<String> = ["api/im/send", "api/im/send-receipt"]
@@ -171,7 +241,7 @@ extension ReviewedProductionFormMutationRoute {
     static let playPaths: Set<String> = [
         "api/play/arrive", "api/play/answer", "api/play/checkin", "api/play/photo", "api/play/sensor-result",
         "api/play/puzzle/reveal", "api/play/action-context", "api/play/action-receipt", "api/play/help",
-        "api/play/help/receipt", "api/play/help/advanced/receipt", "api/play/advanced/start", "api/play/advanced/action",
+        "api/play/help/use", "api/play/help/skip", "api/play/help/receipt", "api/play/help/advanced/receipt", "api/play/advanced/start", "api/play/advanced/action",
         "api/topic/chapter/finish", "api/play/run-session/save", "api/play/journey/opening/complete",
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
@@ -183,6 +253,11 @@ extension ReviewedProductionFormMutationRoute {
         "api/roam/shop/visit", "api/roam/poi/discover", "api/roam/reveal",
         "api/roam/passport/record", "api/city/nodes/{}/favorite", "api/city/nodes/{}/complete"
     ]
+    /// H1 template adoption: copy, place to-do status and binding are form POSTs; image credit is one GET.
+    static let templateAdoptionPaths: Set<String> = [
+        "api/template/topic-template/use", "api/template/topic-template/binding-status",
+        "api/template/topic-template/binding", "api/media/asset/attribution"
+    ]
     static let likePaths: Set<String> = ["api/topic/like", "api/comment/like", "api/creativesquare/like"]
     static let reportPaths: Set<String> = [
         "api/v1/community/reports", "api/v1/community/appeals", "api/comment/report", "api/topic/report",
@@ -191,19 +266,40 @@ extension ReviewedProductionFormMutationRoute {
         "api/orient/scoring/appeal", "api/orient/scoring/dispute"
     ]
     static let playCapabilities: Set<PlayExperienceCapability> = [
-        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening
+        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
     ]
     // player-write-paths-end
 
     func notePlayerWrites(_ enabled: Bool) { playerWritesEnabled = enabled }
 
+    /// CITY board lease: owner-approved non-money player writes, China production host, and a
+    /// build-configured region. Reissued when the hour-long approvals lapse or the session changes.
+    func cityGame(_ context: RuntimeDependencyContext, region: String? = ReviewedProductionGateLeases.cityGameRegion) -> CityGameCapabilityLease? {
+        guard playerWritesEnabled, context.role == "player" || context.role == "club",
+              let lease = Self.cityGameLease(context: context, region: region) else { return nil }
+        let key = contextKey(context)
+        if let existing = cityGameByContext[key], existing.lease == lease, existing.matches(context) { return existing }
+        cityGameByContext[key]?.revoke()
+        cityGameByContext[key] = nil
+        guard let issued = CityGameCapabilityLease(context: context, lease: lease) else { return nil }
+        cityGameByContext[key] = issued
+        return issued
+    }
+
     func playerWriters(_ context: RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? {
         guard playerWritesEnabled, context.market == .china, context.role == "player" || context.role == "club" else { return nil }
         let key = contextKey(context)
-        if let existing = playerWritersByContext[key] { return existing }
+        if let existing = playerWritersByContext[key], Self.isLive(existing) { return existing }
         guard let grant = makePlayerGrant(context) else { return nil }
         playerWritersByContext[key] = grant
         return grant
+    }
+
+    /// E2E-20261112 F4: the channel-text and friend leases expire after an hour. A session signed in for longer must get a
+    /// fresh grant for the same context instead of a cached, expired one that refuses every `api/im/send`.
+    private static func isLive(_ grant: ReviewedPlayerWriteGrant, now: Date = Date()) -> Bool {
+        !grant.channelTextSend.isRevoked && !grant.channelTextReceipt.isRevoked
+            && now < grant.channelTextSend.expiresAt && now < grant.channelTextReceipt.expiresAt && now < grant.friends.expiresAt
     }
 
     private func makePlayerGrant(_ context: RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? {
@@ -218,6 +314,7 @@ extension ReviewedProductionFormMutationRoute {
               let roamExtras = makeEndpoint(context, paths: Self.roamExtraPaths),
               let likes = makeEndpoint(context, paths: Self.likePaths),
               let reports = makeEndpoint(context, paths: Self.reportPaths),
+              let templateAdoption = makeEndpoint(context, paths: Self.templateAdoptionPaths),
               let friendEndpoints = makeEndpoint(context, paths: NativeFriendApproval.readPaths.union(NativeFriendApproval.writePaths)),
               let friends = try? NativeFriendApproval(endpoint: friendEndpoints, expiresAt: expires),
               let avatar = try? ProfileAvatarApproval(baseURL: context.baseURL, namespace: context.session.namespace,
@@ -229,7 +326,7 @@ extension ReviewedProductionFormMutationRoute {
                   expiresAt: expires, allowsAnyPositiveConversation: true) else { return nil }
         return ReviewedPlayerWriteGrant(imSend: im, clubAdmission: clubAdmission, clubCommunity: clubCommunity, square: square,
             profile: profile, avatar: avatar, registration: registration, team: team, play: play, roamExtras: roamExtras,
-            likes: likes, reports: reports, friends: friends, channelTextSend: channelTextSend, channelTextReceipt: channelTextReceipt)
+            likes: likes, reports: reports, templateAdoption: templateAdoption, friends: friends, channelTextSend: channelTextSend, channelTextReceipt: channelTextReceipt)
     }
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {

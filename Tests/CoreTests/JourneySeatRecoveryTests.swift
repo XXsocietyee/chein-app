@@ -52,7 +52,7 @@ final class JourneySeatRecoveryTests: XCTestCase {
 
     func testTransportFailureKeepsTheIdAndAConflictClearsIt() async throws {
         let store = JourneyMemoryRequestStore()
-        let wire = Wire(failFirst: true)
+        let wire = Wire(); wire.failFirst = true
         let source = try make(wire, store: store)
         let key = JourneyRequestKey.seatClaim("seat-token-value")
         let failed = try await source.seatClaim(token: "seat-token-value", sessionToken: "session-token")

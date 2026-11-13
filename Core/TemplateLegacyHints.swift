@@ -18,7 +18,8 @@ public extension TemplateAuthoringDraft {
         legacyHintsEnabled ?? [hint1, hint2, answerReveal].contains { !($0 ?? "").isEmpty }
     }
     var legacyHintControlsVisible: Bool {
-        finishEnabled && validationMethod.supportsLegacyHints && !advanced.hasLegacyHintPrimaryGame
+        // UG-11: the new ladder replaces the three legacy fields in the same place; they never run together.
+        finishEnabled && validationMethod.supportsLegacyHints && !advanced.hasLegacyHintPrimaryGame && !advanced.hintLadderOn
     }
     /// Only the deliberate off action clears all three fields. Method changes merely suppress them.
     @discardableResult mutating func setLegacyHintsEnabled(_ enabled: Bool) -> Bool {

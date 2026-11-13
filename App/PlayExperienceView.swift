@@ -17,7 +17,7 @@ import SwiftUI
     var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
     var backpackModel: PlayThemeBackpackCoordinator? = nil
     var entryCode: PlayEntryCodeContext? = nil
-    /// W20 city business game. Nil (production until a reviewed endpoint and `cityActions` exist) hides the board.
+    /// W20 city business game on the real CITY read (`AppSession.playCityGame`). Nil (no CITY lease or no board) hides it.
     var cityGameModel: CityGameCoordinator? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil
@@ -188,8 +188,17 @@ import SwiftUI
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
                 if model.phase == .loading { CYSkeleton().accessibilityIdentifier("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
+                    // The server refused to open this run for this build; nothing was skipped or started.
+                    Text("playCompat.refused.next", tableName: "PlayFullStory").font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("playCompat.refused")
+                }
                 PlayResyncAction(model: model)
+                if model.hasCurrentMediaSnapshot, let notice = model.routeNotice { PlayRouteNoticeRow(notice: notice) }
                 if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(CYColor.warningText) }
+            }
+            if let compatibility = model.compatibility, model.hasCurrentMediaSnapshot {
+                PlayCompatibilitySection(compatibility: compatibility)
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if let entryCode { PlayEntryCodeSection(context: entryCode) }
@@ -211,11 +220,27 @@ import SwiftUI
             if model.unresolved {
                 Section("playx.unknown.title") {
                     Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playx.unknown.body"))
+                    // U05-03: what the original receipt says; checking again re-reads it, never resubmits.
+                    if let state = model.submitRecovery { PlaySubmitRecoveryRow(state: state) }
                     Button("playx.reconcile") { Task { await model.load() } }.accessibilityIdentifier("playx.reconcile")
                     if model.canRetryExactBranch {
                         Button("playx.retryExact") { Task { await model.retryExactBranchAfterReadback() } }
                             .accessibilityIdentifier("playx.retryExact")
                     }
+                }
+            }
+            if model.hasCurrentMediaSnapshot, model.available {
+                // U05-04: download for this run; the page states what is (not) usable offline.
+                Section {
+                    NavigationLink {
+                        PlayOfflinePackHost(make: {
+                            PlayOfflinePackEnvironment.store().flatMap {
+                                model.makeOfflinePackModel(store: $0, fetch: PlayOfflinePackEnvironment.fetch(approvedHosts: approvedArtworkHosts))
+                            }
+                        })
+                    } label: {
+                        Label { Text("pack.entry", tableName: "PlayRecovery") } icon: { Image(systemName: "arrow.down.circle") }
+                    }.accessibilityIdentifier("playRecovery.pack.open")
                 }
             }
             if let ambientModel { PlayAmbientView(model: ambientModel) }
@@ -498,11 +523,31 @@ import SwiftUI
     @State private var hintContext: PlayInteractionContext?
     @State private var hintLevel: Int?
     @State private var localIssue: PlayExperienceError?
+    /// UG-05…UG-09 ladder for this stop. When the server enables it, the legacy hint and reveal entries step aside.
+    @State private var help: PlayHelpLadderModel?
+    @State private var showHelpPanel = false
+    @State private var skippedHere = false
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
+    private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
     var body: some View {
         let context = model.interactionContext
         List {
             PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
+            if let state = model.submitRecovery, state.nodeID == nodeID {
+                Section { PlaySubmitRecoveryRow(state: state, onCheck: model.unresolved ? { Task { await model.load() } } : nil) }
+            }
+            if let failure = model.arrivalFailure, failure.nodeID == nodeID, node.map({ model.snapshot?.isDone($0) != true }) ?? false {
+                PlayArrivalFailureSection(failure: failure,
+                    onRelocate: device.map { device -> () -> Void in
+                        // A new reading is a new input with a new action id; the settled one is never replayed.
+                        { _ = Task { await device.capture(.location, interaction: .init(context: context, current: { model.interactionContext })) } }
+                    },
+                    onRefresh: { Task { await model.load() } },
+                    onOpenNode: openNode)
+            }
+            if let reading = model.arrivalReading, model.reward?["nodeId"].tolerantInteger == nodeID {
+                PlayArrivalReadingSection(reading: reading)
+            }
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
                 if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
@@ -572,7 +617,19 @@ import SwiftUI
                             .accessibilityIdentifier("playx.answer.review")
                     }
                 }
-                if let extra = model.extras[nodeID], extra.hintLocked == true || extra.puzzleScoring == true {
+                if helpEnabled || skippedHere {
+                    Section("playHelp.title") {
+                        if skippedHere {
+                            Label("playHelp.skipped", systemImage: "forward.end").foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("playHelp.skipped")
+                        } else {
+                            Button("playHelp.open") { showHelpPanel = true }
+                                .disabled(!model.hasCurrentMediaSnapshot)
+                                .accessibilityIdentifier("playHelp.open")
+                        }
+                    }
+                }
+                if !helpEnabled, !skippedHere, let extra = model.extras[nodeID], extra.hintLocked == true || extra.puzzleScoring == true {
                     Section("playx.hints") {
                         if let cost = extra.hintCost { LabeledContent("playx.hints.cost") { Text(verbatim: String(cost)) } }
                         ForEach(Array(extra.usedHints.enumerated()), id: \.offset) { _, text in Text(verbatim: text).font(CYTypography.meta).foregroundStyle(.secondary) }
@@ -592,7 +649,7 @@ import SwiftUI
                             .accessibilityIdentifier("playx.hints.request")
                     }
                 }
-                if let hint = model.hint { Section("playx.hints") { ForEach(Array(hint.hints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } } }
+                if !helpEnabled, let hint = model.hint { Section("playx.hints") { ForEach(Array(hint.hints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } } }
                 if let preference, node.validationMethod == 6 {
                     NavigationLink("playx.preference.title") { PlayPreferenceView(model: preference) { Task { await model.load() } } }
                         .accessibilityIdentifier("playx.preference.open")
@@ -634,6 +691,7 @@ import SwiftUI
         // The optional check initially renders no rows, so its probe belongs to this stable host.
         .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
             if let node {
+                await loadHelp(node: node)
                 await journey?.probe(nodeDone: node.done == true)
                 guard !Task.isCancelled, self.node?.id == node.id, model.hasCurrentMediaSnapshot else { journey?.roleContent.close(); return }
                 await journey?.roleContent.load(expectedRunID: model.snapshot?.route?.sessionID, minimumStateVersion: model.snapshot?.route?.version)
@@ -661,7 +719,27 @@ import SwiftUI
                 Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
             }
         } message: { Text("playx.hints.consequence") }
-        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = "" }
+        .overlay {
+            if showHelpPanel, let help, helpEnabled {
+                PlayHelpLadderPanel(model: help, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
+            }
+        }
+        .onChange(of: help?.skipped) { _, skipped in
+            // The server settled the skip (0 points, assisted). No success verdict; progress is re-read by the model.
+            if skipped == true { skippedHere = true; showHelpPanel = false }
+        }
+        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
+    }
+    /// One read when an unfinished stop opens. A failed read keeps the legacy hint entries.
+    private func loadHelp(node: PlayNode) async {
+        guard node.done != true, model.snapshot?.isLocked(node) == false, let client = model.helpClient(nodeID: node.id) else {
+            if help?.identity.nodeID != node.id || node.done == true { help = nil; showHelpPanel = false }
+            return
+        }
+        if let help, help.identity == client.identity, help.loaded { return }
+        let next = PlayHelpLadderModel(client: client, store: PlayHelpDefaultsRequestStore.shared)
+        help = next
+        await next.load()
     }
     private var outcomeState: PlayTaskOutcomePresentation.State {
         PlayTaskOutcomePresentation(snapshot: model.snapshot, nodeID: nodeID, phase: model.phase.rawValue,
@@ -671,6 +749,43 @@ import SwiftUI
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {
         do { review = try model.review(nodeID: nodeID, evidence: evidence, context: context); showReview = true; localIssue = nil }
         catch { localIssue = error as? PlayExperienceError ?? .invalidAction }
+    }
+}
+
+/// U04-03: the server's compatibility verdict before play. Unconfirmed (old/undeclared client) shows
+/// nothing; a damaged declaration is "not confirmed", never "supported"; missing keys are listed as sent.
+struct PlayCompatibilitySection: View {
+    let compatibility: PlayContentCompatibility
+    var body: some View {
+        switch compatibility.verdict {
+        case .supported: EmptyView()
+        case .unconfirmed(let source):
+            if source == "MALFORMED" || source == "DECLARED_MALFORMED" {
+                Section {
+                    Label { Text("playCompat.unconfirmed", tableName: "PlayFullStory") } icon: { Image(systemName: "questionmark.circle") }
+                        .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("playCompat.unconfirmed")
+                }
+            }
+        case .unsupported(let missing):
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label { Text("playCompat.unsupported.title", tableName: "PlayFullStory").font(CYTypography.cardTitle) }
+                        icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
+                    Text("playCompat.unsupported.body", tableName: "PlayFullStory").font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    if !missing.isEmpty {
+                        DisclosureGroup {
+                            ForEach(missing, id: \.key) { row in
+                                Text(verbatim: row.key + " ≥ v" + String(row.minVersion)).font(CYTypography.meta).monospaced()
+                                    .foregroundStyle(CYColor.textSecondary)
+                            }
+                        } label: { Text("playCompat.unsupported.details", tableName: "PlayFullStory").font(CYTypography.caption) }
+                        .accessibilityIdentifier("playCompat.missing")
+                    }
+                }.accessibilityIdentifier("playCompat.unsupported")
+            }
+        }
     }
 }
 

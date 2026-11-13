@@ -99,6 +99,9 @@ import SwiftUI
                     TeamPageHeader(detail: detail, kind: pageKind, confirmedJoinMode: model.coordinator.confirmedJoinMode)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("team.detail.card")
+                    // U06-01: seats, applications and the invitation deadline, separate from the member list.
+                    TeamSeatFactsCard(detail: detail)
+                    TeamViewerRelationshipLine(detail: detail, invitation: invitationCode != nil)
                     if let channelManagementHooks,
                        let source = NativeTeamChannelManagementSource(coordinator: model.coordinator, lookup: lookup, readOnly: readOnly) {
                         NativeChannelManagementTeamEntry(destinations: channelManagementHooks.destinations, detail: source.detail, makeFlow: { selected in
@@ -124,7 +127,7 @@ import SwiftUI
                         }
                         else if TeamPagePresentation.invitationCTA(detail) == .join {
                             if TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) {
-                                TeamJoinRetryNotice()
+                                TeamJoinRetryNotice(reasonKey: model.coordinator.rejectionCode.map { TeamSeatPresentation.rejectionKey($0) })
                             }
                             actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
                                          labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)

@@ -2,11 +2,10 @@ import Foundation
 
 /// Reform plan v9 §29–35 / W20 resident CITY business game, player board projection.
 /// Extends the reviewed read surface (`CityPlayerReader`, `api/city-game/{current,
-/// participation,points}`) with the proposed GetCitySnapshot shape: rules summary,
-/// action budget, per-property state, published services and the member's existing
-/// points balance. GetCitySnapshot is not a reviewed endpoint, so this file performs no
-/// I/O and has no production implementation; the projection is exercised by offline
-/// DEBUG fixtures and Core tests only.
+/// participation,points}`) with the CITY_GAME_SNAPSHOT_V1 shape served by
+/// `GET api/city-game/game/snapshot`: rules summary, action budget, per-property state,
+/// published services, the member's existing points balance and the team's track position.
+/// This file performs no I/O; `CityGameHTTPService` reads it under the production lease.
 ///
 /// Every number shown to the player (points cost, service fee, action budget, holding
 /// limit, protection window) is a server fact carried by the projection. Absent facts
@@ -77,6 +76,14 @@ public struct CityPropertyState: Decodable, Equatable, Identifiable, Sendable {
     }
 }
 
+/// The member's own team on the board track. Only a joined member receives it.
+public struct CityTeamProgress: Decodable, Equatable, Sendable {
+    public let trackPosition: Int
+    /// The property the server last moved the team onto; occupying needs this landing.
+    public let landedPropertyId: String?
+    public let score: Int64
+}
+
 /// Published, frozen rules summary for the board (W20.1). Values are informational facts.
 public struct CityRulesSummary: Decodable, Equatable, Sendable {
     public let rulesReleaseId: String
@@ -115,6 +122,8 @@ public struct CityGameSnapshot: Decodable, Equatable, Sendable {
     public let memberPoints: Int64?
     /// Neutral, free goals remain available regardless of balance (W20.6 zero-points path).
     public let neutralTasksAvailable: Bool
+    /// The member's team position and score; nil for a non-member.
+    public var team: CityTeamProgress? = nil
 
     public var heldCount: Int { properties.filter(\.heldByMyTeam).count }
 
@@ -151,33 +160,18 @@ public struct CityGameSnapshot: Decodable, Equatable, Sendable {
         let visible = Set(points.map(\.pointId))
         guard properties.allSatisfy({ visible.contains($0.pointId) }) else { throw CityGameProjectionIssue.invalid }
         // A non-member sees board state only, never "my team" facts.
-        if read.membership != .joined { guard heldCount == 0, roundSeq == nil, properties.allSatisfy({ !$0.taskAttemptKept }) else { throw CityGameProjectionIssue.invalid } }
+        if read.membership != .joined { guard heldCount == 0, roundSeq == nil, team == nil, properties.allSatisfy({ !$0.taskAttemptKept }) else { throw CityGameProjectionIssue.invalid } }
+        if let team {
+            guard team.trackPosition >= 0, team.score >= 0, ReformWire.version(team.score),
+                  team.landedPropertyId.map({ landed in properties.contains { $0.propertyId == landed } }) ?? true else { throw CityGameProjectionIssue.invalid }
+        }
         if let limit = rules.holdingLimit { guard heldCount <= limit else { throw CityGameProjectionIssue.invalid } }
     }
 }
 
-/// Proposed W20 operations. A live service may only be built for operations that a
-/// reviewed, market-scoped deployment approval lists; that approval does not exist.
-public enum CityGameOperation: String, CaseIterable, Sendable {
-    case getSnapshot = "GetCitySnapshot", getDeltas = "GetCityDeltas", quote = "QuoteCityAction"
-    case rollRound = "RollCityRound", acceptTask = "AcceptCityTask", acquireProperty = "AcquireProperty"
-    case acceptServiceVisit = "AcceptServiceVisit", startChallenge = "StartCityChallenge", getReceipt = "GetActionReceipt"
-}
-
-public enum CityGameEndpointAllowlist {
-    /// Reviewed per-market approvals. Intentionally empty until each contract is reviewed.
-    public static let reviewed: [RegionalMarket: Set<CityGameOperation>] = [:]
-    public static func allows(_ operation: CityGameOperation, market: RegionalMarket) -> Bool {
-        reviewed[market]?.contains(operation) == true
-    }
-    /// The complete set a player surface needs before any live control may appear.
-    public static func playable(market: RegionalMarket) -> Bool {
-        CityGameOperation.allCases.allSatisfy { allows($0, market: market) }
-    }
-}
-
-/// Transport-free service seam for the proposed W20 operations. Only DEBUG fixtures
-/// implement it today; there is no production conformance.
+/// Service seam for the W20 game loop. `CityGameHTTPService` is the production
+/// conformance (owner-approved lease, shipped China composition); DEBUG fixtures and Core
+/// tests provide the others.
 @MainActor public protocol CityGameServing: AnyObject {
     func snapshot(for read: CityReadSnapshot) async throws -> CityGameSnapshot
     func deltas(after cursor: CityStreamCursor) async throws -> [CityDelta]

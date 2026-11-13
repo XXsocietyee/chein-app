@@ -9,6 +9,7 @@ private actor MemberHomePageWire: HTTPTransport {
     let status: Int
     private(set) var requests: [URLRequest] = []
     init(_ json: String, status: Int = 200) { self.json = json; self.status = status }
+    init(_ body: Data, status: Int = 200) { self.init(String(decoding: body, as: UTF8.self), status: status) }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         return (Data(json.utf8), status)
@@ -121,7 +122,8 @@ private actor MemberHomePageWire: HTTPTransport {
         XCTAssertEqual(unknown, .unknown)
         let roleWire = MemberHomePageWire(MemberHomeFixtureData.envelope(MemberHomeFixtureData.readyRoleJSON))
         _ = try await service(roleWire).roleInfoPage(token: "synthetic-member")
-        let roleRequest = try XCTUnwrap(await roleWire.requests.first)
+        let roleRequestAwaited = await roleWire.requests.first
+        let roleRequest = try XCTUnwrap(roleRequestAwaited)
         XCTAssertEqual(roleRequest.url, base.appendingPathComponent(MemberRoleInfoReadRoute.path))
         XCTAssertTrue(MemberRoleInfoReadRoute.accepts(roleRequest, baseURL: base))
     }
@@ -133,12 +135,14 @@ private actor MemberHomePageWire: HTTPTransport {
         let reader = MemberHomeSessionReader(service: try service(wire), currentSession: { session }, onUnauthorized: { _ in expired += 1 })
         let hidden = await reader.benefitsPage()
         XCTAssertEqual(hidden, .empty)
-        XCTAssertEqual(await wire.requests.count, 0)
+        let awaited = await wire.requests.count
+        XCTAssertEqual(awaited, 0)
         session = try MemberHomeSession(accountID: 7, epoch: 1, token: "synthetic-member", roleInfoApproval: UUID())
         let shown = await reader.benefitsPage()
         guard case .ready(.benefits(let shownBenefits)) = shown else { return XCTFail("\(shown)") }
         XCTAssertFalse(shownBenefits.withdrawalEnabled)
-        XCTAssertEqual(await wire.requests.count, 1)
+        let awaited1 = await wire.requests.count
+        XCTAssertEqual(awaited1, 1)
         let guest = MemberHomeSessionReader(service: try service(wire), currentSession: { nil })
         let signedOut = await guest.identityPage()
         XCTAssertEqual(MemberHomePageModel.identityCopyKey(signedOut), "member.card.signedOut")
@@ -148,6 +152,7 @@ private actor MemberHomePageWire: HTTPTransport {
         XCTAssertEqual(MemberHomePageModel.identityCopyKey(failed), "member.card.signedOut")
         XCTAssertEqual(expired, 1)
         let dormant = MemberHomeSessionReader(service: nil, currentSession: { session })
-        XCTAssertEqual(await dormant.identityPage(), .empty)
+        let awaited2 = await dormant.identityPage()
+        XCTAssertEqual(awaited2, .empty)
     }
 }

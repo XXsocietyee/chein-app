@@ -21,10 +21,10 @@ final class BackendErrorCatalogTests: XCTestCase {
             BackendErrorCatalog.sentence(code: "UNKNOWN", language: .en),
             "The result is still unknown. Please try again later.")
         XCTAssertNotEqual(BackendErrorCatalog.sentence(code: "UNKNOWN", language: .en), BackendErrorCatalog.generic.en)
-        XCTAssertEqual(BackendErrorCatalog.sentence(message: "请先登录", language: .zhHans), "请先登录")
-        XCTAssertEqual(BackendErrorCatalog.sentence(message: "请先登录", language: .en), "Sign in first.")
-        XCTAssertEqual(BackendErrorCatalog.sentence(status: 401, language: .zhHans), "登录已过期，请重新登录。")
-        XCTAssertEqual(BackendErrorCatalog.sentence(status: 418, language: .en), BackendErrorCatalog.generic.en)
+        XCTAssertEqual(BackendErrorCatalog.sentence(code: nil, message: "请先登录", language: .zhHans), "请先登录")
+        XCTAssertEqual(BackendErrorCatalog.sentence(code: nil, message: "请先登录", language: .en), "Sign in first.")
+        XCTAssertEqual(BackendErrorCatalog.sentence(code: nil, status: 401, language: .zhHans), "登录已过期，请重新登录。")
+        XCTAssertEqual(BackendErrorCatalog.sentence(code: nil, status: 418, language: .en), BackendErrorCatalog.generic.en)
         XCTAssertEqual(
             BackendErrorCatalog.sentence(code: "  FORBIDDEN  ", message: "请先登录", language: .en),
             "You don't have permission to do that.")
