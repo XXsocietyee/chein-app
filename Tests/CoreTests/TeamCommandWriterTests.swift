@@ -17,16 +17,19 @@ final class TeamCommandWriterTests: XCTestCase {
         XCTAssertEqual(saved.count, 32)
         wire.status = 500
         _ = await writer.submit(key: "join-9", path: "api/team/command/query", fields: [:])
-        XCTAssertEqual(await writer.savedRequestID(for: "join-9"), saved)
+        let awaited = await writer.savedRequestID(for: "join-9")
+        XCTAssertEqual(awaited, saved)
         XCTAssertEqual(wire.requestIDs, [saved, saved])
         wire.status = 409
         let rejected = await writer.submit(key: "join-9", path: "api/team/command/cancel", fields: [:])
         XCTAssertEqual(rejected, .rejected(409))
-        XCTAssertNil(await writer.savedRequestID(for: "join-9"))
+        let awaited1 = await writer.savedRequestID(for: "join-9")
+        XCTAssertNil(awaited1)
         wire.status = 200
         let applied = await writer.submit(key: "join-9", path: "api/team/command", fields: ["action": "join"])
         XCTAssertEqual(applied, .applied(200))
-        XCTAssertNil(await writer.savedRequestID(for: "join-9"))
+        let awaited2 = await writer.savedRequestID(for: "join-9")
+        XCTAssertNil(awaited2)
         XCTAssertNotEqual(wire.requestIDs.last, saved)
     }
 }

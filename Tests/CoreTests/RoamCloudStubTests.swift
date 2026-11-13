@@ -108,9 +108,11 @@ final class RoamPlaceCommentClientTests: XCTestCase {
         let unavailable = try await client(broken).list(poiID: 7, token: "token-1")
         XCTAssertEqual(unavailable, .unavailable)
         let denied = Script(.success((Data(), 401)))
-        XCTAssertEqual(try await client(denied).list(poiID: 7, token: "token-1"), .unauthorized)
+        let awaited = try await client(denied).list(poiID: 7, token: "token-1")
+        XCTAssertEqual(awaited, .unauthorized)
         let offline = Script(.failure(URLError(.cannotConnectToHost)))
-        XCTAssertEqual(try await client(offline).list(poiID: 7, token: "token-1"), .unavailable)
+        let awaited1 = try await client(offline).list(poiID: 7, token: "token-1")
+        XCTAssertEqual(awaited1, .unavailable)
     }
 
     func testPublishKeepsTheRequestIdAndSendsNoMoney() async throws {
@@ -125,13 +127,17 @@ final class RoamPlaceCommentClientTests: XCTestCase {
             XCTAssertFalse(text.lowercased().contains(banned), banned)
         }
         let rejected = Script(.success((Data(#"{"code":400,"msg":"nope"}"#.utf8), 200)))
-        XCTAssertEqual(try await client(rejected).publish(poiID: 7, stars: 4, text: "nice", requestID: "req-1", token: "token-1"), .rejected("nope"))
+        let awaited2 = try await client(rejected).publish(poiID: 7, stars: 4, text: "nice", requestID: "req-1", token: "token-1")
+        XCTAssertEqual(awaited2, .rejected("nope"))
         let published = Script(.success((Data(#"{"code":200}"#.utf8), 200)))
-        XCTAssertEqual(try await client(published).publish(poiID: 7, stars: 4, text: "nice", requestID: "req-1", token: "token-1"), .published)
+        let awaited3 = try await client(published).publish(poiID: 7, stars: 4, text: "nice", requestID: "req-1", token: "token-1")
+        XCTAssertEqual(awaited3, .published)
         let undecodable = Script(.success((Data("not-json".utf8), 200)))
-        XCTAssertEqual(try await client(undecodable).publish(poiID: 7, stars: 4, text: "nice", requestID: "req-1", token: "token-1"), .unknown)
+        let awaited4 = try await client(undecodable).publish(poiID: 7, stars: 4, text: "nice", requestID: "req-1", token: "token-1")
+        XCTAssertEqual(awaited4, .unknown)
         let skipped = Script(.success((Data(#"{"code":200}"#.utf8), 200)))
-        XCTAssertEqual(try await client(skipped).publish(poiID: 7, stars: 4, text: "nice", requestID: "bad id", token: "token-1"), .notSent)
+        let awaited5 = try await client(skipped).publish(poiID: 7, stars: 4, text: "nice", requestID: "bad id", token: "token-1")
+        XCTAssertEqual(awaited5, .notSent)
         XCTAssertTrue(skipped.requests.isEmpty)
     }
 }
