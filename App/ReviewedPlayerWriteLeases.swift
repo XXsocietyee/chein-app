@@ -134,6 +134,11 @@ extension ReviewedProductionFormMutationRoute {
         return values == ["PLAYER"]
     }
 
+    static func coversCapabilityRead(_ relative: String) -> Bool {
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        return ReviewedProductionGateLeases.capabilityReadPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+    }
+
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
         if approval.paths.contains(relative) { return true }
         let key = ChinaReviewedRouteCapability.normalized("/" + relative)
@@ -394,7 +399,9 @@ enum ReviewedPlayerReadRoute {
         "api/game/session/shared/control", "api/game/session/shared/export", "api/game/session/shared/export/anchor",
         "api/registration/scan_group_member_ticket", "api/verify/seat/receipt",
         "api/orient/task/alternative", "api/topic/author-saved-detail",
-        "api/circle-theme/instance/configure", "api/project/home", "api/analytics/events/batch"
+        "api/circle-theme/instance/configure", "api/project/home", "api/analytics/events/batch",
+        // G6 (owner-approved): AI theme draft V2 prepare/execute with its journal and recovery list.
+        "api/ai/theme/draft/prepare", "api/ai/theme/draft/execute"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
@@ -408,7 +415,10 @@ enum ReviewedPlayerReadRoute {
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
         "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
         "api/template/adoption-detail", "api/map/weather", "api/free-explore/bundle/exit-options",
-        "api/free-explore/bundle/order/receipt"
+        "api/free-explore/bundle/order/receipt",
+        // G6 player reads on the same reviewed gate. Money, attribution, and order reads are not here.
+        "api/ai/npc/profile", "api/ai/npc/event", "api/ai/theme/draft/recovery",
+        "api/marketing/promotions/catalog", "api/marketing/revenue/author/mine", "api/marketing/product/{}"
     ]
     /// G1 play runtime GET reads. Host control/export and circle instance configure are not here.
     static let playRuntimeReadPaths: Set<String> = [

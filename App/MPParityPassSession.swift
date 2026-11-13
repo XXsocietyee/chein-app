@@ -398,6 +398,7 @@ struct MPParityPassEnvironment: ViewModifier {
 
     func body(content: Content) -> some View {
         content.environment(\.mpParity, bindings)
+            .environment(\.g6Capabilities, session.g6Capabilities())
             .modifier(PlayerJourneySignInSheet(bridge: .shared, session: session))
             .onAppear { session.installPublicCatalogHost() }
     }
@@ -504,6 +505,21 @@ struct MPParityRegistrationOrder: View {
               let token = session.passReadToken() else {
             state.product = .failed(nil)
             state.buy = .unavailable(reason: nil)
+            return
+        }
+        // G6: the detail page reads `GET /api/marketing/product/{id}` like `subpackageMember/market/pass`.
+        if let source = session.g6Source(), let g6Token = session.g6Token(), G6CapabilitySource.productIDAllowed(productID) {
+            let envelope = try? await source.marketingProduct(id: productID, token: g6Token)
+            if Task.isCancelled { return }
+            switch envelope.map(G6MarketingProduct.outcome) ?? .failed(reasonCode: nil) {
+            case .ready(let product):
+                state.product = .ready(MPParityBindings.productCard(product))
+                state.checkout = Self.checkout(product)
+                state.buy = Self.buy(product)
+            case .failed(let reasonCode):
+                state.product = .failed(G6Copy.productReason(reasonCode))
+                state.buy = .unavailable(reason: nil)
+            }
             return
         }
         do {

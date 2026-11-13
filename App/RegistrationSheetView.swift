@@ -96,6 +96,7 @@ struct RegistrationSheetView: View {
                         participantSection
                         activitySection
                         ticketSection
+                        if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
                         quoteSection
                         refundTiersSection
                         waitlistSection
@@ -104,6 +105,7 @@ struct RegistrationSheetView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .modifier(G6PromotionCatalogLoader(activityID: flow.activity.summary.id))
             .safeAreaInset(edge: .bottom, spacing: 0) { if showsCheckoutBar { checkoutBar } }
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)

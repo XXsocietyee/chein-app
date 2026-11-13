@@ -146,6 +146,7 @@
         "Finding4LocalizationTests",
         "FogOverlayLayerPixelTests",
         "G1ProductionGatesEndToEndTests",
+        "G6CapabilityGrantTests",
         "GameJournalCompositionAndPlaySummarySectionViewTests",
         "GrowthAndLeaderboardParitySectionViewTests",
         "GrowthBadgeExploreViewTests",

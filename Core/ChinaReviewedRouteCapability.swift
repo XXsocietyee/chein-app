@@ -50,7 +50,8 @@ public enum ChinaReviewedRouteCapability {
         if playRuntimeOwnerGrant.contains(key) { return true }
         if videoBountyOwnerGrant.contains(key) { return true }
         if playerParityBOwnerGrant.contains(key) { return true }
-        return playerGapOwnerGrant.contains(key)
+        if playerGapOwnerGrant.contains(key) { return true }
+        return g6OwnerGrant.contains(key)
     }
 
     /// Owner approval 2026-11-13. Channels, channel messages, governance, notifications, admission, IM media attach,
@@ -252,6 +253,20 @@ public enum ChinaReviewedRouteCapability {
         "/api/video-bounty/submission",
         "/api/video-bounty/submission/{}/appeal",
         "/api/video-bounty/submission/{}/cancel"
+    ]
+
+    /// Capability gap G6 (owner approval). Roam/topic NPC reads, the two non-money V2 AI draft writes and their
+    /// history read, and three marketing reads. Attribution claim, platform-pass order reads, quote, order, pay,
+    /// gift claim, and the roam NPC chat track stay out.
+    private static let g6OwnerGrant: Set<String> = [
+        "/api/ai/npc/profile",
+        "/api/ai/npc/event",
+        "/api/ai/theme/draft/prepare",
+        "/api/ai/theme/draft/execute",
+        "/api/ai/theme/draft/recovery",
+        "/api/marketing/promotions/catalog",
+        "/api/marketing/revenue/author/mine",
+        "/api/marketing/product/{}"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {

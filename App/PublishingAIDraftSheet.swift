@@ -36,6 +36,7 @@ import SwiftUI
                     if !model.flow.canGenerate && !model.flow.busy && model.flow.quotaReadState != .loading && model.flow.quota?.exhausted != true { Text("contextPublish.ai.unavailable").font(.caption) }
                 }
                 PublishingAIQuotaSection(flow: model.flow)
+                G6AIThemeDraftRecoverySection()
                 // Mini-program pages/publish/simple `.simple-ai__filing`: filing number under the AI tool, if any.
                 Section { EmptyView() } footer: { AIGCFilingNumberText() }
                 if let result = model.flow.candidate, let candidateGeneration = model.flow.candidateGeneration {

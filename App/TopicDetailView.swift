@@ -185,6 +185,7 @@ struct TopicDetailView: View {
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
             // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
             PlayTopicPrepSection(topicID: id)
+            G6TopicCharactersSection(chapters: value.chapters)
             Section("topic.availability") {
                 // Source x-fix2 P-1 (hengyin c878fbb7d): a topic past its sale end only says 已截止, with no sign-up or unlock entry.
                 if saleClosed(value) {
@@ -248,6 +249,7 @@ struct TopicDetailView: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }
         .safeAreaInset(edge: .bottom) {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
