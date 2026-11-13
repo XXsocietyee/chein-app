@@ -199,7 +199,7 @@ enum ReviewedPlayerReadRoute {
     static let paths: Set<String> = [
         "api/club/home", "api/club/detail", "api/club/access/me", "api/coop/list", "api/user/info",
         "api/config/features", "api/medal/wall", "api/badge/wall-v2", "api/growth/leaderboard",
-        "api/object-card/list", "api/registration/my-joined"
+        "api/object-card/list", "api/registration/my-joined", "api/registration/quote"
     ]
     // player-read-paths-end
     static let moneyKeys: Set<String> = ["payAmount", "payChannel", "amount", "price", "payableAmount"]
