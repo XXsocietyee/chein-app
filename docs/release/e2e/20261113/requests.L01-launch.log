@@ -1,0 +1,2 @@
+[E2E] composition refused or failed POST /prod-api/api/config/features: notConfigured
+[E2E] POST https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/userInfo -> 200 1824ms {"msg":"获取APP用户信息异常","code":401}

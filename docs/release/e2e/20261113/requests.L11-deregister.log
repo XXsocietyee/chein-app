@@ -1,0 +1,1 @@
+[E2E] GET https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech/api/user/deregister/status -> 200 353ms {"msg":"操作成功","code":200,"data":{"status":"NORMAL","verificationMethod":"UNAVAILABLE","executeAfter":null,"blockers":[]}}
