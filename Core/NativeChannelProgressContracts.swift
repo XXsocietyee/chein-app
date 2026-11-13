@@ -86,7 +86,7 @@ public struct NativeChannelProgressPage: Decodable, Equatable {
     public let list: [NativeChannelProgressRow]?
     public let me: NativeChannelProgressRow?
     public let nextCursor: String?
-    public let hasMore: Bool?
+    @JSONFlexibleOptionalFlag public var hasMore: Bool?
     public func validated() throws -> Self {
         guard !revision.isEmpty else { throw NativeChannelProgressError.malformed }
         if visible {
@@ -131,7 +131,19 @@ public struct NativeChannelProgressMeter: Decodable, Equatable {
     public let completedNodeIds: [Int64]?
 }
 
-public enum NativeChannelProgressScope: String, Codable, CaseIterable { case publicAccess = "PUBLIC", channel = "CHANNEL", team = "TEAM", onlyMe = "SELF" }
+public enum NativeChannelProgressScope: String, Codable, CaseIterable {
+    case publicAccess = "PUBLIC", channel = "CHANNEL", team = "TEAM", onlyMe = "SELF"
+    /// The channel progress page has no FRIEND scope. A FRIEND aggregate set from the settings page is shown as
+    /// the narrower SELF here (contract §7.4b) instead of failing the whole privacy read.
+    public init(from decoder: any Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        if raw == "FRIEND" { self = .onlyMe; return }
+        guard let value = Self(rawValue: raw) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "unknown progress scope"))
+        }
+        self = value
+    }
+}
 public enum NativeChannelProgressPhotoScope: String, Codable, CaseIterable { case onlyMe = "SELF", team = "TEAM", admin = "ADMIN" }
 public enum NativeChannelProgressLeaderboardScope: String, Codable, CaseIterable { case included = "IN", out = "OUT" }
 public struct NativeChannelProgressPrivacyValues: Codable, Equatable {

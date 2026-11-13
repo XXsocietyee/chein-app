@@ -194,7 +194,7 @@ struct JourneyRankBoardView: View {
                 }
             }
             if let board, let rank = board.heroRank { hero(rank: rank, board: board) }
-            if state.scope?.kind != .team && state.scope?.kind != .teams {
+            if state.scope?.kind != .teams {
                 Picker(selection: Binding(get: { state.period }, set: onPeriod)) {
                     Text("mp.rank.period.all").tag(JourneyRankPeriod.all)
                     Text("mp.rank.period.week").tag(JourneyRankPeriod.week)

@@ -47,18 +47,18 @@ import FoundationNetworking
             // No online/relation query: the original service explicitly has no such projection.
             let result=try await exchange("GET",memberPath,query:query)
             guard isCurrent,run == memberGeneration,let list=result["list"] as? [[String:Any]],list.count <= 50,
-                  let hasMore=result["has_more"] as? Int,[0,1].contains(hasMore) else { throw APIError.malformedResponse }
+                  let pageHasMore=JSONFlexibleFlag.value(result["has_more"]) else { throw APIError.malformedResponse }
             let values=try list.map { value -> Member in
                 guard let id=Self.positive(value["member_id"]) else { throw APIError.malformedResponse }
                 return Member(id:id,nickname:value["nickname"] as? String ?? id,roleIDs:try receiptIDs(value["role_ids"]),joinTime:value["join_time"] as? String)
             }
             let next=result["next_cursor"] as? String
             guard Set(values.map(\.id)).count == values.count,
-                  hasMore == 0 || (next != nil && !(next?.isEmpty ?? true) && next != cursor && !values.isEmpty),
+                  !pageHasMore || (next != nil && !(next?.isEmpty ?? true) && next != cursor && !values.isEmpty),
                   next.map({ $0.utf8.count <= 4096 }) ?? true else { throw APIError.malformedResponse }
             if more { guard Set(memberRows.map(\.id)).isDisjoint(with:values.map(\.id)) else { throw APIError.malformedResponse };memberRows += values }
             else { memberRows=values }
-            memberMore=hasMore == 1;memberCursor=next
+            memberMore=pageHasMore;memberCursor=next
         } catch { if run == memberGeneration { memberRows=[];memberCursor=nil;memberMore=false;memberReadUnavailable=true } }
     }
     public struct Options {
@@ -128,7 +128,7 @@ import FoundationNetworking
             if let pending { state = .unknown; _ = try await recover(pending); guard valid(run) else { return }; if self.pending != nil { return } }
             state = .loading;rows=[];highest=nil
             let data=try await exchange("GET","api/im/roles",query:[.init(name:"guild_kind",value:"1"),.init(name:"guild_id",value:captured.ownerID.rawValue),.init(name:"include_disabled",value:"true")])
-            guard valid(run),let list=data["list"] as? [[String:Any]],list.count <= 500,data["has_more"] as? Bool == false else { throw APIError.malformedResponse }
+            guard valid(run),let list=data["list"] as? [[String:Any]],list.count <= 500,JSONFlexibleFlag.value(data["has_more"]) == false else { throw APIError.malformedResponse }
             let values=try list.map(parseRole);guard Set(values.map(\.id)).count == values.count else { throw APIError.malformedResponse }
             rows=values;highest=data["my_highest_position"] as? Int;state = .ready
         } catch { guard valid(run) else { return }; rows=[];highest=nil;if isCurrent { state = pending == nil ? .unavailable : .unknown } }

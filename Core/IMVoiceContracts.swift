@@ -61,12 +61,24 @@ public struct IMVoiceUploadReceipt:Decodable,Equatable {
         guard source=="original-im-voice-upload-v1",self.requestID==requestID,sourceHash==hash,
               conversationID==String(scope.conversationID),ownerID==String(scope.identity.accountID),
               ["NOT_FOUND","PENDING","UPLOADED"].contains(state) else { throw IMVoiceFailure.invalid }
-        if state=="UPLOADED" { guard reference != nil,["HOLD","APPROVED","REJECTED"].contains(reviewState ?? ""),asrState=="TEXT_APPROVED" else { throw IMVoiceFailure.invalid } }
+        // ASR is not a send condition (contract §7.12): the backend reports `asr_state: "NOT_AVAILABLE"`.
+        if state=="UPLOADED" {
+            guard let raw=assetID,let asset=Int(raw),asset>0,String(asset)==raw,let size,size>0,size<=2*1024*1024,
+                  ["HOLD","APPROVED","REJECTED"].contains(reviewState ?? "") else { throw IMVoiceFailure.invalid }
+        }
+    }
+    /// The server's own duration and waveform when it sends them; otherwise the locally recorded clip's.
+    /// The backend does not probe audio, so `duration_ms`/`waveform` are `null` and only the clip knows them.
+    public func reference(recorded clip:IMVoiceClip)->IMVoiceReference? {
+        guard let raw=assetID,let asset=Int(raw),String(asset)==raw,let size,size==clip.bytes.count else{return nil}
+        let ref=IMVoiceReference(uploadRequestID:requestID,assetID:asset,durationMS:durationMS ?? clip.durationMS,
+                                 waveform:waveform ?? clip.waveform.base64EncodedString(),size:size)
+        do { try ref.validate(); return ref } catch { return nil }
     }
     public var reference:IMVoiceReference? {
         guard let raw=assetID,let asset=Int(raw),String(asset)==raw,let durationMS,let size,let waveform else{return nil}
         let ref=IMVoiceReference(uploadRequestID:requestID,assetID:asset,durationMS:durationMS,waveform:waveform,size:size)
         do { try ref.validate(); return ref } catch { return nil }
     }
-    public var ready:Bool { state=="UPLOADED" && reviewState=="APPROVED" && asrState=="TEXT_APPROVED" && reference != nil }
+    public func ready(recorded clip:IMVoiceClip)->Bool { state=="UPLOADED" && reviewState=="APPROVED" && reference(recorded:clip) != nil }
 }

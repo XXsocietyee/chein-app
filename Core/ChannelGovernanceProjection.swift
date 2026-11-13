@@ -26,7 +26,8 @@ public struct ChannelRulesCAS: Equatable, Sendable {
     public let pendingVersion: Int?
     public let expectedVersion: Int
     public init(publishedVersion: Int, pendingVersion: Int?, expectedVersion: Int) throws {
-        guard publishedVersion > 0, expectedVersion > 0,
+        // Version 0 is a real snapshot: management create returns `version: "0"` (contract §7.1).
+        guard publishedVersion >= 0, expectedVersion >= 0,
               pendingVersion.map({ $0 > publishedVersion }) ?? true else {
             throw ChannelAuthorizationError.rulesCASConflict
         }

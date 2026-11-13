@@ -4,7 +4,8 @@ import CryptoKit
 public enum IMFileFailure: Error { case unavailable, invalid, unsafe, unknown, stale, linkExpired, unsupported }
 /// Selected bytes are not a safety decision. Server format detection, scanning and original review remain mandatory.
 public struct IMFileSelection: Equatable {
-    public static let maximumBytes = 20 * 1024 * 1024
+    /// The server's multipart ceiling is 10 MB per file (contract §7.13); larger files would get HTTP 413 before review.
+    public static let maximumBytes = 10 * 1024 * 1024
     public static let extensions: Set<String> = ["pdf","doc","docx","xls","xlsx","ppt","pptx","zip","txt"]
     public let name: String
     public let bytes: Data

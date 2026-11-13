@@ -20,7 +20,7 @@ public struct NativeFriendDirectoryPage: Codable, Equatable, Sendable {
     public let counts: [String: Int]
     public let total: Int
     public let items: [NativeFriendItem]
-    public let hasMore: Bool
+    @JSONFlexibleFlag public var hasMore: Bool
     public let nextCursor: String?
     enum CodingKeys: String, CodingKey {
         case viewerID = "viewer_id", section, groupID = "group_id", starredOnly = "starred_only", revision, groups, counts, total, items

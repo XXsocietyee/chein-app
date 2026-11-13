@@ -489,6 +489,7 @@
         "ReviewedHookWiring2Base",
         "ReviewedHookWiringTests",
         "ReviewedOrientOfficialRouteTests",
+        "ReviewedSocialWriteLeaseTests",
         "RoamAlbumDenialHostTests",
         "RoamAlbumIntentLifetimeTests",
         "RoamAlbumMetadataReadAccessTests",

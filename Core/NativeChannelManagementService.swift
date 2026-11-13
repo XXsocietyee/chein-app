@@ -290,7 +290,7 @@ public extension NativeChannelManagementServing {
         }; return row
     }
     public func roles() async throws -> [NativeChannelManagementRole] {
-        struct Page: Decodable { let list: [NativeChannelManagementRole]; let has_more: Bool }
+        struct Page: Decodable { let list: [NativeChannelManagementRole]; @JSONFlexibleFlag var has_more: Bool }
         let page: Page = try await query("api/im/roles", .permissionsRead,
             query: ["guild_kind": String(scope.guildKind), "guild_id": scope.guildID.rawValue, "include_disabled": "false"])
         guard !page.has_more, page.list.count <= 2000, Set(page.list.map(\.id)).count == page.list.count,

@@ -189,7 +189,7 @@ public struct MessagingPage: Decodable, Equatable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         messages = try c.decode([MessagingMessage].self, forKey: .list)
         nextCursor = try c.decodeIfPresent(Int.self, forKey: .nextCursor)
-        hasMore = try c.decode(Bool.self, forKey: .hasMore)
+        hasMore = try c.decodeFlag(forKey: .hasMore)
         blocked = try? c.decode(Bool.self, forKey: .blocked)
         blockedByMe = try? c.decode(Bool.self, forKey: .blockedByMe)
         guard nextCursor.map({ $0 >= 0 }) ?? true, !hasMore || (nextCursor ?? 0) > 0 else {

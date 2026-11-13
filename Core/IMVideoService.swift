@@ -82,7 +82,8 @@ public struct IMVideoSession: Equatable {
     }
     public struct Preview {
         public let video: Data
-        public let cover: Data
+        /// `nil` when the upload has no cover (the backend generates none).
+        public let cover: Data?
         public let reference: IMVideoReference
         public let deadline: ContinuousClock.Instant
     }
@@ -95,15 +96,20 @@ public struct IMVideoSession: Equatable {
         struct Envelope: Decodable {
             struct Body: Decodable {
                 let source: String; let message_id: String; let conversation_id: String
-                let reference: IMVideoReference; let state: String; let videoURL: URL; let coverURL: URL; let expires_in_seconds: Int
+                let reference: IMVideoReference; let state: String; let videoURL: URL; let coverURL: URL?; let expires_in_seconds: Int
             }
             let data: Body
         }
         let result = try JSONDecoder().decode(Envelope.self, from: await response(request, snapshot: snapshot, audio: false)).data
         guard result.source == "original-im-video-preview-v1",result.message_id == String(message.id),result.conversation_id == String(scope.conversationID),
-              result.reference == reference,result.state == "READY",result.expires_in_seconds > 0,result.expires_in_seconds <= 300 else { throw IMVideoFailure.invalid }
+              result.reference == reference,result.state == "READY",result.expires_in_seconds > 0,result.expires_in_seconds <= 300,
+              (result.coverURL == nil) || reference.hasCover else { throw IMVideoFailure.invalid }
         let deadline = started.advanced(by: .seconds(result.expires_in_seconds))
-        let cover = try await originalBytes(url: result.coverURL, size: reference.coverSize, hash: reference.coverSHA256, snapshot: snapshot, deadline: deadline)
+        // A null coverURL means no thumbnail: skip the cover fetch rather than inventing one.
+        var cover: Data?
+        if let coverURL = result.coverURL, let coverSize = reference.coverSize, let coverHash = reference.coverSHA256 {
+            cover = try await originalBytes(url: coverURL, size: coverSize, hash: coverHash, snapshot: snapshot, deadline: deadline)
+        }
         let video = try await originalBytes(url: result.videoURL, size: reference.size, hash: reference.sha256, snapshot: snapshot, deadline: deadline)
         try await authorizePreview(message: message, scope: scope)
         guard session() == snapshot, !Task.isCancelled, ContinuousClock.now < deadline else { throw IMVideoFailure.stale }

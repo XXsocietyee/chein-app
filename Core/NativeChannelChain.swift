@@ -73,7 +73,7 @@ public struct NativeChannelChainPage: Decodable {
     public let chain: NativeChannelChainRecord
     public let list: [NativeChannelChainEntry]
     public let mine: NativeChannelChainEntry?
-    public let hasMore: Bool
+    @JSONFlexibleFlag public var hasMore: Bool
     public let nextCursor: String?
     fileprivate func validate(reference: NativeChannelChainReference, actor: String, cursor: String) throws {
         guard source == "original-channel-chain-v1", chain.reference == reference, validChainID(chain.version),

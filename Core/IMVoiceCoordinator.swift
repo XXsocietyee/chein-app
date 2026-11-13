@@ -83,7 +83,7 @@ import Foundation
         onChange?()
     }
     private func apply(_ receipt: IMVoiceUploadReceipt) {
-        if receipt.ready, let reference = receipt.reference { state = .ready(reference) }
+        if let clip = pending?.clip, receipt.ready(recorded: clip), let reference = receipt.reference(recorded: clip) { state = .ready(reference) }
         else if receipt.state == "UPLOADED", receipt.reviewState == "REJECTED" { state = .rejected }
         else if receipt.state == "UPLOADED", receipt.reviewState == "HOLD" { state = .held }
         else { state = .unknown }

@@ -70,7 +70,7 @@ import CryptoKit
                         Button("d7.imCompose.discard", role: .destructive) { owner.discardRejected() }
                     case .ready(let file):
                         IMFlowStateMessage(text: Text("d7.imCompose.approved"), symbol: "checkmark.seal", tone: .success)
-                        LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: file.durationMS) }
+                        if let duration = file.durationMS { LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: duration) } }
                         LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: file.size) }
                         if owner.expanded.writer.canSendVideo && owner.canRecover {
                             Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imScreenPrimary(!videoSendIsPrimary)
@@ -138,7 +138,8 @@ import CryptoKit
             if let reference = IMVideoReference.read(message), available {
                 Section {
                     LabeledContent {
-                        IMDurationText(milliseconds: reference.durationMS)
+                        // The backend does not probe duration; an unknown duration shows nothing rather than zero.
+                        if let duration = reference.durationMS { IMDurationText(milliseconds: duration) }
                     } label: { Label("d7.imVideo.message", systemImage: "video") }
                     if owner.service.previewEnabled && owner.service.previewStatusEnabled && player == nil {
                         Button { load() } label: { Label("d7.imVideo.load", systemImage: "arrow.down.circle") }.imScreenPrimary().disabled(loading)
@@ -182,12 +183,17 @@ import CryptoKit
             do {
                 let result = try await owner.service.preview(message: message, scope: owner.scope)
                 guard available, generation == stamp, !Task.isCancelled else { return }
-                guard let imageSource = CGImageSourceCreateWithData(result.cover as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
-                      CGImageSourceGetCount(imageSource) == 1,
-                      let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any],
-                      let w = properties[kCGImagePropertyPixelWidth] as? Int,let h = properties[kCGImagePropertyPixelHeight] as? Int,
-                      w > 0,h > 0,Double(w)*Double(h) <= 32_000_000,
-                      let originalCover = UIImage(data: result.cover) else { throw IMVideoFailure.unsafe }
+                // No cover from the backend means no thumbnail; a cover that is present must still decode safely.
+                var originalCover: UIImage?
+                if let coverBytes = result.cover {
+                    guard let imageSource = CGImageSourceCreateWithData(coverBytes as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+                          CGImageSourceGetCount(imageSource) == 1,
+                          let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any],
+                          let w = properties[kCGImagePropertyPixelWidth] as? Int,let h = properties[kCGImagePropertyPixelHeight] as? Int,
+                          w > 0,h > 0,Double(w)*Double(h) <= 32_000_000,
+                          let decoded = UIImage(data: coverBytes) else { throw IMVideoFailure.unsafe }
+                    originalCover = decoded
+                }
                 let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("mp4")
                 preparedURL = url; try result.video.write(to: url, options: [.atomic, .completeFileProtection])
                 let asset = AVURLAsset(url: url)

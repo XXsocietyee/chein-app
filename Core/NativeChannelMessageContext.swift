@@ -5,7 +5,7 @@ public struct NativeChannelMessageContextPage: Decodable {
     public struct Side: Decodable {
         public let list:[NativeChannelMessageSnapshot]
         public let next_cursor:String?
-        public let has_more:Bool
+        @JSONFlexibleFlag public var has_more:Bool
         public let next_after:String?
     }
     public let source:String

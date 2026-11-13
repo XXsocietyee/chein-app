@@ -27,6 +27,8 @@ import SwiftUI
     var shopNPCModel: ((Int) -> ShopNPCNodeHost?)? = nil
     var invalidateShopNPC: (() -> Void)? = nil
     var storeDayModel: ((Int) -> PlayStoreDayCoordinator?)? = nil
+    /// Team run only: the shared hint pool for a stop (contract §4). Nil outside a team run.
+    var teamPoolModel: ((Int) -> TeamPoolHintModel?)? = nil
     var mediaScope: UUID = UUID()
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
@@ -463,7 +465,7 @@ import SwiftUI
             stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } },
             preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, narrative: narrativeModel?(.questions(nodeID: id)), shopNPC: shopNPCModel?(id),
             mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
-            openNode: { selectedNode = $0 })
+            makeTeamPool: teamPoolModel, openNode: { selectedNode = $0 })
         } else { Text("playMode.unavailable") }
     }
     @ViewBuilder private var finishMedalScreen: some View {
@@ -512,6 +514,7 @@ import SwiftUI
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
+    var makeTeamPool: ((Int) -> TeamPoolHintModel?)? = nil
     /// Opens another stop from the outcome card ("Next stop"); nil hides that shortcut.
     var openNode: ((Int) -> Void)? = nil
     @State private var answer = ""
@@ -525,6 +528,8 @@ import SwiftUI
     @State private var localIssue: PlayExperienceError?
     /// UG-05…UG-09 ladder for this stop. When the server enables it, the legacy hint and reveal entries step aside.
     @State private var help: PlayHelpLadderModel?
+    /// The team's shared pool for this stop, shown inside the hint dialog when the server enables it.
+    @State private var teamPool: TeamPoolHintModel?
     @State private var showHelpPanel = false
     @State private var skippedHere = false
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
@@ -721,7 +726,7 @@ import SwiftUI
         } message: { Text("playx.hints.consequence") }
         .overlay {
             if showHelpPanel, let help, helpEnabled {
-                PlayHelpLadderPanel(model: help, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
+                PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
             }
         }
         .onChange(of: help?.skipped) { _, skipped in
@@ -736,10 +741,12 @@ import SwiftUI
             if help?.identity.nodeID != node.id || node.done == true { help = nil; showHelpPanel = false }
             return
         }
-        if let help, help.identity == client.identity, help.loaded { return }
+        if teamPool?.nodeID != Int64(node.id) { teamPool = makeTeamPool?(node.id) }
+        if let help, help.identity == client.identity, help.loaded { await teamPool?.load(); return }
         let next = PlayHelpLadderModel(client: client, store: PlayHelpDefaultsRequestStore.shared)
         help = next
         await next.load()
+        await teamPool?.load()
     }
     private var outcomeState: PlayTaskOutcomePresentation.State {
         PlayTaskOutcomePresentation(snapshot: model.snapshot, nodeID: nodeID, phase: model.phase.rawValue,

@@ -217,7 +217,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
         self.scope = scope
         self.source = source
         self.token = token
-        rank.tabs = PlayerJourneyProjection.rankTabs()
+        rank.tabs = PlayerJourneyProjection.rankTabs(scope)
         rank.scope = rank.tabs.first
         rank.phase = .loading
     }
@@ -316,7 +316,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
         self.source = source
         self.token = token
         topicName = scope.topicName
-        rank.tabs = PlayerJourneyProjection.rankTabs()
+        rank.tabs = PlayerJourneyProjection.rankTabs(scope)
         rank.scope = rank.tabs.first
         rank.phase = .loading
     }
@@ -429,10 +429,15 @@ private extension JourneySeatsPhase {
     }
 }
 
-/// Quest tab is `/api/rank/list`. Team tab is `/api/orient/team/ranking` when a topic or session id is present.
+/// Quest tab is `/api/rank/list` (`scope=quest`). The in-team tab (队内) is the same board with `scope=team&scopeId=<play_team id>`
+/// (contract §5), shown only for a team run. The between-teams tab (队伍) is `/api/orient/team/ranking` when a topic or session id is present.
 private func playerJourneyRank(selected: JourneyRankScope, run: JourneyRunScope, period: JourneyRankPeriod,
                                source: JourneyLoopSource, token: String) async throws -> JourneyEnvelope? {
     if selected.kind == .team {
+        guard let team = run.teamID, JourneyLoopSource.isID(team) else { return nil }
+        return try await source.rank(scope: "team", scopeID: team, period: period.rawValue, token: token)
+    }
+    if selected.kind == .teams {
         if let topic = run.topicID, JourneyLoopSource.isID(topic) {
             return try await source.teamRanking(ownerType: 1, ownerID: topic, token: token)
         }
@@ -446,8 +451,13 @@ private func playerJourneyRank(selected: JourneyRankScope, run: JourneyRunScope,
 }
 
 enum PlayerJourneyProjection {
-    static func rankTabs() -> [JourneyRankScope] {
-        [JourneyRankScope(kind: .quest), JourneyRankScope(kind: .team)]
+    static func rankTabs(_ run: JourneyRunScope) -> [JourneyRankScope] {
+        var tabs = [JourneyRankScope(kind: .quest)]
+        if let team = run.teamID, JourneyLoopSource.isID(team) { tabs.append(JourneyRankScope(kind: .team)) }
+        if run.topicID.map(JourneyLoopSource.isID) == true || run.runID.map(JourneyLoopSource.isID) == true {
+            tabs.append(JourneyRankScope(kind: .teams))
+        }
+        return tabs
     }
 
     static func landing(link: JourneyLandingLink, envelope: JourneyEnvelope, choices: JourneyEnvelope?, activeMode: String?) -> JourneyLandingPhase {
@@ -534,12 +544,18 @@ enum PlayerJourneyProjection {
 
     static func rank(_ envelope: JourneyEnvelope) -> JourneyRankPhase {
         if envelope.unconfirmed || envelope.netFail { return .failed(envelope.message) }
+        // A non-member asking for the in-team board gets a refusal message (contract §5); show it, not an empty board.
+        if envelope.code == "403" || envelope.httpStatus == 403 { return .failed(envelope.message) }
         guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return .empty }
-        let rows = (object["rows"] as? [Any] ?? object["list"] as? [Any] ?? []).compactMap(rankEntry)
+        // ScopedLeaderboardVO carries `entries`; older boards use `rows`/`list`.
+        let rows = (object["entries"] as? [Any] ?? object["rows"] as? [Any] ?? object["list"] as? [Any] ?? []).compactMap(rankEntry)
         if rows.isEmpty { return .empty }
+        let me = object["me"] as? [String: Any]
+        let coverage = object["coverage"] as? [String: Any]
         let board = JourneyRankBoard(entries: rows, basis: string(object["scoreBasis"]) == "COMPLETED_NODES" ? .completedNodes : nil,
-                                     windowText: string(object["windowText"]), unattributedRuns: int(object["unattributedRuns"]),
-                                     stats: [], heroRank: int(object["heroRank"]), topPercent: int(object["topPercent"]))
+                                     windowText: string(object["windowText"]),
+                                     unattributedRuns: int(object["unattributedRuns"]) ?? int(coverage?["unattributedRuns"]),
+                                     stats: [], heroRank: int(object["heroRank"]) ?? int(me?["rank"]), topPercent: int(object["topPercent"]))
         return .ready(board)
     }
 
@@ -599,10 +615,12 @@ enum PlayerJourneyProjection {
 
     private static func rankEntry(_ value: Any) -> JourneyRankEntry? {
         guard let row = value as? [String: Any] else { return nil }
-        guard let id = string(row["id"]) ?? int(row["id"]).map(String.init) else { return nil }
-        let score = int(row["score"]).map(String.init) ?? "—"
+        let key = ["id", "memberId", "userId"].lazy.compactMap { string(row[$0]) ?? int(row[$0]).map(String.init) }.first
+        guard let id = key else { return nil }
+        let score = (int(row["score"]) ?? int(row["completedNodes"])).map(String.init) ?? "—"
         return JourneyRankEntry(id: id, rank: int(row["rank"]), name: string(row["name"]) ?? string(row["nickname"]),
-                                avatarURL: url(string(row["avatar"])), scoreText: score, mine: row["mine"] as? Bool ?? false)
+                                avatarURL: url(string(row["avatar"])), scoreText: score,
+                                mine: row["mine"] as? Bool ?? row["me"] as? Bool ?? false)
     }
 
     private static func jsonObject(_ data: Data?) -> [String: Any]? {

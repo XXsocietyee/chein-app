@@ -68,24 +68,24 @@ import FoundationNetworking
             var query=[URLQueryItem(name:"limit",value:"50")];if let after { query.append(.init(name:"cursor",value:after)) }
             let result=try await exchange(memberPath,query:query)
             guard let values=result["list"] as? [[String:Any]],values.count <= 50,
-                  let flag=result["has_more"] as? Int,[0,1].contains(flag) else { throw APIError.malformedResponse }
+                  let pageHasMore=JSONFlexibleFlag.value(result["has_more"]) else { throw APIError.malformedResponse }
             let rows=try values.map { value -> Member in
                 guard let raw=NativeChannelGovernanceNotice.positive(value["member_id"]),let id=NativeChannelMessageID(rawValue:raw) else { throw APIError.malformedResponse }
                 return Member(id:id,name:value["nickname"] as? String ?? raw)
             }
             let nextCursor=result["next_cursor"] as? String
-            guard Set(rows.map(\.id)).count == rows.count,flag == 0 || (nextCursor != nil && nextCursor != after && !rows.isEmpty),
+            guard Set(rows.map(\.id)).count == rows.count,!pageHasMore || (nextCursor != nil && nextCursor != after && !rows.isEmpty),
                   nextCursor.map({ !$0.isEmpty && $0.utf8.count <= 4096 }) ?? true else { throw APIError.malformedResponse }
             if next { guard Set(memberRows.map(\.id)).isDisjoint(with:rows.map(\.id)) else { throw APIError.malformedResponse };memberRows += rows }
             else { memberRows=rows }
-            cursor=nextCursor;more=flag == 1
+            cursor=nextCursor;more=pageHasMore
         } catch { memberRows=[];cursor=nil;more=false;if isCurrent { issue="原成员名单不可用，未借用其他读取权限。" } }
     }
     public func readRoles() async {
         guard canReadRoles else { return };busy=true;defer { busy=false };roleRows=[];issue=nil
         do {
             let result=try await exchange("api/im/roles",query:[.init(name:"guild_kind",value:"1"),.init(name:"guild_id",value:captured.ownerID.rawValue),.init(name:"include_disabled",value:"false")])
-            guard let values=result["list"] as? [[String:Any]],values.count <= 500,result["has_more"] as? Bool == false else { throw APIError.malformedResponse }
+            guard let values=result["list"] as? [[String:Any]],values.count <= 500,JSONFlexibleFlag.value(result["has_more"]) == false else { throw APIError.malformedResponse }
             var rows:[Role]=[]
             for value in values {
                 guard NativeChannelGovernanceNotice.positive(value["guild_kind"]) == "1",NativeChannelGovernanceNotice.positive(value["guild_id"]) == captured.ownerID.rawValue,

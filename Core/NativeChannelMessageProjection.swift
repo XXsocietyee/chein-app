@@ -115,7 +115,7 @@ public struct NativeChannelMessageHistorySupplement: Decodable {
 }
 public struct NativeChannelMessageMutationPage: Decodable {
     public let list: [NativeChannelMessageMutation]
-    public let has_more: Bool
+    @JSONFlexibleFlag public var has_more: Bool
     public let next_mutation_cursor: String
     public let sync_contract: String
     public func verify(after: String, binding: NativeChannelMessageBinding) throws {
@@ -193,7 +193,7 @@ public struct NativeChannelMessageRevision: Decodable, Identifiable {
 }
 public struct NativeChannelMessageRevisionPage: Decodable {
     public let list: [NativeChannelMessageRevision]
-    public let has_more: Bool
+    @JSONFlexibleFlag public var has_more: Bool
     public let next_cursor: String?
     func verify(messageID: NativeChannelMessageID, before: Int64?) throws {
         guard list.count <= 20, Set(list.map(\.id)).count == list.count,

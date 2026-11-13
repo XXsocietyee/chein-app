@@ -153,7 +153,7 @@ import FoundationNetworking
                   NativeChannelGovernanceNotice.positive(data["guild_kind"]) == "1",
                   NativeChannelGovernanceNotice.positive(data["guild_id"]) == captured.ownerID.rawValue,
                   let values = data["list"] as? [[String: Any]], values.count <= 50,
-                  let more = data["has_more"] as? Bool else { throw APIError.malformedResponse }
+                  let more = JSONFlexibleFlag.value(data["has_more"]) else { throw APIError.malformedResponse }
             var checked: Verification?
             if verify {
                 guard let proof = data["verify"] as? [String: Any] else { throw APIError.malformedResponse }
@@ -213,7 +213,7 @@ import FoundationNetworking
             let code = (envelope["code"] as? NSNumber)?.intValue
             if status == 401 || code == 401 { unauthorized(); throw APIError.unauthorized }
             guard (200..<300).contains(status), code == 200, let data = envelope["data"] as? [String: Any],
-                  let values = data["list"] as? [[String: Any]], values.count <= 50, let more = data["has_more"] as? Bool else { throw APIError.malformedResponse }
+                  let values = data["list"] as? [[String: Any]], values.count <= 50, let more = JSONFlexibleFlag.value(data["has_more"]) else { throw APIError.malformedResponse }
             let page = try values.map { try Self.operation($0, channelID: captured.channelID.rawValue) }
             var prior = before.flatMap(Int64.init)
             for row in page {

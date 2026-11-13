@@ -7,7 +7,7 @@ public struct ChannelRulesAdmission: Equatable, Sendable {
     public let identity: ChannelAccount4Identity
     public let consentedVersion: Int
     public init(identity: ChannelAccount4Identity, consentedVersion: Int) throws {
-        guard consentedVersion > 0 else { throw ChannelAuthorizationError.rulesCASConflict }
+        guard consentedVersion >= 0 else { throw ChannelAuthorizationError.rulesCASConflict }
         self.identity = identity
         self.consentedVersion = consentedVersion
     }

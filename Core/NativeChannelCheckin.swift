@@ -105,7 +105,8 @@ public struct NativeChannelCheckinRank: Decodable {
     public let periodDays, limit: Int
     public let list: [NativeChannelCheckinRankRow]
     public let me: NativeChannelCheckinRankRow
-    public let othersVisible, hasMore: Bool
+    public let othersVisible: Bool
+    @JSONFlexibleFlag public var hasMore: Bool
     fileprivate func validate(channel: String, actor: String, requestedLimit: Int) throws {
         guard source == "original-channel-checkin-v1", actorId == actor, channelId == channel,
               checkinClock(date: checkinDate, timezone: timezone, serverTime: serverTime, nextDayAt: nextDayAt),
