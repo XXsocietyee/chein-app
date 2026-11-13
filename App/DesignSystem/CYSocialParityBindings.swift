@@ -13,7 +13,7 @@ import CoreLocation
     var genericShareURL: URL? { get }
 }
 
-/// Mini `components/route-map`: topic chapter nodes flattened into route points.
+/// Mini `components/route-map`: topic chapter nodes, drawn only on verified road geometry.
 @MainActor protocol SquareRouteMapProviding: AnyObject {
     func route(topicID: Int) async throws -> CYSquareRoutePreview
 }
@@ -37,10 +37,11 @@ struct CYSquareRoutePreview: Equatable {
         var coordinate: CLLocationCoordinate2D { .init(latitude: latitude, longitude: longitude) }
     }
     let nodes: [Node]
-    /// Road geometry only when the supplier verified it; otherwise nodes are joined directly.
-    let roadPolyline: [Node]?
-    var ready: Bool { nodes.count >= 1 }
-    var isRoad: Bool { (roadPolyline?.count ?? 0) >= 2 }
+    /// One verified road segment per chapter. Chapters are not joined.
+    /// Empty, or any segment shorter than two points, means the map stays hidden.
+    let roadSegments: [[Node]]
+    var isRoad: Bool { !nodes.isEmpty && !roadSegments.isEmpty && roadSegments.allSatisfy { $0.count >= 2 } }
+    var ready: Bool { isRoad }
 }
 
 struct CYSquareCompletedActivity: Equatable, Identifiable {

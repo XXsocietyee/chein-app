@@ -573,6 +573,7 @@
         "SocialMemberActionAppTests",
         "SocialReaderFactoryAppTests",
         "SquarePostLocalMediaPresentationTests",
+        "SquareRouteMapProviderTests",
         "StoreKit2SubscriptionAndRefundSectionViewTests",
         "StoryWalkingFogAndWorkshopUpgradeViewTests",
         "SupportTicketR463HostTests",

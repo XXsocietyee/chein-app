@@ -48,13 +48,18 @@ public struct TopicService {
         return TopicListDocument(page: TopicPage(rows: envelope.rows, pageNumber: pageNumber, pageSize: query.pageSize), body: data)
     }
     public func detail(id: Int, token: String? = nil) async throws -> TopicDetail {
+        try await detailDocument(id: id, token: token).detail
+    }
+    /// Same `POST api/topic/info-to-user` as `detail`. The decoded topic drops road geometry;
+    /// the body is kept so a caller can verify it without a second read.
+    public func detailDocument(id: Int, token: String? = nil) async throws -> TopicDetailDocument {
         guard id > 0 else { throw APIError.invalidRequest }
         let data = try await post("api/topic/info-to-user", fields: ["id": String(id)], token: token)
         let result = try decode(TopicDetailEnvelope.self, data).data
         guard let result, result.id == id, !result.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw TopicReadFailure.unavailable
         }
-        return result
+        return TopicDetailDocument(detail: result, body: data)
     }
     public static let themeHistoryLimit = 20
     public func themeHistory(topicID: Int, beforeSessionID: Int? = nil, token: String) async throws -> TopicThemeHistoryPage {
@@ -103,6 +108,14 @@ public struct TopicService {
     private func decode<T: Decodable>(_ type: T.Type, _ data: Data) throws -> T {
         do { return try JSONDecoder().decode(type, from: data) }
         catch { throw APIError.malformedResponse }
+    }
+}
+public struct TopicDetailDocument: Equatable {
+    public let detail: TopicDetail
+    public let body: Data
+    public init(detail: TopicDetail, body: Data) {
+        self.detail = detail
+        self.body = body
     }
 }
 private struct TopicStatusEnvelope: Decodable { let code: Int }
