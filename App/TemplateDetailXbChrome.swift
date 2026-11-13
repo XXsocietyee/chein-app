@@ -55,20 +55,27 @@ struct TemplateXbHead<Cover: View>: View {
     }
 }
 
-/// Round share key beside 应用. `url` is a binding stub: nil (no public share link for this template yet) hides it.
+/// Round share key beside 应用. A parsed path shares its universal link. A path the parsers do not type
+/// shares the mini-program path text and no host. Both nil hides the key.
 struct TemplateXbShareButton: View {
     let url: URL?
+    var copyText: String? = nil
     let label: LocalizedStringKey
     var body: some View {
         if let url {
-            ShareLink(item: url) {
-                Image(systemName: "square.and.arrow.up").font(.title3).foregroundStyle(CYColor.textPrimary)
-                    .frame(width: 52, height: 52)
-                    .background(CYNight.ink2, in: Circle())
-            }
-            .accessibilityLabel(Text(label))
-            .accessibilityIdentifier("template.xb.share")
+            ShareLink(item: url) { mark }
+                .accessibilityLabel(Text(label))
+                .accessibilityIdentifier("template.xb.share")
+        } else if let copyText, !copyText.isEmpty {
+            ShareLink(item: copyText) { mark }
+                .accessibilityLabel(Text(label))
+                .accessibilityIdentifier("template.xb.share")
         }
+    }
+    private var mark: some View {
+        Image(systemName: "square.and.arrow.up").font(.title3).foregroundStyle(CYColor.textPrimary)
+            .frame(width: 52, height: 52)
+            .background(CYNight.ink2, in: Circle())
     }
 }
 

@@ -17,7 +17,7 @@ struct DiscoveryTemplateDetailView: View {
     @State private var adoption: Adoption?
     @State private var tab: TemplateDetailTab = .details
     @State private var capabilityPreview: TemplateNodePreviewState?
-    /// Binding stub: the public share link for this play (mini-program `open-type="share"`). nil hides the share key.
+    /// Caller override. Nil uses `PublicContentShareLink.discoveryTemplate` when that path is already parsed.
     var shareURL: URL? = nil
     private struct Adoption: Identifiable, Hashable {
         let id = UUID()
@@ -75,7 +75,7 @@ struct DiscoveryTemplateDetailView: View {
                             } else {
                                 Spacer(minLength: 0)
                             }
-                            TemplateXbShareButton(url: shareURL, label: "u10.template.share")
+                            TemplateXbShareButton(url: shareURL ?? PublicContentShareLink.discoveryTemplate(id: id), label: "u10.template.share")
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
                         TemplateXbTabs(selection: $tab)
@@ -254,9 +254,15 @@ struct DiscoveryTopicTemplatePreview: View {
     @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
-    /// Binding stub: the public share link for this topic template. nil hides the share key.
+    /// Caller override. Nil asks the existing parsers; an unparsed topic path copies its mini-program path and has no public URL.
     var shareURL: URL? = nil
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
+    /// A parsed topic path would be a universal link. This path is not parsed, so the share key copies the mini-program path.
+    private func topicShareOffer(_ id: Int) -> (url: URL?, copyText: String?) {
+        if let shareURL { return (shareURL, nil) }
+        if let url = PublicContentShareLink.topicTemplate(id: id) { return (url, nil) }
+        return (nil, PublicContentShareLink.topicTemplateCopyText(id: id))
+    }
     var body: some View {
         Group {
             if detail.isInvalidated {
@@ -276,8 +282,9 @@ struct DiscoveryTopicTemplatePreview: View {
                                        symbolPoint: CGPoint(x: 0.5, y: 0.5))
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
-                        if shareURL != nil {
-                            HStack { Spacer(minLength: 0); TemplateXbShareButton(url: shareURL, label: "u10.template.shareTopic") }
+                        let topicShare = topicShareOffer(item.id)
+                        if topicShare.url != nil || topicShare.copyText != nil {
+                            HStack { Spacer(minLength: 0); TemplateXbShareButton(url: topicShare.url, copyText: topicShare.copyText, label: "u10.template.shareTopic") }
                         }
                         TemplateXbTabs(selection: $tab)
                             .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))

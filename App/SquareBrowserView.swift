@@ -218,11 +218,7 @@ import SwiftUI
             onRepost: actions == nil ? nil : { self.repost($0) },
             onReport: actions == nil ? nil : { self.report($0) },
             onProfile: accountReader == nil ? nil : { post in guard post.memberID > 0 else { return }; self.dismissCloudSheets(); self.profileMember = .init(id: post.memberID) },
-            onCopyLink: { post in
-                let card = SquareShareCard.build(id: post.id, audience: post.audience, lifecycle: post.lifecycle, contents: post.contents, images: post.images)
-                guard card.includesPost else { return }
-                LocalPasteboard.copy(card.path)
-            },
+            onCopyLink: { SquarePublicLinkCopy.copyIfPublic($0) },
             onActions: actions == nil ? nil : { self.presentActions($0) })
     }
     private func dismissCloudSheets() {
