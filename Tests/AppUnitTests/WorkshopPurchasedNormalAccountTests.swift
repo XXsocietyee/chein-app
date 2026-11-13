@@ -443,7 +443,7 @@ enum HostedAccessibilityRuntime {
             navigation.selection=nil
             try await wait("\(role) Back restores purchased list", diagnostics: diagnostic){navigation.listPermit != nil && browser.phase == .ready}
             XCTAssertNil(browser.detail);XCTAssertTrue(browser === h.session.workshopPurchasedBrowser)
-            XCTAssertGreaterThanOrEqual(h.selectorContexts.count,5);for context in h.selectorContexts.suffix(5){XCTAssertEqual(context,h.strictExpectedContext);XCTAssertEqual(context.session.role,"player")}
+            XCTAssertGreaterThanOrEqual(h.selectorContexts.count,5);for context in h.selectorContexts.suffix(5){XCTAssertEqual(context,h.strictExpectedContext);XCTAssertEqual(context.session.role,role)}
         }
     }
     func testInvalidPaginationOfferCannotRetireCurrentVisibleRead() async throws {

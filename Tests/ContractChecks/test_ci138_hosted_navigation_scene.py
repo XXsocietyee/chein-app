@@ -122,7 +122,7 @@ class HostedNavigationSceneChecks(unittest.TestCase):
             "browser.phase == .ready && navigation.listPermit != nil",
             "browser.detail != nil && navigation.detailPermit != nil",
             "navigation.listPermit != nil && browser.phase == .ready",
-            'XCTAssertEqual(context,h.strictExpectedContext);XCTAssertEqual(context.session.role,"player")',
+            'XCTAssertEqual(context,h.strictExpectedContext);XCTAssertEqual(context.session.role,role)',  # the account keeps its real role
             'XCTAssertNil(h.session.workshopOwnedBrowser,"Paid approval cannot enable FREE library")',
             "XCTAssertNil(browser.detail);XCTAssertTrue(browser === h.session.workshopPurchasedBrowser)",
             "throw WorkshopPurchasedIssue.unavailable",
