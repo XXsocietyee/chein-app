@@ -101,6 +101,29 @@ enum ReviewedAreaSwitch {
         guard let trimmed = host?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !trimmed.isEmpty else { return nil }
         return trimmed
     }
+
+    // MARK: cur-be-gap-rewards (handover 21): build-wide flags from the configured API host, DEBUG only.
+    // Screens stay visible; a cash action reads the flag and refuses instead of reporting success.
+
+    static var moneyPayments: Bool { configuredEnabled }
+    static var payout: Bool { configuredEnabled }
+    static var merchantWrites: Bool { configuredEnabled }
+    static var passwordLogin: Bool { configuredEnabled }
+    static var externalGames: Bool { configuredEnabled }
+
+    private static var configuredEnabled: Bool {
+        #if DEBUG
+        return configuredHostIsOffProduction
+        #else
+        return false
+        #endif
+    }
+
+    private static var configuredHostIsOffProduction: Bool {
+        let raw = Bundle.main.object(forInfoDictionaryKey: "QuestifyAPIBaseURL") as? String ?? ""
+        guard let host = URL(string: raw)?.host?.lowercased(), host.isEmpty == false else { return false }
+        return host != productionHost
+    }
 }
 
 private struct PlayGapAPIHostKey: EnvironmentKey {

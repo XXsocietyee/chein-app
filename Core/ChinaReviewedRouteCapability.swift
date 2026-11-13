@@ -56,6 +56,7 @@ public enum ChinaReviewedRouteCapability {
         if creatorStudioOwnerGrant.contains(key) { return true }
         if clubAndMerchantCoopOwnerGrant.contains(key) { return true }
         if playGapOwnerGrant.contains(key) { return true }
+        if admitsRewardPledge(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -392,6 +393,17 @@ public enum ChinaReviewedRouteCapability {
         "/api/native/home", "/api/native/home/return/policy", "/api/native/home/return/runs", "/api/native/home/return/account",
         "/api/native/home/return/verify", "/api/native/home/return/restore", "/api/native/home/return/receipt"
     ]
+
+    /// Handover 21, owner correction 2026-11-13. Points, badges and non-cash rewards stay callable.
+    /// Cash value is refused by the server (`CASH_CLOSED`) and, when the area switch is off, by the screen.
+    /// `/api/coupon` is the exact root. `command-receipt` and every other coupon child stay out.
+    /// Opaque ids shorter than 32 characters and 64-hex award ids do not collapse, so the two trees match by prefix.
+    public static func admitsRewardPledge(_ key: String) -> Bool {
+        if key == "/api/coupon" { return true }
+        if key == "/api/reward-pledge" || key.hasPrefix("/api/reward-pledge/") { return true }
+        if key == "/api/rewards/noncash" || key.hasPrefix("/api/rewards/noncash/") { return true }
+        return false
+    }
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
         guard targetsChinaProduction(url), let relative = relativePath(url) else { return false }
