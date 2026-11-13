@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// W20 resident CITY business section on the official CITY read surface. Production has
-/// no factory (no reviewed endpoint, `cityActions` OFF), so the section states that
-/// business actions are not enabled. DEBUG fixtures inject a coordinator.
+/// W20 resident CITY business section on the official CITY read surface. The shipped China
+/// composition injects a factory under the owner-approved CITY lease; without the lease
+/// there is no factory and the section is not shown. DEBUG fixtures inject a coordinator.
 struct CityGameSlot: View {
     let snapshot: CityReadSnapshot
     let factory: (@MainActor (CityReadSnapshot) -> CityGameCoordinator?)?
@@ -84,14 +84,14 @@ struct CityGamePanel: View {
         }
     }
 
-    /// Verdict once closed, otherwise turn HUD + ring. The die shows a server face only (none is exposed yet).
+    /// Verdict once closed, otherwise turn HUD + ring. The die shows the server-rolled face from the last receipt.
     @ViewBuilder private func boardSection(_ snapshot: CityGameSnapshot) -> some View {
         if snapshot.lifecycle == .closed || snapshot.lifecycle == .archived {
             CYCityVerdict(held: snapshot.heldCount, holdingLimit: snapshot.rules.holdingLimit, points: snapshot.memberPoints)
         }
         CYCityTurnHUD(roundSeq: snapshot.roundSeq, actionsRemaining: snapshot.rules.actionsRemaining,
                       actionsPerRound: snapshot.rules.actionsPerRound,
-                      face: nil, // STUB for Cursor: needs a server roll face on the action outcome/receipt.
+                      face: model.lastReceipt?.diceFace,
                       rolling: model.phase == .sending && model.review?.kind == .roll)
         if !snapshot.properties.isEmpty {
             CYCityBoardRing(properties: snapshot.properties, title: { title(for: $0) }, selection: $selectedProperty)

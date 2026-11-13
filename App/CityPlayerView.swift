@@ -34,7 +34,7 @@ struct SessionCityPlayerView: View {
                 Label { Text("cityValue.title", tableName: "CityValue") } icon: { Image(systemName: "map") }
                     .frame(minHeight: 44)
             }.accessibilityIdentifier("city.value.entry")
-            CityPlayerView(reader: session.makeCityPlayerReader(), rulesFactory: { session.makeCityPlayerRulesFlow(read: $0) }, historyFactory: { session.makeCityTaskHistoryRuntimeOwner() }, historyRevision: session.cityTaskHistoryRuntimeRevision, onsiteFactory: { session.makeCityOnsiteTaskRuntimeOwner(board: $0) }, onsiteRevision: session.cityOnsiteTaskRuntimeRevision, neutralFactory: { session.makeCityNeutralTaskRuntimeOwner(board: $0) }, neutralRevision: session.cityNeutralTaskRuntimeRevision, arrivalFactory: { session.makeCityArrivalEvidenceRuntimeOwner(audience: .player(regionID: $0.regionId), board: $0) }, arrivalRevision: session.cityArrivalEvidenceRuntimeRevision).id(session.cityPlayerReadIdentity)
+            CityPlayerView(reader: session.makeCityPlayerReader(), rulesFactory: { session.makeCityPlayerRulesFlow(read: $0) }, historyFactory: { session.makeCityTaskHistoryRuntimeOwner() }, historyRevision: session.cityTaskHistoryRuntimeRevision, onsiteFactory: { session.makeCityOnsiteTaskRuntimeOwner(board: $0) }, onsiteRevision: session.cityOnsiteTaskRuntimeRevision, neutralFactory: { session.makeCityNeutralTaskRuntimeOwner(board: $0) }, neutralRevision: session.cityNeutralTaskRuntimeRevision, arrivalFactory: { session.makeCityArrivalEvidenceRuntimeOwner(audience: .player(regionID: $0.regionId), board: $0) }, arrivalRevision: session.cityArrivalEvidenceRuntimeRevision, gameFactory: session.cityGameFactory).id(session.cityPlayerReadIdentity)
                 .environment(\.cityAcquisitionEntryContext, CityAcquisitionEntryContext(acquisitionFactory: { session.makeCityAcquisitionController() }))
         }
     }
@@ -48,7 +48,7 @@ struct CityPlayerView: View {
     @State private var selection: CityPointSelection?
     @State private var visible = false
     @State private var readRequest = UUID()
-    /// W20 business section factory. nil in production (no reviewed endpoint); DEBUG fixtures only.
+    /// W20 business section factory. Present under the owner-approved CITY lease (shipped China) or a DEBUG fixture.
     private let rulesFactory: (@MainActor (CityReadSnapshot) -> CityPlayerRulesFlow)?
     private let gameFactory: (@MainActor (CityReadSnapshot) -> CityGameCoordinator?)?
     private let arrivalFactory: (@MainActor (CityReadBoard) -> CityArrivalEvidenceRuntimeOwner?)?
@@ -94,14 +94,14 @@ struct CityPlayerView: View {
                             .background { CYCoverArt(seed: snapshot.board.regionId, symbol: "building.2.fill", cornerRadius: CYRadius.lg) }
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: CYSpacing.sm) {
-                            CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.lifecycle == "OPEN" ? .success : .neutral,
-                                         systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
+                            CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.acceptsNewActions ? .success : .neutral,
+                                         systemImage: snapshot.board.acceptsNewActions ? "flag.fill" : "flag.slash")
                             CYStatusChip(membership(snapshot.membership), tone: snapshot.membership == .joined ? .info : .neutral,
                                          systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
                             }
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.lifecycle == "OPEN" ? .success : .neutral,
-                                         systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
+                            CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.acceptsNewActions ? .success : .neutral,
+                                         systemImage: snapshot.board.acceptsNewActions ? "flag.fill" : "flag.slash")
                             CYStatusChip(membership(snapshot.membership), tone: snapshot.membership == .joined ? .info : .neutral,
                                          systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
                             }

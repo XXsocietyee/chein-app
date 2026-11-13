@@ -19,8 +19,19 @@ public enum CityActionIssue: Error, Equatable {
 
 public enum CityBoardLifecycle: String, Decodable, Sendable {
     case draft = "DRAFT", review = "REVIEW", ready = "READY", open = "OPEN", frozen = "FROZEN", closing = "CLOSING", closed = "CLOSED", archived = "ARCHIVED"
-    /// Only an OPEN board accepts new player actions; FROZEN/CLOSING settle in-flight work only.
+    /// One lifecycle for both CITY generations, as the backend serves it: only an OPEN board
+    /// accepts new player actions (quote, action); FROZEN/CLOSING settle in-flight work only.
     public var acceptsNewActions: Bool { self == .open }
+    /// The bounded read-only surfaces (state snapshot, player rules, city-value map) are
+    /// served for a FROZEN board only. The game snapshot and receipts stay readable in any state.
+    public var servesFrozenReads: Bool { self == .frozen }
+}
+
+extension CityReadBoard {
+    /// The read board's lifecycle on the shared scale; nil for a value the app does not know.
+    public var phase: CityBoardLifecycle? { CityBoardLifecycle(rawValue: lifecycle) }
+    public var acceptsNewActions: Bool { phase?.acceptsNewActions == true }
+    public var servesFrozenReads: Bool { phase?.servesFrozenReads == true }
 }
 
 public enum CityActionKind: String, Codable, Sendable {
@@ -71,7 +82,7 @@ public struct CityActionIntent: Codable, Equatable, Sendable {
     public let expectedVersion: Int64
     public let consent: CityPayerConsent?
     public init(kind: CityActionKind, board: CityReadBoard, lifecycle: CityBoardLifecycle, participation: CityParticipation?, targetId: String, roundSeq: Int64, expectedVersion: Int64, consent: CityPayerConsent?, requestId: String = UUID().uuidString) throws {
-        guard lifecycle.acceptsNewActions, board.lifecycle == "OPEN" else { throw CityActionIssue.boardNotOpen }
+        guard lifecycle.acceptsNewActions, board.acceptsNewActions else { throw CityActionIssue.boardNotOpen }
         guard let participation else { throw CityActionIssue.notJoined }
         guard ReformWire.id(targetId), ReformWire.version(roundSeq), ReformWire.version(expectedVersion), ReformWire.requestID(requestId) else { throw CityActionIssue.invalid }
         if kind.requiresQuote { guard consent != nil else { throw CityActionIssue.unconfirmed } }
@@ -102,9 +113,19 @@ public struct CityActionReceipt: Decodable, Equatable, Sendable {
     public let reasonCode: String?
     /// W20 conflict rule: a completed task attempt is kept even if the property changed hands.
     public let taskAttemptKept: Bool
+    /// Member points the server charged the confirming member for this request (game points, not money).
+    public var pointsCharged: Int64? = nil
+    /// The face the server rolled for a roll or a challenge. The client never rolls.
+    public var diceFace: Int? = nil
     public func validate(for intent: CityActionIntent) throws {
         guard requestId == intent.requestId, boardId == intent.boardId, action == intent.kind.rawValue, ReformWire.version(currentVersion) else { throw CityActionIssue.receiptMismatch }
         if let reasonCode { guard ReformWire.label(reasonCode, limit: 64) else { throw CityActionIssue.receiptMismatch } }
+        if let pointsCharged {
+            guard ReformWire.version(pointsCharged), pointsCharged == 0 || (decision == .applied && intent.consent != nil) else { throw CityActionIssue.receiptMismatch }
+        }
+        if let diceFace {
+            guard diceFace >= 0, decision == .applied, intent.kind == .roll || intent.kind == .startChallenge else { throw CityActionIssue.receiptMismatch }
+        }
         switch decision {
         case .applied: guard currentVersion > intent.expectedVersion, reasonCode == nil else { throw CityActionIssue.receiptMismatch }
         case .versionConflict: guard currentVersion != intent.expectedVersion else { throw CityActionIssue.receiptMismatch }

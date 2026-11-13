@@ -17,9 +17,10 @@ public struct CityGameReview: Equatable, Sendable {
 /// in-flight intent → receipt, or receipt readback by the same requestId when the
 /// outcome is unknown. A retry re-sends the exact same intent; it never re-rolls,
 /// re-prices or re-spends. A changed quote is never auto-accepted. Everything is gated
-/// by `ReformWorldCapabilities.cityActions` (OFF by default) and an injected service,
-/// which only DEBUG fixtures provide. No cost, reward, dice or budget value is defined
-/// here; every number shown comes from the server snapshot or quote.
+/// by `ReformWorldCapabilities.cityActions` (OFF by default) and an injected service:
+/// `CityGameHTTPService` under the owner-approved CITY lease in the shipped China
+/// composition, or a DEBUG fixture. No cost, reward or budget value is defined here;
+/// every number shown comes from the server snapshot, quote or receipt.
 @available(macOS 14.0, *)
 @MainActor @Observable public final class CityGameCoordinator {
     public enum Phase: String, Sendable { case disabled, idle, loading, ready, unavailable, quoting, review, sending, unknown, invalidated }
@@ -31,6 +32,8 @@ public struct CityGameReview: Equatable, Sendable {
     public private(set) var review: CityGameReview?
     public private(set) var notice: Notice?
     public private(set) var lastOutcome: CityPendingAction.Outcome?
+    /// The last settled server receipt (server-rolled face, points charged); display only.
+    public private(set) var lastReceipt: CityActionReceipt?
     public let read: CityReadSnapshot
     private var pending = CityPendingAction()
     private var stream: CityDeltaStream?
@@ -70,7 +73,7 @@ public struct CityGameReview: Equatable, Sendable {
     /// Why the board accepts no new actions right now, if anything.
     public var boardNotice: Notice? {
         guard let snapshot else { return nil }
-        if !snapshot.lifecycle.acceptsNewActions || read.board.lifecycle != "OPEN" { return .boardNotOpen }
+        if !snapshot.lifecycle.acceptsNewActions || !read.board.acceptsNewActions { return .boardNotOpen }
         if read.membership != .joined || read.participation == nil { return .notJoined }
         return nil
     }
@@ -91,12 +94,18 @@ public struct CityGameReview: Equatable, Sendable {
         case .neutral: return [.acceptTask]
         case .operable:
             if property.heldByMyTeam { return [] }
+            // With the team block the server's own preconditions are visible: occupying needs the
+            // team to have landed there, and occupying or challenging needs a kept task attempt.
+            let team = snapshot.team
+            let taskReady = team == nil || property.taskAttemptKept
+            var kinds: [CityActionKind] = team != nil && property.taskAttemptKept ? [] : [.acceptTask]
             if property.status == .available {
                 let limitReached = snapshot.rules.holdingLimit.map { snapshot.heldCount >= $0 } ?? true
-                return limitReached ? [.acceptTask] : [.acceptTask, .acquireProperty]
+                let landed = team.map { $0.landedPropertyId == property.propertyId } ?? true
+                if !limitReached, landed, taskReady { kinds.append(.acquireProperty) }
+                return kinds
             }
-            var kinds: [CityActionKind] = [.acceptTask]
-            if property.status == .held, property.challenge?.isTerminal ?? true { kinds.append(.startChallenge) }
+            if property.status == .held, property.challenge?.isTerminal ?? true, taskReady { kinds.append(.startChallenge) }
             return kinds
         }
     }
@@ -110,7 +119,7 @@ public struct CityGameReview: Equatable, Sendable {
 
     /// Logout, account/role/token change or leaving the board invalidates every reference.
     public func invalidate() {
-        generation = UUID(); snapshot = nil; snapshotWatermark = nil; review = nil; stream = nil; notice = nil; lastOutcome = nil
+        generation = UUID(); snapshot = nil; snapshotWatermark = nil; review = nil; stream = nil; notice = nil; lastOutcome = nil; lastReceipt = nil
         pending = CityPendingAction(); phase = .invalidated
     }
 
@@ -302,7 +311,7 @@ public struct CityGameReview: Equatable, Sendable {
         try receipt.validate(for: intent)
         try journal?.clear(intent, memberId: memberId, read: read)
         let outcome = try pending.resolve(receipt)
-        lastOutcome = outcome
+        lastOutcome = outcome; lastReceipt = receipt
         if outcome == .unknown { throw CityActionIssue.receiptMismatch }
         phase = .idle
     }

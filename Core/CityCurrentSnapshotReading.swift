@@ -154,7 +154,7 @@ public struct CityCurrentSnapshot: Decodable, Equatable {
         }
         try require(board.regionId == q.regionID && board.boardId == q.boardID && board.seasonId == q.seasonID
                     && board.rulesReleaseId == q.rulesReleaseID && board.revision == q.revision && boardVersion == q.revision)
-        try require(CityCurrentSnapshotQuery.isID(board.gameId) && board.lifecycle == "FROZEN" && board.rulesHash.utf8.count == 64 && board.rulesHash.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) })
+        try require(CityCurrentSnapshotQuery.isID(board.gameId) && CityBoardLifecycle(rawValue: board.lifecycle)?.servesFrozenReads == true && board.rulesHash.utf8.count == 64 && board.rulesHash.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) })
         try require(datum == q.datum && zoom == q.zoom && layers == q.layers)
         try require(viewport.south == CityCurrentSnapshotQuery.coordinate(q.south) && viewport.west == CityCurrentSnapshotQuery.coordinate(q.west)
                     && viewport.north == CityCurrentSnapshotQuery.coordinate(q.north) && viewport.east == CityCurrentSnapshotQuery.coordinate(q.east))

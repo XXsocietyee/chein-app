@@ -152,6 +152,7 @@ extension ReviewedProductionFormMutationRoute {
     private var playerWritesEnabled = false
     private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
     private var playConfigurationByContext: [String: RuntimeDependencyConfiguration] = [:]
+    private var cityGameByContext: [String: CityGameCapabilityLease] = [:]
 
     // player-write-paths-begin
     static let imPaths: Set<String> = ["api/im/send", "api/im/send-receipt"]
@@ -196,6 +197,20 @@ extension ReviewedProductionFormMutationRoute {
     // player-write-paths-end
 
     func notePlayerWrites(_ enabled: Bool) { playerWritesEnabled = enabled }
+
+    /// CITY board lease: owner-approved non-money player writes, China production host, and a
+    /// build-configured region. Reissued when the hour-long approvals lapse or the session changes.
+    func cityGame(_ context: RuntimeDependencyContext, region: String? = ReviewedProductionGateLeases.cityGameRegion) -> CityGameCapabilityLease? {
+        guard playerWritesEnabled, context.role == "player" || context.role == "club",
+              let lease = Self.cityGameLease(context: context, region: region) else { return nil }
+        let key = contextKey(context)
+        if let existing = cityGameByContext[key], existing.lease == lease, existing.matches(context) { return existing }
+        cityGameByContext[key]?.revoke()
+        cityGameByContext[key] = nil
+        guard let issued = CityGameCapabilityLease(context: context, lease: lease) else { return nil }
+        cityGameByContext[key] = issued
+        return issued
+    }
 
     func playerWriters(_ context: RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? {
         guard playerWritesEnabled, context.market == .china, context.role == "player" || context.role == "club" else { return nil }

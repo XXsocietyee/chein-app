@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CORE = ['Core/CityGameBoardProjection.swift', 'Core/CityGameCoordinator.swift', 'Core/HomeReturnCoordinator.swift']
 APP = ['App/CityGamePanel.swift', 'App/HomeReturnSection.swift']
 FIXTURE = 'App/CityGameFixtureHost.swift'
+PRODUCTION = 'Core/CityGameHTTPService.swift'
 
 
 def text(name):
@@ -22,13 +23,31 @@ def code(name):
 
 
 class CityGameBaseContracts(unittest.TestCase):
-    def test_reviewed_allowlist_is_empty_and_capabilities_stay_off(self):
+    def test_capability_comes_only_from_the_city_lease(self):
         projection = text('Core/CityGameBoardProjection.swift')
-        self.assertIn('public static let reviewed: [RegionalMarket: Set<CityGameOperation>] = [:]', projection)
+        # The empty per-market allowlist was a dead gate; the owner-approved CITY lease replaced it.
+        self.assertNotIn('CityGameEndpointAllowlist', projection)
+        self.assertNotIn('CityGameOperation', projection)
         capabilities = text('Core/ReformWorldCapabilities.swift')
         self.assertIn('public static let disabled = ReformWorldCapabilities(enabled: [])', capabilities)
+        self.assertIn('public static func cityGame(_ lease: CityGameProductionLease) -> ReformWorldCapabilities', capabilities)
         self.assertIn('if service == nil || !capabilities.allows(.cityActions)', text('Core/CityGameCoordinator.swift'))
         self.assertIn('if service == nil || !capabilities.allows(.homeReturnRestore)', text('Core/HomeReturnCoordinator.swift'))
+        callers = {str(path.relative_to(ROOT)) for path in list(ROOT.glob('App/*.swift')) + list(ROOT.glob('Core/*.swift'))
+                   if '.cityGame(lease)' in code(str(path.relative_to(ROOT)))}
+        self.assertEqual(callers, {'App/ReviewedCityGameLease.swift'})
+        leases = code('App/ReviewedPlayerWriteLeases.swift')
+        self.assertIn('guard playerWritesEnabled, context.role == "player" || context.role == "club",', leases)
+        root = code('App/AppCompositionRoot.swift')
+        self.assertIn('guard reviewed?.playerWritesEnabled == true, reviewed?.regional.market == .china else { return nil }', root)
+
+    def test_city_routes_move_no_money(self):
+        service = code('Core/CityGameHTTPService.swift')
+        paths = re.findall(r'"(/api/city-game/[^"]*)"', service)
+        self.assertTrue(paths)
+        for path in paths:
+            for forbidden in ['pay', 'order', 'wallet', 'refund', 'withdraw', 'purchase']:
+                self.assertNotIn(forbidden, path)
 
     def test_core_performs_no_io_and_carries_no_location_or_client_economics(self):
         for name in CORE:
@@ -44,7 +63,7 @@ class CityGameBaseContracts(unittest.TestCase):
         for forbidden in ['dice', 'reward']:
             self.assertNotIn(forbidden, coordinator.lower())
 
-    def test_only_debug_fixtures_conform_to_the_proposed_services(self):
+    def test_only_the_production_service_and_debug_fixtures_conform(self):
         pattern = re.compile(r':\s*(?:[A-Za-z]+\s*,\s*)*(CityGameServing|HomeReturnServing)\b')
         owners = set()
         for path in list(ROOT.glob('App/*.swift')) + list(ROOT.glob('Core/*.swift')):
@@ -54,13 +73,15 @@ class CityGameBaseContracts(unittest.TestCase):
                 if 'protocol ' in line:
                     continue
                 owners.add(str(path.relative_to(ROOT)))
-        self.assertEqual(owners, {FIXTURE})
+        self.assertEqual(owners, {FIXTURE, PRODUCTION})
         self.assertTrue(text(FIXTURE).startswith('#if DEBUG\n'))
         self.assertTrue(text(FIXTURE).rstrip().endswith('#endif'))
 
-    def test_production_entry_points_pass_no_game_or_restore_model(self):
+    def test_production_entry_points_pass_the_leased_game_and_no_restore_model(self):
         city = text('App/CityPlayerView.swift')
         self.assertIn('CityPlayerView(reader: session.makeCityPlayerReader(),', city)
+        self.assertIn('gameFactory: session.cityGameFactory).id(session.cityPlayerReadIdentity)', city)
+        self.assertIn('cityGameModel: session.playCityGame,', text('App/SessionPlayRuntimeView.swift'))
         self.assertIn('.id(session.cityPlayerReadIdentity)', city)
         self.assertIn('CityGameSlot(snapshot: context.snapshot, factory: gameFactory).id(context.readID)', city)
         slot = code('App/CityGamePanel.swift').split('struct CityGameSlot: View {', 1)[1].split('struct CityGamePanel:', 1)[0]

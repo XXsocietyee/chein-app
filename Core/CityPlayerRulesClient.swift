@@ -31,7 +31,7 @@ public struct CityPlayerRulesRoute {
     public let regionID: String
     private let values: [String: String]
     public init(read: CityReadSnapshot) throws {
-        guard read.board.valid, read.board.lifecycle == "FROZEN", read.membership != .joined || read.participation?.valid == true else { throw APIError.invalidRequest }
+        guard read.board.valid, read.board.servesFrozenReads, read.membership != .joined || read.participation?.valid == true else { throw APIError.invalidRequest }
         let b = read.board; regionID = b.regionId
         var query = ["gameId": b.gameId, "regionId": b.regionId, "boardId": b.boardId, "seasonId": b.seasonId, "rulesReleaseId": b.rulesReleaseId,
                      "rulesHash": b.rulesHash, "revision": String(b.revision), "membership": read.membership.rawValue]

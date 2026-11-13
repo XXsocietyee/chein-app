@@ -31,6 +31,7 @@ import UIKit
                         circleModel: session.playCircle(topicID: model.snapshot?.result.topicID),
                         themeRecordsModel: auxiliary.records,
                         backpackModel: auxiliary.backpack,
+                        cityGameModel: session.playCityGame,
                         prefabModel: session.playPrefab(scope: scope),
                         journeyModel: { session.journeyCheck(scope: scope, topicID: model.snapshot?.result.topicID, nodeID: $0) },
                         ambientModel: session.journeyAmbient(scope: scope),
@@ -47,6 +48,7 @@ import UIKit
                                 growthReader: session.growthCenterReader, isCurrent: { model.identity != nil }).id(session.profileReader.identity))
                         })
                         .environment(\.playThemeReplay, PlayThemeReplayBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
+                        .task(id: session.cityPlayerReadIdentity) { await session.loadCityGamePlayRead() }
                 } else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
                 }
             case .director(let activityID):

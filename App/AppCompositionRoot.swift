@@ -554,7 +554,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.growthNormalReadApproval = growthNormalReadApproval
-        self.cityPlayerReadApproval = cityPlayerReadApproval
+        // The CITY board lease adds the region-bound board read; it is nil unless player writes are on.
+        self.cityPlayerReadApproval = { [gates] context in cityPlayerReadApproval(context) ?? gates.cityGame(context)?.readApproval }
         self.teamReadApproval = { [gates] context in
             teamReadApproval(context) ?? (productionGatesEnabled ? gates.teamRead(context) : nil)
         }
@@ -600,7 +601,15 @@ extension KeychainTokenStore: AppTokenStorage {}
             nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
             nativeChannelTextSendApproval = { [gates] context in gates.playerWriters(context)?.channelTextSend }
             nativeChannelTextReceiptApproval = { [gates] context in gates.playerWriters(context)?.channelTextReceipt }
+            cityPlayerRulesApproval = { [gates] context in gates.cityGame(context)?.rulesApproval }
+            cityParticipationRuntimeGrants = { [gates] context, revision in gates.cityGame(context)?.participationGrants(revision: revision) }
         }
+    }
+
+    /// The CITY board capability for this viewer; nil hides the board, its rules, team and fairness entries.
+    func cityGameLease(_ context: RuntimeDependencyContext) -> CityGameCapabilityLease? {
+        guard reviewed?.playerWritesEnabled == true, reviewed?.regional.market == .china else { return nil }
+        return productionGateLeases.cityGame(context)
     }
 
     /// Club post/comment writes for the player grant. The read composition stays read-only.

@@ -17,7 +17,7 @@ import SwiftUI
     var themeRecordsModel: PlayThemeRecordsCoordinator? = nil
     var backpackModel: PlayThemeBackpackCoordinator? = nil
     var entryCode: PlayEntryCodeContext? = nil
-    /// W20 city business game. Nil (production until a reviewed endpoint and `cityActions` exist) hides the board.
+    /// W20 city business game on the real CITY read (`AppSession.playCityGame`). Nil (no CITY lease or no board) hides it.
     var cityGameModel: CityGameCoordinator? = nil
     var prefabModel: PlayPrefabRuntimeCoordinator? = nil
     var journeyModel: ((Int) -> JourneyCheckCoordinator?)? = nil

@@ -2247,7 +2247,7 @@ final class AppSession: ObservableObject {
               !visit.closed, let capture = owner.originalCapture, owner.reader.capture == capture,
               visit.regionId == capture.board.regionId, visit.boardId == capture.board.boardId,
               visit.seasonId == capture.board.seasonId, visit.rulesReleaseId == capture.board.rulesReleaseId,
-              capture.board.lifecycle == "FROZEN",
+              capture.board.servesFrozenReads,
               let page = try? CityPlayerValueMapPage(read: capture, query: capture.query, watermark: capture.watermark, page: capture.page),
               page.availablePointIDs.contains(visit.pointId),
               let poiID = Int(exactly: visit.poiId), let context = currentRuntimeDependencyContext,
@@ -2521,6 +2521,90 @@ final class AppSession: ObservableObject {
             guard let self, let context, available() else { return }
             self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
         })
+    }
+    // MARK: CITY board (gaps A) under the owner-approved CITY lease
+    /// Observable so the play surface and the fairness entry follow the board without a session publish.
+    private let cityGameHolder = CityGameHolder()
+    private var retainedCityGame: CityGameCoordinator? {
+        get { cityGameHolder.model }
+        set { cityGameHolder.model = newValue }
+    }
+    private var cityGamePlayRead: (identity: String, reader: CityPlayerReader)?
+    /// The CITY board coordinator for one real read. Nil without the CITY lease, for another
+    /// region, or when a joined member's recovery journal cannot be opened (no write without it).
+    func makeCityGameCoordinator(read: CityReadSnapshot) -> CityGameCoordinator? {
+        guard let context = currentRuntimeDependencyContext, let lease = composition.cityGameLease(context), lease.matches(context),
+              read.board.regionId == lease.lease.regionID, let api = try? APIConfiguration(baseURL: context.baseURL) else { return nil }
+        if let existing = retainedCityGame, existing.read == read, existing.phase != .invalidated { return existing }
+        retainedCityGame?.invalidate(); retainedCityGame = nil
+        let viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak lease] in
+            guard let self, let lease, self.compositionViewerRevision == viewer, let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityGameLease(live) === lease, lease.matches(live) else { return false }
+            return true
+        }
+        var journal: CityActionRecoveryJournal?
+        if read.membership == .joined {
+            guard let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first,
+                  let opened = try? CityActionRecoveryJournal(directory: root.appendingPathComponent("CityGameActions", isDirectory: true),
+                                                             namespace: context.session.namespace) else { return nil }
+            journal = opened
+        }
+        guard let service = try? CityGameHTTPService(configuration: api, token: context.session.token, lease: lease.lease,
+                transport: composition.makeTransport(), isCurrent: current, onUnauthorized: { [weak self] in
+                    guard let self, current() else { return }
+                    self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+                }) else { return nil }
+        let model = CityGameCoordinator(read: read, service: service, capabilities: lease.capabilities,
+                                        memberId: String(context.session.accountID), isCurrent: current, journal: journal)
+        retainedCityGame = model
+        return model
+    }
+    /// Factory for the CITY entry surface; nil keeps the board section hidden.
+    var cityGameFactory: (@MainActor (CityReadSnapshot) -> CityGameCoordinator?)? {
+        guard let context = currentRuntimeDependencyContext, composition.cityGameLease(context) != nil else { return nil }
+        return { [weak self] read in self?.makeCityGameCoordinator(read: read) }
+    }
+    /// Starts the CITY read the play surface's board is built on. Call from a view `.task`.
+    func loadCityGamePlayRead() async {
+        guard let context = currentRuntimeDependencyContext, composition.cityGameLease(context) != nil else { cityGamePlayRead = nil; return }
+        let identity = cityPlayerReadIdentity
+        if cityGamePlayRead?.identity != identity { cityGamePlayRead = (identity, makeCityPlayerReader()) }
+        guard let reader = cityGamePlayRead?.reader else { return }
+        if case .available = reader.state {} else { await reader.load() }
+        guard cityGamePlayRead?.reader === reader, case .available(let read) = reader.state,
+              let model = makeCityGameCoordinator(read: read), model.phase == .idle || model.phase == .unknown else { return }
+        await model.load()
+    }
+    /// The board for `PlayExperienceView.cityGameModel`, built on the real CITY read. Nil hides it.
+    var playCityGame: CityGameCoordinator? {
+        guard let host = cityGamePlayRead, host.identity == cityPlayerReadIdentity,
+              case .available(let read) = host.reader.state,
+              let model = cityGameHolder.model, model.read == read, model.phase != .invalidated else { return nil }
+        return model
+    }
+    /// Fairness for the board the player last loaded; the scope uses the board's own rule version.
+    func makeCityFairnessReaderFactory() -> (@MainActor () -> CityFairnessReader)? {
+        guard let context = currentRuntimeDependencyContext, let lease = composition.cityGameLease(context),
+              let game = retainedCityGame, let snapshot = game.snapshot,
+              let scope = try? CityFairnessScope(boardID: snapshot.boardId, regionID: game.read.board.regionId,
+                                                 seasonID: snapshot.seasonId, rulesVersion: snapshot.rules.ruleVersion),
+              let approval = lease.fairnessApproval(scope) else { return nil }
+        let viewer = compositionViewerRevision
+        let current: () -> Bool = { [weak self, weak lease, weak approval] in
+            guard let self, let lease, let approval, self.compositionViewerRevision == viewer,
+                  let live = self.currentRuntimeDependencyContext, self.composition.cityGameLease(live) === lease,
+                  approval.matches(live) else { return false }
+            return true
+        }
+        let transport = composition.makeTransport()
+        return { [weak self] in
+            CityFairnessReader(approval: approval, transport: transport, isCurrent: current, onUnauthorized: {
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+        }
     }
     var currentRuntimeDependencyContext: RuntimeDependencyContext? {
         guard !committingAuthenticatedSession, let regionalConfiguration, let api = regionalConfiguration.apiConfiguration,
