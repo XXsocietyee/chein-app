@@ -19,7 +19,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     var approvedArtworkHosts: Set<String> = []
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
-    /// UG-03 accusation write. Nil while the pack is NOT_RUN: the screen explains that nothing is sent.
+    /// Override for the accusation confirm. Nil publishes the existing SUBMIT_QA review when UG-03 is publishable.
     var ugAccusationWrite: PlayKitAccusationWrite? = nil
     @State var text = ""
     @State var selected = Set<String>()
@@ -182,7 +182,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
         case .qa:
             if let accusation = accusationProjection {
                 PlayKitAccusationView(projection: accusation, approvedHosts: approvedArtworkHosts, enabled: enabled, showsTitle: false,
-                    accuse: ugAccusationWrite, close: presentation == .inline ? nil : { dismiss() })
+                    accuse: accusationWrite, close: presentation == .inline ? nil : { dismiss() })
             } else { qaForm }
         case .branch: branchForm
         case .estimate: estimateForm
@@ -219,6 +219,12 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
                 makeSensorProvider: makeSensorProvider)
                 .id(childReset)
         }
+    }
+    /// UG-03 publishes through prepare("SUBMIT_QA"). A second action name is not used.
+    private var accusationWrite: PlayKitAccusationWrite? {
+        if let ugAccusationWrite { return ugAccusationWrite }
+        guard UGGameplay.accusationPublishable else { return nil }
+        return { id in prepare(PlayKitPublishedWrites.accusationAction, PlayKitPublishedWrites.accusationDetail(optionID: id)) }
     }
     /// UG-03: a PICK qa whose node turned accusation on. Its end screen reads the server verdict itself.
     var accusationProjection: PlayKitAccusationProjection? {

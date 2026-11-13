@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// Write outlet for the UG kits. UG-01 and UG-03 are NOT_RUN in Core, so every host passes nil
-/// today: the screen still renders, and its primary button explains that nothing is sent.
-/// Cursor: once the packs run, pass `{ payload in prepare("SUBMIT_HANGMAN", payload) }` for hangman
-/// and `{ id in prepare("SUBMIT_QA", ["optionId": .string(id)]) }` for accusation.
+/// Write outlet for the UG kits. A nil hangman closure is replaced by the advanced SUBMIT_HANGMAN
+/// review. A nil accusation closure is replaced by prepare("SUBMIT_QA") when UG-03 is publishable.
 typealias PlayKitHangmanWrite = ([String: PlayWireValue]) -> Void
 typealias PlayKitAccusationWrite = (String) -> Void
 

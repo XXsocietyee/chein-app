@@ -6,7 +6,10 @@ import FoundationNetworking
 /// Read client for UG-05 help and UG-07 receipts.
 /// Transport is injected. A production endpoint is refused and no live session is opened.
 /// There is no baked response. A feature with no capability grant does not send.
-/// Help use, skip, hangman submit, and accusation submit are not available: the pack is NOT_RUN.
+/// Help use, skip, and accusation submit stay unavailable on this reader.
+/// Hangman posts SUBMIT_HANGMAN to `/api/play/advanced/action` on the injected transport.
+/// Accusation publishes as SUBMIT_QA through the advanced coordinator, not a second reader action.
+/// The reader still refuses a production endpoint and does not open a live session.
 public struct UGGameplayReader {
     public static let contractExecution = UGGameplay.contractExecution
     public let capabilities: UGCapability
@@ -63,9 +66,49 @@ public struct UGGameplayReader {
         throw UGRefusal.writesNotAvailable
     }
 
-    public func submitHangman(requestID: String, token: String) throws -> Never {
-        _ = (requestID, token)
-        throw UGRefusal.writesNotAvailable
+    /// POST `/api/play/advanced/action` SUBMIT_HANGMAN. An unknown result keeps `requestID`.
+    /// A definite rejection is `.failed` and does not mint a replacement id. Invalid input throws.
+    public func submitHangman(sessionID: String, version: Int, requestID: String, slots: [String: String], token: String) async throws -> UGHangmanSubmitOutcome {
+        guard AuthRequestBuilder.isValidToken(token), version >= 0 else { throw UGRefusal.invalidRequest }
+        let session = try Self.identifier(sessionID)
+        guard let sessionNumber = Int(session), !requestID.isEmpty, requestID.utf8.count <= 96,
+              requestID.utf8.allSatisfy({ $0 >= 0x21 && $0 <= 0x7e }) else { throw UGRefusal.invalidRequest }
+        var wire: [String: PlayWireValue] = [:]
+        for (key, value) in slots {
+            guard let index = Int(key), index >= 0, String(index) == key else { throw UGRefusal.invalidRequest }
+            let scalars = Array(value.unicodeScalars)
+            guard scalars.count == 1, value == String(scalars[0]),
+                  value.trimmingCharacters(in: .whitespacesAndNewlines) == value else { throw UGRefusal.invalidRequest }
+            wire[key] = .string(value)
+        }
+        guard !wire.isEmpty, wire.count <= 64 else { throw UGRefusal.invalidRequest }
+        guard capabilities.allows(.hangman) else { throw UGRefusal.writesNotAvailable }
+        let body = PlayWireValue.object([
+            "sessionId": .int(sessionNumber), "version": .int(version), "idempotencyKey": .string(requestID),
+            "action": .string(PlayKitPublishedWrites.hangmanAction),
+            "payload": .object(["slots": .object(wire)])
+        ])
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent("api/play/advanced/action"))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 20
+        request.httpShouldHandleCookies = false
+        request.httpBody = try JSONEncoder().encode(body)
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let data: Data
+        let status: Int
+        do { (data, status) = try await transport.send(request) }
+        catch { return .unknown(requestID: requestID) }
+        if status == 401 { return .failed }
+        guard (200..<300).contains(status),
+              let root = try? JSONDecoder().decode(PlayWireValue.self, from: data),
+              let code = root["code"].integer ?? root["code"].tolerantInteger else {
+            return .unknown(requestID: requestID)
+        }
+        if code != 200 { return .failed }
+        return .accepted(requestID: requestID)
     }
 
     public func submitAccusation(requestID: String, token: String) throws -> Never {
@@ -131,6 +174,20 @@ public struct UGGameplayReader {
     private static func identifier(_ raw: String) throws -> String {
         guard !raw.isEmpty, raw.count <= 18, raw.allSatisfy(\.isNumber), raw.first != "0" else { throw UGRefusal.invalidRequest }
         return raw
+    }
+}
+
+/// Result of SUBMIT_HANGMAN. Unknown keeps the saved request id. Failure does not replace it.
+public enum UGHangmanSubmitOutcome: Equatable, Sendable {
+    case accepted(requestID: String)
+    case failed
+    case unknown(requestID: String)
+
+    public var requestID: String? {
+        switch self {
+        case .accepted(let requestID), .unknown(let requestID): return requestID
+        case .failed: return nil
+        }
     }
 }
 

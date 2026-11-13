@@ -2,8 +2,8 @@ import Foundation
 
 /// Mini-program pages/play/utils/playkit-questo.js and playkit-r5-segments.js albumKit.
 /// These only carry server facts to a screen. They never judge an answer, store one,
-/// or infer an early or successful close. UG-01 and UG-03 writes stay NOT_RUN in Core:
-/// a host passes a write binding, and without one the screen shows why it cannot send.
+/// or infer an early or successful close. Hangman and album publish through
+/// `/api/play/advanced/action`. Accusation publishes as SUBMIT_QA.
 
 // MARK: - UG-01 hangman
 
@@ -282,5 +282,33 @@ public struct PlayKitAlbumProjection: Equatable {
             guard !url.isEmpty else { return nil }
             return Photo(id: offset, url: url, line: row["line"].text ?? "")
         }
+    }
+}
+
+/// Names for the three play writes. Accusation reuses SUBMIT_QA.
+public enum PlayKitPublishedWrites {
+    public static let hangmanKind = "hangman"
+    public static let hangmanAction = "SUBMIT_HANGMAN"
+    public static let accusationKind = "qa"
+    public static let accusationAction = "SUBMIT_QA"
+    public static func accusationDetail(optionID: String) -> [String: PlayWireValue] {
+        ["optionId": .string(optionID)]
+    }
+    public static let albumKind = "album"
+    public static let albumAction = "SUBMIT_ALBUM"
+    /// One uploaded https URL. This is not a price, order, or payment.
+    public static func albumDetail(imageURL: String) -> [String: PlayWireValue] {
+        ["imageUrls": .array([.string(imageURL)])]
+    }
+}
+
+/// Photo upload outcome for album completion. Failure stays failed and does not mint a request id.
+public enum PlayAlbumUploadOutcome: Equatable, Sendable {
+    case failed
+    case ready(String)
+
+    public static func resolve(url: String?, issue: PlayExperienceError?) -> Self {
+        guard issue == nil, let url, PlayExperienceService.validHTTPS(url) else { return .failed }
+        return .ready(url)
     }
 }

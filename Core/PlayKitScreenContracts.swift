@@ -252,6 +252,14 @@ public struct PlayKitActionReview: Equatable, Identifiable {
 
 public enum PlayKitInputContract {
     public static func validate(kind: String, action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
+        if kind == PlayKitPublishedWrites.hangmanKind {
+            try validateHangman(action: action, payload: payload, segment: segment)
+            return
+        }
+        if kind == PlayKitPublishedWrites.albumKind {
+            try validateAlbum(action: action, payload: payload, segment: segment)
+            return
+        }
         guard let kind = PlayKitScreenKind(rawValue: kind) else { return } // Other existing kits keep their established boundary.
         guard segment.object != nil, !PlayKitScreenProjection(kind: kind, segment: segment).complete else { throw PlayExperienceError.invalidAction }
         let keys = Set(payload.keys)
@@ -343,6 +351,37 @@ public enum PlayKitInputContract {
         case .silentOrder, .musicCorner, .timeWindow: throw PlayExperienceError.unsupported
         case .bingo, .walk, .steps: throw PlayExperienceError.unsupported // WeChat encrypted step proof has no approved native replacement.
         }
+    }
+
+    /// SUBMIT_HANGMAN `{slots: {"i": ch}}`. Every editable cell, one code point, and not already solved.
+    private static func validateHangman(action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
+        guard segment.object != nil, segment["solved"].bool != true else { throw PlayExperienceError.invalidAction }
+        guard action == PlayKitPublishedWrites.hangmanAction, Set(payload.keys) == ["slots"],
+              let slots = payload["slots"]?.object, !slots.isEmpty else { throw PlayExperienceError.invalidAction }
+        var editable = Set<String>()
+        for (offset, row) in (segment["slots"].array ?? []).enumerated() {
+            let rawKind = row["kind"].text ?? ""
+            let kind = ["SEPARATOR", "PREFILLED", "FILLED", "BLANK"].contains(rawKind) ? rawKind : "BLANK"
+            guard kind == "FILLED" || kind == "BLANK" else { continue }
+            let index = row["i"].integer ?? offset
+            guard index >= 0 else { throw PlayExperienceError.invalidAction }
+            editable.insert(String(index))
+        }
+        guard !editable.isEmpty, Set(slots.keys) == editable else { throw PlayExperienceError.invalidAction }
+        for (key, value) in slots {
+            guard let index = Int(key), index >= 0, String(index) == key, let text = value.text else { throw PlayExperienceError.invalidAction }
+            let scalars = Array(text.unicodeScalars)
+            guard scalars.count == 1, text == String(scalars[0]),
+                  text.trimmingCharacters(in: .whitespacesAndNewlines) == text else { throw PlayExperienceError.invalidAction }
+        }
+    }
+
+    /// SUBMIT_ALBUM `{imageUrls: [https URL]}`. One photo. Done albums and payment fields are refused.
+    private static func validateAlbum(action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
+        guard segment.object != nil, segment["done"].bool != true else { throw PlayExperienceError.invalidAction }
+        guard action == PlayKitPublishedWrites.albumAction, Set(payload.keys) == ["imageUrls"],
+              let urls = payload["imageUrls"]?.array, urls.count == 1, urls.count == payload["imageUrls"]?.array?.count,
+              let url = urls[0].text, PlayExperienceService.validHTTPS(url) else { throw PlayExperienceError.invalidAction }
     }
     /// Match the backend's UTF-16 limits without splitting a visible grapheme.
     public static func limitText(_ text: String, toUTF16 limit: Int) -> String {
