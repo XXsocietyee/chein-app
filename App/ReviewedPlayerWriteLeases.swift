@@ -66,6 +66,9 @@ extension ReviewedProductionFormMutationRoute {
         if ReviewedProductionGateLeases.creatorStudioPaths.contains(String(ChinaReviewedRouteCapability.normalized("/" + relative).dropFirst())) {
             return creatorStudioRequest(request, relative: relative, method: method, grant: grant.play)
         }
+        if relative.hasPrefix("api/external-game/") {
+            return admitsExternalGame(method: method, relative: relative, request: request, grant: grant)
+        }
         if method == "GET" {
             let emptyBody = request.httpBody?.isEmpty ?? true
             // Admission receipts use the client's own `adm-<uuid>` request ids (contract §0.3 management form).
@@ -107,6 +110,25 @@ extension ReviewedProductionFormMutationRoute {
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
             || covers(relative, grant.templateAdoption)
             || covers(relative, grant.admission) || covers(relative, grant.teamPool)
+    }
+
+    /// HTML/JS external games. A price or a monetization other than NONE is refused. GET may carry the signed download query.
+    static func admitsExternalGame(method: String, relative: String, request: URLRequest, grant: ReviewedPlayerWriteGrant) -> Bool {
+        guard grant.play.paths.isSuperset(of: externalGamePaths) else { return false }
+        let key = ChinaReviewedRouteCapability.externalGameGrantKey(ChinaReviewedRouteCapability.normalized("/" + relative))
+        let folded = key.hasPrefix("/") ? String(key.dropFirst()) : key
+        guard externalGamePaths.contains(folded) else { return false }
+        if method == "GET" {
+            return request.httpBody == nil || request.httpBody?.isEmpty == true
+        }
+        guard method == "POST", let body = request.httpBody, !body.isEmpty else { return false }
+        let text = String(decoding: body, as: UTF8.self)
+        if text.contains("\"price\"") || text.contains("\"iap\"") || text.contains("StoreKit") { return false }
+        if relative == "api/external-game/reports" || relative.hasSuffix("/cancel") {
+            return request.value(forHTTPHeaderField: "Content-Type") == "application/json"
+        }
+        guard let contentType = request.value(forHTTPHeaderField: "Content-Type"), contentType.hasPrefix("multipart/form-data") else { return false }
+        return text.contains("name=\"monetization\"") && text.contains("NONE") && !text.contains("name=\"monetization\"\r\n\r\nPAID")
     }
 
     /// G3 creator editor GETs and PUTs. Nil leaves the request to the other player-write rules.
@@ -445,7 +467,12 @@ enum ReviewedPlayerReadRoute {
         "api/orient/task/alternative", "api/topic/author-saved-detail",
         "api/circle-theme/instance/configure", "api/project/home", "api/analytics/events/batch",
         // G6 (owner-approved): AI theme draft V2 prepare/execute with its journal and recovery list.
-        "api/ai/theme/draft/prepare", "api/ai/theme/draft/execute"
+        "api/ai/theme/draft/prepare", "api/ai/theme/draft/execute",
+        // Handover 18 external games. Monetization NONE. Append-only.
+        "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
+        "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
+        "api/external-game/catalog", "api/external-game/catalog/{}", "api/external-game/catalog/{}/package",
+        "api/external-game/signing-key", "api/external-game/reports"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
@@ -473,6 +500,12 @@ enum ReviewedPlayerReadRoute {
         // cur-team-u0802: the TEAM command receipt re-read.
         "api/game/session/receipt"
     ]
+    static let externalGamePaths: Set<String> = [
+        "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
+        "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
+        "api/external-game/catalog", "api/external-game/catalog/{}", "api/external-game/catalog/{}/package",
+        "api/external-game/signing-key", "api/external-game/reports"
+    ]
     /// G2 invoice writes. A grant without every one of them leaves the invoice write entries hidden.
     static let invoiceWritePaths: Set<String> = [
         "api/invoice/apply", "api/invoice/request", "api/invoice/cancel", "api/invoice/titles/save",
@@ -495,7 +528,8 @@ enum ReviewedPlayerReadRoute {
         "api/v1/community/reports", "api/v1/community/appeals", "api/comment/report", "api/topic/report",
         "api/template/report", "api/creativesquare/report", "api/im/report", "api/club/post/report",
         "api/club/post/comment/report", "api/club/governance/cases/report", "api/club/governance/cases/appeal",
-        "api/orient/scoring/appeal", "api/orient/scoring/dispute"
+        "api/orient/scoring/appeal", "api/orient/scoring/dispute",
+        "api/external-game/reports"
     ]
     /// Space admission (contract §6.10). Approve/reject/pause/revoke are owner/admin writes the backend checks.
     static let admissionPaths: Set<String> = [

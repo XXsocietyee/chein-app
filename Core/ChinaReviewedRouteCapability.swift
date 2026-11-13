@@ -55,6 +55,7 @@ public enum ChinaReviewedRouteCapability {
         if playerGapOwnerGrant.contains(key) { return true }
         if creatorStudioOwnerGrant.contains(key) { return true }
         if clubAndMerchantCoopOwnerGrant.contains(key) { return true }
+        if externalGameOwnerGrant.contains(key) || externalGameOwnerGrant.contains(externalGameGrantKey(key)) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -335,6 +336,30 @@ public enum ChinaReviewedRouteCapability {
         "/api/club/workbench",
         "/api/coop"
     ]
+
+    /// Handover 18, owner 2026-11-13. External HTML/JS games. Monetization is NONE.
+    /// Catalog game ids are not numeric, so `externalGameGrantKey` folds that segment to `{}`.
+    public static let externalGameOwnerGrant: Set<String> = [
+        "/api/external-game/submissions",
+        "/api/external-game/submissions/mine",
+        "/api/external-game/submissions/{}",
+        "/api/external-game/submissions/{}/cancel",
+        "/api/external-game/submissions/{}/resubmit",
+        "/api/external-game/catalog",
+        "/api/external-game/catalog/{}",
+        "/api/external-game/catalog/{}/package",
+        "/api/external-game/signing-key",
+        "/api/external-game/reports"
+    ]
+
+    /// Replaces the catalog game-id segment. Numeric submission ids are already `{}` from `normalized`.
+    public static func externalGameGrantKey(_ normalizedKey: String) -> String {
+        let parts = normalizedKey.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count >= 5, parts[1] == "api", parts[2] == "external-game", parts[3] == "catalog" else { return normalizedKey }
+        var copy = parts
+        copy[4] = "{}"
+        return copy.joined(separator: "/")
+    }
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
         guard targetsChinaProduction(url), let relative = relativePath(url) else { return false }

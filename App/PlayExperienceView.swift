@@ -354,7 +354,9 @@ import SwiftUI
                             .accessibilityIdentifier("playx.themeRecords.open")
                     }
                     if let backpackModel {
-                        NavigationLink("playx.backpack.title") { PlayThemeBackpackView(model: backpackModel) }
+                        NavigationLink("playx.backpack.title") {
+                            PlayThemeBackpackView(model: backpackModel, externalGamesEnabled: ReviewedAreaSwitch.externalGamesMount())
+                        }
                             .accessibilityIdentifier("playx.backpack.open")
                     }
                     if let teamBackpackModel {

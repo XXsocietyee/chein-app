@@ -48,7 +48,7 @@ public enum WorkshopModuleFormat: String, Equatable, Sendable {
 }
 
 public enum WorkshopModuleImportPhase: String, Equatable, Sendable {
-    case idle, imported, validated, previewed, reviewPending, waitingSource
+    case idle, imported, validated, previewed, reviewPending, externalGameReviewed, waitingSource
 }
 
 /// Public catalog facts only. Answers and hidden coordinates must not be shipped.
@@ -80,6 +80,9 @@ public struct WorkshopModuleImportGate: Equatable {
     public private(set) var manifest: WorkshopModuleManifest?
     public private(set) var preview: WorkshopModulePreview?
     public private(set) var failure: WorkshopModuleImportFailure?
+    /// Server status of the external-game submission that shares `originalRequestID`.
+    /// Nil means the server has not confirmed a status. The workshop package itself is not this field.
+    public private(set) var externalGameServerStatus: String?
     public init() {}
     public static func idOK(_ value: String) -> Bool {
         !value.isEmpty && value.count <= 64 && value == value.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -158,6 +161,41 @@ public struct WorkshopModuleImportGate: Equatable {
         guard phase == .previewed, preview?.metadataOnly == true else { throw fail(.notPreviewed) }
         phase = .reviewPending
         failure = nil
+    }
+    /// Records one external-game review request. This does not import a workshop package.
+    /// An in-flight request id is kept: a different id is refused until the server confirms a status.
+    public mutating func beginExternalGameReview(requestID: String) throws {
+        let trimmed = requestID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard Self.requestIDOK(trimmed) else { throw fail(.invalidManifest) }
+        if phase == .reviewPending, externalGameServerStatus == nil, let existing = originalRequestID {
+            guard existing == trimmed else { throw fail(.requestMismatch) }
+            return
+        }
+        entry = nil
+        manifest = nil
+        preview = nil
+        originalRequestID = trimmed
+        externalGameServerStatus = nil
+        phase = .reviewPending
+        failure = nil
+    }
+    /// Writes a confirmed server status for that same request. An unknown status, or a different
+    /// request id, leaves the gate on the saved request and does not report success.
+    @discardableResult
+    public mutating func applyExternalGameServerStatus(_ status: String, requestID: String) -> Bool {
+        let trimmed = requestID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard phase == .reviewPending, originalRequestID == trimmed else { return false }
+        switch status {
+        case "PENDING", "ESCALATED":
+            externalGameServerStatus = status
+            return true
+        case "APPROVED", "REJECTED", "CANCELLED":
+            externalGameServerStatus = status
+            phase = .externalGameReviewed
+            return true
+        default:
+            return false
+        }
     }
     public mutating func executeJavaScript(_ source: String) throws -> Never {
         _ = source

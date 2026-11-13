@@ -378,7 +378,9 @@ struct SessionRootView: View {
         .background {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
         }
+        .modifier(ExternalGameCatalogLaunch())
         .environmentObject(session)
+        .environment(\.externalGameSession, ExternalGameSessionRead.bridge(session))
         .modifier(MPParityPassEnvironment(session: session))
         .modifier(SocialRoamCapabilityRoot(session: session)) // G4/G5 entries (mount-g45)
         .onAppear { MPNotificationTapRouter.shared.install(session) }
