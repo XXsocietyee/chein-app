@@ -178,9 +178,6 @@ public enum ExternalGameValidator {
     public static let maxFileCount = 200
     public static let maxAllowedDomains = 10
 
-    /// Default verification key used for HMAC-SHA256 manifest signature validation in sandboxed packages.
-    public static let defaultVerificationSecret = "questify.external-game.manifest.signing.v1"
-
     public static let allowedFileExtensions: Set<String> = [
         "html", "htm", "css", "js", "mjs", "json",
         "png", "jpg", "jpeg", "webp", "svg", "gif",
@@ -297,23 +294,51 @@ public enum ExternalGameValidator {
         return Data(canonical.utf8)
     }
 
-    public static func signManifest(_ manifest: ExternalGameManifest, secret: String = defaultVerificationSecret) -> String {
-        let key = SymmetricKey(data: Data(secret.utf8))
-        let mac = HMAC<SHA256>.authenticationCode(for: canonicalSigningPayload(for: manifest), using: key)
-        return mac.map { String(format: "%02x", $0) }.joined()
+    public static func dataFromHex(_ hex: String) -> Data? {
+        let text = hex.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !text.isEmpty, text.count.isMultiple(of: 2) else { return nil }
+        var out = Data()
+        out.reserveCapacity(text.count / 2)
+        var index = text.startIndex
+        while index < text.endIndex {
+            let next = text.index(index, offsetBy: 2)
+            guard let byte = UInt8(text[index..<next], radix: 16) else { return nil }
+            out.append(byte)
+            index = next
+        }
+        return out
     }
 
-    public static func verifySignature(_ manifest: ExternalGameManifest, secret: String = defaultVerificationSecret) -> Bool {
-        let sig = manifest.signature.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard sig.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil else { return false }
-        let expected = signManifest(manifest, secret: secret)
-        return sig.utf8.elementsEqual(expected.utf8)
+    /// Ed25519 over `canonicalSigningPayload`. `publicKeyRaw` is the 32-byte key from
+    /// `GET /api/external-game/signing-key`. The app holds no signing secret.
+    public static func verifyServerSignature(_ manifest: ExternalGameManifest, publicKeyRaw: Data) -> Bool {
+        let sigHex = manifest.signature.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard sigHex.count == 128, publicKeyRaw.count == 32,
+              let signature = dataFromHex(sigHex), signature.count == 64,
+              let key = try? Curve25519.Signing.PublicKey(rawRepresentation: publicKeyRaw) else { return false }
+        return key.isValidSignature(signature, for: canonicalSigningPayload(for: manifest))
+    }
+
+    /// Hash and HTML/JS structure only. The server ignores a client signature and issues its own.
+    public static func validatePackageStructure(_ archive: ExternalGamePackageArchive) throws {
+        try validateCommon(archive)
     }
 
     public static func validateArchive(
         _ archive: ExternalGamePackageArchive,
-        secret: String = defaultVerificationSecret
+        publicKeyRaw: Data = Data()
     ) throws {
+        try validateCommon(archive)
+        let sig = archive.manifest.signature.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard sig.range(of: "^[0-9a-f]{128}$", options: .regularExpression) != nil else {
+            throw ExternalGameValidationError.unsignedManifest
+        }
+        guard verifyServerSignature(archive.manifest, publicKeyRaw: publicKeyRaw) else {
+            throw ExternalGameValidationError.invalidSignature
+        }
+    }
+
+    private static func validateCommon(_ archive: ExternalGamePackageArchive) throws {
         let manifest = archive.manifest
 
         // 1. Validate ID, Name, Version, Content Rating
@@ -391,19 +416,13 @@ public enum ExternalGameValidator {
             throw ExternalGameValidationError.missingEntryFile(manifest.entry)
         }
 
-        // 6. Validate SHA-256 hash and cryptographic signature
         let trimmedHash = manifest.sha256.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let trimmedSig = manifest.signature.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmedHash.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil,
-              !trimmedSig.isEmpty else {
+        guard trimmedHash.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil else {
             throw ExternalGameValidationError.unsignedManifest
         }
         let actualHash = computePackageSHA256(archive.files)
         guard actualHash == trimmedHash else {
             throw ExternalGameValidationError.hashMismatch(expected: trimmedHash, actual: actualHash)
-        }
-        guard verifySignature(manifest, secret: secret) else {
-            throw ExternalGameValidationError.invalidSignature
         }
     }
 }
@@ -587,7 +606,8 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
 @available(macOS 14.0, *)
 @MainActor @Observable public final class ExternalGameStore {
     public let rootDirectory: URL
-    public let verificationSecret: String
+    /// 32-byte Ed25519 public key from the server. Empty until `GET /api/external-game/signing-key` succeeds.
+    public private(set) var verificationPublicKey: Data
     public private(set) var installedGames: [InstalledExternalGame] = []
     public var pendingConfirmation: ExternalGamePendingConfirmation?
     public var activeLaunchingGame: InstalledExternalGame?
@@ -598,10 +618,11 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
     public private(set) var blockedCreators: Set<String> = []
 
     private var progressByGameID: [String: [String: String]] = [:]
+    private var ageGateAccepted: [String: String] = [:]
 
     public init(
         rootDirectory: URL? = nil,
-        verificationSecret: String = ExternalGameValidator.defaultVerificationSecret
+        verificationPublicKey: Data = Data()
     ) {
         if let rootDirectory {
             self.rootDirectory = rootDirectory
@@ -610,9 +631,11 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
                 ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             self.rootDirectory = base.appendingPathComponent("ExternalGames-v1", isDirectory: true)
         }
-        self.verificationSecret = verificationSecret
+        self.verificationPublicKey = verificationPublicKey
         loadRegistryFromDisk()
         loadBlocklistFromDisk()
+        loadAgeGate()
+        loadPermissions()
     }
 
     public static func normalizedCreator(_ author: String?) -> String? {
@@ -636,8 +659,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         if let creator = Self.normalizedCreator(manifest.author) { blockedCreators.remove(creator) }
         saveBlocklistToDisk()
     }
-    /// Plain-text report body for the user to send through a channel they choose. No address or endpoint is
-    /// built in: the support contact is an owner decision (FP-O7) and the backend has no report route for packages.
+    /// Plain-text summary. The in-app report posts to `/api/external-game/reports` separately.
     public func reportSummary(for manifest: ExternalGameManifest) -> String {
         [
             "Package report",
@@ -652,6 +674,31 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         ].joined(separator: "\n")
     }
 
+    public func adoptVerificationKey(_ raw: Data) {
+        verificationPublicKey = raw
+    }
+
+    public func ageGateNeedsConfirmation(_ manifest: ExternalGameManifest) -> Bool {
+        ageGateAccepted[manifest.id] != manifest.contentRating
+    }
+
+    public func acceptAgeGate(_ manifest: ExternalGameManifest) {
+        guard ExternalGameContentRating(rawValue: manifest.contentRating) != nil else { return }
+        ageGateAccepted[manifest.id] = manifest.contentRating
+        saveAgeGate()
+    }
+
+    /// Drops installed games whose ids are absent from a completed approved-catalog read.
+    /// The caller must not invoke this when that read failed.
+    @discardableResult
+    public func removeUnpublished(approvedGameIDs: Set<String>) throws -> [String] {
+        let gone = installedGames.map(\.manifest.id).filter { !approvedGameIDs.contains($0) }
+        for id in gone {
+            try remove(id: id)
+        }
+        return gone
+    }
+
     public func packageDirectory(for gameID: String) -> URL {
         rootDirectory
             .appendingPathComponent("packages", isDirectory: true)
@@ -660,6 +707,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
 
     public func entryFileURL(for game: InstalledExternalGame) -> URL? {
         guard !isBlocked(game.manifest) else { return nil }
+        guard ExternalGameValidator.verifyServerSignature(game.manifest, publicKeyRaw: verificationPublicKey) else { return nil }
         let pkgRoot = packageDirectory(for: game.manifest.id)
         let target = pkgRoot.appendingPathComponent(game.manifest.entry, isDirectory: false)
         guard ExternalGameSandboxPolicy.allowsNavigation(to: target, packageRoot: pkgRoot, manifest: game.manifest) else {
@@ -688,7 +736,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
             break
         }
 
-        try ExternalGameValidator.validateArchive(archive, secret: verificationSecret)
+        try ExternalGameValidator.validateArchive(archive, publicKeyRaw: verificationPublicKey)
         guard !isBlocked(archive.manifest) else { throw ExternalGameValidationError.blockedByUser(archive.manifest.name) }
         let totalBytes = archive.files.values.reduce(0) { $0 + $1.count }
         let existing = installedGames.first(where: { $0.manifest.id == archive.manifest.id })
@@ -727,7 +775,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         guard let confirmation = pendingConfirmation else {
             throw ExternalGameValidationError.malformedArchive
         }
-        try ExternalGameValidator.validateArchive(confirmation.archive, secret: verificationSecret)
+        try ExternalGameValidator.validateArchive(confirmation.archive, publicKeyRaw: verificationPublicKey)
 
         let manifest = confirmation.archive.manifest
         let pkgDir = packageDirectory(for: manifest.id)
@@ -789,6 +837,8 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         }
 
         pendingConfirmation = nil
+        permissionAccepted.insert(manifest.id + "@" + manifest.version)
+        savePermissions()
         saveRegistryToDisk()
         return installed
     }
@@ -830,7 +880,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         permissions: [String] = ["storage", "haptics"],
         contentRating: String = "4+",
         allowedDomains: [String] = ["assets.example.com"],
-        secret: String = ExternalGameValidator.defaultVerificationSecret
+        sign: ((Data) -> String)? = nil
     ) -> ExternalGamePackageArchive {
         let html = """
         <!doctype html>
@@ -857,7 +907,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
             author: "Questify Workshop",
             summary: "在背包沙盒内运行的轻量解谜互动"
         )
-        let sig = ExternalGameValidator.signManifest(unsigned, secret: secret)
+        let sig = sign?(ExternalGameValidator.canonicalSigningPayload(for: unsigned)) ?? String(repeating: "0", count: 128)
         let signed = ExternalGameManifest(
             id: id,
             name: name,
@@ -898,6 +948,37 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
                let pMap = try? JSONDecoder().decode([String: String].self, from: pData) {
                 progressByGameID[game.manifest.id] = pMap
             }
+        }
+    }
+
+    public private(set) var permissionAccepted: Set<String> = []
+
+    public func needsPermissionConfirmation(_ manifest: ExternalGameManifest) -> Bool {
+        !manifest.permissions.isEmpty && !permissionAccepted.contains(manifest.id + "@" + manifest.version)
+    }
+
+    private var ageGateFileURL: URL { rootDirectory.appendingPathComponent("age-gate-v1.json", isDirectory: false) }
+    private func loadAgeGate() {
+        guard let data = try? Data(contentsOf: ageGateFileURL),
+              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
+        ageGateAccepted = decoded
+    }
+    private func saveAgeGate() {
+        try? FileManager.default.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(ageGateAccepted) {
+            try? data.write(to: ageGateFileURL, options: [.atomic])
+        }
+    }
+    private var permissionFileURL: URL { rootDirectory.appendingPathComponent("permissions-v1.json", isDirectory: false) }
+    private func loadPermissions() {
+        guard let data = try? Data(contentsOf: permissionFileURL),
+              let decoded = try? JSONDecoder().decode(Set<String>.self, from: data) else { return }
+        permissionAccepted = decoded
+    }
+    private func savePermissions() {
+        try? FileManager.default.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(permissionAccepted) {
+            try? data.write(to: permissionFileURL, options: [.atomic])
         }
     }
 

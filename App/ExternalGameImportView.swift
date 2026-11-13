@@ -12,10 +12,25 @@ import WebKit
 @available(macOS 14.0, *)
 @MainActor struct ExternalGameLibrarySection: View {
     @Environment(\.locale) private var locale
+    @Environment(\.externalGameSession) private var environmentSession
     @Bindable var store: ExternalGameStore
+    private let injectedSession: ExternalGameSessionBridge?
+    @State private var review: ExternalGameReviewModel
     @State private var showingImportSheet = false
     @State private var showingFileImporter = false
+    @State private var submitForReview = false
+    @State private var showSubmissions = false
+    @State private var ageTarget: InstalledExternalGame?
+    @State private var reportGame: InstalledExternalGame?
     @State private var importError: String?
+
+    init(store: ExternalGameStore, session: ExternalGameSessionBridge? = nil) {
+        _store = Bindable(wrappedValue: store)
+        self.injectedSession = session
+        _review = State(initialValue: ExternalGameReviewModel(store: store))
+    }
+
+    private var session: ExternalGameSessionBridge? { injectedSession ?? environmentSession }
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -45,6 +60,18 @@ import WebKit
                         .frame(minHeight: CYSpacing.minTouchTarget)
                 }
                 .accessibilityIdentifier("externalGameImportButton")
+                Button(W8Text.t("提交审核", "Submit for review")) { submitForReview = true }
+                    .accessibilityIdentifier("externalGame.submitReview")
+            }
+            ExternalGameCatalogSection(model: review, session: session) { showSubmissions = true }
+            if !review.notice.isEmpty {
+                Text(review.notice).font(CYTypography.bodyCompact).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("externalGame.notice")
+            }
+            if let requestID = review.unconfirmedRequestID {
+                Text(W8Text.t("结果未知，仍保留请求 \(requestID)。", "The result is unknown. Request \(requestID) is still saved."))
+                    .font(CYTypography.bodyCompact)
+                    .accessibilityIdentifier("externalGame.unconfirmed")
             }
 
             if let importError, !importError.isEmpty {
@@ -85,7 +112,32 @@ import WebKit
             )
         }
         .sheet(item: $store.activeLaunchingGame) { game in
-            ExternalGameRunnerSheet(store: store, game: game)
+            ExternalGameRunnerSheet(store: store, game: game, onReport: { reportGame = game })
+        }
+        .navigationDestination(isPresented: $showSubmissions) {
+            ExternalGameSubmissionsScreen(model: review, session: session)
+        }
+        .sheet(item: $ageTarget) { game in
+            ExternalGameAgeGateSheet(game: game, onConfirm: {
+                store.acceptAgeGate(game.manifest)
+                ageTarget = nil
+                store.activeLaunchingGame = game
+            }, onCancel: { ageTarget = nil })
+        }
+        .sheet(item: $reportGame) { game in
+            ExternalGameReportSheet(manifest: game.manifest, onSend: { draft in
+                if draft.blocked { store.block(game.manifest) }
+                Task { await review.report(draft, session: session) }
+                reportGame = nil
+            }, onCancel: { reportGame = nil })
+        }
+        .task(id: session?.token) { await review.reload(session: session) }
+        .fileImporter(isPresented: $submitForReview, allowedContentTypes: [.json, .data], allowsMultipleSelection: false) { result in
+            guard case .success(let urls) = result, let url = urls.first else { return }
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+            guard let data = try? Data(contentsOf: url) else { return }
+            Task { await review.submit(archive: data, session: session) }
         }
         .fileImporter(
             isPresented: $showingFileImporter,
@@ -126,7 +178,11 @@ import WebKit
                 }
                 Spacer(minLength: CYSpacing.sm)
                 Button(String(localized: LocalizedStringResource("playx.externalGame.launch", defaultValue: "Run", locale: locale))) {
-                    store.activeLaunchingGame = game
+                    if store.ageGateNeedsConfirmation(game.manifest) {
+                        ageTarget = game
+                    } else {
+                        store.activeLaunchingGame = game
+                    }
                 }
                 .buttonStyle(.cyPrimary(fullWidth: false))
 
@@ -269,6 +325,7 @@ import WebKit
             .navigationTitle(confirmation.isUpdate
                 ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdateTitle", defaultValue: "Confirm External Game Update", locale: locale))
                 : String(localized: LocalizedStringResource("playx.externalGame.confirmInstallTitle", defaultValue: "Confirm Import of External Game", locale: locale)))
+            .accessibilityIdentifier("externalGame.permissions")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("common.cancel", defaultValue: "Cancel", locale: locale)), action: onCancel)
@@ -289,6 +346,7 @@ import WebKit
     @Environment(\.locale) private var locale
     let store: ExternalGameStore
     let game: InstalledExternalGame
+    var onReport: () -> Void = {}
     @State private var confirmsBlock = false
 
     var body: some View {
@@ -344,7 +402,11 @@ import WebKit
                             Label(W8Text.t("举报此游戏包", "Report this game"), systemImage: "exclamationmark.bubble")
                         }
                         .accessibilityIdentifier("externalGame.report")
-                        Button(role: .destructive) { confirmsBlock = true } label: {
+                        Button(action: onReport) {
+                            Label(W8Text.t("向服务器举报", "Report to the server"), systemImage: "flag")
+                        }
+                        .accessibilityIdentifier("externalGame.reportServer")
+                        Button(role: .destructive, action: { confirmsBlock = true }) {
                             Label(W8Text.t("屏蔽此游戏及创作者", "Block this game and its creator"), systemImage: "hand.raised")
                         }
                         .accessibilityIdentifier("externalGame.block")

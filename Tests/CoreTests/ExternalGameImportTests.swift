@@ -1,19 +1,31 @@
 import XCTest
+import CryptoKit
 @testable import QuestifyCore
 
 @MainActor final class ExternalGameImportTests: XCTestCase {
+    private let signer = ExternalGameFixtureSigner()
+
     private func makeTempStore() -> (ExternalGameStore, URL) {
         let tempDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             .appendingPathComponent("ExternalGameTests-" + UUID().uuidString, isDirectory: true)
-        let store = ExternalGameStore(rootDirectory: tempDir)
+        let store = ExternalGameStore(rootDirectory: tempDir, verificationPublicKey: signer.publicKey)
         return (store, tempDir)
+    }
+
+    private func sample(id: String = "rpg.campfire.riddle", name: String = "篝火谜题小游戏", version: String = "1.0.0",
+                        entry: String = "index.html", permissions: [String] = ["storage", "haptics"],
+                        contentRating: String = "4+", allowedDomains: [String] = ["assets.example.com"],
+                        sign: ((Data) -> String)? = nil) -> ExternalGamePackageArchive {
+        ExternalGameStore.makeSampleSignedArchive(id: id, name: name, version: version, entry: entry, permissions: permissions,
+                                                  contentRating: contentRating, allowedDomains: allowedDomains,
+                                                  sign: sign ?? signer.signPayload)
     }
 
     func testValidSignedArchiveImportInstallUpdateRemoveAndBridge() throws {
         let (store, tempDir) = makeTempStore()
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let archiveV1 = ExternalGameStore.makeSampleSignedArchive(
+        let archiveV1 = sample(
             id: "rpg.campfire.riddle",
             name: "篝火谜题",
             version: "1.0.0",
@@ -34,7 +46,7 @@ import XCTest
         XCTAssertNotNil(store.entryFileURL(for: installed))
 
         // Update to v1.1.0
-        let archiveV2 = ExternalGameStore.makeSampleSignedArchive(
+        let archiveV2 = sample(
             id: "rpg.campfire.riddle",
             name: "篝火谜题",
             version: "1.1.0",
@@ -142,7 +154,7 @@ import XCTest
             version: manifest.version,
             entry: manifest.entry,
             sha256: sha,
-            signature: ExternalGameValidator.signManifest(manifest)
+            signature: ""
         )
         let archive = ExternalGamePackageArchive(manifest: manifest, files: files)
         XCTAssertThrowsError(try ExternalGameValidator.validateArchive(archive)) { error in
@@ -181,9 +193,8 @@ import XCTest
             }
         }
 
-        // Forged signature with wrong secret
-        let wrongSig = ExternalGameStore.makeSampleSignedArchive(secret: "wrong.secret.key")
-        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(wrongSig)) { error in
+        let wrongSig = ExternalGameStore.makeSampleSignedArchive(sign: ExternalGameFixtureSigner().signPayload)
+        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(wrongSig, publicKeyRaw: signer.publicKey)) { error in
             XCTAssertEqual(error as? ExternalGameValidationError, .invalidSignature)
         }
     }
@@ -224,7 +235,7 @@ import XCTest
         let iapFiles = ["index.html": Data("<script>new ApplePaySession(3, {});</script>".utf8)]
         let sha = ExternalGameValidator.computePackageSHA256(iapFiles)
         var m = ExternalGameManifest(id: "rpg.iap.attempt", name: "IAP", version: "1.0.0", entry: "index.html", sha256: sha, signature: "")
-        m = ExternalGameManifest(id: m.id, name: m.name, version: m.version, entry: m.entry, sha256: sha, signature: ExternalGameValidator.signManifest(m))
+        m = ExternalGameManifest(id: m.id, name: m.name, version: m.version, entry: m.entry, sha256: sha, signature: "")
         XCTAssertThrowsError(try ExternalGameValidator.validateArchive(ExternalGamePackageArchive(manifest: m, files: iapFiles))) { error in
             XCTAssertEqual(error as? ExternalGameValidationError, .paymentOrIAPDetected("ApplePaySession"))
         }
@@ -263,7 +274,7 @@ import XCTest
     func testBlockingAPackageAlsoBlocksItsCreatorAcrossRelaunch() throws {
         let (store, tempDir) = makeTempStore()
         defer { try? FileManager.default.removeItem(at: tempDir) }
-        let first = ExternalGameStore.makeSampleSignedArchive(id: "rpg.block.one", allowedDomains: [])
+        let first = sample(id: "rpg.block.one", allowedDomains: [])
         _ = try store.prepareImport(archive: first, source: .file(URL(fileURLWithPath: "/tmp/one.json")))
         let installed = try store.confirmInstall()
         XCTAssertNotNil(store.entryFileURL(for: installed))
@@ -274,13 +285,13 @@ import XCTest
         XCTAssertNil(store.entryFileURL(for: installed), "a blocked package cannot run")
         XCTAssertTrue(store.isBlocked(installed.manifest))
 
-        let sibling = ExternalGameStore.makeSampleSignedArchive(id: "rpg.block.two", allowedDomains: [])
+        let sibling = sample(id: "rpg.block.two", allowedDomains: [])
         XCTAssertThrowsError(try store.prepareImport(archive: sibling, source: .file(URL(fileURLWithPath: "/tmp/two.json")))) {
             XCTAssertEqual($0 as? ExternalGameValidationError, .blockedByUser(sibling.manifest.name))
         }
         XCTAssertNil(store.pendingConfirmation)
 
-        let relaunched = ExternalGameStore(rootDirectory: tempDir)
+        let relaunched = ExternalGameStore(rootDirectory: tempDir, verificationPublicKey: signer.publicKey)
         XCTAssertTrue(relaunched.isBlocked(installed.manifest))
         XCTAssertThrowsError(try relaunched.prepareImport(archive: sibling, source: .file(URL(fileURLWithPath: "/tmp/two.json"))))
 
@@ -299,5 +310,53 @@ import XCTest
         }
         XCTAssertFalse(text.contains("http"), "no URL or support endpoint is invented")
         XCTAssertFalse(text.contains("@"), "no email address is invented")
+    }
+
+    func testEd25519RoundTripAndEmptyKeyFailsClosed() throws {
+        let archive = sample(id: "rpg.verify.one", permissions: [], allowedDomains: [])
+        XCTAssertTrue(ExternalGameValidator.verifyServerSignature(archive.manifest, publicKeyRaw: signer.publicKey))
+        XCTAssertFalse(ExternalGameValidator.verifyServerSignature(archive.manifest, publicKeyRaw: Data()))
+        XCTAssertNoThrow(try ExternalGameValidator.validateArchive(archive, publicKeyRaw: signer.publicKey))
+    }
+
+    func testAgeGateIsPerGameAndKillSwitchRemovesUnpublished() throws {
+        let (store, tempDir) = makeTempStore()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let archive = sample(id: "rpg.keep.one", contentRating: "12+", permissions: [], allowedDomains: [])
+        _ = try store.prepareImport(archive: archive, source: .file(URL(fileURLWithPath: "/tmp/keep.json")))
+        let installed = try store.confirmInstall()
+        XCTAssertTrue(store.ageGateNeedsConfirmation(installed.manifest))
+        store.acceptAgeGate(installed.manifest)
+        XCTAssertFalse(store.ageGateNeedsConfirmation(installed.manifest))
+        let relaunched = ExternalGameStore(rootDirectory: tempDir, verificationPublicKey: signer.publicKey)
+        XCTAssertFalse(relaunched.ageGateNeedsConfirmation(installed.manifest))
+        XCTAssertEqual(try relaunched.removeUnpublished(approvedGameIDs: ["rpg.keep.one"]), [])
+        XCTAssertEqual(try relaunched.removeUnpublished(approvedGameIDs: []), ["rpg.keep.one"])
+        XCTAssertTrue(relaunched.installedGames.isEmpty)
+    }
+
+    func testExternalGameReviewStatusLeavesPendingOnlyWhenTheServerConfirms() throws {
+        var gate = WorkshopModuleImportGate()
+        try gate.beginExternalGameReview(requestID: "extsub-abc-12345678")
+        XCTAssertEqual(gate.phase, .reviewPending)
+        XCTAssertNil(gate.externalGameServerStatus)
+        XCTAssertFalse(gate.applyExternalGameServerStatus("MYSTERY", requestID: "extsub-abc-12345678"))
+        XCTAssertEqual(gate.phase, .reviewPending)
+        XCTAssertFalse(gate.applyExternalGameServerStatus("PENDING", requestID: "other-request"))
+        XCTAssertTrue(gate.applyExternalGameServerStatus("PENDING", requestID: "extsub-abc-12345678"))
+        XCTAssertEqual(gate.phase, .reviewPending)
+        XCTAssertEqual(gate.externalGameServerStatus, "PENDING")
+        XCTAssertTrue(gate.applyExternalGameServerStatus("REJECTED", requestID: "extsub-abc-12345678"))
+        XCTAssertEqual(gate.phase, .externalGameReviewed)
+        XCTAssertEqual(gate.externalGameServerStatus, "REJECTED")
+    }
+}
+
+final class ExternalGameFixtureSigner {
+    private let privateKey = Curve25519.Signing.PrivateKey()
+    var publicKey: Data { privateKey.publicKey.rawRepresentation }
+    func signPayload(_ payload: Data) -> String {
+        let signature = (try? privateKey.signature(for: payload)) ?? Data()
+        return signature.map { String(format: "%02x", $0) }.joined()
     }
 }

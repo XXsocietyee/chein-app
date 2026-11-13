@@ -6,8 +6,8 @@ import SwiftUI
     @Bindable var model: PlayThemeBackpackCoordinator
     var gameplay: PlayThemeGameplayCoordinator? = nil
     var externalGameStore: ExternalGameStore? = nil
-    /// Imported sandboxed games stay hidden unless the `externalGames` launch flag is on
-    /// (App Store guideline 4.7 review is an owner decision). Callers that do not pass it get no import UI.
+    /// Imported sandboxed games stay hidden unless the caller passes `externalGames`.
+    /// `PlayExperienceView` passes `ExternalGameSessionRead.externalGamesOpen(baseURL:)`. Callers that do not pass it get no import UI.
     var externalGamesEnabled: Bool = false
     @State private var tab = Tab.items
     @State private var defaultExternalGameStore = ExternalGameStore()
