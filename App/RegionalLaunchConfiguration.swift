@@ -222,6 +222,14 @@ enum E2ETestHostOverride {
     static let testHost = "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
     static let realm = "cn-e2e-test"
 
+    /// True when this DEBUG process was launched against the TEST host. Requests still name the production base URL
+    /// and are rewritten in `E2ETestHostTransport`, so host-based switches use this to judge the real target.
+    static var active: Bool {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let i = arguments.firstIndex(of: "--e2e-test-host"), arguments.indices.contains(i + 1) else { return false }
+        return arguments[i + 1] == testHost
+    }
+
     @MainActor static func selected(arguments: [String] = ProcessInfo.processInfo.arguments) -> AppCompositionRoot? {
         guard let i = arguments.firstIndex(of: "--e2e-test-host"), arguments.indices.contains(i + 1),
               arguments[i + 1] == testHost else { return nil }

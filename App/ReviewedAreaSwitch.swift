@@ -8,6 +8,14 @@ enum ReviewedAreaSwitch {
     static let productionAPIHost = "www.chengyinhub.com"
     static let productionHost = productionAPIHost
 
+    /// The production host, except in a DEBUG `--e2e-test-host` run, where every request is rewritten to the TEST host.
+    private static func isProduction(_ host: String) -> Bool {
+        #if DEBUG
+        if E2ETestHostOverride.active { return false }
+        #endif
+        return host == productionAPIHost
+    }
+
     static var compiledTestOrDebug: Bool {
         #if DEBUG
         return true
@@ -36,7 +44,7 @@ enum ReviewedAreaSwitch {
 
     static func externalGames(apiHost: String?) -> Bool {
         guard let host = normalizedHost(apiHost) else { return false }
-        return host != productionAPIHost
+        return !isProduction(host)
     }
 
     // MARK: host: labels
@@ -64,7 +72,7 @@ enum ReviewedAreaSwitch {
     // MARK: shared
 
     private static func openMoney(apiHost: String?, testOrDebug: Bool) -> Bool {
-        guard testOrDebug, let host = normalizedHost(apiHost), host != productionAPIHost else { return false }
+        guard testOrDebug, let host = normalizedHost(apiHost), !isProduction(host) else { return false }
         return true
     }
 
@@ -89,7 +97,7 @@ enum ReviewedAreaSwitch {
 
     /// TEST and DEBUG hosts other than the China production host. Production stays closed.
     static func open(host: String?) -> Bool {
-        guard let normalizedHost = normalized(host), normalizedHost != productionHost else { return false }
+        guard let normalizedHost = normalized(host), !isProduction(normalizedHost) else { return false }
         #if DEBUG
         return true
         #else
@@ -122,7 +130,7 @@ enum ReviewedAreaSwitch {
     private static var configuredHostIsOffProduction: Bool {
         let raw = Bundle.main.object(forInfoDictionaryKey: "QuestifyAPIBaseURL") as? String ?? ""
         guard let host = URL(string: raw)?.host?.lowercased(), host.isEmpty == false else { return false }
-        return host != productionHost
+        return !isProduction(host)
     }
 
     // MARK: cur-be-gap-workshop (handover 22). moneyPayments/merchantWrites(host: String?) are the play
@@ -143,7 +151,7 @@ enum ReviewedAreaSwitch {
         guard let given = rawHost else { return false }
         let trimmed = given.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
-        return trimmed.compare(productionHost, options: .caseInsensitive) != .orderedSame
+        return !isProduction(trimmed.lowercased())
         #else
         return false
         #endif
@@ -180,7 +188,7 @@ enum ReviewedAreaSwitch {
         } else {
             host = trimmed
         }
-        return host.lowercased() == productionHost
+        return isProduction(host.lowercased())
     }
 
     private static func bundleBaseURL() -> String {
