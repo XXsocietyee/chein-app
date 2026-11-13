@@ -126,7 +126,7 @@ import Observation
 
 extension ReviewedProductionGateLeases {
     /// The build's CITY region. Empty (the default in Config/Base.xcconfig) means no CITY board.
-    static var cityGameRegion: String? {
+    nonisolated static var cityGameRegion: String? {
         let value = (Bundle.main.object(forInfoDictionaryKey: "QuestifyCityGameRegion") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard let value, !value.isEmpty else { return nil }
@@ -158,7 +158,7 @@ extension AppCompositionRoot {
 
     /// Records the owner-approved player-writes switch; with it on, the CITY lease also issues the
     /// board rules read and the team participation grants (the board read joins `cityPlayerReadApproval`).
-    func notePlayerWrites(_ granted: Bool) {
+    mutating func notePlayerWrites(_ granted: Bool) {
         productionGateLeases.notePlayerWrites(granted)
         guard granted else { return }
         let gates = productionGateLeases
