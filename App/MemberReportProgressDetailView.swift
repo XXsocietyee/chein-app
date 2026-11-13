@@ -48,6 +48,10 @@ import SwiftUI
                     .accessibilityIdentifier("report.detail.head")
                     .listRowInsets(gutter)
                     .listRowBackground(Color.clear)
+                    if CommunityTrustPlayerService.appealableStages.contains(record.stage), let client = session.playerCapabilityClient() {
+                        ReportAppealSection(reportID: Int(original.id), client: client,
+                                            stageLabel: { CommunityTrustPlayerService.stageLabels[$0] }, readBack: { load(readIntent()) })
+                    }
                     if let summary = record.decisionSummary, !summary.isEmpty {
                         Section { Text(verbatim: shown(summary)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).listRowInsets(gutter) } header: { Text("u9cde.report.decision") }
                     }

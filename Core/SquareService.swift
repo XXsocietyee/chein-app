@@ -143,6 +143,24 @@ public struct SquareService {
     private func decode<T: Decodable>(_ data: Data) throws -> T {
         do { return try JSONDecoder().decode(T.self, from: data) } catch { throw APIError.malformedResponse }
     }
+    /// G4. `community-post-api` list with `is_my=1` → `GET me/posts`, `favorite_only=1` → `GET me/bookmarks`
+    /// (`pages/member`, `pages/mylike`). `{limit, cursor?}`; the page must carry `items[]` and a boolean `hasMore`.
+    public func mine(_ list: SquareMineList, cursor: SquareCursor? = nil, pageSize: Int = 20, token: String) async throws -> SquareFeedPage {
+        guard AuthRequestBuilder.isValidToken(token), (1...50).contains(pageSize) else { throw APIError.invalidRequest }
+        var query = [URLQueryItem(name: "limit", value: String(pageSize))]
+        if let cursor {
+            guard cursor.id > 0 else { throw APIError.invalidRequest }
+            query.append(.init(name: "cursor", value: String(cursor.id)))
+        }
+        let result: SquareFeedEnvelope = try decode(try await get(list.path, query: query, token: token))
+        guard let payload = result.data, let items = payload.items, let hasMore = payload.hasMore else { throw APIError.malformedResponse }
+        return SquareFeedPage(items: items.map { $0.qualified(as: .communityV1) }, hasMore: hasMore,
+                              nextCursor: payload.nextCursor.map { SquareCursor(id: $0, score: nil) })
+    }
+}
+public enum SquareMineList: String, CaseIterable, Equatable {
+    case posts, bookmarks
+    public var path: String { "api/v1/community/me/\(rawValue)" }
 }
 private struct SquareStatusEnvelope: Decodable {
     let code: Int

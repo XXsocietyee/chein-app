@@ -20,6 +20,7 @@ enum BundleCommerceEntry: String, CaseIterable, Identifiable {
     case voucher
     case refundQuote
     case cancel
+    case exitSwap
     case transfer
     case review
     case renewal
@@ -34,6 +35,7 @@ enum BundleCommerceEntry: String, CaseIterable, Identifiable {
         case .voucher: return "/api/free-explore/bundle/voucher"
         case .refundQuote: return "/api/free-explore/bundle/order/refund-quote"
         case .cancel: return "/api/free-explore/bundle/reservation/{}/cancel-quote"
+        case .exitSwap: return "/api/free-explore/bundle/exit-options"
         case .transfer: return "/api/free-explore/bundle/transfer"
         case .review: return "/api/free-explore/bundle/review"
         case .renewal: return "/api/free-explore/bundle/renewal-intent"
@@ -48,6 +50,7 @@ enum BundleCommerceEntry: String, CaseIterable, Identifiable {
         case .voucher: return "bundle.commerce.voucher"
         case .refundQuote: return "bundle.commerce.refundQuote"
         case .cancel: return "bundle.commerce.cancel"
+        case .exitSwap: return "bundle.commerce.exitSwap"
         case .transfer: return "bundle.commerce.transfer"
         case .review: return "bundle.commerce.review"
         case .renewal: return "bundle.commerce.renewal"
@@ -62,6 +65,7 @@ enum BundleCommerceEntry: String, CaseIterable, Identifiable {
         case .voucher: return ChannelCopy.text("核销码", "Voucher", locale: locale)
         case .refundQuote: return ChannelCopy.text("可退金额", "Refund quote", locale: locale)
         case .cancel: return ChannelCopy.text("取消预约", "Cancel reservation", locale: locale)
+        case .exitSwap: return ChannelCopy.text("更换商家", "Swap merchant", locale: locale)
         case .transfer: return ChannelCopy.text("转赠", "Transfer", locale: locale)
         case .review: return ChannelCopy.text("评价", "Reviews", locale: locale)
         case .renewal: return ChannelCopy.text("续期意向", "Renewal intent", locale: locale)
@@ -226,6 +230,7 @@ enum BundleCommerceFailure {
         case .voucher: BundleCommerceVoucherScreen(order: order, requestedID: requestedID, origin: origin)
         case .refundQuote: BundleCommerceQuoteScreen(order: order, requestedID: requestedID, origin: origin)
         case .cancel: BundleCommerceCancelScreen(order: order, requestedID: requestedID, origin: origin)
+        case .exitSwap: BundleCommerceExitSwapScreen(order: order, requestedID: requestedID, origin: origin)
         case .transfer: BundleCommerceTransferScreen(order: order, requestedID: requestedID, origin: origin)
         case .review: BundleCommerceReviewScreen(order: order, requestedID: requestedID, origin: origin)
         case .renewal: BundleCommerceRenewalScreen(order: order, requestedID: requestedID, origin: origin)
@@ -587,6 +592,23 @@ enum BundleCommerceFailure {
         BundleCommerceReady(order: order, requestedID: requestedID, origin: origin,
                             title: BundleCommerceEntry.cancel.title(locale)) { host, model in
             BundleCommerceCancelList(host: host, model: model)
+        }
+    }
+}
+
+/// G4 exit swap (`free-explore/index.js` loadExitOptions/consentSwap). Swap only; refund decisions stay out.
+@MainActor private struct BundleCommerceExitSwapScreen: View {
+    let order: ProfileOrder
+    let requestedID: Int
+    let origin: any ProfileReading
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        BundleCommerceReady(order: order, requestedID: requestedID, origin: origin,
+                            title: BundleCommerceEntry.exitSwap.title(locale)) { host, _ in
+            BundleExitSwapView(host: host)
+                .background(CYNight.ink0.ignoresSafeArea())
+                .themeDomain(.player)
         }
     }
 }

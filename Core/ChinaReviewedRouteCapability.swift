@@ -40,8 +40,43 @@ public enum ChinaReviewedRouteCapability {
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        if socialRoamOwnerGrant.contains(key) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
+
+    /// Capability gaps G4/G5 (capability-graph section 1), owner approval: non-money player reads and writes for
+    /// community trust, community "mine" lists and undo actions, roam extras, template adoption/binding, map/search.
+    /// The play lease (`ReviewedProductionGateLeases.playPaths`) names the same routes. No money path is here.
+    static let socialRoamOwnerGrant: Set<String> = [
+        "/api/community-trust/contributions/submit",
+        "/api/community-trust/contributions/taxonomy",
+        "/api/community-trust/reports/appeal",
+        "/api/community-trust/safety/merchants/{}",
+        "/api/community-trust/safety/ratings",
+        "/api/community-trust/safety/taxonomy",
+        "/api/v1/community/me/bookmarks",
+        "/api/v1/community/me/posts",
+        "/api/v1/community/posts/{}/actions/LIKE",
+        "/api/v1/community/posts/{}/actions/BOOKMARK",
+        "/api/v1/community/comments/{}/actions/LIKE",
+        "/api/roam/session/records",
+        "/api/roam/share/revoke",
+        "/api/roam/shop/visitors",
+        "/api/template/adopt-draft",
+        "/api/template/adoption-detail",
+        "/api/template/adoption-receipt",
+        "/api/template/adoption-source",
+        "/api/template/author-info",
+        "/api/template/author-myinfo",
+        "/api/template/topic-template/binding",
+        "/api/template/topic-template/binding-status",
+        "/api/template/topic-template/save-as",
+        "/api/template/{}/market-submit",
+        "/api/map/geocode",
+        "/api/map/place-search",
+        "/api/map/weather",
+        "/api/search/unified"
+    ]
 
     /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,
     /// seat invite/claim/cancel, and the boards those screens read.

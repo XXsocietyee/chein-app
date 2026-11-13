@@ -45,8 +45,14 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
-        if method == "GET" { return covers(relative, grant.friends.endpoint) }
-        guard method == "POST", request.httpBody?.isEmpty == false else { return false }
+        if method == "GET" {
+            if covers(relative, grant.friends.endpoint) { return true }
+            let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+            return ReviewedProductionGateLeases.capabilityReadPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+                && covers(relative, grant.play) && (request.httpBody == nil || request.httpBody?.isEmpty == true)
+        }
+        // `share/revoke` is the mini-program's `data: {}` form post: an empty body is that write.
+        guard method == "POST", request.httpBody?.isEmpty == false || relative == "api/roam/share/revoke" else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
             return covers(relative, grant.team) && teamRequestID(request)
         }
@@ -176,7 +182,21 @@ extension ReviewedProductionFormMutationRoute {
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
         "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
-        "api/play/theme/replay"
+        "api/play/theme/replay",
+        // G4/G5 (capability-graph section 1): community trust, roam extras, templates, map/search, bundle swap.
+        "api/community-trust/contributions/submit", "api/community-trust/safety/ratings", "api/community-trust/reports/appeal",
+        "api/roam/session/records", "api/roam/share/revoke", "api/roam/shop/visitors",
+        "api/template/adopt-draft", "api/template/author-info", "api/template/author-myinfo",
+        "api/template/topic-template/binding", "api/template/topic-template/binding-status",
+        "api/template/topic-template/save-as", "api/template/{}/market-submit",
+        "api/map/geocode", "api/map/place-search", "api/search/unified", "api/free-explore/bundle/exit-decision"
+    ].union(capabilityReadPaths)
+    /// G4/G5 GET reads. The play grant admits a GET only for these (body empty).
+    static let capabilityReadPaths: Set<String> = [
+        "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
+        "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
+        "api/template/adoption-detail", "api/map/weather", "api/free-explore/bundle/exit-options",
+        "api/free-explore/bundle/order/receipt"
     ]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",

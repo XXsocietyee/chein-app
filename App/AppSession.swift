@@ -1081,7 +1081,7 @@ final class AppSession: ObservableObject {
     private(set) var gate = SessionOperationGate() { didSet { if oldValue.currentStamp != gate.currentStamp { invalidatePersonalLocationShare() }; retainedSocialMemberActions?.synchronizeSession(); synchronizePrivateHome(); synchronizeOwnerDraftBrowser() } }
     private let vault: any AppTokenStorage
     let composition: AppCompositionRoot
-    private let compositionTransport: CompositionHTTPTransport
+    let compositionTransport: CompositionHTTPTransport
     private var compositionViewerRevision: UInt64 = 0
     private var sessionDefaults: UserDefaults { composition.storage.defaults }
     let storageScope:RegionalSessionStorageScope?
