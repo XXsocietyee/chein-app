@@ -26,10 +26,12 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
     public let viewerIsPublisher: Bool
     public let chapters: [PublicTemplateChapter]
     public let games: [PublicTemplateGame]
+    /// U02-01 / §23.3 optional delivery facts. Malformed or absent -> nil; the detail itself still loads.
+    public let contentDelivery: TopicTemplateContentDelivery?
     enum CodingKeys: String, CodingKey {
         case id, name, subtitle, description, imgUrl, totalTime, totalMileage, locationCount, templateCount
         case templateStatus, version, mode, addressName, playerPromise, author, finishMedalName
-        case viewerIsMerchant, viewerIsPublisher, chapters, games
+        case viewerIsMerchant, viewerIsPublisher, chapters, games, contentDelivery
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -59,6 +61,7 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
         // Defense in depth: never display a recruit block without an explicit server viewer flag.
         chapters = decoded.map { $0.withRecruitment(canViewRecruitment) }
         games = try c.decodeIfPresent([PublicTemplateGame].self, forKey: .games) ?? []
+        contentDelivery = (try? c.decodeIfPresent(TopicTemplateContentDelivery.self, forKey: .contentDelivery)) ?? nil
         guard Set(chapters.map(\.id)).count == chapters.count,
               Set(games.map(\.id)).count == games.count,
               [totalTime, templateCount].compactMap({ $0 }).allSatisfy({ $0 >= 0 })

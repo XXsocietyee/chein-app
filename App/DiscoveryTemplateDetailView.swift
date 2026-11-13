@@ -293,7 +293,8 @@ struct DiscoveryTopicTemplatePreview: View {
                     // Mini topic-detail "应用". Hidden while the write is gated.
                     if TopicTemplateUseFactory.isLive {
                         Section {
-                            TopicTemplateUseSection(templateID: item.id, scope: nil, readOnly: false) { topicID in
+                            TopicTemplateUseSection(templateID: item.id, scope: nil, readOnly: false,
+                                                    plan: TopicTemplateAdoptionPlan(delivery: item.contentDelivery)) { topicID in
                                 copiedDestination?(topicID)
                             }
                         }.discoveryCardRow()
@@ -382,6 +383,7 @@ struct DiscoveryTopicTemplatePreview: View {
             }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
         }.discoveryCardRow()
+        TopicTemplateAdoptionConditionsSection(delivery: item.contentDelivery)
         let nodes = item.chapters.flatMap(\.nodes)
         if !nodes.isEmpty {
             Section {
@@ -397,6 +399,10 @@ struct DiscoveryTopicTemplatePreview: View {
                                     .font(CYTypography.label).foregroundStyle(palette.textPrimary).lineLimit(1)
                                 if let teaser = nonempty(node.hookTeaser) {
                                     Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary).lineLimit(1)
+                                }
+                                // U02-05: credit for the first 8 node images only (mini _loadCredits).
+                                if index < 8, let reference = nonempty(node.imgUrl), TopicTemplateAdoptionFactory.attributionIsLive {
+                                    TopicTemplateNodeCredit(reference: reference)
                                 }
                             }
                             .frame(width: 150, alignment: .leading)
