@@ -356,6 +356,7 @@
         "PlayTimedDisplayLocalizationTests",
         "PlayTimedReactionRevisionTests",
         "PlayerJourneyProductionTests",
+        "PlayerJourneyPromoTests",
         "PlayerTaskEvidenceReviewControllerTests",
         "PrivacyAndSecurityRedactionSectionViewTests",
         "PrivacyGuideSummaryLocalizationTests",

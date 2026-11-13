@@ -58,7 +58,8 @@ public final class JourneyMemoryRequestStore: JourneyRequestStoring, @unchecked 
 }
 
 /// Port of `subpackageJourney/utils/journey-api.js`. Reads and the three seat writes go out.
-/// Issuing a referral link, claiming a gift, and the affiliate summary do not: money stays off.
+/// Issuing a referral link and claiming a gift do not: money stays off.
+/// The affiliate summary is the read `GET /api/marketing/affiliate/summary?limit=20`.
 /// A production host is refused unless `productionLease` names that host. Seat release is not an export.
 public struct JourneyLoopSource {
     public static let moneyWritesEnabled = false

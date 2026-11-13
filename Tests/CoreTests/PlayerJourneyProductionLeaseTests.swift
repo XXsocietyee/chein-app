@@ -30,15 +30,16 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
         XCTAssertThrowsError(try journey.giftClaim(token: "gift", requestID: "req-1", sessionToken: "session-token")) { error in
             XCTAssertEqual(error as? JourneyRefusal, .moneyOff)
         }
-        do {
-            _ = try await journey.affiliate(token: "session-token")
-            XCTFail("affiliate summary")
-        } catch JourneyRefusal.moneyOff {}
+        let summary = try await journey.affiliate(token: "session-token")
+        XCTAssertTrue(summary.ok)
+        XCTAssertEqual(wire.requests[1].httpMethod, "GET")
+        XCTAssertEqual(wire.requests[1].url?.path, "/prod-api/api/marketing/affiliate/summary")
+        XCTAssertEqual(wire.requests[1].url?.query, "limit=20")
         do {
             _ = try await journey.rate(ownerType: 3, ownerID: "9", rating: 5, contents: "一起玩", token: "session-token")
             XCTFail("owner type")
         } catch JourneyRefusal.invalidRequest {}
-        XCTAssertEqual(wire.requests.count, 1)
+        XCTAssertEqual(wire.requests.count, 2)
 
         let reader = try reader(wire, url: china, lease: PWaveProductionReadLease(host: "www.chengyinhub.com"))
         XCTAssertTrue(reader.capabilities.allows(.themeCollection))
@@ -84,6 +85,7 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
         XCTAssertThrowsError(try host.pay(orderNo: "1", requestID: "req", token: "session-token"))
         XCTAssertEqual(wire.requests.map { $0.url?.path }, [
             "/prod-api/api/play/player-journey/report",
+            "/prod-api/api/marketing/affiliate/summary",
             "/prod-api/api/public-catalog/city/list",
             "/prod-api/api/public-catalog/list",
             "/prod-api/api/public-catalog/filters",
@@ -123,14 +125,15 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
             "/api/public-catalog/list",
             "/api/public-catalog/filters",
             "/api/public-catalog/info",
-            "/api/comment/add"
+            "/api/comment/add",
+            "/api/marketing/affiliate/summary"
         ] {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
+        XCTAssertEqual(JourneyProductionLease.refused, [.issueReferral, .giftClaim])
         for path in [
             "/api/marketing/product/gifts/claim",
             "/api/marketing/referral/token",
-            "/api/marketing/affiliate/summary",
             "/api/public-catalog/map",
             "/api/public-catalog/ids",
             "/api/registration/pay",

@@ -1,13 +1,14 @@
 import SwiftUI
 
 extension MPParityBindings {
-    /// Fills the journey closures on an existing bindings value. Promo, purchase, and gift claim stay nil.
+    /// Fills the journey closures on an existing bindings value. Purchase and gift claim stay nil.
     @MainActor func fillingPlayerJourneyReads(source: JourneyLoopSource, token: @escaping () -> String?) -> MPParityBindings {
         var copy = self
         copy.journeyLanding = { link in PlayerJourneyLandingModel(link: link, source: source, token: token) }
         copy.journeySeats = { registrationID in PlayerJourneySeatsModel(registrationID: registrationID, source: source, token: token) }
         copy.journeyReport = { scope in PlayerJourneyReportModel(scope: scope, source: source, token: token) }
         copy.journeySettle = { scope in PlayerJourneySettleModel(scope: scope, source: source, token: token) }
+        copy.journeyPromo = { PlayerJourneyPromoModel(source: source, token: token) }
         return copy
     }
 }
