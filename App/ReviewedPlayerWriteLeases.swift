@@ -396,6 +396,13 @@ enum ReviewedPlayerReadRoute {
         "api/orient/task/alternative", "api/topic/author-saved-detail",
         "api/circle-theme/instance/configure", "api/project/home", "api/analytics/events/batch"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths)
+    /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
+    /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
+    static func isPlayGrantPath(_ relative: String) -> Bool {
+        if playPaths.contains(relative) { return true }
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        return playPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+    }
     /// G4/G5 GET reads. The play grant admits a GET only for these (body empty).
     static let capabilityReadPaths: Set<String> = [
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
