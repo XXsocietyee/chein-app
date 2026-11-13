@@ -61,6 +61,7 @@ extension ReviewedProductionFormMutationRoute {
             if ChinaReviewedRouteCapability.normalized("/" + relative) == "/api/channels/{}", grant.admission.paths.contains(receipt + "{}") {
                 return emptyBody
             }
+            if ClubGapProductionLease.allows(relative: relative, method: method, body: request.httpBody) { return true }
             return covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool)
         }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
@@ -71,6 +72,7 @@ extension ReviewedProductionFormMutationRoute {
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
             return covers(relative, grant.team) && teamRequestID(request)
         }
+        if ClubGapProductionLease.allows(relative: relative, method: method, body: request.httpBody) { return true }
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
@@ -887,5 +889,40 @@ extension AppCompositionRoot {
         nativeChannelManagementApproval = { [gates] context, viewer, scope in
             gates.channelManagement(context, viewerRevision: viewer, scope: scope)
         }
+    }
+}
+
+enum ClubGapProductionLease {
+    /// Same paths as `clubAndMerchantCoopOwnerGrant`. Settlement export is not a player write.
+    private static let paths: Set<String> = [
+        "api/club-compensation/quality/evidence",
+        "api/club/activity/cancel",
+        "api/club/activity/detail",
+        "api/club/activity/join",
+        "api/club/channels",
+        "api/club/events",
+        "api/club/events/Checkin",
+        "api/club/events/proxy-enroll",
+        "api/club/events/save",
+        "api/club/group-code",
+        "api/club/group-code/save",
+        "api/club/join-requests/apply",
+        "api/club/lead",
+        "api/club/notices",
+        "api/club/notices/send",
+        "api/club/post",
+        "api/club/post/operation",
+        "api/club/post/operation/comment",
+        "api/club/roles",
+        "api/club/workbench",
+        "api/coop"
+    ]
+
+    static func allows(relative: String, method: String, body: Data?) -> Bool {
+        guard paths.contains(relative) else { return false }
+        if method == "GET" {
+            return relative == "api/club/lead" && (body == nil || body?.isEmpty == true)
+        }
+        return method == "POST" && body?.isEmpty == false
     }
 }

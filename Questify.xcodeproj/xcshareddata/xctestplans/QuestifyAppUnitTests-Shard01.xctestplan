@@ -497,6 +497,7 @@
         "ReleasePreflightDiagnosticsViewTests",
         "RetainedImageSanitizerTests",
         "RevealChoreographerTests",
+        "ReviewedAreaSwitchTests",
         "ReviewedChinaLaunchCompositionTests",
         "ReviewedHookWiring2Base",
         "ReviewedHookWiringTests",

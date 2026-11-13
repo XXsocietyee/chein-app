@@ -46,6 +46,7 @@ public enum ChinaReviewedRouteCapability {
         if channelsSocialOwnerGrant.contains(key) { return true }
         if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
         if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
+        if clubAndMerchantCoopOwnerGrant.contains(key) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
 
@@ -160,6 +161,32 @@ public enum ChinaReviewedRouteCapability {
         "/api/video-bounty/submission",
         "/api/video-bounty/submission/{}/appeal",
         "/api/video-bounty/submission/{}/cancel"
+    ]
+
+    /// Handover 20, owner correction 2026-11-13. The club and merchant-club paths the app names.
+    /// Settlement export stays out: the screen calls it only when payout is on, and payout is off here.
+    private static let clubAndMerchantCoopOwnerGrant: Set<String> = [
+        "/api/club-compensation/quality/evidence",
+        "/api/club/activity/cancel",
+        "/api/club/activity/detail",
+        "/api/club/activity/join",
+        "/api/club/channels",
+        "/api/club/events",
+        "/api/club/events/Checkin",
+        "/api/club/events/proxy-enroll",
+        "/api/club/events/save",
+        "/api/club/group-code",
+        "/api/club/group-code/save",
+        "/api/club/join-requests/apply",
+        "/api/club/lead",
+        "/api/club/notices",
+        "/api/club/notices/send",
+        "/api/club/post",
+        "/api/club/post/operation",
+        "/api/club/post/operation/comment",
+        "/api/club/roles",
+        "/api/club/workbench",
+        "/api/coop"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
