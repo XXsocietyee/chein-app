@@ -33,7 +33,9 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
     @State private var selection: ModSettlementSelection?
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var session: AppSession
     init(reader: ModSettlementReader) { _model = State(initialValue: ModSettlementBrowser(reader: reader)) }
+    private var payoutOpen: Bool { ReviewedAreaSwitch.payoutOpen(session: session) }
     private func text(_ key: String) -> String { modSettlementText(key, locale: locale) }
     var body: some View {
         List {
@@ -42,6 +44,7 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
             Section {
                 Text(text("modSettlement.boundary")).font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Text(text("modSettlement.noPaymentAction")).font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
+                if !payoutOpen { Text(locale.language.languageCode?.identifier == "zh" ? "结算读取未开启。页面保留，本次不请求结算或收入。" : "Settlement reads are off. This page stays here and does not request settlement or income.").font(Theme.Font.label) }
                 NavigationLink {
                     ModCreatorIncomeListView(reader: model.reader)
                 } label: {
@@ -77,8 +80,8 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
                     }
                     if model.hasMore {
                         Button(locale.language.languageCode?.identifier == "zh" ? "读取下一页原结算记录" : "Read next original settlement page") {
-                            Task { await model.loadMore() }
-                        }.disabled(model.loading || model.loadingMore)
+                            if payoutOpen { Task { await model.loadMore() } }
+                        }.disabled(model.loading || model.loadingMore || !payoutOpen)
                     }
                     if model.loadingMore { CYSkeleton() }
                 }
@@ -90,10 +93,10 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
         .walletContentList()
         .cyHeroScreen()
         .privacySensitive()
-        .task { await model.refresh() }
-        .refreshable { await model.refresh() }
+        .task { if payoutOpen { await model.refresh() } }
+        .refreshable { if payoutOpen { await model.refresh() } }
         .toolbar { ToolbarItem(placement: .topBarTrailing) {
-            Button { Task { await model.refresh() } } label: { Label(text("modSettlement.refresh"), systemImage: "arrow.clockwise") }
+            Button { if payoutOpen { Task { await model.refresh() } } } label: { Label(text("modSettlement.refresh"), systemImage: "arrow.clockwise") }
                 .disabled(model.loading).accessibilityIdentifier("modSettlement.refresh")
         } }
         .navigationDestination(item: $selection) { value in
@@ -101,11 +104,11 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
         }
         .onDisappear { model.invalidate() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await model.refresh() } }
-            else { model.invalidate() }
+            if phase == .active, payoutOpen { Task { await model.refresh() } }
+            else if phase != .active { model.invalidate() }
         }
         .onChange(of: selection?.id) { _, id in
-            if id == nil { Task { await model.refresh() } }
+            if id == nil, payoutOpen { Task { await model.refresh() } }
         }
     }
 }
@@ -114,10 +117,12 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
     @State private var model: ModSettlementDetailModel
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var session: AppSession
     init(reader: ModSettlementReader, selection: ModSettlementSelection) {
         _model = State(initialValue: ModSettlementDetailModel(reader: reader, selection: selection))
     }
     private func text(_ key: String) -> String { modSettlementText(key, locale: locale) }
+    private var payoutOpen: Bool { ReviewedAreaSwitch.payoutOpen(session: session) }
     var body: some View {
         List {
             CYHeroHeader(verbatim: text("modSettlement.detail"))
@@ -161,16 +166,16 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
         .walletContentList()
         .cyHeroScreen()
         .privacySensitive()
-        .task { await model.refresh() }
-        .refreshable { await model.refresh() }
+        .task { if payoutOpen { await model.refresh() } }
+        .refreshable { if payoutOpen { await model.refresh() } }
         .toolbar { ToolbarItem(placement: .topBarTrailing) {
-            Button { Task { await model.refresh() } } label: { Label(text("modSettlement.refreshResult"), systemImage: "arrow.clockwise") }
+            Button { if payoutOpen { Task { await model.refresh() } } } label: { Label(text("modSettlement.refreshResult"), systemImage: "arrow.clockwise") }
                 .disabled(model.loading || model.reader.scope != model.selection.scope)
                 .accessibilityIdentifier("modSettlement.refreshResult")
         } }
         .onDisappear { model.invalidate() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await model.refresh() } } else { model.invalidate() }
+            if phase == .active, payoutOpen { Task { await model.refresh() } } else if phase != .active { model.invalidate() }
         }
     }
     private func value(_ key: String, _ value: String) -> some View {

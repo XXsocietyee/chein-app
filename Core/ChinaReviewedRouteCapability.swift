@@ -57,6 +57,7 @@ public enum ChinaReviewedRouteCapability {
         if clubAndMerchantCoopOwnerGrant.contains(key) { return true }
         if playGapOwnerGrant.contains(key) { return true }
         if admitsRewardPledge(key) { return true }
+        if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -404,6 +405,19 @@ public enum ChinaReviewedRouteCapability {
         if key == "/api/rewards/noncash" || key.hasPrefix("/api/rewards/noncash/") { return true }
         return false
     }
+
+    /// HANDOVER 22. Non-money workshop and mod reads. Purchased, paid install, and settlement/income
+    /// stay off this set: the app calls those only when ReviewedAreaSwitch is on, which is never the production host.
+    public static let workshopModOwnerGrant: Set<String> = [
+        "/api/mod-installation",
+        "/api/mod-owned-report",
+        "/api/mod-upgrade",
+        "/api/workshop/creator/pending-packages",
+        "/api/workshop/creator/public-theme-use",
+        "/api/workshop/owned",
+        "/api/workshop/purchased/professional-targets",
+        "/api/workshop/purchased/professional-operations"
+    ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
         guard targetsChinaProduction(url), let relative = relativePath(url) else { return false }

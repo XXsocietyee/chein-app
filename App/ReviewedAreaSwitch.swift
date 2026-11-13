@@ -124,6 +124,30 @@ enum ReviewedAreaSwitch {
         guard let host = URL(string: raw)?.host?.lowercased(), host.isEmpty == false else { return false }
         return host != productionHost
     }
+
+    // MARK: cur-be-gap-workshop (handover 22). moneyPayments/merchantWrites(host: String?) are the play
+    // branch's above; digital goods are not sold from these switches and external-game monetization stays NONE.
+
+    static func payout(host: String?) -> Bool { areaOpen(host) }
+    static func passwordLogin(host: String?) -> Bool { areaOpen(host) }
+    static func externalGames(host: String?) -> Bool { areaOpen(host) }
+    static func paymentsOpen(session: AppSession) -> Bool {
+        moneyPayments(host: session.regionalConfiguration?.apiConfiguration?.baseURL.host)
+    }
+    static func payoutOpen(session: AppSession) -> Bool {
+        payout(host: session.regionalConfiguration?.apiConfiguration?.baseURL.host)
+    }
+
+    private static func areaOpen(_ rawHost: String?) -> Bool {
+        #if DEBUG || TEST
+        guard let given = rawHost else { return false }
+        let trimmed = given.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        return trimmed.compare(productionHost, options: .caseInsensitive) != .orderedSame
+        #else
+        return false
+        #endif
+    }
 }
 
 private struct PlayGapAPIHostKey: EnvironmentKey {

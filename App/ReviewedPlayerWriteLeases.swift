@@ -1183,3 +1183,23 @@ enum ClubGapProductionLease {
         return method == "POST" && body?.isEmpty == false
     }
 }
+
+/// HANDOVER 22. Appended path grant only. Money prefixes are not production writes.
+enum WorkshopModRouteGrant {
+    static let readPaths: Set<String> = [
+        "api/mod-installation",
+        "api/mod-owned-report",
+        "api/mod-upgrade",
+        "api/workshop/creator/pending-packages",
+        "api/workshop/creator/public-theme-use",
+        "api/workshop/owned",
+        "api/workshop/purchased/professional-targets",
+        "api/workshop/purchased/professional-operations"
+    ]
+    static let moneyPaths: Set<String> = [
+        "api/workshop/purchased",
+        "api/workshop/purchased/install",
+        "api/mod-settlement/mine",
+        "api/mod-settlement/mine/income"
+    ]
+}
