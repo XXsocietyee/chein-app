@@ -356,6 +356,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/TemplateAdoptionViews.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "G4/G5 template adoption journal per owner/scope/source template (author:template-adoption:v1:...): command facts only, no token or draft content",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/TemplateAuthoringSecureStorage.swift",
       "kinds": [
         "keychain"
