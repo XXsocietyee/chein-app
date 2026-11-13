@@ -66,7 +66,8 @@ public struct ProfileEditSnapshot: Decodable, Equatable {
         if c.contains(.tagIds) { tagIds = try preserved(.tagIds) }
         else {
             struct Category: Decodable { let id: Int }
-            let categories = try c.decode([Category].self, forKey: .sysCategoryList)
+            // E2E R9: `sysCategoryList` may be null or absent; that means no preferences, not a broken profile.
+            let categories = try c.decodeIfPresent([Category].self, forKey: .sysCategoryList) ?? []
             guard categories.allSatisfy({ $0.id > 0 }) else { throw APIError.malformedResponse }
             tagIds = categories.map { String($0.id) }.joined(separator: ",")
         }

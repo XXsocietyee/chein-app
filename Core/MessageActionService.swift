@@ -31,9 +31,11 @@ public struct MessageActionService {
         guard intent.channelReference == nil else { throw APIError.notConfigured }
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         try Task.checkCancellation()
-        let request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent("api/im/send"),fields:[
+        var request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent("api/im/send"),fields:[
             "conversation_id":String(intent.conversationID),"msg_type":"1","content":intent.content,"client_message_id":intent.clientMessageID
         ],token:token)
+        // E2E R2: the reviewed channel-text route (NativeChannelTextRoute) requires cookie handling off, as NativeChannelTextService sends it.
+        request.httpShouldHandleCookies=false
         let (data,status)=try await transport.send(request)
         try Task.checkCancellation()
         let header=try? JSONDecoder().decode(Header.self,from:data)
@@ -57,9 +59,11 @@ public struct MessageActionService {
         guard intent.channelReference == nil else { throw APIError.notConfigured }
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         try Task.checkCancellation()
-        let request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent("api/im/send-receipt"),fields:[
+        var request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent("api/im/send-receipt"),fields:[
             "conversation_id":String(intent.conversationID),"client_message_id":intent.clientMessageID
         ],token:token)
+        // E2E R2: the reviewed channel-text route (NativeChannelTextRoute) requires cookie handling off, as NativeChannelTextService sends it.
+        request.httpShouldHandleCookies=false
         let (data,status)=try await transport.send(request)
         try Task.checkCancellation()
         guard (200..<300).contains(status) else { throw APIError.malformedResponse }

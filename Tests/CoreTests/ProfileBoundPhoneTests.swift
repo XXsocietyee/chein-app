@@ -115,3 +115,19 @@ final class ProfileBoundPhoneTests: XCTestCase {
     }
 
 }
+
+extension ProfileBoundPhoneTests {
+    /// E2E-20261113 R9: `user/info` sends `sysCategoryList: null` and no `tagIds`; that is a profile with no preferences.
+    func testNullOrAbsentCategoryListIsNoPreferences() throws {
+        for list in [NSNull() as Any, nil] {
+            var row: [String: Any] = ["id": 9, "nickname": "Synthetic owner", "introduction": "", "avatar": "", "wechat": "", "casePics": ""]
+            if let list { row["sysCategoryList"] = list }
+            let snapshot = try JSONDecoder().decode(ProfileEditSnapshot.self, from: JSONSerialization.data(withJSONObject: row))
+            XCTAssertEqual(snapshot.tagIds, "")
+            XCTAssertTrue(snapshot.preferenceNames.isEmpty)
+        }
+        let row: [String: Any] = ["id": 9, "nickname": "Synthetic owner", "introduction": "", "avatar": "", "wechat": "", "casePics": "",
+                                  "sysCategoryList": [["id": 3, "name": "Walks"], ["id": 5, "name": "Night"]]]
+        XCTAssertEqual(try JSONDecoder().decode(ProfileEditSnapshot.self, from: JSONSerialization.data(withJSONObject: row)).tagIds, "3,5")
+    }
+}

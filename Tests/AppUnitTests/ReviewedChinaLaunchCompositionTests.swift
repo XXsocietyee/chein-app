@@ -651,6 +651,49 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
     }
 
+    /// E2E-20261113 R2, R3, R5, R7, R8, R11: the shipped China composition lets a signed-in player send DMs through the real
+    /// sender, enter club chat, read club posts, open channels, show their own entry code and list their projects.
+    func testShippedChinaE2EPlayerBlockersAreOpenAndMoneyStaysClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let api = try APIConfiguration(baseURL: player.baseURL)
+        let token = player.session.token
+        // R2: the production DM sender itself, not a hand-built request.
+        let intent = try MessageTextIntent(conversationID: 4, content: "hello", clientMessageID: String(repeating: "ab", count: 16))
+        _ = try? await MessageActionService(configuration: api, transport: transport).send(intent, token: token)
+        XCTAssertEqual(recorder.paths.last, "api/im/send")
+        // R3: club group chat, JSON {"id"} only.
+        _ = try await transport.send(jsonRequest(player.baseURL.appendingPathComponent("api/club/chat"), #"{"id":7001}"#, token: token))
+        XCTAssertEqual(recorder.paths.last, "api/club/chat")
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/club/chat"), #"{"id":7001,"amount":1}"#, token: token)) }
+        // R5: club post list read lease, stable per context.
+        let posts = try XCTUnwrap(composition.clubCommunityReadApproval(player))
+        XCTAssertTrue(composition.clubCommunityReadApproval(player) === posts)
+        XCTAssertTrue(posts.endpoints.paths.contains("api/club/post/list"))
+        // R7: channel management for a club the player belongs to.
+        let club = try NativeChannelManagementScope(guildKind: 1, guildID: try NativeChannelManagementID("7001"))
+        XCTAssertNotNil(composition.nativeChannelManagementApproval(player, 1, club))
+        // R8: the owner's registration/ticket entry code, not only the city voucher.
+        let codes = try XCTUnwrap(composition.verificationCodeApproval(player))
+        XCTAssertTrue(codes.allows(.ticket, context: player)); XCTAssertTrue(codes.allows(.cityVoucher, context: player))
+        // R11: the player's own projects; the merchant-scoped list is not a player read.
+        let mine = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/project/my"),
+            fields: ["type": "all", "state": "all", "ownerType": "all", "pageNum": "1", "pageSize": "200"], token: token)
+        _ = try await transport.send(mine)
+        XCTAssertEqual(recorder.paths.last, "api/project/my")
+        let merchant = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/project/my"),
+            fields: ["type": "all", "state": "all", "ownerType": "all", "scope": "MERCHANT", "pageNum": "1", "pageSize": "200"], token: token)
+        await assertClosed { try await transport.send(merchant) }
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

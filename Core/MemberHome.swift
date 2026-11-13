@@ -300,7 +300,16 @@ public struct MemberHomeService {
         return state
     }
     private struct Status: Decodable { let code: Int; let msg: String? }
-    private struct Payload<T: Decodable>: Decodable { let data: T }
+    private struct Payload<T: Decodable>: Decodable {
+        let data: T
+        private enum Keys: String, CodingKey { case data, appUser }
+        // E2E R10: /api/userInfo carries the user under `appUser`; other member reads use `data`.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: Keys.self)
+            if c.contains(.data), !(try c.decodeNil(forKey: .data)) { data = try c.decode(T.self, forKey: .data) }
+            else { data = try c.decode(T.self, forKey: .appUser) }
+        }
+    }
     private func read<T: Decodable>(_ request: URLRequest) async throws -> T {
         try Task.checkCancellation()
         let (data, status) = try await transport.send(request)
@@ -633,9 +642,25 @@ public enum MemberHomePageModel {
         let code: Int
         let msg: String?
         let data: JSONBox?
+        private enum Keys: String, CodingKey { case code, msg, data, appUser }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: Keys.self)
+            code = try c.decode(Int.self, forKey: .code); msg = try c.decodeIfPresent(String.self, forKey: .msg)
+            let primary = (c.contains(.data) && !(try c.decodeNil(forKey: .data))) ? try c.decode(JSONBox.self, forKey: .data) : nil
+            data = try primary ?? c.decodeIfPresent(JSONBox.self, forKey: .appUser)
+        }
     }
 
-    private struct ObjectPayload<T: Decodable>: Decodable { let data: T }
+    private struct ObjectPayload<T: Decodable>: Decodable {
+        let data: T
+        private enum Keys: String, CodingKey { case data, appUser }
+        // E2E R10: /api/userInfo carries the user under `appUser`; other member reads use `data`.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: Keys.self)
+            if c.contains(.data), !(try c.decodeNil(forKey: .data)) { data = try c.decode(T.self, forKey: .data) }
+            else { data = try c.decode(T.self, forKey: .appUser) }
+        }
+    }
 }
 
 #if DEBUG

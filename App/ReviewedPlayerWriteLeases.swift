@@ -42,6 +42,13 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/state" {
             return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true)
         }
+        if relative == "api/club/chat" {
+            // E2E R3: enter a club's group chat. ClubChatService sends JSON exactly {"id": <club id>}.
+            guard method == "POST", covers(relative, grant.clubCommunity), request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                  let body = request.httpBody, let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any],
+                  Set(object.keys) == ["id"], let id = object["id"] as? Int, id > 0 else { return false }
+            return true
+        }
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
@@ -197,7 +204,7 @@ extension ReviewedProductionFormMutationRoute {
 enum ReviewedPlayerReadRoute {
     // player-read-paths-begin
     static let paths: Set<String> = [
-        "api/club/home", "api/club/detail", "api/club/access/me", "api/coop/list", "api/user/info",
+        "api/club/home", "api/club/detail", "api/club/access/me", "api/coop/list", "api/user/info", "api/project/my",
         "api/config/features", "api/medal/wall", "api/badge/wall-v2", "api/growth/leaderboard",
         "api/object-card/list", "api/registration/my-joined"
     ]
@@ -217,6 +224,8 @@ enum ReviewedPlayerReadRoute {
               ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + relative) else { return false }
         let body = request.httpBody ?? Data()
         guard body.count <= 4096, let fields = flatFields(body, type: request.value(forHTTPHeaderField: "Content-Type")) else { return false }
+        // E2E R11: a player's own projects; the MERCHANT-scoped list stays with the merchant route.
+        if relative == "api/project/my", String(decoding: body, as: UTF8.self).contains("MERCHANT") { return false }
         return fields.allSatisfy { !moneyKeys.contains($0) }
     }
 
@@ -295,6 +304,7 @@ enum ReviewedPlayerReadRoute {
     }
     private var socialWritersByContext: [String: ReviewedSocialWriteGrant] = [:]
     private var blacklistByContext: [String: NativeBlacklistApproval] = [:]
+    private var clubCommunityReadByContext: [String: ClubCommunityReadApproval] = [:]
     private var friendChannelInviteByKey: [String: NativeFriendChannelInviteApproval] = [:]
     private var friendTeamInviteByKey: [String: NativeFriendTeamInviteApproval] = [:]
     private var friendChannelSourceByKey: [String: NativeFriendChannelSourceApproval] = [:]
@@ -305,7 +315,7 @@ enum ReviewedPlayerReadRoute {
     static let clubCommunityPaths: Set<String> = [
         "api/club/post/create", "api/club/post/update", "api/club/post/like", "api/club/post/report",
         "api/club/post/delete", "api/club/post/comment/create", "api/club/post/comment/delete",
-        "api/club/post/comment/report", "api/club/post/repost", "api/club/post/repost/undo"
+        "api/club/post/comment/report", "api/club/post/repost", "api/club/post/repost/undo", "api/club/chat"
     ]
     static let squarePaths: Set<String> = [
         "api/v1/community/guidelines/active", "api/v1/community/guidelines/ack", "api/v1/community/media/register",
@@ -477,6 +487,17 @@ enum ReviewedPlayerReadRoute {
         guard let endpoint = makeEndpoint(context, paths: NativeBlacklistApproval.readPaths.union([NativeBlacklistApproval.unblockPath, NativeBlacklistApproval.settlePath])),
               let issued = try? NativeBlacklistApproval(endpoint: endpoint, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         blacklistByContext[key] = issued
+        return issued
+    }
+
+    /// E2E R5: club post lists, feed, comment lists and history for signed-in China players and clubs. Read-only; cached per
+    /// context and reissued when the hour-long lease lapses or is revoked.
+    func clubCommunityRead(_ context: RuntimeDependencyContext) -> ClubCommunityReadApproval? {
+        guard socialRole(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = clubCommunityReadByContext[key], !existing.isRevoked, Date() < existing.expiresAt { return existing }
+        guard let issued = try? ClubCommunityReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        clubCommunityReadByContext[key] = issued
         return issued
     }
 
@@ -676,10 +697,14 @@ enum ReviewedPlayerReadRoute {
 
     func cityVoucherIssue(_ context: RuntimeDependencyContext) -> VerificationCodeApproval? {
         guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
-        let key = contextKey(context)
+        // E2E R8: with the reviewed player grant, the signed-in owner can also show their own registration/ticket entry code
+        // (api/verify/dyncode/issue reads the owner's registration via api/registration/info). Issuing a code moves no money.
+        let tickets = playerWritesEnabled
+        let key = contextKey(context) + (tickets ? "|ticket" : "")
         if let existing = cityVoucherIssueByContext[key] { return existing }
-        guard let endpoints = makeEndpoint(context, paths: ["api/verify/citynode/issue"]) else { return nil }
-        let approval = VerificationCodeApproval(market: .china, endpoints: endpoints, kinds: [.cityVoucher])
+        let paths: Set<String> = tickets ? ["api/verify/citynode/issue", "api/verify/dyncode/issue", "api/registration/info"] : ["api/verify/citynode/issue"]
+        guard let endpoints = makeEndpoint(context, paths: paths) else { return nil }
+        let approval = VerificationCodeApproval(market: .china, endpoints: endpoints, kinds: tickets ? [.cityVoucher, .ticket] : [.cityVoucher])
         cityVoucherIssueByContext[key] = approval
         return approval
     }
@@ -908,6 +933,7 @@ extension AppCompositionRoot {
         nativeFriendChannelInviteApproval = { [gates] context, mode in gates.friendChannelInvite(context, mode: mode) }
         nativeFriendTeamInviteApproval = { [gates] context, mode in gates.friendTeamInvite(context, mode: mode) }
         nativeFriendChannelSourceApproval = { [gates] context, channelID in gates.friendChannelSource(context, channelID: channelID) }
+        clubCommunityReadApproval = { [gates] context in gates.clubCommunityRead(context) }
         nativeChannelManagementApproval = { [gates] context, viewer, scope in
             gates.channelManagement(context, viewerRevision: viewer, scope: scope)
         }

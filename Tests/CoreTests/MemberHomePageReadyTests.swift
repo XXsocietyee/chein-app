@@ -156,3 +156,19 @@ private actor MemberHomePageWire: HTTPTransport {
         XCTAssertEqual(awaited2, .empty)
     }
 }
+
+extension MemberHomePageReadyTests {
+    /// E2E-20261113 R10: `/api/userInfo` returns the user under `appUser`, not `data`.
+    func testUserInfoUnderAppUserLoadsTheIdentityCard() async throws {
+        let body = #"{"code":200,"msg":"ok","appUser":"# + MemberHomeFixtureData.readyIdentityJSON + "}"
+        let identity = try await service(MemberHomePageWire(body)).identity(token: "synthetic-member")
+        XCTAssertEqual(identity.nickname, "Synthetic member")
+        let page = try await service(MemberHomePageWire(body)).identityPage(token: "synthetic-member")
+        guard case .ready(.identity(let card)) = page else { return XCTFail("\(page)") }
+        XCTAssertEqual(card.nickname, "Synthetic member")
+        // `data` still wins when present.
+        let both = #"{"code":200,"data":"# + MemberHomeFixtureData.readyIdentityJSON + #","appUser":{"id":1}}"#
+        let preferred = try await service(MemberHomePageWire(both)).identity(token: "synthetic-member")
+        XCTAssertEqual(preferred.nickname, "Synthetic member")
+    }
+}
