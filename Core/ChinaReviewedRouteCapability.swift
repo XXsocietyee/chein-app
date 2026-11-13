@@ -46,6 +46,7 @@ public enum ChinaReviewedRouteCapability {
         if channelsSocialOwnerGrant.contains(key) { return true }
         if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
         if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
+        if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
 
@@ -160,6 +161,19 @@ public enum ChinaReviewedRouteCapability {
         "/api/video-bounty/submission",
         "/api/video-bounty/submission/{}/appeal",
         "/api/video-bounty/submission/{}/cancel"
+    ]
+
+    /// HANDOVER 22. Non-money workshop and mod reads. Purchased, paid install, and settlement/income
+    /// stay off this set: the app calls those only when ReviewedAreaSwitch is on, which is never the production host.
+    public static let workshopModOwnerGrant: Set<String> = [
+        "/api/mod-installation",
+        "/api/mod-owned-report",
+        "/api/mod-upgrade",
+        "/api/workshop/creator/pending-packages",
+        "/api/workshop/creator/public-theme-use",
+        "/api/workshop/owned",
+        "/api/workshop/purchased/professional-targets",
+        "/api/workshop/purchased/professional-operations"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {

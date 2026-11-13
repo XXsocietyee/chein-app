@@ -17,6 +17,8 @@ struct WorkshopPurchasedAccountLink: View {
 }
 @MainActor struct WorkshopPurchasedLibraryView: View {
     @State private var routeVisibility = WorkshopVisibleRouteReturn()
+    @EnvironmentObject private var session: AppSession
+    @Environment(\.locale) private var locale
     let browser: WorkshopPurchasedBrowser
     @State private var navigation: WorkshopPurchasedNavigationState
     let makeProfessional: WorkshopPaidProfessionalControllerFactory
@@ -24,7 +26,13 @@ struct WorkshopPurchasedAccountLink: View {
     let makeInstall: WorkshopPaidInstallControllerFactory
     let makeUpgrade: WorkshopPurchasedUpgradeFactory
     init(browser: WorkshopPurchasedBrowser, navigation: WorkshopPurchasedNavigationState? = nil, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }, makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }) {
-        self.browser = browser; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; self.makeUpgrade = makeUpgrade; _navigation = State(initialValue: navigation ?? WorkshopPurchasedNavigationState(browser: browser))
+        self.browser = browser; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; self.makeUpgrade = makeUpgrade;         _navigation = State(initialValue: navigation ?? WorkshopPurchasedNavigationState(browser: browser))
+    }
+    private var paymentsOpen: Bool { ReviewedAreaSwitch.paymentsOpen(session: session) }
+    private var closedCopy: String {
+        locale.language.languageCode?.identifier == "zh"
+            ? "购买读取未开启。列表仍在，本次不请求已购接口。"
+            : "Purchase reads are off. The list stays here and does not request purchased licenses."
     }
     var body: some View {
         @Bindable var navigation = navigation
@@ -37,7 +45,7 @@ struct WorkshopPurchasedAccountLink: View {
             case .empty: purchasedText("empty")
             case .failed, .invalidated:
                 purchasedText(browser.phase == .invalidated ? "sessionChanged" : "failed")
-                if browser.phase != .invalidated { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { navigation.scheduleList(rendered) } }
+                if browser.phase != .invalidated { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { if paymentsOpen { navigation.scheduleList(rendered) } } }
             case .ready:
                 if browser.issue == .unavailable { purchasedText("failed") }
                 ForEach(browser.rows) { item in
@@ -51,24 +59,25 @@ struct WorkshopPurchasedAccountLink: View {
                     }.accessibilityIdentifier("workshopPurchased.row." + item.id)
                 }
                 if let cursor = browser.nextCursor {
-                    Button { navigation.scheduleList(rendered, before: cursor) } label: { purchasedText(browser.issue == .unavailable ? "retry" : "next") }
+                    Button { if paymentsOpen { navigation.scheduleList(rendered, before: cursor) } } label: { purchasedText(browser.issue == .unavailable ? "retry" : "next") }
                 }
             }
+            if !paymentsOpen { Section { Text(verbatim: closedCopy).font(RevolutContentStyle.quiet) } }
             if let checkedAt = browser.checkedAt { Section { Text(verbatim: checkedAt) } header: { purchasedText("checkedAt") } }
         }
         .modifier(PurchasedTitle("title"))
         .privacySensitive()
-        .onAppear { routeVisibility.appear(); navigation.scheduleList(navigation.listViewAppeared(displayed)) }
+        .onAppear { routeVisibility.appear(); if paymentsOpen { navigation.scheduleList(navigation.listViewAppeared(displayed)) } }
         .onDisappear { routeVisibility.disappear(); navigation.listViewDisappeared(displayed) }
         .onChange(of: navigation.selection == nil) { wasEligible, isEligible in
             routeVisibility.returned(wasEligible: wasEligible, isEligible: isEligible) {
                 guard navigation.selection == nil, displayed.permit == nil else { return }
-                navigation.scheduleList(navigation.listViewAppeared(displayed))
+                if paymentsOpen { navigation.scheduleList(navigation.listViewAppeared(displayed)) }
             }
         }
-        .refreshable { if let action = navigation.offerList(rendered) { await action() } }
+        .refreshable { if paymentsOpen, let action = navigation.offerList(rendered) { await action() } }
         .toolbar { ToolbarItem(placement: .topBarTrailing) {
-            Button { navigation.scheduleList(rendered) } label: { Label { purchasedText("refresh") } icon: { Image(systemName: "arrow.clockwise") } }
+            Button { if paymentsOpen { navigation.scheduleList(rendered) } } label: { Label { purchasedText("refresh") } icon: { Image(systemName: "arrow.clockwise") } }
                 .disabled(browser.phase == .loading || browser.phase == .invalidated)
         } }
         .navigationDestination(item: $navigation.selection) { selection in
@@ -84,9 +93,11 @@ struct WorkshopPurchasedAccountLink: View {
     let makeText: WorkshopPaidInstalledTextControllerFactory
     let makeInstall: WorkshopPaidInstallControllerFactory
     let makeUpgrade: WorkshopPurchasedUpgradeFactory
+    @EnvironmentObject private var session: AppSession
     init(browser: WorkshopPurchasedBrowser, licenseId: String, navigation: WorkshopPurchasedNavigationState, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }, makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }) {
-        self.browser = browser; self.licenseId = licenseId; self.navigation = navigation; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; self.makeUpgrade = makeUpgrade
+        self.browser = browser; self.licenseId = licenseId; self.navigation = navigation; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional;         self.makeUpgrade = makeUpgrade
     }
+    private var paymentsOpen: Bool { ReviewedAreaSwitch.paymentsOpen(session: session) }
     var body: some View {
         let displayed = navigation.detailAppearance
         let rendered = displayed.permit
@@ -118,14 +129,14 @@ struct WorkshopPurchasedAccountLink: View {
                 if let handlers = makeUpgrade() { WorkshopPurchasedUpgradeEntry(item: item, handlers: handlers) }
             } else if let issue = browser.detailIssue {
                 purchasedText(issue == .staleSession ? "sessionChanged" : issue == .notFound ? "notFound" : "failed")
-                if issue != .staleSession { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { navigation.scheduleDetail(rendered, licenseId: licenseId) } }
+                if issue != .staleSession { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { if paymentsOpen { navigation.scheduleDetail(rendered, licenseId: licenseId) } } }
             }
         }
         .modifier(PurchasedTitle("detail"))
         .privacySensitive()
-        .onAppear { navigation.scheduleDetail(navigation.detailViewAppeared(displayed, licenseId: licenseId), licenseId: licenseId) }
+        .onAppear { if paymentsOpen { navigation.scheduleDetail(navigation.detailViewAppeared(displayed, licenseId: licenseId), licenseId: licenseId) } }
         .onDisappear { navigation.detailViewDisappeared(displayed) }
-        .refreshable { if let action = navigation.offerDetail(rendered, licenseId: licenseId) { await action() } }
+        .refreshable { if paymentsOpen, let action = navigation.offerDetail(rendered, licenseId: licenseId) { await action() } }
     }
 }
 private struct PurchasedFact: View {

@@ -5,9 +5,11 @@ import SwiftUI
     @State private var selection: ModCreatorIncomeSelection?
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
+    @EnvironmentObject private var session: AppSession
     @ScaledMetric(relativeTo: .largeTitle) private var heroArtHeight: CGFloat = 132
     init(reader: ModSettlementReader) { _model = State(initialValue: ModCreatorIncomeBrowser(reader: reader)) }
     private func text(_ zh: String, _ en: String) -> String { locale.language.languageCode?.identifier == "zh" ? zh : en }
+    private var payoutOpen: Bool { ReviewedAreaSwitch.payoutOpen(session: session) }
     private func shown(_ raw: String) -> String {
         raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw
     }
@@ -24,6 +26,12 @@ import SwiftUI
                 .listRowInsets(EdgeInsets())
             }
             ModCreatorIncomeBoundary()
+            if !payoutOpen {
+                Section {
+                    Text(verbatim: text("收入读取未开启。页面保留，本次不请求收入。未知项显示为 —。", "Income reads are off. This page stays here and does not request income. Unknown values stay —."))
+                        .font(Theme.Font.label)
+                }
+            }
             if model.loading { CYSkeleton().accessibilityLabel(Text("uiCloud24.income.loading")) }
             if let issue = model.issue {
                 Section {
@@ -37,7 +45,7 @@ import SwiftUI
                         actionTitle: LocalizedStringKey(stringLiteral: text("重读原事实首页", "Read original first page")),
                         actionStyle: .secondary,
                         kind: .failure
-                    ) { Task { await model.refresh() } }
+                    ) { if payoutOpen { Task { await model.refresh() } } }
                     .disabled(model.loading)
                 }
             }
@@ -61,7 +69,7 @@ import SwiftUI
                         .accessibilityIdentifier("modCreatorIncome.order." + fact.orderKey)
                     }
                     if model.nextCursor != nil {
-                        CYPillButton(verbatim: text("读取下一页原事实", "Read next original page"), style: .secondary) { Task { await model.more() } }
+                        CYPillButton(verbatim: text("读取下一页原事实", "Read next original page"), style: .secondary) { if payoutOpen { Task { await model.more() } } }
                             .disabled(model.loading || model.loadingMore)
                             .listRowBackground(Color.clear)
                     }
@@ -78,10 +86,10 @@ import SwiftUI
         .cyGroupedSurface()
         .cyHeroScreen()
         .privacySensitive()
-        .task { await model.refresh() }
-        .refreshable { await model.refresh() }
+        .task { if payoutOpen { await model.refresh() } }
+        .refreshable { if payoutOpen { await model.refresh() } }
         .toolbar { ToolbarItem(placement: .topBarTrailing) {
-            Button { Task { await model.refresh() } } label: {
+            Button { if payoutOpen { Task { await model.refresh() } } } label: {
                 Image(systemName: "arrow.clockwise")
             }
             .accessibilityLabel(text("刷新原收入事实", "Refresh original income facts"))
@@ -91,8 +99,8 @@ import SwiftUI
             ModCreatorIncomeDetailView(reader: model.reader, selection: selected).id(selected.id)
         }
         .onDisappear { model.invalidate() }
-        .onChange(of: phase) { _, next in if next == .active { Task { await model.refresh() } } else { model.invalidate() } }
-        .onChange(of: selection?.id) { _, id in if id == nil { Task { await model.refresh() } } }
+        .onChange(of: phase) { _, next in if next == .active { if payoutOpen { Task { await model.refresh() } } } else { model.invalidate() } }
+        .onChange(of: selection?.id) { _, id in if id == nil, payoutOpen { Task { await model.refresh() } } }
     }
 
     private func incomeRow(_ fact: ModCreatorIncomeFact) -> some View {
@@ -139,11 +147,13 @@ import SwiftUI
     @State private var model: ModCreatorIncomeDetailModel
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
+    @EnvironmentObject private var session: AppSession
     @ScaledMetric(relativeTo: .largeTitle) private var heroArtHeight: CGFloat = 132
     init(reader: ModSettlementReader, selection: ModCreatorIncomeSelection) {
         _model = State(initialValue: ModCreatorIncomeDetailModel(reader: reader, selection: selection))
     }
     private func text(_ zh: String, _ en: String) -> String { locale.language.languageCode?.identifier == "zh" ? zh : en }
+    private var payoutOpen: Bool { ReviewedAreaSwitch.payoutOpen(session: session) }
     var body: some View {
         List {
             Section {
@@ -201,14 +211,14 @@ import SwiftUI
                                 actionTitle: LocalizedStringKey(stringLiteral: text("重读同一历史范围", "Retry same history scope")),
                                 actionStyle: .secondary,
                                 kind: .failure
-                            ) { Task { await model.retryHistory() } }
+                            ) { if payoutOpen { Task { await model.retryHistory() } } }
                             .disabled(model.loading || model.loadingMore)
                         }
                         ForEach(model.revisions, id: \.revision) { fact in
                             DisclosureGroup(text("原修订 ", "Original revision ") + String(fact.revision)) { ModCreatorIncomeFactView(fact: fact) }
                         }
                         if model.nextBeforeRevision != nil {
-                            CYPillButton(verbatim: text("读取更早原修订", "Read earlier original revisions"), style: .secondary) { Task { await model.moreHistory() } }
+                            CYPillButton(verbatim: text("读取更早原修订", "Read earlier original revisions"), style: .secondary) { if payoutOpen { Task { await model.moreHistory() } } }
                                 .disabled(model.loading || model.loadingMore)
                                 .listRowBackground(Color.clear)
                         }
@@ -224,7 +234,7 @@ import SwiftUI
                         CYSectionHeader(LocalizedStringKey(stringLiteral: text("原不可变修订历史", "Original immutable revisions")))
                     }
                 }
-                CYPillButton(verbatim: text("只读刷新同一原单", "Refresh same original order"), style: .primary) { Task { await model.refresh() } }
+                CYPillButton(verbatim: text("只读刷新同一原单", "Refresh same original order"), style: .primary) { if payoutOpen { Task { await model.refresh() } } }
                     .disabled(model.loading)
                     .listRowBackground(Color.clear)
             }
@@ -233,10 +243,10 @@ import SwiftUI
         .cyGroupedSurface()
         .cyHeroScreen()
         .privacySensitive()
-        .task { await model.refresh() }
-        .refreshable { await model.refresh() }
+        .task { if payoutOpen { await model.refresh() } }
+        .refreshable { if payoutOpen { await model.refresh() } }
         .onDisappear { model.invalidate() }
-        .onChange(of: phase) { _, next in if next == .active { Task { await model.refresh() } } else { model.invalidate() } }
+        .onChange(of: phase) { _, next in if next == .active { if payoutOpen { Task { await model.refresh() } } } else { model.invalidate() } }
     }
 }
 
