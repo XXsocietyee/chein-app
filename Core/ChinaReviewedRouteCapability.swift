@@ -166,6 +166,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/map/place-search",
         "/api/map/weather",
         "/api/search/unified"
+    ]
 
     /// Parity package P-B (PlayerGapService.parityBPaths): organiser shared-run control, the lead's group member
     /// ticket scan and seat receipt, editor orient alternatives, the personal circle host, and the analytics batch.
