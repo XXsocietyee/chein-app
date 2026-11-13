@@ -1,0 +1,30 @@
+import Foundation
+
+/// Reviewed production-host lease for the player journey reads and the public catalog.
+/// Minted only by `ReviewedProductionGateLeases` for the shipped China composition.
+/// Affiliate, city-pass purchase, referral-token issue, and gift claim are not in the grant.
+public struct PWaveProductionReadLease: Equatable, Sendable {
+    public let host: String
+
+    public static let grantedFeatures: Set<PWaveFeature> = [
+        .battleReport, .inviteLanding, .playMode, .ticketSeats, .themeCollection, .runMemory, .memberBoard
+    ]
+
+    /// Anonymous catalog posts the owner named. Map and ids stay off.
+    public static let catalogPaths: Set<PWaveCatalogPath> = [.cityList, .list, .filters, .info]
+
+    public init(host: String) {
+        self.host = host.lowercased()
+    }
+}
+
+/// Same host lease for `JourneyLoopSource`. Money exports stay refused.
+public struct JourneyProductionLease: Equatable, Sendable {
+    public let host: String
+
+    public static let refused: Set<JourneyLoopSource.Journey> = [.affiliate, .issueReferral, .giftClaim]
+
+    public init(host: String) {
+        self.host = host.lowercased()
+    }
+}

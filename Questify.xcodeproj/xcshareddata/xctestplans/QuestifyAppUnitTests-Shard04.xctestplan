@@ -366,6 +366,7 @@
         "PlayTagRevocationCompositionTests",
         "PlayTaskOutcomeActionTests",
         "PlayTimedReactionRevisionTests",
+        "PlayerJourneyProductionTests",
         "PrivacyGuideSummaryLocalizationTests",
         "PrivateHomeAppTests",
         "PrivateHomeExactLabelRecoveryJourneyTests",

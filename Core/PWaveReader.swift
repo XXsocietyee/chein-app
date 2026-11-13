@@ -4,7 +4,8 @@ import FoundationNetworking
 #endif
 
 /// Read client for P7, then P1, then P4, then P5.
-/// Transport is injected. A production endpoint is refused and no live session is opened.
+/// Transport is injected. A production host is refused unless `productionLease` names that host
+/// and the capability set is the player-read grant. Affiliate and city-pass reads stay refused.
 /// There is no baked response. A feature with no capability grant does not send.
 public struct PWaveReader {
     public static let contractExecution = "NOT_RUN"
@@ -12,6 +13,7 @@ public struct PWaveReader {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let endpointClass: PWaveEndpointClass
+    private let productionLease: PWaveProductionReadLease?
 
     public enum PWaveEndpointClass: String, Equatable, Sendable {
         case production
@@ -19,10 +21,19 @@ public struct PWaveReader {
     }
 
     public init(configuration: APIConfiguration, transport: any HTTPTransport,
-                endpointClass: PWaveEndpointClass, capabilities: PWaveCapability) throws {
-        let host = configuration.baseURL.host ?? ""
-        guard endpointClass != .production, !PWaveProductionBoundary.isProductionHost(host) else {
-            throw PWaveRefusal.productionEndpoint
+                endpointClass: PWaveEndpointClass, capabilities: PWaveCapability,
+                productionLease: PWaveProductionReadLease? = nil) throws {
+        let host = (configuration.baseURL.host ?? "").lowercased()
+        let production = endpointClass == .production || PWaveProductionBoundary.isProductionHost(host)
+        if production {
+            guard let productionLease, productionLease.host == host,
+                  PWaveProductionBoundary.isProductionHost(host),
+                  capabilities.granted.isSubset(of: PWaveProductionReadLease.grantedFeatures) else {
+                throw PWaveRefusal.productionEndpoint
+            }
+            self.productionLease = productionLease
+        } else {
+            self.productionLease = nil
         }
         self.configuration = configuration
         self.transport = transport
@@ -120,6 +131,7 @@ public struct PWaveReader {
 
     public func affiliateSummary(token: String, scope: PWaveSessionScope,
                                  currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveAffiliateSummaryFact> {
+        if productionLease != nil { throw PWaveRefusal.productionEndpoint }
         try await performPresentation(feature: .affiliateCenter, token: token, scope: scope, currentScope: currentScope,
                                       request: { try self.makeGET(self.url("api/marketing/affiliate/summary", query: [URLQueryItem(name: "limit", value: String(PWaveAffiliateCenter.limit))]), token: token) },
                                       decode: { PWaveAffiliateCenter.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
@@ -144,6 +156,7 @@ public struct PWaveReader {
 
     public func products(city: String? = nil, kind: String? = nil, token: String, scope: PWaveSessionScope,
                          currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
+        if productionLease != nil { throw PWaveRefusal.productionEndpoint }
         try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
                                       request: { try self.productList(city: city, kind: kind, token: token) },
                                       decode: { PWaveCityPass.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities, frozenSnapshot: false) })
@@ -151,6 +164,7 @@ public struct PWaveReader {
 
     public func product(id: String, token: String, scope: PWaveSessionScope,
                         currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
+        if productionLease != nil { throw PWaveRefusal.productionEndpoint }
         guard Self.acceptable(id), !id.contains("/"), !id.contains("..") else { throw PWaveRefusal.invalidRequest }
         return try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
                                              request: { try self.makeGET(self.url("api/marketing/product").appendingPathComponent(id), token: token) },
@@ -159,6 +173,7 @@ public struct PWaveReader {
 
     public func productOrders(token: String, scope: PWaveSessionScope,
                               currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
+        if productionLease != nil { throw PWaveRefusal.productionEndpoint }
         try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
                                       request: { try self.makeGET(self.url("api/marketing/product/orders"), token: token) },
                                       decode: { PWaveCityPass.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities, frozenSnapshot: true) })
@@ -393,6 +408,9 @@ public struct PWaveReader {
     }
 
     private func catalogRequest(_ path: PWaveCatalogPath, fields: [String: String], token: String?) throws -> URLRequest {
+        if productionLease != nil, !PWaveProductionReadLease.catalogPaths.contains(path) {
+            throw PWaveRefusal.productionEndpoint
+        }
         guard fields.keys.allSatisfy({ PWaveThemeCollection.fields.contains($0) }) else { throw PWaveRefusal.invalidRequest }
         guard fields.values.allSatisfy({ Self.acceptable($0) }) else { throw PWaveRefusal.invalidRequest }
         switch path {

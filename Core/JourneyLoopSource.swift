@@ -58,7 +58,8 @@ public final class JourneyMemoryRequestStore: JourneyRequestStoring, @unchecked 
 }
 
 /// Port of `subpackageJourney/utils/journey-api.js`. Reads and the three seat writes go out.
-/// Issuing a referral link and claiming a gift do not: money stays off. Seat release is not an export.
+/// Issuing a referral link, claiming a gift, and the affiliate summary do not: money stays off.
+/// A production host is refused unless `productionLease` names that host. Seat release is not an export.
 public struct JourneyLoopSource {
     public static let moneyWritesEnabled = false
     /// hengyin `journey-api.js`. The export table lives here: `App/MPParityKit.swift` already owns `struct MPParityBindings`.
@@ -69,6 +70,7 @@ public struct JourneyLoopSource {
     private let store: any JourneyRequestStoring
     private let nowMillis: @Sendable () -> Int64
     private let entropy: @Sendable () -> String
+    private let productionLease: JourneyProductionLease?
 
     public enum EndpointClass: String, Equatable, Sendable {
         case production
@@ -79,10 +81,18 @@ public struct JourneyLoopSource {
                 store: any JourneyRequestStoring = JourneyMemoryRequestStore(),
                 endpointClass: EndpointClass = .nonProduction,
                 nowMillis: @escaping @Sendable () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) },
-                entropy: @escaping @Sendable () -> String = { JourneyLoopSource.randomEntropy() }) throws {
-        let host = configuration.baseURL.host ?? ""
-        guard endpointClass != .production, !PWaveProductionBoundary.isProductionHost(host) else {
-            throw JourneyRefusal.productionEndpoint
+                entropy: @escaping @Sendable () -> String = { JourneyLoopSource.randomEntropy() },
+                productionLease: JourneyProductionLease? = nil) throws {
+        let host = (configuration.baseURL.host ?? "").lowercased()
+        let production = endpointClass == .production || PWaveProductionBoundary.isProductionHost(host)
+        if production {
+            guard let productionLease, productionLease.host == host,
+                  PWaveProductionBoundary.isProductionHost(host) else {
+                throw JourneyRefusal.productionEndpoint
+            }
+            self.productionLease = productionLease
+        } else {
+            self.productionLease = nil
         }
         self.configuration = configuration
         self.transport = transport
@@ -147,6 +157,7 @@ public struct JourneyLoopSource {
 
     /// Form post, matching `rate` (`form: true` in journey-api.js). Not a money write.
     public func rate(ownerType: Int, ownerID: String, rating: Int, contents: String, token: String) async throws -> JourneyEnvelope {
+        guard ownerType == 1 || ownerType == 2 else { throw JourneyRefusal.invalidRequest }
         guard Self.isID(ownerID), (1...5).contains(rating), contents.utf8.count <= 2000 else { throw JourneyRefusal.invalidRequest }
         let fields = [
             "owner_type": String(ownerType),
@@ -156,6 +167,16 @@ public struct JourneyLoopSource {
             "reply_id": "0"
         ]
         return try await postForm(.rate, fields: fields, token: token)
+    }
+
+    /// Empty multipart `POST /api/user/info`, the same self read the profile editor uses. Not a write.
+    public func playerProfile(token: String) async throws -> JourneyEnvelope {
+        guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
+        var request = try make(method: "POST", path: "/api/user/info", query: [], token: token, body: nil, contentType: nil)
+        let boundary = "JourneyProfileRead"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data("--\(boundary)--\r\n".utf8)
+        return await perform(request, receiptReread: false)
     }
 
     // MARK: Money stays off
@@ -266,6 +287,7 @@ public struct JourneyLoopSource {
 
     private func get(_ name: Self.Journey, invitationID: String? = nil, query: [URLQueryItem], token: String) async throws -> JourneyEnvelope {
         let binding = Self.journey(name)
+        if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
         guard !binding.money else { throw JourneyRefusal.moneyOff }
         guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
         let path = try resolve(binding, invitationID: invitationID)
@@ -275,6 +297,7 @@ public struct JourneyLoopSource {
 
     private func postJSON(_ name: Self.Journey, invitationID: String? = nil, body: [String: String], token: String, receiptReread: Bool) async throws -> JourneyEnvelope {
         let binding = Self.journey(name)
+        if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
         guard !binding.money, binding.json else { throw JourneyRefusal.moneyOff }
         guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
         let path = try resolve(binding, invitationID: invitationID)
@@ -285,6 +308,7 @@ public struct JourneyLoopSource {
 
     private func postForm(_ name: Self.Journey, fields: [String: String], token: String) async throws -> JourneyEnvelope {
         let binding = Self.journey(name)
+        if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
         guard !binding.money, binding.form else { throw JourneyRefusal.invalidRequest }
         guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
         let order = ["owner_type", "owner_id", "rating", "contents", "reply_id"]
