@@ -56,7 +56,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
             case .history(let scope):
                 switch scope {
                 case .topic(let id): SessionTopicDetailView(id: id, session: session)
-                case .activity(let id): ActivityDetailView(id: id, reader: session)
+                case .activity(let id): ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
                 }
             }
         }
