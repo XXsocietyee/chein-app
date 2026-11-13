@@ -175,6 +175,7 @@
         "IMConversationRowActionsAppTests",
         "IMCoopInviteCardsTests",
         "IMCoopInviteStripFactoryTests",
+        "IMReviewAuditReaderTests",
         "ImageAndVideoDiskCacheBudgetSectionViewTests",
         "InAppCustomerSupportAndFeedbackSectionViewTests",
         "IntegratedNativeAcceptanceFactoryTests",

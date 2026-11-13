@@ -251879,6 +251879,69 @@
         }
       }
     },
+    "mpd.review.status.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Pending review" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "待审核" } }
+      }
+    },
+    "mpd.review.status.approved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Review approved" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "审核通过" } }
+      }
+    },
+    "mpd.review.status.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Review not approved" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "审核未通过" } }
+      }
+    },
+    "mpd.review.status.escalated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Escalated for another review" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "升级复核中" } }
+      }
+    },
+    "mpd.review.status.withdrawn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Withdrawn" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已撤回" } }
+      }
+    },
+    "mpd.review.action.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Submitted for review" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提交审核" } }
+      }
+    },
+    "mpd.review.action.approve": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Review approved" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "审核通过" } }
+      }
+    },
+    "mpd.review.action.reject": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Review not approved" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "审核未通过" } }
+      }
+    },
+    "mpd.review.action.revert": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Original decision withdrawn" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "撤销原决定" } }
+      }
+    },
     "mpd.look.style.stardust": {
       "extractionState": "manual",
       "localizations": {
