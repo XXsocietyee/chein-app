@@ -1,15 +1,17 @@
 import SwiftUI
 
-/// Production readers for square stubs 18 and 19. Share links, route maps, deletion, and bookmarks stay unwired.
+/// Production readers for square stubs 18, 19, and 20. Route maps, deletion, and bookmarks stay unwired.
 @MainActor enum CloudSquareSessionBridge {
     private final class Slot {
         weak var session: AppSession?
         let activities: SquareCompletedActivityConformer
         let follow: SquareAuthorFollowConformer
+        let share: SquarePublicShareLink
         init(session: AppSession) {
             self.session = session
             activities = SquareCompletedActivityConformer(session: session)
             follow = SquareAuthorFollowConformer(session: session)
+            share = SquarePublicShareLink()
         }
     }
     private static var slots: [Slot] = []
@@ -24,6 +26,34 @@ import SwiftUI
 
     static func activities(for session: AppSession) -> SquareCompletedActivityConformer { slot(for: session).activities }
     static func follow(for session: AppSession) -> SquareAuthorFollowConformer { slot(for: session).follow }
+    static func share(for session: AppSession) -> SquarePublicShareLink { slot(for: session).share }
+}
+
+/// Ledger row 20. A public URL exists only for a post `SquareL5ShareCard.isPubliclyShareable` accepts
+/// and only when that detail path is already parsed. Anything else has no public URL.
+@MainActor final class SquarePublicShareLink: SquarePostShareLinkProviding {
+    private var recordedID: Int?
+    private var recorded: SquareL5ShareCard.Post?
+
+    func note(_ post: SquarePost) {
+        recordedID = post.id
+        recorded = PublicContentShareLink.l5Post(from: post)
+    }
+
+    func shareURL(postID: Int) -> URL? {
+        guard recordedID == postID, let recorded else { return nil }
+        return PublicContentShareLink.squarePost(recorded)
+    }
+
+    /// A post that is not publicly shareable does not get a public or generic URL.
+    var genericShareURL: URL? { nil }
+}
+
+enum SquarePublicLinkCopy {
+    static func copyIfPublic(_ post: SquarePost) {
+        guard let url = PublicContentShareLink.squarePost(PublicContentShareLink.l5Post(from: post)) else { return }
+        LocalPasteboard.copy(url.absoluteString)
+    }
 }
 
 /// GET `SquareActivityPicker.completedPath` with `for_public_reference=true`. No write.
@@ -86,6 +116,7 @@ struct CloudSquareStubModifier: ViewModifier {
     let session: AppSession
     func body(content: Content) -> some View {
         content
+            .environment(\.squareShareLink, CloudSquareSessionBridge.share(for: session))
             .environment(\.squareCompletedActivities, CloudSquareSessionBridge.activities(for: session))
             .environment(\.squareAuthorFollowState, CloudSquareSessionBridge.follow(for: session))
     }

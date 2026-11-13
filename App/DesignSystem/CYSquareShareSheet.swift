@@ -15,9 +15,9 @@ struct CYSquareSharePayload: Equatable {
     private init() { postID = nil; excerpt = nil; imageURL = nil }
 
     init(post: SquarePost) {
-        let publicAudience = post.audience.isEmpty || post.audience.uppercased() == "PUBLIC"
-        let published = post.lifecycle.uppercased() == "PUBLISHED"
-        guard post.id > 0, publicAudience, published else { postID = nil; excerpt = nil; imageURL = nil; return }
+        guard PublicContentShareLink.squarePost(PublicContentShareLink.l5Post(from: post)) != nil else {
+            postID = nil; excerpt = nil; imageURL = nil; return
+        }
         postID = post.id
         let text = (post.contents ?? "").split(whereSeparator: \.isWhitespace).joined(separator: " ")
         excerpt = text.isEmpty ? nil : (text.count > Self.titleLimit ? String(text.prefix(Self.titleLimit)) + "…" : text)

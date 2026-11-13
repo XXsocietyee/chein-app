@@ -167,11 +167,7 @@ import SwiftUI
             },
             onReport: actions == nil ? nil : { self.reportCloud($0) },
             onProfile: accountReader == nil ? nil : { post in guard post.memberID > 0 else { return }; self.cloudProfile = .init(id: post.memberID) },
-            onCopyLink: { post in
-                let card = SquareShareCard.build(id: post.id, audience: post.audience, lifecycle: post.lifecycle, contents: post.contents, images: post.images)
-                guard card.includesPost else { return }
-                LocalPasteboard.copy(card.path)
-            })
+            onCopyLink: { SquarePublicLinkCopy.copyIfPublic($0) })
     }
     private func openReviewed(_ route: EditorRoute) {
         reportTarget = nil
@@ -224,13 +220,13 @@ import SwiftUI
         .buttonStyle(.borderless).font(.body).labelStyle(.titleAndIcon)
         .frame(minHeight: 44)
     }
-    /// Mini `square-share.js`: a public published post links to itself; anything else uses the generic link or hides.
+    /// Mini `square-share.js`: a publicly shareable post links to its parsed detail URL. Anything else has no public URL.
     private func makeShareRoute(for post: SquarePost) -> ShareRoute? {
         guard let shareLink else { return nil }
+        (shareLink as? SquarePublicShareLink)?.note(post)
         let payload = CYSquareSharePayload(post: post)
-        if let postID = payload.postID, let url = shareLink.shareURL(postID: postID) { return ShareRoute(payload: payload, url: url) }
-        guard let url = shareLink.genericShareURL else { return nil }
-        return ShareRoute(payload: .generic, url: url)
+        guard let postID = payload.postID, let url = shareLink.shareURL(postID: postID) else { return nil }
+        return ShareRoute(payload: payload, url: url)
     }
     /// Mini `goUserInfoClcik`: follow only when the state is known and not yet following, then visit profile.
     private func avatarMenuItems(_ post: SquarePost) -> [CYAnchoredMenuItem] {
