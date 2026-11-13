@@ -14,11 +14,13 @@ import QuestifyCore
     static var makeReader: @MainActor (AppSession) -> (@MainActor () -> CityFairnessReader)? = { _ in nil }
 }
 
-/// Cursor binding: the player's own orienteering score for one participation. Mini-program
+/// The player's own orienteering score for one participation. Mini-program
 /// `scene-member-participation-detail` shows "定向成绩" only when `_resultEntry()` resolves the signed-in
 /// member's topic/activity pair and `productType == 1`. Return nil for every other participation.
 @MainActor enum OrientScoreEntryBinding {
-    static var makeLoader: @MainActor (ParticipationDetail) -> (() async throws -> OrientSessionScore?)? = { _ in nil }
+    static var makeLoader: @MainActor (ParticipationDetail, AppSession) -> (() async throws -> OrientSessionScore?)? = { detail, session in
+        OrientScoreEntryProduction.loader(detail: detail, session: session)
+    }
 }
 
 private struct MerchantPerkTemplatesDestinationKey: EnvironmentKey {
@@ -71,7 +73,21 @@ extension EnvironmentValues {
     let detail: ParticipationDetail
 
     var body: some View {
-        if let loader = OrientScoreEntryBinding.makeLoader(detail) {
+        if ParticipationOrientScoreEntry.canAskSession(detail) {
+            OrientScoreParticipationSessionEntry(detail: detail)
+        }
+    }
+}
+
+/// Reads the signed-in session only after the payload already has a member, a topic,
+/// an activity id (0 for a topic registration), and product type 1. A presentation
+/// fixture without those fields never asks for `AppSession`.
+@MainActor private struct OrientScoreParticipationSessionEntry: View {
+    let detail: ParticipationDetail
+    @EnvironmentObject private var session: AppSession
+
+    var body: some View {
+        if let loader = OrientScoreEntryBinding.makeLoader(detail, session) {
             Section {
                 NavigationLink {
                     OrientScoreView(model: OrientScoreModel(loader: loader))
