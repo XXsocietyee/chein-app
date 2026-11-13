@@ -58,6 +58,7 @@ import SwiftUI
     @Environment(\.playThemePresentationReader) private var themeReader
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
+    @Environment(\.externalGameSession) private var externalGameSession
     private func journeyRunScope(_ topicID: Int?, _ topicName: String?) -> JourneyRunScope {
         var scope = JourneyRunScope(topicID: topicID.map(String.init), topicName: topicName)
         if case .activity(let id) = model.scope { scope.activityID = String(id) }
@@ -355,7 +356,7 @@ import SwiftUI
                     }
                     if let backpackModel {
                         NavigationLink("playx.backpack.title") {
-                            PlayThemeBackpackView(model: backpackModel, externalGamesEnabled: ReviewedAreaSwitch.externalGamesMount())
+                            PlayThemeBackpackView(model: backpackModel, externalGamesEnabled: ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession?.baseURL))
                         }
                             .accessibilityIdentifier("playx.backpack.open")
                     }

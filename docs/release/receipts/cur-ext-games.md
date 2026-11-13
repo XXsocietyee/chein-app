@@ -1,10 +1,10 @@
 # cur-ext-games (2026-11-13)
 
-App side of handover 18, plus the 2026-11-13 owner correction. Parent `cf28847602bc393ebcead93ca35d85633d23801b` (`origin/ui/main`). Backend was read only: hengyin `feature/game-import-review` `e10a8e98f22b07f490a82d207d40692caaa67402`, `docs/delivery/game-import-review/HANDOVER.md`. This package does not turn money on.
+App side of handover 18, plus the 2026-11-13 owner correction. Rebased onto `a9d609a610d61e74e76d814f0453b880798cd657` (`origin/ui/main`). Backend was read only: hengyin `feature/game-import-review` `e10a8e98f22b07f490a82d207d40692caaa67402`, `docs/delivery/game-import-review/HANDOVER.md`. This package does not turn money on.
 
 ## Switch
 
-`App/ReviewedAreaSwitch.swift` (new). `moneyPayments`, `payout`, `merchantWrites`, and `passwordLogin` are true only for a TEST/DEBUG build whose API host is not `www.chengyinhub.com`. `externalGames` uses the same rule: on for TEST/DEBUG, off for that production host. Nothing in this change calls the money flags. `PlayExperienceView` passes `ReviewedAreaSwitch.externalGamesMount()` into the backpack. Callers that omit it still hide the library.
+`App/ReviewedAreaSwitch.swift` stays the `ui/main` file. This branch does not declare a second enum. `productionAPIHost` and `productionHost` are the same string. Money calls (`moneyPayments`, `payout`, `merchantWrites`, `passwordLogin`) exist as both `(apiHost:testOrDebug:)` and `(host:testOrDebug:)`; this change does not call them. The backpack and the launch read use `externalGames(host:testOrDebug:)`, which also needs TEST/DEBUG. `externalGames(apiHost:)` is host-only and is not the mount. `PlayExperienceView` passes `ExternalGameSessionRead.externalGamesOpen(baseURL:)`. Callers that omit the flag still hide the library.
 
 ## What the player sees
 
@@ -32,7 +32,7 @@ Removal copy follows the backend and does not invent a shorter SLA: a submission
 
 Appended in `App/ReviewedPlayerWriteLeases.swift` (`playPaths`, `externalGamePaths`, `reportPaths`) and `Core/ChinaReviewedRouteCapability.swift` (`externalGameOwnerGrant`, `externalGameGrantKey` for non-numeric catalog ids). A body that carries `"price"`, `"iap"`, or `StoreKit` is refused. Reports and cancel are JSON. Submit and resubmit are multipart and must say `monetization` `NONE`.
 
-`App/AppCompositionRoot.swift` did not gain a line (still 4167, ceiling 4184). The existing early query return now also keeps `api/external-game/` so the catalog cursor and the signed download query are not dropped before the lease. `App/AppSession.swift` was not edited. `App/RegionalLaunchConfiguration.swift` was not edited. `docs/release/contract-failing-baseline.txt` was not raised.
+`App/AppCompositionRoot.swift` did not gain a line (still 4169, the same count as `ui/main`). The existing early query return now also keeps `api/external-game/` so the catalog cursor and the signed download query are not dropped before the lease. `App/AppSession.swift` was not edited. `App/RegionalLaunchConfiguration.swift` was not edited. `docs/release/contract-failing-baseline.txt` was not raised.
 
 ## Checks
 

@@ -7,7 +7,7 @@ import SwiftUI
     var gameplay: PlayThemeGameplayCoordinator? = nil
     var externalGameStore: ExternalGameStore? = nil
     /// Imported sandboxed games stay hidden unless the caller passes `externalGames`.
-    /// `PlayExperienceView` passes `ReviewedAreaSwitch.externalGamesMount()`. Callers that do not pass it get no import UI.
+    /// `PlayExperienceView` passes `ExternalGameSessionRead.externalGamesOpen(baseURL:)`. Callers that do not pass it get no import UI.
     var externalGamesEnabled: Bool = false
     @State private var tab = Tab.items
     @State private var defaultExternalGameStore = ExternalGameStore()
