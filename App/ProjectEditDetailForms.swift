@@ -395,6 +395,12 @@ import SwiftUI
                 }
             }
             ProjectNodeNarrativeEntry(model: model, chapterID: chapterID, nodeID: nodeID)
+            // fabu 找不到时换个方式: a saved personal topic's saved node only (the author readback is personal scope).
+            if chapterOverride == nil && starterLease == nil && exists && model.draft.owner == .personal,
+               let topicID = model.coordinator.snapshot?.topicID, topicID > 0,
+               let taskID = node.wrappedValue.localMetadata["id"]?.integer, taskID > 0 {
+                OrientAlternativeEditorSection(topicID: topicID, taskID: taskID)
+            }
             if chapterOverride == nil && starterLease == nil && exists {
                 ProjectNodeNPCEntry(chapterID: chapterID, nodeID: nodeID, nodeName: node.wrappedValue.name, editable: model.fullEdit)
             }

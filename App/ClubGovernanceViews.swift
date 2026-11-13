@@ -1404,6 +1404,7 @@ struct ClubGovernanceReadView: View {
                         // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
                         // command still checks check-in permission and the provider gate before any request.
                         if let issued { edit(.issueGroupCode, scope: target).accessibilityValue(Text(verbatim: issued.headcount.displayText)) }
+                        SharedRunControlEntry(activityID: id)
                         if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
                             NavigationLink("context.ops.title") {
                                 ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }

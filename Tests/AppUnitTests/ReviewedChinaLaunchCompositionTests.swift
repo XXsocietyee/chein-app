@@ -359,14 +359,60 @@ import XCTest
         }
         for money in ["api/registration/payment-readiness", "api/club/personal-receiver/bind", "api/club/personal-receiver/unbind",
                       "api/club/settlement/mine", "api/club/settlement/withdraw", "api/wallet/withdraw", "api/registration/pay",
-                      "api/club-compensation/editions/empty-reason", "api/club/lead/release-station",
-                      "api/registration/scan_group_member_ticket"] {
+                      "api/club-compensation/editions/empty-reason", "api/club/lead/release-station"] {
             XCTAssertFalse(grant.play.paths.contains(money), money)
             await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(money), #"{"activityId":3}"#, token: player.session.token)) }
         }
         var status = URLRequest(url: base.appendingPathComponent("api/club/personal-receiver/status")); status.httpMethod = "GET"
         status.setValue(player.session.token, forHTTPHeaderField: "Authorization")
         await assertClosed { try await transport.send(status) }
+        XCTAssertEqual(recorder.paths.count, before)
+    }
+
+    /// Parity package P-B: organiser shared-run control, the lead ticket scan, editor alternatives, the circle host,
+    /// and the analytics batch reach the network through the shipped China composition. Money stays closed.
+    func testShippedChinaAdmitsParityBRoutesAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        for path in PlayerGapService.parityBPaths {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            XCTAssertTrue(grant.play.paths.contains(path), path)
+        }
+        let service = PlayerGapService(baseURL: player.baseURL, accountID: player.session.accountID,
+                                       token: { player.session.token }, transport: transport)
+        func sent(_ path: String, file: StaticString = #filePath, line: UInt = #line) {
+            XCTAssertEqual(recorder.paths.last, path, file: file, line: line)
+        }
+        _ = await service.sharedControl(activityID: 5); sent("api/game/session/shared/control")
+        _ = await service.sharedExport(activityID: 5); sent("api/game/session/shared/export")
+        _ = await service.anchorSharedRun(activityID: 5); sent("api/game/session/shared/export/anchor")
+        _ = await service.scanGroupMemberTicket(code: "dyn-1", activityID: 5); sent("api/registration/scan_group_member_ticket")
+        let seat = try XCTUnwrap(RegistrationSeatTarget(code: "v1.88.topic_seat_2.a.b.c", activityID: 5))
+        _ = await service.seatReceipt(seat); sent("api/verify/seat/receipt")
+        _ = await service.saveOrientAlternative(topicID: 12, taskID: 34, row: .init(type: .photo, on: true, prompt: "door")); sent("api/orient/task/alternative")
+        _ = await service.orientAlternatives(topicID: 12, taskID: 34); sent("api/topic/author-saved-detail")
+        _ = await service.circleHostTopic(topicID: 12); sent("api/project/home")
+        _ = await service.configureCircleInstance(topicID: 12, candidateCodes: ["F1", "F3", "F5"]); sent("api/circle-theme/instance/configure")
+        let analytics = AnalyticsQueuedEvent(eventName: "finish_route_recommendation_click", anonymousId: "", actorScope: "member:1",
+            sessionId: "s_1", source: AnalyticsEventClient.source, pagePath: "/pages/play/index", bizType: "activity", bizId: 9,
+            cityCode: "", propertiesJson: "{}", idempotencyKey: "k1", occurredAt: "2026-11-13T00:00:00.000Z")
+        _ = await service.postAnalyticsBatch([analytics]); sent("api/analytics/events/batch")
+        let before = recorder.paths.count
+        let base = player.baseURL
+        // Money, and the merchant-scope supply review, stay closed.
+        for closed in ["api/registration/pay", "api/registration/payment-readiness", "api/wallet/withdraw",
+                       "api/club/settlement/withdraw", "api/circle-theme/instance/review"] {
+            XCTAssertFalse(grant.play.paths.contains(closed), closed)
+            await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(closed), #"{"activityId":3}"#, token: player.session.token)) }
+        }
         XCTAssertEqual(recorder.paths.count, before)
     }
 
@@ -448,12 +494,10 @@ import XCTest
         XCTAssertEqual(recorder.paths.last, "api/circle-theme/session/12/card")
         _ = try await client.postJSON("api/circle-theme/session", body: ["topicId": .integer(12)])
         XCTAssertEqual(recorder.paths.last, "api/circle-theme/session")
-        // A read path is not a write grant, and host-only controls stay closed for players.
+        // A read path is not a write grant. Organiser control/export and the circle configure are the parity-b grant
+        // (testShippedChinaAdmitsParityBRoutesAndKeepsMoneyClosed); the merchant supply review stays closed.
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/play/history"), #"{"topicId":12}"#, token: player.session.token)) }
-        XCTAssertFalse(grant.play.paths.contains("api/game/session/shared/control"))
-        XCTAssertFalse(grant.play.paths.contains("api/game/session/shared/export"))
-        XCTAssertFalse(grant.play.paths.contains("api/game/session/shared/export/anchor"))
-        XCTAssertFalse(grant.play.paths.contains("api/circle-theme/instance/configure"))
+        XCTAssertFalse(grant.play.paths.contains("api/circle-theme/instance/review"))
         for money in ["/api/registration/pay", "/api/pay/create", "/api/withdrawal/create", "/api/wallet/withdraw", "/api/asset/withdraw"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
         }

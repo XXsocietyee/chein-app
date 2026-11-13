@@ -26,6 +26,9 @@ import UIKit
                     } else { Text("playx.director.unknownCounts") }
                     ForEach(Array((readiness["blockers"].array ?? []).enumerated()), id: \.offset) { _, blocker in if let text = blocker.text { Text(verbatim: text) } }
                 }
+                if projection.playMode == "ROUTE" {
+                    SharedRunControlSection(activityID: projection.activityID, expectedRevision: projection.revision)
+                }
                 Section("playx.director.actions") {
                     ForEach(PlayDirectorAction.allCases.filter { projection.availableActions.contains($0.rawValue) }) { action in
                         CYPillButton(LocalizedStringKey("playx.director.action." + action.rawValue), style: .secondary) { editor = action }

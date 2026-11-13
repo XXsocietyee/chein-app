@@ -207,11 +207,18 @@ extension ReviewedProductionFormMutationRoute {
         "api/play/run-session/clear", "api/play/theme/gameplay-action", "api/play/theme/gameplay-preview",
         "api/game/session/shared/preview", "api/circle-theme/session/answer", "api/circle-theme/session/record",
         // g-partials: the circle page's own player reads and open/join, so answer/record reach production.
-        // `circle-theme/instance/configure` (merchant host write) stays out.
+        // `circle-theme/instance/configure` is granted below (parity-b) for the personal host only (scope "").
         "api/circle-theme/instance/{}/offers", "api/circle-theme/session", "api/circle-theme/session/join",
-        "api/circle-theme/session/{}/card"
+        "api/circle-theme/session/{}/card",
+        // parity-b (PlayerGapService.parityBPaths): organiser shared-run control/export/anchor, the lead's group
+        // member ticket scan and its seat receipt, editor orient alternatives with their author readback,
+        // the circle host's project read + instance configure, and the analytics batch. No money path.
+        "api/game/session/shared/control", "api/game/session/shared/export", "api/game/session/shared/export/anchor",
+        "api/registration/scan_group_member_ticket", "api/verify/seat/receipt",
+        "api/orient/task/alternative", "api/topic/author-saved-detail",
+        "api/circle-theme/instance/configure", "api/project/home", "api/analytics/events/batch"
     ].union(playRuntimeReadPaths)
-    /// G1 play runtime GET reads. Host control/export and circle instance configure are not here.
+    /// G1 play runtime GET reads. Organiser control/export (parity-b) are plain play paths, not this list.
     static let playRuntimeReadPaths: Set<String> = [
         "api/play/encounter", "api/play/check/receipt", "api/play/advanced/receipt", "api/play/history",
         "api/play/setup", "api/play/contact",
