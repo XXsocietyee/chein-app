@@ -5,6 +5,16 @@ public enum TicketWalletStatus: String { case ready, pending, verified, cancelle
 public enum TicketWalletAction: String { case detail, paymentUnavailable, cancelled, expired, unknown }
 public enum TicketWalletRedemption: String { case notImplemented, unpaid, cancelled, expired, complete, unknown }
 
+/// Server `topicCompleted` on a `POST /api/registration/list` row. Read only.
+/// A missing key or JSON null hides the completed state. Only a JSON boolean is a filter bucket.
+/// Any other present value is unknown and stays an em dash; it never drops the ticket.
+public enum TicketWalletTopicCompletion: Equatable {
+    case absent
+    case upcoming
+    case completed
+    case unknown
+}
+
 /// Narrow read projection of MyRegistration / RegistrationDetail. No code or payment credentials.
 public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let id: Int
@@ -28,6 +38,17 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let purchaseKind: String?
     public let entitlements: [TicketWalletEntitlement]
     public let verificationTime: String?
+    /// Decoded from the same list (and detail) object. Never synthesized.
+    public let topicCompletion: TicketWalletTopicCompletion
+
+    /// `true` / `false` are the 已通关 / 即将开始 buckets. Absent and unknown stay nil (全部 only).
+    public var topicCompletedFlag: Bool? {
+        switch topicCompletion {
+        case .completed: return true
+        case .upcoming: return false
+        case .absent, .unknown: return nil
+        }
+    }
 
     public var status: TicketWalletStatus {
         // Source wxs precedence: verification takes precedence even for a cancelled row.
@@ -84,7 +105,17 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         } else { purchaseKind = try c.text("purchaseKind") }
         entitlements = try c.decodeIfPresent([TicketWalletEntitlement].self, forKey: TicketWalletKey("entitlements")) ?? []
         verificationTime = try c.text("verificationTime")
+        topicCompletion = ticketWalletTopicCompletion(c)
     }
+}
+
+/// Missing or null hides completion. A non-boolean does not fail the row.
+private func ticketWalletTopicCompletion(_ c: KeyedDecodingContainer<TicketWalletKey>) -> TicketWalletTopicCompletion {
+    let key = TicketWalletKey("topicCompleted")
+    guard c.contains(key) else { return .absent }
+    if (try? c.decodeNil(forKey: key)) == true { return .absent }
+    guard let value = try? c.decode(Bool.self, forKey: key) else { return .unknown }
+    return value ? .completed : .upcoming
 }
 
 public struct TicketWalletEntitlement: Decodable, Equatable, Identifiable {

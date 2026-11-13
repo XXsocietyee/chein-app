@@ -162,6 +162,18 @@ final class TicketWalletTests: XCTestCase {
         }
         XCTAssertEqual(try decode(#"{"id":1,"registrationStatus":2,"verificationStatus":1}"#).redemption, .complete)
     }
+    func testListTopicCompletedSplitsFiltersWithoutInventingRows() async throws {
+        let json = #"{"code":200,"data":[{"id":7,"topicCompleted":true},{"id":8,"topicCompleted":false},{"id":9},{"id":10,"topicCompleted":null},{"id":11,"topicCompleted":"yes"},{"id":12,"topicCompleted":1},{"id":13,"topicCompleted":{}},{"id":14,"topicCompleted":[]}]}"#
+        let t = TicketWalletTransport(["route": .init(json: json), "activity": .init(json: #"{"code":200,"data":[]}"#)])
+        let rows = try await service(t).list(lane: .route, token: "synthetic-token")
+        XCTAssertEqual(rows.map(\.id), [7, 8, 9, 10, 11, 12, 13, 14])
+        XCTAssertEqual(rows.map(\.topicCompletion), [.completed, .upcoming, .absent, .absent, .unknown, .unknown, .unknown, .unknown])
+        XCTAssertEqual(rows.map(\.topicCompletedFlag), [true, false, nil, nil, nil, nil, nil, nil])
+        let detail = TicketWalletTransport(["detail": .init(json: #"{"code":200,"data":{"id":7,"topicCompleted":true}}"#)])
+        let one = try await service(detail).detail(id: 7, token: "synthetic-token")
+        XCTAssertEqual(one.topicCompletion, .completed)
+        XCTAssertEqual(try decode(#"{"id":7}"#).topicCompletion, .absent)
+    }
     func testOwnerPrecedenceAllProductTypesAndUnknownMoneyRetained() throws {
         let ticket = try decode(#"{"id":7,"cmsActivity":{"name":"activity","productType":1},"cmsTopic":{"name":"topic","productType":2},"payableAmount":0}"#)
         XCTAssertEqual(ticket.title, "activity"); XCTAssertEqual(ticket.productType, 1); XCTAssertEqual(ticket.payableAmount, 0)

@@ -664,6 +664,40 @@
         }
       }
     },
+    "mpfresh.ticketWallet.completion.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
+      }
+    },
+    "mpfresh.ticketWallet.completion.unknownLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completion unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通关状态未知"
+          }
+        }
+      }
+    },
     "mpfresh.ticketWallet.filter.all": {
       "extractionState": "manual",
       "localizations": {
