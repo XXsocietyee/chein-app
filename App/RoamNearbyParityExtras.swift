@@ -81,7 +81,9 @@ extension EnvironmentValues {
 
     var body: some View {
         Group {
-            if let binding, let extras = binding.extras {
+            if let production = binding as? RoamPlaceExtrasProduction {
+                RoamPlaceExtrasLive(binding: production)
+            } else if let binding, let extras = binding.extras {
                 RoamPlaceExtrasSection(extras: extras, onPublish: { binding.publishReview(stars: $0, text: $1) })
             }
         }

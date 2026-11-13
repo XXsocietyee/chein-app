@@ -255,7 +255,8 @@ struct RoamBrowserView: View {
             stampDestination: stampDestination, liveDestination: liveDestination,
             toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination,
             anniversaryRouteDestination: anniversaryRouteDestination,
-            privateToolsReader: privateToolsReader)
+            privateToolsReader: privateToolsReader,
+            collectionObjectDestination: { AnyView(SessionObjectCardsView()) })
     }
     /// The ONE overflow menu: area, list/map display, account, passport tools, city, nearby teams, refresh.
     private func overflowMenu<L: View>(@ViewBuilder label: () -> L) -> some View {

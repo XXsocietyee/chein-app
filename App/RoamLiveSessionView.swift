@@ -7,10 +7,20 @@ import Combine
     let controller: RoamLiveSessionController
     let finishedHistory: RoamFinishedHistoryReader
     @Published private var revision = 0
+    /// Frozen when the walk finishes. The settle chip reads this; a later clear of places does not erase it.
+    var finishAddress = RoamFinishAddress.Snapshot()
     init(_ controller: RoamLiveSessionController, offlineExample: Bool) {
         self.controller = controller
         finishedHistory = controller.makeFinishedHistoryReader(offlineExample: offlineExample)
-        controller.onChange = { [weak self] in self?.revision &+= 1 }
+        controller.onChange = { [weak self] in
+            self?.captureFinishAddress()
+            self?.revision &+= 1
+        }
+    }
+    func captureFinishAddress() {
+        guard controller.phase != .finished else { return }
+        let next = RoamFinishAddress.snapshot(phase: controller.phase, places: controller.places, confirmedPOIIDs: controller.record?.confirmedPOIIDs ?? [])
+        if next != finishAddress { finishAddress = next }
     }
 }
 @MainActor struct RoamLiveSessionView: View {
@@ -205,7 +215,9 @@ import Combine
                 sessionContent
             }
         }
-        .onAppear { purposeAccepted = storedPurposeAccepted; owner.setForeground(scenePhase == .active); owner.prepare(); browse.appear() }
+        .onAppear {
+            purposeAccepted = storedPurposeAccepted; owner.setForeground(scenePhase == .active); owner.prepare(); model.captureFinishAddress(); browse.appear()
+        }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
         .onChange(of: owner.phase) { _, phase in
             if phase != .active { nearbyExpanded = true }
@@ -227,7 +239,13 @@ import Combine
         .task(id: owner.phase) { await pulseWhileActive() }
         .cyCelebrations(celebrations)
         .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in
-            finishReport = id == nil ? nil : RoamFinishReport(controller: owner, history: model.finishedHistory)
+            if id == nil {
+                finishReport = nil
+            } else {
+                var report = RoamFinishReport(controller: owner, history: model.finishedHistory)
+                report.currentAddress = model.finishAddress.text(chinese: AppLanguage.interfaceIsChinese(locale))
+                finishReport = report
+            }
             // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
             guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
             celebrations.enqueue(.roamSummary(payload))

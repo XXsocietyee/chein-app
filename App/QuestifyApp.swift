@@ -289,6 +289,7 @@ struct SessionRootView: View {
                         .environment(\.roamPOIActions, session.makeRoamPOIActions())
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
+                        .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
     }
 
