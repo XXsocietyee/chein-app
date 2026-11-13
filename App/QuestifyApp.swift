@@ -379,6 +379,7 @@ struct SessionRootView: View {
         }
         .environmentObject(session)
         .modifier(MPParityPassEnvironment(session: session))
+        .modifier(PassMarketPointsRootModifier(session: session))
         .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
         .environment(\.cityMerchantOperationsFactory, { session.makeCityMerchantOperationsController() })
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })

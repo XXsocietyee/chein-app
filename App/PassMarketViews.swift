@@ -154,6 +154,8 @@ struct PassMarketState: Equatable {
     @State private var route: MPParityRoute?
     @State private var loadedOnce = false
     @Environment(\.mpParity) private var bindings
+    /// Points history (`POST /api/points/list`). Nil keeps the balance card read-only.
+    @Environment(\.passMarketPointsDestination) private var pointsDestination
 
     var body: some View {
         PassMarketView(state: binding.state, initialTab: initialTab,
@@ -161,7 +163,7 @@ struct PassMarketState: Equatable {
                        onOpenProduct: bindings.passDetail == nil ? nil : { route = .pass(productID: $0) },
                        onOpenMembership: { route = .reveal(paid: nil) },
                        onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) },
-                       pointsDestination: nil)
+                       pointsDestination: pointsDestination)
             // Mini-program onShow: the first appearance loads with a skeleton; coming back (from detail, reveal,
             // membership) refreshes quietly so a list already on screen never flashes back to loading.
             .task {
