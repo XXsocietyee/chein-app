@@ -601,6 +601,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             nativeChannelTextSendApproval = { [gates] context in gates.playerWriters(context)?.channelTextSend }
             nativeChannelTextReceiptApproval = { [gates] context in gates.playerWriters(context)?.channelTextReceipt }
             clubPublicTopicsApproval = { [gates] context, clubID in gates.clubPublicTopics(context, clubID: clubID) }
+            nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }
             installSocialWriteApprovals(gates)
         }
     }

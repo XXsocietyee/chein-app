@@ -294,6 +294,7 @@ enum ReviewedPlayerReadRoute {
         return issued
     }
     private var socialWritersByContext: [String: ReviewedSocialWriteGrant] = [:]
+    private var blacklistByContext: [String: NativeBlacklistApproval] = [:]
     private var friendChannelInviteByKey: [String: NativeFriendChannelInviteApproval] = [:]
     private var friendTeamInviteByKey: [String: NativeFriendTeamInviteApproval] = [:]
     private var friendChannelSourceByKey: [String: NativeFriendChannelSourceApproval] = [:]
@@ -467,8 +468,19 @@ enum ReviewedPlayerReadRoute {
         playerWritesEnabled && context.market == .china && (context.role == "player" || context.role == "club")
     }
 
+    /// Contract §8.1 (fourth pass, item 16): the blacklist list/current/receipt reads and the unblock/settle writes are served.
+    /// Adding to the list stays on `api/im/block`. Cached per context so the session's equality fence holds for the hour.
+    func blacklist(_ context: RuntimeDependencyContext) -> NativeBlacklistApproval? {
+        guard socialRole(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = blacklistByContext[key], Date() < existing.expiresAt { return existing }
+        guard let endpoint = makeEndpoint(context, paths: NativeBlacklistApproval.readPaths.union([NativeBlacklistApproval.unblockPath, NativeBlacklistApproval.settlePath])),
+              let issued = try? NativeBlacklistApproval(endpoint: endpoint, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        blacklistByContext[key] = issued
+        return issued
+    }
+
     /// Friend metadata/removal/directory/progress plus the space welcome and onboarding payloads (contract §8, §6.11).
-    /// The block list stays on `api/im/block`/`api/im/unblock`; `api/native/blacklist/*` is not served, so no blacklist lease.
     func socialWriters(_ context: RuntimeDependencyContext) -> ReviewedSocialWriteGrant? {
         guard socialRole(context) else { return nil }
         let key = contextKey(context)

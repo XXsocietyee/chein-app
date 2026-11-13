@@ -60,6 +60,8 @@ import SwiftUI
     private func journeyRunScope(_ topicID: Int?, _ topicName: String?) -> JourneyRunScope {
         var scope = JourneyRunScope(topicID: topicID.map(String.init), topicName: topicName)
         if case .activity(let id) = model.scope { scope.activityID = String(id) }
+        // Contract §5 item 17: a team run carries its play_team id, which opens the in-team (队内) board on report/settle.
+        scope.teamID = model.snapshot?.result.teamID.map(String.init)
         return scope
     }
     var body: some View {

@@ -7,9 +7,10 @@ import FoundationNetworking
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
         XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 997)
-        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 622)
+        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 627)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 375)
+        // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 370)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.liveInProductionCount
                 + ChinaReviewedRouteCapability.newBackendOnlyCount

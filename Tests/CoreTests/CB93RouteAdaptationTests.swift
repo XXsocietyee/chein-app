@@ -44,7 +44,8 @@ final class CB93RouteAdaptationTests: XCTestCase {
         XCTAssertNil(ReviewedMarketLaunch.approvedBaseURLs[.unitedStates])
         // H2 marks /api/topic/publish-status missing on production (996 -> 997, 374 -> 375).
         XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 997)
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 375)
+        // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 370)
     }
 
     func testChinaTransportRewritesOnlyMatchingBodies() async throws {

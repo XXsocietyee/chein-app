@@ -243,8 +243,11 @@ public struct PlayNodesResult: Decodable, Equatable {
     /// Optional theme facts from the same `/api/play/nodes` object. Missing keys stay empty.
     /// A bad `look_json` or cover does not fail the route.
     public let themeFacts: PlayThemeServerFacts
+    /// The viewer's `play_team` id for a team run (channels contract §5, item 17). Nil when absent or malformed;
+    /// a bad value never fails the route.
+    public let teamID: Int?
     private enum CodingKeys: String, CodingKey {
-        case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount
+        case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount, teamId
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
         case topicAiGenerated, productType, topicCover
         case lookJSON = "look_json"
@@ -264,6 +267,7 @@ public struct PlayNodesResult: Decodable, Equatable {
         nodes = try c.decode([PlayNode].self, forKey: .nodes)
         chapters = try c.decodeIfPresent([PlayChapter].self, forKey: .chapters) ?? []
         routeState = try c.decodeIfPresent(PlayRouteState.self, forKey: .routeState)
+        teamID = (try? c.playInt(.teamId)).flatMap { $0 }.flatMap { $0 > 0 ? $0 : nil }
         themeFacts = PlayThemeServerFacts(
             aiGenerated: (try? c.decode(Bool.self, forKey: .topicAiGenerated)) == true,
             productType: PlayThemeServerFacts.lenientInt(c, .productType),

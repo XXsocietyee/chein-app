@@ -73,9 +73,10 @@ import SwiftUI
 }
 
 extension AppSession {
-    /// The team pool for one stop of a topic run. The team is the viewer's own active `play_team` for that topic
-    /// (`/api/team/my`, owner type 1); without one there is no pool. Writes go through the reviewed player-write grant.
-    func teamPoolHint(topicID: Int?, nodeID: Int) -> TeamPoolHintModel? {
+    /// The team pool for one stop of a run. The team is the run's `teamId` from `/api/play/nodes` (contract §5, item 17);
+    /// only when the server omits it does this fall back to the viewer's own active topic team (`/api/team/my`, owner type 1),
+    /// which misses activity-owned teams. Without a team there is no pool. Writes go through the reviewed player-write grant.
+    func teamPoolHint(topicID: Int?, nodeID: Int, runTeamID: Int? = nil) -> TeamPoolHintModel? {
         guard let topicID, topicID > 0, nodeID > 0, let configuration = regionalConfiguration?.apiConfiguration,
               let context = currentRuntimeDependencyContext, composition.playerWriteGrant(context) != nil else { return nil }
         let service = TeamPoolService(configuration: configuration, transport: runtimeHTTPTransport, token: { [weak self] in
@@ -85,6 +86,7 @@ extension AppSession {
         let teams = makeTeamCoordinator()
         return TeamPoolHintModel(service: service, nodeID: Int64(nodeID)) { [weak self] in
             guard self?.currentRuntimeDependencyContext == context else { return nil }
+            if let runTeamID, runTeamID > 0 { return Int64(runTeamID) }
             await teams.loadTeams()
             let live: [TeamStatus] = [.recruiting, .full, .inProgress]
             return teams.teams.first { $0.ownerType == 1 && $0.ownerID == topicID && live.contains($0.status) }.map { Int64($0.id) }
