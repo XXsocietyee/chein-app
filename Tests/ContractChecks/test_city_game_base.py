@@ -38,7 +38,7 @@ class CityGameBaseContracts(unittest.TestCase):
         self.assertEqual(callers, {'App/ReviewedCityGameLease.swift'})
         leases = code('App/ReviewedPlayerWriteLeases.swift')
         self.assertIn('guard playerWritesEnabled, context.role == "player" || context.role == "club",', leases)
-        root = code('App/AppCompositionRoot.swift')
+        root = code('App/ReviewedCityGameLease.swift')
         self.assertIn('guard reviewed?.playerWritesEnabled == true, reviewed?.regional.market == .china else { return nil }', root)
 
     def test_city_routes_move_no_money(self):
