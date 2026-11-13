@@ -48,7 +48,10 @@ struct WalletFormatting {
     }
 
     func signed(_ row: WalletLedgerRow, points: Bool, income: Bool) -> String {
-        guard let source = row.signedText(points: points, income: income) else { return appLocalized("wallet.unknown", locale: locale) }
+        guard let source = row.signedText(points: points, income: income) else {
+            // A missing points change is an em dash. Money stays the existing unknown label.
+            return points ? PointsHistoryPageModel.unknownMark : appLocalized("wallet.unknown", locale: locale)
+        }
         return WalletNumberLocalization.text(source, locale: locale)
     }
 

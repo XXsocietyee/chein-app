@@ -584,8 +584,8 @@ enum WalletPayoutCapability { static let isOn = false }
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
                 HStack(spacing: 2) {
                     Text(verbatim: format.signed(row, points: points, income: income))
-                    if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
-                    else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+                    if points, row.changePoints != nil { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
+                    else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
                 .font(.body.weight(.semibold).monospacedDigit())
                 .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
@@ -919,8 +919,8 @@ private struct WalletIncomeListCard: ViewModifier {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))
                         if let description = item.description { Text(verbatim: description) }
-                        Text(format.points(item.value))
-                        LabeledContent("wallet.doneCount", value: format.count(item.pointsNum))
+                        Text(verbatim: item.value.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)
+                        LabeledContent("wallet.doneCount", value: item.pointsNum == nil ? PointsHistoryPageModel.unknownMark : format.count(item.pointsNum))
                     }.accessibilityElement(children: .combine)
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
