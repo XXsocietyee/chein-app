@@ -49,6 +49,7 @@ public enum ChinaReviewedRouteCapability {
         if socialRoamOwnerGrant.contains(key) { return true }
         if playRuntimeOwnerGrant.contains(key) { return true }
         if videoBountyOwnerGrant.contains(key) { return true }
+        if playerParityBOwnerGrant.contains(key) { return true }
         return playerGapOwnerGrant.contains(key)
     }
 
@@ -165,6 +166,22 @@ public enum ChinaReviewedRouteCapability {
         "/api/map/place-search",
         "/api/map/weather",
         "/api/search/unified"
+
+    /// Parity package P-B (PlayerGapService.parityBPaths): organiser shared-run control, the lead's group member
+    /// ticket scan and seat receipt, editor orient alternatives, the personal circle host, and the analytics batch.
+    /// Payment, payout, withdrawal, and merchant-scope writes stay out.
+    private static let playerParityBOwnerGrant: Set<String> = [
+        "/api/game/session/shared/control",
+        "/api/game/session/shared/export",
+        "/api/game/session/shared/export/anchor",
+        "/api/registration/scan_group_member_ticket",
+        "/api/verify/seat/receipt",
+        "/api/orient/task/alternative",
+        "/api/topic/author-saved-detail",
+        "/api/circle-theme/instance/configure",
+        "/api/project/home",
+        "/api/analytics/events/batch"
+    ]
 
     /// G7/G8 owner approval: non-money player reads and writes the mini-program calls (PlayerGapService).
     /// Payment readiness, payout receiver, club settlement, lead settle, and club host-only routes stay out.

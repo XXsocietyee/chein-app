@@ -43,7 +43,7 @@ public enum PlayerGapReply: Equatable {
     public let baseURL: URL
     public let accountID: Int?
     private let token: () -> String?
-    private let transport: any HTTPTransport
+    let transport: any HTTPTransport
 
     public init(baseURL: URL, accountID: Int? = nil, token: @escaping () -> String?, transport: any HTTPTransport) {
         self.baseURL = baseURL; self.accountID = accountID; self.token = token; self.transport = transport

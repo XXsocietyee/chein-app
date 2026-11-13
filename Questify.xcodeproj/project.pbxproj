@@ -3415,6 +3415,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "BD216DDB876B4C7963BBF508";
 		};
+		"6910E80AB389F704523629F8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/GParityFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"C6D05F243D9C8F8385760F6A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6910E80AB389F704523629F8";
+		};
 		"0CB6B32D71516C0F00352677" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -10798,6 +10808,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "954390EE5271CEDBCD7E2EA7";
 		};
+		"0915466D65F0E9E165E93B16" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/PlayerParityBViews.swift";
+			"sourceTree" = "<group>";
+		};
+		"F9C13B78B16DD3DB0FDDF33D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0915466D65F0E9E165E93B16";
+		};
 		"B5058DF65D3D74DF7D0DCA4F" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -17143,6 +17163,16 @@
 		"3A90CFE65D14A06A7B9FDCC0" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "C6366800749B45AFDDC90A92";
+		};
+		"D6FDBE85DB5FED3D177CABF9" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/AnalyticsEventClient.swift";
+			"sourceTree" = "<group>";
+		};
+		"22BF06B9316D9828E09DF4CE" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D6FDBE85DB5FED3D177CABF9";
 		};
 		"41382BA99F90BA4ACE01C783" = {
 			"isa" = "PBXFileReference";
@@ -28834,6 +28864,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "328A7A1BC2FF2304F47B689C";
 		};
+		"BC221B82BC1A48FBC785649E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PlayerParityBRoutes.swift";
+			"sourceTree" = "<group>";
+		};
+		"7B6CDAD32A6BAB8F2A018916" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "BC221B82BC1A48FBC785649E";
+		};
 		"57BED794C0E308A812B96206" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -38054,6 +38094,7 @@
 				"660467AD6E29254B26658EAF",
 				"EEEAE3DF9BE2DFC8B49818D0",
 				"BD216DDB876B4C7963BBF508",
+				"6910E80AB389F704523629F8",
 				"0CB6B32D71516C0F00352677",
 				"AB2F28F1134AA9B7D2A28CAE",
 				"9B0EDC37EB6DE6F316452DBC",
@@ -38792,6 +38833,7 @@
 				"911ED5C30B41A4690F0B25AA",
 				"53F1419CFF5949AB37C72775",
 				"954390EE5271CEDBCD7E2EA7",
+				"0915466D65F0E9E165E93B16",
 				"B5058DF65D3D74DF7D0DCA4F",
 				"2D9D2A4BEC3E1B4CEB7F806A",
 				"F39D9344264ACF8053BC458D",
@@ -39426,6 +39468,7 @@
 				"BD3F3EF65D30A5590A852912",
 				"8E602AE5A69EAB43BC767769",
 				"C6366800749B45AFDDC90A92",
+				"D6FDBE85DB5FED3D177CABF9",
 				"41382BA99F90BA4ACE01C783",
 				"23B94D52B4077ADEA360A424",
 				"2C431355C0B5889A6DDEEDCE",
@@ -40595,6 +40638,7 @@
 				"0378F5880D64BEA8DA27751A",
 				"E1F4AC1CBFD700CF64A04C73",
 				"328A7A1BC2FF2304F47B689C",
+				"BC221B82BC1A48FBC785649E",
 				"57BED794C0E308A812B96206",
 				"179C43064F513DC518079394",
 				"7DBE76828FCE4CBCA66ACF5B",
@@ -42961,6 +43005,7 @@
 				"B1AECB3F4F55E37160E515B8",
 				"36F915A633BC817C5A79FBE8",
 				"ECD6A92F8733A7C36AD7FD87",
+				"C6D05F243D9C8F8385760F6A",
 				"7E20C58C75FE0A0D06714094",
 				"F5F75EDEBBDCF86DC2C80F40",
 				"AACCA15E06488CEC7A5DB23D",
@@ -43699,6 +43744,7 @@
 				"DF50194C8FBE8A171D4CD4C0",
 				"1624F543507EF43108EF24D0",
 				"473DE4D11FF63F3666CE052C",
+				"F9C13B78B16DD3DB0FDDF33D",
 				"B0BAE0EAA77F2287BC231598",
 				"B54B71CFF04B0C27AD6C3C4A",
 				"B1B3A5CCA7460A887F1316F9",
@@ -44333,6 +44379,7 @@
 				"D36E7448A0074261F8B7F59C",
 				"CC2471F589AFBD9E752F8F81",
 				"3A90CFE65D14A06A7B9FDCC0",
+				"22BF06B9316D9828E09DF4CE",
 				"041EFEC8B0CCA70C0F703CAB",
 				"EFD0C7603312157E857957E6",
 				"F82926D7F08A11607E90F58E",
@@ -45502,6 +45549,7 @@
 				"4C5E9D710C64372C9FB1CEE8",
 				"B1A924A737D4DB2E90B060DA",
 				"DC16672F5AAECEF6E3CD7D5B",
+				"7B6CDAD32A6BAB8F2A018916",
 				"4496CBF6C86AD4D033C88D91",
 				"5C1B94080EABB95EE72EFE69",
 				"953DBC844D375FB52ECA8A0D",
@@ -46497,7 +46545,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift CarouselFixtures.swift ClubCardFixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift IAFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift WaveFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift CarouselFixtures.swift ClubCardFixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift WaveFixtures.swift";
 			};
 			"baseConfigurationReference" = "2DE2C287CCE985622F66EC30";
 		};

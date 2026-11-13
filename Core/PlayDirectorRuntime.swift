@@ -4,6 +4,8 @@ import Observation
 public struct PlayDirectorProjection: Equatable {
     public let activityID: Int; public let sessionID: Int?; public let revision: Int; public let status: String
     public let availableActions: Set<String>; public let club: PlayWireValue; public let currentChapterID: Int?
+    /// `ROUTE` sessions also carry the organiser's shared-run control (`club-game-director-adapter.js load`).
+    public let playMode: String?
     public init(_ raw: PlayWireValue, activityID: Int) throws {
         guard activityID > 0, raw["activityId"].integer == activityID, raw["perspective"].text == "CLUB",
               let revision = raw["revision"].integer, revision >= 0, let status = raw["status"].text else { throw PlayExperienceError.malformed }
@@ -11,7 +13,7 @@ public struct PlayDirectorProjection: Equatable {
         let notPrepared = status == "NOT_PREPARED" && revision == 0 && availableActions.contains("PREPARE") && raw["sessionId"] == .null
         guard notPrepared || ((raw["sessionId"].integer ?? 0) > 0 && raw["club"].object != nil) else { throw PlayExperienceError.malformed }
         self.activityID = activityID; sessionID = raw["sessionId"].integer; self.revision = revision; self.status = status
-        club = raw["club"]; currentChapterID = raw["currentChapterId"].integer
+        club = raw["club"]; currentChapterID = raw["currentChapterId"].integer; playMode = raw["playMode"].text
     }
     public var stations: [PlayWireValue] { club["stations"].array ?? [] }
     public var teams: [PlayWireValue] { club["teams"].array ?? [] }

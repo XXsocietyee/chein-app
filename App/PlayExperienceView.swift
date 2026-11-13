@@ -335,7 +335,12 @@ import SwiftUI
                         }
                     }
                     if let circleModel { NavigationLink("playx.circle.title") { PlayCircleView(model: circleModel) } }
-                    if let card = finishRouteModel?.card { PlayFinishRouteCardView(card: card, destination: finishRouteDestination) }
+                    if circleModel != nil, let topicID = model.snapshot?.result.topicID, topicID > 0 { CircleThemeHostSection(topicID: topicID) }
+                    if let card = finishRouteModel?.card {
+                        PlayFinishRouteCardView(card: card, destination: finishRouteDestination)
+                            .modifier(FinishRouteAnalyticsModifier(card: card, activityID: { if case .activity(let id) = model.scope { return id }; return nil }(),
+                                topicID: model.snapshot?.result.topicID, runID: model.snapshot?.result.routeState?.sessionID, mode: model.snapshot?.result.mode))
+                    }
                     if mpParity.journeyReport != nil, let snapshot = model.snapshot, snapshot.availability == .completed {
                         // Mini-program report/settle open at the end of a run; hidden until the journey binding exists.
                         NavigationLink { MPParityDestination(route: .journeyReport(journeyRunScope(snapshot.result.topicID, snapshot.result.topicName))) } label: {
@@ -903,6 +908,7 @@ struct PlayExperienceIssueView: View {
                                              reload: { Task { await model.loadLead(context: context) } })
                 } else if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
+                    if lead.exists, case .activity(let activityID) = model.scope { LeadMemberTicketScanButton(activityID: activityID) }
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
                     if !lead.exists { actionButton(context: context, .start) }
                     else { actionButton(context: context, .broadcast); actionButton(context: context, .unlockChapter); actionButton(context: context, .settle) }

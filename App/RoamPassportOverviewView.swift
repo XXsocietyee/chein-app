@@ -6,7 +6,17 @@ import SwiftUI
     let retry: () -> Void
     /// BL-41 official-events card destination (single event detail, or the official task list).
     var officialEventDestination: ((Int?) -> AnyView)? = nil
+    @Environment(\.roamPassportHistoryReader) private var serverReader
     var body: some View {
+        // pages/roam _loadIntroPassport: server completed facts are the passport stats when the owner read exists.
+        if let serverReader, serverReader.isConfigured {
+            RoamPassportServerSummarySection(reader: serverReader)
+            Section { OfficialRoamActiveCardView(destination: officialEventDestination) }
+        } else {
+            localOverview
+        }
+    }
+    private var localOverview: some View {
         Section("roam.passport.title") {
             switch phase {
             case .unloaded:

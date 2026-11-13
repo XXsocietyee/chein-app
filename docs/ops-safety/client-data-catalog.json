@@ -419,6 +419,15 @@
       "deletion": "Deleted for the previous account on a real account switch only; logout, first login and same-account relogin do not delete"
     },
     {
+      "file": "Core/AnalyticsEventClient.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Analytics event queue per account (p3_analytics_queue_v1:<account>), at most 100 allow-listed events with sanitized properties and no device or contact identifiers; acknowledged batches leave the queue",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "Core/AppPreferences.swift",
       "kinds": [
         "userDefaults"
@@ -632,6 +641,15 @@
         "userDefaults"
       ],
       "purpose": "Official event signup command: the one open signup intention per account and event (cy-team-event-command-v1:<account>:SIGNUP:<event>) with its 32-hex request id; cleared on a terminal receipt",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/PlayerParityBRoutes.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Lead member ticket scan: one UNKNOWN seat verification per account and seat (verification_unknown_v1:<account>:seat:<registrationId>:<seatNo>) holding the seat target; a held seat is only reread, cleared on a terminal receipt",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
