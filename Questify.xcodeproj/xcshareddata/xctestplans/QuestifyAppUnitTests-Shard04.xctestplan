@@ -490,6 +490,7 @@
         "RetainedImageNormalHostTests",
         "RetainedImageSanitizerTests",
         "RevealChoreographerTests",
+        "ReviewedAreaSwitchTests",
         "ReviewedHookWiring2Base",
         "ReviewedHookWiringTests",
         "ReviewedOrientOfficialRouteTests",

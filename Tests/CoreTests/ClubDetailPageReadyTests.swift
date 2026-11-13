@@ -140,7 +140,7 @@ final class ClubDetailPageReadyTests: XCTestCase {
         XCTAssertTrue(member.showsLeaderboard)
         XCTAssertFalse(member.showsOwnerAI)
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/channels"), .missing)
-        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/channels"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/channels"))
 
         let owner = try ready(#"{"id":81,"isOwner":true,"isJoined":true}"#)
         XCTAssertTrue(owner.showsManageTab)

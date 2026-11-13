@@ -479,6 +479,7 @@
         "ReleaseArchiveChecklistSectionViewTests",
         "ReleasePreflightDiagnosticsViewTests",
         "RetainedImageNormalHostTests",
+        "ReviewedAreaSwitchTests",
         "ReviewedChinaLaunchCompositionTests",
         "ReviewedHookWiring2Base",
         "ReviewedOrientOfficialRouteTests",

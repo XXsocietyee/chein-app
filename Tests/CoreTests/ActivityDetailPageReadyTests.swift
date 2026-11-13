@@ -16,7 +16,7 @@ final class ActivityDetailPageReadyTests: XCTestCase {
         XCTAssertEqual(ActivityDetailPageCapability.readPath, SignedInContentDetailReadRoute.activity.path)
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: ActivityDetailPageCapability.readPath), .liveInProduction)
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/activity/detail"), .missing)
-        XCTAssertTrue(ChinaReviewedRouteCapability.isHiddenFromChinaReviewed("/api/club/activity/detail"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.isHiddenFromChinaReviewed("/api/club/activity/detail"))
         XCTAssertFalse(ActivityDetailPageCapability.showsMerchantChoice)
         XCTAssertFalse(ActivityDetailPageCapability.paymentEnabled)
         XCTAssertFalse(ActivityDetailPageCapability.payoutEnabled)

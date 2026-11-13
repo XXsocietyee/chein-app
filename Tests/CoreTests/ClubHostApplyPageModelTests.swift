@@ -33,7 +33,7 @@ final class ClubHostApplyPageModelTests: XCTestCase {
         XCTAssertFalse(ClubHostApplyPageModel.capabilityGranted(baseURL: nil))
         let china = URL(string: ReviewedMarketLaunch.chinaProductionBaseURL)
         XCTAssertTrue(ClubHostApplyPageModel.capabilityGranted(baseURL: china))
-        XCTAssertFalse(ChinaReviewedRouteCapability.offersFeature("/api/club/channels", baseURL: china))
+        XCTAssertTrue(ChinaReviewedRouteCapability.offersFeature("/api/club/channels", baseURL: china))
         let hidden = model(snapshot: ClubHostApplyFixtureData.player, capability: false)
         XCTAssertEqual(hidden.phase, .hidden)
         XCTAssertEqual(hidden.accessibilityIdentifier, "club.host.apply.hidden")

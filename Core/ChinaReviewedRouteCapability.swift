@@ -54,6 +54,7 @@ public enum ChinaReviewedRouteCapability {
         if playerParityBOwnerGrant.contains(key) { return true }
         if playerGapOwnerGrant.contains(key) { return true }
         if creatorStudioOwnerGrant.contains(key) { return true }
+        if clubAndMerchantCoopOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -307,6 +308,32 @@ public enum ChinaReviewedRouteCapability {
         "/api/creator/maintenance/tickets/{}/close",
         "/api/creator/maintenance/requests/{}",
         "/api/creator/analytics/post-game-outcome"
+    ]
+
+    /// Handover 20, owner correction 2026-11-13. The club and merchant-club paths the app names.
+    /// Settlement export stays out: the screen calls it only when payout is on, and payout is off here.
+    private static let clubAndMerchantCoopOwnerGrant: Set<String> = [
+        "/api/club-compensation/quality/evidence",
+        "/api/club/activity/cancel",
+        "/api/club/activity/detail",
+        "/api/club/activity/join",
+        "/api/club/channels",
+        "/api/club/events",
+        "/api/club/events/Checkin",
+        "/api/club/events/proxy-enroll",
+        "/api/club/events/save",
+        "/api/club/group-code",
+        "/api/club/group-code/save",
+        "/api/club/join-requests/apply",
+        "/api/club/lead",
+        "/api/club/notices",
+        "/api/club/notices/send",
+        "/api/club/post",
+        "/api/club/post/operation",
+        "/api/club/post/operation/comment",
+        "/api/club/roles",
+        "/api/club/workbench",
+        "/api/coop"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
