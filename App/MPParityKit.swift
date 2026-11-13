@@ -86,6 +86,8 @@ struct JourneyRunScope: Hashable {
     var runID: String?
     var topicName: String?
     var registrationID: String?
+    /// The viewer's `play_team` id when the run is a team run. Only this opens the in-team member board.
+    var teamID: String?
 }
 
 // MARK: - Routes
@@ -142,7 +144,8 @@ enum MPParityRoute: Hashable, Identifiable {
             self = .journeyPromo
         case "subpackageJourney/pages/report/index", "subpackageJourney/pages/settle/index":
             let scope = JourneyRunScope(activityID: nonEmpty("activityId"), topicID: nonEmpty("topicId"), runID: nonEmpty("runId"),
-                                        topicName: nonEmpty("topicName"), registrationID: nonEmpty("registrationId"))
+                                        topicName: nonEmpty("topicName"), registrationID: nonEmpty("registrationId"),
+                                        teamID: nonEmpty("teamId"))
             self = page.hasSuffix("report/index") ? .journeyReport(scope) : .journeySettle(scope)
         default:
             return nil

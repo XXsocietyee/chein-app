@@ -59933,13 +59933,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't use this file. Choose a PDF, Office, ZIP or TXT file up to 20 MB."
+            "value": "Couldn't use this file. Choose a PDF, Office, ZIP or TXT file up to 10 MB."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法使用此文件，请选择不超过 20 MB 的 PDF、Office、ZIP 或 TXT 文件。"
+            "value": "无法使用此文件，请选择不超过 10 MB 的 PDF、Office、ZIP 或 TXT 文件。"
           }
         }
       }
@@ -264789,6 +264789,261 @@
           "stringUnit": {
             "state": "translated",
             "value": "积分须为非负整数"
+          }
+        }
+      }
+    },
+    "teamPool.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team pool"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍共享资源"
+          }
+        }
+      }
+    },
+    "teamPool.hintsLeft %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hints %1$lld/%2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示 %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "teamPool.skipsLeft %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skips %1$lld/%2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过 %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "teamPool.score %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team score %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍得分 %lld"
+          }
+        }
+      }
+    },
+    "teamPool.hintLevel %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team hint · level %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍提示 · 第 %lld 级"
+          }
+        }
+      }
+    },
+    "teamPool.useHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a team hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用队伍提示"
+          }
+        }
+      }
+    },
+    "teamPool.keepChecking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再查一次"
+          }
+        }
+      }
+    },
+    "teamPool.coveredByTeam": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A teammate already opened this hint. No extra hint was used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队友已打开过此提示，未再消耗次数。"
+          }
+        }
+      }
+    },
+    "teamPool.exhausted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The team has no hints left."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍提示次数已用完。"
+          }
+        }
+      }
+    },
+    "teamPool.timerExpired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The team timer has ended."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍计时已结束。"
+          }
+        }
+      }
+    },
+    "teamPool.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team pool isn't available for this run."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局暂不支持队伍共享资源。"
+          }
+        }
+      }
+    },
+    "teamPool.hintUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hint text is available for this stop. Nothing was used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此点位暂无可用提示，未消耗次数。"
+          }
+        }
+      }
+    },
+    "teamPool.notMember": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only active team members can use the team pool."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有队伍成员可以使用队伍共享资源。"
+          }
+        }
+      }
+    },
+    "teamPool.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't confirm the result. Check again before trying once more."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未确认结果，请先再查一次。"
+          }
+        }
+      }
+    },
+    "teamPool.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the team hint."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍提示加载失败。"
           }
         }
       }

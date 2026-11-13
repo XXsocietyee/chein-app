@@ -107,7 +107,7 @@ import FoundationNetworking
             var query = [URLQueryItem(name:"guild_kind",value:"1"),URLQueryItem(name:"guild_id",value:captured.ownerID.rawValue),URLQueryItem(name:"limit",value:"50")]
             if let before { query.append(URLQueryItem(name:"cursor",value:before)) }
             let data = try await exchange("GET","api/im/moderation/actions",query:query)
-            guard valid(run), let values = data["list"] as? [[String:Any]], values.count <= 50, let hasMore = data["has_more"] as? Bool else { throw APIError.malformedResponse }
+            guard valid(run), let values = data["list"] as? [[String:Any]], values.count <= 50, let hasMore = JSONFlexibleFlag.value(data["has_more"]) else { throw APIError.malformedResponse }
             let page = try values.map(parseAction); var previous = before.flatMap(Int64.init)
             for row in page { guard let id = Int64(row.id), previous.map({ id < $0 }) ?? true else { throw APIError.malformedResponse }; previous = id }
             let next = NativeChannelGovernanceNotice.positive(data["next_cursor"])

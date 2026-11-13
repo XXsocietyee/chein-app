@@ -479,6 +479,7 @@
         "ReviewedChinaLaunchCompositionTests",
         "ReviewedHookWiring2Base",
         "ReviewedOrientOfficialRouteTests",
+        "ReviewedSocialWriteLeaseTests",
         "RoamAlbumDenialHostTests",
         "RoamAlbumMetadataReadAccessTests",
         "RoamAnniversaryHostRestorationTests",

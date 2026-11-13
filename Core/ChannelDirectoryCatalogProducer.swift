@@ -5,8 +5,8 @@ import FoundationNetworking
 import CoreFoundation
 
 /// Reads the original channel directory detail and builds the current catalog.
-/// `version` is the published snapshot. A missing or non-positive version closes
-/// this open. It does not invent a version and does not use another domain's permission.
+/// `version` is the published snapshot. A freshly created channel is published at `version "0"`
+/// (contract §7.1), so 0 opens at once; a missing or negative version closes this open. It does not invent a version and does not use another domain's permission.
 public enum ChannelDirectoryCatalogFailure: Error, Equatable {
     case unpublished
     case wrongSpace
@@ -43,7 +43,7 @@ public enum ChannelDirectoryCatalogProducer {
               exact(payload["guild_kind"]) == Int64(kind) else {
             throw ChannelDirectoryCatalogFailure.wrongSpace
         }
-        guard let version = exact(payload["version"]), version > 0, version <= Int64(Int.max),
+        guard let version = exact(payload["version"]), version >= 0, version <= Int64(Int.max),
               let container = payload["message_container"] as? [String: Any],
               let conversation = exact(container["id"]), conversation > 0, conversation <= Int64(Int.max) else {
             throw ChannelDirectoryCatalogFailure.unpublished

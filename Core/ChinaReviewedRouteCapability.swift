@@ -40,8 +40,66 @@ public enum ChinaReviewedRouteCapability {
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
+        if channelsSocialOwnerGrant.contains(key) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
+
+    /// Owner approval 2026-11-13. Channels, channel messages, governance, notifications, admission, IM media attach,
+    /// friends, the team shared resource pool and the in-team board, as served by hengyin `feature/im-channels`
+    /// (`docs/channels/contract.md` §1–§8). These are non-money player/club social writes and their reads.
+    /// Money is still refused first by `ReleaseMoneyWriteSwitch` and `forcedOff`; webhooks and the anchored audit log stay out.
+    public static let channelsSocialOwnerGrant: Set<String> = [
+        // §1 directory and management
+        "/api/guilds/{}/{}/channels", "/api/guilds/{}/{}/channels/manage", "/api/channels/{}", "/api/channels/{}/archive",
+        "/api/channels/{}/restore", "/api/channels/{}/permissions", "/api/channels/{}/permissions/{}/{}", "/api/channels/{}/effective/{}",
+        "/api/channel-platform/requests/{}", "/api/channel-platform/governance/requests/{}", "/api/channels/{}/op-log",
+        "/api/channels/{}/members", "/api/im/roles", "/api/im/roles/{}", "/api/im/members/{}/roles", "/api/im/roles/{}/members",
+        // §2 messages
+        "/api/im/messages", "/api/im/send", "/api/im/send-receipt", "/api/native/channels/read-through", "/api/im/message/edit",
+        "/api/im/message/recall", "/api/im/message/request", "/api/im/message/mutations", "/api/im/message/context",
+        "/api/im/message/{}/revisions", "/api/im/pins", "/api/im/pin", "/api/im/unpin", "/api/im/pins/sort", "/api/im/search",
+        "/api/im/message/{}/attachment", "/api/im/message",
+        // §3 progress board and privacy
+        "/api/channel/{}/board", "/api/channel/{}/progress/overview", "/api/channel/{}/board/{}/top", "/api/channel/{}/board/{}/detail",
+        "/api/channel/{}/board/{}/me/best", "/api/channel/{}/board/{}/me/recent", "/api/channel/{}/board/{}/version",
+        "/api/progress/meter", "/api/privacy/progress", "/api/progress/requests/{}", "/api/progress/requests",
+        "/api/channel/{}/progress/privacy",
+        // §4 team pool, §5 in-team board (`/api/rank/list` is already in the journey grant)
+        "/api/team/pool", "/api/team/pool/hint", "/api/team/pool/skip", "/api/team/pool/timer/start", "/api/team/pool/requests/{}",
+        // §6.1–6.5 member state, moderation, appeals, reports
+        "/api/channels/{}/member-state", "/api/channels/member-state-requests/{}", "/api/im/moderation/timeout",
+        "/api/im/moderation/kick", "/api/im/moderation/ban", "/api/im/moderation/{}/revoke", "/api/im/moderation/actions",
+        "/api/im/moderation/me", "/api/channel-platform/governance/moderation/requests/{}", "/api/im/appeals", "/api/im/appeals/{}",
+        "/api/im/appeals/{}/evidence", "/api/im/appeals/{}/withdraw", "/api/im/report", "/api/channel-platform/governance/reports/requests/{}",
+        // §6.7 chain and check-in (no rewards)
+        "/api/im/chain/create", "/api/im/chain/join", "/api/im/chain/withdraw", "/api/im/chain/close", "/api/im/chain/info",
+        "/api/im/interaction/request", "/api/im/channel/checkin", "/api/im/channel/checkin-status", "/api/im/channel/checkin-rank",
+        "/api/im/channel/checkin-request",
+        // §6.8 notifications
+        "/api/im/notify-pref", "/api/im/mute", "/api/im/read", "/api/im/notification-requests/{}", "/api/im/unread-summary",
+        "/api/im/notify-log", "/api/im/read-state", "/api/im/read-receipt", "/api/im/mute-state", "/api/im/mute-receipt",
+        // §6.10–6.11 admission, welcome, onboarding
+        "/api/join-request/submit", "/api/join-request/cancel", "/api/join-request/approve", "/api/join-request/reject",
+        "/api/space/leave", "/api/space/join-pause", "/api/invite/revoke", "/api/channel-platform/admission/requests/{}",
+        "/api/welcome-screen/get", "/api/onboarding/get", "/api/onboarding/submit",
+        // §6.14 IM media, polls, route share
+        "/api/im/file/upload", "/api/im/file/receipt", "/api/im/file/scan", "/api/im/file/delete",
+        "/api/im/file/message/{}/authorization", "/api/im/file/message/{}/preview",
+        "/api/im/video/upload", "/api/im/video/receipt", "/api/im/video/delete", "/api/im/video/policy",
+        "/api/im/video/message/{}/authorization", "/api/im/video/message/{}/preview",
+        "/api/im/voice/upload", "/api/im/voice/receipt", "/api/im/voice/delete", "/api/im/voice/message/{}/authorization",
+        "/api/im/voice/message/{}", "/api/im/poll/create-receipt", "/api/im/route-share-source", "/api/im/device/attempts",
+        // §8 friends (block list stays on the existing `/api/im/block` and `/api/im/unblock`)
+        "/api/friend/list", "/api/friend/requests", "/api/friend/relationship", "/api/friend/request", "/api/friend/accept",
+        "/api/friend/reject", "/api/friend/cancel", "/api/friend/receipt", "/api/friend/remove", "/api/friend/removal/receipt",
+        "/api/friend/removal/settle", "/api/friend/metadata", "/api/friend/remark", "/api/friend/group/save",
+        "/api/friend/group/delete", "/api/friend/group/list", "/api/friend/metadata/receipt", "/api/friend/metadata/settle",
+        "/api/friend/directory", "/api/friend/directory/detail", "/api/friend/progress",
+        "/api/friend/channel-invite/picker", "/api/friend/channel-invite/batch", "/api/friend/channel-invite/notice",
+        "/api/friend/channel-invite/landing", "/api/friend/channel-invite/mine", "/api/friend/channel-invite/receipt",
+        "/api/friend/channel-invite/command", "/api/friend/team-invite/picker", "/api/friend/team-invite/landing",
+        "/api/friend/team-invite/mine", "/api/team/original-request", "/api/im/block", "/api/im/unblock"
+    ]
 
     /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,
     /// seat invite/claim/cancel, and the boards those screens read.

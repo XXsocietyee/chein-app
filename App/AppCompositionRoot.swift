@@ -600,6 +600,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
             nativeChannelTextSendApproval = { [gates] context in gates.playerWriters(context)?.channelTextSend }
             nativeChannelTextReceiptApproval = { [gates] context in gates.playerWriters(context)?.channelTextReceipt }
+            installSocialWriteApprovals(gates)
         }
     }
 
@@ -3612,24 +3613,6 @@ extension KeychainTokenStore: AppTokenStorage {}
     }
 }
 
-/// Writers the shipped China composition constructs. Admission is `ReviewedProductionFormMutationRoute`.
-struct ReviewedPlayerWriteGrant {
-    let imSend: OperationEndpointApproval
-    let clubAdmission: ClubOrdinaryAdmissionApproval
-    let clubCommunity: OperationEndpointApproval
-    let square: OperationEndpointApproval
-    let profile: OperationEndpointApproval
-    let avatar: ProfileAvatarApproval
-    let registration: OperationEndpointApproval
-    let team: OperationEndpointApproval
-    let play: OperationEndpointApproval
-    let roamExtras: OperationEndpointApproval
-    let likes: OperationEndpointApproval
-    let reports: OperationEndpointApproval
-    let friends: NativeFriendApproval
-    let channelTextSend: NativeChannelTextApproval
-    let channelTextReceipt: NativeChannelTextApproval
-}
 
 /// Checked avatar upload. The ordinary profile transport is not an implicit avatar capability.
 @MainActor final class ReviewedProfileAvatarDispatch: ProfileAvatarDispatching {

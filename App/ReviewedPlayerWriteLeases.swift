@@ -45,7 +45,19 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
-        if method == "GET" { return covers(relative, grant.friends.endpoint) }
+        if method == "GET" {
+            let emptyBody = request.httpBody?.isEmpty ?? true
+            // Admission receipts use the client's own `adm-<uuid>` request ids (contract §0.3 management form).
+            let receipt = "api/channel-platform/admission/requests/"
+            if relative.hasPrefix(receipt), grant.admission.paths.contains(receipt + "{}") {
+                return emptyBody && relative.dropFirst(receipt.count).range(of: "^[A-Za-z0-9_.:-]{8,64}$", options: .regularExpression) != nil
+            }
+            // Admission first reads the channel detail for the current catalog (`ChannelDirectoryCatalogProducer`).
+            if ChinaReviewedRouteCapability.normalized("/" + relative) == "/api/channels/{}", grant.admission.paths.contains(receipt + "{}") {
+                return emptyBody
+            }
+            return covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool)
+        }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
             return covers(relative, grant.team) && teamRequestID(request)
@@ -53,6 +65,7 @@ extension ReviewedProductionFormMutationRoute {
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
+            || covers(relative, grant.admission) || covers(relative, grant.teamPool)
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -152,6 +165,11 @@ extension ReviewedProductionFormMutationRoute {
     private var playerWritesEnabled = false
     private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
     private var playConfigurationByContext: [String: RuntimeDependencyConfiguration] = [:]
+    private var socialWritersByContext: [String: ReviewedSocialWriteGrant] = [:]
+    private var friendChannelInviteByKey: [String: NativeFriendChannelInviteApproval] = [:]
+    private var friendTeamInviteByKey: [String: NativeFriendTeamInviteApproval] = [:]
+    private var friendChannelSourceByKey: [String: NativeFriendChannelSourceApproval] = [:]
+    private var channelManagementByKey: [String: NativeChannelManagementApproval] = [:]
 
     // player-write-paths-begin
     static let imPaths: Set<String> = ["api/im/send", "api/im/send-receipt"]
@@ -190,6 +208,15 @@ extension ReviewedProductionFormMutationRoute {
         "api/club/post/comment/report", "api/club/governance/cases/report", "api/club/governance/cases/appeal",
         "api/orient/scoring/appeal", "api/orient/scoring/dispute"
     ]
+    /// Space admission (contract §6.10). Approve/reject/pause/revoke are owner/admin writes the backend checks.
+    static let admissionPaths: Set<String> = [
+        "api/join-request/submit", "api/join-request/cancel", "api/join-request/approve", "api/join-request/reject",
+        "api/space/leave", "api/space/join-pause", "api/invite/revoke", "api/channel-platform/admission/requests/{}"
+    ]
+    /// Team shared resource pool (contract §4). Hints and skips spend the team's pool, never points or money.
+    static let teamPoolPaths: Set<String> = [
+        "api/team/pool", "api/team/pool/hint", "api/team/pool/skip", "api/team/pool/timer/start", "api/team/pool/requests/{}"
+    ]
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening
     ]
@@ -226,10 +253,13 @@ extension ReviewedProductionFormMutationRoute {
               let channelTextSend = try? NativeChannelTextApproval(context: context, operation: .send, conversationIDs: [],
                   expiresAt: expires, allowsAnyPositiveConversation: true),
               let channelTextReceipt = try? NativeChannelTextApproval(context: context, operation: .receipt, conversationIDs: [],
-                  expiresAt: expires, allowsAnyPositiveConversation: true) else { return nil }
+                  expiresAt: expires, allowsAnyPositiveConversation: true),
+              let admission = makeEndpoint(context, paths: Self.admissionPaths),
+              let teamPool = makeEndpoint(context, paths: Self.teamPoolPaths) else { return nil }
         return ReviewedPlayerWriteGrant(imSend: im, clubAdmission: clubAdmission, clubCommunity: clubCommunity, square: square,
             profile: profile, avatar: avatar, registration: registration, team: team, play: play, roamExtras: roamExtras,
-            likes: likes, reports: reports, friends: friends, channelTextSend: channelTextSend, channelTextReceipt: channelTextReceipt)
+            likes: likes, reports: reports, friends: friends, channelTextSend: channelTextSend, channelTextReceipt: channelTextReceipt,
+            admission: admission, teamPool: teamPool)
     }
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {
@@ -239,6 +269,108 @@ extension ReviewedProductionFormMutationRoute {
     private func makeEndpoint(_ context: RuntimeDependencyContext, paths: Set<String>) -> OperationEndpointApproval? {
         try? .init(baseURL: context.baseURL, namespace: context.session.namespace,
                    accountID: context.session.accountID, paths: paths)
+    }
+
+    // MARK: Channels + friends social writes (owner approval: non-money player/club social writes)
+
+    private func socialRole(_ context: RuntimeDependencyContext) -> Bool {
+        playerWritesEnabled && context.market == .china && (context.role == "player" || context.role == "club")
+    }
+
+    /// Friend metadata/removal/directory/progress plus the space welcome and onboarding payloads (contract §8, §6.11).
+    /// The block list stays on `api/im/block`/`api/im/unblock`; `api/native/blacklist/*` is not served, so no blacklist lease.
+    func socialWriters(_ context: RuntimeDependencyContext) -> ReviewedSocialWriteGrant? {
+        guard socialRole(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = socialWritersByContext[key], Date() < existing.expiresAt { return existing }
+        let expires = Date().addingTimeInterval(3600)
+        guard let metadataEndpoint = makeEndpoint(context, paths: NativeFriendMetadataApproval.allowedPaths),
+              let metadata = try? NativeFriendMetadataApproval(endpoint: metadataEndpoint, expiresAt: expires,
+                  allowsStarChanges: true, allowsGroupChanges: true, allowsProgressChanges: true),
+              let removalEndpoint = makeEndpoint(context, paths: NativeFriendRemovalApproval.readPaths.union([NativeFriendRemovalApproval.removePath])),
+              let removal = try? NativeFriendRemovalApproval(endpoint: removalEndpoint, expiresAt: expires),
+              let directoryEndpoint = makeEndpoint(context, paths: NativeFriendDirectoryApproval.paths),
+              let directory = try? NativeFriendDirectoryApproval(endpoint: directoryEndpoint, expiresAt: expires),
+              let progressEndpoint = makeEndpoint(context, paths: [NativeFriendProgressApproval.path]),
+              let progress = try? NativeFriendProgressApproval(endpoint: progressEndpoint, expiresAt: expires),
+              let welcomeEndpoint = makeEndpoint(context, paths: [NativeChannelWelcomeApproval.path]),
+              let welcome = try? NativeChannelWelcomeApproval(endpoint: welcomeEndpoint, expiresAt: expires),
+              let onboardingEndpoint = makeEndpoint(context, paths: [NativeChannelOnboardingApproval.read,
+                  NativeChannelOnboardingApproval.submit, NativeChannelOnboardingApproval.receipts]),
+              let onboarding = try? NativeChannelOnboardingApproval(endpoint: onboardingEndpoint, expiresAt: expires) else { return nil }
+        let grant = ReviewedSocialWriteGrant(expiresAt: expires, friendMetadata: metadata, friendRemoval: removal,
+            friendDirectory: directory, friendProgress: progress, welcome: welcome, onboarding: onboarding)
+        socialWritersByContext[key] = grant
+        return grant
+    }
+
+    func friendChannelInvite(_ context: RuntimeDependencyContext, mode: NativeFriendChannelInviteMode) -> NativeFriendChannelInviteApproval? {
+        guard socialRole(context), mode.valid else { return nil }
+        let key = contextKey(context) + "|\(mode)"
+        if let existing = friendChannelInviteByKey[key], existing.mode == mode, Date() < existing.expiresAt { return existing }
+        guard let endpoint = makeEndpoint(context, paths: NativeFriendChannelInviteApproval.reads.union(NativeFriendChannelInviteApproval.writes)),
+              let approval = try? NativeFriendChannelInviteApproval(endpoint: endpoint, mode: mode,
+                  expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        friendChannelInviteByKey[key] = approval
+        return approval
+    }
+
+    func friendTeamInvite(_ context: RuntimeDependencyContext, mode: NativeFriendTeamInviteMode) -> NativeFriendTeamInviteApproval? {
+        guard socialRole(context), mode.valid else { return nil }
+        let key = contextKey(context) + "|\(mode)"
+        if let existing = friendTeamInviteByKey[key], existing.mode == mode, Date() < existing.expiresAt { return existing }
+        guard let endpoint = makeEndpoint(context, paths: NativeFriendTeamInviteApproval.paths),
+              let approval = try? NativeFriendTeamInviteApproval(endpoint: endpoint, mode: mode, allowWrites: true,
+                  expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        friendTeamInviteByKey[key] = approval
+        return approval
+    }
+
+    func friendChannelSource(_ context: RuntimeDependencyContext, channelID: Int64) -> NativeFriendChannelSourceApproval? {
+        guard socialRole(context), channelID > 0 else { return nil }
+        let key = contextKey(context) + "|\(channelID)"
+        if let existing = friendChannelSourceByKey[key], Date() < existing.expiresAt { return existing }
+        guard let endpoint = makeEndpoint(context, paths: ["api/channels/\(channelID)/members"]),
+              let approval = try? NativeFriendChannelSourceApproval(endpoint: endpoint, channelID: channelID,
+                  expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        friendChannelSourceByKey[key] = approval
+        return approval
+    }
+
+    /// Channel directory/detail reads for every member, plus the management writes. A write is still sent only after the
+    /// server's own `my_permissions_list` shows MANAGE_CHANNEL (or MANAGE_ROLE for overwrites), which only the space
+    /// owner and club admins hold (contract §0.4); the coordinator checks that before it builds a write, and the backend
+    /// refuses everyone else. Hangouts (guild kind 2) have no channels (contract §7.7).
+    func channelManagement(_ context: RuntimeDependencyContext, viewerRevision: UInt64,
+                           scope: NativeChannelManagementScope) -> NativeChannelManagementApproval? {
+        guard socialRole(context), scope.guildKind == 1 || scope.guildKind == 3 else { return nil }
+        let key = contextKey(context) + "|\(viewerRevision)|\(scope.guildKind)|\(scope.guildID.rawValue)"
+        if let existing = channelManagementByKey[key], existing.matches(context, viewerRevision: viewerRevision, scope: scope) { return existing }
+        channelManagementByKey[key]?.revoke()
+        guard let approval = try? NativeChannelManagementApproval(context: context, viewerRevision: viewerRevision, scope: scope,
+            operations: Self.channelManagementOperations, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        channelManagementByKey[key] = approval
+        return approval
+    }
+
+    static let channelManagementOperations: Set<NativeChannelManagementAccess> = [
+        .directory, .detail, .managementInventory, .metadataCommand, .metadataReceipt, .permissionsRead, .permissionCommand, .governanceReceipt
+    ]
+
+    /// IM voice/video/file attach (contract §6.14): upload, receipt, scan, policy and the `api/im/send` card.
+    /// Recipient previews are per-message routes and are not issued statically; they stay unavailable.
+    static func imMediaRoutes() -> [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] {
+        func post(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute.post(path) }
+        func get(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute(method: "GET", path: path) }
+        let table: [BusinessRuntimeFeature: [BusinessRuntimeRoute?]] = [
+            .imFileUpload: [post("api/im/file/upload")], .imFileUploadReceipt: [get("api/im/file/receipt")],
+            .imFileScan: [post("api/im/file/scan")], .imFileSend: [post("api/im/send")], .imFileReceipt: [post("api/im/send-receipt")],
+            .imVideoUpload: [post("api/im/video/upload")], .imVideoUploadReceipt: [get("api/im/video/receipt")],
+            .imVideoPolicy: [get("api/im/video/policy")], .imVideoSend: [post("api/im/send")], .imVideoReceipt: [post("api/im/send-receipt")],
+            .imVoiceUpload: [post("api/im/voice/upload")], .imVoiceUploadReceipt: [get("api/im/voice/receipt")],
+            .imVoiceSend: [post("api/im/send")], .imVoiceReceipt: [post("api/im/send-receipt")]
+        ]
+        return table.mapValues { Set($0.compactMap { $0 }) }
     }
 
     func roamLiveWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
@@ -472,7 +604,7 @@ extension ReviewedProductionFormMutationRoute {
             externalCheckoutApproved: false, devicePaymentApproved: false,
             allowsReviewedCancellationAndRefund: true
         )
-        let imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
+        var imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
             .imDelete: Set([try? BusinessRuntimeRoute.post("api/im/delete")].compactMap { $0 }),
             .imReport: Set([try? BusinessRuntimeRoute.post("api/im/report")].compactMap { $0 }),
             .imBlock: Set([try? BusinessRuntimeRoute.post("api/im/block")].compactMap { $0 }),
@@ -484,6 +616,7 @@ extension ReviewedProductionFormMutationRoute {
             .imUnreadTotal: Set([try? BusinessRuntimeRoute.post("api/im/unread-total")].compactMap { $0 }),
             .clubChat: Set([try? BusinessRuntimeRoute.post("api/club/chat")].compactMap { $0 })
         ]
+        if socialRole(context) { imRoutes.merge(Self.imMediaRoutes()) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes
@@ -505,5 +638,55 @@ extension ReviewedProductionFormMutationRoute {
             playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
+    }
+}
+
+/// Writers the shipped China composition constructs. Admission is `ReviewedProductionFormMutationRoute`.
+struct ReviewedPlayerWriteGrant {
+    let imSend: OperationEndpointApproval
+    let clubAdmission: ClubOrdinaryAdmissionApproval
+    let clubCommunity: OperationEndpointApproval
+    let square: OperationEndpointApproval
+    let profile: OperationEndpointApproval
+    let avatar: ProfileAvatarApproval
+    let registration: OperationEndpointApproval
+    let team: OperationEndpointApproval
+    let play: OperationEndpointApproval
+    let roamExtras: OperationEndpointApproval
+    let likes: OperationEndpointApproval
+    let reports: OperationEndpointApproval
+    let friends: NativeFriendApproval
+    let channelTextSend: NativeChannelTextApproval
+    let channelTextReceipt: NativeChannelTextApproval
+    let admission: OperationEndpointApproval
+    let teamPool: OperationEndpointApproval
+}
+
+/// Channel/friend social leases the shipped China composition issues to player and club accounts.
+struct ReviewedSocialWriteGrant {
+    let expiresAt: Date
+    let friendMetadata: NativeFriendMetadataApproval
+    let friendRemoval: NativeFriendRemovalApproval
+    let friendDirectory: NativeFriendDirectoryApproval
+    let friendProgress: NativeFriendProgressApproval
+    let welcome: NativeChannelWelcomeApproval
+    let onboarding: NativeChannelOnboardingApproval
+}
+
+extension AppCompositionRoot {
+    /// Friends, welcome/onboarding, invites and channel management for the reviewed China player grant.
+    mutating func installSocialWriteApprovals(_ gates: ReviewedProductionGateLeases) {
+        nativeFriendMetadataApproval = { [gates] context in gates.socialWriters(context)?.friendMetadata }
+        nativeFriendRemovalApproval = { [gates] context in gates.socialWriters(context)?.friendRemoval }
+        nativeFriendDirectoryApproval = { [gates] context in gates.socialWriters(context)?.friendDirectory }
+        nativeFriendProgressApproval = { [gates] context in gates.socialWriters(context)?.friendProgress }
+        nativeChannelWelcomeApproval = { [gates] context in gates.socialWriters(context)?.welcome }
+        nativeChannelOnboardingApproval = { [gates] context in gates.socialWriters(context)?.onboarding }
+        nativeFriendChannelInviteApproval = { [gates] context, mode in gates.friendChannelInvite(context, mode: mode) }
+        nativeFriendTeamInviteApproval = { [gates] context, mode in gates.friendTeamInvite(context, mode: mode) }
+        nativeFriendChannelSourceApproval = { [gates] context, channelID in gates.friendChannelSource(context, channelID: channelID) }
+        nativeChannelManagementApproval = { [gates] context, viewer, scope in
+            gates.channelManagement(context, viewerRevision: viewer, scope: scope)
+        }
     }
 }

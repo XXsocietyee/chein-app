@@ -110,10 +110,10 @@ public struct NativeFriendPage: Codable, Equatable, Sendable {
     public let incoming: [NativeFriendItem]
     public let outgoing: [NativeFriendItem]
     public let friends: [NativeFriendItem]
-    public let hasMore: Bool
+    @JSONFlexibleFlag public var hasMore: Bool
     public let nextCursor: Int64?
     public let reviews: [NativeFriendReview]?
-    public let reviewHasMore: Bool?
+    @JSONFlexibleOptionalFlag public var reviewHasMore: Bool?
     public let reviewNextCursor: Int64?
     public let groups: NativeFriendMetadataGroups?
     public init(viewerID: Int64, incoming: [NativeFriendItem], outgoing: [NativeFriendItem], friends: [NativeFriendItem], hasMore: Bool, nextCursor: Int64?, reviews: [NativeFriendReview]? = nil, reviewHasMore: Bool? = nil, reviewNextCursor: Int64? = nil, groups: NativeFriendMetadataGroups? = nil) {

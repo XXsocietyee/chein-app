@@ -55,7 +55,9 @@ public struct NativeChannelProgressService {
         return result
     }
     public func privacy(channelID: Int64?, token: String) async throws -> NativeChannelProgressPrivacy {
-        let result: NativeChannelProgressPrivacy = try await get("api/privacy/progress", query: channelID.map({ ["channel_id":String($0)] }) ?? [:], token: token)
+        // Without `channel_id` the same path answers with the settings-page shape (contract §7.4a), so never omit it.
+        guard let channelID, channelID > 0 else { throw NativeChannelProgressError.invalid }
+        let result: NativeChannelProgressPrivacy = try await get("api/privacy/progress", query: ["channel_id":String(channelID)], token: token)
         guard result.revision >= 0, result.effective != nil, result.appliesTo == "CHANNEL_PROGRESS" else { throw NativeChannelProgressError.malformed }
         _ = try result.values(); return result
     }

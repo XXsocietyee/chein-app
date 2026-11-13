@@ -24,6 +24,8 @@ import SwiftUI
 /// server layer list; the free counter, charges and score detail are server facts and never computed here.
 @MainActor struct PlayHelpLadderPanel: View {
     @Bindable var model: PlayHelpLadderModel
+    /// Team run: the shared pool section. Hidden unless the server reports an enabled pool.
+    var teamPool: TeamPoolHintModel? = nil
     var approvedArtworkHosts: Set<String> = []
     let close: () -> Void
     @State private var confirmLevel: Int?
@@ -60,6 +62,7 @@ import SwiftUI
                         }
                         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
                     }
+                    if let teamPool, teamPool.isVisible { TeamPoolHintSection(model: teamPool) }
                     if model.showsSkip { skipRow }
                     if let notice = model.notice { noticeText(notice) }
                     receiptGroup

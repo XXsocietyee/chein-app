@@ -23,14 +23,22 @@ final class ChannelDirectoryCatalogProducerTests: XCTestCase {
         } catch let error as ChannelDirectoryCatalogFailure {
             XCTAssertEqual(error, .wrongSpace)
         }
-        let unpublished = DirectoryTransport(body: detail(version: "0", guild: "12", channel: "21", conversation: "30"))
-        do {
-            _ = try await ChannelDirectoryCatalogProducer.catalog(
-                configuration: configuration, transport: unpublished, token: "token",
-                channelID: 21, spaceID: 12, kind: 1)
-            XCTFail("unpublished")
-        } catch let error as ChannelDirectoryCatalogFailure {
-            XCTAssertEqual(error, .unpublished)
+        let fresh = DirectoryTransport(body: detail(version: "0", guild: "12", channel: "21", conversation: "30"))
+        let created = try await ChannelDirectoryCatalogProducer.catalog(
+            configuration: configuration, transport: fresh, token: "token",
+            channelID: 21, spaceID: 12, kind: 1)
+        XCTAssertEqual(created.rules.publishedVersion, 0, "a channel opens right after create (version 0)")
+        XCTAssertTrue(created.rules.isCurrent)
+        for bad in ["-1", "", "01"] {
+            let unpublished = DirectoryTransport(body: detail(version: bad, guild: "12", channel: "21", conversation: "30"))
+            do {
+                _ = try await ChannelDirectoryCatalogProducer.catalog(
+                    configuration: configuration, transport: unpublished, token: "token",
+                    channelID: 21, spaceID: 12, kind: 1)
+                XCTFail("unpublished \(bad)")
+            } catch let error as ChannelDirectoryCatalogFailure {
+                XCTAssertEqual(error, .unpublished)
+            }
         }
     }
 

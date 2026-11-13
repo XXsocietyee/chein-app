@@ -494,6 +494,7 @@
         "ReviewedChinaLaunchCompositionTests",
         "ReviewedHookWiringTests",
         "ReviewedOrientOfficialRouteTests",
+        "ReviewedSocialWriteLeaseTests",
         "RoamAlbumIntentLifetimeTests",
         "RoamAndExplorationParitySectionViewTests",
         "RoamAnniversaryHistoryRecoveryTests",

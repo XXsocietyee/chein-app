@@ -46,7 +46,7 @@ class HomeCityLocationConsentWiring(unittest.TestCase):
 
     def test_glue_files_stay_at_the_ratchet_ceiling(self):
         self.assertEqual(len((ROOT / 'App/AppSession.swift').read_text().splitlines()), 8176)
-        self.assertEqual(len((ROOT / 'App/AppCompositionRoot.swift').read_text().splitlines()), 4307)
+        self.assertEqual(len((ROOT / 'App/AppCompositionRoot.swift').read_text().splitlines()), 4290)
 
 
 if __name__ == '__main__':

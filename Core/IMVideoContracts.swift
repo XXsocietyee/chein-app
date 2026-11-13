@@ -27,22 +27,34 @@ public struct IMVideoSelection: Equatable {
         self.name = name; self.bytes = bytes; self.policy = policy
     }
 }
-/// Original normalized video + persistent cover identities. A reference is not a moderation decision.
+/// Original video identity. The backend does not transcode or probe (contract §7.11), so the cover,
+/// duration and dimensions are optional: `nil` means unknown, never zero. A reference is not a moderation decision.
 public struct IMVideoReference: Codable, Equatable {
     public let uploadRequestID: String
     public let attachmentID: String
     public let sha256: String
-    public let coverSHA256: String
+    public let coverSHA256: String?
     public let size: Int
-    public let coverSize: Int
-    public let durationMS: Int
-    public let width: Int
-    public let height: Int
+    public let coverSize: Int?
+    public let durationMS: Int?
+    public let width: Int?
+    public let height: Int?
+    public init(uploadRequestID: String, attachmentID: String, sha256: String, coverSHA256: String? = nil, size: Int,
+                coverSize: Int? = nil, durationMS: Int? = nil, width: Int? = nil, height: Int? = nil) {
+        self.uploadRequestID = uploadRequestID; self.attachmentID = attachmentID; self.sha256 = sha256; self.coverSHA256 = coverSHA256
+        self.size = size; self.coverSize = coverSize; self.durationMS = durationMS; self.width = width; self.height = height
+    }
+    /// A cover is usable only when both its hash and size are known.
+    public var hasCover: Bool { coverSHA256 != nil && coverSize != nil }
     public func validate() throws {
+        let hex: (String) -> Bool = { $0.count == 64 && $0.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) } }
         guard let request = UUID(uuidString: uploadRequestID), request.uuidString.lowercased() == uploadRequestID,
               let id = Int64(attachmentID), id > 0, String(id) == attachmentID,
-              size > 0, size <= 64 * 1024 * 1024, coverSize > 0, coverSize <= 10 * 1024 * 1024, durationMS > 0, durationMS <= 30_000, width > 0, height > 0,
-              [sha256, coverSHA256].allSatisfy({ $0.count == 64 && $0.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) } }) else { throw IMVideoFailure.invalid }
+              size > 0, size <= 64 * 1024 * 1024, hex(sha256),
+              (coverSHA256 == nil) == (coverSize == nil), coverSHA256.map(hex) ?? true,
+              coverSize.map({ $0 > 0 && $0 <= 10 * 1024 * 1024 }) ?? true,
+              durationMS.map({ $0 > 0 && $0 <= 30_000 }) ?? true,
+              (width == nil) == (height == nil), width.map({ $0 > 0 }) ?? true, height.map({ $0 > 0 }) ?? true else { throw IMVideoFailure.invalid }
     }
     public func wireFields() throws -> [String: String] {
         try validate()
@@ -77,14 +89,18 @@ public struct IMVideoUploadReceipt: Decodable {
         case ownerMemberID="owner_member_id",conversationID="conversation_id",requestID="upload_request_id",sourceSHA256="source_sha256"
         case videoReviewState="video_review_state",coverReviewState="cover_review_state"
     }
-    public var ready: Bool { state == "UPLOADED" && videoReviewState == "APPROVED" && coverReviewState == "APPROVED" && reference != nil }
+    /// No cover exists when the backend sends `cover_review_state: null`; only the video review then decides.
+    public var ready: Bool {
+        state == "UPLOADED" && videoReviewState == "APPROVED" && reference != nil
+            && (reference?.hasCover == true ? coverReviewState == "APPROVED" : (coverReviewState == nil || coverReviewState == "APPROVED"))
+    }
     public func validate(scope: IMScope, requestID: String, hash: String) throws {
         guard source == "original-im-video-upload-v1",ownerMemberID == String(scope.identity.accountID),conversationID == String(scope.conversationID),
               self.requestID == requestID,sourceSHA256 == hash,["NOT_FOUND","RESERVED","UPLOADED"].contains(state) else { throw IMVideoFailure.invalid }
         if let reference { try reference.validate(); guard reference.uploadRequestID == requestID else { throw IMVideoFailure.invalid } }
         if state != "NOT_FOUND" {
-            guard reference != nil, let videoReviewState, let coverReviewState,
-                  ["HOLD","APPROVED","REJECTED"].contains(videoReviewState),["HOLD","APPROVED","REJECTED"].contains(coverReviewState) else { throw IMVideoFailure.invalid }
+            guard let reference, let videoReviewState, ["HOLD","APPROVED","REJECTED"].contains(videoReviewState),
+                  coverReviewState.map({ ["HOLD","APPROVED","REJECTED"].contains($0) }) ?? !reference.hasCover else { throw IMVideoFailure.invalid }
         }
     }
 }

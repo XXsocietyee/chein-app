@@ -20,7 +20,7 @@ public struct NativeChannelMessageQuery: Equatable {
 }
 public struct NativeChannelMessageSearchPage: Decodable {
     public let list: [NativeChannelMessageSnapshot]
-    public let has_more: Bool
+    @JSONFlexibleFlag public var has_more: Bool
     public let next_cursor: String?
     public let degraded: Bool
     public let degraded_reason: String?
