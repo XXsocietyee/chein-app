@@ -18,7 +18,8 @@ class IMPreviewLeaseConversationSource(unittest.TestCase):
             if 'DesignFixtures' in path.parts:
                 continue
             text = path.read_text(encoding='utf-8')
-            for match in re.finditer(r'messageConversationID:\s*([^,)\n]+)', text):
+            # An integer-width conversion of the record field (`Int64(message.conversationID)`) is the same value.
+            for match in re.finditer(r'messageConversationID:\s*(?:Int64|Int)?\(?\s*([^,)\n]+)', text):
                 yield path.relative_to(ROOT), match.group(1).strip()
 
     def test_conversation_id_comes_from_a_server_message_record(self):
