@@ -213,6 +213,11 @@ import FoundationNetworking
     }
 
     func testPrefetchStoreIsAccountPrivateAndAHalfPackNeverReplacesTheCompleteOne() throws {
+        #if !os(iOS)
+        // PlayContentPrefetchStore writes with .completeFileProtection, an iOS data-protection class; the macOS
+        // swift-test host refuses it (Cocoa 513). App behaviour is unchanged; this runs on the iOS simulator.
+        throw XCTSkip("completeFileProtection writes need iOS data protection")
+        #endif
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let store = PlayContentPrefetchStore(root: root)
@@ -239,6 +244,11 @@ import FoundationNetworking
     }
 
     func testOfflineScopeIsNotDeclaredForUnverifiedFiles() async throws {
+        #if !os(iOS)
+        // PlayContentPrefetchStore writes with .completeFileProtection, an iOS data-protection class; the macOS
+        // swift-test host refuses it (Cocoa 513). App behaviour is unchanged; this runs on the iOS simulator.
+        throw XCTSkip("completeFileProtection writes need iOS data protection")
+        #endif
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let transport = PlayRecoveryRecordingTransport()
