@@ -1,0 +1,108 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "beGap.fields.address": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Address" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "地址" } }
+      }
+    },
+    "beGap.fields.status": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Status" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "状态" } }
+      }
+    },
+    "beGap.hub.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Merchant tools" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "商家工具" } }
+      }
+    },
+    "beGap.money.refused": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Payments are off." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "付款未开启。" } }
+      }
+    },
+    "beGap.money.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Payments" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "付款" } }
+      }
+    },
+    "beGap.notSent": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not sent" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未发送" } }
+      }
+    },
+    "beGap.password.refused": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Apple session exchange is off." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "苹果会话兑换未开启。" } }
+      }
+    },
+    "beGap.password.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Apple session" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "苹果会话" } }
+      }
+    },
+    "beGap.pay.note": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "App Store digital goods use in-app purchase. This screen does not create a payment." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "App Store 数字商品走内购。这个页面不创建付款。" } }
+      }
+    },
+    "beGap.payout.refused": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Payout is off." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提现未开启。" } }
+      }
+    },
+    "beGap.payout.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Payout" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提现" } }
+      }
+    },
+    "beGap.switch.off": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Off" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关" } }
+      }
+    },
+    "beGap.switch.on": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "On" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "开" } }
+      }
+    },
+    "beGap.switches.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Switches" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "开关" } }
+      }
+    },
+    "beGap.unknown": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "—" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "—" } }
+      }
+    },
+    "beGap.writes.refused": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Merchant writes are off." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "商家写入未开启。" } }
+      }
+    },
+    "beGap.writes.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Merchant writes" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "商家写入" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

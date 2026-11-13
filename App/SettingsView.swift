@@ -115,6 +115,15 @@ struct SettingsView: View {
                 .environment(\.settingsTileTint, SettingsTint.blue)
                 MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
                 SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
+                Section {
+                    NavigationLink {
+                        BeGapMerchantHubView()
+                    } label: {
+                        Label { Text("beGap.hub.title", tableName: "BeGapMerchant") } icon: { Image(systemName: "storefront") }
+                    }
+                    .accessibilityIdentifier("settings.beGapMerchant")
+                }
+                .environment(\.settingsTileTint, SettingsTint.teal)
                 NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
                 SettingsSupportSafetyEntry().environment(\.settingsTileTint, SettingsTint.teal)

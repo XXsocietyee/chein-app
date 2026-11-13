@@ -28,7 +28,7 @@ private struct MerchantPerkTemplatesDestinationKey: EnvironmentKey {
     static let defaultValue: (@MainActor () -> AnyView)? = nil
 }
 private struct MerchantAuthoringDestinationKey: EnvironmentKey {
-    static let defaultValue: (@MainActor () -> AnyView)? = nil
+    static let defaultValue: (@MainActor () -> AnyView)? = { AnyView(BeGapMerchantHubView()) }
 }
 private struct TopicTemplateCopiedDestinationKey: EnvironmentKey {
     static let defaultValue: (@MainActor (Int) -> Void)? = nil
