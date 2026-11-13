@@ -67,23 +67,6 @@ final class RegistrationServiceTests: XCTestCase {
         XCTAssertNil(request.url?.query, file: file, line: line)
     }
 
-    func testActivitySignupConsentUsesSortedJSONAndNoPaymentField() async throws {
-        let transport = RegistrationFixtureTransport(#"{"code":200,"msg":"ok","data":null}"#)
-        try await service(transport).agreeToActivitySignup(requestID: "app-9004-free", token: "fixture-raw-token")
-        let request = try XCTUnwrap(transport.requests.first)
-        assertRequest(request, path: "api/compliance/consents")
-        let body = try jsonBody(request)
-        XCTAssertEqual(Set(body.keys), Set(["docType", "eventType", "requestId", "scene"]))
-        XCTAssertEqual(body["docType"] as? String, "activity_host_data_sharing")
-        XCTAssertEqual(body["scene"] as? String, "activity_signup")
-        XCTAssertEqual(body["eventType"] as? String, "AGREE")
-        XCTAssertEqual(body["requestId"] as? String, "app-9004-free")
-        XCTAssertNil(body["payChannel"])
-        XCTAssertNil(body["payAmount"])
-        let canonical = try JSONSerialization.data(withJSONObject: body, options: .sortedKeys)
-        XCTAssertEqual(request.httpBody, canonical)
-    }
-
     func testQuoteUsesExactJSONSelectionAndRawAuthorization() async throws {
         let transport = RegistrationFixtureTransport(quoteJSON)
         let selection = try RegistrationQuoteRequest(ownerID: 7, ticketID: 11, usePoints: true)

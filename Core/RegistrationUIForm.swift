@@ -32,8 +32,6 @@ public enum RegistrationUIValidation: Equatable { case nameRequired, phoneRequir
 /// service independently checks the scoped grant and maintains a durable replay lock.
 public enum RegistrationUICreationPolicy: Equatable {
     case disabled
-    /// A signed-in player may confirm only a known zero quote. Payment stays closed.
-    case free
     case approved(RegistrationProductionApproval)
     #if DEBUG
     case offlineFixture
@@ -41,20 +39,9 @@ public enum RegistrationUICreationPolicy: Equatable {
     public var permitsCreation: Bool {
         switch self {
         case .disabled: return false
-        case .free: return true
         case .approved(let grant): return Date() < grant.expiresAt
         #if DEBUG
         case .offlineFixture: return true
-        #endif
-        }
-    }
-    /// Approved grants and the free path both record server consent before quoting.
-    public var recordsServerConsent: Bool {
-        switch self {
-        case .approved, .free: return true
-        case .disabled: return false
-        #if DEBUG
-        case .offlineFixture: return false
         #endif
         }
     }
@@ -66,7 +53,6 @@ public enum RegistrationUICreationPolicy: Equatable {
         #endif
     }
     public func permits(identity: ProfileReadIdentity?, activityID: Int, ticketID: Int?, now: Date) -> Bool {
-        if case .free = self { return true }
         if case .approved(let grant) = self { return grant.permits(identity: identity, activityID: activityID, ticketID: ticketID, now: now) }
         return isOfflineFixture
     }

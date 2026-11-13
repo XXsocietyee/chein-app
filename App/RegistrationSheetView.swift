@@ -317,10 +317,8 @@ struct RegistrationSheetView: View {
     /// Total shown in the pinned summary bar: the server quote when present, else the listed ticket price.
     private var summaryTotalText: String {
         let copy = CoreLoopCopy(locale: locale)
-        if flow.quoteEnabled, case .received(let quote) = flow.quoteState {
-            if let text = E1Money.yuan(quote.payAmount, locale: locale) { return text }
-            return "—"
-        }
+        if flow.quoteEnabled, case .received(let quote) = flow.quoteState,
+           let text = E1Money.yuan(quote.payAmount, locale: locale) { return text }
         return ticketPriceText(copy)
     }
     private var showsCheckoutBar: Bool {
@@ -337,7 +335,6 @@ struct RegistrationSheetView: View {
         case .soldOut: return copy.t("该票种已售罄", "This ticket is sold out")
         case .signupClosed: return copy.t("报名已截止", "Registration is closed")
         case .quoteUnavailable: return copy.t("正在核对价格…", "Checking the price…")
-        case .paymentRequired: return copy.t("这笔报名需要付款，当前只开放免费报名", "This sign-up needs payment. Only a free sign-up is open")
         case .intentAlreadySubmitted: return copy.t("已提交报名", "Already submitted")
         default: return copy.t("暂时无法继续", "Not available right now")
         }
@@ -631,7 +628,7 @@ struct RegistrationSheetView: View {
                 }
                 Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.waitlist.reviewConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
                     .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
-                if flow.creationPolicy.recordsServerConsent {
+                if case .approved = flow.creationPolicy {
                     CYPillButton("registration.waitlist.recordConsent", style: .secondary) { Task { await flow.recordSignupConsent() } }
                         .disabled(!flow.canEdit || !flow.consented)
                         .accessibilityIdentifier("registration.waitlist.recordConsent")

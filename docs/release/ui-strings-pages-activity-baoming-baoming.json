@@ -351,13 +351,13 @@
     },
     {
       "key": "registration.form.unknownAmount",
-      "en": "—",
-      "zh-Hans": "—"
+      "en": "Amount unknown",
+      "zh-Hans": "金额未知"
     },
     {
       "key": "registration.form.unknownStatus",
-      "en": "—",
-      "zh-Hans": "—"
+      "en": "Unknown",
+      "zh-Hans": "未知"
     },
     {
       "key": "registration.form.usePoints",

@@ -11,7 +11,6 @@ public enum RegistrationUIParticipantsState: Equatable { case idle, loading, rec
 public enum RegistrationUIBlock: Equatable {
     case sessionChanged, quotingDisabled, creationDisabled, invalidForm, missingConsent
     case signupClosed, soldOut, quoteUnavailable, confirmationChanged, intentAlreadySubmitted, waitlistUnavailable
-    case paymentRequired
 }
 
 /// Immutable review snapshot. This is local UI confirmation, not legal consent evidence.
@@ -143,17 +142,6 @@ public final class RegistrationUIFlow {
         if activeWaitlistOffer != nil && !hasActiveWaitlistOffer { return .soldOut }
         if selectedTicket?.isSoldOut == true && !hasActiveWaitlistOffer { return .soldOut }
         if case .approved = creationPolicy, quoteReceivedAt.map({ now().timeIntervalSince($0) >= 0 && now().timeIntervalSince($0) < 120 }) != true { return .quoteUnavailable }
-        if case .free = creationPolicy {
-            let age = quoteReceivedAt.map { now().timeIntervalSince($0) }
-            let fresh = age.map { $0 >= 0 && $0 < 120 } == true
-            if !fresh { return .quoteUnavailable }
-            if case .received(let quote) = quoteState {
-                guard let amount = quote.payAmount else { return .quoteUnavailable }
-                if amount != .zero { return .paymentRequired }
-            } else {
-                return .quoteUnavailable
-            }
-        }
         if draft.validation != nil { return .invalidForm }
         if !consented { return .missingConsent }
         if isQuoting || !coordinator.canConfirm { return .quoteUnavailable }
@@ -376,10 +364,6 @@ public final class RegistrationUIFlow {
         }
     }
     public func recordSignupConsent() async {
-        if case .free = creationPolicy {
-            await recordFreeSignupConsent()
-            return
-        }
         guard canEdit, consented, case .approved = creationPolicy,
               let scope = waitlistScope, let service = waitlistService as? any RegistrationLegalServing else { return }
         let stamp = generation, identity = openedIdentity
@@ -393,23 +377,6 @@ public final class RegistrationUIFlow {
             guard matches(stamp, identity) else { return }
             isRecordingConsent = false; block = .missingConsent; changed()
         }
-    }
-    private func recordFreeSignupConsent() async {
-        guard canEdit, consented else { return }
-        let stamp = generation, identity = openedIdentity
-        isRecordingConsent = true
-        invalidateConfirmation()
-        changed()
-        let action = await coordinator.recordFreeSignupConsent()
-        guard matches(stamp, identity) else { return }
-        isRecordingConsent = false
-        guard action == .applied else {
-            block = .missingConsent
-            changed()
-            return
-        }
-        changed()
-        await requestQuote()
     }
     public func joinWaitlist() async { guard canJoinWaitlist else { return }; await mutateWaitlist(join: true) }
     @discardableResult public func prepareWaitlistCancellation() -> Bool {

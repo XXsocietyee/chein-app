@@ -31,9 +31,6 @@ final class RegistrationUIFormTests: XCTestCase {
     }
     func testOnlyVerifiedRegistrationLabelsAndCreationDisabledByDefault() {
         XCTAssertFalse(RegistrationUICreationPolicy.disabled.permitsCreation)
-        XCTAssertTrue(RegistrationUICreationPolicy.free.permitsCreation)
-        XCTAssertTrue(RegistrationUICreationPolicy.free.recordsServerConsent)
-        XCTAssertFalse(RegistrationUICreationPolicy.disabled.recordsServerConsent)
         XCTAssertEqual(RegistrationUIStatus.registrationKey(1), "registration.form.awaitingPayment")
         XCTAssertEqual(RegistrationUIStatus.registrationKey(2), "registration.form.registered")
         XCTAssertEqual(RegistrationUIStatus.registrationKey(3), "registration.form.cancelled")
