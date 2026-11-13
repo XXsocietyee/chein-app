@@ -57,10 +57,12 @@ final class SquareRouteMapVerifiedTests: XCTestCase {
             #"{"id":7,"name":"Synthetic","chaptersList":[{"id":11,"routeGeometryAvailable":true,"routeGeometry":"not-json","nodes":\#(nodes)}]}"#,
             #"{"id":7,"name":"Synthetic","chaptersList":[{"id":11,"routeGeometryAvailable":true,"routeGeometry":[{"latitude":1,"longitude":2}],"nodes":\#(nodes)}]}"#,
             #"{"id":7,"name":"Synthetic","chaptersList":[{"id":11,"nodes":[{"id":21,"name":"甲","latitude":31.2,"longitude":121.5}]}]}"#,
-            #"{"id":7,"name":"Synthetic","chaptersList":[
+            #"""
+            {"id":7,"name":"Synthetic","chaptersList":[
               {"id":11,"routeGeometryAvailable":true,"routeGeometry":[{"latitude":1,"longitude":2},{"latitude":1.1,"longitude":2.1}],"nodes":[{"id":21,"name":"甲","latitude":1,"longitude":2}]},
               {"id":12,"nodes":\#(nodes)}
-            ]}"#
+            ]}
+            """#
         ]
         for json in hidden {
             XCTAssertNil(try project(json))
