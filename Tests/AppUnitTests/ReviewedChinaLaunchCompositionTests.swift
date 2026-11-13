@@ -228,6 +228,26 @@ import XCTest
         XCTAssertFalse(recorder.paths.contains("api/login"))
         XCTAssertFalse(recorder.paths.contains("api/roam/presence"))
         XCTAssertFalse(recorder.paths.contains("api/registration/pay"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/theme/replay"))
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        XCTAssertTrue(grant.play.paths.contains("api/play/theme/replay"))
+        XCTAssertFalse(grant.play.paths.contains("api/roam/presence"))
+        XCTAssertFalse(grant.play.paths.contains("api/registration/pay"))
+        let replay = jsonRequest(base.appendingPathComponent("api/play/theme/replay"), #"{"sessionId":41}"#, token: player.session.token)
+        _ = try await transport.send(replay)
+        XCTAssertEqual(recorder.paths.last, "api/play/theme/replay")
+        let priced = jsonRequest(base.appendingPathComponent("api/play/theme/replay"), #"{"sessionId":41,"amount":1}"#, token: player.session.token)
+        await assertClosed { try await transport.send(priced) }
+        let channeled = jsonRequest(base.appendingPathComponent("api/play/theme/replay"), #"{"sessionId":41,"payChannel":"APP"}"#, token: player.session.token)
+        await assertClosed { try await transport.send(channeled) }
+        var stateParts = URLComponents(url: base.appendingPathComponent("api/play/theme/state"), resolvingAgainstBaseURL: false)
+        stateParts?.queryItems = [URLQueryItem(name: "sessionId", value: "41"), URLQueryItem(name: "topicId", value: "7")]
+        var state = URLRequest(url: try XCTUnwrap(stateParts?.url))
+        state.httpMethod = "GET"
+        state.setValue("application/json", forHTTPHeaderField: "Accept")
+        state.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(state)
+        XCTAssertEqual(recorder.paths.last, "api/play/theme/state")
 
         let gatesOnly = try ReviewedAppDeployment(market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
             approvedBaseURLs: [.china: [ReviewedMarketLaunch.chinaProductionBaseURL]],
@@ -240,6 +260,8 @@ import XCTest
         let closedTransport = closed.transport()
         closedTransport.current = transport.current
         await assertClosed { try await closedTransport.send(free) }
+        await assertClosed { try await closedTransport.send(replay) }
+        await assertClosed { try await closedTransport.send(state) }
     }
 
     private func assertClosed(_ body: () async throws -> some Any) async {

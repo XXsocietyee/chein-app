@@ -36,6 +36,12 @@ extension ReviewedProductionFormMutationRoute {
             if relative == "api/v1/community/notification-preferences" { return true }
             return stableCommunityRequestID(request)
         }
+        if relative == "api/play/theme/state" {
+            return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true)
+        }
+        if relative == "api/play/theme/replay" {
+            return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
+        }
         if method == "GET" { return covers(relative, grant.friends.endpoint) }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
@@ -50,6 +56,19 @@ extension ReviewedProductionFormMutationRoute {
         if approval.paths.contains(relative) { return true }
         let key = ChinaReviewedRouteCapability.normalized("/" + relative)
         return approval.paths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+    }
+
+    private struct ThemeReplayBody: Decodable { let sessionId: Int }
+
+    /// Replay is `{sessionId}` only. A price, channel, or extra field is not this write.
+    static func themeReplayBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              Set(object.keys) == ["sessionId"],
+              let session = try? JSONDecoder().decode(ThemeReplayBody.self, from: body).sessionId,
+              session > 0 else { return false }
+        return true
     }
 
     /// A create with `payChannel` or a positive amount is a payment step and stays closed.
@@ -153,7 +172,8 @@ extension ReviewedProductionFormMutationRoute {
         "api/topic/chapter/finish", "api/play/run-session/save", "api/play/journey/opening/complete",
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
-        "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state"
+        "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
+        "api/play/theme/replay"
     ]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",

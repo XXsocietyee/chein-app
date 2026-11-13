@@ -1,9 +1,9 @@
 import Foundation
 
 /// Mini-program `utils/theme-records.js` + `components/cy/theme-records` (我的游玩记录 and
-/// 本局结果). Reads only: `GET api/play/theme/history {topicId, limit:20, beforeSessionId?}` and
-/// `GET api/play/theme/card {sessionId}`. 再玩一次 (`POST api/play/theme/replay`) is a live
-/// write that also clears the server run session; it is not ported.
+/// 本局结果). History and the result card stay reads. 再玩一次 is `PlayThemeReplayExchange`:
+/// `replayAllowed === true` on `GET api/play/theme/state`, then `POST api/play/theme/replay`
+/// `{sessionId}`, then the same state read. It is not a payment.
 public struct PlayThemeHistoryRow: Equatable, Identifiable, Sendable {
     public enum Outcome: Equatable, Sendable {
         /// Server-authored result title.
@@ -108,6 +108,29 @@ public struct PlayThemeResultCard: Equatable, Sendable {
     }
 }
 
+/// `GET api/play/theme/state` facts used by 再玩一次. `replayAllowed` is JSON `true` only.
+public struct PlayThemeReplayFacts: Equatable, Sendable {
+    public let sessionID: Int
+    public let topicID: Int?
+    public let replayAllowed: Bool
+    public let playInstanceID: String?
+    public let isTeam: Bool
+
+    public init?(_ raw: PlayWireValue) {
+        guard raw.object != nil, let session = raw["sessionId"].tolerantInteger, session > 0 else { return nil }
+        sessionID = session
+        topicID = raw["topicId"].tolerantInteger.flatMap { $0 > 0 ? $0 : nil }
+        replayAllowed = raw["replayAllowed"].bool == true
+        let instance = raw["playInstanceId"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        playInstanceID = (instance?.isEmpty == false) ? instance : nil
+        isTeam = raw["scope"].text == "TEAM"
+    }
+
+    public func confirmsReplay(of oldSessionID: Int) -> Bool {
+        oldSessionID > 0 && playInstanceID == "replay:\(oldSessionID)"
+    }
+}
+
 enum PlayThemeText {
     static func clean(_ value: String?) -> String? {
         guard let value else { return nil }
@@ -131,6 +154,22 @@ extension PlayExperienceService {
         let raw = try await request("api/play/theme/card", query: ["sessionId": String(sessionID)], capability: .reads, token: token)
         guard raw.object != nil else { throw PlayExperienceError.malformed }
         return raw
+    }
+
+    /// `GET api/play/theme/state?topicId&sessionId`. Same host as the backpack state read.
+    /// `replayAllowed` is accepted only as JSON `true`.
+    public func themeReplayState(topicID: Int, sessionID: Int, token: String) async throws -> PlayWireValue {
+        guard topicID > 0, sessionID > 0 else { throw APIError.invalidRequest }
+        let raw = try await request("api/play/theme/state",
+            query: ["topicId": String(topicID), "sessionId": String(sessionID)], capability: .reads, token: token)
+        guard raw.object != nil else { throw PlayExperienceError.malformed }
+        return raw
+    }
+
+    /// `POST api/play/theme/replay` with exactly `{sessionId}`. No price, channel, or request id on the wire.
+    public func themeReplay(sessionID: Int, token: String) async throws -> PlayWireValue {
+        guard sessionID > 0 else { throw APIError.invalidRequest }
+        return try await request("api/play/theme/replay", json: ["sessionId": .integer(Int64(sessionID))], capability: .reads, token: token)
     }
 }
 

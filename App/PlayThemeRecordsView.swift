@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 我的游玩记录 and 本局结果 (mini-program `cy-theme-records`). Read-only; 再玩一次 shows only when a replay binding is injected.
+/// 我的游玩记录 and 本局结果 (mini-program `cy-theme-records`). 再玩一次 is on the result sheet when replay is allowed.
 @MainActor struct PlayThemeRecordsView: View {
     @Bindable var model: PlayThemeRecordsCoordinator
     var title: String?
@@ -29,7 +29,6 @@ import SwiftUI
                 }
                     .disabled(model.busy).accessibilityIdentifier("playx.themeRecords.more")
             }
-            PlayThemeReplayButton()
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
@@ -114,6 +113,9 @@ import SwiftUI
             if model.issue == .cardFailed, let session = model.cardSessionID {
                 Button("playx.themeRecords.retryCard") { Task { await model.openCard(sessionID: session) } }
                     .accessibilityIdentifier("playx.themeRecords.retryCard")
+            }
+            if let session = model.cardSessionID {
+                PlayThemeReplayButton(sessionID: session)
             }
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)

@@ -127,12 +127,15 @@ enum PlayThemeTitleCardMemory {
 
 // MARK: - 再玩一次 (post-clear replay)
 
-/// Mini-program finish sheet / `cy-theme-records`: 「再玩一次」 when the server says `replayAllowed === true`
-/// (`POST api/play/theme/replay`). BINDING STUB for Cursor: the replay write is not migrated. Inject a binding
-/// with `.environment(\.playThemeReplay, …)`; nil or `allowed == false` ⇒ the button is hidden.
+/// Mini-program finish sheet / `cy-theme-records`: 「再玩一次」 when the server says `replayAllowed === true`.
+/// Nil, or `allowed == false`, keeps the button hidden. A false `replay()` is an unconfirmed outcome.
 @MainActor protocol PlayThemeReplayBinding: AnyObject {
     var allowed: Bool { get }
-    /// Starts a new run; returns false when the outcome is unconfirmed (caller re-reads before retrying).
+    /// True while a saved request id is still unconfirmed. The visible unknown mark is an em dash.
+    var showsUnknown: Bool { get }
+    /// Loads `replayAllowed` for this finish-sheet session.
+    func focus(sessionID: Int) async -> Bool
+    /// Posts only when that session is still allowed. Returns true only after the read-back matches.
     func replay() async -> Bool
 }
 
@@ -145,22 +148,42 @@ extension EnvironmentValues {
 }
 
 @MainActor struct PlayThemeReplayButton: View {
+    var sessionID: Int
     @Environment(\.playThemeReplay) private var binding
+    @State private var allowed = false
     @State private var busy = false
     @State private var unconfirmed = false
     var body: some View {
-        if let binding, binding.allowed {
-            Button {
-                guard !busy else { return }
-                Task { busy = true; unconfirmed = !(await binding.replay()); busy = false }
-            } label: {
-                Label(LocalizedStringKey(busy ? "mpd.replay.busy" : "mpd.replay.title"), systemImage: "arrow.counterclockwise")
-            }
-            .disabled(busy)
-            .accessibilityIdentifier("playx.themeRecords.replay")
-            if unconfirmed {
-                Text("mpd.replay.unconfirmed").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+        Group {
+            if allowed {
+                Button {
+                    guard !busy, let binding else { return }
+                    Task {
+                        busy = true
+                        let confirmed = await binding.replay()
+                        unconfirmed = !confirmed && binding.showsUnknown
+                        allowed = binding.allowed
+                        busy = false
+                    }
+                } label: {
+                    Label(LocalizedStringKey(busy ? "mpd.replay.busy" : "mpd.replay.title"), systemImage: "arrow.counterclockwise")
+                }
+                .disabled(busy)
+                .accessibilityIdentifier("playx.themeRecords.replay")
+                if unconfirmed {
+                    Text("mpd.replay.unknown")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.warningText)
+                        .accessibilityLabel(Text("mpd.replay.unconfirmed"))
+                }
             }
         }
+        .task(id: sessionID) { await load() }
+    }
+
+    func load() async {
+        guard sessionID > 0, let binding else { allowed = false; unconfirmed = false; return }
+        allowed = await binding.focus(sessionID: sessionID)
+        unconfirmed = binding.showsUnknown
     }
 }
