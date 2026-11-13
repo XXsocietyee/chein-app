@@ -18,6 +18,15 @@ enum ProjectEditCompositionRoute {
         case .requestResume: return ProjectEditRequestContract.resumePostProcessingPath
         }
     }
+    /// Merchant-scoped project edits (`scope: "MERCHANT"`, also inside a submit envelope's payload) stay with merchants;
+    /// the player project-editor grant (owner approval 2026-11-12) is personal scope only.
+    static func isMerchantScoped(_ request: URLRequest) -> Bool {
+        guard let bytes = request.httpBody, let object = (try? JSONSerialization.jsonObject(with: bytes)) as? [String: Any] else { return false }
+        if object["scope"] as? String == ProjectEditOwner.merchant.rawValue { return true }
+        guard let chunks = object["payloadBase64Chunks"] as? [String], let payload = Data(base64Encoded: chunks.joined()),
+              let original = (try? JSONSerialization.jsonObject(with: payload)) as? [String: Any] else { return false }
+        return original["scope"] as? String == ProjectEditOwner.merchant.rawValue
+    }
     init?(request: URLRequest, baseURL: URL) {
         guard request.httpMethod == "POST", request.httpBodyStream == nil, let url = request.url,
               url.query == nil, url.fragment == nil, let bytes = request.httpBody else { return nil }

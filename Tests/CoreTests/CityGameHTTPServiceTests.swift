@@ -165,7 +165,7 @@ import XCTest
         XCTAssertNil(game.pendingIntent)
     }
 
-    func testOneLifecycleActionsOnlyWhenOpenReadsWhenFrozen() async throws {
+    func testOneLifecycleActionsOnlyWhenOpenReadsWhenOpenOrFrozen() async throws {
         let stub = Stub(); stub.answers["GET /prod-api/api/city-game/game/snapshot"] = ok(snapshotJSON(lifecycle: "FROZEN"))
         let frozen = CityGameCoordinator(read: read(lifecycle: "FROZEN"), service: try service(stub), capabilities: .cityGame(lease),
                                          memberId: "12", isCurrent: { true })
@@ -176,7 +176,8 @@ import XCTest
         // One lifecycle: OPEN accepts actions and also serves the bounded reads; CLOSED serves neither.
         XCTAssertTrue(read().board.acceptsNewActions); XCTAssertTrue(read().board.servesBoundedReads)
         XCTAssertFalse(read(lifecycle: "CLOSED").board.servesBoundedReads); XCTAssertFalse(read(lifecycle: "CLOSED").board.acceptsNewActions)
-        XCTAssertThrowsError(try CityPlayerRulesRoute(read: read()))
+        XCTAssertNoThrow(try CityPlayerRulesRoute(read: read()))
+        XCTAssertThrowsError(try CityPlayerRulesRoute(read: read(lifecycle: "CLOSED")))
         XCTAssertNoThrow(try CityPlayerRulesRoute(read: read(lifecycle: "FROZEN")))
         XCTAssertThrowsError(try CityActionIntent(kind: .roll, board: read(lifecycle: "FROZEN").board, lifecycle: .open,
                                                   participation: read().participation, targetId: "b1", roundSeq: 1, expectedVersion: 4, consent: nil))

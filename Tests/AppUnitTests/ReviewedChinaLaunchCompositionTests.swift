@@ -580,23 +580,33 @@ import XCTest
         transport.current = {
             .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
         }
+        // The same wiring AppSession installs on its composition transport.
+        transport.projectEditConfigurationRevision = { 1 }
+        transport.projectEditConfiguration = { composition.sessionDependencies($0).businessConfiguration }
         let business = try XCTUnwrap(composition.sessionDependencies(player).businessConfiguration)
         let factory = try XCTUnwrap(BusinessRuntimeFactory(configuration: business, api: try APIConfiguration(baseURL: player.baseURL),
             transport: transport, current: { player }))
         // (1) reads and writes the production host serves are granted and sent.
         XCTAssertTrue(factory.permits(.projectRead)); XCTAssertTrue(factory.permits(.projectWrite)); XCTAssertTrue(factory.permits(.projectPublicationRead))
         let client = factory.client([.projectRead, .projectWrite, .projectPublicationRead])
+        let granted = factory.routes([.projectRead, .projectWrite, .projectPublicationRead]).map(\.path)
         for path in ["api/publish/home", "api/topic/edit-detail", "api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update"] {
-            _ = try await client.send(jsonRequest(player.baseURL.appendingPathComponent(path), #"{"id":41}"#, token: player.session.token))
-            XCTAssertEqual(recorder.paths.last, path)
+            XCTAssertTrue(granted.contains(path), path)
         }
-        var check = URLRequest(url: try XCTUnwrap(URL(string: player.baseURL.appendingPathComponent(TopicPublicationPath.check).absoluteString + "?topicId=41")))
-        check.httpMethod = "GET"; check.setValue("application/json", forHTTPHeaderField: "Accept")
-        check.setValue(player.session.token, forHTTPHeaderField: "Authorization")
-        _ = try await client.send(check)
+        _ = try await client.send(jsonRequest(player.baseURL.appendingPathComponent("api/publish/home"), "{}", token: player.session.token))
+        XCTAssertEqual(recorder.paths.last, "api/publish/home")
+        let personal = #"{"scope":"","id":41,"name":"Synthetic topic"}"#
+        _ = try await client.send(jsonRequest(player.baseURL.appendingPathComponent("api/topic/update"), personal, token: player.session.token))
+        XCTAssertEqual(recorder.paths.last, "api/topic/update")
+        // Merchant-scoped publishing stays with merchants.
+        let merchant = #"{"scope":"MERCHANT","id":41,"name":"Synthetic topic"}"#
+        let sentBefore = recorder.paths.count
+        do { _ = try await client.send(jsonRequest(player.baseURL.appendingPathComponent("api/topic/update"), merchant, token: player.session.token)); XCTFail("merchant scope") }
+        catch {}
+        XCTAssertEqual(recorder.paths.count, sentBefore)
+        _ = try await client.send(TopicPublicationReadRoute.check(topicID: 41, owner: .personal).request(baseURL: player.baseURL, token: player.session.token))
         XCTAssertEqual(recorder.paths.last, TopicPublicationPath.check)
         // (2) money and merchant publishing are not project-editor routes and stay closed.
-        let granted = factory.routes([.projectRead, .projectWrite, .projectPublicationRead]).map(\.path)
         for closed in ["api/topic/pricing/preview", "api/topic/pricing/confirm", "api/pay/create", "api/registration/pay",
                        "api/merchant/topic/publish", "api/template/updateLibraryStatus", "api/wallet/withdraw"] {
             XCTAssertFalse(granted.contains(closed), closed)
