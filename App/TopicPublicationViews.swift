@@ -120,7 +120,7 @@ enum PublishClarityText {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Button { Task { await read() } } label: {
-                Text(phase == .idle || phase == .loading ? "status.read" : "status.refresh", tableName: PublishClarityText.table)
+                Text(LocalizedStringKey(phase == .idle || phase == .loading ? "status.read" : "status.refresh"), tableName: PublishClarityText.table)
             }
             .buttonStyle(.bordered)
             .disabled(phase == .loading)
@@ -305,7 +305,7 @@ enum PublishClarityText {
                     else { Text("check.stale", tableName: PublishClarityText.table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 }
                 Button { Task { await controller.run(model) } } label: {
-                    Text(report == nil ? "check.run" : "check.rerun", tableName: PublishClarityText.table)
+                    Text(LocalizedStringKey(report == nil ? "check.run" : "check.rerun"), tableName: PublishClarityText.table)
                 }
                 .disabled(controller.phase == .loading || model.coordinator.session == nil)
                 .accessibilityIdentifier("publishClarity.check.run")

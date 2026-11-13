@@ -41,8 +41,9 @@ CYNight tokens only (`CYColor`, `CYTypography`, `CYSpacing`, `CYStatusChip`). Un
 - `tools/generate_project.py`: regenerated (2 new sources, 1 catalog, 1 test file).
 - `tools/check_scaffold.py`: PASS (after folding the new GET gate into the existing exact-read branch to stay under the `AppCompositionRoot.swift` ratchet). `tools/check_design_lint.py`: PASS.
 - `xcrun swiftc -parse` on every changed and new Swift file: PASS.
-- `xcrun swiftc -typecheck -disable-sandbox` of the whole `Core/` module (macOS 14 target): see commit note. App target and tests not type-checked here.
+- `xcrun swiftc -emit-module -disable-sandbox` of the whole `Core/` module (macOS 14 target): PASS (first run caught misplaced forwarding methods in `ProjectAuthorInputService`, fixed).
+- `xcrun swiftc -typecheck` of `PublishClarityH2Tests.swift` + `ChinaReviewedRouteCapabilityTests.swift` against that module: PASS. App target (SwiftUI views) not type-checked here; tests not run.
 
-## Tests (written, not run)
+## Tests (written, type-checked, not run)
 
 `Tests/CoreTests/PublishClarityH2Tests.swift`: exact GET route build / parse / rejections, feature accepts only the two GETs, check row decode + malformed rejections + 401, mini field → place mapping, server-id location only when unique, agreement and stages (rehearsal / on-site never pass), five-fact decode with unknowns and type errors, headline never promotes visibility to approval, acknowledgment additive fields + round trip + legacy + wrong type, My-projects fact and sold notice, HTTP adapter reads only with its own grant and sends `topicId&scope`.

@@ -29,16 +29,6 @@ import FoundationNetworking
     public func runtimeStructureInputsAreCurrent(_ inputs: NativeRuntimeStructureAuthorInputs, session: ProjectEditSession) -> Bool {
         isCurrent && self.session == session && receipt == inputs
     }
-    public var supportsPublishCheck: Bool { (original as? any TopicPublicationReading)?.supportsPublishCheck == true }
-    public var supportsPublicationStatus: Bool { (original as? any TopicPublicationReading)?.supportsPublicationStatus == true }
-    public func publishCheck(topicID: Int, session: ProjectEditSession) async throws -> TopicPublishCheckReport {
-        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
-        return try await source.publishCheck(topicID: topicID, session: session)
-    }
-    public func publicationStatus(topicID: Int, session: ProjectEditSession) async throws -> TopicPublicationStatus {
-        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
-        return try await source.publicationStatus(topicID: topicID, session: session)
-    }
     public func runtimeStructureInputs(draft: ProjectEditDraft, session: ProjectEditSession) async throws -> NativeRuntimeStructureAuthorInputs {
         guard isCurrent, self.session == session, draft.owner == .personal else { throw ProjectEditError.notConfigured }
         let ids = Set(draft.chapters.flatMap(\.nodes).compactMap(\.templateID).filter { $0 > 0 })
@@ -104,6 +94,16 @@ import FoundationNetworking
     public func preflight(topicID: Int?, session: ProjectEditSession) async throws -> ProjectEditPreflight { try await original.preflight(topicID: topicID, session: session) }
     public func submit(_ operation: ProjectEditPending, session: ProjectEditSession) async -> ProjectEditWriteOutcome { await original.submit(operation, session: session) }
     public func terminalReceipt(operationID: UUID, session: ProjectEditSession) async throws -> ProjectEditWriteOutcome? { try await original.terminalReceipt(operationID: operationID, session: session) }
+    public var supportsPublishCheck: Bool { (original as? any TopicPublicationReading)?.supportsPublishCheck == true }
+    public var supportsPublicationStatus: Bool { (original as? any TopicPublicationReading)?.supportsPublicationStatus == true }
+    public func publishCheck(topicID: Int, session: ProjectEditSession) async throws -> TopicPublishCheckReport {
+        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        return try await source.publishCheck(topicID: topicID, session: session)
+    }
+    public func publicationStatus(topicID: Int, session: ProjectEditSession) async throws -> TopicPublicationStatus {
+        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        return try await source.publicationStatus(topicID: topicID, session: session)
+    }
     public func runtimeStructureInputs(draft: ProjectEditDraft, session: ProjectEditSession) async throws -> NativeRuntimeStructureAuthorInputs {
         guard let reader else { throw ProjectEditError.notConfigured }; return try await reader.runtimeStructureInputs(draft: draft, session: session)
     }
