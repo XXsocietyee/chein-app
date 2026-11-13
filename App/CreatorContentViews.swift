@@ -211,6 +211,8 @@ private struct CreatorContentIssueView: View {
 @MainActor struct CreatorContentCenterView: View {
     let reader: any CreatorContentReading
     var publisherContext: PublisherLifecycleHostContext? = nil
+    /// U08-03 / U08-04 rows; nil keeps them unmounted.
+    var creatorStudio: CreatorStudioService? = nil
     @StateObject private var model = CreatorContentScreenModel<CreatorContentCenter>()
     @Environment(\.scenePhase) private var scenePhase
     private var key: CreatorContentLoadKey { .init(reader) }
@@ -253,6 +255,7 @@ private struct CreatorContentIssueView: View {
                         }
                     }
                 }
+                if let creatorStudio { CreatorStudioEntrySection(service: creatorStudio, reader: reader) }
                 Text("creatorContent.centerReadOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
         }

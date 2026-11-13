@@ -63,6 +63,9 @@ extension ReviewedProductionFormMutationRoute {
             if relative == "api/game/session/view", playerPerspective(url) == false { return false }
             return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true) && covers(relative, grant.play)
         }
+        if ReviewedProductionGateLeases.creatorStudioPaths.contains(String(ChinaReviewedRouteCapability.normalized("/" + relative).dropFirst())) {
+            return creatorStudioRequest(request, relative: relative, method: method, grant: grant.play)
+        }
         if method == "GET" {
             let emptyBody = request.httpBody?.isEmpty ?? true
             // Admission receipts use the client's own `adm-<uuid>` request ids (contract §0.3 management form).
@@ -137,6 +140,19 @@ extension ReviewedProductionFormMutationRoute {
     static func coversCapabilityRead(_ relative: String) -> Bool {
         let key = ChinaReviewedRouteCapability.normalized("/" + relative)
         return ReviewedProductionGateLeases.capabilityReadPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+    }
+
+    /// U08-03/U08-04: reads are body-less GETs; the two writes are JSON POSTs with a request id and no money field.
+    static func creatorStudioRequest(_ request: URLRequest, relative: String, method: String, grant: OperationEndpointApproval) -> Bool {
+        guard covers(relative, grant) else { return false }
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        let write = key == "/api/creator/maintenance/tickets/{}/close" || (key == "/api/creator/maintenance/tickets" && method == "POST")
+        guard write else { return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true) }
+        guard method == "POST", request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let requestID = object["requestId"] as? String, !requestID.isEmpty else { return false }
+        return object.keys.allSatisfy { !ReviewedPlayerReadRoute.moneyKeys.contains($0) }
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -460,6 +476,13 @@ enum ReviewedPlayerReadRoute {
     static let teamPoolPaths: Set<String> = [
         "api/team/pool", "api/team/pool/hint", "api/team/pool/skip", "api/team/pool/timer/start", "api/team/pool/requests/{}"
     ]
+    /// U08-03 creator feedback and maintenance tickets, U08-04 creator post-game outcome (owner approval,
+    /// backend-app-r2). Carried on the play grant; author-only reads and two ticket writes, no money.
+    static let creatorStudioPaths: Set<String> = [
+        "api/creator/feedback", "api/creator/maintenance/tickets", "api/creator/maintenance/tickets/{}",
+        "api/creator/maintenance/tickets/{}/close", "api/creator/maintenance/requests/{}",
+        "api/creator/analytics/post-game-outcome"
+    ]
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
     ]
@@ -522,7 +545,7 @@ enum ReviewedPlayerReadRoute {
               let profile = makeEndpoint(context, paths: Self.profilePaths),
               let registration = makeEndpoint(context, paths: Self.registrationPaths),
               let team = makeEndpoint(context, paths: Self.teamCommandPaths),
-              let play = makeEndpoint(context, paths: Self.playPaths),
+              let play = makeEndpoint(context, paths: Self.playPaths.union(Self.creatorStudioPaths)),
               let roamExtras = makeEndpoint(context, paths: Self.roamExtraPaths),
               let likes = makeEndpoint(context, paths: Self.likePaths),
               let reports = makeEndpoint(context, paths: Self.reportPaths),

@@ -11,6 +11,8 @@ public struct PlayAdvancedTeamProjection: Equatable {
     public let myRoleLabel: String?
     public let turnIndex: Int; public let completedUnits: Int; public let requiredTurns: Int
     public let isLeader: Bool
+    /// U06 turn block; nil when the backend does not send one.
+    public let turn: PlayAdvancedTurn?
     public init?(state: PlayAdvancedState, actorID: Int) {
         let config = state.config["multiplayer"], value = state.multiplayer
         guard state.isMultiplayer, state.ownerType == 2, actorID > 0,
@@ -43,6 +45,7 @@ public struct PlayAdvancedTeamProjection: Equatable {
         let label = value["myRoleLabel"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.myRole = mine
         self.myRoleLabel = mine == nil ? nil : label.flatMap { $0.isEmpty || $0.utf16.count > 256 ? nil : $0 }
+        self.turn = PlayAdvancedTurn(multiplayer: value, isLeader: isLeader)
         self.turnIndex = index; completedUnits = Set(units.compactMap(\.text)).count; requiredTurns = required
     }
     public var canRequestUnit: Bool { myRole != nil && completedUnits < requiredTurns }

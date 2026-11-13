@@ -11,7 +11,8 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 16) {
             if let team = model.teamProjection {
                 LabeledContent("advancedTeam.progress") { Text("\(team.completedUnits) / \(team.requiredTurns)").monospacedDigit() }
-                LabeledContent("advancedTeam.turnIndex") { Text(verbatim: String(team.turnIndex + 1)) }
+                if let turn = team.turn { PlayAdvancedTurnBlock(turn: turn, isLeader: team.isLeader) }
+                else { LabeledContent("advancedTeam.turnIndex") { Text(verbatim: String(team.turnIndex + 1)) } }
                 LabeledContent("advancedTeam.myRole") {
                     if let role = team.myRoleDisplay { Text(verbatim: role) }
                     else { Text("advancedTeam.unassigned") }

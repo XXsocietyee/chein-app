@@ -1,0 +1,447 @@
+import SwiftUI
+import QuestifyCore
+
+/// U08-03 creator maintenance workbench: problem → original content → fix draft → retest → new version → close.
+/// The stage is the server's, derived from publish and retest facts; the app never advances it. Fixes are made and
+/// published in the existing editor, and a new version never changes old runs.
+@MainActor @Observable final class CreatorMaintenanceModel {
+    enum Tab: Hashable { case feedback, tickets }
+    enum Phase: Equatable { case idle, loading, loaded, failed(CreatorStudioFailure?) }
+    /// An open whose response was lost; re-checked and re-sent with the same request id.
+    struct PendingOpen: Equatable { let request: CreatorTicketOpenRequest }
+
+    let service: CreatorStudioService
+    var topics: [CreatorStudioTopic] = []
+    var topicID: Int?
+    var feedback: [CreatorFeedbackItem] = []
+    var feedbackCursor: String?
+    var tickets: [CreatorMaintenanceTicket] = []
+    var ticketsCursor: String?
+    var feedbackPhase: Phase = .idle
+    var ticketsPhase: Phase = .idle
+    var selected: Set<Int> = []
+    var pendingOpen: PendingOpen?
+    var writeIssue: CreatorStudioFailure?
+    var writing = false
+
+    init(service: CreatorStudioService) { self.service = service }
+
+    func start(loadTopics: () async -> [CreatorStudioTopic]) async {
+        var known = await loadTopics()
+        await reloadTickets()
+        for ticket in tickets where !known.contains(where: { $0.id == ticket.topicId }) {
+            known.append(CreatorStudioTopic(id: ticket.topicId, title: ticket.topicName))
+        }
+        topics = known
+        if topicID == nil || !known.contains(where: { $0.id == topicID }) { topicID = known.first?.id }
+        await reloadFeedback()
+    }
+
+    /// Feedback is always read for one topic.
+    func reloadFeedback() async {
+        guard let topicID else { feedback = []; feedbackPhase = .loaded; return }
+        feedbackPhase = .loading
+        do {
+            let page = try await service.feedback(topicID: topicID)
+            guard topicID == self.topicID else { return }
+            feedback = page.items; feedbackCursor = page.hasMore ? page.nextCursor : nil
+            selected = selected.filter { id in page.items.contains { $0.feedbackId == id && $0.ticketId == nil } }
+            feedbackPhase = .loaded
+        } catch { feedbackPhase = .failed(error as? CreatorStudioFailure) }
+    }
+
+    func moreFeedback() async {
+        guard let topicID, let cursor = feedbackCursor else { return }
+        guard let page = try? await service.feedback(topicID: topicID, cursor: cursor), topicID == self.topicID else { return }
+        feedback += page.items; feedbackCursor = page.hasMore ? page.nextCursor : nil
+    }
+
+    func reloadTickets() async {
+        ticketsPhase = .loading
+        do {
+            let page = try await service.tickets()
+            tickets = page.items; ticketsCursor = page.hasMore ? page.nextCursor : nil
+            ticketsPhase = .loaded
+        } catch { ticketsPhase = .failed(error as? CreatorStudioFailure) }
+    }
+
+    func moreTickets() async {
+        guard let cursor = ticketsCursor, let page = try? await service.tickets(cursor: cursor) else { return }
+        tickets += page.items; ticketsCursor = page.hasMore ? page.nextCursor : nil
+    }
+
+    func toggle(_ item: CreatorFeedbackItem) {
+        guard item.ticketId == nil else { return }
+        if selected.contains(item.feedbackId) { selected.remove(item.feedbackId) } else { selected.insert(item.feedbackId) }
+    }
+
+    /// Opens a ticket for the selected feedback of the current topic. Returns the ticket once the server confirms it.
+    func open(title: String, note: String) async -> CreatorMaintenanceTicket? {
+        let request: CreatorTicketOpenRequest
+        if let pendingOpen { request = pendingOpen.request }
+        else {
+            guard let topicID, !selected.isEmpty else { return nil }
+            let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+            request = CreatorTicketOpenRequest(topicId: topicID, title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+                                               note: trimmed.isEmpty ? nil : trimmed, feedbackIds: selected.sorted())
+        }
+        writing = true; writeIssue = nil
+        defer { writing = false }
+        if pendingOpen != nil, case .applied(let ticket)? = try? await service.openRequest(request.requestId) {
+            return applied(ticket)
+        }
+        switch await service.openTicket(request) {
+        case .applied(let ticket): return applied(ticket)
+        case .rejected(let failure): pendingOpen = nil; writeIssue = failure; return nil
+        case .unknown: pendingOpen = PendingOpen(request: request); return nil
+        }
+    }
+
+    private func applied(_ ticket: CreatorMaintenanceTicket) -> CreatorMaintenanceTicket {
+        pendingOpen = nil; selected = []
+        replace(ticket)
+        Task { await reloadFeedback() }
+        return ticket
+    }
+
+    func replace(_ ticket: CreatorMaintenanceTicket) {
+        if let index = tickets.firstIndex(where: { $0.ticketId == ticket.ticketId }) { tickets[index] = ticket }
+        else { tickets.insert(ticket, at: 0) }
+    }
+}
+
+@MainActor struct CreatorMaintenanceWorkbenchView: View {
+    let loadTopics: () async -> [CreatorStudioTopic]
+    @State private var model: CreatorMaintenanceModel
+    @State private var tab: CreatorMaintenanceModel.Tab = .feedback
+    @State private var composing = false
+    @State private var openedID: Int?
+
+    init(service: CreatorStudioService, loadTopics: @escaping () async -> [CreatorStudioTopic]) {
+        self.loadTopics = loadTopics
+        _model = State(initialValue: CreatorMaintenanceModel(service: service))
+    }
+
+    var body: some View {
+        List {
+            Section {
+                Picker("creatorStudio.maintenance.tab", selection: $tab) {
+                    Text("creatorStudio.maintenance.tab.feedback").tag(CreatorMaintenanceModel.Tab.feedback)
+                    Text("creatorStudio.maintenance.tab.tickets").tag(CreatorMaintenanceModel.Tab.tickets)
+                }.pickerStyle(.segmented).accessibilityIdentifier("creatorStudio.maintenance.tab")
+                Text("creatorStudio.maintenance.flow").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            if tab == .feedback { feedbackSections } else { ticketSections }
+        }
+        .appNavigationTitle("creatorStudio.maintenance.title")
+        .task { await model.start(loadTopics: loadTopics) }
+        .refreshable { await model.reloadTickets(); await model.reloadFeedback() }
+        .sheet(isPresented: $composing) {
+            CreatorTicketComposeSheet(model: model) { ticket in composing = false; openedID = ticket.ticketId; tab = .tickets }
+        }
+        .navigationDestination(item: $openedID) { id in CreatorTicketDetailView(model: model, ticketID: id) }
+    }
+
+    @ViewBuilder private var feedbackSections: some View {
+        if model.topics.count > 1 {
+            Section {
+                Picker("creatorStudio.maintenance.topic", selection: Binding(get: { model.topicID }, set: { id in
+                    model.topicID = id; model.selected = []
+                    Task { await model.reloadFeedback() }
+                })) {
+                    ForEach(model.topics) { topic in Text(verbatim: topic.title ?? "#\(topic.id)").tag(Optional(topic.id)) }
+                }.accessibilityIdentifier("creatorStudio.maintenance.topic")
+            }
+        }
+        Section {
+            switch model.feedbackPhase {
+            case .idle, .loading: CYLoadingStateView(rows: 3)
+            case .failed(let failure): CreatorStudioIssueView(failure: failure) { Task { await model.reloadFeedback() } }
+            case .loaded:
+                if model.topicID == nil { CYEmptyState(systemImage: "square.stack.3d.up.slash", "creatorStudio.issue.noTopics") }
+                else if model.feedback.isEmpty { CYEmptyState(systemImage: "checkmark.bubble", "creatorStudio.feedback.empty") }
+                ForEach(model.feedback) { item in
+                    Button { model.toggle(item) } label: { CreatorFeedbackRow(item: item, selected: model.selected.contains(item.feedbackId)) }
+                        .buttonStyle(.plain).disabled(item.ticketId != nil)
+                        .accessibilityIdentifier("creatorStudio.feedback.\(item.feedbackId)")
+                }
+                if model.feedbackCursor != nil {
+                    CYPillButton("creatorStudio.more", style: .tertiary) { Task { await model.moreFeedback() } }
+                }
+            }
+        } header: { Text("creatorStudio.feedback.header") } footer: { Text("creatorStudio.feedback.privacy") }
+        if !model.selected.isEmpty || model.pendingOpen != nil {
+            Section {
+                CYPillButton("creatorStudio.ticket.open", systemImage: "plus.rectangle.on.rectangle") { composing = true }
+                    .accessibilityIdentifier("creatorStudio.ticket.open")
+            }
+        }
+    }
+
+    @ViewBuilder private var ticketSections: some View {
+        Section {
+            switch model.ticketsPhase {
+            case .idle, .loading: CYLoadingStateView(rows: 3)
+            case .failed(let failure): CreatorStudioIssueView(failure: failure) { Task { await model.reloadTickets() } }
+            case .loaded:
+                if model.tickets.isEmpty { CYEmptyState(systemImage: "wrench.and.screwdriver", "creatorStudio.tickets.empty") }
+                ForEach(model.tickets) { ticket in
+                    NavigationLink { CreatorTicketDetailView(model: model, ticketID: ticket.ticketId) } label: {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            HStack(alignment: .firstTextBaseline) {
+                                Text(verbatim: ticket.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                                Spacer(minLength: CYSpacing.sm)
+                                CreatorTicketStageChip(stage: ticket.knownStage)
+                            }
+                            if let name = ticket.topicName { Text(verbatim: name).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                            Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        }
+                    }.accessibilityIdentifier("creatorStudio.ticket.\(ticket.ticketId)")
+                }
+                if model.ticketsCursor != nil {
+                    CYPillButton("creatorStudio.more", style: .tertiary) { Task { await model.moreTickets() } }
+                }
+            }
+        } header: { Text("creatorStudio.tickets.header") }
+    }
+}
+
+struct CreatorFeedbackRow: View {
+    let item: CreatorFeedbackItem
+    var selected = false
+    var body: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            Image(systemName: item.ticketId != nil ? "link" : selected ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(selected ? CYColor.accent : CYColor.textTertiary).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip(CreatorFeedbackRow.category(item.category), tone: .info)
+                    if let version = item.configVersion { Text("creatorStudio.version \(version)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if let ticket = item.ticketId { Text("creatorStudio.feedback.inTicket \(ticket)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                }
+                if let content = item.content { Text(verbatim: content).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let date = item.createdAt { Text(verbatim: String(date.prefix(16)).replacingOccurrences(of: "T", with: " ")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            }
+        }.padding(.vertical, CYSpacing.xs).contentShape(Rectangle())
+    }
+
+    static func category(_ raw: String?) -> LocalizedStringKey {
+        switch raw {
+        case "PLACE": return "creatorStudio.category.place"
+        case "QUESTION": return "creatorStudio.category.question"
+        default: return "creatorStudio.category.other"
+        }
+    }
+}
+
+struct CreatorTicketStageChip: View {
+    let stage: CreatorMaintenanceTicket.Stage?
+    var body: some View {
+        switch stage {
+        case .reported?: CYStatusChip("creatorStudio.stage.reported", tone: .warning)
+        case .fixDrafted?: CYStatusChip("creatorStudio.stage.fixDrafted", tone: .info)
+        case .fixPublished?: CYStatusChip("creatorStudio.stage.fixPublished", tone: .info)
+        case .retested?: CYStatusChip("creatorStudio.stage.retested", tone: .success)
+        case .closed?: CYStatusChip("creatorStudio.stage.closed", tone: .neutral)
+        case nil: CYStatusChip("creatorStudio.stage.unknown", tone: .neutral)
+        }
+    }
+}
+
+@MainActor struct CreatorTicketComposeSheet: View {
+    @Bindable var model: CreatorMaintenanceModel
+    let onOpened: (CreatorMaintenanceTicket) -> Void
+    @State private var title = ""
+    @State private var note = ""
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let pending = model.pendingOpen {
+                    Section {
+                        CYStatusChip("creatorStudio.write.unknown", tone: .warning, systemImage: "questionmark.circle")
+                        Text(verbatim: pending.request.title).font(CYTypography.cardTitle)
+                    }
+                } else {
+                    Section("creatorStudio.ticket.titleField") {
+                        TextField("creatorStudio.ticket.titlePlaceholder", text: $title).accessibilityIdentifier("creatorStudio.ticket.title")
+                    }
+                    Section("creatorStudio.ticket.noteField") {
+                        TextField("creatorStudio.ticket.notePlaceholder", text: $note, axis: .vertical).lineLimit(3...6)
+                    }
+                    Section { Text("creatorStudio.ticket.selected \(model.selected.count)").font(CYTypography.meta) }
+                }
+                if let issue = model.writeIssue { Section { CreatorStudioWriteIssueText(failure: issue) } }
+                Section {
+                    CYPillButton(model.pendingOpen == nil ? "creatorStudio.ticket.confirmOpen" : "creatorStudio.write.recheck") {
+                        Task { if let ticket = await model.open(title: title, note: note) { onOpened(ticket) } }
+                    }
+                    .disabled(model.writing || (model.pendingOpen == nil && (title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || title.count > 80 || note.count > 500)))
+                    .accessibilityIdentifier("creatorStudio.ticket.confirmOpen")
+                    Text("creatorStudio.ticket.baselineNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }
+            }
+            .cyGroupedSurface()
+            .navigationTitle("creatorStudio.ticket.open")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
+        }
+    }
+}
+
+struct CreatorStudioWriteIssueText: View {
+    let failure: CreatorStudioFailure
+    var body: some View {
+        switch failure {
+        case .rejected(_, let code, _) where code == "FIX_NOT_PUBLISHED": Text("creatorStudio.write.fixNotPublished")
+        case .rejected(_, let code, _) where code == "TICKET_VERSION_CONFLICT": Text("creatorStudio.write.versionConflict")
+        case .rejected(_, let code, _) where code == "TOPIC_NOT_PUBLISHED": Text("creatorStudio.write.topicNotPublished")
+        case .rejected(_, let code, _) where code == "FEEDBACK_ALREADY_LINKED": Text("creatorStudio.write.alreadyLinked")
+        case .rejected(_, let code, _) where code == "CLOSE_REASON_REQUIRED": Text("creatorStudio.write.reasonRequired")
+        case .rejected(_, _, let message?): Text(verbatim: message)
+        default: Text("creatorStudio.issue.failed")
+        }
+    }
+}
+
+@MainActor struct CreatorTicketDetailView: View {
+    @Bindable var model: CreatorMaintenanceModel
+    let ticketID: Int
+    @State private var ticket: CreatorMaintenanceTicket?
+    @State private var failure: CreatorStudioFailure?
+    @State private var loading = true
+    @State private var closing: CreatorTicketCloseChoice?
+
+    var body: some View {
+        List {
+            if loading && ticket == nil { CYLoadingStateView(rows: 4) }
+            else if let ticket { content(ticket) }
+            else { CreatorStudioIssueView(failure: failure) { Task { await load() } } }
+        }
+        .appNavigationTitle("creatorStudio.ticket.detail")
+        .task { await load() }
+        .refreshable { await load() }
+        .sheet(item: $closing) { choice in
+            if let ticket {
+                CreatorTicketCloseSheet(service: model.service, ticket: ticket, resolution: choice.resolution) { updated in
+                    closing = nil; self.ticket = updated; model.replace(updated)
+                }
+            }
+        }
+    }
+
+    private func load() async {
+        loading = true; defer { loading = false }
+        do { let value = try await model.service.ticket(id: ticketID); ticket = value; failure = nil; model.replace(value) }
+        catch { failure = error as? CreatorStudioFailure }
+    }
+
+    @ViewBuilder private func content(_ ticket: CreatorMaintenanceTicket) -> some View {
+        Section {
+            HStack(alignment: .firstTextBaseline) {
+                Text(verbatim: ticket.title).font(CYTypography.sectionTitle)
+                Spacer(minLength: CYSpacing.sm)
+                CreatorTicketStageChip(stage: ticket.knownStage)
+            }
+            if let name = ticket.topicName { Text(verbatim: name).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let note = ticket.note { Text(verbatim: note).font(CYTypography.body) }
+        }
+        Section {
+            stageRow("creatorStudio.flow.problem", done: true, detail: Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)"))
+            stageRow("creatorStudio.flow.original", done: true, detail: Text("creatorStudio.version \(ticket.baseline.configVersion)"))
+            stageRow("creatorStudio.flow.draft", done: ticket.evidence.fixDrafted, detail: ticket.current.draftConfigVersion.map { Text("creatorStudio.version \($0)") })
+            stageRow("creatorStudio.flow.newVersion", done: ticket.evidence.fixPublished, detail: ticket.current.publishedConfigVersion.map { Text("creatorStudio.version \($0)") })
+            stageRow("creatorStudio.flow.retest", done: ticket.evidence.retestedByAuthor, detail: nil)
+            stageRow("creatorStudio.flow.close", done: ticket.isClosed, detail: ticket.resolution.map { Text($0 == "FIXED" ? "creatorStudio.resolution.fixed" : "creatorStudio.resolution.noChange") })
+        } header: { Text("creatorStudio.flow.header") } footer: { Text("creatorStudio.flow.footer") }
+        if let reason = ticket.closeReason {
+            Section("creatorStudio.close.reason") { Text(verbatim: reason) }
+        }
+        Section("creatorStudio.feedback.header") {
+            ForEach(ticket.feedback) { CreatorFeedbackRow(item: $0) }
+        }
+        if !ticket.isClosed {
+            Section {
+                CYPillButton("creatorStudio.close.fixed", systemImage: "checkmark.seal") { closing = .init(resolution: .fixed) }
+                    .disabled(!ticket.canCloseFixed).accessibilityIdentifier("creatorStudio.close.fixed")
+                if !ticket.canCloseFixed { Text("creatorStudio.close.fixedNeedsVersion").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                CYPillButton("creatorStudio.close.noChange", style: .secondary) { closing = .init(resolution: .noChange) }
+                    .accessibilityIdentifier("creatorStudio.close.noChange")
+            }
+        }
+    }
+
+    private func stageRow(_ title: LocalizedStringKey, done: Bool, detail: Text?) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Image(systemName: done ? "checkmark.circle.fill" : "circle.dashed")
+                .foregroundStyle(done ? CYColor.successText : CYColor.textTertiary).accessibilityHidden(true)
+            Text(title).font(CYTypography.body)
+            Spacer(minLength: CYSpacing.sm)
+            if let detail { detail.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+        }.accessibilityElement(children: .combine)
+    }
+}
+
+/// Sheet item for the chosen close resolution.
+struct CreatorTicketCloseChoice: Identifiable {
+    let resolution: CreatorTicketCloseRequest.Resolution
+    var id: String { resolution.rawValue }
+}
+
+@MainActor struct CreatorTicketCloseSheet: View {
+    let service: CreatorStudioService
+    let ticket: CreatorMaintenanceTicket
+    let resolution: CreatorTicketCloseRequest.Resolution
+    let onClosed: (CreatorMaintenanceTicket) -> Void
+    @State private var reason = ""
+    /// Kept across retries so an unknown result re-sends the same request (the server replays it).
+    @State private var pending: CreatorTicketCloseRequest?
+    @State private var unknown = false
+    @State private var issue: CreatorStudioFailure?
+    @State private var sending = false
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text(resolution == .fixed ? "creatorStudio.close.fixedBody" : "creatorStudio.close.noChangeBody")
+                    if resolution == .fixed, let version = ticket.current.publishedConfigVersion {
+                        LabeledContent("creatorStudio.flow.newVersion") { Text("creatorStudio.version \(version)").monospacedDigit() }
+                    }
+                }
+                Section("creatorStudio.close.reason") {
+                    TextField(resolution == .fixed ? "creatorStudio.close.reasonOptional" : "creatorStudio.close.reasonRequired", text: $reason, axis: .vertical)
+                        .lineLimit(2...5).disabled(pending != nil).accessibilityIdentifier("creatorStudio.close.reasonField")
+                }
+                if unknown { Section { CYStatusChip("creatorStudio.write.unknown", tone: .warning, systemImage: "questionmark.circle") } }
+                if let issue { Section { CreatorStudioWriteIssueText(failure: issue) } }
+                Section {
+                    CYPillButton(unknown ? "creatorStudio.write.recheck" : "creatorStudio.close.confirm") { Task { await send() } }
+                        .disabled(sending || !draft.isComplete || reason.count > 500)
+                        .accessibilityIdentifier("creatorStudio.close.confirm")
+                }
+            }
+            .cyGroupedSurface()
+            .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
+        }
+    }
+
+    private var draft: CreatorTicketCloseRequest {
+        pending ?? CreatorTicketCloseRequest(expectedVersion: ticket.version, resolution: resolution,
+                                             reason: reason.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+
+    private func send() async {
+        let request = draft
+        pending = request; sending = true; issue = nil
+        defer { sending = false }
+        switch await service.closeTicket(id: ticket.ticketId, request) {
+        case .applied(let updated): pending = nil; unknown = false; onClosed(updated)
+        case .rejected(let failure): pending = nil; unknown = false; issue = failure
+        case .unknown: unknown = true
+        }
+    }
+}

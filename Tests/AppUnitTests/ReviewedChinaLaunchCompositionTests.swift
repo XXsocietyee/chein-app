@@ -966,6 +966,56 @@ import XCTest
         XCTAssertFalse(recorder.paths.contains("api/wallet/withdraw"))
     }
 
+    /// U06 / U08-03 / U08-04: the creator's feedback, maintenance tickets and post-game outcome report are owner-approved
+    /// non-money reads and writes for a signed-in China player or creator; money stays closed.
+    func testShippedChinaAdmitsCreatorStudioAndKeepsMoneyClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let grant = try XCTUnwrap(composition.playerWriteGrant(player))
+        for path in ["api/creator/feedback", "api/creator/maintenance/tickets", "api/creator/maintenance/tickets/{}",
+                     "api/creator/maintenance/tickets/{}/close", "api/creator/maintenance/requests/{}",
+                     "api/creator/analytics/post-game-outcome"] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+            XCTAssertTrue(grant.play.paths.contains(path), path)
+        }
+        let token = player.session.token
+        let service = CreatorStudioService(configuration: try APIConfiguration(baseURL: player.baseURL),
+            transport: transport, token: { token })
+        _ = try? await service.feedback(topicID: 992001)
+        XCTAssertEqual(recorder.paths.last, "api/creator/feedback")
+        _ = try? await service.tickets(limit: 1)
+        XCTAssertEqual(recorder.paths.last, "api/creator/maintenance/tickets")
+        _ = try? await service.ticket(id: 2)
+        XCTAssertEqual(recorder.paths.last, "api/creator/maintenance/tickets/2")
+        let open = CreatorTicketOpenRequest(topicId: 992001, title: "Entrance sign", note: nil, feedbackIds: [2])
+        _ = await service.openTicket(open)
+        XCTAssertEqual(recorder.paths.last, "api/creator/maintenance/tickets")
+        _ = try? await service.openRequest(open.requestId)
+        XCTAssertEqual(recorder.paths.last, "api/creator/maintenance/requests/" + open.requestId)
+        _ = await service.closeTicket(id: 2, .init(expectedVersion: 1, resolution: .noChange, reason: "verified"))
+        XCTAssertEqual(recorder.paths.last, "api/creator/maintenance/tickets/2/close")
+        _ = try? await service.postGameOutcome(cohortDate: "2026-11-13", windowDays: 30)
+        XCTAssertEqual(recorder.paths.last, "api/creator/analytics/post-game-outcome")
+        XCTAssertEqual(recorder.paths.count, 7)
+        // A ticket write carrying a money field is not this write.
+        var priced = jsonRequest(player.baseURL.appendingPathComponent("api/creator/maintenance/tickets"),
+            #"{"requestId":"0123456789abcdef0123456789abcdef","topicId":1,"title":"t","feedbackIds":[1],"amount":1}"#, token: token)
+        priced.httpShouldHandleCookies = false
+        await assertClosed { try await transport.send(priced) }
+        for money in ["/api/registration/pay", "/api/pay/create", "/api/wallet/withdraw", "/api/club/settlement/withdraw"] {
+            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
+        }
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: token)) }
+        XCTAssertEqual(recorder.paths.count, 7)
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

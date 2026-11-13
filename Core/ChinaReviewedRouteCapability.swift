@@ -51,6 +51,7 @@ public enum ChinaReviewedRouteCapability {
         if videoBountyOwnerGrant.contains(key) { return true }
         if playerParityBOwnerGrant.contains(key) { return true }
         if playerGapOwnerGrant.contains(key) { return true }
+        if creatorStudioOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -267,6 +268,18 @@ public enum ChinaReviewedRouteCapability {
         "/api/marketing/promotions/catalog",
         "/api/marketing/revenue/author/mine",
         "/api/marketing/product/{}"
+    ]
+
+    /// Owner approval (U06 / U08-03 / U08-04, backend-app-r2): the creator's own feedback and maintenance tickets
+    /// and the creator-scoped post-game outcome report. Author-only, no income, settlement or payout.
+    /// Production does not serve these yet; the entries stay hidden until it does.
+    private static let creatorStudioOwnerGrant: Set<String> = [
+        "/api/creator/feedback",
+        "/api/creator/maintenance/tickets",
+        "/api/creator/maintenance/tickets/{}",
+        "/api/creator/maintenance/tickets/{}/close",
+        "/api/creator/maintenance/requests/{}",
+        "/api/creator/analytics/post-game-outcome"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
