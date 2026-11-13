@@ -134,6 +134,8 @@ enum DesignFixtureRegistry {
             if let e5 = MainActor.assumeIsolated({ E5Fixtures.make(name) }) { return e5 }
             if let e5c = MainActor.assumeIsolated({ E5cFixtures.make(name) }) { return e5c }
             if let qr = MainActor.assumeIsolated({ QRScanFixtures.make(name) }) { return qr }
+            // G1 / G7-G8 / parity-b player views on a synthetic transport (GParityFixtures): g-<view>[-<non-happy state>]
+            if let g = MainActor.assumeIsolated({ GParityFixtures.make(name) }) { return g }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
