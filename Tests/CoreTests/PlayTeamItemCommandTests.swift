@@ -74,7 +74,7 @@ final class PlayTeamItemCommandTests: XCTestCase {
             "availableActions": .array([.string("ITEM_USE")]),
             "contents": .array([.object(["kind": .string("ITEM"), "id": .string("tea"), "name": .string("Tea"), "stat": .string("hp"), "quantity": .int(1)])])
         ])
-        let snapshot = try PlayTeamBackpackSnapshot(raw: raw, activityID: 41)
+        let snapshot = try PlayTeamBackpackCommandSnapshot(raw: raw, activityID: 41)
         let model = PlayTeamBackpackCoordinator(activityID: 41, reader: FixedTeamBackpack(snapshot), client: nil, token: { nil })
         await model.reload()
         XCTAssertEqual(model.phase, .ready)
@@ -88,11 +88,11 @@ final class PlayTeamItemCommandTests: XCTestCase {
 
     func testEmptyAndPersonalScope() async throws {
         let empty = PlayWireValue.object(["scope": .string("TEAM"), "activityId": .int(41), "revision": .int(0), "contents": .array([])])
-        let model = PlayTeamBackpackCoordinator(activityID: 41, reader: FixedTeamBackpack(try PlayTeamBackpackSnapshot(raw: empty, activityID: 41)), client: nil, token: { nil })
+        let model = PlayTeamBackpackCoordinator(activityID: 41, reader: FixedTeamBackpack(try PlayTeamBackpackCommandSnapshot(raw: empty, activityID: 41)), client: nil, token: { nil })
         await model.reload()
         XCTAssertEqual(model.phase, .empty)
         let personal = PlayWireValue.object(["scope": .string("PERSONAL"), "activityId": .int(41), "revision": .int(1)])
-        XCTAssertThrowsError(try PlayTeamBackpackSnapshot(raw: personal, activityID: 41))
+        XCTAssertThrowsError(try PlayTeamBackpackCommandSnapshot(raw: personal, activityID: 41))
     }
 }
 
@@ -106,7 +106,7 @@ private final class CommandWire: HTTPTransport {
 }
 
 @MainActor private final class FixedTeamBackpack: PlayTeamBackpackReading {
-    let snapshot: PlayTeamBackpackSnapshot
-    init(_ snapshot: PlayTeamBackpackSnapshot) { self.snapshot = snapshot }
-    func projection(activityID: Int) async throws -> PlayTeamBackpackSnapshot { snapshot }
+    let snapshot: PlayTeamBackpackCommandSnapshot
+    init(_ snapshot: PlayTeamBackpackCommandSnapshot) { self.snapshot = snapshot }
+    func projection(activityID: Int) async throws -> PlayTeamBackpackCommandSnapshot { snapshot }
 }

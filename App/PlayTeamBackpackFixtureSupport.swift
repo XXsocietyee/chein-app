@@ -2,9 +2,9 @@
 import SwiftUI
 
 @MainActor final class PlayTeamBackpackFixtureReader: PlayTeamBackpackReading {
-    let snapshot: PlayTeamBackpackSnapshot
-    init(snapshot: PlayTeamBackpackSnapshot) { self.snapshot = snapshot }
-    func projection(activityID: Int) async throws -> PlayTeamBackpackSnapshot {
+    let snapshot: PlayTeamBackpackCommandSnapshot
+    init(snapshot: PlayTeamBackpackCommandSnapshot) { self.snapshot = snapshot }
+    func projection(activityID: Int) async throws -> PlayTeamBackpackCommandSnapshot {
         guard activityID == 41 else { throw PlayExperienceError.malformed }
         return snapshot
     }
@@ -31,7 +31,7 @@ import SwiftUI
             ])]),
             "pending": .object(["lantern": .object(["name": .string("Lantern"), "itemId": .string("lantern"), "quantity": .int(1)])])
         ])
-        guard let snapshot = try? PlayTeamBackpackSnapshot(raw: raw, activityID: 41) else { return nil }
+        guard let snapshot = try? PlayTeamBackpackCommandSnapshot(raw: raw, activityID: 41) else { return nil }
         let coordinator = PlayTeamBackpackCoordinator(activityID: 41, reader: PlayTeamBackpackFixtureReader(snapshot: snapshot),
                                                      client: nil, token: { nil })
         if unknown { coordinator.present(.unknown(requestID: "pg-theme-unknown")) }

@@ -14,7 +14,7 @@ public struct PlayTeamPendingItem: Equatable, Identifiable {
     public let quantity: Int?
 }
 
-public struct PlayTeamBackpackSnapshot: Equatable {
+public struct PlayTeamBackpackCommandSnapshot: Equatable {
     public let revision: Int
     public let authorityEpoch: Int?
     public let actions: Set<String>
@@ -63,7 +63,7 @@ public struct PlayTeamBackpackSnapshot: Equatable {
 }
 
 public protocol PlayTeamBackpackReading: AnyObject {
-    @MainActor func projection(activityID: Int) async throws -> PlayTeamBackpackSnapshot
+    @MainActor func projection(activityID: Int) async throws -> PlayTeamBackpackCommandSnapshot
 }
 
 public struct PlayTeamBackpackHTTP: PlayTeamBackpackReading {
@@ -73,11 +73,11 @@ public struct PlayTeamBackpackHTTP: PlayTeamBackpackReading {
         self.service = service
         self.token = token
     }
-    public func projection(activityID: Int) async throws -> PlayTeamBackpackSnapshot {
+    public func projection(activityID: Int) async throws -> PlayTeamBackpackCommandSnapshot {
         guard activityID > 0, let token = token(), AuthRequestBuilder.isValidToken(token) else { throw APIError.unauthorized }
         let raw = try await service.request("api/game/session/view", query: ["activityId": String(activityID), "perspective": "PLAYER"],
                                             capability: .reads, token: token)
-        return try PlayTeamBackpackSnapshot(raw: raw, activityID: activityID)
+        return try PlayTeamBackpackCommandSnapshot(raw: raw, activityID: activityID)
     }
 }
 
@@ -148,7 +148,7 @@ public struct PlayTeamCommandDisplay: Equatable {
     public func discard(_ contentID: String) async { await send("ITEM_DISCARD", contentID: contentID) }
     public func receive(_ contentID: String) async { await send("ITEM_RECEIVE", contentID: contentID) }
 
-    private func apply(_ snapshot: PlayTeamBackpackSnapshot) {
+    private func apply(_ snapshot: PlayTeamBackpackCommandSnapshot) {
         revision = snapshot.revision
         authorityEpoch = snapshot.authorityEpoch
         items = snapshot.items
