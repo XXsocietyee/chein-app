@@ -186,7 +186,8 @@ final class VideoBountySourceTests: XCTestCase {
             XCTAssertFalse(VideoBountySource.paths.contains(path), path)
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 672)
+        // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution (owner-approved 2026-11-13).
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
         XCTAssertFalse(VideoBountySource.paths.contains { path in
             ["payout", "withdraw", "redeem", "wallet", "attribution"].contains { path.contains($0) }
         })

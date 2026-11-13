@@ -163,7 +163,7 @@ extension AccountComplianceTests {
         XCTAssertNotEqual(page.impactLines.first { $0.key == "POINTS" }?.valueText, "0")
         XCTAssertEqual(fake.requests.map { $0.url?.path }, ["/api/user/deregister/status"])
         XCTAssertFalse(page.offersResultRoute)
-        XCTAssertFalse(fake.requests.contains { $0.url?.path?.contains("result") == true })
+        XCTAssertFalse(fake.requests.contains { $0.url?.path.contains("result") == true })
     }
 #endif
 }

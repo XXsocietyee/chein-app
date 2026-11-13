@@ -139,7 +139,8 @@ import FoundationNetworking
         XCTAssertEqual(refusal.errorCode, "ANSWER_WRONG")
         XCTAssertFalse(model.unresolved)
         XCTAssertEqual(model.phase, .ready)
-        XCTAssertNil(try await recovery.read(PlayRunStorageKey.make(session: current, scope: .activity(41))))
+        let awaited = try await recovery.read(PlayRunStorageKey.make(session: current, scope: .activity(41)))
+        XCTAssertNil(awaited)
         XCTAssertFalse(paths.contains("/api/play/action-receipt"))
     }
 
@@ -163,7 +164,8 @@ import FoundationNetworking
         await restarted.load()
         XCTAssertEqual(restarted.submitRecovery, .confirmed(nodeID: 701))
         XCTAssertFalse(restarted.unresolved)
-        XCTAssertNil(try await recovery.read(PlayRunStorageKey.make(session: current, scope: .activity(41))))
+        let awaited1 = try await recovery.read(PlayRunStorageKey.make(session: current, scope: .activity(41)))
+        XCTAssertNil(awaited1)
         let posts = transport.requests.filter { $0.httpMethod == "POST" }
         XCTAssertEqual(posts.count, 1)
         let reads = transport.requests.filter { $0.url?.path == "/api/play/action-receipt" }

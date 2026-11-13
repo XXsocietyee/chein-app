@@ -5,7 +5,7 @@ import FoundationNetworking
 @testable import QuestifyCore
 
 final class TeamCommandWriterTests: XCTestCase {
-    func testUnknownKeepsTheRequestIDUntil2xxOr4xx() async throws {
+    @MainActor func testUnknownKeepsTheRequestIDUntil2xxOr4xx() async throws {
         let base = try XCTUnwrap(URL(string: "https://example.test/prod-api/"))
         let approval = try OperationEndpointApproval(baseURL: base, namespace: "team", accountID: 7, paths: TeamCommandWriter.paths)
         let wire = TeamCommandRecorder()

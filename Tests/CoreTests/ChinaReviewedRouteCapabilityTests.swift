@@ -16,7 +16,8 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
                 + ChinaReviewedRouteCapability.missingCount,
             ChinaReviewedRouteCapability.callSiteCount
         )
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 672)
+        // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution (owner-approved 2026-11-13).
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.productionBackendCommit,
             "014fc0d83afe9f53cf4a8b1f9544bcf634e9ce6c"

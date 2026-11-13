@@ -84,7 +84,7 @@ final class ClubCheckinRailTests: XCTestCase {
         XCTAssertEqual(ClubCheckinRail.StateKind.error.titleKey, "club.checkin.state.error")
     }
 
-    func testLiteralZeroStaysZeroAndUnknownNumbersStayEmDash() {
+    func testLiteralZeroStaysZeroAndUnknownNumbersStayEmDash() throws {
         let zero = try XCTUnwrap(ready(Self.record(registration: .integer(0), railStep: .integer(0), extra: [
             "paidAmountText": .integer(0), "displayName": .null, "ticketText": .string("UNKNOWN"),
             "orderTimeText": .string("0"), "storeName": .string("  "), "sessionTime": .integer(0),
@@ -115,7 +115,7 @@ final class ClubCheckinRailTests: XCTestCase {
         XCTAssertFalse(stepped.serverCanRefund)
     }
 
-    func testServerCanRefundDoesNotEnableDispatch() {
+    func testServerCanRefundDoesNotEnableDispatch() throws {
         let facts = try XCTUnwrap(ready(Self.record(registration: .integer(121), railStep: .integer(1), extra: ["canRefund": .bool(true), "statusCode": .string("PENDING")])))
         XCTAssertTrue(facts.serverCanRefund)
         let page = ClubCheckinDetailPage.bind(clientCapabilityPresent: true, value: Self.record(registration: .integer(121), railStep: .integer(1), extra: ["canRefund": .bool(true)]))

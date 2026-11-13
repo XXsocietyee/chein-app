@@ -193,7 +193,7 @@ final class CloudL5IMSquareTests: XCTestCase {
         let unlike = try wire.like(id: 7, type: 1, viewerLiked: true, proposedID: "gone", mint: { "minted-3" }).get()
         XCTAssertEqual(unlike.method, "DELETE")
         XCTAssertEqual(unlike.path, "api/v1/community/posts/7/actions/LIKE")
-        wire.settle(key: "action:7:LIKE:false", requestID: requestID(unlike), code: 409)
+        wire.settle(key: "action:7:LIKE:false", requestID: try XCTUnwrap(requestID(unlike)), code: 409)
         XCTAssertNil(wire.ledger.current("action:7:LIKE:false"))
         XCTAssertEqual(wire.like(id: 7, type: 2, viewerLiked: false, proposedID: nil, mint: minted), .failure(.unsupported))
         XCTAssertEqual(wire.like(id: 7, type: 1, viewerLiked: nil, proposedID: nil, mint: minted), .failure(.refreshPost))

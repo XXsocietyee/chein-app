@@ -16,7 +16,7 @@ private final class ReplayHTTP: HTTPTransport {
 }
 
 @MainActor final class PlayThemeReplayTests: XCTestCase {
-    private func service(_ http: ReplayHTTP, base: String = "https://fixture.example/root/") throws -> PlayExperienceService {
+    private func service(_ http: any HTTPTransport, base: String = "https://fixture.example/root/") throws -> PlayExperienceService {
         PlayExperienceService(configuration: try .init(baseURL: URL(string: base)!), transport: http, enabled: [.reads])
     }
 

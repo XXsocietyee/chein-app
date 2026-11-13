@@ -125,7 +125,7 @@ final class IMChatSessionPageTests: XCTestCase {
         XCTAssertEqual(coordinator.page.messageCountDisplay, "—")
         XCTAssertEqual(coordinator.page.unreadDisplay, "2")
         await coordinator.reload()
-        XCTAssertEqual(reader.messageCalls, [(901, 0)])
+        XCTAssertEqual(reader.messageCalls.map { "\($0.0):\($0.1)" }, ["901:0"])
         XCTAssertEqual(reader.conversationCalls, 0)
         XCTAssertEqual(coordinator.page.phase, .ready)
         XCTAssertEqual(coordinator.page.messageCountDisplay, "1")
@@ -165,7 +165,7 @@ final class IMChatSessionPageTests: XCTestCase {
         XCTAssertEqual(coordinator.page.phase, .hidden)
         XCTAssertEqual(coordinator.page.messageCountDisplay, "—")
         XCTAssertEqual(coordinator.page.unreadDisplay, "—")
-        XCTAssertEqual(reader.messageCalls, [(901, 0)])
+        XCTAssertEqual(reader.messageCalls.map { "\($0.0):\($0.1)" }, ["901:0"])
     }
 
     #if DEBUG

@@ -4,7 +4,7 @@ import XCTest
 import FoundationNetworking
 #endif
 
-final class TemplateIndexPageModelTests: XCTestCase {
+@MainActor final class TemplateIndexPageModelTests: XCTestCase {
     func testUnknownCountIsAnEmDashAndZeroStaysZero() {
         XCTAssertEqual(TemplateIndexCount.unknownDisplay, "—")
         XCTAssertEqual(TemplateIndexCount(nonnegative: nil).text, "—")
@@ -110,7 +110,7 @@ final class TemplateIndexPageModelTests: XCTestCase {
         XCTAssertEqual(unread.phase, .ready)
     }
 
-    func testHiddenCapabilityStaysHiddenAndFlagsStayOff() {
+    @MainActor func testHiddenCapabilityStaysHiddenAndFlagsStayOff() {
         let hidden = coordinator(capability: nil, scope: .consumer)
         XCTAssertTrue(hidden.publishActionsHidden)
         XCTAssertTrue(hidden.topicTemplateUseHidden)
@@ -136,7 +136,7 @@ final class TemplateIndexPageModelTests: XCTestCase {
         XCTAssertFalse(zero.virtualGoodsEnabled)
     }
 
-    func testCoordinatorLoadsExistingReadsAndKeepsUnknownDistinct() async throws {
+    @MainActor func testCoordinatorLoadsExistingReadsAndKeepsUnknownDistinct() async throws {
         let transport = TemplateIndexScriptTransport()
         transport.topics = envelope("[]")
         transport.home = envelope(TemplateIndexFixtureData.homeMissingTotal)
@@ -232,7 +232,7 @@ private final class TemplateIndexScriptTransport: HTTPTransport {
     var topicsStatus = 200
     var homeStatus = 200
     var playsStatus = 200
-    private(set) var paths: [String] = []
+    var paths: [String] = []
     private let lock = NSLock()
 
     func send(_ request: URLRequest) async throws -> (Data, Int) {
