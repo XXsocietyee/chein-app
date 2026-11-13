@@ -295,6 +295,7 @@ enum ReviewedPlayerReadRoute {
     }
     private var socialWritersByContext: [String: ReviewedSocialWriteGrant] = [:]
     private var blacklistByContext: [String: NativeBlacklistApproval] = [:]
+    private var imPreviewLeaseByKey: [String: IMPreviewTemplateLease] = [:]
     private var friendChannelInviteByKey: [String: NativeFriendChannelInviteApproval] = [:]
     private var friendTeamInviteByKey: [String: NativeFriendTeamInviteApproval] = [:]
     private var friendChannelSourceByKey: [String: NativeFriendChannelSourceApproval] = [:]
@@ -559,8 +560,6 @@ enum ReviewedPlayerReadRoute {
         .directory, .detail, .managementInventory, .metadataCommand, .metadataReceipt, .permissionsRead, .permissionCommand, .governanceReceipt
     ]
 
-    /// IM voice/video/file attach (contract §6.14): upload, receipt, scan, policy and the `api/im/send` card.
-    /// Recipient previews are per-message routes and are not issued statically; they stay unavailable.
     /// Owner approval 2026-11-12 (all non-money player writes): players author and publish their own topics as in the
     /// mini-program (pages/publish/*), so the shipped China player gets the project editor reads, writes and publication
     /// reads. Pricing, paid listing, sales, revenue, platform-pass and merchant-scoped routes are not in these features.
@@ -580,6 +579,9 @@ enum ReviewedPlayerReadRoute {
         ]
     }
 
+    /// IM voice/video/file attach (contract §6.14): upload, receipt, scan, policy and the `api/im/send` card.
+    /// Recipient previews stay out of this exact table. `imPreviewLease` issues one concrete GET
+    /// for one template, one viewer, and one conversation (contract §7 item 18).
     static func imMediaRoutes() -> [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] {
         func post(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute.post(path) }
         func get(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute(method: "GET", path: path) }
@@ -592,6 +594,25 @@ enum ReviewedPlayerReadRoute {
             .imVoiceSend: [post("api/im/send")], .imVoiceReceipt: [post("api/im/send-receipt")]
         ]
         return table.mapValues { Set($0.compactMap { $0 }) }
+    }
+
+    /// The six recipient-preview templates. A template that is not in this list is not issued.
+    static let imPreviewTemplates: [BusinessRuntimeRouteTemplate] = IMPreviewRouteTemplates.all
+
+    /// One lease per template, viewer, and conversation. An expired cached lease is dropped and not returned.
+    func imPreviewLease(_ context: RuntimeDependencyContext, conversationID: Int64,
+                        template: BusinessRuntimeRouteTemplate, now: Date = Date()) -> IMPreviewTemplateLease? {
+        guard socialRole(context), conversationID > 0, Self.imPreviewTemplates.contains(template) else { return nil }
+        let key = contextKey(context) + "|\(conversationID)|\(template.method)|\(template.path)"
+        if let cached = imPreviewLeaseByKey[key], now < cached.expiresAt, cached.viewer == context,
+           cached.conversationID == conversationID, cached.template == template {
+            return cached
+        }
+        imPreviewLeaseByKey.removeValue(forKey: key)
+        guard let issued = IMPreviewTemplateLease(template: template, viewer: context, conversationID: conversationID,
+                                                  expiresAt: now.addingTimeInterval(3600)) else { return nil }
+        imPreviewLeaseByKey[key] = issued
+        return issued
     }
 
     func roamLiveWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
