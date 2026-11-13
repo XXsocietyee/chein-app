@@ -279,7 +279,7 @@ struct SquareMineListView: View {
         List {
             ForEach(items) { post in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: String(post.contents.prefix(140)))
+                    Text(verbatim: String((post.contents ?? "").prefix(140)))
                         .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
                 }
                 .accessibilityIdentifier("square.mine.\(list.rawValue).\(post.id)")

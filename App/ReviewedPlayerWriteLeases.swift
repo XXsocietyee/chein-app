@@ -330,7 +330,7 @@ enum ReviewedPlayerReadRoute {
     static let profilePaths: Set<String> = ["api/user/update", "api/common/uploadOSS"]
     static let registrationPaths: Set<String> = ["api/registration/create"]
     static let teamCommandPaths: Set<String> = ["api/team/command", "api/team/command/query", "api/team/command/cancel"]
-    static let playPaths: Set<String> = [
+    static let playPaths: Set<String> = Set<String>([
         "api/play/arrive", "api/play/answer", "api/play/checkin", "api/play/photo", "api/play/sensor-result",
         "api/play/puzzle/reveal", "api/play/action-context", "api/play/action-receipt", "api/play/help",
         "api/play/help/use", "api/play/help/skip", "api/play/help/receipt", "api/play/help/advanced/receipt", "api/play/advanced/start", "api/play/advanced/action",
@@ -357,7 +357,7 @@ enum ReviewedPlayerReadRoute {
         "api/template/topic-template/binding", "api/template/topic-template/binding-status",
         "api/template/topic-template/save-as", "api/template/{}/market-submit",
         "api/map/geocode", "api/map/place-search", "api/search/unified", "api/free-explore/bundle/exit-decision"
-    ].union(capabilityReadPaths)
+    ]).union(capabilityReadPaths)
     /// G4/G5 GET reads. The play grant admits a GET only for these (body empty).
     static let capabilityReadPaths: Set<String> = [
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
