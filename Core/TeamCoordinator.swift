@@ -86,6 +86,8 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     public private(set) var review: TeamReview?
     public private(set) var pending: TeamPendingRecord?
     public private(set) var messageKey: String?
+    /// The last write's source `errorCode`, if any (U06-01/U06-03). Cleared by every new read or review.
+    public private(set) var rejectionCode: String?
     /// Why the last read failed, for source copy only (网络没连上 vs 403 vs data). Never an authorization.
     public private(set) var readFailure: TeamReadFailureKind?
     public private(set) var loading = false
@@ -118,6 +120,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         guard currentSession() != capturedSession else { return }
         generation &+= 1; scope = UUID(); capturedSession = currentSession()
         teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil; completedJoinID = nil; readFailure = nil
+        rejectionCode = nil
         loading = false; writeState = .idle; retiredMembershipTeamID = nil; confirmedJoinMode = nil
     }
     private func active(_ session: TeamSession, _ stamp: UInt64) -> Bool {
@@ -148,8 +151,9 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         guard let lookup = lookup.normalized else { detail = nil; messageKey = "team.invalidLink"; return }
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
         generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil
+        // Keep the write's reason beside the refreshed page; a different target drops it below.
         // The host uses a separate coordinator for each detail route. Never retain another target.
-        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil; retiredMembershipTeamID = nil; confirmedJoinMode = nil }; activeLookup = lookup
+        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil; retiredMembershipTeamID = nil; confirmedJoinMode = nil; rejectionCode = nil }; activeLookup = lookup
         defer { if generation == stamp { loading = false } }
         if case .id(let id) = lookup, membershipRetired(teamID: id, session: session) {
             detail = nil; retiredMembershipTeamID = id; messageKey = "team.changed"; return
@@ -214,6 +218,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         do { try restorePending(targetKey: action.targetKey, session: session) }
         catch { return }
         guard pending == nil else { return }
+        rejectionCode = nil
         guard action.isAllowed(detail: detail) else { messageKey = "team.changed"; return }
         if case .join = action, action.lookup != activeLookup { messageKey = "team.changed"; return }
         if case .create(let context, _, _) = action, context != creation { messageKey = "team.changed"; return }
@@ -332,6 +337,13 @@ public enum TeamReadFailureKind: Equatable, Sendable {
             do {
                 try journal.clear(record); pending = nil; retirementOperations[record.operationID] = nil
                 writeState = result == .rejected ? .rejected : .notSent; messageKey = result == .rejected ? "team.rejected" : "team.notSent"
+            }
+            catch { writeState = .unknown; messageKey = "team.unknown" }
+        case .rejectedCode(let code):
+            // A coded business rejection is terminal for this request: the server rolled back.
+            do {
+                try journal.clear(record); pending = nil; retirementOperations[record.operationID] = nil
+                writeState = .rejected; rejectionCode = code; messageKey = TeamSeatPresentation.rejectionKey(code)
             }
             catch { writeState = .unknown; messageKey = "team.unknown" }
         }
