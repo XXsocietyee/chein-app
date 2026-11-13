@@ -262257,6 +262257,23 @@
         }
       }
     },
+    "u02.template.adoptionConditions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adoption conditions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "采用条件"
+          }
+        }
+      }
+    },
     "u10.template.medal": {
       "extractionState": "manual",
       "localizations": {
