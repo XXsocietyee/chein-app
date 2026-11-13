@@ -62,7 +62,7 @@ public struct PlayTeamBackpackCommandSnapshot: Equatable {
     }
 }
 
-public protocol PlayTeamBackpackReading: AnyObject {
+public protocol PlayTeamBackpackReading {
     @MainActor func projection(activityID: Int) async throws -> PlayTeamBackpackCommandSnapshot
 }
 
