@@ -805,6 +805,7 @@ struct PlayExperienceIssueView: View {
     @State private var action: PlayLeadAction?
     @State private var review = false
     @State private var actionContext: PlayInteractionContext?
+    @Environment(\.playerGapService) private var gapService
     var body: some View {
         let context = model.interactionContext
         Section("playx.lead.title") {
@@ -818,7 +819,11 @@ struct PlayExperienceIssueView: View {
                     Label { if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") } }
                         icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? CYColor.successText : CYColor.textTertiary) }
                 }
-                if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
+                if gapService != nil, case .activity(let activityID) = model.scope, lead.exists, !lead.isLeader {
+                    // leadArrive (one approved GCJ-02 fix) and the member broadcast; leader tools stay hidden.
+                    LeadMemberActionsSection(activityID: activityID, meArrived: lead.meArrived,
+                                             reload: { Task { await model.loadLead(context: context) } })
+                } else if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
                     if !lead.exists { actionButton(context: context, .start) }
@@ -827,6 +832,7 @@ struct PlayExperienceIssueView: View {
                 if model.leaderOutcomeUnknown { Text("playx.lead.unknown") }
                 if model.leadReadFailed { PlayRuntimePhaseText(phase: "failed") }
             }
+            if case .activity(let activityID) = model.scope { TeamTrailSection(activityID: activityID) }
         }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
         .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {

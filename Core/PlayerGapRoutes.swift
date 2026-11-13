@@ -41,11 +41,12 @@ public enum PlayerGapReply: Equatable {
     ]
 
     public let baseURL: URL
+    public let accountID: Int?
     private let token: () -> String?
     private let transport: any HTTPTransport
 
-    public init(baseURL: URL, token: @escaping () -> String?, transport: any HTTPTransport) {
-        self.baseURL = baseURL; self.token = token; self.transport = transport
+    public init(baseURL: URL, accountID: Int? = nil, token: @escaping () -> String?, transport: any HTTPTransport) {
+        self.baseURL = baseURL; self.accountID = accountID; self.token = token; self.transport = transport
     }
 
     // MARK: request shapes
@@ -200,6 +201,12 @@ public enum PlayerGapReply: Equatable {
     public func merchantCityNode(merchantID: Int) async -> CityMerchantNode? {
         guard merchantID > 0, case .ok(let data, _) = await get("api/city/nodes/merchant/\(merchantID)") else { return nil }
         return CityMerchantNode(data)
+    }
+
+    /// BL-69 toggle: only a 200 with a boolean `favorited` counts; anything else leaves local state unchanged.
+    public func toggleCityNodeFavorite(poiID: Int) async -> Bool? {
+        guard poiID > 0, case .ok(let data, _) = await post("api/city/nodes/\(poiID)/favorite", json: [:]) else { return nil }
+        return data["favorited"].bool
     }
 
     /// `topic-adoption.js` creditText: only the attribution line, at most 40 characters.

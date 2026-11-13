@@ -280,6 +280,7 @@ struct OfficialParticipationPresentation {
     var arrival: OfficialArrivalEvidence? = nil
     var onReturn: (() -> Void)? = nil
     @State private var presentation = OfficialParticipationPresentation()
+    @Environment(\.playerGapService) private var gapService
     private var command: OfficialActionCommand? {
         guard !event.paused else { return nil }
         if event.signed == false && [2, 3].contains(event.status ?? -1) { return .signup(event.id) }
@@ -293,7 +294,10 @@ struct OfficialParticipationPresentation {
     var body: some View {
         let presentationID = presentation.entry?.id
         Section("officialAction.participation") {
-            if let command {
+            // The mini-program signs up through the SIGNUP command with a kept request id.
+            if case .signup(let eventID)? = command, gapService != nil {
+                OfficialSignupCommandSection(eventID: eventID, onSettled: { onReturn?() })
+            } else if let command {
                 CYPillButton(LocalizedStringKey(command.titleKey)) {
                     // Capture the detail visit at presentation time. A late dismissal
                     // must not use a callback supplied by a newer account or page.

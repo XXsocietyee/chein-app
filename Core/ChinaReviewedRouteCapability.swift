@@ -40,8 +40,33 @@ public enum ChinaReviewedRouteCapability {
         if forcedOff(key) != nil { return false }
         if wiredPatterns.contains(key) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
-        return videoBountyOwnerGrant.contains(key)
+        if videoBountyOwnerGrant.contains(key) { return true }
+        return playerGapOwnerGrant.contains(key)
     }
+
+    /// G7/G8 owner approval: non-money player reads and writes the mini-program calls (PlayerGapService).
+    /// Payment readiness, payout receiver, club settlement, lead settle, and club host-only routes stay out.
+    private static let playerGapOwnerGrant: Set<String> = [
+        "/api/official/active-for-roam",
+        "/api/official/signup-command",
+        "/api/official/signup-command/query",
+        "/api/official/signup-command/cancel",
+        "/api/team/invite-qrcode",
+        "/api/team/trail/state",
+        "/api/team/trail/consent",
+        "/api/team/trail/sync",
+        "/api/registration/join_info",
+        "/api/city/nodes/favorites",
+        "/api/city/nodes/merchant/{}",
+        "/api/activity/publish_precheck",
+        "/api/media/asset/attribution",
+        "/api/object-card/rename",
+        "/api/user/player-code",
+        "/api/club/event-ops/host/request",
+        "/api/club/lead/arrive",
+        "/api/club/lead/broadcast",
+        "/api/club/post/like-state"
+    ]
 
     /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,
     /// seat invite/claim/cancel, and the boards those screens read.

@@ -148,6 +148,10 @@ import SwiftUI
                             Button("team.invitePreview") { invitationPreview = true }.buttonStyle(.cySecondary(fullWidth: true)).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
                         }
                     }
+                    if !readOnly, invitationCode == nil, detail.team.status == .recruiting, detail.joined == true || detail.leader == true {
+                        // l-misc: the team mini-program code and join code come only from the server reply.
+                        TeamInviteQRSection(teamID: detail.team.id)
+                    }
                     if detail.leader == true, detail.team.status == .recruiting {
                         // Mini leader card (公开招募): shown right after the actions, before the member list.
                         CYCard {

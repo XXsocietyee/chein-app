@@ -661,6 +661,15 @@
       "purpose": "Mention only: no Keychain/UserDefaults writes in this coordinator",
       "retention": "n/a (no store)",
       "deletion": "n/a"
+    },
+    {
+      "file": "Core/PlayerGapRoutes.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Official event signup command: the one open signup intention per account and event (cy-team-event-command-v1:<account>:SIGNUP:<event>) with its 32-hex request id; cleared on a terminal receipt",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     }
   ]
 }

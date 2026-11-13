@@ -69,6 +69,11 @@ import SwiftUI
                     NavigationLink { SessionObjectCardsView()                     } label: {
                         CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
                     }.accessibilityIdentifier("account.objectCards")
+                    if session.playerGapService != nil {
+                        NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")) } label: {
+                            CYListRow("playerGap.cityFavorites.title", trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
+                        }.accessibilityIdentifier("account.cityFavorites")
+                    }
                 }
                 Section {
                     NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
@@ -120,6 +125,11 @@ import SwiftUI
                     NavigationLink { SessionDoorInviterView(session: session) } label: {
                         CYListRow("door.inviter.title", trailing: .none) { CYRowIcon(systemImage: "person.badge.plus") }
                     }.accessibilityIdentifier("door.inviter.entry")
+                    if session.playerGapService != nil {
+                        NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")) } label: {
+                            CYListRow("playerGap.playerCode.title", trailing: .none) { CYRowIcon(systemImage: "qrcode") }
+                        }.accessibilityIdentifier("account.playerCode")
+                    }
                 }
                 Section {
                     PrivateHomeAccountLink(coordinator: privateHomeCoordinator)

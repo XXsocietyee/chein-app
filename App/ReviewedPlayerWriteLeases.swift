@@ -45,7 +45,11 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
-        if method == "GET" { return covers(relative, grant.friends.endpoint) }
+        if method == "GET" {
+            if covers(relative, grant.friends.endpoint) { return true }
+            return covers(relative, grant.play) && (request.httpBody == nil || request.httpBody?.isEmpty == true)
+        }
+        if relative == "api/user/player-code" { return method == "POST" && covers(relative, grant.play) }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
             return covers(relative, grant.team) && teamRequestID(request)
@@ -176,7 +180,14 @@ extension ReviewedProductionFormMutationRoute {
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
         "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
-        "api/play/theme/replay"
+        "api/play/theme/replay",
+        // G7/G8 owner-approved non-money player routes (PlayerGapService.paths).
+        "api/official/active-for-roam", "api/official/signup-command", "api/official/signup-command/query",
+        "api/official/signup-command/cancel", "api/team/invite-qrcode", "api/team/trail/state",
+        "api/team/trail/consent", "api/team/trail/sync", "api/registration/join_info", "api/city/nodes/favorites",
+        "api/city/nodes/merchant/{}", "api/activity/publish_precheck", "api/media/asset/attribution",
+        "api/object-card/rename", "api/user/player-code", "api/club/event-ops/host/request",
+        "api/club/lead/arrive", "api/club/lead/broadcast", "api/club/post/like-state"
     ]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",

@@ -596,6 +596,10 @@ struct ClubCommunityPostDetailView: View {
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.community.detail.pendingLocked.\(pending.operationKind)")
+                        if pending.operationKind == "like", pending.target.postID == post.id {
+                            // Mini-program like readback: the server's current like state for this post only.
+                            ClubPostLikeStateButton(postID: post.id, clubID: targetClubID)
+                        }
                         if model.context.coordinator?.permitsAuthoritativeOutcomeQueries == true {
                             Button("club.community.reconcilePending") {
                                 Task {

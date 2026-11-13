@@ -411,6 +411,7 @@ struct SessionRootView: View {
                   imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
         })
         .environment(\.clubBadgeHostFactory, { session.clubBadgeHost(clubID: $0) })
+        .environment(\.playerGapService, session.playerGapService)
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })
         .environment(\.cityNodeReceiptFactory, { session.makeCityNodeReceiptReader() })
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
