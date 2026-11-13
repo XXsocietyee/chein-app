@@ -58,6 +58,7 @@ public enum ChinaReviewedRouteCapability {
         if playGapOwnerGrant.contains(key) { return true }
         if admitsRewardPledge(key) { return true }
         if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
+        if beGapMerchantOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -417,6 +418,49 @@ public enum ChinaReviewedRouteCapability {
         "/api/workshop/owned",
         "/api/workshop/purchased/professional-targets",
         "/api/workshop/purchased/professional-operations"
+    ]
+
+    /// Owner correction 2026-11-13. Merchant-gap reads and the writes that stay behind
+    /// moneyPayments, payout, merchantWrites, and passwordLogin. Money paths are listed
+    /// here and still fail above: ReleaseMoneyWriteSwitch and forcedOff run first.
+    /// /api/pay/create is not a digital-goods checkout. Marks stay missing.
+    private static let beGapMerchantOwnerGrant: Set<String> = [
+        "/api/merchant",
+        "/api/merchant/authoring/draft-selection/list",
+        "/api/merchant/authoring/draft-selection/resolve",
+        "/api/merchant/authoring/drafts",
+        "/api/merchant/authoring/drafts/{}",
+        "/api/merchant/authoring/environment",
+        "/api/merchant/authoring/jobs",
+        "/api/merchant/authoring/jobs/cancel",
+        "/api/merchant/authoring/main-line",
+        "/api/merchant/authoring/player",
+        "/api/merchant/authoring/player/{}/game",
+        "/api/merchant/authoring/player/{}/requests/{}",
+        "/api/merchant/authoring/public",
+        "/api/merchant/authoring/releases",
+        "/api/merchant/authoring/releases/{}/withdraw",
+        "/api/merchant/city-value/event/{}/benefit",
+        "/api/merchant/city-value/events",
+        "/api/merchant/city-value/report",
+        "/api/merchant/city-value/result/{}",
+        "/api/merchant/crm/marketing-consents/result",
+        "/api/merchant/insight",
+        "/api/merchant/npc/avatar/generate",
+        "/api/merchant/npc/avatar/status",
+        "/api/merchant/npc/knowledge-review",
+        "/api/merchant/npc/knowledge-review/request",
+        "/api/merchant/npc/voice/revoke",
+        "/api/merchant/npc/voice/script",
+        "/api/merchant/offer-withdrawal/request",
+        "/api/merchant/poi/detail",
+        "/api/merchant/shop/apply",
+        "/api/invoice",
+        "/api/pay/create",
+        "/api/asset/withdraw",
+        "/api/us/auth/apple/challenges",
+        "/api/us/auth/apple/exchange",
+        "/api/us/auth/session"
     ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {

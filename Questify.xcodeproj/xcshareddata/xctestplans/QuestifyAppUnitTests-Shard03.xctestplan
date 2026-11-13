@@ -64,6 +64,7 @@
         "BackendSyncAndContractGateSectionViewTests",
         "BackgroundTaskAndScenePhaseLifecycleSectionViewTests",
         "Batches24To27ThreeDocsFullClosureAppUnitTests",
+        "BeGapMerchantSwitchTests",
         "CityPlayerReadCompositionTests",
         "CitySwitchAndCrossCityRoamingSectionViewTests",
         "CloseW5dMerchantOperationsHomeStateTests",

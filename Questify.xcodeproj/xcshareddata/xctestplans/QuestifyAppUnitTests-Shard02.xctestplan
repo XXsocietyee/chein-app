@@ -66,6 +66,7 @@
         "BackendSyncAndContractGateSectionViewTests",
         "BackgroundTaskAndScenePhaseLifecycleSectionViewTests",
         "Batches24To27ThreeDocsFullClosureAppUnitTests",
+        "BeGapMerchantSwitchTests",
         "BundleCommerceMountTests",
         "CYCachedAsyncImageTests",
         "ChannelAdmissionGovernanceEntryTests",
