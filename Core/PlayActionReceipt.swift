@@ -4,6 +4,9 @@ import Foundation
 public enum PlayActionReceiptOutcome: Equatable {
     case pending
     case confirmed(PlayWireValue)
+    /// U05-03: the original receipt is a terminal refusal replayed verbatim (`intentTerminal`).
+    /// The action did not apply; a new attempt needs a new action id.
+    case failed(PlayCommandRefusal)
 }
 
 /// A retry may reuse only the id stored with the original write.
@@ -30,6 +33,9 @@ public enum PlayActionReceipt {
         }
         if code == 401 { throw PlayExperienceError.unauthorized }
         if code == 520 { return .pending }
+        if code != 200, let refusal = PlayCommandRefusal(envelope: envelope), refusal.intentTerminal, !refusal.isPending {
+            return .failed(refusal)
+        }
         guard code == 200 else { throw PlayExperienceError.unknownResult }
         let payload = envelope["data"]
         if let echoed = payload["routeActionId"].text ?? payload["actionId"].text,

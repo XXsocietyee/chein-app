@@ -49,10 +49,13 @@ import SwiftUI
                         Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
                         if let state = node.state { Text(verbatim: state).font(.caption) }
                         if let clue = node.clue { Text(verbatim: clue) }
-                        if node.state == "PAUSED" {
-                            if let reason = node.pause["reason"].text { Text(verbatim: reason) }
-                            if let eta = node.pause["resumeEta"].text { LabeledContent("playx.player.resumeETA") { Text(verbatim: eta) } }
-                            if let fallback = node.fallback["playerMessage"].text { Text(verbatim: fallback) }
+                        if let pause = PlayStationPauseNotice(state: node.state, pause: node.pause, fallback: node.fallback) {
+                            PlayStationPauseView(notice: pause)
+                        }
+                        if node.state == "FALLBACK_COMPLETED" {
+                            // U05-02: completed through the approved replacement; the history stays.
+                            Text("station.fallbackCompleted", tableName: "PlayRecovery").font(CYTypography.caption)
+                                .accessibilityIdentifier("playRecovery.fallbackCompleted.\(node.id)")
                         }
                         if let prompt = node.task["prompt"].text {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {

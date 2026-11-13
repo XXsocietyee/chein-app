@@ -189,6 +189,7 @@ import SwiftUI
                 if model.phase == .loading { CYSkeleton().accessibilityIdentifier("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 PlayResyncAction(model: model)
+                if model.hasCurrentMediaSnapshot, let notice = model.routeNotice { PlayRouteNoticeRow(notice: notice) }
                 if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(CYColor.warningText) }
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
@@ -211,11 +212,27 @@ import SwiftUI
             if model.unresolved {
                 Section("playx.unknown.title") {
                     Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playx.unknown.body"))
+                    // U05-03: what the original receipt says; checking again re-reads it, never resubmits.
+                    if let state = model.submitRecovery { PlaySubmitRecoveryRow(state: state) }
                     Button("playx.reconcile") { Task { await model.load() } }.accessibilityIdentifier("playx.reconcile")
                     if model.canRetryExactBranch {
                         Button("playx.retryExact") { Task { await model.retryExactBranchAfterReadback() } }
                             .accessibilityIdentifier("playx.retryExact")
                     }
+                }
+            }
+            if model.hasCurrentMediaSnapshot, model.available {
+                // U05-04: download for this run; the page states what is (not) usable offline.
+                Section {
+                    NavigationLink {
+                        PlayOfflinePackHost(make: {
+                            PlayOfflinePackEnvironment.store().flatMap {
+                                model.makeOfflinePackModel(store: $0, fetch: PlayOfflinePackEnvironment.fetch(approvedHosts: approvedArtworkHosts))
+                            }
+                        })
+                    } label: {
+                        Label { Text("pack.entry", tableName: "PlayRecovery") } icon: { Image(systemName: "arrow.down.circle") }
+                    }.accessibilityIdentifier("playRecovery.pack.open")
                 }
             }
             if let ambientModel { PlayAmbientView(model: ambientModel) }
@@ -503,6 +520,21 @@ import SwiftUI
         let context = model.interactionContext
         List {
             PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
+            if let state = model.submitRecovery, state.nodeID == nodeID {
+                Section { PlaySubmitRecoveryRow(state: state, onCheck: model.unresolved ? { Task { await model.load() } } : nil) }
+            }
+            if let failure = model.arrivalFailure, failure.nodeID == nodeID, node.map({ model.snapshot?.isDone($0) != true }) ?? false {
+                PlayArrivalFailureSection(failure: failure,
+                    onRelocate: device.map { device -> () -> Void in
+                        // A new reading is a new input with a new action id; the settled one is never replayed.
+                        { _ = Task { await device.capture(.location, interaction: .init(context: context, current: { model.interactionContext })) } }
+                    },
+                    onRefresh: { Task { await model.load() } },
+                    onOpenNode: openNode)
+            }
+            if let reading = model.arrivalReading, model.reward?["nodeId"].tolerantInteger == nodeID {
+                PlayArrivalReadingSection(reading: reading)
+            }
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
                 if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
