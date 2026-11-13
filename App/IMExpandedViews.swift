@@ -397,7 +397,7 @@ struct IMMutationSummary: View {
             case .image: Label("d7.imSummary.photo", systemImage: "photo")
             case .video(let reference):
                 Label("d7.imSummary.video", systemImage: "video")
-                LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: reference.durationMS) }
+                if let duration = reference.durationMS { LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: duration) } }
                 LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: reference.size) }
             case .file(let reference):
                 Label { Text(verbatim: imShownName(reference.name)).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "doc") }
@@ -979,7 +979,7 @@ struct IMVideoCardLabel: View {
                         .accessibilityHidden(true)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            Text(verbatim: imClock(reference.durationMS))
+            Text(verbatim: reference.durationMS.map(imClock) ?? "")
                 .font(CYTypography.meta)
                 .monospacedDigit()
                 .foregroundStyle(palette.textSecondary)

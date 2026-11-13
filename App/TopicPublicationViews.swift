@@ -228,16 +228,12 @@ enum PublishClarityText {
 @MainActor struct TopicPublicationStatusSection: View {
     @ObservedObject var model: ProjectEditModel
     var body: some View {
-        if let topicID = model.coordinator.publicationTopicID, model.coordinator.session != nil {
+        // Hidden, not "unavailable", when this backend does not serve publish-status (China production today).
+        if let topicID = model.coordinator.publicationTopicID, model.coordinator.session != nil,
+           model.coordinator.supportsPublicationStatus {
             Section {
-                if model.coordinator.supportsPublicationStatus {
-                    TopicPublicationStatusPanel(topicID: topicID) { try await model.coordinator.readPublicationStatus(topicID: topicID) }
-                        .id(model.editorIncarnation)
-                } else {
-                    Text("status.unavailable", tableName: PublishClarityText.table)
-                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("publishClarity.status.unavailable")
-                }
+                TopicPublicationStatusPanel(topicID: topicID) { try await model.coordinator.readPublicationStatus(topicID: topicID) }
+                    .id(model.editorIncarnation)
             } header: { Text("status.title", tableName: PublishClarityText.table) }
         }
     }

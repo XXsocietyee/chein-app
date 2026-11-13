@@ -568,6 +568,51 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
     }
 
+    /// Owner approval 2026-11-12 (all non-money player writes): a China player gets the project editor (pages/publish/*),
+    /// the production-served routes go through the shipped transport, and money/merchant publishing stays refused.
+    func testShippedChinaGrantsPlayerProjectEditorAndKeepsMoneyAndMerchantPublishingClosed() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let business = try XCTUnwrap(composition.sessionDependencies(player).businessConfiguration)
+        let factory = try XCTUnwrap(BusinessRuntimeFactory(configuration: business, api: try APIConfiguration(baseURL: player.baseURL),
+            transport: transport, current: { player }))
+        // (1) reads and writes the production host serves are granted and sent.
+        XCTAssertTrue(factory.permits(.projectRead)); XCTAssertTrue(factory.permits(.projectWrite)); XCTAssertTrue(factory.permits(.projectPublicationRead))
+        let client = factory.client([.projectRead, .projectWrite, .projectPublicationRead])
+        for path in ["api/publish/home", "api/topic/edit-detail", "api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update"] {
+            _ = try await client.send(jsonRequest(player.baseURL.appendingPathComponent(path), #"{"id":41}"#, token: player.session.token))
+            XCTAssertEqual(recorder.paths.last, path)
+        }
+        var check = URLRequest(url: try XCTUnwrap(URL(string: player.baseURL.appendingPathComponent(TopicPublicationPath.check).absoluteString + "?topicId=41")))
+        check.httpMethod = "GET"; check.setValue("application/json", forHTTPHeaderField: "Accept")
+        check.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        _ = try await client.send(check)
+        XCTAssertEqual(recorder.paths.last, TopicPublicationPath.check)
+        // (2) money and merchant publishing are not project-editor routes and stay closed.
+        let granted = factory.routes([.projectRead, .projectWrite, .projectPublicationRead]).map(\.path)
+        for closed in ["api/topic/pricing/preview", "api/topic/pricing/confirm", "api/pay/create", "api/registration/pay",
+                       "api/merchant/topic/publish", "api/template/updateLibraryStatus", "api/wallet/withdraw"] {
+            XCTAssertFalse(granted.contains(closed), closed)
+            let before = recorder.paths.count
+            do { _ = try await client.send(jsonRequest(player.baseURL.appendingPathComponent(closed), #"{"id":41}"#, token: player.session.token)); XCTFail(closed) }
+            catch {}
+            XCTAssertEqual(recorder.paths.count, before, closed)
+        }
+        // (3) publish-status and the edit-request receipts are not served by production: not granted, so the UI hides them.
+        XCTAssertFalse(granted.contains(TopicPublicationPath.status))
+        XCTAssertFalse(granted.contains(ProjectEditRequestContract.submitPath))
+        let test = ReviewedProductionGateLeases.projectEditorRoutes(baseURL: try XCTUnwrap(URL(string: "http://127.0.0.1:8120/test-api")))
+        XCTAssertTrue(test[.projectPublicationRead]?.contains(where: { $0.path == TopicPublicationPath.status }) == true)
+        XCTAssertTrue(test[.projectWrite]?.contains(where: { $0.path == ProjectEditRequestContract.submitPath }) == true)
+    }
+
     private func assertClosed(_ body: () async throws -> some Any) async {
         do { _ = try await body(); XCTFail("expected the write to stay closed") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }

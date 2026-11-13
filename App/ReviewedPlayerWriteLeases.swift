@@ -537,6 +537,25 @@ enum ReviewedPlayerReadRoute {
 
     /// IM voice/video/file attach (contract §6.14): upload, receipt, scan, policy and the `api/im/send` card.
     /// Recipient previews are per-message routes and are not issued statically; they stay unavailable.
+    /// Owner approval 2026-11-12 (all non-money player writes): players author and publish their own topics as in the
+    /// mini-program (pages/publish/*), so the shipped China player gets the project editor reads, writes and publication
+    /// reads. Pricing, paid listing, sales, revenue, platform-pass and merchant-scoped routes are not in these features.
+    /// A route the China production host does not serve yet (edit-requests/*, publish-status) is only granted against a
+    /// non-production host such as TEST, so its UI stays hidden in production instead of failing.
+    static func projectEditorRoutes(baseURL: URL) -> [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] {
+        let production = ChinaReviewedRouteCapability.targetsChinaProduction(baseURL)
+        func served(_ method: String, _ paths: [String]) -> Set<BusinessRuntimeRoute> {
+            Set(paths.filter { !production || ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + $0) }
+                .compactMap { try? BusinessRuntimeRoute(method: method, path: $0) })
+        }
+        return [
+            .projectRead: served("POST", ["api/publish/home", "api/topic/edit-detail", ProjectEditRequestContract.readPath]),
+            .projectWrite: served("POST", ["api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update",
+                                           ProjectEditRequestContract.submitPath, ProjectEditRequestContract.resumePostProcessingPath]),
+            .projectPublicationRead: served("GET", [TopicPublicationPath.check, TopicPublicationPath.status])
+        ]
+    }
+
     static func imMediaRoutes() -> [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] {
         func post(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute.post(path) }
         func get(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute(method: "GET", path: path) }
@@ -795,6 +814,7 @@ enum ReviewedPlayerReadRoute {
             .clubChat: Set([try? BusinessRuntimeRoute.post("api/club/chat")].compactMap { $0 })
         ]
         if socialRole(context) { imRoutes.merge(Self.imMediaRoutes()) { $0.union($1) } }
+        if socialRole(context) { imRoutes.merge(Self.projectEditorRoutes(baseURL: context.baseURL)) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes
