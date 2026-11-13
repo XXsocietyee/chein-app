@@ -55,12 +55,21 @@ extension EnvironmentValues {
 
 // MARK: - 邀约提醒 toggle
 
-/// Mini-program message list: 「协作邀请 · 邀约提醒」 switch beside the received-invites title. On iOS the
-/// reminder is a notification preference. BINDING STUB for Cursor: inject an `IMInviteReminderBinding`
-/// (reads the current state; `setEnabled(true)` asks for notification permission if needed and reports
-/// whether it ended up on). Nil ⇒ the switch is hidden.
+/// Mini-program message list: 「协作邀请 · 邀约提醒」 switch beside the received-invites title.
+/// There is no server preference. The binding is a local choice plus notification permission.
+/// `setEnabled(true)` returns true only when that choice is on and alerts are allowed.
+/// Nil ⇒ the switch is hidden.
+enum IMInviteReminderPresentation: Equatable {
+    case off, on, unknown
+    /// Unknown status, in English and Simplified Chinese. Not a hyphen, and not 0.
+    static let unknownMark = "\u{2014}"
+    var isEnabled: Bool { self == .on }
+}
+
 @MainActor protocol IMInviteReminderBinding: AnyObject {
     var isEnabled: Bool { get }
+    var presentation: IMInviteReminderPresentation { get }
+    func reload() async
     func setEnabled(_ on: Bool) async -> Bool
 }
 
@@ -74,32 +83,62 @@ extension EnvironmentValues {
 
 @MainActor struct IMInviteReminderToggle: View {
     @Environment(\.imInviteReminder) private var binding
-    @State private var on = false
+    @State private var presentation: IMInviteReminderPresentation = .unknown
+    @State private var ready = false
     @State private var busy = false
     @State private var result: LocalizedStringKey?
     var body: some View {
         if let binding {
             VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
-                Toggle(isOn: Binding(get: { on }, set: { value in Task { await change(value, binding) } })) {
-                    Text("mpd.im.inviteReminder").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                }
-                .toggleStyle(.switch).controlSize(.mini).fixedSize()
-                .disabled(busy)
-                .accessibilityIdentifier("im.coopStrip.inviteReminder")
-                if let result {
+                inviteSwitch(binding)
+                if ready && presentation == .unknown {
+                    Text("mpd.im.inviteReminder.unknown")
+                        .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                        .accessibilityLabel(Text("mpd.im.inviteReminder.unknownLabel"))
+                        .accessibilityIdentifier("im.coopStrip.inviteReminder.unknown")
+                        .transition(.opacity)
+                } else if let result {
                     Text(result).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                         .transition(.opacity)
                 }
             }
-            .onAppear { on = binding.isEnabled }
+            .task {
+                await reload(binding)
+                ready = true
+            }
         }
+    }
+    @ViewBuilder private func inviteSwitch(_ binding: any IMInviteReminderBinding) -> some View {
+        let toggle = Toggle(isOn: Binding(get: { presentation == .on }, set: { value in Task { await change(value, binding) } })) {
+            Text("mpd.im.inviteReminder").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        }
+        .toggleStyle(.switch).controlSize(.mini).fixedSize()
+        .disabled(busy)
+        .accessibilityIdentifier("im.coopStrip.inviteReminder")
+        if ready && presentation == .unknown {
+            toggle.accessibilityValue(Text("mpd.im.inviteReminder.unknownLabel"))
+        } else {
+            toggle
+        }
+    }
+    private func reload(_ binding: any IMInviteReminderBinding) async {
+        await binding.reload()
+        apply(binding, changedTo: nil)
     }
     private func change(_ value: Bool, _ binding: any IMInviteReminderBinding) async {
         busy = true; defer { busy = false }
-        let final = await binding.setEnabled(value)
-        withAnimation(CYMotion.standard) {
-            on = final
-            result = value ? (final ? "mpd.im.inviteReminder.on" : "mpd.im.inviteReminder.denied") : nil
+        _ = await binding.setEnabled(value)
+        withAnimation(CYMotion.standard) { apply(binding, changedTo: value) }
+    }
+    private func apply(_ binding: any IMInviteReminderBinding, changedTo value: Bool?) {
+        presentation = binding.presentation
+        switch binding.presentation {
+        case .unknown:
+            result = nil
+        case .on:
+            result = value == true ? "mpd.im.inviteReminder.on" : nil
+        case .off:
+            result = value == true ? "mpd.im.inviteReminder.denied" : nil
         }
     }
 }

@@ -168,6 +168,7 @@
         "IMConversationRowActionsAppTests",
         "IMCoopInviteCardsTests",
         "IMCoopInviteStripFactoryTests",
+        "IMInviteReminderControllerTests",
         "InAppCustomerSupportAndFeedbackSectionViewTests",
         "IntegratedNativeAcceptanceFactoryTests",
         "IntegratedReadCompositionTests",
