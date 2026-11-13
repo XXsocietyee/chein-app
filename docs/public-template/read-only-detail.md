@@ -20,7 +20,7 @@ preview rows. Detail `totalTime` is seconds. Route silhouettes accept only norma
 Included games are inert previews from this response, never a second data fetch.
 Recruitment uses only the returned aggregate and explicit server viewer flags.
 No applicant identities, private answer/hint/story objects or raw JSON are displayed.
-Optional public metadata outside this initial allowlist is intentionally not rendered.
+`finishMedalName` is on this allowlist. A missing, null, blank, or non-string name stays nil and hides the completion-medal block; the topic title and `finishMedalImg` are not turned into a name. Other optional public metadata outside the allowlist is not rendered.
 
 The memory-only owner is scoped to account, role, realm and session revision.
 Account/role/token/session lifecycle changes synchronously invalidate all retained

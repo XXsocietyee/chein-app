@@ -256,8 +256,6 @@ struct DiscoveryTopicTemplatePreview: View {
     @State private var tab: TemplateDetailTab = .details
     /// Binding stub: the public share link for this topic template. nil hides the share key.
     var shareURL: URL? = nil
-    /// Binding stub: 通关勋章 (`finishMedalName`) is not in the public projection yet. nil hides the block.
-    var finishMedalName: String? = nil
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
     var body: some View {
         Group {
@@ -407,7 +405,7 @@ struct DiscoveryTopicTemplatePreview: View {
         if item.chapters.isEmpty && item.games.isEmpty {
             Section { Text("discovery.publicEmpty").font(CYTypography.body).foregroundStyle(palette.textSecondary) }.discoveryCardRow()
         }
-        if let medal = finishMedalName {
+        if let medal = item.finishMedalName {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: medal).font(CYTypography.cardTitle)
@@ -415,6 +413,7 @@ struct DiscoveryTopicTemplatePreview: View {
                 }.accessibilityElement(children: .combine)
             } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star") }
                 .discoveryCardRow()
+                .accessibilityIdentifier("discovery.topicDetail.medal")
         }
     }
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {

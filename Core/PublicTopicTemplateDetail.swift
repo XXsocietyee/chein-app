@@ -19,13 +19,17 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
     public let addressName: String?
     public let playerPromise: String?
     public let author: String?
+    /// Trimmed server `finishMedalName`. Nil means the 通关勋章 block stays hidden.
+    /// The topic title and `finishMedalImg` are not a name.
+    public let finishMedalName: String?
     public let viewerIsMerchant: Bool
     public let viewerIsPublisher: Bool
     public let chapters: [PublicTemplateChapter]
     public let games: [PublicTemplateGame]
     enum CodingKeys: String, CodingKey {
         case id, name, subtitle, description, imgUrl, totalTime, totalMileage, locationCount, templateCount
-        case templateStatus, version, mode, addressName, playerPromise, author, viewerIsMerchant, viewerIsPublisher, chapters, games
+        case templateStatus, version, mode, addressName, playerPromise, author, finishMedalName
+        case viewerIsMerchant, viewerIsPublisher, chapters, games
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -45,6 +49,7 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
         addressName = try c.decodeIfPresent(String.self, forKey: .addressName)
         playerPromise = try c.decodeIfPresent(String.self, forKey: .playerPromise)
         author = try c.decodeIfPresent(String.self, forKey: .author)
+        finishMedalName = Self.completionMedalName(c)
         let merchantViewer = try c.decodeIfPresent(Bool.self, forKey: .viewerIsMerchant) ?? false
         let publisherViewer = try c.decodeIfPresent(Bool.self, forKey: .viewerIsPublisher) ?? false
         viewerIsMerchant = merchantViewer
@@ -58,6 +63,13 @@ public struct PublicTopicTemplateDetail: Decodable, Equatable, Identifiable {
               Set(games.map(\.id)).count == games.count,
               [totalTime, templateCount].compactMap({ $0 }).allSatisfy({ $0 >= 0 })
         else { throw APIError.malformedResponse }
+    }
+
+    /// Read-only name from the same public detail. Missing, null, blank, and non-strings stay absent.
+    private static func completionMedalName(_ c: KeyedDecodingContainer<CodingKeys>) -> String? {
+        guard let raw = try? c.decode(String.self, forKey: .finishMedalName) else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 

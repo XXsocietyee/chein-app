@@ -186,4 +186,24 @@ final class PublicTopicTemplateTests: XCTestCase {
         XCTAssertNil(coordinator.value)
         await coordinator.load(); XCTAssertEqual(coordinator.value?.id, 801)
     }
+    func testFinishMedalNameIsOnlyThePublicDetailString() throws {
+        let named = try decode(PublicTopicTemplateFixtures.content().replacingOccurrences(
+            of: "\"id\":801", with: "\"id\":801,\"finishMedalName\":\"  夜行章 \""))
+        XCTAssertEqual(named.finishMedalName, "夜行章")
+        XCTAssertEqual(named.name, "A neighborhood in three chapters")
+        for raw in ["", "   ", "null"] {
+            let blank = try decode(PublicTopicTemplateFixtures.content().replacingOccurrences(
+                of: "\"id\":801", with: "\"id\":801,\"finishMedalName\":\(raw == "null" ? "null" : "\"\(raw)\"")"))
+            XCTAssertNil(blank.finishMedalName, raw)
+        }
+        let absent = try decode(PublicTopicTemplateFixtures.content())
+        XCTAssertNil(absent.finishMedalName)
+        for value in ["1", "true", "{\"name\":\"通关纪念\"}", "[\"夜行章\"]"] {
+            let other = try decode(PublicTopicTemplateFixtures.content().replacingOccurrences(
+                of: "\"id\":801", with: "\"id\":801,\"finishMedalName\":\(value),\"finishMedalImg\":\"https://example.invalid/medal.png\""))
+            XCTAssertNil(other.finishMedalName, value)
+            XCTAssertFalse(String(describing: other).contains("example.invalid"))
+            XCTAssertFalse(String(describing: other).contains("通关纪念"))
+        }
+    }
 }
