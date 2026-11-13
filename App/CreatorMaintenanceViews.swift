@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// U08-03 creator maintenance workbench: problem → original content → fix draft → retest → new version → close.
 /// The stage is the server's, derived from publish and retest facts; the app never advances it. Fixes are made and
