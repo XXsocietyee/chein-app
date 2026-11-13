@@ -555,6 +555,7 @@
         "SocialPresentationIdentityAppTests",
         "SocialReaderFactoryAppTests",
         "SquarePostLocalMediaPresentationTests",
+        "SquareRouteMapProviderTests",
         "StoreKit2CloseoutLayoutTests",
         "StoreKit2SubscriptionAndRefundSectionViewTests",
         "SupportTicketR463HostTests",

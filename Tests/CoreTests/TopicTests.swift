@@ -119,6 +119,19 @@ final class TopicTests: XCTestCase {
             catch { XCTAssertEqual(error as? APIError, expected) }
         }
     }
+    func testDetailDocumentIsTheSameInfoToUserBody() async throws {
+        let json = #"{"code":200,"data":{"id":7,"name":"Synthetic","chaptersList":[{"id":11,"routeGeometry":"keep"}]}}"#
+        let t = TopicTransport(json)
+        let doc = try await service(t).detailDocument(id: 7)
+        XCTAssertEqual(doc.detail.id, 7)
+        XCTAssertEqual(doc.detail.chapters.map(\.id), [11])
+        XCTAssertEqual(doc.body, Data(json.utf8))
+        XCTAssertTrue(String(decoding: doc.body, as: UTF8.self).contains("routeGeometry"))
+        XCTAssertEqual(t.requests.count, 1)
+        XCTAssertEqual(t.requests[0].url?.path, "/test/api/topic/info-to-user")
+        XCTAssertEqual(try await service(t).detail(id: 7).id, 7)
+        XCTAssertEqual(t.requests.count, 2)
+    }
     func testDetailUsesOnlyInfoToUserAndRejectsWrongResource() async throws {
         let t = TopicTransport(#"{"code":200,"data":{"id":7,"name":"Synthetic"}}"#)
         let value = try await service(t).detail(id: 7)

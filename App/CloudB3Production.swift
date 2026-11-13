@@ -42,6 +42,7 @@ extension AppSession: OrientScoreEntryProviding {
         weak var session: AppSession?
         let facts: PlayThemeFactsStore
         let emergency: PlayEmergencyLocationConformer
+        let routeMap: SquareRouteMapProvider
         init(session: AppSession) {
             self.session = session
             facts = PlayThemeFactsStore(currentOwner: { [weak session] in
@@ -49,6 +50,10 @@ extension AppSession: OrientScoreEntryProviding {
                 return PlayThemeFactsStore.Owner(accountID: account.id, epoch: session.sessionRevision)
             })
             emergency = PlayEmergencyLocationConformer()
+            routeMap = SquareRouteMapProvider { [weak session] id in
+                guard let session else { throw CancellationError() }
+                return try await session.topicReader.topicDetailDocument(id: id)
+            }
         }
     }
     private static var slots: [Slot] = []
@@ -60,6 +65,8 @@ extension AppSession: OrientScoreEntryProviding {
         slots.append(created)
         return created
     }
+
+    static func routeMap(for session: AppSession) -> SquareRouteMapProvider { slot(for: session).routeMap }
 
     static func acceptNodes(_ result: PlayNodesResult, session: AppSession) {
         slot(for: session).facts.accept(result)
@@ -173,6 +180,7 @@ struct CloudB3RootModifier: ViewModifier {
             .environment(\.playEmergencyLocationProvider, CloudB3SessionBridge.emergency(for: session))
             .environment(\.imReportProgressUnread, reportUnread)
             .environment(\.aigcFilingNumber, filingNumber)
+            .environment(\.squareRouteMap, CloudB3SessionBridge.routeMap(for: session))
             .task(id: session.account?.id) {
                 let owner = session.account?.id
                 filingNumber = nil

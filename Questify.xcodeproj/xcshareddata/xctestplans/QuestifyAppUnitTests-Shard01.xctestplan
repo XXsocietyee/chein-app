@@ -573,6 +573,7 @@
         "SocialMemberActionLifecycleAppTests",
         "SocialPresentationIdentityAppTests",
         "SocialReaderFactoryAppTests",
+        "SquareRouteMapProviderTests",
         "StoreKit2CloseoutLayoutTests",
         "StoryWalkingFogAndWorkshopUpgradeViewTests",
         "TeamMeetingHandshakeSectionViewTests",

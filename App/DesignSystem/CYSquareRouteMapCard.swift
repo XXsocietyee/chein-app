@@ -1,9 +1,9 @@
 import SwiftUI
 import MapKit
 
-/// Mini `square/components/route-map`: topic chapter nodes as numbered markers plus one route line.
-/// Road geometry only when the supplier verified it; otherwise the nodes are joined directly and the
-/// caption says so. The card renders nothing until the route is ready (mini `wx:if="{{routeReady}}"`).
+/// Mini `square/components/route-map`: numbered stops plus one verified road segment per chapter.
+/// Chapters are not joined. Missing or unverified geometry hides the live map (a post snapshot can
+/// still show). The card does not draw a straight line through the stops.
 struct CYSquareRouteMapCard: View {
     let topicID: Int
     var height: CGFloat = 200
@@ -20,7 +20,7 @@ struct CYSquareRouteMapCard: View {
     var body: some View {
         Group {
             switch phase {
-            case .ready(let route): card { map(route) } caption: { Text(route.isRoad ? "route.road" : "route.direct", tableName: "SocialParity") }
+            case .ready(let route): card { map(route) } caption: { Text("route.road", tableName: "SocialParity") }
             case .loading:
                 RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink1).frame(height: height)
                     .overlay(CYSkeleton().padding(CYSpacing.lg)).accessibilityIdentifier("square.routeMap.loading")
@@ -65,10 +65,10 @@ struct CYSquareRouteMapCard: View {
     }
 
     private func map(_ route: CYSquareRoutePreview) -> some View {
-        let line = route.roadPolyline ?? route.nodes
+        let segments = route.roadSegments.filter { $0.count >= 2 }
         return Map(initialPosition: .automatic, interactionModes: [.zoom, .pan]) {
-            if line.count >= 2 {
-                MapPolyline(coordinates: line.map(\.coordinate)).stroke(CYNight.lantern, lineWidth: 4)
+            ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
+                MapPolyline(coordinates: segment.map(\.coordinate)).stroke(CYNight.lantern, lineWidth: 4)
             }
             ForEach(Array(route.nodes.enumerated()), id: \.element.id) { index, node in
                 Annotation(node.title, coordinate: node.coordinate) {
@@ -98,7 +98,7 @@ struct CYSquareRouteMapCard: View {
         do {
             let route = try await provider.route(topicID: topicID)
             try Task.checkCancellation()
-            phase = route.ready ? .ready(route) : .empty
+            phase = route.isRoad ? .ready(route) : .empty
         } catch is CancellationError {
         } catch { phase = .empty }
     }

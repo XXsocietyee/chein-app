@@ -50,9 +50,13 @@ public struct TopicReadSession: Equatable {
         try await read { try await $0.listDocument(query: query, pageNumber: pageNumber, token: $1) }
     }
     public func topicDetail(id: Int) async throws -> TopicDetail {
+        try await topicDetailDocument(id: id).detail
+    }
+    /// Same signed-in `POST api/topic/info-to-user` as `topicDetail`, including the raw body.
+    public func topicDetailDocument(id: Int) async throws -> TopicDetailDocument {
         guard service != nil else { throw APIError.notConfigured }
         guard currentSession() != nil else { throw APIError.unauthorized }
-        return try await read { try await $0.detail(id: id, token: $1) }
+        return try await read { try await $0.detailDocument(id: id, token: $1) }
     }
     /// Records need a signed-in session; the token never leaves this reader.
     public func themeHistory(topicID: Int, beforeSessionID: Int?) async throws -> TopicThemeHistoryPage {
