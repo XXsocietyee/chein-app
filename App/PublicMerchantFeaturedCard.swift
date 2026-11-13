@@ -69,7 +69,7 @@ extension AppSession {
             else {
                 switch route {
                 case .activity(let id):
-                    ActivityDetailView(id: id, reader: session)
+                    ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
                 case .couponWallet:
                     AccountCollectionCouponsView(reader: session.accountCollectionReader)
                         .id(session.accountCollectionReader.scope)

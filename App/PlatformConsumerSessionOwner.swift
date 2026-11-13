@@ -43,7 +43,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
             } else {
                 TopicDetailView(id: id, reader: topicReaderOverride ?? session.topicReader,
-                    activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session)) },
+                    activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)) },
                     publicMerchant: session.publicMerchantHomeContext,
                     makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,
                     publisherDestination: { detail in

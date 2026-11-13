@@ -199,7 +199,7 @@ extension ReviewedProductionFormMutationRoute {
 enum ReviewedPlayerReadRoute {
     // player-read-paths-begin
     static let paths: Set<String> = [
-        "api/club/home", "api/club/detail", "api/coop/list", "api/user/info",
+        "api/club/home", "api/club/detail", "api/club/access/me", "api/coop/list", "api/user/info",
         "api/config/features", "api/medal/wall", "api/badge/wall-v2", "api/growth/leaderboard",
         "api/object-card/list", "api/registration/my-joined"
     ]
@@ -283,6 +283,18 @@ enum ReviewedPlayerReadRoute {
     private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
     private var playConfigurationByContext: [String: RuntimeDependencyConfiguration] = [:]
     private var cityGameByContext: [String: CityGameCapabilityLease] = [:]
+    private var clubPublicTopicsByKey: [ClubPublicTopicsKey: ClubPublicTopicsApproval] = [:]
+    private struct ClubPublicTopicsKey: Hashable { let context: ClubPublicTopicsContext; let clubID: Int }
+    /// E2E-20261113: a club's public activities/topics are a read for any China viewer once the reviewed player grant is on.
+    /// The approval is cached per viewer context and club so the transport's equality fence stays stable.
+    func clubPublicTopics(_ context: ClubPublicTopicsContext, clubID: Int) -> ClubPublicTopicsApproval? {
+        guard playerWritesEnabled, clubID > 0 else { return nil }
+        let key = ClubPublicTopicsKey(context: context, clubID: clubID)
+        if let existing = clubPublicTopicsByKey[key] { return existing }
+        let issued = ClubPublicTopicsApproval(context: context, clubID: clubID, revision: UUID())
+        clubPublicTopicsByKey[key] = issued
+        return issued
+    }
     private var socialWritersByContext: [String: ReviewedSocialWriteGrant] = [:]
     private var friendChannelInviteByKey: [String: NativeFriendChannelInviteApproval] = [:]
     private var friendTeamInviteByKey: [String: NativeFriendTeamInviteApproval] = [:]
