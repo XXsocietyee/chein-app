@@ -245,6 +245,7 @@ struct TopicDetailView: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }
         .safeAreaInset(edge: .bottom) {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },

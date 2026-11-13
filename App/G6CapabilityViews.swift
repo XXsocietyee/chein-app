@@ -31,52 +31,65 @@ extension EnvironmentValues {
 
 // MARK: - §17.5 promotion catalog (activity sign-up)
 
+/// Per-screen G6 results. Loaders run on an always-drawn container (a hidden section never appears, so it cannot
+/// load itself); sections read the result here. Keys are the activity id and the topic's chapter ids.
+@MainActor @Observable final class G6SectionStore {
+    static let shared = G6SectionStore()
+    var catalogs: [Int: G6PromotionCatalog] = [:]
+    var characters: [[Int]: [G6StoryCharacters.Character]] = [:]
+}
+
+/// Loads the activity's promotion catalog. Attach to the sign-up form itself.
+struct G6PromotionCatalogLoader: ViewModifier {
+    let activityID: Int
+    @Environment(\.g6Capabilities) private var g6
+
+    func body(content: Content) -> some View {
+        content.task(id: activityID) {
+            guard let live = g6.live(), activityID > 0 else { G6SectionStore.shared.catalogs[activityID] = nil; return }
+            let envelope = try? await live.source.promotionCatalog(activityID: activityID, token: live.token)
+            guard !Task.isCancelled else { return }
+            G6SectionStore.shared.catalogs[activityID] = envelope.map(G6PromotionCatalog.init(envelope:)) ?? .empty
+        }
+    }
+}
+
 /// `pages/activity/baoming` 优惠 block: offers, promotions, and people tiers. Nothing is drawn when all are empty
 /// or the read failed. Amounts are server text; no price is computed here.
 struct G6PromotionCatalogSection: View {
     let activityID: Int
     @Environment(\.g6Capabilities) private var g6
-    @State private var catalog = G6PromotionCatalog.empty
 
     var body: some View {
-        Group {
-            if catalog.show {
-                Section("g6.promo.title") {
-                    ForEach(catalog.offers) { offer in
-                        LabeledContent {
-                            if offer.available {
-                                if let save = offer.saveYuan { Text("g6.promo.save \(save)").foregroundStyle(CYColor.textPrimary) }
-                            } else {
-                                Text(G6Copy.promoReason(offer.reasonCode)).foregroundStyle(CYColor.textTertiary)
-                            }
-                        } label: { Text(verbatim: offer.name) }
-                    }
-                    ForEach(catalog.promotions) { promotion in
-                        LabeledContent {
-                            if promotion.eligible {
-                                if let remain = promotion.remain { G6RemainText(remain: remain).foregroundStyle(CYColor.textPrimary) }
-                            } else {
-                                Text(G6Copy.promoReason(promotion.reasonCode)).foregroundStyle(CYColor.textTertiary)
-                            }
-                        } label: { Text(verbatim: promotion.name) }
-                    }
-                    ForEach(catalog.tiers) { tier in
-                        LabeledContent {
-                            Text("g6.promo.tier.price \(tier.unitPrice)").monospacedDigit()
-                        } label: { G6TierRangeText(range: tier.range) }
-                    }
+        let catalog = G6SectionStore.shared.catalogs[activityID] ?? .empty
+        if catalog.show, g6.live() != nil {
+            Section("g6.promo.title") {
+                ForEach(catalog.offers) { offer in
+                    LabeledContent {
+                        if offer.available {
+                            if let save = offer.saveYuan { Text("g6.promo.save \(save)").foregroundStyle(CYColor.textPrimary) }
+                        } else {
+                            Text(G6Copy.promoReason(offer.reasonCode)).foregroundStyle(CYColor.textTertiary)
+                        }
+                    } label: { Text(verbatim: offer.name) }
                 }
-                .accessibilityIdentifier("g6.promo.catalog")
+                ForEach(catalog.promotions) { promotion in
+                    LabeledContent {
+                        if promotion.eligible {
+                            if let remain = promotion.remain { G6RemainText(remain: remain).foregroundStyle(CYColor.textPrimary) }
+                        } else {
+                            Text(G6Copy.promoReason(promotion.reasonCode)).foregroundStyle(CYColor.textTertiary)
+                        }
+                    } label: { Text(verbatim: promotion.name) }
+                }
+                ForEach(catalog.tiers) { tier in
+                    LabeledContent {
+                        Text("g6.promo.tier.price \(tier.unitPrice)").monospacedDigit()
+                    } label: { G6TierRangeText(range: tier.range) }
+                }
             }
+            .accessibilityIdentifier("g6.promo.catalog")
         }
-        .task(id: activityID) { await load() }
-    }
-
-    private func load() async {
-        guard let live = g6.live(), activityID > 0 else { catalog = .empty; return }
-        let envelope = try? await live.source.promotionCatalog(activityID: activityID, token: live.token)
-        guard !Task.isCancelled else { return }
-        catalog = envelope.map(G6PromotionCatalog.init(envelope:)) ?? .empty
     }
 }
 
@@ -173,7 +186,8 @@ struct G6RevenueAllocationsEntry: View {
         Group {
             switch model.state {
             case .hidden:
-                EmptyView()
+                // A drawn zero-size view, so the read below still starts while the entry is hidden.
+                Color.clear.frame(width: 0, height: 0).accessibilityHidden(true)
             case .error:
                 HStack(spacing: CYSpacing.sm) {
                     Label("g6.revenue.unavailable", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.textSecondary)
@@ -247,47 +261,52 @@ struct G6RevenueAllocationsView: View {
 
 // MARK: - Topic main characters (`scope=node`)
 
-/// Topic detail 主要角色: reviewed NPCs of up to four merchant stops, at most eight, deduped by name.
-/// Signed-out viewers and topics without merchant stops draw nothing.
+/// Loads the topic's main characters: reviewed NPCs of up to four merchant stops (`scope=node`). Attach to the topic list.
+struct G6TopicCharactersLoader: ViewModifier {
+    let chapters: [TopicChapter]
+    @Environment(\.g6Capabilities) private var g6
+
+    func body(content: Content) -> some View {
+        content.task(id: chapters.map(\.id)) {
+            let key = chapters.map(\.id)
+            let asks = G6StoryCharacters.asks(chapters)
+            guard !asks.isEmpty, let live = g6.live() else { G6SectionStore.shared.characters[key] = nil; return }
+            var rows: [(npc: [String: Any], place: String)] = []
+            for ask in asks {
+                guard let envelope = try? await live.source.npcNodeProfiles(nodeID: ask.nodeID, token: live.token),
+                      let found = G6StoryCharacters.rows(in: envelope, place: ask.place) else { continue }
+                rows.append(contentsOf: found)
+            }
+            guard !Task.isCancelled else { return }
+            G6SectionStore.shared.characters[key] = G6StoryCharacters.build(rows)
+        }
+    }
+}
+
+/// Topic detail 主要角色: at most eight, deduped by name. Signed-out viewers and topics without merchant stops draw nothing.
 struct G6TopicCharactersSection: View {
     let chapters: [TopicChapter]
     @Environment(\.g6Capabilities) private var g6
-    @State private var characters: [G6StoryCharacters.Character] = []
 
     var body: some View {
-        Group {
-            if !characters.isEmpty {
-                Section("g6.topic.characters") {
-                    ForEach(characters) { character in
-                        HStack(spacing: CYSpacing.md) {
-                            G6Avatar(url: character.avatar)
-                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                Text(verbatim: character.name).font(CYTypography.bodyMedium)
-                                if let place = character.place {
-                                    Text(verbatim: place).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                                }
+        let characters = G6SectionStore.shared.characters[chapters.map(\.id)] ?? []
+        if !characters.isEmpty, g6.live() != nil {
+            Section("g6.topic.characters") {
+                ForEach(characters) { character in
+                    HStack(spacing: CYSpacing.md) {
+                        G6Avatar(url: character.avatar)
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            Text(verbatim: character.name).font(CYTypography.bodyMedium)
+                            if let place = character.place {
+                                Text(verbatim: place).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             }
                         }
-                        .accessibilityElement(children: .combine)
                     }
+                    .accessibilityElement(children: .combine)
                 }
-                .accessibilityIdentifier("g6.topic.characters")
             }
+            .accessibilityIdentifier("g6.topic.characters")
         }
-        .task(id: chapters.map(\.id)) { await load() }
-    }
-
-    private func load() async {
-        let asks = G6StoryCharacters.asks(chapters)
-        guard !asks.isEmpty, let live = g6.live() else { characters = []; return }
-        var rows: [(npc: [String: Any], place: String)] = []
-        for ask in asks {
-            guard let envelope = try? await live.source.npcNodeProfiles(nodeID: ask.nodeID, token: live.token),
-                  let found = G6StoryCharacters.rows(in: envelope, place: ask.place) else { continue }
-            rows.append(contentsOf: found)
-        }
-        guard !Task.isCancelled else { return }
-        characters = G6StoryCharacters.build(rows)
     }
 }
 

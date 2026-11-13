@@ -105,6 +105,7 @@ struct RegistrationSheetView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .modifier(G6PromotionCatalogLoader(activityID: flow.activity.summary.id))
             .safeAreaInset(edge: .bottom, spacing: 0) { if showsCheckoutBar { checkoutBar } }
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)

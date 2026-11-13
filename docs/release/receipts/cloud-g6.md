@@ -87,9 +87,14 @@ PREPARED continues to execute in the same tap (the MP needs a second "continue" 
 ## Gates
 
 `python3 tools/generate_project.py` (new files), `python3 tools/check_scaffold.py`, `python3 tools/check_design_lint.py`,
-and `swiftc -parse` on every changed Swift file pass. The new Core files were also type-checked with `swiftc -typecheck`
-against the Core files they depend on (see the worker report). The Core and app test suites were not executed here; the
-integrator compiles and runs them.
+and `swiftc -parse` on every changed Swift file pass. The five new Core files and `G6CapabilitySourceTests` (compiled in-module
+with XCTest) were type-checked with `swiftc -typecheck` against the ~145 Core files they transitively use: zero errors or
+warnings in any G6 file (the remaining errors were unresolved symbols inside unrelated dependency files outside that
+subset). App files were only `-parse`d. No test suite was executed here; the integrator compiles and runs them.
+
+Load note: hidden sections cannot load themselves (an empty SwiftUI section never appears), so the promotion catalog and
+topic characters load through `G6PromotionCatalogLoader` / `G6TopicCharactersLoader` attached to the always-drawn form/list,
+and the sections read `G6SectionStore`.
 
 ## Files
 
@@ -97,7 +102,7 @@ integrator compiles and runs them.
   `Core/G6MarketingReads.swift`, `App/AppSessionG6.swift`, `App/G6CapabilityViews.swift`,
   `Tests/CoreTests/G6CapabilitySourceTests.swift`, `Tests/AppUnitTests/G6CapabilityGrantTests.swift`.
 - Changed (one line each unless noted): `App/MPParityPassSession.swift` (environment install + product detail read),
-  `App/RegistrationSheetView.swift`, `App/TopicDetailView.swift`, `App/WalletCommerceViews.swift`,
+  `App/RegistrationSheetView.swift` (section + loader), `App/TopicDetailView.swift` (section + loader), `App/WalletCommerceViews.swift`,
   `App/RoamLiveSessionView.swift`, `App/PublishingAIDraftSheet.swift`, `App/SessionPublishingModesView.swift`,
   `App/ReviewedPlayerWriteLeases.swift`, `Core/ChinaReviewedRouteCapability.swift`, `Resources/Localizable.xcstrings`,
   `Questify.xcodeproj` (regenerated).
