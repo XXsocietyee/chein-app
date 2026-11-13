@@ -18,11 +18,12 @@ public struct PWaveProductionReadLease: Equatable, Sendable {
     }
 }
 
-/// Same host lease for `JourneyLoopSource`. Money exports stay refused.
+/// Same host lease for `JourneyLoopSource`. Referral-token issue and gift claim stay refused.
+/// The affiliate summary GET is the one read this lease sends.
 public struct JourneyProductionLease: Equatable, Sendable {
     public let host: String
 
-    public static let refused: Set<JourneyLoopSource.Journey> = [.affiliate, .issueReferral, .giftClaim]
+    public static let refused: Set<JourneyLoopSource.Journey> = [.issueReferral, .giftClaim]
 
     public init(host: String) {
         self.host = host.lowercased()

@@ -369,6 +369,7 @@
         "PlayTaskOutcomeActionTests",
         "PlayTimedReactionRevisionTests",
         "PlayerJourneyProductionTests",
+        "PlayerJourneyPromoTests",
         "PrivacyGuideSummaryLocalizationTests",
         "PrivateHomeAppTests",
         "PrivateHomeExactLabelRecoveryJourneyTests",

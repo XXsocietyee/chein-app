@@ -31,7 +31,7 @@ import XCTest
         XCTAssertNotNil(bindings.journeySeats)
         XCTAssertNotNil(bindings.journeyReport)
         XCTAssertNotNil(bindings.journeySettle)
-        XCTAssertNil(bindings.journeyPromo)
+        XCTAssertNotNil(bindings.journeyPromo)
         XCTAssertNil(bindings.passGift)
         PublicCatalogHostWiring.host = host
         XCTAssertNotNil(PublicCatalogHostWiring.host)
@@ -45,8 +45,8 @@ import XCTest
         _ = try await source.report(topicID: "12", token: "player-token")
         _ = try await reader.themeCatalog(.list, fields: [:], token: nil, scope: scope, currentScope: { scope })
         XCTAssertEqual(recorder.paths, ["api/play/player-journey/report", "api/public-catalog/list"])
-        do { _ = try await source.affiliate(token: "player-token"); XCTFail("affiliate") }
-        catch JourneyRefusal.moneyOff {}
+        let summary = try await source.affiliate(token: "player-token")
+        XCTAssertTrue(summary.ok)
         XCTAssertThrowsError(try source.issueReferral(targetType: 1, targetID: "3", token: "player-token"))
         XCTAssertThrowsError(try source.giftClaim(token: "gift", requestID: "req", sessionToken: "player-token"))
         XCTAssertThrowsError(try reader.quoteProduct(requestID: "req", token: "player-token"))
@@ -54,7 +54,7 @@ import XCTest
         XCTAssertThrowsError(try host.quote(requestID: "req", token: "player-token"))
         XCTAssertThrowsError(try host.order(requestID: "req", token: "player-token"))
         XCTAssertThrowsError(try host.pay(orderNo: "1", requestID: "req", token: "player-token"))
-        XCTAssertEqual(recorder.paths, ["api/play/player-journey/report", "api/public-catalog/list"])
+        XCTAssertEqual(recorder.paths, ["api/play/player-journey/report", "api/public-catalog/list", "api/marketing/affiliate/summary"])
 
         XCTAssertNil(RegionalLaunchConfiguration.composition.playerJourneySource())
         XCTAssertNil(RegionalLaunchConfiguration.composition.playerPWaveReader())
