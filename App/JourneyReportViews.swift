@@ -612,12 +612,13 @@ enum JourneyRateState: Equatable {
 @MainActor struct JourneySettleHost: View {
     let binding: any JourneySettleBinding
     let scope: JourneyRunScope
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         JourneySettleView(phase: binding.phase, rank: binding.rank, rate: binding.rate, shareURL: binding.shareURL,
                           topicName: binding.topicName ?? scope.topicName,
                           onRetry: { binding.load() }, onSignIn: { binding.signIn() }, onLoadRank: { binding.loadRank() },
                           onRankScope: { binding.selectRankScope($0) }, onRankPeriod: { binding.selectRankPeriod($0) },
-                          onSubmitRating: { binding.submitRating(stars: $0, text: $1) }, onDone: { binding.leave() })
+                          onSubmitRating: { binding.submitRating(stars: $0, text: $1) }, onDone: { binding.leave(); dismiss() })
             .task { binding.load() }
     }
 }

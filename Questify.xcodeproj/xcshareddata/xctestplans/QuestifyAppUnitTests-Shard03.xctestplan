@@ -355,6 +355,7 @@
         "PlayThemeRecordsPaginationTests",
         "PlayTimedDisplayLocalizationTests",
         "PlayTimedReactionRevisionTests",
+        "PlayerJourneyProductionTests",
         "PlayerTaskEvidenceReviewControllerTests",
         "PrivacyAndSecurityRedactionSectionViewTests",
         "PrivacyGuideSummaryLocalizationTests",

@@ -38,8 +38,30 @@ public enum ChinaReviewedRouteCapability {
         let key = normalized(path)
         if ReleaseMoneyWriteSwitch.blocks(key) { return false }
         if forcedOff(key) != nil { return false }
-        return wiredPatterns.contains(key)
+        if wiredPatterns.contains(key) { return true }
+        return playerJourneyOwnerGrant.contains(key)
     }
+
+    /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,
+    /// seat invite/claim/cancel, and the boards those screens read.
+    /// Affiliate summary, referral-token issue, gift claim, and every money path stay out.
+    private static let playerJourneyOwnerGrant: Set<String> = [
+        "/api/play/player-journey/report",
+        "/api/play/player-journey/memory",
+        "/api/play/player-journey/choices",
+        "/api/play/player-journey/seats",
+        "/api/rank/list",
+        "/api/referral/landing/referral",
+        "/api/referral/landing/gift",
+        "/api/play/seat-invitations/invite",
+        "/api/play/seat-invitations/claim",
+        "/api/play/seat-invitations/{}",
+        "/api/play/seat-invitations/{}/cancel",
+        "/api/public-catalog/city/list",
+        "/api/public-catalog/list",
+        "/api/public-catalog/filters",
+        "/api/public-catalog/info"
+    ]
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
         guard targetsChinaProduction(url), let relative = relativePath(url) else { return false }

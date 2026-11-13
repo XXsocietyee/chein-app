@@ -388,14 +388,18 @@ extension AppSession {
 
 /// Installs the filled bindings once for the player root. Closures read the live session.
 struct MPParityPassEnvironment: ViewModifier {
+    let session: AppSession
     @State private var bindings: MPParityBindings
 
     init(session: AppSession) {
-        _bindings = State(initialValue: session.mpParityPassBindings())
+        self.session = session
+        _bindings = State(initialValue: session.mpParityPlayerReads())
     }
 
     func body(content: Content) -> some View {
         content.environment(\.mpParity, bindings)
+            .modifier(PlayerJourneySignInSheet(bridge: .shared, session: session))
+            .onAppear { session.installPublicCatalogHost() }
     }
 }
 
