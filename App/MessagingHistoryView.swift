@@ -404,6 +404,7 @@ private struct MessagingBubble: View {
     let conversation: MessagingConversation?
     let accountID: Int
     var position: ChatGroupPosition = .single
+    @Environment(\.imRecipientPreview) private var recipientPreview
     @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
     /// Received messages show a small avatar beside the bubble; only groups add the sender name.
@@ -425,6 +426,7 @@ private struct MessagingBubble: View {
                 }
                 MessagingMessageContent(message: message).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
+                IMRecipientPreviewRow(message: message, input: recipientPreview)
             }
         }
         .padding(CYSpacing.md)
@@ -448,7 +450,10 @@ private struct MessagingBubble: View {
                     MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
                 }
             } content: {
-                MessagingMessageContent(message: message)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    MessagingMessageContent(message: message)
+                    IMRecipientPreviewRow(message: message, input: recipientPreview)
+                }
             }
         }
         .accessibilityElement(children: .combine)

@@ -1,0 +1,211 @@
+import SwiftUI
+
+/// What the conversation is allowed to show before a lease is asked to issue.
+enum IMRecipientPreviewPhase: Equatable {
+    case loading
+    case empty
+    case error
+    case refused
+    case ready
+}
+
+/// Leases the conversation may ask. An empty list is a closed lease.
+struct IMRecipientPreviewInput: Equatable {
+    var phase: IMRecipientPreviewPhase
+    var leases: [IMPreviewTemplateLease]
+    var now: Date
+
+    static let closed = IMRecipientPreviewInput(phase: .ready, leases: [], now: Date(timeIntervalSince1970: 0))
+}
+
+enum IMRecipientPreviewKind: Equatable {
+    case loading
+    case empty
+    case error
+    case refused
+    case closed
+    case issued
+}
+
+struct IMRecipientPreviewLine: Equatable, Identifiable {
+    let slot: String
+    let kind: IMRecipientPreviewKind
+    /// Concrete path only after `issue` returns a route. A nil result stays an em dash.
+    let value: String
+    var id: String { slot }
+
+    static let dash = "—"
+}
+
+/// Issues the six GET recipient-preview templates for one decoded message.
+enum IMRecipientPreviewBoard {
+    static func lines(message: MessagingMessage, input: IMRecipientPreviewInput) -> [IMRecipientPreviewLine] {
+        IMPreviewRouteTemplates.all.map { template in
+            Self.line(message: message, template: template, input: input)
+        }
+    }
+
+    /// `messageConversationID` is the decoded message's conversation. The screen route,
+    /// the lease cache, and any other message are not arguments here.
+    static func issuedRoute(message: MessagingMessage, lease: IMPreviewTemplateLease, now: Date) -> BusinessRuntimeRoute? {
+        let template = lease.template
+        guard let path = template.concretePath(for: Int64(message.id)) else { return nil }
+        return lease.issue(
+            method: template.method,
+            path: path,
+            messageID: Int64(message.id),
+            messageConversationID: Int64(message.conversationID),
+            viewer: lease.viewer,
+            now: now
+        )
+    }
+
+    private static func line(message: MessagingMessage, template: BusinessRuntimeRouteTemplate, input: IMRecipientPreviewInput) -> IMRecipientPreviewLine {
+        let feature = template.feature
+        switch input.phase {
+        case .loading:
+            return make(feature, .loading, issuedPath: nil)
+        case .empty:
+            return make(feature, .empty, issuedPath: nil)
+        case .error:
+            return make(feature, .error, issuedPath: nil)
+        case .refused:
+            return make(feature, .refused, issuedPath: nil)
+        case .ready:
+            break
+        }
+        let matched = input.leases.first { $0.template == template }
+        guard let matched else {
+            return make(feature, .closed, issuedPath: nil)
+        }
+        let route = Self.issuedRoute(message: message, lease: matched, now: input.now)
+        if matched.conversationID != Int64(message.conversationID) {
+            return make(feature, .refused, issuedPath: nil)
+        }
+        if let issued = route {
+            return make(feature, .issued, issuedPath: issued.path)
+        }
+        return make(feature, .closed, issuedPath: nil)
+    }
+
+    private static func make(_ feature: BusinessRuntimeFeature, _ kind: IMRecipientPreviewKind, issuedPath: String?) -> IMRecipientPreviewLine {
+        let shown = displayValue(kind: kind, issuedPath: issuedPath)
+        let resolved: IMRecipientPreviewKind = kind == .issued && shown == IMRecipientPreviewLine.dash ? .closed : kind
+        return IMRecipientPreviewLine(slot: slot(feature), kind: resolved, value: shown)
+    }
+
+    private static func displayValue(kind: IMRecipientPreviewKind, issuedPath: String?) -> String {
+        guard kind == .issued else { return IMRecipientPreviewLine.dash }
+        guard let concrete = issuedPath else { return IMRecipientPreviewLine.dash }
+        guard concrete.isEmpty == false else { return IMRecipientPreviewLine.dash }
+        return concrete
+    }
+
+    private static func slot(_ feature: BusinessRuntimeFeature) -> String {
+        switch feature {
+        case .imFilePreviewStatus: return "file-authorization"
+        case .imFilePreview: return "file-preview"
+        case .imVideoPreviewStatus: return "video-authorization"
+        case .imVideoPreview: return "video-preview"
+        case .imVoicePlayback: return "voice-message"
+        case .imVoicePlaybackStatus: return "voice-authorization"
+        default: return "other"
+        }
+    }
+
+}
+
+private struct IMRecipientPreviewKey: EnvironmentKey {
+    static let defaultValue = IMRecipientPreviewInput.closed
+}
+
+extension EnvironmentValues {
+    var imRecipientPreview: IMRecipientPreviewInput {
+        get { self[IMRecipientPreviewKey.self] }
+        set { self[IMRecipientPreviewKey.self] = newValue }
+    }
+}
+
+/// One visible row per GET template, on the decoded message. A closed lease and a nil
+/// `issue` result show an em dash and are not a successful preview.
+struct IMRecipientPreviewRow: View {
+    let message: MessagingMessage
+    let input: IMRecipientPreviewInput
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text("im.preview.section", tableName: "IMRecipientPreview")
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            ForEach(IMRecipientPreviewBoard.lines(message: message, input: input)) { line in
+                IMRecipientPreviewLineView(line: line, messageID: message.id)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("im.preview.\(message.id)")
+    }
+}
+
+private struct IMRecipientPreviewLineView: View {
+    let line: IMRecipientPreviewLine
+    let messageID: Int
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+            title
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: CYSpacing.sm)
+            VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+                stateLabel
+                    .font(CYTypography.caption)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: line.value)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("im.preview.line.\(messageID).\(line.slot)")
+    }
+
+    @ViewBuilder private var title: some View {
+        switch line.slot {
+        case "file-authorization":
+            Text("im.preview.fileAuthorization", tableName: "IMRecipientPreview")
+        case "file-preview":
+            Text("im.preview.file", tableName: "IMRecipientPreview")
+        case "video-authorization":
+            Text("im.preview.videoAuthorization", tableName: "IMRecipientPreview")
+        case "video-preview":
+            Text("im.preview.video", tableName: "IMRecipientPreview")
+        case "voice-message":
+            Text("im.preview.voice", tableName: "IMRecipientPreview")
+        case "voice-authorization":
+            Text("im.preview.voiceAuthorization", tableName: "IMRecipientPreview")
+        default:
+            Text("im.preview.other", tableName: "IMRecipientPreview")
+        }
+    }
+
+    @ViewBuilder private var stateLabel: some View {
+        switch line.kind {
+        case .loading:
+            Text("im.preview.loading", tableName: "IMRecipientPreview")
+        case .empty:
+            Text("im.preview.empty", tableName: "IMRecipientPreview")
+        case .error:
+            Text("im.preview.error", tableName: "IMRecipientPreview")
+        case .refused:
+            Text("im.preview.refused", tableName: "IMRecipientPreview")
+        case .closed:
+            Text("im.preview.notIssued", tableName: "IMRecipientPreview")
+        case .issued:
+            Text("im.preview.ready", tableName: "IMRecipientPreview")
+        }
+    }
+}

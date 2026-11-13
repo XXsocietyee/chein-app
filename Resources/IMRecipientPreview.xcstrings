@@ -1,0 +1,104 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "im.preview.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Recipient preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "收件人预览" } }
+      }
+    },
+    "im.preview.fileAuthorization": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "File authorization" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文件授权" } }
+      }
+    },
+    "im.preview.file": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "File preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文件预览" } }
+      }
+    },
+    "im.preview.videoAuthorization": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Video authorization" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "视频授权" } }
+      }
+    },
+    "im.preview.video": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Video preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "视频预览" } }
+      }
+    },
+    "im.preview.voice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Voice message" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语音消息" } }
+      }
+    },
+    "im.preview.voiceAuthorization": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Voice authorization" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语音授权" } }
+      }
+    },
+    "im.preview.other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "预览" } }
+      }
+    },
+    "im.preview.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在读取" } }
+      }
+    },
+    "im.preview.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Nothing to preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "没有可预览的内容" } }
+      }
+    },
+    "im.preview.error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Couldn't read the preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "预览读取失败" } }
+      }
+    },
+    "im.preview.refused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Refused" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已拒绝" } }
+      }
+    },
+    "im.preview.notIssued": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Not issued" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未签发" } }
+      }
+    },
+    "im.preview.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可预览" } }
+      }
+    }
+  }
+}

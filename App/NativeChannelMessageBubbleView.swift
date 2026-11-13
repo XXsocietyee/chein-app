@@ -14,6 +14,7 @@ import SwiftUI
     var chainCoordinator: ((Int, NativeChannelChainReference?) -> NativeChannelChainFlow?)? = nil
     var checkinCoordinator: ((Int) -> NativeChannelCheckinFlow?)? = nil
     var openExistingType: ((NativeChannelMessageSnapshot) -> Void)?
+    @Environment(\.imRecipientPreview) private var recipientPreview
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if !isCurrent() { unavailable("message.unavailable") }
@@ -100,6 +101,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            IMRecipientPreviewRow(message: snapshot.message, input: recipientPreview)
         }
         .font(CYTypography.body)
         .privacySensitive()
