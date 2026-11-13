@@ -370,6 +370,7 @@
         "PlayTimedReactionRevisionTests",
         "PlayerJourneyProductionTests",
         "PlayerJourneyPromoTests",
+        "PostGameProjectionTests",
         "PrivacyGuideSummaryLocalizationTests",
         "PrivateHomeAppTests",
         "PrivateHomeExactLabelRecoveryJourneyTests",

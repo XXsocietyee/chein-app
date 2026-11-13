@@ -5165,6 +5165,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "43116F48AC6A8934EE7E9FB1";
 		};
+		"CE0200D065A678A0F4C60694" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/JourneyFeedbackSheet.swift";
+			"sourceTree" = "<group>";
+		};
+		"EA21DDB25AEF6A7ABFC1DC20" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CE0200D065A678A0F4C60694";
+		};
 		"E3065A3337C7966B1E7661A6" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -28564,6 +28574,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "179C43064F513DC518079394";
 		};
+		"7DBE76828FCE4CBCA66ACF5B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PostGameFeedback.swift";
+			"sourceTree" = "<group>";
+		};
+		"953DBC844D375FB52ECA8A0D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7DBE76828FCE4CBCA66ACF5B";
+		};
+		"78186455E0A1F5EB4AB14BB9" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/PostGameReport.swift";
+			"sourceTree" = "<group>";
+		};
+		"A906156CC092587107A5DB6A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "78186455E0A1F5EB4AB14BB9";
+		};
 		"1BCB961AFADC139C694FA0E0" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -37849,6 +37879,7 @@
 				"A3FD8E2EAEC65DAB0B03D1BD",
 				"9C8CBB3AD43FDE2F8240D51C",
 				"43116F48AC6A8934EE7E9FB1",
+				"CE0200D065A678A0F4C60694",
 				"E3065A3337C7966B1E7661A6",
 				"203F6062CEEE928F30C7C672",
 				"929732654D5D107F14ECD7D3",
@@ -40188,6 +40219,8 @@
 				"328A7A1BC2FF2304F47B689C",
 				"57BED794C0E308A812B96206",
 				"179C43064F513DC518079394",
+				"7DBE76828FCE4CBCA66ACF5B",
+				"78186455E0A1F5EB4AB14BB9",
 				"1BCB961AFADC139C694FA0E0",
 				"76A028FC8EBDA323A2B69041",
 				"445642A50F949A66300FEE74",
@@ -41829,6 +41862,7 @@
 				"60F84DC9B3FC5AF7DC603242",
 				"583F3D4764B92C71A2F26F53",
 				"9AF1BB84BAB59E879FA9E6F5",
+				"E26548C532A3A7AF3655AA70",
 				"DDBB83DDB498BA004816BDF5",
 				"B4AA41EFD3B457DEB6F7598B",
 				"42BE903BF9E80366B27BCA9C",
@@ -42716,6 +42750,7 @@
 				"7D639C955E568246D8DD057C",
 				"35C8ABF232E8A068A10EBAA9",
 				"51BFF7193A3080388160745E",
+				"EA21DDB25AEF6A7ABFC1DC20",
 				"FB146A4A762B00A1AC9AC5D1",
 				"068913479D31EF16C9EA0043",
 				"E3ED6013190F0640B10C71D5",
@@ -45055,6 +45090,8 @@
 				"DC16672F5AAECEF6E3CD7D5B",
 				"4496CBF6C86AD4D033C88D91",
 				"5C1B94080EABB95EE72EFE69",
+				"953DBC844D375FB52ECA8A0D",
+				"A906156CC092587107A5DB6A",
 				"EB9971EA8F75245C599D244F",
 				"14DC34EBCD0C96DA9D977E54",
 				"8C1E1AE684F6B8278B191CE8",
@@ -54116,6 +54153,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "9AF1BB84BAB59E879FA9E6F5";
 		};
+		"E26548C532A3A7AF3655AA70" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/PostGameProjectionTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"4A2B7BC2AAC04EACE8B76A0E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E26548C532A3A7AF3655AA70";
+		};
 		"DDBB83DDB498BA004816BDF5" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -58225,6 +58272,7 @@
 				"BCC1F40D1B8B9082981BE2F2",
 				"D69FD584CD68A5005A7E49D9",
 				"86C81D670A208C08D8BCCECC",
+				"4A2B7BC2AAC04EACE8B76A0E",
 				"A4C44A546168A1D760D435CB",
 				"A910B186627377581FA5F26B",
 				"F18384D11249EF1A4D56682A",

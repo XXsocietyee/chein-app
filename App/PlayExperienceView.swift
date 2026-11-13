@@ -45,6 +45,8 @@ import SwiftUI
     @State private var presentationMount = PlayExperiencePresentationMount()
     /// Run-complete medal screen (mini-program medal-screen); shown once per session when the run completes.
     @State private var finishScreen = false
+    /// U08-01: the finish-screen result word comes from the server battle report, not local completion.
+    @State private var finishReport: (any JourneyReportBinding)?
     @State private var finishShownFor: String?
     @Environment(\.locale) private var locale
     /// 切换章节: nil shows every chapter's places.
@@ -139,6 +141,12 @@ import SwiftUI
             finishShownFor = model.identity; finishScreen = true
         }
         .fullScreenCover(isPresented: $finishScreen) { finishMedalScreen }
+        .onChange(of: finishScreen) { _, shown in
+            guard shown, let make = mpParity.journeyReport, let snapshot = model.snapshot else { return }
+            let report = make(journeyRunScope(snapshot.result.topicID, snapshot.result.topicName))
+            finishReport = report
+            report.load()
+        }
         .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
         .onChange(of: scenePhase) { _, next in
             if model.gameplayMode == .cityOrientation, next != .active, model.clock.phase == .running {
@@ -476,8 +484,10 @@ import SwiftUI
         let topic = snapshot?.result.topicName.flatMap { $0.isEmpty ? nil : $0 }
         // Mini-program v13 medal screen: 主题通关 over `{topic} · 获得 N 枚勋章`; only stats it can read
         // (用时 h:mm:ss, 节点 done/total) — a missing one is left out rather than shown as a guess.
-        let title = appLocalized("medalScreen.themeComplete", locale: locale)
-        let subtitle = (topic.map { $0 + " · " } ?? "") + appLocalized("medalScreen.earned \(max(medals.count, 1))", locale: locale)
+        let title = appLocalized(String.LocalizationValue(finishResultKey(snapshot)), locale: locale)
+        // Only medals the reward read actually returned; none means no medal line, never "1".
+        let earned = medals.isEmpty ? nil : appLocalized("medalScreen.earned \(medals.count)", locale: locale)
+        let subtitle = [topic, earned].compactMap { $0 }.joined(separator: " · ")
         let stats = [
             CYStoryStat(key: "medalScreen.stat.time", value: Self.finishClockText(model.clock.elapsedSeconds), systemImage: "stopwatch"),
             CYStoryStat(key: "medalScreen.stat.nodes", value: done.flatMap { nodes.isEmpty ? nil : "\($0)/\(nodes.count)" }, systemImage: "book"),
@@ -486,6 +496,24 @@ import SwiftUI
                       shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
                       secondaryTitle: "medalScreen.records",
                       onClose: { finishScreen = false })
+    }
+    /// `finish-result.js`: cleared only from the report's legitimate completion or the server route's own COMPLETED status;
+    /// every stop done while the report is pending or unreadable has no result word.
+    private func finishResultKey(_ snapshot: PlaySnapshot?) -> String {
+        let state: PostGameFinishResult.ReportState
+        switch finishReport?.phase {
+        case .ready(let report)?: state = .loaded(report.result.flatMap { PostGameCompletion(rawValue: $0.rawValue) })
+        case .loading?: state = .pending
+        default: state = .failed
+        }
+        let result = PostGameFinishResult.resolve(report: state, topicCompleted: snapshot?.route?.status == "COMPLETED",
+                                                  allDone: snapshot?.result.allDone ?? false, chapterDone: false)
+        switch result {
+        case .cleared: return "medalScreen.themeComplete"
+        case .assisted: return "mp.report.result.assisted"
+        case .ended: return "mp.report.result.ended"
+        case .chapterDone, .unknown: return "medalScreen.allDone"
+        }
     }
     private static func finishClockText(_ seconds: Int) -> String? {
         guard seconds > 0 else { return nil }

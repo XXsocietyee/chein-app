@@ -66,6 +66,9 @@ struct JourneyMoment: Identifiable, Equatable {
 struct JourneyMemory: Equatable {
     var participants: Int?
     var moments: [JourneyMoment]
+    /// No consent fact from the server: other members' private photos are not shown.
+    var peerPhotosHidden: Bool
+    var hasPhotos: Bool { moments.contains { $0.pictureURL != nil } }
 }
 
 enum JourneyMemoryPhase: Equatable {
@@ -129,6 +132,8 @@ struct JourneyRankBoard: Equatable {
     var basis: Basis?
     var windowText: String?
     var unattributedRuns: Int?
+    /// Runs with completions but no valid paid registration or pass; the server leaves them unranked.
+    var unverifiedRuns: Int?
     var stats: [JourneyRankStat]
     /// Hero: my rank and "top N%" (only when the server gave the total and there are 5+ ranked players).
     var heroRank: Int?
@@ -305,6 +310,12 @@ struct JourneyRankBoardView: View {
                 Text("mp.rank.unattributed \(runs)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
             }
+            if let runs = board.unverifiedRuns {
+                MPDivider()
+                Text("mp.rank.unverified \(runs)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+                    .accessibilityIdentifier("rankBoard.unverified")
+            }
         }
     }
 }
@@ -334,6 +345,22 @@ enum JourneyReportPhase: Equatable {
     func loadRank()
     func selectRankScope(_ scope: JourneyRankScope)
     func selectRankPeriod(_ period: JourneyRankPeriod)
+    /// U08-02 problem feedback for this run. False hides the entry.
+    var feedbackAvailable: Bool { get }
+    var feedback: JourneyFeedbackState { get }
+    func submitFeedback(category: PostGameFeedbackCategory, nodeID: String?, text: String)
+    /// Same request id, same text: reads the original receipt back.
+    func recheckFeedback()
+    func resetFeedback()
+}
+
+/// U08-02. Only `received` says sent; `unconfirmed` keeps the text locked and offers the same-request check.
+enum JourneyFeedbackState: Equatable {
+    case editing(PostGameFeedbackDraft.Problem?)
+    case sending
+    case unconfirmed
+    case received(PostGameFeedbackReceipt)
+    case refused(String?)
 }
 
 @MainActor struct JourneyReportHost: View {
@@ -348,6 +375,9 @@ enum JourneyReportPhase: Equatable {
             topicName: scope.topicName, hasSeats: scope.registrationID != nil && bindings.journeySeats != nil,
             onRetry: { binding.load() }, onSignIn: { binding.signIn() }, onLoadMemory: { binding.loadMemory() }, onLoadRank: { binding.loadRank() },
             onRankScope: { binding.selectRankScope($0) }, onRankPeriod: { binding.selectRankPeriod($0) },
+            feedbackAvailable: binding.feedbackAvailable, feedback: binding.feedback,
+            onSubmitFeedback: { binding.submitFeedback(category: $0, nodeID: $1, text: $2) },
+            onRecheckFeedback: { binding.recheckFeedback() }, onResetFeedback: { binding.resetFeedback() },
             onOpenSettle: bindings.journeySettle == nil ? nil : {
                 var settle = scope
                 if case .ready(let report) = binding.phase { settle.runID = report.runID ?? scope.runID }
@@ -372,10 +402,16 @@ struct JourneyReportView: View {
     let onLoadRank: () -> Void
     let onRankScope: (JourneyRankScope) -> Void
     let onRankPeriod: (JourneyRankPeriod) -> Void
+    var feedbackAvailable = false
+    var feedback: JourneyFeedbackState = .editing(nil)
+    var onSubmitFeedback: (PostGameFeedbackCategory, String?, String) -> Void = { _, _, _ in }
+    var onRecheckFeedback: () -> Void = {}
+    var onResetFeedback: () -> Void = {}
     let onOpenSettle: (() -> Void)?
     let onOpenSeats: () -> Void
     @State private var rankShown = false
     @State private var memoryShown = false
+    @State private var feedbackShown = false
 
     private var title: LocalizedStringKey {
         if case .ready(let report) = phase, report.legacy { return "mp.report.legacyTitle" }
@@ -432,6 +468,12 @@ struct JourneyReportView: View {
             .presentationDragIndicator(.visible)
             .onAppear(perform: onLoadMemory)
         }
+        .sheet(isPresented: $feedbackShown) {
+            if case .ready(let report) = phase {
+                JourneyFeedbackSheet(nodes: report.nodes, state: feedback, onSubmit: onSubmitFeedback,
+                                     onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
+            }
+        }
     }
 
     private func ready(_ report: JourneyReport) -> some View {
@@ -478,6 +520,11 @@ struct JourneyReportView: View {
                         MPDivider()
                         Button(action: onOpenSeats) { MPRow(title: Text("mp.report.seats"), chevron: true) }
                             .buttonStyle(.plain).accessibilityIdentifier("journeyReport.seats")
+                    }
+                    if feedbackAvailable {
+                        MPDivider()
+                        Button { feedbackShown = true } label: { MPRow(title: Text("mp.feedback.entry"), chevron: true) }
+                            .buttonStyle(.plain).accessibilityIdentifier("journeyReport.feedback")
                     }
                 }
                 if !report.nodes.isEmpty {
@@ -539,6 +586,15 @@ struct JourneyMemoryTimeline: View {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let count = memory.participants, count > 1 {
                     Text("mp.report.memory.together \(count)").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                }
+                if memory.hasPhotos {
+                    Label("mp.report.memory.private", systemImage: "lock")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("journeyMemory.private")
+                }
+                if memory.peerPhotosHidden, (memory.participants ?? 0) > 1 {
+                    Text("mp.report.memory.peerHidden").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .accessibilityIdentifier("journeyMemory.peerHidden")
                 }
                 ForEach(memory.moments) { moment in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
