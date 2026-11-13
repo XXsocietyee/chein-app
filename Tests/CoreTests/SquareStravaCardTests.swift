@@ -2,6 +2,17 @@ import XCTest
 @testable import QuestifyCore
 
 final class SquareStravaCardTests: XCTestCase {
+    func testPostFollowFlagReusesTheCardDecodeAndStaysUnknown() throws {
+        let followed = try JSONDecoder().decode(SquarePost.self, from: Data(#"{"id":3,"memberId":9,"isFollowTheUser":1}"#.utf8))
+        XCTAssertEqual(followed.isFollowTheUser, true)
+        XCTAssertEqual(followed.strava.followed, true)
+        let alias = try JSONDecoder().decode(SquarePost.self, from: Data(#"{"id":3,"memberId":9,"viewerFollowing":false}"#.utf8))
+        XCTAssertEqual(alias.isFollowTheUser, false)
+        let missing = try JSONDecoder().decode(SquarePost.self, from: Data(#"{"id":3,"memberId":9}"#.utf8))
+        XCTAssertNil(missing.isFollowTheUser)
+        let junk = try JSONDecoder().decode(SquarePost.self, from: Data(#"{"id":3,"memberId":9,"isFollowTheUser":"maybe"}"#.utf8))
+        XCTAssertNil(junk.isFollowTheUser)
+    }
     func testTextPostStaysATextCard() {
         let card = SquareStravaCard.decode(json: ["nodeTotal": 6, "nodeDoneCount": 2, "completed": true], dataType: 2, dataID: 9)
         XCTAssertFalse(card.showsActivity)

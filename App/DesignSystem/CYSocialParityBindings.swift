@@ -23,7 +23,7 @@ import CoreLocation
     func completedActivities() async throws -> [CYSquareCompletedActivity]
 }
 
-/// Mini `square/detail` `isFollowTheUser`. SquarePost does not decode it yet; nil keeps the follow item hidden.
+/// Mini `square/detail` `isFollowTheUser`, already decoded on `SquarePost`. Nil keeps the follow item hidden.
 @MainActor protocol SquareAuthorFollowStateProviding: AnyObject {
     func isFollowing(memberID: Int) -> Bool?
 }

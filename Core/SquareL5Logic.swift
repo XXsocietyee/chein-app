@@ -213,6 +213,34 @@ public struct SquareActivityPicker: Equatable {
         generation += 1
         pending = nil
     }
+
+    /// Rows for the square picker. A missing name is an em dash. A missing count stays nil.
+    /// An id that is missing or not positive is not a row.
+    public struct PublicReferenceRow: Equatable, Sendable {
+        public let id: Int
+        public let name: String
+        public let cover: String?
+        public let doneCount: Int?
+        public let total: Int?
+        public let topicID: Int?
+        public init(id: Int, name: String, cover: String?, doneCount: Int?, total: Int?, topicID: Int?) {
+            self.id = id
+            self.name = name
+            self.cover = cover
+            self.doneCount = doneCount
+            self.total = total
+            self.topicID = topicID
+        }
+    }
+
+    public static func publicReferenceRows(_ records: [CompletedPlayRecord]) -> [PublicReferenceRow] {
+        records.compactMap { record in
+            guard let id = record.activityID, id > 0 else { return nil }
+            let name = record.name ?? SquareCountDisplay.unknownMark
+            let topic = record.topicID.flatMap { $0 > 0 ? $0 : nil }
+            return PublicReferenceRow(id: id, name: name, cover: record.cover, doneCount: record.doneCount, total: record.total, topicID: topic)
+        }
+    }
 }
 
 /// `utils/topic-route-preview.js` `build`. Verified road geometry is drawn as a road.

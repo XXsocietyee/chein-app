@@ -23,6 +23,7 @@ import SwiftUI
     @State private var blockNotice = false
     private struct EditorRoute: Identifiable { let id = UUID(); let purpose: SocialEditorPurpose; let target: SocialActionTarget; let text: String; var enabled = true }
     @State private var editor: EditorRoute?
+    @State private var followWriteMember: Int?
     @State private var cloudProfile: SquareDetailProfileRoute?
     @State private var post: SquarePost?
     @State private var detailIssue: Error?
@@ -119,7 +120,7 @@ import SwiftUI
         }
         .onChange(of: key) { _, _ in relatedTopic = nil }
         .onChange(of: relatedTopicContext?.reader.scope) { _, _ in relatedTopic = nil }
-        .sheet(item: $editor) { item in
+        .sheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }
         .sheet(item: $shareRoute) { route in CYSquareShareSheet(payload: route.payload, url: route.url) }
@@ -175,6 +176,7 @@ import SwiftUI
     private func openReviewed(_ route: EditorRoute) {
         reportTarget = nil
         showsWorkspaceEdit = false
+        followWriteMember = route.purpose == .toggleFollow ? route.target.memberID : nil
         editor = route
     }
     private func reportCloud(_ post: SquarePost) {
@@ -232,6 +234,7 @@ import SwiftUI
     }
     /// Mini `goUserInfoClcik`: follow only when the state is known and not yet following, then visit profile.
     private func avatarMenuItems(_ post: SquarePost) -> [CYAnchoredMenuItem] {
+        (followState as? SquareAuthorFollowConformer)?.record(post)
         guard post.memberID > 0 else { return [] }
         var items: [CYAnchoredMenuItem] = []
         if let actions, let viewer = actions.identity.accountID, viewer != post.memberID,
@@ -241,9 +244,16 @@ import SwiftUI
         if accountReader != nil { items.append(.init(id: "profile", title: "avatarMenu.profile", tableName: "SocialParity")) }
         return items
     }
+    private func applyFollowReceipt() {
+        guard let memberID = followWriteMember else { return }
+        followWriteMember = nil
+        guard let actions, case .acknowledged(let receipt) = actions.state(target: .member(memberID)),
+              let followed = receipt.followed else { return }
+        (followState as? SquareAuthorFollowConformer)?.apply(memberID: memberID, followed: followed)
+    }
     private func pickAvatarItem(_ key: String, post: SquarePost) {
         switch key {
-        case "follow": editor = .init(purpose: .toggleFollow, target: .member(post.memberID), text: "")
+        case "follow": openReviewed(.init(purpose: .toggleFollow, target: .member(post.memberID), text: ""))
         case "profile": showsAuthorProfile = true
         default: break
         }
