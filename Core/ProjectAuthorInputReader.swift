@@ -80,7 +80,7 @@ import FoundationNetworking
 }
 
 /// Decorates, never replaces, the original draft writer and durable recovery owner.
-@MainActor public final class ProjectAuthorInputService: ProjectEditServing, NativeRuntimeStructureAuthorReading {
+@MainActor public final class ProjectAuthorInputService: ProjectEditServing, NativeRuntimeStructureAuthorReading, TopicPublicationReading {
     private let original: any ProjectEditServing
     private let reader: ProjectAuthorInputReader?
     public init(original: any ProjectEditServing, reader: ProjectAuthorInputReader?) { self.original = original; self.reader = reader }
@@ -94,6 +94,16 @@ import FoundationNetworking
     public func preflight(topicID: Int?, session: ProjectEditSession) async throws -> ProjectEditPreflight { try await original.preflight(topicID: topicID, session: session) }
     public func submit(_ operation: ProjectEditPending, session: ProjectEditSession) async -> ProjectEditWriteOutcome { await original.submit(operation, session: session) }
     public func terminalReceipt(operationID: UUID, session: ProjectEditSession) async throws -> ProjectEditWriteOutcome? { try await original.terminalReceipt(operationID: operationID, session: session) }
+    public var supportsPublishCheck: Bool { (original as? any TopicPublicationReading)?.supportsPublishCheck == true }
+    public var supportsPublicationStatus: Bool { (original as? any TopicPublicationReading)?.supportsPublicationStatus == true }
+    public func publishCheck(topicID: Int, session: ProjectEditSession) async throws -> TopicPublishCheckReport {
+        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        return try await source.publishCheck(topicID: topicID, session: session)
+    }
+    public func publicationStatus(topicID: Int, session: ProjectEditSession) async throws -> TopicPublicationStatus {
+        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        return try await source.publicationStatus(topicID: topicID, session: session)
+    }
     public func runtimeStructureInputs(draft: ProjectEditDraft, session: ProjectEditSession) async throws -> NativeRuntimeStructureAuthorInputs {
         guard let reader else { throw ProjectEditError.notConfigured }; return try await reader.runtimeStructureInputs(draft: draft, session: session)
     }

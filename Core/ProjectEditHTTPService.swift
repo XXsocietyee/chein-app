@@ -22,7 +22,7 @@ public struct ProjectEditCredentials: Equatable {
 }
 /// Original four project writers through the source-backed exact-request producer.
 /// Historical local-only UUIDs never become server receipts or automatic retries.
-@MainActor public final class ProjectEditHTTPService: ProjectEditServing, H5AuthorSelfUseEditorReading {
+@MainActor public final class ProjectEditHTTPService: ProjectEditServing, H5AuthorSelfUseEditorReading, TopicPublicationReading {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let owner: ProjectEditOwner
@@ -232,6 +232,26 @@ public struct ProjectEditCredentials: Equatable {
             _ = try exactRequest(operation, session: session)
             return Self.decodeRequestReceipt(data, status: status, operation: operation)
         } catch { return .unknown }
+    }
+    public var supportsPublishCheck: Bool { allows(TopicPublicationPath.check) }
+    public var supportsPublicationStatus: Bool { allows(TopicPublicationPath.status) }
+    /// U03-01 read-only server rule list for the saved version of this owner's topic.
+    public func publishCheck(topicID: Int, session: ProjectEditSession) async throws -> TopicPublishCheckReport {
+        let data = try await publicationRead(.check(topicID: topicID, owner: owner), session: session)
+        return try TopicPublishCheckReport.decode(data.0, status: data.1, topicID: topicID)
+    }
+    /// U03-02/03 read-only five-fact status. Never a write receipt and never re-publishes.
+    public func publicationStatus(topicID: Int, session: ProjectEditSession) async throws -> TopicPublicationStatus {
+        let data = try await publicationRead(.status(topicID: topicID, owner: owner), session: session)
+        return try TopicPublicationStatus.decodeResponse(data.0, status: data.1)
+    }
+    private func publicationRead(_ route: TopicPublicationReadRoute, session: ProjectEditSession) async throws -> (Data, Int) {
+        guard allows(route.path), let credentials = currentCredentials(), credentials.session == session else { throw ProjectEditError.notConfigured }
+        try check(credentials)
+        let request = try route.request(baseURL: configuration.baseURL, token: credentials.token)
+        let result = try await transport.send(request)
+        try check(credentials)
+        return result
     }
     static func decodeRequestReceipt(_ data: Data, status: Int, operation: ProjectEditPending) -> ProjectEditWriteOutcome {
         guard (200..<300).contains(status), let envelope = try? ApprovedTopicReleaseWire.envelope(data), envelope["code"]?.integer == 200,

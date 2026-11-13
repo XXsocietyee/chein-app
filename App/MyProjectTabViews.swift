@@ -150,6 +150,7 @@ extension EnvironmentValues {
             Text(verbatim: when).font(.caption)
         }
         if let address = project.addressName { Text(verbatim: address).font(.caption).foregroundStyle(.secondary) }
+        MyProjectTopicFactLine(project: project)
     }
 }
 

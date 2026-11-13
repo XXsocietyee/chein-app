@@ -16,7 +16,7 @@ public enum BusinessRuntimeFeature: Hashable {
     case imStart, imRead, imMute, imSend, imUpload
     case imDelete, imReport, imBlock, imUnblock, imUnreadTotal
     case imPollResult, imPollCreate, imPollVote, imPollClose, imPollCreateReceipt, clubChat
-    case publishingRead, publishingWrite, projectRead, projectWrite, projectAuthorInputRead, directVerification
+    case publishingRead, publishingWrite, projectRead, projectWrite, projectAuthorInputRead, projectPublicationRead, directVerification
     case publishingAIQuota, publishingAITheme, publishingAIClub, publishingAITemplate
     case merchantDraftSelectionList, merchantDraftSelectionResolve
     case approvedTopicReleasePrepare, approvedTopicReleasePublish, approvedTopicReleaseStatus
@@ -151,6 +151,9 @@ public extension BusinessRuntimeFeature {
         if self == .projectAuthorInputRead {
             return route.method == "GET" && route.path == NativeRuntimeStructureAuthorInputs.supportPath
                 || route.method == "POST" && route.path == NativeRuntimeStructureAuthorInputs.templatePath
+        }
+        if self == .projectPublicationRead {
+            return route.method == "GET" && (route.path == TopicPublicationPath.check || route.path == TopicPublicationPath.status)
         }
         if self == .imPollCreateReceipt { return route.method == "GET" && route.path == "api/im/poll/create-receipt" }
         if self == .imChannelMentionRoleRead { return route.method == "GET" && route.path == "api/im/roles" }
@@ -340,7 +343,7 @@ public extension BusinessRuntimeFeature {
         case .approvedTopicReleasePrepare: paths = [ApprovedTopicReleasePaths.prepare]
         case .approvedTopicReleasePublish: paths = [ApprovedTopicReleasePublicationPath.publish]
         case .approvedTopicReleaseStatus: paths = [ApprovedTopicReleasePublicationPath.status]
-        case .projectAuthorInputRead: return false // Exact methods handled above.
+        case .projectAuthorInputRead, .projectPublicationRead: return false // Exact methods handled above.
         case .projectRead: paths = ["api/publish/home", "api/topic/edit-detail", ProjectEditRequestContract.readPath]
         case .projectWrite: paths = ["api/topic/create", "api/topic/update", "api/topic/v2/create", "api/topic/v2/update", ProjectEditRequestContract.submitPath, ProjectEditRequestContract.resumePostProcessingPath]
         case .directVerification: paths = ["api/merchant/access/me", "api/verify/groupcode/redeem", "api/coupon/verification", "api/registration/scan_dynamic_code", "api/registration/scan_qr_code", "api/registration/scan_qr_code_chapter", "api/registration/scan_qr_code_station", "api/verify/citynode/redeem"]

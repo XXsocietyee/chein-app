@@ -1171,6 +1171,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/topic/pricing/confirm": .liveInProduction,
         "/api/topic/pricing/preview": .liveInProduction,
         "/api/topic/publish-check": .liveInProduction,
+        "/api/topic/publish-status": .missing,
         "/api/topic/report": .liveInProduction,
         "/api/topic/state-keys": .liveInProduction,
         "/api/topic/transfer-to-club": .liveInProduction,

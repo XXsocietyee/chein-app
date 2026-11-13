@@ -196,6 +196,7 @@ struct PublishingFormSurface: ViewModifier {
     let receipt: PublishingSubmissionHandoff
     let canNavigate: Bool
     var canVerifyRelease = false
+    var statusLoader: (@MainActor () async throws -> TopicPublicationStatus)? = nil
     let close: () -> Void
     var body: some View {
         let capture = lifecycle.capture
@@ -218,6 +219,9 @@ struct PublishingFormSurface: ViewModifier {
                         .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                     Text(verbatim: receipt.title).font(Theme.Font.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true)
+                    if let statusLoader {
+                        TopicPublicationStatusPanel(topicID: acknowledgment.topicID, load: statusLoader)
+                    }
                     ProjectSubmissionEvidenceView(acknowledgment: acknowledgment, currentVerificationConfigured: canVerifyRelease)
                     CYPillButton("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
                         .disabled(capture == nil)

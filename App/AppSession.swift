@@ -4185,8 +4185,8 @@ final class AppSession: ObservableObject {
         let service: any ProjectEditServing
         if let factory = projectRuntimeFactory, factory.permits(.projectRead), let configuration = regionalConfiguration?.apiConfiguration {
             let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
-            service = ProjectEditHTTPService(configuration: configuration, transport: factory.client([.projectRead, .projectWrite]),
-                owner: owner, approval: factory.approval([.projectRead, .projectWrite]), store: projectDraftStore,
+            service = ProjectEditHTTPService(configuration: configuration, transport: factory.client([.projectRead, .projectWrite, .projectPublicationRead]),
+                owner: owner, approval: factory.approval([.projectRead, .projectWrite, .projectPublicationRead]), store: projectDraftStore,
                 currentCredentials: { [weak self] in
                     guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision, self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
                           self.projectRuntimeFactory?.permits(.projectRead) == true,

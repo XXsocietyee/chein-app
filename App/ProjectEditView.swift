@@ -344,6 +344,7 @@ import SwiftUI
             }
             if model.coordinator.snapshot != nil {
                 ProjectSubmissionEvidenceSection(model: model)
+                TopicPublicationStatusSection(model: model)
                 OwnedTopicCoverEntrySection(model: model, controller: ownedCover)
                 ApprovedReleaseAuthorReadSection(model: model, controller: approvedRelease)
                 ApprovedTopicReviewEntrySection(model: model, controller: reviewRequest)
@@ -408,6 +409,7 @@ import SwiftUI
                     Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
                         .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
                 }
+                TopicPublishCheckSection(model: model)
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {
                         ForEach(issueRows) { row in
@@ -432,6 +434,10 @@ import SwiftUI
                         Button("projectEdit.checkOutcome") { Task { await model.check() } }
                             .disabled(model.busy).accessibilityIdentifier("projectEdit.checkOutcome")
                     } else { Text("projectRemote.unknownNoReceipt") }
+                    // Reading the current status never sends the original request again.
+                    if let topicID = model.coordinator.snapshot?.topicID, model.coordinator.supportsPublicationStatus {
+                        TopicPublicationStatusPanel(topicID: topicID) { try await model.coordinator.readPublicationStatus(topicID: topicID) }
+                    }
                 }
             }
             if let completed = model.coordinator.acknowledgedContinuation {
@@ -562,7 +568,8 @@ import SwiftUI
     }
     @ViewBuilder private func submissionResult(receipt: PublishingSubmissionHandoff, submissionIncarnation: UUID) -> some View {
         if model.submissionIsCurrent(receipt, incarnation: submissionIncarnation) {
-            PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured) {
+            PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured,
+                                            statusLoader: statusLoader(receipt)) {
                 guard model.submissionIsCurrent(receipt, incarnation: submissionIncarnation), submission?.id == receipt.id else { return }
                 let destination = publisherHost == nil ? nil : model.submissionDestination(receipt, incarnation: submissionIncarnation)
                 submission = nil
@@ -570,6 +577,11 @@ import SwiftUI
             }
             .id(receipt.id)
         }
+    }
+    /// U03-02 read-back of the real result after the acknowledgment; read-only, never a second publish.
+    private func statusLoader(_ receipt: PublishingSubmissionHandoff) -> (@MainActor () async throws -> TopicPublicationStatus)? {
+        guard let topicID = receipt.bundleAcknowledgment?.topicID, model.coordinator.supportsPublicationStatus else { return nil }
+        return { [model] in try await model.coordinator.readPublicationStatus(topicID: topicID) }
     }
     private func chapterStructure(opening: ProjectEditStarterController.Lease?) -> some View {
         let removalCapture = chapterRemoval.capture()

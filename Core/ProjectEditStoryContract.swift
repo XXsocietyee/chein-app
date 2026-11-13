@@ -239,6 +239,14 @@ public struct ProjectEditBundleAcknowledgment: Equatable, Codable {
     public let reviewState: String
     public let published: Bool
     public let bundledTemplateIDs: [Int]
+    /// U03-02 additive facts from `TopicBundleSubmitResultVO`; absent on older services and old journals.
+    /// A wrong-typed additive field is dropped (unknown), never coerced into a decision.
+    public let commercialAwaitingReview: Bool?
+    public let commercialNextStep: String?
+    public let reviewPassed: Bool?
+    public let publicVisible: Bool?
+    public let contentRevisionNo: Int?
+    public let publicationStatus: TopicPublicationStatus?
     public init(from decoder: Decoder) throws {
         self = try Self.decode(try ProjectEditJSON(from: decoder), expectedTopicID: nil)
     }
@@ -246,11 +254,23 @@ public struct ProjectEditBundleAcknowledgment: Equatable, Codable {
         var body: [String: ProjectEditJSON] = ["topicId": .number(Decimal(topicID)), "reviewState": .string(reviewState),
             "published": .bool(published), "bundledTemplateIds": .array(bundledTemplateIDs.map { .number(Decimal($0)) })]
         body["auditTaskId"] = auditTaskID.map { .number(Decimal($0)) } ?? .null
+        if let commercialAwaitingReview { body["commercialAwaitingReview"] = .bool(commercialAwaitingReview) }
+        if let commercialNextStep { body["commercialNextStep"] = .string(commercialNextStep) }
+        if let reviewPassed { body["reviewPassed"] = .bool(reviewPassed) }
+        if let publicVisible { body["publicVisible"] = .bool(publicVisible) }
+        if let contentRevisionNo { body["contentRevisionNo"] = .number(Decimal(contentRevisionNo)) }
+        if let publicationStatus, let data = try? JSONEncoder().encode(publicationStatus),
+           let value = try? JSONDecoder().decode(ProjectEditJSON.self, from: data) { body["publicationStatus"] = value }
         try ProjectEditJSON.object(body).encode(to: encoder)
     }
-    private init(topicID: Int, auditTaskID: Int?, reviewState: String, published: Bool, bundledTemplateIDs: [Int]) {
+    private init(topicID: Int, auditTaskID: Int?, reviewState: String, published: Bool, bundledTemplateIDs: [Int],
+                 commercialAwaitingReview: Bool?, commercialNextStep: String?, reviewPassed: Bool?, publicVisible: Bool?,
+                 contentRevisionNo: Int?, publicationStatus: TopicPublicationStatus?) {
         self.topicID = topicID; self.auditTaskID = auditTaskID; self.reviewState = reviewState
         self.published = published; self.bundledTemplateIDs = bundledTemplateIDs
+        self.commercialAwaitingReview = commercialAwaitingReview; self.commercialNextStep = commercialNextStep
+        self.reviewPassed = reviewPassed; self.publicVisible = publicVisible
+        self.contentRevisionNo = contentRevisionNo; self.publicationStatus = publicationStatus
     }
     public static func decode(_ value: ProjectEditJSON?, expectedTopicID: Int?) throws -> Self {
         guard let body = value?.object, let topic = body["topicId"]?.integer, topic > 0,
@@ -263,6 +283,13 @@ public struct ProjectEditBundleAcknowledgment: Equatable, Codable {
         if state == "DRAFT", published { throw ProjectEditError.invalidContract }
         let ids = try rawIDs.map { raw -> Int in guard let id = raw.integer, id > 0 else { throw ProjectEditError.invalidContract }; return id }
         guard Set(ids).count == ids.count else { throw ProjectEditError.invalidContract }
-        return .init(topicID: topic, auditTaskID: audit, reviewState: state, published: published, bundledTemplateIDs: ids)
+        func flag(_ key: String) -> Bool? { if case .bool(let value)? = body[key] { return value }; return nil }
+        let nextStep = body["commercialNextStep"]?.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let revision = body["contentRevisionNo"]?.integer.flatMap { $0 > 0 ? $0 : nil }
+        let status = body["publicationStatus"].flatMap { $0 == .null ? nil : try? TopicPublicationStatus.decode($0) }
+        return .init(topicID: topic, auditTaskID: audit, reviewState: state, published: published, bundledTemplateIDs: ids,
+                     commercialAwaitingReview: flag("commercialAwaitingReview"), commercialNextStep: nextStep?.isEmpty == false ? nextStep : nil,
+                     reviewPassed: flag("reviewPassed"), publicVisible: flag("publicVisible"),
+                     contentRevisionNo: revision, publicationStatus: status)
     }
 }

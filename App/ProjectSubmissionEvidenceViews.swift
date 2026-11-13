@@ -7,6 +7,7 @@ import SwiftUI
     var currentVerificationConfigured = false
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            TopicPublishResultSummary(acknowledgment: acknowledgment)
             Text(String(localized: LocalizedStringResource("projectSubmission.historyNotice", defaultValue: "These facts were returned when you submitted. They are not a current approval or immutable release.", locale: locale)))
                 .font(.footnote).accessibilityIdentifier("projectSubmission.historyNotice")
             field(String(localized: LocalizedStringResource("projectSubmission.topicID", defaultValue: "Topic ID", locale: locale)), value: String(acknowledgment.topicID), id: "projectSubmission.topicID")
