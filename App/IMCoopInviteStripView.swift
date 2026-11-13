@@ -192,9 +192,15 @@ import SwiftUI
         let requested = direction
         phase = .loading
         do {
-            let inbox = try await reader.inbox(direction: requested)
+            // Production reader: `api/coop/list` only. Fixtures still project `inbox.invitations`.
+            let section: CooperationSection<CooperationInvites>
+            if let reader = reader as? CooperationSessionReader {
+                section = .content(try await reader.inviteList())
+            } else {
+                section = try await reader.inbox(direction: requested).invitations
+            }
             guard !Task.isCancelled, requested == direction else { return }
-            switch inbox.invitations {
+            switch section {
             case .content(let invites): phase = .ready(IMCoopInviteCard.cards(invites, direction: requested))
             case .failure(let issue): phase = .failed(issue)
             }

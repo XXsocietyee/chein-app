@@ -42,6 +42,10 @@ public struct CooperationReadSession: Equatable {
     public func inbox(direction: CooperationDirection) async throws -> CooperationInbox {
         try await read { try await $0.inbox(direction: direction, token: $1) }
     }
+    /// Message-list coop strip. One `api/coop/list` read. Pool and candidate routes stay on `inbox`.
+    public func inviteList() async throws -> CooperationInvites {
+        try await read { try await $0.invitations(token: $1) }
+    }
     public func detail(key: CooperationInviteKey) async throws -> CooperationInviteDetail {
         try await read { try await $0.detail(key: key, token: $1) }
     }

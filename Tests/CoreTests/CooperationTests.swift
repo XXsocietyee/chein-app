@@ -207,6 +207,18 @@ final class CooperationTests: XCTestCase {
         do { _ = try await api.invitations(token: "bad\ntoken"); XCTFail() } catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
         let requests = await t.requests; XCTAssertTrue(requests.isEmpty)
     }
+    @MainActor func testInviteListReadsOnlyCoopList() async throws {
+        let session = try CooperationReadSession(accountID: 1, epoch: 1, token: "synthetic-token")
+        let t = fixtureTransport()
+        let reader = CooperationSessionReader(service: try service(t), currentSession: { session })
+        let list = try await reader.inviteList()
+        XCTAssertEqual(list.received.first?.id, 71)
+        let requests = await t.requests
+        XCTAssertEqual(requests.map { $0.url?.path }, ["/test/api/coop/list"])
+        XCTAssertEqual(requests.first?.httpMethod, "POST")
+        let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: requests[0].httpBody!) as? [String: Any])
+        XCTAssertTrue(fields.isEmpty)
+    }
     @MainActor func testGuestAndUnconfiguredNeverDispatch() async throws {
         let t = fixtureTransport()
         let guest = CooperationSessionReader(service: try service(t), currentSession: { nil })
