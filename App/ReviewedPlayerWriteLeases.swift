@@ -49,6 +49,7 @@ extension ReviewedProductionFormMutationRoute {
             return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true)
                 && covers(relative, grant.templateAdoption)
         }
+        if let creator = creatorEditorDecision(request, relative: relative, method: method, grant: grant) { return creator }
         if method == "GET" {
             let emptyBody = request.httpBody?.isEmpty ?? true
             // Admission receipts use the client's own `adm-<uuid>` request ids (contract §0.3 management form).
@@ -63,6 +64,10 @@ extension ReviewedProductionFormMutationRoute {
             return covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool)
         }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
+        if relative == "api/topic/chapter/supply-terms" {
+            // REVSHARE carries the per-head fee a club would pay; only PERK and TRAFFIC terms are this grant.
+            return covers(relative, grant.play) && supplyTermsBody(request)
+        }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
             return covers(relative, grant.team) && teamRequestID(request)
         }
@@ -71,6 +76,38 @@ extension ReviewedProductionFormMutationRoute {
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
             || covers(relative, grant.templateAdoption)
             || covers(relative, grant.admission) || covers(relative, grant.teamPool)
+    }
+
+    /// G3 creator editor GETs and PUTs. Nil leaves the request to the other player-write rules.
+    @MainActor static func creatorEditorDecision(_ request: URLRequest, relative: String, method: String,
+                                      grant: ReviewedPlayerWriteGrant) -> Bool? {
+        let emptyBody = request.httpBody == nil || request.httpBody?.isEmpty == true
+        if method == "GET", ReviewedProductionGateLeases.creatorEditorReadPaths.contains(relative) {
+            return covers(relative, grant.play) && emptyBody && creatorEditorTopicQuery(request)
+        }
+        guard method == "PUT" else { return nil }
+        if relative == "api/topic/play-setup" { return covers(relative, grant.play) && creatorEditorJSONTopic(request) }
+        let prefix = "api/topic/state-keys/"
+        if relative.hasPrefix(prefix), ChinaReviewedRouteCapability.isTopicStateKey(String(relative.dropFirst(prefix.count))) {
+            return grant.play.paths.contains("api/topic/state-keys/{}") && creatorEditorJSONTopic(request)
+        }
+        return false
+    }
+
+    /// `?topicId=<positive>` with at most a `scope` beside it.
+    static func creatorEditorTopicQuery(_ request: URLRequest) -> Bool {
+        guard let url = request.url, let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
+              Set(items.map(\.name)).isSubset(of: ["topicId", "scope"]),
+              let topic = items.first(where: { $0.name == "topicId" })?.value, let id = Int64(topic), id > 0 else { return false }
+        return true
+    }
+
+    /// JSON with a positive `topicId`. A price, channel, or amount field is not this write.
+    static func creatorEditorJSONTopic(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let topic = object["topicId"] as? NSNumber, topic.int64Value > 0 else { return false }
+        return ["payChannel", "payAmount", "price", "amount", "maxPerHeadFee"].allSatisfy { object[$0] == nil }
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -90,6 +127,15 @@ extension ReviewedProductionFormMutationRoute {
               let session = try? JSONDecoder().decode(ThemeReplayBody.self, from: body).sessionId,
               session > 0 else { return false }
         return true
+    }
+
+    static func supplyTermsBody(_ request: URLRequest) -> Bool {
+        guard let body = request.httpBody, let text = String(data: body, encoding: .utf8),
+              let items = URLComponents(string: "?" + text)?.queryItems else { return false }
+        let names = Set(items.map(\.name))
+        guard names.isSubset(of: ["chapterId", "termsMode", "maxMerchant", "perkMinValue", "scope"]),
+              let mode = items.first(where: { $0.name == "termsMode" })?.value else { return false }
+        return mode == "PERK" || mode == "TRAFFIC"
     }
 
     /// A create with `payChannel` or a positive amount is a payment step and stays closed.
@@ -264,8 +310,26 @@ enum ReviewedPlayerReadRoute {
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
         "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
-        "api/play/theme/replay"
+        "api/play/theme/replay",
+        // G2 (owner-approved 2026-11-13): invoices are tax documents, not payments. Reads and the
+        // requestId-receipted non-money writes the mini-program's subpackageMember/invoice* pages send.
+        "api/invoice/list", "api/invoice/detail", "api/invoice/orders/eligible", "api/invoice/apply",
+        "api/invoice/request", "api/invoice/cancel", "api/invoice/titles", "api/invoice/titles/save",
+        "api/invoice/titles/save-request", "api/invoice/titles/request", "api/invoice/titles/delete",
+        "api/order-center/detail",
+        // G3: creator topic editor (pages/publish/fabu, pages/member, the host workbench QR and PERK/TRAFFIC terms).
+        "api/topic/attribute-binding", "api/topic/author-edit-detail", "api/topic/author-saved-detail",
+        "api/topic/play-setup", "api/topic/publish-draft", "api/topic/share-code", "api/topic/state-keys",
+        "api/topic/state-keys/named", "api/topic/state-keys/{}", "api/topic/invite-chapters",
+        "api/topic/chapter/supply-terms", "api/topic/host-qrcode"
     ]
+    /// G2 invoice writes. A grant without every one of them leaves the invoice write entries hidden.
+    static let invoiceWritePaths: Set<String> = [
+        "api/invoice/apply", "api/invoice/request", "api/invoice/cancel", "api/invoice/titles/save",
+        "api/invoice/titles/save-request", "api/invoice/titles/request", "api/invoice/titles/delete"
+    ]
+    /// G3 reads the editor sends as GET with a `topicId`/`scope` query and no body.
+    static let creatorEditorReadPaths: Set<String> = ["api/topic/attribute-binding", "api/topic/play-setup", "api/topic/state-keys"]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",
         "api/roam/shop/visit", "api/roam/poi/discover", "api/roam/reveal",
@@ -311,6 +375,23 @@ enum ReviewedPlayerReadRoute {
         guard let issued = CityGameCapabilityLease(context: context, lease: lease) else { return nil }
         cityGameByContext[key] = issued
         return issued
+    }
+
+    private var invoiceByContext: [String: InvoiceLaunchReadApproval] = [:]
+    /// G2. The invoice reader for a granted player, cached per context so its revision stays stable.
+    /// Apply and title saves read their original receipts (`request`, `titles/request`); delete and
+    /// cancel use the legacy routes the mini-program sends, so the #725 command receipts stay off.
+    func playerInvoiceApproval(_ context: RuntimeDependencyContext) -> InvoiceLaunchReadApproval? {
+        guard let grant = playerWriters(context), grant.play.paths.isSuperset(of: Self.invoiceReadPaths) else { return nil }
+        let key = contextKey(context)
+        if let existing = invoiceByContext[key], existing.matches(context) { return existing }
+        guard let approval = try? InvoiceLaunchReadApproval(context: context, originalReceipts: true, commandReceiptRead: false) else { return nil }
+        invoiceByContext[key] = approval
+        return approval
+    }
+    static let invoiceReadPaths: Set<String> = ["api/invoice/list", "api/invoice/detail", "api/invoice/orders/eligible", "api/invoice/titles"]
+    static func grantsInvoiceWrites(_ grant: ReviewedPlayerWriteGrant) -> Bool {
+        grant.play.paths.isSuperset(of: invoiceWritePaths)
     }
 
     func playerWriters(_ context: RuntimeDependencyContext) -> ReviewedPlayerWriteGrant? {

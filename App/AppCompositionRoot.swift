@@ -263,7 +263,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return latest.revision == approval.revision && latest.matches(live)
         }
         return InvoiceLaunchService(session: session, transport: makeTransport(), enabled: approved,
-            mutationsEnabled: { false }, // Read-only first. No write permission is implied.
+            mutationsEnabled: { approved() && self.playerWriteGrant(context).map(ReviewedProductionGateLeases.grantsInvoiceWrites) == true }, // G2 player grant only.
             originalReceiptsEnabled: { approved() && approval.originalReceipts },
             commandReceiptsEnabled: { approved() && approval.commandReceiptRead }, // Writes remain disabled above.
             current: {
@@ -516,7 +516,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
         self.projectNodeImageUploadApproval = projectNodeImageUploadApproval; self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport
         self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport
-        self.invoiceLaunchReadApproval = invoiceLaunchReadApproval
+        self.invoiceLaunchReadApproval = { [gates] context in invoiceLaunchReadApproval(context) ?? gates.playerInvoiceApproval(context) }
         self.clubBadgeManagementApproval = clubBadgeManagementApproval
         self.merchantReviewOriginalReadApproval = merchantReviewOriginalReadApproval
         self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
@@ -2567,7 +2567,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let path = url.path
         guard path == base || path.hasPrefix(base + "/") else { return false }
         let relative = String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution" || relative == "api/orient/scoring/receipt"
+        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution" || relative == "api/orient/scoring/receipt" || ReviewedProductionGateLeases.creatorEditorReadPaths.contains(relative)
     }
 
     private func signedInRuntime(_ captured: SessionIdentity) -> RuntimeDependencyContext? {

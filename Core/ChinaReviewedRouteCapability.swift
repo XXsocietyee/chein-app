@@ -44,6 +44,8 @@ public enum ChinaReviewedRouteCapability {
         // points only; no CITY route moves money.
         if CityGameProductionLease.paths.contains(key) { return true }
         if channelsSocialOwnerGrant.contains(key) { return true }
+        if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
+        if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
         return videoBountyOwnerGrant.contains(key)
     }
 
@@ -103,6 +105,27 @@ public enum ChinaReviewedRouteCapability {
         "/api/friend/channel-invite/command", "/api/friend/team-invite/picker", "/api/friend/team-invite/landing",
         "/api/friend/team-invite/mine", "/api/team/original-request", "/api/im/block", "/api/im/unblock"
     ]
+
+    /// Owner approval 2026-11-13, G2 + G3. The order-center summary read and the creator topic
+    /// editor calls. The invoice routes are already wired above. Pay, refund, and withdraw stay out.
+    private static let creatorEditorAndOrderCenterOwnerGrant: Set<String> = [
+        "/api/order-center/detail",
+        "/api/topic/attribute-binding",
+        "/api/topic/author-edit-detail",
+        "/api/topic/author-saved-detail",
+        "/api/topic/play-setup",
+        "/api/topic/publish-draft",
+        "/api/topic/share-code",
+        "/api/topic/state-keys/named",
+        "/api/topic/invite-chapters",
+        "/api/topic/chapter/supply-terms",
+        "/api/topic/host-qrcode"
+    ]
+
+    /// `PUT /api/topic/state-keys/{stateKey}` names a key such as `clue.door`, not a numeric id.
+    public static func isTopicStateKey(_ segment: String) -> Bool {
+        segment.range(of: "^(clue|relation|tag|counter)\\.[a-z][a-z0-9_]{0,47}$", options: .regularExpression) != nil
+    }
 
     /// Owner approval 2026-11-12. Player journey reads, the four public-catalog posts,
     /// seat invite/claim/cancel, and the boards those screens read.
