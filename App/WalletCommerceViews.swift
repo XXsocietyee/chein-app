@@ -677,6 +677,7 @@ private struct WalletIncomeListCard: ViewModifier {
             if financeAccess == nil, showsCooperationFinance {
                 CYPillButton("wallet.clubFinance", style: .secondary, action: onCooperationFinance).frame(minHeight: 44).padding(.horizontal)
             }
+            G6RevenueAllocationsEntry()
             WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
         }
     }

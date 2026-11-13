@@ -253,6 +253,7 @@ import Combine
     var body: some View {
         sessionObservers
         .task(id: owner.phase) { await pulseWhileActive() }
+        .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count))
         .cyCelebrations(celebrations)
         .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in settledSessionChanged(id) }
         .overlay(alignment: .top) {

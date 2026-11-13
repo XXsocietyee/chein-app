@@ -160,6 +160,7 @@
         "FreeExploreBundleReadHostTests",
         "FreeExploreBundleReservationTransportTests",
         "G1ProductionGatesEndToEndTests",
+        "G6CapabilityGrantTests",
         "GrowthAndLeaderboardParitySectionViewTests",
         "GrowthAuditAvatarDefaultsTests",
         "GrowthLeaderboardExploreViewTests",

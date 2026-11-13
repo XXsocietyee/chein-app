@@ -45,7 +45,7 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
-        if method == "GET" { return covers(relative, grant.friends.endpoint) }
+        if method == "GET" { return covers(relative, grant.friends.endpoint) || coversCapabilityRead(relative) }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
             return covers(relative, grant.team) && teamRequestID(request)
@@ -53,6 +53,11 @@ extension ReviewedProductionFormMutationRoute {
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
+    }
+
+    static func coversCapabilityRead(_ relative: String) -> Bool {
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        return ReviewedProductionGateLeases.capabilityReadPaths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -176,7 +181,12 @@ extension ReviewedProductionFormMutationRoute {
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
         "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
-        "api/play/theme/replay"
+        "api/play/theme/replay", "api/ai/theme/draft/prepare", "api/ai/theme/draft/execute"
+    ]
+    /// G6 player reads on the same reviewed gate. Money, attribution, and order reads are not here.
+    static let capabilityReadPaths: Set<String> = [
+        "api/ai/npc/profile", "api/ai/npc/event", "api/ai/theme/draft/recovery",
+        "api/marketing/promotions/catalog", "api/marketing/revenue/author/mine", "api/marketing/product/{}"
     ]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",

@@ -96,6 +96,7 @@ struct RegistrationSheetView: View {
                         participantSection
                         activitySection
                         ticketSection
+                        if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
                         quoteSection
                         refundTiersSection
                         waitlistSection

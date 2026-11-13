@@ -159,6 +159,7 @@
         "FreeExploreBundleReadHostTests",
         "FreeExploreBundleReservationTransportTests",
         "G1ProductionGatesEndToEndTests",
+        "G6CapabilityGrantTests",
         "GameJournalCompositionAndPlaySummarySectionViewTests",
         "GrowthAuditAvatarDefaultsTests",
         "GrowthBadgeExploreViewTests",
