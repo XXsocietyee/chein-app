@@ -11,8 +11,19 @@ extension PlayKitScreen {
         } else if mode == "PICK" {
             let multi = raw["multi"].bool == true
             if multi { Text("playkit.qa.multiHint").font(.footnote) }
-            ForEach(projection.options) { option in
-                CYChoiceRow(label: option.label, selected: selected.contains(option.id), multi: multi, enabled: enabled) { toggle(option.id, multi: multi) }
+            if let pictures = PlayKitImageOption.read(raw) {
+                // UG-02: two picture cards per row, key and label under the picture. Judgement stays on the option id.
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: CYSpacing.md), GridItem(.flexible(), spacing: CYSpacing.md)], spacing: CYSpacing.md) {
+                    ForEach(pictures) { option in
+                        PlayKitImageOptionCard(option: option, selected: selected.contains(option.id), multi: multi, enabled: enabled,
+                                               approvedHosts: approvedArtworkHosts) { toggle(option.id, multi: multi) }
+                    }
+                }
+                .accessibilityIdentifier("playkit.qa.pictures")
+            } else {
+                ForEach(projection.options) { option in
+                    CYChoiceRow(label: option.label, selected: selected.contains(option.id), multi: multi, enabled: enabled) { toggle(option.id, multi: multi) }
+                }
             }
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)
         } else {
@@ -194,5 +205,59 @@ extension PlayKitScreen {
             }.buttonStyle(.questifyPrimary).disabled(!enabled || wheel.value(at: selectedIndex) == nil)
                 .accessibilityIdentifier("playkit.submit.estimate")
         }.onChange(of: selectedIndex) { _, _ in onDirty() }
+    }
+}
+
+/// UG-02 picture option. The picture has a fixed square frame so selection never shifts the grid; a picture
+/// this build cannot load shows the option key instead of a broken image. The label is the spoken name.
+@MainActor struct PlayKitImageOptionCard: View {
+    let option: PlayKitImageOption
+    let selected: Bool
+    let multi: Bool
+    let enabled: Bool
+    let approvedHosts: Set<String>
+    let action: () -> Void
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Color.clear.aspectRatio(1, contentMode: .fit)
+                    .overlay { picture }
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                        .strokeBorder(selected ? CYColor.textPrimary : CYColor.borderSubtle, lineWidth: selected ? 2 : 1))
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                    Text(verbatim: option.key).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: option.label).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .offset(y: selected && !reduceMotion ? -2 : 0)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("playkit.qa.pictureOption \(option.key) \(option.spokenDescription)"))
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityIdentifier("playkit.qa.picture." + option.id)
+    }
+
+    @ViewBuilder private var picture: some View {
+        if let url = QuestifyCardArtwork.safeURL(option.image), let host = url.host, approvedHosts.contains(host) {
+            AsyncImage(url: url) { phase in
+                if let image = phase.image { image.resizable().scaledToFill() }
+                else if phase.error != nil { keyPlaceholder }
+                else { ZStack { CYColor.bgRaised; ProgressView() } }
+            }
+        } else { keyPlaceholder }
+    }
+
+    private var keyPlaceholder: some View {
+        ZStack {
+            CYColor.bgRaised
+            Text(verbatim: option.key).font(CYTypography.pageTitle).foregroundStyle(CYColor.textTertiary)
+        }
     }
 }

@@ -353,9 +353,15 @@ public enum PlayKitInputContract {
         }
     }
 
-    /// SUBMIT_HANGMAN `{slots: {"i": ch}}`. Every editable cell, one code point, and not already solved.
+    /// SUBMIT_HANGMAN `{slots: {"i": ch}}` (every editable cell, one code point) or the whole word `{input}`
+    /// (non-blank, bounded; the server rebuilds the answer). Never once solved.
     private static func validateHangman(action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
         guard segment.object != nil, segment["solved"].bool != true else { throw PlayExperienceError.invalidAction }
+        if action == PlayKitPublishedWrites.hangmanAction, Set(payload.keys) == ["input"] {
+            guard let input = payload["input"]?.text, PlayKitHangmanProjection.wholeWordPayload(input)?["input"] == .string(input)
+            else { throw PlayExperienceError.invalidAction }
+            return
+        }
         guard action == PlayKitPublishedWrites.hangmanAction, Set(payload.keys) == ["slots"],
               let slots = payload["slots"]?.object, !slots.isEmpty else { throw PlayExperienceError.invalidAction }
         var editable = Set<String>()

@@ -101,6 +101,7 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
         if value["schemaVersion"]?.integer != 1 { issue("advancedSchema") }
         let supported = Set(TemplateAdvancedGame.allCases.map(\.section) + TemplateCreatorFamily.allCases.map(\.rawValue) + ["timer"])
         for (section, entry) in value where section != "schemaVersion" && section != "present" {
+            if TemplateHintLadder.rootKeys.contains(section) { continue }
             if (!Self.defaults.keys.contains(section) && !Self.rootCreatorKeys.contains(section)) || (entry.object?["enabled"]?.bool == true && !supported.contains(section) && !Self.rootCreatorKeys.contains(section)) { issue("advancedUnsupported") }
         }
         if value["present"] != nil {
@@ -141,11 +142,12 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
         result += creatorUnknownIssues.map(\.labelKey)
         result += legacyVariantIssues.map(\.labelKey)
         result += rootCreatorIssues.map(\.labelKey)
+        result += hintLadderIssues
         return result
     }
     public func serialize() throws -> String {
         guard issues.isEmpty else { throw TemplateAuthoringError.invalidDraft }
-        guard value.keys.contains(where: { enabled($0) }) || hasRootAuthoringConfiguration else { return "" }
+        guard value.keys.contains(where: { enabled($0) }) || hasRootAuthoringConfiguration || hintLadderOn else { return "" }
         var normalized = self
         for game in TemplateAdvancedGame.allCases where enabled(game.section) {
             let section = game.section
@@ -176,6 +178,7 @@ public struct TemplateAdvancedDraft: Codable, Equatable {
         }
         normalized.normalizeCreatorFamilies()
         normalized.normalizeRootAuthoring()
+        normalized.normalizeHintLadder()
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         let data = try encoder.encode(normalized.value)
         guard data.count <= 65_536 else { throw TemplateAuthoringError.invalidDraft }
