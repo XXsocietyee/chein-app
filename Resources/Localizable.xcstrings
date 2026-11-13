@@ -1,6 +1,153 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "beGapIm.entry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Channel tools"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道工具"}}
+      }
+    },
+    "beGapIm.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Channel tools"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道工具"}}
+      }
+    },
+    "beGapIm.audit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Audit log"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "审核记录"}}
+      }
+    },
+    "beGapIm.webhook": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Webhook"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "Webhook"}}
+      }
+    },
+    "beGapIm.channels": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Channels"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道"}}
+      }
+    },
+    "beGapIm.chain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Chain"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "接龙"}}
+      }
+    },
+    "beGapIm.checkin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Check-in"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "签到"}}
+      }
+    },
+    "beGapIm.poll": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Poll receipt"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "投票回执"}}
+      }
+    },
+    "beGapIm.moderation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Moderation"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "处置"}}
+      }
+    },
+    "beGapIm.roles": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Roles"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "角色"}}
+      }
+    },
+    "beGapIm.appeal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Appeal evidence"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "补充申诉"}}
+      }
+    },
+    "beGapIm.media": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Message file"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "消息文件"}}
+      }
+    },
+    "beGapIm.board": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Board"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "榜单"}}
+      }
+    },
+    "beGapIm.receipts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Receipts"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "回执"}}
+      }
+    },
+    "beGapIm.send": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Withdraw appeal"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "撤回申诉"}}
+      }
+    },
+    "beGapIm.notSignedIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Sign in to load this"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "登录后才能读取"}}
+      }
+    },
+    "beGapIm.failure": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "The server did not return a result"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "服务器没有返回结果"}}
+      }
+    },
+    "beGapIm.channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Channel"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道"}}
+      }
+    },
+    "beGapIm.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Message"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "消息"}}
+      }
+    },
+    "beGapIm.record": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Record"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "记录"}}
+      }
+    },
+    "beGapIm.boardKey": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Board key"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "榜单键"}}
+      }
+    },
     "medalScreen.allDone": {
       "extractionState": "manual",
       "localizations": {

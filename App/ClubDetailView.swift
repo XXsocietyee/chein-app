@@ -123,6 +123,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             CYListRow("club.chat.title", card: true) { CYRowIcon(systemImage: "person.3") }
                         }.buttonStyle(.plain)
                             .accessibilityIdentifier("club.chat.entry")
+                        NavigationLink { BeGapImDesk(clubID: Int64(id), session: session) } label: {
+                            CYListRow("beGapIm.entry", card: true) { CYRowIcon(systemImage: "list.bullet.rectangle") }
+                        }.buttonStyle(.plain)
+                            .accessibilityIdentifier("beGapIm.entry")
                         if facts.channels {
                         NavigationLink {
                             ClubChannelMessagingHostView(

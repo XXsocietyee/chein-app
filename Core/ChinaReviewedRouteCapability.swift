@@ -44,6 +44,7 @@ public enum ChinaReviewedRouteCapability {
         // points only; no CITY route moves money.
         if CityGameProductionLease.paths.contains(key) { return true }
         if channelsSocialOwnerGrant.contains(key) { return true }
+        if beGapImOwnerGrant.contains(key) { return true }
         if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
         if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
         return videoBountyOwnerGrant.contains(key)
@@ -104,6 +105,25 @@ public enum ChinaReviewedRouteCapability {
         "/api/friend/channel-invite/landing", "/api/friend/channel-invite/mine", "/api/friend/channel-invite/receipt",
         "/api/friend/channel-invite/command", "/api/friend/team-invite/picker", "/api/friend/team-invite/landing",
         "/api/friend/team-invite/mine", "/api/team/original-request", "/api/im/block", "/api/im/unblock"
+    ]
+
+    /// Owner correction 2026-11-13. The thirty capgraph templates, plus the webhook child routes the Core client sends.
+    /// Non-money. Audit stays an unanchored projection; webhook test does not claim a delivery was sent.
+    public static let beGapImOwnerGrant: Set<String> = [
+        "/api/im/appeals/{}/evidence", "/api/im/appeals/{}/withdraw", "/api/im/audit-log", "/api/im/chain", "/api/im/channel",
+        "/api/im/file/message", "/api/im/file/message/{}/authorization", "/api/im/file/message/{}/preview",
+        "/api/im/members/{}/roles", "/api/im/message/{}/attachment", "/api/im/moderation", "/api/im/moderation/{}/revoke",
+        "/api/im/notification-requests", "/api/im/poll/create-receipt", "/api/im/roles/{}/members",
+        "/api/im/video/message", "/api/im/video/message/{}/authorization", "/api/im/video/message/{}/preview",
+        "/api/im/voice/message", "/api/im/voice/message/{}", "/api/im/voice/message/{}/authorization",
+        "/api/im/webhook", "/api/im/webhook/context", "/api/im/webhook/subscriptions", "/api/im/webhook/endpoints",
+        "/api/im/webhook/subscriptions/{}", "/api/im/webhook/endpoints/{}",
+        "/api/im/webhook/subscriptions/{}/rotate-secret", "/api/im/webhook/endpoints/{}/rotate-token",
+        "/api/im/webhook/subscriptions/{}/deliveries", "/api/im/webhook/subscriptions/{}/deliveries/{}/retry",
+        "/api/im/webhook/subscriptions/{}/test", "/api/im/webhook/endpoints/{}/logs",
+        "/api/channel-platform/admission/requests", "/api/channel-platform/governance/moderation/requests",
+        "/api/channel-platform/governance/reports/requests", "/api/channel-platform/governance/requests",
+        "/api/channel-platform/requests", "/api/channels", "/api/channel/{}/board/{}"
     ]
 
     /// Owner approval 2026-11-13, G2 + G3. The order-center summary read and the creator topic
