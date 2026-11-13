@@ -1,0 +1,90 @@
+import SwiftUI
+import QuestifyCore
+
+/// One creator topic the studio screens can scope a read to.
+struct CreatorStudioTopic: Identifiable, Hashable {
+    let id: Int
+    let title: String?
+}
+
+extension AppSession {
+    /// U08-03 / U08-04 client. Only the reviewed China deployment with the player-write grant has one; every request
+    /// still passes the session transport's player-write lease. Other builds return nil and show no entry.
+    var creatorStudioService: CreatorStudioService? {
+        guard let reviewed = composition.reviewed, reviewed.playerWritesEnabled, reviewed.regional.market == .china,
+              let api = reviewed.regional.apiConfiguration else { return nil }
+        return CreatorStudioService(configuration: api, transport: runtimeHTTPTransport, token: { [weak self] in self?.token })
+    }
+}
+
+/// Creator centre rows for the maintenance workbench (U08-03) and the post-game outcome report (U08-04,
+/// "复报 · 分析适配入口"). Each row appears only after its route answers; a route the backend does not serve
+/// (production today) keeps its row hidden.
+@MainActor struct CreatorStudioEntrySection: View {
+    let service: CreatorStudioService
+    let reader: any CreatorContentReading
+    @State private var maintenance: CreatorStudioAvailability = .hidden
+    @State private var outcome: CreatorStudioAvailability = .hidden
+
+    var body: some View {
+        Group {
+            if maintenance == .available || outcome == .available {
+                Section {
+                    if maintenance == .available {
+                        NavigationLink { CreatorMaintenanceWorkbenchView(service: service, loadTopics: loadTopics) } label: {
+                            CYListRow("creatorStudio.maintenance.entry", meta: "creatorStudio.maintenance.entryMeta", trailing: .none) {
+                                CYRowIcon(systemImage: "wrench.and.screwdriver")
+                            }
+                        }.accessibilityIdentifier("creatorStudio.maintenance")
+                    }
+                    if outcome == .available {
+                        NavigationLink { CreatorPostGameOutcomeView(service: service, loadTopics: loadTopics) } label: {
+                            CYListRow("creatorStudio.outcome.entry", meta: "creatorStudio.outcome.entryMeta", trailing: .none) {
+                                CYRowIcon(systemImage: "chart.line.uptrend.xyaxis")
+                            }
+                        }.accessibilityIdentifier("creatorStudio.outcome")
+                    }
+                } header: { Text("creatorStudio.section") }
+            }
+        }
+        .task(id: reader.scope) {
+            async let workbench = CreatorStudioAvailability.probeMaintenance(service)
+            async let report = CreatorStudioAvailability.probeOutcome(service)
+            let (m, o) = await (workbench, report)
+            guard !Task.isCancelled else { return }
+            maintenance = m; outcome = o
+        }
+    }
+
+    /// The creator's own topics, from the creator content list. The workbench scopes feedback reads to one topic.
+    private func loadTopics() async -> [CreatorStudioTopic] {
+        guard let page = try? await reader.projects(query: CreatorContentQuery(type: "topic")) else { return [] }
+        var seen = Set<Int>()
+        return page.rows.compactMap { row in
+            guard row.sourceID > 0, seen.insert(row.sourceID).inserted else { return nil }
+            return CreatorStudioTopic(id: row.sourceID, title: row.title.isEmpty ? nil : row.title)
+        }
+    }
+}
+
+/// Shared rendering of a studio read failure. A 5xx is "unavailable", never an empty or zero state.
+struct CreatorStudioIssueView: View {
+    let failure: CreatorStudioFailure?
+    let retry: () -> Void
+    var body: some View {
+        switch failure {
+        case .unauthorized?:
+            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "creatorStudio.issue.signIn")
+        case .notFound(let code)? where code == "CREATOR_TOPICS_NOT_FOUND":
+            CYEmptyState(systemImage: "square.stack.3d.up.slash", "creatorStudio.issue.noTopics")
+        case .notFound?:
+            CYEmptyState(systemImage: "questionmark.folder", "creatorStudio.issue.notFound", actionTitle: "creatorStudio.retry", action: retry)
+        case .unavailable?:
+            CYEmptyState(systemImage: "exclamationmark.icloud", "creatorStudio.issue.unavailable", actionTitle: "creatorStudio.retry", action: retry)
+        case .rejected(_, _, let message)?:
+            CYEmptyState(systemImage: "exclamationmark.triangle", "creatorStudio.issue.rejected", detailVerbatim: message, actionTitle: "creatorStudio.retry", action: retry)
+        default:
+            CYEmptyState(systemImage: "exclamationmark.triangle", "creatorStudio.issue.failed", actionTitle: "creatorStudio.retry", action: retry)
+        }
+    }
+}

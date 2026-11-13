@@ -303,7 +303,7 @@ import SwiftUI
             NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity)                     } label: {
                 CYListRow("templateAuthor.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
             }.accessibilityIdentifier("account.templateAuthoring")
-            NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext).id(session.creatorContentReader.scope)                     } label: {
+            NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext, creatorStudio: session.creatorStudioService).id(session.creatorContentReader.scope)                     } label: {
                 CYListRow("creatorContent.center", trailing: .none) { CYRowIcon(systemImage: "pencil.and.outline") }
             }.accessibilityIdentifier("account.creatorCenter")
         }
