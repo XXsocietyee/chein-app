@@ -185,6 +185,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/PlayHelpLadderPanel.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Hint ladder pending use/skip per account/run/node/level: request id only (play-help-pending:v1), so an unknown result is rechecked with the same request id; no hint content, answer or balance",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/PlayThemeReplayProduction.swift",
       "kinds": [
         "userDefaults"

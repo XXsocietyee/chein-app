@@ -506,7 +506,12 @@ import SwiftUI
     @State private var hintContext: PlayInteractionContext?
     @State private var hintLevel: Int?
     @State private var localIssue: PlayExperienceError?
+    /// UG-05…UG-09 ladder for this stop. When the server enables it, the legacy hint and reveal entries step aside.
+    @State private var help: PlayHelpLadderModel?
+    @State private var showHelpPanel = false
+    @State private var skippedHere = false
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
+    private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
     var body: some View {
         let context = model.interactionContext
         List {
@@ -580,7 +585,19 @@ import SwiftUI
                             .accessibilityIdentifier("playx.answer.review")
                     }
                 }
-                if let extra = model.extras[nodeID], extra.hintLocked == true || extra.puzzleScoring == true {
+                if helpEnabled || skippedHere {
+                    Section("playHelp.title") {
+                        if skippedHere {
+                            Label("playHelp.skipped", systemImage: "forward.end").foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("playHelp.skipped")
+                        } else {
+                            Button("playHelp.open") { showHelpPanel = true }
+                                .disabled(!model.hasCurrentMediaSnapshot)
+                                .accessibilityIdentifier("playHelp.open")
+                        }
+                    }
+                }
+                if !helpEnabled, !skippedHere, let extra = model.extras[nodeID], extra.hintLocked == true || extra.puzzleScoring == true {
                     Section("playx.hints") {
                         if let cost = extra.hintCost { LabeledContent("playx.hints.cost") { Text(verbatim: String(cost)) } }
                         ForEach(Array(extra.usedHints.enumerated()), id: \.offset) { _, text in Text(verbatim: text).font(CYTypography.meta).foregroundStyle(.secondary) }
@@ -600,7 +617,7 @@ import SwiftUI
                             .accessibilityIdentifier("playx.hints.request")
                     }
                 }
-                if let hint = model.hint { Section("playx.hints") { ForEach(Array(hint.hints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } } }
+                if !helpEnabled, let hint = model.hint { Section("playx.hints") { ForEach(Array(hint.hints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } } }
                 if let preference, node.validationMethod == 6 {
                     NavigationLink("playx.preference.title") { PlayPreferenceView(model: preference) { Task { await model.load() } } }
                         .accessibilityIdentifier("playx.preference.open")
@@ -642,6 +659,7 @@ import SwiftUI
         // The optional check initially renders no rows, so its probe belongs to this stable host.
         .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
             if let node {
+                await loadHelp(node: node)
                 await journey?.probe(nodeDone: node.done == true)
                 guard !Task.isCancelled, self.node?.id == node.id, model.hasCurrentMediaSnapshot else { journey?.roleContent.close(); return }
                 await journey?.roleContent.load(expectedRunID: model.snapshot?.route?.sessionID, minimumStateVersion: model.snapshot?.route?.version)
@@ -669,7 +687,27 @@ import SwiftUI
                 Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
             }
         } message: { Text("playx.hints.consequence") }
-        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = "" }
+        .overlay {
+            if showHelpPanel, let help, helpEnabled {
+                PlayHelpLadderPanel(model: help, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
+            }
+        }
+        .onChange(of: help?.skipped) { _, skipped in
+            // The server settled the skip (0 points, assisted). No success verdict; progress is re-read by the model.
+            if skipped == true { skippedHere = true; showHelpPanel = false }
+        }
+        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
+    }
+    /// One read when an unfinished stop opens. A failed read keeps the legacy hint entries.
+    private func loadHelp(node: PlayNode) async {
+        guard node.done != true, model.snapshot?.isLocked(node) == false, let client = model.helpClient(nodeID: node.id) else {
+            if help?.identity.nodeID != node.id || node.done == true { help = nil; showHelpPanel = false }
+            return
+        }
+        if let help, help.identity == client.identity, help.loaded { return }
+        let next = PlayHelpLadderModel(client: client, store: PlayHelpDefaultsRequestStore.shared)
+        help = next
+        await next.load()
     }
     private var outcomeState: PlayTaskOutcomePresentation.State {
         PlayTaskOutcomePresentation(snapshot: model.snapshot, nodeID: nodeID, phase: model.phase.rawValue,

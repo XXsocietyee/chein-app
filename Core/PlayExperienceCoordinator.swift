@@ -507,6 +507,34 @@ public struct PlayCompletionReview: Equatable {
             fail(error, session: session, generation: request)
         }
     }
+    /// UG-05…UG-09: the hint ladder client for one node of the current route run. Nil without a route
+    /// session, a current read, or both the read and hint grants. Replies for another session are dropped.
+    public func helpClient(nodeID: Int) -> PlayHelpClient? {
+        guard service.enabled.isSuperset(of: [.reads, .hints]), hasCurrentMediaSnapshot, let session = loadedSession,
+              let identity = PlayHelpIdentity(owner: PlayRunStorageKey.make(session: session, scope: scope),
+                                              runID: snapshot?.route?.sessionID, nodeID: nodeID) else { return nil }
+        let service = self.service, request = generation, token = session.token
+        let runID = identity.runID
+        let isCurrent: () -> Bool = { [weak self] in
+            guard let self else { return false }
+            return self.generation == request && self.currentSession() == session && self.snapshot?.route?.sessionID == runID
+        }
+        return PlayHelpClient(identity: identity,
+            view: { await service.help(.view, runID: runID, nodeID: nodeID, token: token) },
+            use: { level, requestID in await service.help(.use(level: level, requestID: requestID), runID: runID, nodeID: nodeID, token: token) },
+            skip: { requestID in await service.help(.skip(requestID: requestID), runID: runID, nodeID: nodeID, token: token) },
+            receipt: { await service.help(.receipt, runID: runID, nodeID: nodeID, token: token) },
+            isCurrent: isCurrent,
+            onSkipped: { [weak self] in
+                // The skip is settled by the server (0 points, assisted). Re-read progress; no completion or reward here.
+                guard let self, isCurrent() else { return }
+                await self.load()
+            },
+            onUnauthorized: { [weak self] in
+                guard let self, self.currentSession() == session else { return }
+                self.onUnauthorized(session)
+            })
+    }
     /// Free exploration reads its own ending only after authoritative redemption.
     /// No orientation leaderboard or completion command is inferred from card count.
     public func loadFreeExplorationEnding() async {

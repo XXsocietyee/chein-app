@@ -21,6 +21,9 @@ typealias PlayKitAccusationWrite = (String) -> Void
     @State private var wrong = false
     @State private var unavailable = false
     @State private var loaded = false
+    /// UG-01 whole-word answer: one field for the full word, sent as `{input}`. The cells keep the server state.
+    @State private var wholeWord = false
+    @State private var word = ""
     @FocusState private var focused: Bool
     @QuestifyReduceMotion private var reduceMotion
 
@@ -32,7 +35,26 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             }
             board
-            if !projection.solved {
+            if !projection.solved && wholeWord {
+                TextField("playkit.hangman.wholePlaceholder", text: Binding(get: { word }, set: {
+                    word = String(PlayKitHangmanProjection.codePoints($0).prefix(PlayKitHangmanProjection.wholeWordLimit).joined())
+                    wrong = false; unavailable = false
+                }))
+                    .focused($focused)
+                    .multilineTextAlignment(.center)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    .submitLabel(.done).onSubmit(send)
+                    .font(CYTypography.body)
+                    .padding(.horizontal, CYSpacing.lg).frame(minHeight: 48)
+                    .background(Capsule().fill(CYColor.bgElevated))
+                    .overlay(Capsule().strokeBorder(wrong ? CYColor.dangerText : CYColor.borderSubtle))
+                    .frame(maxWidth: 320)
+                    .disabled(!enabled)
+                    .accessibilityLabel(Text("playkit.hangman.wholeField"))
+                    .accessibilityIdentifier("playkit.hangman.wholeField")
+                wrongLine
+                modeSwitch
+            } else if !projection.solved {
                 TextField("playkit.hangman.placeholder", text: Binding(get: { text }, set: { input($0) }))
                     .focused($focused)
                     .multilineTextAlignment(.center)
@@ -46,11 +68,8 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     .disabled(!enabled)
                     .accessibilityLabel(Text("playkit.hangman.field"))
                     .accessibilityIdentifier("playkit.hangman.field")
-                Group {
-                    if wrong { Text("playkit.hangman.wrong").accessibilityIdentifier("playkit.hangman.wrong") }
-                    else { Text(verbatim: " ").accessibilityHidden(true) }
-                }
-                .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                wrongLine
+                modeSwitch
             } else {
                 Text(verbatim: projection.display.isEmpty ? "—" : projection.display)
                     .font(CYTypography.cardTitle).foregroundStyle(CYNight.verify)
@@ -69,8 +88,26 @@ typealias PlayKitAccusationWrite = (String) -> Void
             // Server came back unsolved after this screen sent: the whole guess was wrong, start over.
             guard sent else { return }
             sent = false
-            if !next.solved { wrong = true; text = ""; typed = [:] }
+            if !next.solved { wrong = true; text = ""; typed = [:]; word = "" }
         }
+    }
+
+    private var wrongLine: some View {
+        Group {
+            if wrong { Text("playkit.hangman.wrong").accessibilityIdentifier("playkit.hangman.wrong") }
+            else { Text(verbatim: " ").accessibilityHidden(true) }
+        }
+        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+    }
+
+    /// Cells or the whole word; switching keeps what was typed in each.
+    private var modeSwitch: some View {
+        Button(wholeWord ? "playkit.hangman.useCells" : "playkit.hangman.useWholeWord") {
+            wholeWord.toggle(); wrong = false; unavailable = false
+        }
+        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        .disabled(!enabled)
+        .accessibilityIdentifier("playkit.hangman.mode")
     }
 
     private var board: some View {
@@ -119,7 +156,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
             }
         } else {
             CYPillButton("playkit.hangman.submit", action: send)
-                .disabled(!enabled || projection.payload(typed: typed) == nil)
+                .disabled(!enabled || currentPayload == nil)
                 .accessibilityIdentifier("playkit.submit.hangman")
         }
     }
@@ -147,8 +184,12 @@ typealias PlayKitAccusationWrite = (String) -> Void
         }
     }
 
+    private var currentPayload: [String: PlayWireValue]? {
+        wholeWord ? PlayKitHangmanProjection.wholeWordPayload(word) : projection.payload(typed: typed)
+    }
+
     private func send() {
-        guard enabled, !projection.solved, let payload = projection.payload(typed: typed) else { return }
+        guard enabled, !projection.solved, let payload = currentPayload else { return }
         guard let submit else { unavailable = true; return }
         sent = true
         submit(payload)

@@ -341,3 +341,49 @@ extension PlayExperienceService {
         return try await send(request, capability: kind == "command" ? .playerCommands : .reads, beforeTransport: finalCheck)
     }
 }
+
+/// UG-05…UG-09 hint ladder routes. View and receipt are reads; use and skip spend through the reviewed hint grant.
+public enum PlayHelpRoute: Sendable {
+    case view, use(level: Int, requestID: String), skip(requestID: String), receipt
+}
+
+extension PlayExperienceService {
+    /// One request with no retry. A transport error or non-2xx stays `.unknown`; only a 4xx business code is a refusal.
+    @MainActor func help(_ route: PlayHelpRoute, runID: Int, nodeID: Int, token: String) async -> PlayHelpReply {
+        guard runID > 0, nodeID > 0 else { return .unknown }
+        let request: URLRequest
+        let capability: PlayExperienceCapability
+        do {
+            switch route {
+            case .view:
+                capability = .reads
+                request = try makeRequest("api/play/help", query: ["runId": String(runID), "nodeId": String(nodeID)], token: token)
+            case .receipt:
+                capability = .reads
+                request = try makeRequest("api/play/help/receipt", query: ["runId": String(runID), "nodeId": String(nodeID)], token: token)
+            case .use(let level, let requestID):
+                guard level > 0, PlayHelpRequestID.valid(requestID) else { return .unknown }
+                capability = .hints
+                request = try makeRequest("api/play/help/use", json: ["runId": .int(runID), "nodeId": .int(nodeID), "level": .int(level),
+                                                                       "action": .string("HELP"), "requestId": .string(requestID)], token: token)
+            case .skip(let requestID):
+                guard PlayHelpRequestID.valid(requestID) else { return .unknown }
+                capability = .hints
+                request = try makeRequest("api/play/help/skip", json: ["runId": .int(runID), "nodeId": .int(nodeID),
+                                                                        "requestId": .string(requestID)], token: token)
+            }
+        } catch { return .unknown }
+        guard enabled.contains(capability), (try? checkReadLifetime()) != nil else { return .unknown }
+        do {
+            let (data, status) = try await transport.send(request)
+            guard (try? checkReadLifetime()) != nil else { return .unknown }
+            return PlayHelpReply.classify(data: data, status: status)
+        } catch { return .unknown }
+    }
+}
+
+enum PlayHelpRequestID {
+    static func valid(_ value: String) -> Bool {
+        !value.isEmpty && value.utf8.count <= 64 && value.utf8.allSatisfy { $0 >= 0x21 && $0 <= 0x7e }
+    }
+}

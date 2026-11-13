@@ -15,6 +15,7 @@ import SwiftUI
                 TemplateBasicFieldClearButton(model: model, field: .questionAudio, iconOnly: false)
             }
             TemplateLegacyHintFields(model: model)
+            TemplateHintLadderFields(model: model)
             if TemplateLegacyQuestionRehearsal(model.draft).isAvailable {
                 NavigationLink("templateLegacyQuiz.title") { TemplateLegacyQuestionRehearsalView(model: model) }
                     .accessibilityIdentifier("templateLegacyQuiz.open")
