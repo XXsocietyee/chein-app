@@ -43,6 +43,12 @@ extension ReviewedProductionFormMutationRoute {
             if relative == "api/v1/community/notification-preferences" { return true }
             return stableCommunityRequestID(request)
         }
+        if relative == "api/verify/dyncode/issue" {
+            // E2E rerun 3 (R8): the signed-in owner's own ticket entry code, shown from the wallet or Present pass. Exactly one
+            // multipart field `registrationId` > 0; the server checks the registration's owner. Issuing a code moves no money.
+            return method == "POST" && covers("api/registration/create", grant.registration)
+                && singlePositiveFormField(request, url: url, key: "registrationId", token: token)
+        }
         if relative == "api/play/theme/state" {
             return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true)
         }
@@ -114,6 +120,20 @@ extension ReviewedProductionFormMutationRoute {
             || covers(relative, grant.likes) || covers(relative, grant.reports) || covers(relative, grant.friends.endpoint)
             || covers(relative, grant.templateAdoption)
             || covers(relative, grant.admission) || covers(relative, grant.teamPool)
+    }
+
+    /// One multipart form field `key` holding a positive integer, byte-equal to the canonical `AuthRequestBuilder` form.
+    static func singlePositiveFormField(_ request: URLRequest, url: URL, key: String, token: String) -> Bool {
+        guard request.httpBodyStream == nil, url.query == nil,
+              let type = request.value(forHTTPHeaderField: "Content-Type"), type.hasPrefix("multipart/form-data; boundary="),
+              let body = request.httpBody, body.count <= 1024, let text = String(data: body, encoding: .utf8) else { return false }
+        let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+        let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+        guard let range = text.range(of: marker), let end = text[range.upperBound...].range(of: "\r\n") else { return false }
+        let raw = String(text[range.upperBound..<end.lowerBound])
+        guard let id = Int(raw), id > 0, String(id) == raw,
+              let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: [key: raw], token: token, boundary: boundary) else { return false }
+        return canonical.httpBody == body
     }
 
     /// HTML/JS external games. A price or a monetization other than NONE is refused. GET may carry the signed download query.

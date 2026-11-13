@@ -190,6 +190,29 @@ import XCTest
         XCTAssertFalse(RegionalLaunchConfiguration.composition.reviewed?.playerWritesEnabled == true)
     }
 
+    func testShippedChinaAdmitsTheOwnersTicketEntryCodeIssueOnly() async throws {
+        // E2E rerun 3 (R8): Present pass -> Show code sends `api/verify/dyncode/issue` with one `registrationId` form field.
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let issue = try OrderLifecycleRequestContract.issueTicket(registrationID: 75, baseURL: player.baseURL, token: player.session.token)
+        _ = try await transport.send(issue)
+        XCTAssertEqual(recorder.paths, ["api/verify/dyncode/issue"])
+        let url = player.baseURL.appendingPathComponent("api/verify/dyncode/issue")
+        let extra = try AuthRequestBuilder.makeFormRequest(url: url, fields: ["registrationId": "75", "memberId": "1"], token: player.session.token)
+        await assertClosed { try await transport.send(extra) }
+        let zero = try AuthRequestBuilder.makeFormRequest(url: url, fields: ["registrationId": "0"], token: player.session.token)
+        await assertClosed { try await transport.send(zero) }
+        await assertClosed { try await transport.send(self.jsonRequest(url, #"{"registrationId":75}"#, token: player.session.token)) }
+        XCTAssertEqual(recorder.paths, ["api/verify/dyncode/issue"])
+    }
+
     func testShippedChinaAdmitsFreePlayerWritesAndKeepsMoneyClosed() async throws {
         let recorder = PlayerWriteRecorder()
         let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
