@@ -6,10 +6,10 @@ import FoundationNetworking
 
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 996)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 997)
         XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 622)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 374)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 375)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.liveInProductionCount
                 + ChinaReviewedRouteCapability.newBackendOnlyCount

@@ -2813,7 +2813,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                     issued.permits(route.operation, configuration: api, session: editor)
             }
             guard permitted() else { throw APIError.notConfigured }; readApprovalStillValid = permitted
-        } else if let route = ProjectAuthorInputReadRoute(request: request, baseURL: api.baseURL) {
+        } else if let route = ProjectExactReadRoute(request: request, baseURL: api.baseURL) {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
@@ -2823,7 +2823,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             func permitted() -> Bool {
                 guard projectEditConfigurationRevision() == revision,
                       let configuration = projectEditConfiguration(context), configuration.matches(context) else { return false }
-                return configuration.routes[.projectAuthorInputRead]?.contains(exact) == true
+                return configuration.routes[route.feature]?.contains(exact) == true
             }
             guard permitted() else { throw APIError.notConfigured }
             readApprovalStillValid = permitted

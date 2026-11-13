@@ -181,7 +181,8 @@ private struct CreatorContentIssueView: View {
             Group {
                 if let pending = project.pendingVerifyCount { Text("myProject.pendingVerify \(pending)") }
                 else if let acceptance = MyProjectListPresentation.acceptanceText(project) { Text(verbatim: acceptance) }
-                else { Text("myProject.statsLine \(project.signupCount) \(project.viewCount)") }
+                // Missing counts read "—", never 0 (U03-03: unknown is not a default).
+                else { Text("list.stats \(project.signupCountFact.displayText) \(project.viewCountFact.displayText)", tableName: PublishClarityText.table) }
             }
             .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             if project.ownerType == "club" || project.ownerType == "merchant" {

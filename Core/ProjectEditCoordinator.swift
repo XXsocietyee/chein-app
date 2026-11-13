@@ -75,6 +75,26 @@ public struct ProjectEditContinuation {
               let source = service as? any NativeRuntimeStructureAuthorReading else { return false }
         return source.runtimeStructureInputsAreCurrent(inputs, session: session)
     }
+    /// U03 reads for the topic this editor (or its acknowledged submission) belongs to.
+    public var publicationTopicID: Int? { snapshot?.topicID ?? pending?.completedTopicID }
+    public var supportsPublishCheck: Bool { (service as? any TopicPublicationReading)?.supportsPublishCheck == true }
+    public var supportsPublicationStatus: Bool { (service as? any TopicPublicationReading)?.supportsPublicationStatus == true }
+    public func readPublishCheck(topicID: Int) async throws -> TopicPublishCheckReport {
+        guard topicID > 0, let session = capturedSession, session == currentSession(),
+              let source = service as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        let stamp = generation
+        let report = try await source.publishCheck(topicID: topicID, session: session)
+        guard active(session, stamp) else { throw ProjectEditError.changedSession }
+        return report
+    }
+    public func readPublicationStatus(topicID: Int) async throws -> TopicPublicationStatus {
+        guard topicID > 0, let session = capturedSession, session == currentSession(),
+              let source = service as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        let stamp = generation
+        let status = try await source.publicationStatus(topicID: topicID, session: session)
+        guard active(session, stamp) else { throw ProjectEditError.changedSession }
+        return status
+    }
     public var isBusy: Bool { [.loading, .reviewing, .submitting].contains(state) }
     public var isLocked: Bool { (pending != nil && pending?.completedTopicID == nil) || state == .unknown }
     public var isReadOnly: Bool { snapshot?.scope == .sellingFrozen }

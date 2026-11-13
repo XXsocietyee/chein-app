@@ -29,6 +29,16 @@ import FoundationNetworking
     public func runtimeStructureInputsAreCurrent(_ inputs: NativeRuntimeStructureAuthorInputs, session: ProjectEditSession) -> Bool {
         isCurrent && self.session == session && receipt == inputs
     }
+    public var supportsPublishCheck: Bool { (original as? any TopicPublicationReading)?.supportsPublishCheck == true }
+    public var supportsPublicationStatus: Bool { (original as? any TopicPublicationReading)?.supportsPublicationStatus == true }
+    public func publishCheck(topicID: Int, session: ProjectEditSession) async throws -> TopicPublishCheckReport {
+        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        return try await source.publishCheck(topicID: topicID, session: session)
+    }
+    public func publicationStatus(topicID: Int, session: ProjectEditSession) async throws -> TopicPublicationStatus {
+        guard let source = original as? any TopicPublicationReading else { throw ProjectEditError.notConfigured }
+        return try await source.publicationStatus(topicID: topicID, session: session)
+    }
     public func runtimeStructureInputs(draft: ProjectEditDraft, session: ProjectEditSession) async throws -> NativeRuntimeStructureAuthorInputs {
         guard isCurrent, self.session == session, draft.owner == .personal else { throw ProjectEditError.notConfigured }
         let ids = Set(draft.chapters.flatMap(\.nodes).compactMap(\.templateID).filter { $0 > 0 })
@@ -80,7 +90,7 @@ import FoundationNetworking
 }
 
 /// Decorates, never replaces, the original draft writer and durable recovery owner.
-@MainActor public final class ProjectAuthorInputService: ProjectEditServing, NativeRuntimeStructureAuthorReading {
+@MainActor public final class ProjectAuthorInputService: ProjectEditServing, NativeRuntimeStructureAuthorReading, TopicPublicationReading {
     private let original: any ProjectEditServing
     private let reader: ProjectAuthorInputReader?
     public init(original: any ProjectEditServing, reader: ProjectAuthorInputReader?) { self.original = original; self.reader = reader }
