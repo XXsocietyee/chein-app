@@ -2566,7 +2566,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let path = url.path
         guard path == base || path.hasPrefix(base + "/") else { return false }
         let relative = String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state"
+        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || ReviewedProductionGateLeases.playRuntimeReadPaths.contains(relative)
     }
 
     private func signedInRuntime(_ captured: SessionIdentity) -> RuntimeDependencyContext? {

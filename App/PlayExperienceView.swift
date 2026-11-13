@@ -323,6 +323,11 @@ import SwiftUI
                             .accessibilityIdentifier("playx.backpack.open")
                     }
                 }
+                // 联系主办 / 联系商家 (`GET api/play/contact`); no phone, no row.
+                if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
+                    PlayContactSection(currentNodeID: PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
+                                       finished: snapshot.availability == .completed)
+                }
                 if let reward = model.reward { PlayRewardSection(reward: reward, collectionDestination: rewardCollectionDestination) }
                 if let ending = model.ending {
                     Section("playx.ending") {
@@ -518,6 +523,7 @@ import SwiftUI
             PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
             if let node {
                 if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
+                else { PlayCheckRuntimeSection(nodeID: node.id, routeSessionID: model.snapshot?.route?.sessionID, nodeDone: node.done == true) }
                 if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
                     NavigationLink("journey.record.questions") {
                         JourneyNarrativeView(model: narrative, onChanged: { await model.load() })

@@ -45,6 +45,10 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/replay" {
             return method == "POST" && covers(relative, grant.play) && themeReplayBody(request)
         }
+        if ReviewedProductionGateLeases.playRuntimeReadPaths.contains(relative) {
+            // G1 play runtime reads: GET with a query and no body. A POST to a read path is not this grant.
+            return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true) && covers(relative, grant.play)
+        }
         if method == "GET" { return covers(relative, grant.friends.endpoint) }
         guard method == "POST", request.httpBody?.isEmpty == false else { return false }
         if ReviewedProductionGateLeases.teamCommandPaths.contains(relative) {
@@ -176,7 +180,17 @@ extension ReviewedProductionFormMutationRoute {
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
         "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
-        "api/play/theme/replay"
+        "api/play/theme/replay",
+        // G1 play runtime (owner-approved, non-money): server-rolled checks, shared team help, run clear,
+        // personal gameplay preview/action, the player-side shared preview, and circle record/answer.
+        "api/play/check/roll", "api/play/check/reroll", "api/play/check/settle", "api/play/help/shared",
+        "api/play/run-session/clear", "api/play/theme/gameplay-action", "api/play/theme/gameplay-preview",
+        "api/game/session/shared/preview", "api/circle-theme/session/answer", "api/circle-theme/session/record"
+    ].union(playRuntimeReadPaths)
+    /// G1 play runtime GET reads. Host control/export and circle instance configure are not here.
+    static let playRuntimeReadPaths: Set<String> = [
+        "api/play/encounter", "api/play/check/receipt", "api/play/advanced/receipt", "api/play/history",
+        "api/play/setup", "api/play/contact"
     ]
     static let roamExtraPaths: Set<String> = [
         "api/roam/checkin", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/roam/finish",

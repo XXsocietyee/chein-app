@@ -8,6 +8,7 @@ import SwiftUI
             .environment(\.topicPricingDestination, session.publisherLifecycleContext.map { context -> (Int) -> AnyView in
                 { topicID in AnyView(PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)) }
             })
+            .environment(\.playRuntimeTopicClient, PlayRuntimeGapBridge.topicClient(session: session))
             .id(session.topicReader.scope)
     }
 }

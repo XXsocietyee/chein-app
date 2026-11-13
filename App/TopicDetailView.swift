@@ -181,6 +181,8 @@ struct TopicDetailView: View {
             if let publisherDestination { publisherDestination(value) }
             let lineup = TopicXcxFacts.lineup(value)
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
+            // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
+            PlayTopicPrepSection(topicID: id)
             Section("topic.availability") {
                 // Source x-fix2 P-1 (hengyin c878fbb7d): a topic past its sale end only says 已截止, with no sign-up or unlock entry.
                 if saleClosed(value) {
