@@ -65,6 +65,7 @@ import XCTest
         XCTAssertFalse(controller.isEnabled)
         XCTAssertEqual(primer.calls, 1)
         XCTAssertEqual(permission.requestCount, 0)
+        XCTAssertFalse(controller.offersSettings)
         XCTAssertFalse(defaults.bool(forKey: IMInviteReminderController.storageKey))
     }
 
@@ -101,6 +102,7 @@ import XCTest
         let result = await controller.setEnabled(true)
         XCTAssertFalse(result)
         XCTAssertEqual(controller.presentation, .off)
+        XCTAssertTrue(controller.offersSettings)
         XCTAssertFalse(defaults.bool(forKey: IMInviteReminderController.storageKey))
     }
 
@@ -136,6 +138,7 @@ import XCTest
         let result = await controller.setEnabled(true)
         XCTAssertFalse(result)
         XCTAssertEqual(controller.presentation, .off)
+        XCTAssertTrue(controller.offersSettings)
         XCTAssertEqual(primer.calls, 0)
         XCTAssertEqual(permission.requestCount, 0)
     }

@@ -52,6 +52,11 @@ public struct RoamSharePhotoSaveState {
         }
         return false
     }
+    /// The explanation was declined before Photos was asked. The prepared card stays, ready to try again.
+    public mutating func abandonRequest(for attempt: Attempt) {
+        guard accepts(attempt), phase == .requestingPermission else { return }
+        phase = .ready
+    }
     public mutating func complete(saved: Bool, for attempt: Attempt) {
         guard accepts(attempt), phase == .saving else { return }
         phase = saved ? .saved : .failed
