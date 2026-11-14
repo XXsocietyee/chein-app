@@ -1,13 +1,13 @@
 #if DEBUG
 import SwiftUI
 
-private enum DesignKitSectionTab: String, CaseIterable, Hashable {
+enum DesignKitSectionTab: String, CaseIterable, Hashable {
     case base = "基础组件"
     case business = "业务组件"
     case states = "弹层/状态"
 }
 
-private enum DesignKitDomainMode: String, CaseIterable, Hashable {
+enum DesignKitDomainMode: String, CaseIterable, Hashable {
     case both = "双域对照"
     case player = "玩家暗色"
     case merchant = "商户亮色"

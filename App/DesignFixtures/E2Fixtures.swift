@@ -141,7 +141,7 @@ private struct E2BadgeDetailHost: View {
         self.offlineFailure = offlineFailure
         let config = try! APIConfiguration(baseURL: URL(string: "https://fixture.example/native/")!)
         let session = try? PlayExperienceSession(accountID: 9001, epoch: 1, namespace: "synthetic-play-cn", token: "synthetic-token")
-        let service = PlayExperienceService(configuration: config, transport: Rep3PlayFixtureTransport(offlineFailure: offlineFailure), enabled: [.reads, .writes])
+        let service = PlayExperienceService(configuration: config, transport: Rep3PlayFixtureTransport(offlineFailure: offlineFailure), enabled: [.reads, .playerCommands])
         _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: service, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { session }))
     }
 
