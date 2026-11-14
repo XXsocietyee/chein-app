@@ -139,7 +139,7 @@ class TemplateAuthoringContracts(unittest.TestCase):
         self.assertEqual(app.count('contains("--ui-template-authoring")'),2)
     def test_guide_roam_routes_to_actual_roam_tab_tag(self):
         app=self.read('App/QuestifyApp.swift')
-        actual=re.search(r'\{ rootTabLabel\(\.roam\) \}\.tag\(RootTab\.(\w+)\)',app)
+        actual=re.search(r'\{ rootTabLabel\(\.roam\)(?:\.accessibilityIdentifier\(\"[^\"]+\"\))? \}\.tag\(RootTab\.(\w+)\)',app)
         selected=re.search(r'destination == \.roam \? \.(\w+) : \.(\w+)',app)
         self.assertIsNotNone(actual);self.assertIsNotNone(selected)
         self.assertEqual(actual.group(1),selected.group(1))

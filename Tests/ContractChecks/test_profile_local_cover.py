@@ -13,7 +13,7 @@ class ProfileLocalCoverSourceChecks(unittest.TestCase):
   self.assertIn('if localCoverOwner?.accountID == memberID',public)
   self.assertIn('ProfileLocalCoverSection(owner: localCoverOwner, reader: reader, isCurrent: isCurrent)',public)
  def test_seventh_live_posts_entry_is_preserved(self):
-  self.assertIn('ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)'.replace('squareReader: squareReader, actions','squareReader: squareReader,\n                            actions'),read('App/SocialPublicProfileView.swift'))
+  self.assertIn('ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)'.replace('squareReader: squareReader, actions','squareReader: squareReader,\n                                actions'),read('App/SocialPublicProfileView.swift'))  # h-ugc blocked-filter wrapper adds one level
  def test_default_public_profile_does_not_receive_local_owner(self):
   self.assertIn('var localCoverOwner: ProfileLocalCoverOwner? = nil',read('App/SocialPublicProfileView.swift'))
  def test_owner_requires_account_and_bound_namespace(self):

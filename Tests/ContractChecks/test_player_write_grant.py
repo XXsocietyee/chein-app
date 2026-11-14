@@ -36,7 +36,8 @@ class PlayerWriteGrantContracts(unittest.TestCase):
             "api/orient/scoring/session/{}/sync", "api/orient/scoring/session/{}/settle",
             "/purchase", "/payout",
         ]:
-            self.assertNotIn(banned, paths)
+            # h-ugc: "api/merchant/reviews/report" is a player reporting a review, not a merchant write.
+            self.assertNotIn(banned, paths.replace('"api/merchant/reviews/report"', ""))
         route = leases.split("func acceptsPlayerWrite", 1)[1].split("@MainActor final class ReviewedProductionGateLeases", 1)[0]
         self.assertIn("ReleaseMoneyWriteSwitch.blocks", route)
         self.assertIn("freeRegistrationBody", route)

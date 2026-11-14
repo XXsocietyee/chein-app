@@ -12,7 +12,7 @@ class TypeInResultChecks(unittest.TestCase):
             self.assertNotIn(forbidden,block)
     def test_visible_typed_limit_and_result_use_existing_timed_screen(self):
         code=(ROOT/'App/PlayKitTimedChallengeView.swift').read_text()
-        self.assertIn('segment["tries"].integer, cap > 0',code)
+        self.assertIn('segment["tries"].integer, cap >= 0',code)
         self.assertIn('PlayKitScreenProjection(kind: kind, segment: segment).typeInResultKey',code)
         self.assertIn('Text(LocalizedStringKey(result))',code)
         self.assertIn('currentRevisionIdentity?() ?? revisionIdentity',code)

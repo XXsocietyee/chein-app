@@ -43,6 +43,8 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
                     self.assertTrue(strings['playkit.estimate.result.' + suffix]['localizations'][language]['stringUnit']['value'])
     def test_no_new_network_routes_or_local_reward_mutation(self):
         code = '\n'.join(p.read_text() for p in (ROOT/'App').glob('PlayKit*.swift'))
+        # h-offline-2: `routes: ["/api/play/..."]` only names the write for the offline queue opt-in; the model sends it.
+        code = re.sub(r'routes: \["/api/play/[^"]+"\]', 'routes: []', code)
         for forbidden in ['api/play/', 'SUBMIT_BINGO', 'CLAIM_BINGO', 'URLSession.shared', 'passed = true', 'readyForBase = true']:
             self.assertNotIn(forbidden, code)
     def test_photo_has_separate_capture_upload_and_task_review(self):

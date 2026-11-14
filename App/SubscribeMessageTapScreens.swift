@@ -39,7 +39,7 @@ import SwiftUI
                 case .topic:
                     SessionTopicDetailView(id: destination.value, session: session).id(session.topicReader.scope)
                 case .activity:
-                    ActivityDetailView(id: destination.value, reader: session)
+                    ActivityDetailView(id: destination.value, reader: session, registrationEnabled: true)
                         .toolbar {
                             PublisherLifecycleNavigationLink(session: session, resource: destination)
                             if let editor = session.activityEditingController(id: destination.value) {
