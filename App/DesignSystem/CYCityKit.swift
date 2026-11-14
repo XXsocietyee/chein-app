@@ -153,6 +153,8 @@ struct CYChoiceRow: View {
     let selected: Bool
     var multi = false
     var enabled = true
+    /// Drawn letter for a Q&A row. Nil keeps the row as a plain choice.
+    var marker: String? = nil
     let action: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
@@ -161,6 +163,10 @@ struct CYChoiceRow: View {
                 Image(systemName: selected ? (multi ? "checkmark.square.fill" : "largecircle.fill.circle") : (multi ? "square" : "circle"))
                     .foregroundStyle(selected ? CYColor.textPrimary : CYColor.textTertiary)
                     .symbolEffect(.bounce, value: reduceMotion ? false : selected)
+                if let marker, !marker.isEmpty {
+                    Text(verbatim: marker).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                        .accessibilityHidden(true)
+                }
                 Text(verbatim: label).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)

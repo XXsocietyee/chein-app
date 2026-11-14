@@ -33,6 +33,8 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let needAnswer: Bool?
     public let needGPS: Bool?
     public let question: String?
+    /// Station success line. Shown on hangman only after the server says solved, and only when the kit sent none.
+    public let passText: String?
     public let questionImage: String?
     public let questionAudio: String?
     public let options: [String: String]?
@@ -66,7 +68,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
-        case needScan, needAnswer, needGps, question, questionImg, questionAudio, options, description
+        case needScan, needAnswer, needGps, question, passText, questionImg, questionAudio, options, description
         case hookText, storyText, gameTitle, ruleInstructions, rule, requiredMaterials, duration, difficulty
         case players, photoRequireDesc, photoDesc, businessTime, openStatus, crowded, inStoreLoad, serviceCapacity, expectedWaitMinutes, quantityUnavailable, routeNodeState, lockReason
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
@@ -88,6 +90,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         validationMethod = try c.playInt(.validationMethod)
         needScan = try c.playBool(.needScan); needAnswer = try c.playBool(.needAnswer); needGPS = try c.playBool(.needGps)
         question = try c.decodeIfPresent(String.self, forKey: .question)
+        passText = try c.decodeIfPresent(String.self, forKey: .passText)
         questionImage = try c.decodeIfPresent(String.self, forKey: .questionImg)
         questionAudio = try c.decodeIfPresent(String.self, forKey: .questionAudio)
         // E2E-20261113b: the server sends a null text for an unused option ({"C": null}); drop it, and treat an

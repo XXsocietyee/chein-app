@@ -451,7 +451,7 @@ import SwiftUI
                 CYGlassCapsule {
                     HStack(spacing: CYSpacing.sm) {
                         Image(systemName: "timer").accessibilityHidden(true)
-                        Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
+                        Text(verbatim: PlayRunElapsedText.format(seconds))
                             .font(CYTypography.dataXL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
                             .accessibilityIdentifier("playx.run.clock")
                     }.foregroundStyle(.white)
@@ -747,7 +747,8 @@ import SwiftUI
                 if let advanced, node.hasAdvancedPrerequisite {
                     NavigationLink("playx.advanced") {
                         PlayInteractionBoundContent(context: model.interactionContext) { advancedContext in
-                            PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval) { state in
+                            PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
+                                              stationQuestion: node.question, stationName: node.name, stationPassText: node.passText) { state in
                                 try? model.acceptAdvanced(state, context: advancedContext)
                             }
                         }

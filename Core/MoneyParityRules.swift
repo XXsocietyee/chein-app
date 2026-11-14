@@ -165,10 +165,19 @@ public enum MoneyPassExpiry {
     public static let windowDays = 7
 
     /// Natural-day count (China calendar). Today == 0. Already past `until` (instant) or no date == nil.
+    /// An expiry that lands on China midnight belongs to the previous playable day, matching
+    /// `ticket-expiry.js` and `MPParityChinaClock.passUntil`.
     public static func daysLeft(until: String?, nowMs: Int64) -> Int? {
         guard let untilMs = MoneyParityTime.timestamp(until) else { return nil }
         if untilMs < nowMs { return nil }
-        return Int(MoneyParityTime.chinaDayIndex(untilMs) - MoneyParityTime.chinaDayIndex(nowMs))
+        let last = playableInstant(untilMs)
+        return Int(MoneyParityTime.chinaDayIndex(last) - MoneyParityTime.chinaDayIndex(nowMs))
+    }
+
+    /// `chinaDayStart(at) === at` rolls the instant back 1 ms so the card and 「可玩至」 share one day.
+    static func playableInstant(_ ms: Int64) -> Int64 {
+        let start = MoneyParityTime.chinaDayIndex(ms) * MoneyParityTime.dayMs - MoneyParityTime.chinaOffsetMs
+        return start == ms ? ms - 1 : ms
     }
 
     public static func text(until: String?, nowMs: Int64) -> String {

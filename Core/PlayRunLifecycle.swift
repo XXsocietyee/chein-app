@@ -80,6 +80,17 @@ public struct PlayRunClock: Equatable {
         elapsedSeconds = elapsed(monotonicNow: monotonicNow); anchor = nil; phase = .ended
     }
 }
+/// Whole-run clock from `utils/play-ui-contract.js` `formatRunElapsed`.
+/// Under one hour stays `mm:ss`. At one hour it becomes `h:mm:ss`, so 118:41 cannot appear.
+/// Short challenge timers keep their own minute clock.
+public enum PlayRunElapsedText {
+    public static func format(_ seconds: Int) -> String {
+        let safe = max(0, seconds)
+        if safe < 3600 { return String(format: "%02d:%02d", safe / 60, safe % 60) }
+        return String(format: "%d:%02d:%02d", safe / 3600, (safe / 60) % 60, safe % 60)
+    }
+}
+
 public enum PlayRunStorageKey {
     public static func make(session: PlayExperienceSession, scope: PlaySessionScope) -> String {
         let parts = [session.namespace, String(session.accountID), scope.fields.keys.first!, String(scope.id)]

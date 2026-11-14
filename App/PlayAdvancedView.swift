@@ -14,6 +14,10 @@ import SwiftUI
     var ugAccusationWrite: PlayKitAccusationWrite? = nil
     /// Override for album completion. Nil uploads one photo, then posts SUBMIT_ALBUM.
     var albumComplete: (() -> Void)? = nil
+    /// Hangman title fallback: station question, then place name. Pass text is the solved line when the kit has none.
+    var stationQuestion: String? = nil
+    var stationName: String? = nil
+    var stationPassText: String? = nil
     let onReady: (PlayAdvancedState) -> Void
     @State private var teamSurfaceID = UUID()
     @State private var teamSurfaceVisible = false
@@ -157,6 +161,7 @@ extension PlayAdvancedView {
                 if let segment = model.state?.playKit["hangman"], segment.object != nil {
                     if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                     PlayKitHangmanView(projection: PlayKitHangmanProjection(segment: segment), enabled: model.canInteract,
+                        stationQuestion: stationQuestion, stationName: stationName, stationPassText: stationPassText,
                         submit: ugHangmanWrite ?? hangmanWrite, close: { openKit = nil })
                         .padding()
                 } else { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }

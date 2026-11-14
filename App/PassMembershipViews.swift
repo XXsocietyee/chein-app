@@ -464,7 +464,7 @@ struct PassRevealPaidFacts: Hashable {
         .toolbar {
             if full && skipVisible && step < 8 {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("mp.reveal.skip") { finish(); go() }.accessibilityIdentifier("passReveal.skip")
+                    Button("mp.reveal.skip") { finish() }.accessibilityIdentifier("passReveal.skip")
                 }
             }
         }
@@ -494,6 +494,8 @@ struct PassRevealPaidFacts: Hashable {
                     .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
             }
             .frame(height: 320)
+            .contentShape(Rectangle())
+            .onTapGesture { if full, step < 8 { finish() } }
             .accessibilityHidden(true)
             Spacer()
             VStack(spacing: CYSpacing.md) {
@@ -503,12 +505,14 @@ struct PassRevealPaidFacts: Hashable {
                 CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
                     .accessibilityIdentifier("passReveal.start")
                     .revealIn(step >= 8, reduceMotion: reduceMotion)
+                    .allowsHitTesting(step >= 8)
                     .padding(.top, CYSpacing.sm)
             }
             .padding(.horizontal, CYSpacing.xxl)
             .padding(.bottom, CYSpacing.xxl)
             .accessibilityElement(children: .contain)
         }
+        .simultaneousGesture(TapGesture().onEnded { if full, step < 8 { finish() } })
         .background(alignment: .bottom) {
             LinearGradient(colors: [.clear, CYNight.ember.opacity(0.28), CYNight.lantern.opacity(0.18)], startPoint: .top, endPoint: .bottom)
                 .frame(height: 420)

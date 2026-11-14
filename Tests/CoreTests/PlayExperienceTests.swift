@@ -118,6 +118,11 @@ import FoundationNetworking
         XCTAssertEqual(PlayPausedRecord.reconcile(local: local, remote: .init(record: remote)), remote)
         XCTAssertNil(PlayPausedRecord.reconcile(local: local, remote: .init(endedAt: 100)))
         XCTAssertEqual(PlayPausedRecord.reconcile(local: local, remote: nil), local)
+        XCTAssertEqual(PlayRunElapsedText.format(59), "00:59")
+        XCTAssertEqual(PlayRunElapsedText.format(3599), "59:59")
+        XCTAssertEqual(PlayRunElapsedText.format(3600), "1:00:00")
+        XCTAssertEqual(PlayRunElapsedText.format(118 * 60 + 41), "1:58:41")
+        XCTAssertEqual(PlayRunElapsedText.format(-4), "00:00")
         XCTAssertThrowsError(try PlayPausedRecord(elapsedSeconds: 604801, savedAt: 100))
         XCTAssertThrowsError(try JSONDecoder().decode(PlayPausedRecord.self, from: Data(#"{"elapsedSeconds":-1,"savedAt":20}"#.utf8)))
     }
