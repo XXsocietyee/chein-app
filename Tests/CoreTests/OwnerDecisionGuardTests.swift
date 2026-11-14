@@ -160,8 +160,10 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
         let transport = Recorder()
         let client = try makeClient(transport, payout: false)
-        XCTAssertEqual(await client.unbind(clubID: 9003), .notSent)
-        XCTAssertEqual(await client.saveAccount(), .notSent)
+        let awaited = await client.unbind(clubID: 9003)
+        XCTAssertEqual(awaited, .notSent)
+        let awaited1 = await client.saveAccount()
+        XCTAssertEqual(awaited1, .notSent)
         XCTAssertTrue(transport.requests.isEmpty)
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/personal-receiver/unbind"))
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/personal-receiver/bind"))
@@ -170,8 +172,10 @@ final class OwnerDecisionGuardTests: XCTestCase {
         ReleaseMoneyWriteSwitch.testDerivation = { _ in true }
         let forced = OwnerDecisionPayoutClient(configuration: production, transport: transport, token: "synthetic-token",
                                                 payoutOpen: true, merchantWritesOpen: true)
-        XCTAssertEqual(await forced.unbind(clubID: 9003), .notSent)
-        XCTAssertEqual(await forced.saveAccount(), .notSent)
+        let awaited2 = await forced.unbind(clubID: 9003)
+        XCTAssertEqual(awaited2, .notSent)
+        let awaited3 = await forced.saveAccount()
+        XCTAssertEqual(awaited3, .notSent)
         XCTAssertTrue(transport.requests.isEmpty)
         let lease = try source("App/ReviewedPlayerWriteLeases.swift")
         for path in ChinaReviewedRouteCapability.ownerDecisionGuardGrant {
