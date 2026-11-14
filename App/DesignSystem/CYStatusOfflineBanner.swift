@@ -36,11 +36,11 @@ public struct CYStatusOfflineBanner: View {
     @Environment(\.cyPalette) private var palette
 
     private var foregroundTone: Color {
-        serious ? palette.danger : palette.warningText
+        serious ? palette.danger : palette.warning
     }
 
     private var backgroundTone: Color {
-        serious ? palette.dangerBg : palette.warningBg
+        serious ? palette.dangerSoft : palette.warningSoft
     }
 
     private var borderTone: Color {
@@ -51,7 +51,7 @@ public struct CYStatusOfflineBanner: View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(spacing: CYSpacing.sm) {
                 Image(systemName: "wifi.slash")
-                    .font(CYTypography.bodyBold)
+                    .font(CYTypography.bodyMedium)
                     .foregroundStyle(foregroundTone)
                 Text(LocalizedStringKey(messageKey))
                     .font(CYTypography.meta.weight(.semibold))
@@ -102,9 +102,9 @@ public struct CYStatusOfflineBanner: View {
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(backgroundTone, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .background(backgroundTone, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
                 .stroke(borderTone, lineWidth: 1)
         )
         .accessibilityElement(children: .contain)
@@ -246,9 +246,9 @@ struct CYOfflineWriteStatusBanner: View {
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
                 .stroke(border, lineWidth: 1)
         )
         .accessibilityElement(children: .contain)

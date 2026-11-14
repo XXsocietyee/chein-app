@@ -52,7 +52,7 @@ struct SearchMapOfflineBannerView: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Label(LocalizedStringKey(key), systemImage: "wifi.slash")
                     .font(CYTypography.meta.weight(.semibold))
-                    .foregroundStyle(palette.warningText)
+                    .foregroundStyle(palette.warning)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("searchMap.w208.offline.message")
                 if case .cached(let date) = state {
@@ -62,21 +62,21 @@ struct SearchMapOfflineBannerView: View {
                 }
                 if stillOffline {
                     Text("searchMap.w208.offline.stillOffline").font(CYTypography.caption)
-                        .foregroundStyle(palette.warningText)
+                        .foregroundStyle(palette.warning)
                         .accessibilityIdentifier("searchMap.w208.offline.stillOffline")
                 }
                 Button("searchMap.w208.offline.retry", action: retry)
                     .buttonStyle(.bordered)
-                    .tint(palette.warningText)
+                    .tint(palette.warning)
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("searchMap.w208.offline.retry")
                     .accessibilityLabel(Text("searchMap.w208.offline.retry"))
                     .accessibilityValue(spokenCache)
                     .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "searchMap.w208.offline.stillOffline" : key)))
             }.padding().frame(maxWidth: .infinity, alignment: .leading)
-                .background(palette.warningBg, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                .background(palette.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
+                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
                         .stroke(palette.warning.opacity(0.28), lineWidth: 1)
                 )
                 .accessibilityElement(children: .contain)
