@@ -29,6 +29,42 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
         )
     }
 
+    func testRouterPrefixesStayUnsentAndPurchasedChildrenStayConcrete() {
+        XCTAssertNil(ChinaReviewedRouteCapability.mark(for: "/api/workshop/purchased"))
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/workshop/v2/purchased/list"), .liveInProduction)
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/workshop/v2/purchased/detail"), .liveInProduction)
+        let closed = [
+            "/api/workshop/purchased", "/api/workshop/v2/purchased/list", "/api/workshop/v2/purchased/detail",
+            "/api/reward-pledge/versions", "/api/friend/channel-invite", "/api/friend/team-invite",
+            "/api/merchant/payout-account/save"
+        ]
+        for path in closed {
+            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
+            let url = URL(string: "https://www.chengyinhub.com/prod-api" + path)!
+            XCTAssertThrowsError(try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(URLRequest(url: url))) { error in
+                XCTAssertEqual(error as? APIError, .notConfigured)
+            }
+        }
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/reward-pledge/versions/ver1/hold"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/reward-pledge/versions/ver1/withdraw"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/friend/channel-invite/picker"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/friend/channel-invite/command"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/friend/team-invite/picker"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/team/original-request"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.channelsSocialOwnerGrant.contains("/api/friend/channel-invite"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.channelsSocialOwnerGrant.contains("/api/friend/team-invite"))
+        XCTAssertTrue(NativeFriendChannelInviteApproval.reads.contains("api/friend/channel-invite/picker"))
+        XCTAssertTrue(NativeFriendChannelInviteApproval.writes.contains("api/friend/channel-invite/command"))
+        XCTAssertFalse(NativeFriendChannelInviteApproval.reads.contains("api/friend/channel-invite"))
+        XCTAssertTrue(NativeFriendTeamInviteApproval.paths.contains("api/friend/team-invite/landing"))
+        XCTAssertTrue(NativeFriendTeamInviteApproval.paths.contains("api/team/original-request"))
+        XCTAssertFalse(NativeFriendTeamInviteApproval.paths.contains("api/friend/team-invite"))
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertNoThrow(try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(
+            URLRequest(url: URL(string: "https://8120.example.test/api/workshop/v2/purchased/list")!)))
+    }
+
     func testPasswordBankAndVirtualGoodsStayHiddenByCapability() {
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/login"), .liveInProduction)
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/login"))

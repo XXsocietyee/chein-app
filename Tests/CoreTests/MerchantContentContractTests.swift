@@ -119,15 +119,15 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertNoThrow(try MerchantContentCommand.submitNode(chapterID: 7, draft: d).validate(against: s))
         d.templateID = 5; XCTAssertThrowsError(try MerchantContentCommand.submitNode(chapterID: 7, draft: d).validate(against: s))
     }
-    func testNPCUsesOnlyFourFormFieldsIncludingEmptyGreeting() throws {
+    func testNPCUsesOnlyFourJSONFieldsIncludingEmptyGreeting() throws {
         let r = try MerchantContentCommand.saveNPC(nodeID: 62, name: "Guide", avatar: "asset", greeting: "").request()
         XCTAssertEqual(r.path, "api/merchant/chapter-node/npc/save")
-        guard case .form(let f) = r.body else { return XCTFail("Node NPC requires multipart form") }
-        XCTAssertEqual(f, ["nodeId": "62", "name": "Guide", "avatar": "asset", "greeting": ""])
+        guard case .json(let f) = r.body else { return XCTFail("Node NPC save is JSON") }
+        XCTAssertEqual(f, ["nodeId": .integer(62), "name": .string("Guide"), "avatar": .string("asset"), "greeting": .string("")])
     }
     func testNodeVoiceUsesSingleVoiceSampleNotStoreSampleArray() throws {
-        XCTAssertEqual(try fields(.enrollVoice(nodeID: 62, voiceSample: "one-reference")), ["nodeId": .string("62"), "voiceSample": .string("one-reference")])
-        XCTAssertEqual(try fields(.resetVoice(nodeID: 62)), ["nodeId": .string("62")])
+        XCTAssertEqual(try fields(.enrollVoice(nodeID: 62, voiceSample: "one-reference")), ["nodeId": .integer(62), "voiceSample": .string("one-reference")])
+        XCTAssertEqual(try fields(.resetVoice(nodeID: 62)), ["nodeId": .integer(62)])
     }
     func testNodeAuditBoolIsFormString() throws {
         XCTAssertEqual(try fields(.auditNode(nodeID: 62, approve: false, reason: "Not eligible")), ["nodeId": .string("62"), "approve": .string("false"), "reason": .string("Not eligible")])
@@ -222,6 +222,74 @@ final class MerchantContentContractTests: XCTestCase {
     private func failure<T>(_ expected: MerchantContentFailure, _ f: () async throws -> T) async {
         do { _ = try await f(); XCTFail("Expected \(expected)") } catch { XCTAssertEqual(error as? MerchantContentFailure, expected) }
     }
+    func testChapterNodeNPCJSONUsesTheSameFieldNamesOnTheTestHost() async throws {
+        let base = URL(string: "https://8120.example.test/")!
+        let transport = ContentScriptTransport()
+        let box = SessionBox()
+        let journal = MerchantContentMemoryPendingStorage()
+        let service = MerchantContentService(
+            configuration: try APIConfiguration(baseURL: base),
+            transport: transport,
+            currentSession: { box.value },
+            journal: journal,
+            execution: .injectedOfflineHarness
+        )
+        func read(_ data: String) {
+            transport.append(MerchantContentFixtureData.access)
+            transport.append(data)
+        }
+        read("null")
+        _ = try await service.load(.npc(nodeID: 62))
+        read(#"{"voiceStatus":0}"#)
+        _ = try await service.load(.voice(nodeID: 62))
+        read("null")
+        let baseline = try await service.load(.npc(nodeID: 62))
+        read("null")
+        transport.append("null")
+        _ = try await service.perform(.saveNPC(nodeID: 62, name: "Guide", avatar: "asset", greeting: ""), baseline: baseline)
+        read("null")
+        let again = try await service.load(.npc(nodeID: 62))
+        read("null")
+        transport.append("null")
+        _ = try await service.perform(.enrollVoice(nodeID: 62, voiceSample: "one-reference"), baseline: again)
+        read("null")
+        let third = try await service.load(.npc(nodeID: 62))
+        read("null")
+        transport.append("null")
+        _ = try await service.perform(.resetVoice(nodeID: 62), baseline: third)
+        func object(_ request: URLRequest) throws -> [String: Any] {
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertEqual(request.url?.host, "8120.example.test")
+            let body = try XCTUnwrap(request.httpBody)
+            return try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        }
+        let detail = transport.requests.filter { $0.url?.path.hasSuffix("/api/merchant/chapter-node/npc/detail") == true }
+        let status = transport.requests.filter { $0.url?.path.hasSuffix("/api/merchant/chapter-node/npc/voice/status") == true }
+        let save = transport.requests.filter { $0.url?.path.hasSuffix("/api/merchant/chapter-node/npc/save") == true }
+        let enroll = transport.requests.filter { $0.url?.path.hasSuffix("/api/merchant/chapter-node/npc/voice/enroll") == true }
+        let reset = transport.requests.filter { $0.url?.path.hasSuffix("/api/merchant/chapter-node/npc/voice/reset") == true }
+        XCTAssertEqual(detail.count, 7)
+        XCTAssertEqual(status.count, 1)
+        XCTAssertEqual(save.count, 1)
+        XCTAssertEqual(enroll.count, 1)
+        XCTAssertEqual(reset.count, 1)
+        XCTAssertEqual(try object(detail[0])["nodeId"] as? Int, 62)
+        XCTAssertEqual(try object(status[0])["nodeId"] as? Int, 62)
+        let saved = try object(save[0])
+        XCTAssertEqual(Set(saved.keys), ["nodeId", "name", "avatar", "greeting"])
+        XCTAssertEqual(saved["nodeId"] as? Int, 62)
+        XCTAssertEqual(saved["name"] as? String, "Guide")
+        XCTAssertEqual(saved["avatar"] as? String, "asset")
+        XCTAssertEqual(saved["greeting"] as? String, "")
+        let enrolled = try object(enroll[0])
+        XCTAssertEqual(Set(enrolled.keys), ["nodeId", "voiceSample"])
+        XCTAssertEqual(enrolled["nodeId"] as? Int, 62)
+        XCTAssertEqual(enrolled["voiceSample"] as? String, "one-reference")
+        let cleared = try object(reset[0])
+        XCTAssertEqual(Set(cleared.keys), ["nodeId"])
+        XCTAssertEqual(cleared["nodeId"] as? Int, 62)
+    }
+
     func testDefaultFactoryRejectsMutationBeforeAnyTransport() async throws {
         let t = ContentScriptTransport(), box = SessionBox(); t.append(MerchantContentFixtureData.access); t.append("null")
         let s = try service(t, box: box); let baseline = try await s.load(.npc(nodeID: 62))
@@ -251,11 +319,14 @@ final class MerchantContentContractTests: XCTestCase {
         XCTAssertTrue(String(decoding: t.requests[1].httpBody!, as: UTF8.self).contains("MERCHANT"))
         XCTAssertEqual(try JSONDecoder().decode([String: MerchantContentValue].self, from: t.requests[3].httpBody!), ["topicId": .integer(70), "scope": .string("MERCHANT")])
     }
-    func testNPCNullIsValidUnconfiguredAndMultipartRead() async throws {
+    func testNPCNullIsValidUnconfiguredAndJSONRead() async throws {
         let t = ContentScriptTransport(), box = SessionBox(); t.append(MerchantContentFixtureData.access); t.append("null")
         let v = try await service(t, box: box).load(.npc(nodeID: 62))
-        XCTAssertEqual(v.value, .null); XCTAssertTrue(t.requests[1].value(forHTTPHeaderField: "Content-Type")?.contains("multipart/form-data") == true)
-        XCTAssertTrue(String(decoding: t.requests[1].httpBody!, as: UTF8.self).contains("nodeId"))
+        XCTAssertEqual(v.value, .null)
+        XCTAssertEqual(t.requests[1].value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(t.requests[1].httpBody)) as? [String: Any])
+        XCTAssertEqual(body.count, 1)
+        XCTAssertEqual(body["nodeId"] as? Int, 62)
     }
     func testWrongRegistrationIdentityFailsClosed() async throws {
         let t = ContentScriptTransport(), box = SessionBox(); t.append(MerchantContentFixtureData.access); t.append(#"{"id":23}"#)

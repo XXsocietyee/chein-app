@@ -36,6 +36,44 @@ import FoundationNetworking
         XCTAssertEqual(body, "license_id=w18-paid-11")
         XCTAssertEqual(wire.requests.count, 2)
     }
+
+    func testPurchasedReadsOnTheTestHostAreConcreteV2Children() async throws {
+        let context = RuntimeDependencyContext(
+            market: .china,
+            baseURL: URL(string: "https://8120.example.test/native/")!,
+            role: "player",
+            session: try .init(accountID: 7, epoch: 1, namespace: "synthetic", token: "synthetic")
+        )
+        let wire = QuietWorkshopWire()
+        let lease = ContentDraftSessionLease(context: context, current: { context })
+        let grant = try WorkshopPurchasedReadApproval(context: context, expiresAt: .distantFuture)
+        let service = WorkshopPurchasedService(
+            api: try APIConfiguration(baseURL: context.baseURL),
+            transport: wire,
+            lease: lease,
+            approval: grant,
+            currentApproval: { grant }
+        )
+        let lifetime = WorkshopPurchasedReadLifetime()
+        var listFailed = false
+        var detailFailed = false
+        do { _ = try await service.list(before: nil, lifetime: lifetime) } catch { listFailed = true }
+        do { _ = try await service.detail(licenseId: "w18-paid-11", lifetime: lifetime) } catch { detailFailed = true }
+        XCTAssertTrue(listFailed)
+        XCTAssertTrue(detailFailed)
+        XCTAssertEqual(wire.requests.count, 2)
+        XCTAssertEqual(wire.requests[0].url?.host, "8120.example.test")
+        XCTAssertTrue(wire.requests[0].url?.path.hasSuffix("/api/workshop/v2/purchased/list") == true)
+        XCTAssertTrue(wire.requests[1].url?.path.hasSuffix("/api/workshop/v2/purchased/detail") == true)
+        XCTAssertFalse(wire.requests.contains { request in
+            let path = request.url?.path ?? ""
+            return path.hasSuffix("/api/workshop/purchased") || path.hasSuffix("/api/workshop/purchased/")
+        })
+        let production = URLRequest(url: URL(string: "https://www.chengyinhub.com/prod-api/api/workshop/v2/purchased/list")!)
+        XCTAssertThrowsError(try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(production)) { error in
+            XCTAssertEqual(error as? APIError, .notConfigured)
+        }
+    }
 }
 
 private final class QuietWorkshopWire: HTTPTransport, @unchecked Sendable {
