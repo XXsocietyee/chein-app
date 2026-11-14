@@ -47,6 +47,7 @@ import Observation
             if let key, loadedKey == key, let image {
                 Image(uiImage: image).resizable().scaledToFill()
                     .frame(width: 112, height: 112).clipShape(Circle())
+                    .overlay(Circle().strokeBorder(CYDomainPalette(.player).avatarRing, lineWidth: 3))
                     .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityLabel(Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI"))
             } else if let key, failedKey == key {
@@ -61,6 +62,7 @@ import Observation
             } else {
                 Image(systemName: "person.fill").font(.system(.largeTitle)).foregroundStyle(CYColor.textSecondary)
                     .frame(width: 112, height: 112).background(CYColor.bgRaised, in: Circle())
+                    .overlay(Circle().strokeBorder(CYDomainPalette(.player).avatarRing, lineWidth: 3))
                     .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityHidden(true)
                 (model.savedAvatarReadSnapshot?.avatar.isEmpty == true ? Text("profile.currentAvatar.empty", tableName: "ProfileCurrentMediaUI") : Text("profile.currentAvatar.unavailable", tableName: "ProfileCurrentMediaUI"))

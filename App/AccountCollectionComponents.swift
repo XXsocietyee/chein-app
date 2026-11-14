@@ -106,7 +106,14 @@ struct AccountCollectionIssueView: View {
         return Text(LocalizedStringKey(issue.localizationKey))
     }
     var body: some View {
-        var layout = CYStateLayout(kind: issue == .login ? .generic : .failure, title: titleText)
+        let kind: CYStateKind = {
+            switch issue {
+            case .login, .notConfigured: return .generic
+            case .network: return .offline
+            default: return .failure
+            }
+        }()
+        var layout = CYStateLayout(kind: kind, title: titleText)
         if let couponDetailKey { layout.detail = Text(couponDetailKey) }
         if let retry, issue != .login, issue != .notConfigured {
             layout.primary = (title: LocalizedStringKey("accountCollection.retry"), action: retry)

@@ -19,6 +19,7 @@ import SwiftUI
     var showsStartChat = true
     var isCurrent: @MainActor () -> Bool = { true }
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyPalette) private var palette
     private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
     @State private var authorPostTicket: ProfileAuthorPostTicket?
@@ -92,8 +93,8 @@ import SwiftUI
                         HStack(spacing: CYSpacing.lg) {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                if let name = profile.nickname { Text(verbatim: name).font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
-                                else { Text("square.unknownAuthor").font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
+                                if let name = profile.nickname { Text(verbatim: name).font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                                else { Text("square.unknownAuthor").font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                                 if let level = profile.level {
                                     HStack(spacing: 6) {
                                         Text(verbatim: "Lv.\(level)")
@@ -202,7 +203,7 @@ import SwiftUI
                                 access: selfCouponAccess, isCurrent: isCurrent)
                         }
                         Section("social.introduction") {
-                            if let introduction = profile.introduction { Text(verbatim: introduction).textSelection(.enabled) }
+                            if let introduction = profile.introduction { Text(verbatim: introduction).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
                             else { Text("social.noIntroduction").foregroundStyle(CYColor.textSecondary) }
                             if selfEditContext != nil {
                                 CYPillButton("profile.selfEdit.open", style: .secondary) { selfEditNavigation.open(selfEditContext) }
@@ -227,6 +228,8 @@ import SwiftUI
         }
         .cyGroupedSurface()
         }.cyHeroScreen()
+        .appNavigationTitle("social.profile")
+        .navigationBarTitleDisplayMode(.large)
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
                     isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) },
@@ -253,16 +256,17 @@ import SwiftUI
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
             title
         }
-        .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+        .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(palette.textPrimary)
         .frame(maxWidth: .infinity, minHeight: 44)
-        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-        .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
     }
     private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
+            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody.weight(.bold)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, minHeight: 56)
         .accessibilityElement(children: .combine)
@@ -415,6 +419,8 @@ struct ProfileSelfCouponContext: Hashable {
 @MainActor private struct ProfilePublicAvatar: View {
     let source: String?
     let name: String?
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         Group {
             if let url = MemberIdentityCardSection.remoteAvatarURL(source) {
@@ -423,7 +429,13 @@ struct ProfileSelfCouponContext: Hashable {
                 }
             } else { placeholder }
         }
-        .frame(width: 64, height: 64).clipShape(Circle()).accessibilityHidden(true)
+        .frame(width: 64, height: 64).clipShape(Circle())
+        .overlay {
+            if themeDomain == .player {
+                Circle().strokeBorder(palette.avatarRing, lineWidth: 3)
+            }
+        }
+        .accessibilityHidden(true)
     }
     private var placeholder: some View {
         ZStack {

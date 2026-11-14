@@ -622,6 +622,7 @@ struct ProfileEditView: View {
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
         .appNavigationTitle("profile.edit.title")
+        .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
         .interactiveDismissDisabled(model.blocksInteractiveExit)
         .toolbar {
@@ -726,7 +727,7 @@ struct ProfileEditView: View {
                     if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil {
                         Text("profile.case.descriptionUnavailable").font(.caption).foregroundStyle(.secondary)
                     } else if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
-                    else { Text(verbatim: value).lineLimit(3) }
+                    else { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) }
                 } label: { Text(LocalizedStringKey(field.titleKey)) }
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
                     .accessibilityHidden(true)

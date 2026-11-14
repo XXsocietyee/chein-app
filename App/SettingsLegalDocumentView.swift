@@ -57,7 +57,7 @@ import SwiftUI
         }
         .cyDocumentSurface()
         .navigationTitle(Text(LocalizedStringKey(type.titleKey)))
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .task(id: loadID) { await model.load(type: type, market: market) }
         .onDisappear { model.invalidate() }
     }
@@ -68,21 +68,27 @@ import SwiftUI
             Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("settingsNative.legal.sourceNotice")
         }
-        Text(verbatim: SettingsLegalAgreementPage.displayText(document.title)).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-        HStack(alignment: .firstTextBaseline) {
+        Text(verbatim: SettingsLegalAgreementPage.displayText(document.title)).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text("settingsNative.legal.version")
             Text(verbatim: page.versionText).accessibilityIdentifier(SettingsLegalAgreementPage.versionAccessibilityIdentifier)
+                .fixedSize(horizontal: false, vertical: true)
         }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         if !document.intro.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Text(verbatim: document.intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
         }
         ForEach(Array(document.sections.enumerated()), id: \.offset) { index, section in
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: section.heading).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                Text(verbatim: section.heading).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
                 ForEach(Array(SettingsLegalLine.lines(in: section.body).enumerated()), id: \.offset) { _, line in
-                    HStack(alignment: .top, spacing: 4) {
-                        if let marker = line.marker { Text(verbatim: marker).fixedSize(horizontal: true, vertical: false) }
+                    VStack(alignment: .leading, spacing: 2) {
+                        if let marker = line.marker { Text(verbatim: marker).fixedSize(horizontal: false, vertical: true) }
                         Text(verbatim: line.text).frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
                     }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled).accessibilityElement(children: .combine)
                 }
             }

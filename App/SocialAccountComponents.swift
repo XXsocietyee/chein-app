@@ -16,11 +16,23 @@ struct SocialIssueView: View {
         }
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(message, systemImage: "exclamationmark.circle")
-            if case SocialAccountFailure.rejected(_, let text) = error, let text { Text(verbatim: text).font(.footnote) }
-            if let retry { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry) }
-        }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")
+        Group {
+            if error is URLError {
+                CYEmptyState(systemImage: "wifi.slash", message, messageIdentifier: "social.issue",
+                             actionTitle: retry == nil ? nil : "action.retry",
+                             actionIdentifier: "social.issue.retry",
+                             kind: .offline, action: retry)
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label(message, systemImage: "exclamationmark.circle")
+                        .fixedSize(horizontal: false, vertical: true)
+                    if case SocialAccountFailure.rejected(_, let text) = error, let text {
+                        Text(verbatim: text).font(.footnote).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if let retry { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry) }
+                }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")
+            }
+        }
     }
 }
 /// Includes the reader instance because its immutable deployment may have changed.
@@ -54,7 +66,9 @@ struct SocialReadPresentationKey: Hashable {
     }
     var body: some View {
         Group {
-            if reader.isOfflineExample { Text("social.offline").font(.caption).foregroundStyle(.secondary) }
+            if reader.isOfflineExample {
+                CYOfflineBanner().accessibilityIdentifier("social.offline")
+            }
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if loadedKey != key || busy { CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top).accessibilityElement(children: .ignore).accessibilityLabel(Text("social.loading")) }
