@@ -154,6 +154,7 @@ enum DesignFixtureRegistry {
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
             if name.hasPrefix("cur9-"), let cur9 = Cur9Fixtures.make(name) { return cur9 }
             if name.hasPrefix("cur4-"), let cur4 = Cur4Fixtures.make(name) { return cur4 }
+            if name.hasPrefix("play-popup-"), let popup = PlayAreaPopupFixtures.make(name) { return popup }
             // Batch-7 screens whose view types compile on this base (CurFixtures3): cur3-<view>[-<state>][-zh]
             if let cur3 = MainActor.assumeIsolated({ CurFixtures3.make(name) }) { return cur3 }
             if name.hasPrefix("cur3-"), let cur3 = Cur3Fixtures.make(name) { return cur3 }

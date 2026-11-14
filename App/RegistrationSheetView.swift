@@ -23,6 +23,8 @@ struct RegistrationSheetView: View {
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
+    @State private var showingNonRefundable = false
+    @State private var nonRefundableConfirmed = false
     @State private var showingWaitlistCancellation = false
     @State private var showingAddParticipant = false
     @State private var orderDestination: RegistrationWaitlistOrderVisit?
@@ -150,42 +152,7 @@ struct RegistrationSheetView: View {
                         .accessibilityIdentifier("registration.form.close")
                 }
             }
-            .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
-                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) {
-                    let isPaidRegistration = (flow.confirmation?.quote.payAmount ?? 0) > 0
-                    Task {
-                        if isPaidRegistration {
-                            await flow.confirmAndReadBack()
-                        } else {
-                            await SessionOfflineSyncModel.shared.performWriteOptIn(
-                                environmentSession: offlineWriteSession.session,
-                                routes: ["/api/registration/create", "/api/compliance/consents"]
-                            ) {
-                                await flow.confirmAndReadBack()
-                            }
-                        }
-                    }
-                }
-                .accessibilityIdentifier("registration.form.confirm")
-                Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
-            } message: {
-                if let review = flow.confirmation {
-                    let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
-                    let amountText = RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—"
-                    let nonRefundableSuffix = review.quote.requiresNonRefundableConfirmation
-                        ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
-                        : ""
-                    Text(verbatim: base + amountText + nonRefundableSuffix)
-                }
-            }
-            .alert("registration.waitlist.cancelTitle", isPresented: $showingWaitlistCancellation) {
-                Button("registration.waitlist.confirmCancel", role: .destructive) { Task { await flow.cancelWaitlist() } }
-                Button("action.cancel", role: .cancel) { flow.dismissWaitlistCancellation() }
-            } message: {
-                Text(LocalizedStringKey(flow.waitlistCancellation?.status.state == .offered
-                    ? "registration.waitlist.cancelOfferHint" : "registration.waitlist.cancelQueueHint"))
-                + Text(verbatim: "\n\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")")
-            }
+            .overlay { registrationPopups }
             .onChange(of: flow.waitlistCancellation) { _, value in
                 if value == nil { showingWaitlistCancellation = false }
             }
@@ -253,8 +220,9 @@ struct RegistrationSheetView: View {
                 Task { await flow.loadParticipants() }
             }
             .onChange(of: flow.confirmation) { _, value in
-                if value == nil { showingConfirmation = false }
+                if value == nil { showingConfirmation = false; showingNonRefundable = false }
             }
+            .onChange(of: flow.quoteState) { _, _ in nonRefundableConfirmed = false }
             .onDisappear { flow.leave() }
         }
         .cyPlayerSheetGlass()
@@ -372,16 +340,73 @@ struct RegistrationSheetView: View {
     private func ticketPriceText(_ copy: CoreLoopCopy) -> String {
         guard let ticket = flow.selectedTicket else { return "—" }
         if ticket.price == 0 { return copy.t("免费", "Free") }
+        guard PlayAreaPopupCopy.paymentsOpen else { return "—" }
         return E1Money.yuan(ticket.price, locale: locale) ?? "—"
     }
     /// Total shown in the pinned summary bar: the server quote when present, else the listed ticket price.
     private var summaryTotalText: String {
         let copy = CoreLoopCopy(locale: locale)
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState {
-            if let text = E1Money.yuan(quote.payAmount, locale: locale) { return text }
-            return "—"
+            return gatedPayAmount(quote.payAmount)
         }
         return ticketPriceText(copy)
+    }
+    private func gatedPayAmount(_ amount: Decimal?) -> String {
+        guard let amount else { return "—" }
+        if amount > .zero, !PlayAreaPopupCopy.paymentsOpen { return "—" }
+        if amount == .zero { return CoreLoopCopy(locale: locale).t("免费", "Free") }
+        return RegistrationUIMoney.display(amount, locale: locale) ?? "—"
+    }
+    @ViewBuilder private var registrationPopups: some View {
+        if showingNonRefundable, PlayAreaPopupCopy.paymentsOpen {
+            PlayAreaNonRefundableModal(onConfirm: {
+                nonRefundableConfirmed = true
+                showingNonRefundable = false
+                showingConfirmation = true
+            }, onCancel: {
+                showingNonRefundable = false
+                flow.cancelConfirmation()
+            })
+        } else if showingConfirmation, let review = flow.confirmation {
+            let titleKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"
+            let confirmKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate"
+            let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
+            let nonRefundableSuffix = (!PlayAreaPopupCopy.paymentsOpen && review.quote.requiresNonRefundableConfirmation)
+                ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
+                : ""
+            CYModal(
+                title: appLocalized(String.LocalizationValue(stringLiteral: titleKey), locale: locale),
+                message: base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix,
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                confirmTitle: appLocalized(String.LocalizationValue(stringLiteral: confirmKey), locale: locale),
+                confirmIdentifier: "registration.form.confirm",
+                onCancel: { showingConfirmation = false; flow.cancelConfirmation() },
+                onConfirm: {
+                    let isPaidRegistration = review.quote.payAmount > 0
+                    showingConfirmation = false
+                    Task {
+                        if isPaidRegistration {
+                            await flow.confirmAndReadBack()
+                        } else {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/registration/create", "/api/compliance/consents"]
+                            ) {
+                                await flow.confirmAndReadBack()
+                            }
+                        }
+                    }
+                }
+            )
+        } else if showingWaitlistCancellation {
+            PlayAreaWaitlistQuitModal(onConfirm: {
+                showingWaitlistCancellation = false
+                Task { await flow.cancelWaitlist() }
+            }, onCancel: {
+                showingWaitlistCancellation = false
+                flow.dismissWaitlistCancellation()
+            })
+        }
     }
     private var showsCheckoutBar: Bool {
         if !flow.hasCurrentSession || flow.hasRetainedIntent { return false }
@@ -420,7 +445,15 @@ struct RegistrationSheetView: View {
                         Button {
                             focusedField = nil
                             if blocked { blockedTaps += 1; return }
-                            if flow.prepareConfirmation() { showingConfirmation = true }
+                            if flow.prepareConfirmation() {
+                                if PlayAreaPopupCopy.paymentsOpen,
+                                   flow.confirmation?.quote.requiresNonRefundableConfirmation == true,
+                                   !nonRefundableConfirmed {
+                                    showingNonRefundable = true
+                                } else {
+                                    showingConfirmation = true
+                                }
+                            }
                         } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
                         .buttonStyle(.cyPrimary)
                         // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
@@ -745,13 +778,15 @@ private struct RegistrationAmountRow: View {
     var currencyCode: String? = nil
     var body: some View {
         LabeledContent {
-            if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
+            if let amount, amount > .zero, !PlayAreaPopupCopy.paymentsOpen {
+                Text(verbatim: "—").foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
+            } else if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: deduction && amount != .zero ? "−\(text)" : text)
                         .monospacedDigit().foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
                     if currencyCode == nil { Text("registration.form.currencyUnknown").font(.caption).foregroundStyle(.primary) }
                 }
-            } else { Text("registration.form.unknownAmount").foregroundStyle(Color.primary) }
+            } else { Text(verbatim: "—").foregroundStyle(Color.primary).accessibilityIdentifier(key + ".amount") }
         } label: { Text(LocalizedStringKey(key)) }
     }
 }

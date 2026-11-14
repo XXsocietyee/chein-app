@@ -1,0 +1,234 @@
+mini-program file:line,trigger,title/copy,buttons/actions,native screen,native equivalent file:line,status
+subpackageRoam/session/index.js:451,_isShareCurrent,需要相册权限 — 在设置里允许保存到相册，返回后点“重试保存”。,去设置 / 返回,gap: not on App/RoamSubpageParityViews.swift,—,MISSING
+subpackageRoam/session/index.js:434,toast,已保存到相册,dismiss,App/RoamSubpageParityViews.swift,matched zh-Hans string,DONE
+subpackageRoam/session/index.wxml:21,cy-sheet show={{share.show}},分享足迹卡,close / select,App/RoamSubpageParityViews.swift,matched zh-Hans string,DONE
+subpackageRoam/my-teams/index.js:203,capture,申请加入这支队伍？ — 队长同意后会通知你。,申请 / 取消,App/NearbyTeamViews.swift,App/PlayAreaPopupSurfaces.swift:PlayAreaTeamReviewModal apply,DONE
+subpackageRoam/my-teams/index.js:218,capture,撤回申请？ — 撤回后可以重新申请。,destructive 撤回 / 不撤回,App/NearbyTeamViews.swift,App/PlayAreaPopupSurfaces.swift:PlayAreaTeamReviewModal withdraw,DONE
+subpackageRoam/nearby/index.js:636,capture,申请加入这支队伍,提交申请 / 取消,App/NearbyTeamViews.swift,gap: optional captain note is not on NearbyTeamAction.apply; shared confirm uses 申请 / 取消,DIFFERENT
+subpackageRoam/nearby/index.js:692,String,拒绝这条申请? — 拒绝后对方不能再申请加入这支队伍。此操作不可撤销。,destructive 拒绝申请 / 取消,App/NearbyTeamViews.swift,App/PlayAreaPopupSurfaces.swift:PlayAreaTeamReviewModal reject,DONE
+subpackageRoam/nearby/index.wxml:311,cy-option-sheet show={{mapKindSheetShow}},地图样式,close / select,App/NearbyTeamViews.swift,gap: NearbyTeamsView has no 白/黑/纸本/2077 map-style control,MISSING
+subpackageRoam/nearby/index.wxml:313,cy-option-sheet show={{rangeSheetShow}},范围,close / select,App/NearbyTeamViews.swift,App/PlayAreaPopupSurfaces.swift:PlayAreaNearbyRangeSheet,DONE
+components/cy/scene-roam-stamp-album/index.wxml:41,cy-sheet show={{!!detail}},收到的邮票,close / select,string present in native sources,matched zh-Hans string,DONE
+components/cy/scene-topic-customers/index.wxml:1,cy-scene-sheet show={{show}},客户,close / select,string present in native sources,matched zh-Hans string,DONE
+components/cy/club-topic-merchants/index.wxml:1,cy-scene-sheet show={{true}},商家,close / select,string present in native sources,matched zh-Hans string,DONE
+components/cy/club-topic-groupcode/index.wxml:1,cy-scene-sheet show={{true}},出示团码,close / select,string present in native sources,matched zh-Hans string,DONE
+components/cy/club-topic-settings/index.wxml:1,cy-scene-sheet show={{true}},主题设置,close / select,string present in native sources,matched zh-Hans string,DONE
+components/cy/club-topic-onboarding/index.wxml:1,cy-scene-sheet show={{true}},承接商家,close / select,string present in native sources,matched zh-Hans string,DONE
+subpackageJourney/components/rank-board/index.wxml:49,cy-option-sheet show={{moreShow}},更多榜单,close / select,string present in native sources,matched zh-Hans string,DONE
+subpackageJourney/pages/seats/index.js:127,if,一起来玩,destructive 确认 / 取消,string present in native sources,matched zh-Hans string,DONE
+subpackageJourney/pages/report/index.wxml:68,cy-sheet show={{rankOpen}},榜单,close / select,string present in native sources,matched zh-Hans string,DONE
+subpackageJourney/pages/report/index.wxml:75,cy-sheet show={{memoryOpen}},本局回忆,close / select,string present in native sources,matched zh-Hans string,DONE
+pages/roam/index.wxml:992,cy-modal show={{sceneConfirm.show}},放弃未保存修改？,confirm / cancel,gap: not on App/RoamBrowserView.swift,—,MISSING
+pages/publish/activity/index.js:928,switchTab,—,放弃 / 继续编辑,App/PublishingModesViews.swift,App/PlayAreaPopupSurfaces.swift:PlayAreaActivityAbandonModal — edit title 放弃未保存的修改 is not on this create-only wizard,DIFFERENT
+pages/publish/activity/index.wxml:230,cy-sheet show={{ popTemp }},我的模板,close / select,App/PublishingModesViews.swift,matched zh-Hans string,DONE
+pages/publish/activity/index.wxml:279,cy-sheet show={{timePicker.show}},设置活动时间,close / select,App/PublishingModesViews.swift,matched zh-Hans string,DONE
+pages/square/utils/topic-template-remix.js:20,toast,网络错误，请重试,dismiss,gap: no native screen,—,MISSING
+pages/club/components/cy/club-topic-end-confirm/index.wxml:1,cy-modal show={{show}},结束主题,confirm / cancel,string present in native sources,matched zh-Hans string,DONE
+pages/club/topic-story/index.wxml:114,cy-scene-sheet show={{answerVisible}},{{answerTitle}},close / select,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/index.js:326,toast,刷新失败，请重试,dismiss,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.js:360,toast,刷新失败，请重试,dismiss,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.js:363,toast,刷新失败，请重试,dismiss,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.js:507,toast,请选择集合日期与时间,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/index.js:1010,toast,手机号已复制,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/index.js:1026,toast,拨号未完成，请重试,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/index.js:1120,toast,将查回上次结束结果，不结束新一轮,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/index.js:1269,toast,网络异常，没能保存,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:637,_isDirectorContextCurrent,—,确认 / 取消,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:690,toast,先选一条要处理的事件,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:692,toast,先选处理方式,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:714,toast,请填写驳回原因,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:728,toast,有多个备用方案，请到后台指定,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:745,toast,请填写暂停原因,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:955,toast,本局状态已变化，请重新读取,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:958,toast,请先确认当前登录身份,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:960,toast,无法保存确认状态，未开始离线记录,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1002,toast,离线记录起点已确认,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1067,toast,当前不能调整角色,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1074,toast,成员信息更新中,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1098,toast,当前不能调整角色,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1102,toast,还没有可分角色的成员,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1133,toast,请先选择有效角色,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1146,toast,当前不能接管角色,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1157,toast,来源角色待确认,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1166,toast,同队没有待分配成员,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1207,toast,当前不能接管角色,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1212,toast,请选同队待分配成员并填写原因,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1344,toast,接收范围待确认，暂不能发送,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1348,toast,请输入广播内容,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1366,toast,当前没有可解锁的章节,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1397,toast,请选择要放行的章节,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1409,toast,当前版本暂不能调整榜单,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1427,toast,当前不能结束活动,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1435,toast,复盘还没生成，稍后再导出,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1448,toast,复盘数据已复制,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1452,toast,复制失败，请稍后重试,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1495,toast,当前不能进入准备,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1513,toast,状态已变化，请先刷新,dismiss,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/director.js:1558,toast,无法安全保存，请稍后重试,dismiss,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/director.js:1611,toast,结果待确认，请勿重复操作,dismiss,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/director.js:1695,toast,无法安全保存，未发送重试,dismiss,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.wxml:213,cy-scene-sheet show={{genericOpsSheet}},{{genericOpsTitle}},close / select,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/club/topic-detail/index.wxml:433,cy-scene-sheet show={{settingSheetVisible}},更多,close / select,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.wxml:550,cy-scene-sheet show={{merchantSheetVisible}},商家,close / select,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.wxml:580,cy-scene-sheet show={{customerSheetVisible}},报名参与者,close / select,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.wxml:654,cy-scene-sheet show={{opsTimeSheetVisible}},修改集合时间,close / select,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.wxml:678,cy-scene-sheet show={{rulesSheetVisible}},退出与暂停规则,close / select,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/index.wxml:689,cy-scene-sheet show={{sessionPickVisible}},选择场次,close / select,App/ClubGovernanceViews.swift,matched zh-Hans string,DONE
+pages/club/topic-detail/plan-fallback.js:46,setData,确认默认结局收尾 — 将以默认结局收尾，未完成的交易会释放，不消耗物资。原因：,确认收尾 / 取消,gap: not on App/ClubGovernanceViews.swift,—,MISSING
+pages/templatedetail/utils/topic-use-flow.js:22,toast,正在配置，请稍候,dismiss,gap: no native screen,—,MISSING
+pages/templatedetail/utils/topic-use-flow.js:54,toast,网络错误，请重试,dismiss,gap: no native screen,—,MISSING
+pages/activity/official-inbox/index.js:162,String,—,确认 / 取消,gap: not on App/OfficialPrivateViews.swift,—,MISSING
+pages/activity/official-inbox/index.js:149,toast,主办需先完成转交才能退出,dismiss,App/OfficialPrivateViews.swift,matched zh-Hans string,DONE
+pages/activity/official-inbox/index.js:204,toast,已提交，稍后下拉刷新查看状态,dismiss,gap: not on App/OfficialPrivateViews.swift,—,MISSING
+pages/activity/official-inbox/index.js:242,toast,已提交，稍后下拉刷新查看状态,dismiss,gap: not on App/OfficialPrivateViews.swift,—,MISSING
+pages/activity/official-inbox/index.js:243,toast,刷新失败，稍后再试,dismiss,gap: not on App/OfficialPrivateViews.swift,—,MISSING
+pages/activity/components/event-attendance/index.js:113,pending,确认操作,确认 / 取消,string present in native sources,matched zh-Hans string,DONE
+pages/activity/components/event-attendance/index.js:136,pending,更换签到码？ — 旧码会失效，签到记录保留。,更换 / 取消,gap: no native screen,—,MISSING
+pages/activity/components/event-attendance/index.js:165,if, — 拨打「,拨打 / 取消,gap: no native screen,—,MISSING
+pages/activity/components/event-attendance/index.js:165,toast,拨号未完成，请重试,dismiss,gap: no native screen,—,MISSING
+pages/activity/components/event-attendance/index.wxml:71,cy-sheet show={{codeShow}},我的签到码,close / select,gap: no native screen,—,MISSING
+pages/activity/official-organizer/index.js:216,toast,网络没连上，显示上次读到的状态,dismiss,gap: not on App/OfficialOrganizerConsoleView.swift,—,MISSING
+pages/activity/official-organizer/index.js:264,toast,网络没连上，显示上次读到的状态,dismiss,gap: not on App/OfficialOrganizerConsoleView.swift,—,MISSING
+pages/activity/official-organizer/index.js:335,toast,当前状态不能执行这个操作,dismiss,gap: not on App/OfficialOrganizerConsoleView.swift,—,MISSING
+pages/activity/official-detail/index.js:496,toast,请完成绑定主题，系统会自动核验,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/official-detail/index.js:550,toast,参与资格已失效,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/official-detail/index.js:553,toast,该任务类型暂不支持核验,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/official-detail/index.js:557,toast,完成绑定主题后会自动同步本活动,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/official-detail/index.js:580,toast,报名成功,dismiss,App/OfficialEventDetailView.swift,matched zh-Hans string,DONE
+pages/activity/official-detail/index.js:594,toast,参与资格已失效,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/official-detail/index.js:595,toast,请先勾选安全须知,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/official-detail/index.js:613,toast,任务完成需现场验证,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/official-detail/index.js:625,toast,完成 +1,dismiss,gap: not on App/OfficialEventDetailView.swift,—,MISSING
+pages/activity/baoming/baoming.wxml:285,cy-sheet show={{showAddressPopup}},选择参与人信息,close / select,gap: not on App/RegistrationSheetView.swift,—,MISSING
+pages/activity/baoming/baoming.wxml:356,cy-option-sheet show={{ticketSheetShow}},选择票种,close / select,gap: not on App/RegistrationSheetView.swift,—,MISSING
+pages/activity/baoming/baoming.js:1083,if,退出候补队列? — 已保留的名额会立即让给下一位,destructive 退出候补 / 取消,App/RegistrationSheetView.swift,App/PlayAreaPopupSurfaces.swift:PlayAreaWaitlistQuitModal,DONE
+pages/activity/baoming/baoming.js:1707,Number,本单不可退 — 该场次已开始，支付后不可退款。确认继续下单？,继续下单 / 再想想,App/RegistrationSheetView.swift,App/PlayAreaPopupSurfaces.swift:PlayAreaNonRefundableModal — money switch; copy matches 该场次已开始,DONE
+pages/activity/baoming/baoming.js:1724,Number,取消只退 50%,继续下单 / 再想想,App/RegistrationSheetView.swift,gap: RegistrationQuote has no refund-percent field; contract baseline not extended; money confirm stays closed,MISSING
+pages/activity/baoming/baoming.js:1973,refreshPaymentState,支付结果待确认 — 请勿重复支付，稍后到订单中查看结果,确认,App/RegistrationSheetView.swift,gap: no payment-result modal on the registration or topic pay screen; money confirm stays closed,MISSING
+pages/activity/baoming/baoming.js:1988,getState,支付结果待确认 — 这笔付款还在确认中，请勿重复支付。稍后可到「我的-订单」查看最终状态。,确认,App/RegistrationSheetView.swift,gap: no payment-result modal on the registration or topic pay screen; money confirm stays closed,MISSING
+pages/activity/baoming/baoming.js:615,toast,参与人信息已选择,dismiss,gap: not on App/RegistrationSheetView.swift,—,MISSING
+pages/topic/merchantapply/index.js:441,if,放弃这次报名? — 已填写的承接地点、时间等信息不会保存,放弃 / 继续填写,gap: not on App/MerchantContentEditor.swift,—,MISSING
+pages/topic/merchantapply/index.js:437,toast,正在提交，请稍候,dismiss,App/MerchantContentEditor.swift,matched zh-Hans string,DONE
+pages/topic/merchantapply/index.js:471,toast,地点选择成功,dismiss,gap: not on App/MerchantContentEditor.swift,—,MISSING
+pages/topic/merchantapply/index.js:499,toast,最多9张,dismiss,gap: not on App/MerchantContentEditor.swift,—,MISSING
+pages/topic/merchantapply/index.js:588,toast,结束时间必须晚于开始时间,dismiss,App/MerchantContentEditor.swift,matched zh-Hans string,DONE
+pages/topic/merchantapply/index.wxml:17,cy-sheet show={{true}},{{phase === 'success' ? (registrationId ? '修改已保存' : '提交成功') : (registrationId ? '修改报名' : '商家报名')}},close / select,gap: not on App/MerchantContentEditor.swift,—,MISSING
+pages/topic/merchantapply/index.wxml:220,cy-sheet show={{timePicker.show}},可配合时间,close / select,App/MerchantContentEditor.swift,matched zh-Hans string,DONE
+pages/topic/catalog/index.wxml:20,cy-sheet show={{cityPicker}},选择城市,close / select,string present in native sources,matched zh-Hans string,DONE
+pages/topic/components/cy/node-npc-form/index.js:487,modal.show,另起独立声音请求？ — 原结果仍可能完成。新建可能产生重复音色或占用额度，费用以实际模型为准；原未知记录会保留，系统不会重发原请求。,确认新建 / 取消,gap: no native screen,—,MISSING
+pages/topic/components/cy/node-npc-form/index.wxml:3,cy-sheet show={{show}},节点NPC,close / select,string present in native sources,matched zh-Hans string,DONE
+pages/topic/components/cy/date-range-sheet/index.wxml:1,cy-sheet show={{show}},{{title}},close / select,gap: no native screen,—,MISSING
+pages/topic/components/cy/chapter-target-picker/index.wxml:3,cy-sheet show={{show}},申请承接章节,close / select,gap: no native screen,—,MISSING
+pages/topic/components/cy/chapter-node-form/index.wxml:3,cy-sheet show={{show}},{{formMode === 'offer' ? '填写实际供给' : (formMode === 'node' ? (editing ? '编辑节点' : '配置节点') : (editing ? '编辑申请 · 修改节点' : '申请承接并配置节点'))}},close / select,gap: no native screen,—,MISSING
+pages/topic/components/cy/session-picker/index.wxml:4,cy-sheet show={{show}},{{singleDay ? '选择票种' : '选择场次'}},close / select,gap: no native screen,—,MISSING
+pages/topic/pricing/index.js:438,indexOf,终价已确认,知道了,App/PublisherLifecycleViews.swift,matched zh-Hans string,DONE
+pages/topic/pricing/index.js:380,toast,正在按新成本重算最低价,dismiss,gap: not on App/PublisherLifecycleViews.swift,—,MISSING
+pages/topic/pricing/partner/index.js:255,toast,商家资料还没加载好,dismiss,gap: not on App/PublisherLifecycleViews.swift,—,MISSING
+pages/topic/merchantinfo/merchantinfo.wxml:376,cy-sheet show={{topicShow && selectedMode !== 2}},选择承接节点,close / select,gap: not on App/MerchantContentViews.swift,—,MISSING
+pages/topic/merchantinfo/merchantinfo.wxml:420,cy-sheet show={{davidShow}},路线模式介绍,close / select,gap: not on App/MerchantContentViews.swift,—,MISSING
+pages/topic/merchantinfo/merchantinfo.wxml:484,cy-option-sheet show={{stationSheetShow}},{{stationSheetTitle}},close / select,gap: not on App/MerchantContentViews.swift,—,MISSING
+pages/topic/merchantinfo/merchantinfo.wxml:526,cy-sheet show={{profitSheet.show}},分润明细,close / select,App/MerchantContentViews.swift,matched zh-Hans string,DONE
+pages/topic/utils/content-report.js:32,function,举报内容 — 确认举报这条内容？举报后将提交平台审核。,举报 / 取消,string present in native sources,matched zh-Hans string,DONE
+pages/topic/utils/content-report.js:12,toast,网络异常，请重试,dismiss,string present in native sources,matched zh-Hans string,DONE
+pages/topic/utils/content-report.js:43,toast,举报原因暂不可用,dismiss,gap: no native screen,—,MISSING
+pages/topic/utils/content-report.js:60,toast,网络异常，请重试,dismiss,string present in native sources,matched zh-Hans string,DONE
+pages/topic/index/index.js:1333,if,转为正式主题 — 转正后不再显示 Beta 标记。主题内容、已售出的票和进行中的行程都不受影响。,确认转正 / 取消,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1391,if,"移交给俱乐部承接 — 将复制一份新的城市定向主题(有人带),挂到「",确认移交 / 取消,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1409,if,已移交 — 已生成新的城市定向草稿，去配置票种并邀请该俱乐部承接?,去配置 / 稍后,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1758,_createSelfPlayOrder,还差姓名和手机号 — 建单要用你的真实姓名和手机号，补一次就好，之后不用再填。,去补全 / 稍后再说,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1845,toast,支付结果待确认 — 暂不要重复支付。可以刷新订单状态，确认后会自动进入通行证。,刷新订单状态 / 稍后再说,App/RegistrationSheetView.swift,gap: no payment-result modal on the registration or topic pay screen; money confirm stays closed,MISSING
+pages/topic/index/index.js:628,toast,主题已截止,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:677,toast,网络异常，收藏没有保存,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:762,toast,网络异常，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string,DONE
+pages/topic/index/index.js:766,toast,网络异常，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string,DONE
+pages/topic/index/index.js:1234,toast,请选择评分,dismiss,App/TopicDetailView.swift,matched zh-Hans string,DONE
+pages/topic/index/index.js:1239,toast,请输入评价内容,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1258,toast,评价成功,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1289,toast,商家用户不可报名主题,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1292,toast,商家暂停营业，暂不可报名,dismiss,App/TopicDetailView.swift,matched zh-Hans string,DONE
+pages/topic/index/index.js:1307,toast,暂无可参加的场次,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1569,toast,商家暂停营业，暂不可报名,dismiss,App/TopicDetailView.swift,matched zh-Hans string,DONE
+pages/topic/index/index.js:1574,toast,商家用户不可购买,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1756,toast,资料没取到，请检查网络后重试,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1809,toast,已取消支付,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1831,toast,还在确认支付结果，请勿重复支付,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1843,toast,还在确认支付结果，请稍候,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.js:1851,toast,正在刷新订单状态,dismiss,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.wxml:463,cy-sheet show={{ prepShow }},开局前准备,close / select,App/TopicDetailView.swift,matched zh-Hans string,DONE
+pages/topic/index/index.wxml:473,cy-sheet show={{ voteShow }},评价路线,close / select,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.wxml:554,cy-option-sheet show={{clubSheetShow}},选择承接俱乐部,close / select,gap: not on App/TopicDetailView.swift,—,MISSING
+pages/topic/index/index.wxml:556,cy-option-sheet show={{reportReasonShow}},选择举报原因,close / select,App/TopicDetailView.swift,matched zh-Hans string,DONE
+pages/play/theme-plan-sheet.wxml:1,cy-sheet show={{!!themePlanKey}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/theme-backpack.wxml:61,cy-sheet show={{!!themeItemDetail}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/theme-backpack.wxml:69,cy-sheet show={{!!themeCostChoice}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/theme-backpack.wxml:75,cy-sheet show={{!!themeQuestChoice}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/theme-backpack.wxml:80,cy-sheet show={{!!themeRewardPreview}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/theme-backpack.wxml:88,cy-sheet show={{!!themePendingClaim}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/theme-backpack.wxml:95,cy-sheet show={{!!themeTradeForm}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/index.wxml:1761,cy-modal show={{sceneConfirm.show}},放弃未保存修改？,confirm / cancel,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/index.wxml:2000,cy-option-sheet show={{tagSheetShow}},改成哪个结果,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/index.wxml:2012,cy-sheet show={{teamConsent.show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/theme-player-ops.wxml:1,cy-sheet show={{playerOperationsOpen}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/play-topbar.wxml:2,cy-sheet show={{casebook.show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/play-topbar.wxml:25,cy-sheet show={{journeyRewards.show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/circle/index.js:326,toast,商家暂未填写行动入口,dismiss,gap: not on App/PlayPlayerAndCircleViews.swift (dropped:retired-redirect-shell-in-xcx),—,MISSING
+pages/play/circle/index.js:371,toast,已加入私人记录卡,dismiss,gap: not on App/PlayPlayerAndCircleViews.swift (dropped:retired-redirect-shell-in-xcx),—,MISSING
+pages/play/circle/index.js:404,toast,请先自助记录一家商家,dismiss,gap: not on App/PlayPlayerAndCircleViews.swift (dropped:retired-redirect-shell-in-xcx),—,MISSING
+pages/play/circle/index.js:409,toast,请为每家已记录商家选一个词,dismiss,gap: not on App/PlayPlayerAndCircleViews.swift (dropped:retired-redirect-shell-in-xcx),—,MISSING
+pages/play/circle/index.js:421,toast,请先填写或选择,dismiss,gap: not on App/PlayPlayerAndCircleViews.swift (dropped:retired-redirect-shell-in-xcx),—,MISSING
+pages/play/circle/index.js:443,toast,轻互动已保存,dismiss,gap: not on App/PlayPlayerAndCircleViews.swift (dropped:retired-redirect-shell-in-xcx),—,MISSING
+pages/play/circle/index.js:464,toast,刚才那一笔已经记下了,dismiss,gap: not on App/PlayPlayerAndCircleViews.swift (dropped:retired-redirect-shell-in-xcx),—,MISSING
+pages/play/components/scene-qr-ticket/index.js:79,toast,商家已核销,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-silentorder/index.wxml:1,cy-sheet show={{show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-diyname/index.wxml:1,cy-sheet show={{show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-timewindow/index.wxml:1,cy-sheet show={{show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-steps/index.wxml:1,cy-sheet show={{show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-shout/index.js:105,toast,声音读取中断，可重试或退出,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-dailysign/index.js:253,toast,签卡生成失败，再试一次,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-dailysign/index.js:258,toast,已保存到相册,dismiss,App/PlayExperienceView.swift,matched zh-Hans string,DONE
+pages/play/components/playkit-dailysign/index.js:261,toast,没存进相册，检查存储空间后再试,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-dailysign/index.js:268,toast,签卡生成失败，再试一次,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/advanced-game/index.js:431,toast,音频加载失败,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/advanced-game/index.js:442,toast,音频素材不存在,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-album/index.js:34,if,查看/重试审核 — 照片尚未提交相册。将查看原照片的审核结果；若已被拒绝或暂不可用，可能重新提交审核。审核批准后才会提交相册。,查看重试 / 取消,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-slowtask/index.wxml:1,cy-sheet show={{show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit/index.wxml:15,cy-sheet show={{show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/components/playkit-musiccorner/index.wxml:1,cy-sheet show={{show}},—,close / select,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/merchant/components/safety-rating-sheet/index.wxml:3,cy-sheet show={{show && stage === 'form'}},评价安全感受,close / select,gap: not on App/PlayStoreDayMerchantView.swift (gated),—,MISSING
+pages/play/utils/play-help-panel.js:175,_helpCapture,—,查看 / 取消,App/PlayHelpLadderPanel.swift,App/PlayHelpLadderPanel.swift CYModal,DONE
+pages/play/utils/play-help-panel.js:233,_helpCapture,跳过本题 — 本题记 0 分并标辅助完成,跳过 / 取消,App/PlayHelpLadderPanel.swift,App/PlayHelpLadderPanel.swift CYModal,DONE
+pages/play/utils/playkit-r5-segments.js:44,toast,玩法状态已变化，请重进节点,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/playkit-r5-segments.js:46,toast,结果正在确认，请稍后再试,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/playkit-r5-segments.js:48,toast,请先拍摄或选择照片,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/playkit-r5-segments.js:79,toast,请先拍摄或选择照片,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/orient-lifecycle.js:107,_orientCurrent,—,确认 / 取消,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/theme-plans.js:130,includes,—,确认 / 取消,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/theme-backpack.js:236,toast,请先确认上一条操作,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/theme-backpack.js:237,toast,请先重试上一条操作,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/theme-backpack.js:249,toast,待领奖励已领取,dismiss,App/PlayExperienceView.swift,matched zh-Hans string,DONE
+pages/play/utils/theme-backpack.js:464,toast,请先确认上一条操作,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/theme-backpack.js:465,toast,请先确认上一条操作,dismiss,gap: not on App/PlayExperienceView.swift,—,MISSING
+pages/play/utils/theme-backpack.js:513,toast,待领奖励已领取,dismiss,App/PlayExperienceView.swift,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:483,if,完成互动,确认 / 取消,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:605,ownerId,danger confirm,destructive 确认 / 取消,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:498,toast,这道题还没配好选项,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:524,toast,没识别到码,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:552,toast,照片进度保存失败，请重试,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:613,toast,评价未删除，请重试,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:621,toast,写下你的游玩感受,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:622,toast,请选择评分,dismiss,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:630,toast,评价已提交,dismiss,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:633,toast,评价未提交，请重试,dismiss,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-roam-poi-detail/index.js:634,toast,评价未提交，请重试,dismiss,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-roam-poi-detail/index.wxml:83,cy-sheet show={{reviewSheetShow}},评价据点,close / select,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-roam-poi-detail/index.wxml:94,cy-option-sheet show={{choiceSheetShow}},{{node.questionName || '选择答案'}},close / select,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-play-activity-detail/index.js:516,setData,danger confirm,destructive 确认 / 取消,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-play-activity-detail/index.js:563,noticeCancelled,活动已取消,确认,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-play-activity-detail/index.js:379,toast,该票种已售罄,dismiss,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-play-activity-detail/index.js:405,toast,商家用户不可报名活动,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-play-activity-detail/index.js:410,toast,不可报名您发布的活动,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-play-activity-detail/index.js:414,toast,您已报名该活动,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-play-activity-detail/index.js:419,toast,请先选择票种,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-play-activity-detail/index.js:429,toast,该票种已售罄,dismiss,string present in native sources,matched zh-Hans string,DONE
+subpackageMember/components/cy/scene-play-activity-detail/index.js:434,toast,该票种已截止报名,dismiss,gap: no native screen,—,MISSING
+subpackageMember/components/cy/scene-play-activity-detail/index.js:636,toast,评价成功,dismiss,gap: no native screen,—,MISSING

@@ -504,11 +504,10 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             draft = .init(); draftID = UUID(); review = nil; localReview = false; message = ""
             wizardStep = 0; wizardBlock = nil; abandonConfirm = false
         }
-        .alert(Text("publishModes.abandon.title"), isPresented: $abandonConfirm) {
-            Button(role: .destructive) { dismiss() } label: { Text("publishModes.abandon.confirm") }
-            Button(role: .cancel) {} label: { Text("publishModes.abandon.keepEditing") }
-        } message: {
-            Text("publishModes.abandon.message")
+        .overlay {
+            if abandonConfirm {
+                PlayAreaActivityAbandonModal(onConfirm: { abandonConfirm = false; dismiss() }, onCancel: { abandonConfirm = false })
+            }
         }
         .onAppear { submission.setActive(scenePhase == .active); cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in

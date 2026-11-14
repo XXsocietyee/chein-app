@@ -23,6 +23,7 @@ import SwiftUI
 /// UG-05…UG-09 centred hint dialog (mini-program play-help.wxml, a1-v3-21 "提示应该是弹窗"). Rows follow the
 /// server layer list; the free counter, charges and score detail are server facts and never computed here.
 @MainActor struct PlayHelpLadderPanel: View {
+    @Environment(\.locale) private var locale
     @Bindable var model: PlayHelpLadderModel
     /// Team run: the shared pool section. Hidden unless the server reports an enabled pool.
     var teamPool: TeamPoolHintModel? = nil
@@ -30,7 +31,6 @@ import SwiftUI
     let close: () -> Void
     @State private var confirmLevel: Int?
     @State private var confirmSkip = false
-    @Environment(\.locale) private var locale
     @Environment(\.offlineWriteSession) private var offlineWriteSession
 
     var body: some View {
@@ -84,35 +84,57 @@ import SwiftUI
             .accessibilityIdentifier("playHelp.panel")
         }
         .onAppear { model.markSavedRequests() }
-        .alert(confirmTitle, isPresented: Binding(get: { confirmLevel != nil }, set: { if !$0 { confirmLevel = nil } })) {
-            Button("playHelp.view") {
-                guard let level = confirmLevel else { return }
-                confirmLevel = nil
-                Task {
-                    await SessionOfflineSyncModel.shared.performWriteOptIn(
-                        environmentSession: offlineWriteSession.session,
-                        routes: ["/api/play/help/use"]
-                    ) {
-                        await model.use(level)
+        .overlay {
+            if let level = confirmLevel, let row = model.row(level) {
+                CYModal(
+                    title: appLocalized(String.LocalizationValue(stringLiteral: row.typeLabelKey), locale: locale),
+                    message: row.state == .cost
+                        ? appLocalized("playHelp.confirm.cost \(row.cost)", locale: locale)
+                        : appLocalized("playHelp.confirm.free", locale: locale),
+                    cancelTitle: appLocalized("playHelp.cancel", locale: locale),
+                    confirmTitle: appLocalized("playHelp.view", locale: locale),
+                    confirmIdentifier: "playHelp.confirm",
+                    cancelIdentifier: "playHelp.cancel",
+                    onCancel: { confirmLevel = nil },
+                    onConfirm: {
+                        confirmLevel = nil
+                        Task {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/play/help/use"]
+                            ) {
+                                await model.use(level)
+                            }
+                        }
                     }
-                }
-            }.accessibilityIdentifier("playHelp.confirm")
-            Button("playHelp.cancel", role: .cancel) { confirmLevel = nil }
-        } message: { confirmMessage }
-        .alert("playHelp.skip", isPresented: $confirmSkip) {
-            Button("playHelp.skip.confirm", role: .destructive) {
-                Task {
-                    await SessionOfflineSyncModel.shared.performWriteOptIn(
-                        environmentSession: offlineWriteSession.session,
-                        routes: ["/api/play/help/skip"]
-                    ) {
-                        await model.skip()
-                    }
-                }
+                )
             }
-                .accessibilityIdentifier("playHelp.skip.confirm")
-            Button("playHelp.cancel", role: .cancel) {}
-        } message: { Text("playHelp.skip.consequence") }
+        }
+        .overlay {
+            if confirmSkip {
+                CYModal(
+                    title: appLocalized("playHelp.skip", locale: locale),
+                    message: appLocalized("playHelp.skip.consequence", locale: locale),
+                    cancelTitle: appLocalized("playHelp.cancel", locale: locale),
+                    confirmTitle: appLocalized("playHelp.skip.confirm", locale: locale),
+                    isDestructive: true,
+                    confirmIdentifier: "playHelp.skip.confirm",
+                    cancelIdentifier: "playHelp.skip.cancel",
+                    onCancel: { confirmSkip = false },
+                    onConfirm: {
+                        confirmSkip = false
+                        Task {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/play/help/skip"]
+                            ) {
+                                await model.skip()
+                            }
+                        }
+                    }
+                )
+            }
+        }
     }
 
     private func layerRow(_ row: PlayHelpRow) -> some View {
@@ -257,15 +279,6 @@ import SwiftUI
         else { Task { await model.use(row.level) } }
     }
 
-    private var confirmTitle: LocalizedStringKey {
-        guard let level = confirmLevel, let row = model.row(level) else { return "playHelp.title" }
-        return LocalizedStringKey(row.typeLabelKey)
-    }
-
-    private var confirmMessage: Text {
-        guard let level = confirmLevel, let row = model.row(level), row.state == .cost else { return Text("playHelp.confirm.free") }
-        return Text("playHelp.confirm.cost \(row.cost)")
-    }
 }
 
 /// UG-07 rows: event on the left, change on the right. Solve score and points stay on separate rows;

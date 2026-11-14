@@ -52,8 +52,8 @@ struct CoreLoopCopy {
         "深圳": "Shenzhen", "广州": "Guangzhou", "成都": "Chengdu",
         "搜索主题、活动、俱乐部、商家": "Search topics, events, clubs, merchants",
         "本单不可退": "Non-refundable order",
-        "该场次已过「集合前 24 小时」退款截止时间，支付后不可退款。确认继续下单？":
-            "This session is past the refund deadline (24 hours before meeting). Payments cannot be refunded. Continue with the order?",
+        "该场次已开始，支付后不可退款。确认继续下单？":
+            "This session has started. You can't get a refund after you pay. Continue with the order?",
         "继续下单": "Continue", "再想想": "Not now",
         "该场次已过集合前 24 小时退款截止时间，本单不可退": "This session is past the 24-hour refund deadline, so this order is non-refundable",
         "订单已过期,请重新报名": "The order expired. Please register again",

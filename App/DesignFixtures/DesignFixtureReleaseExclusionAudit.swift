@@ -270,6 +270,7 @@ enum DesignFixtureReleaseExclusionAudit {
         "PassCardFixture",
         "PassCardHostFixture",
         "PassCardVerifyFixture",
+        "PlayAreaPopupFixtures",
         "PublishDesignFixtures",
         "QRScanFixture",
         "QRScanFixtures",
