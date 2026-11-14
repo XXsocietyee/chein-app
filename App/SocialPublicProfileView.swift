@@ -227,6 +227,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         }.cyHeroScreen()
+            .cyHideTabBar()
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
                     isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) },

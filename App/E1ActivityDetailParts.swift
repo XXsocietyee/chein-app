@@ -74,10 +74,8 @@ struct E1ActivityInfoCard: View {
             row("calendar", copy.t("时间", "When"), whenText ?? "—")
             divider
             row("mappin.and.ellipse", copy.t("集合点", "Meeting point"), placeText(facts)).accessibilityIdentifier("activity.detail.meetingPoint")
-            if let category = facts.categoryText {
-                divider
-                row("tag", copy.t("分类", "Category"), category).accessibilityIdentifier("activity.detail.category")
-            }
+            divider
+            row("tag", copy.t("分类", "Category"), facts.categoryText ?? "—").accessibilityIdentifier("activity.detail.category")
             divider
             row("person.2", copy.t("已报名", "Registered"), facts.registrationCount.map { copy.t("\($0) 人", "\($0) going") } ?? "—")
                 .accessibilityIdentifier("activity.detail.registeredCount")

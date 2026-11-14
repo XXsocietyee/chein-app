@@ -334,6 +334,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         }.appNavigationTitle("club.detail")
             .cyDomainPageBackground()
             .themeDomain(.player)
+            .cyHideTabBar()
             .tint(CYDomainPalette(.player).brand)
             .id(id)
             .onAppear {

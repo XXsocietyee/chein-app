@@ -248,7 +248,7 @@ enum OfficialDetailID {
             }
             }
         }
-        .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
+        .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline).cyHideTabBar()
         .onAppear { visible = true }
         .onDisappear { visible = false; visit = UUID() }
         .onChange(of: id) { _, _ in visit = UUID() }

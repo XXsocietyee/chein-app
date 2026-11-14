@@ -54,19 +54,20 @@ import SwiftUI
                 ClubEventCalendarView(clubID: club.id, identity: identity, governance: governance, reportClub: club, reportReader: reader)
             } label: { Label("club.calendar.title", systemImage: "calendar") }
                 .accessibilityIdentifier("club.calendar.open")
+                // Anchor lifecycle to this persistent row: attaching to Section duplicates lifecycle per child
+                // and fires onDisappear when ProgressView leaves, resetting state back to .loading.
+                .task(id: ReadTrigger(context: readContext, visible: visible, active: scenePhase == .active)) {
+                    guard !Task.isCancelled else { return }
+                    model.suspend(); model.invalidate()
+                    guard visible, scenePhase == .active, !Task.isCancelled else { return }
+                    model.resume()
+                    await model.load(readContext, access: governance.access)
+                }
+                .onAppear { visible = true }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase != .active { model.suspend(); model.invalidate() }
+                }
+                .onDisappear { visible = false; model.suspend(); model.invalidate() }
         }
-        // Visibility and scene activation join the original account/club/authorization key.
-        .task(id: ReadTrigger(context: readContext, visible: visible, active: scenePhase == .active)) {
-            guard !Task.isCancelled else { return }
-            model.suspend(); model.invalidate()
-            guard visible, scenePhase == .active, !Task.isCancelled else { return }
-            model.resume()
-            await model.load(readContext, access: governance.access)
-        }
-        .onAppear { visible = true }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active { model.suspend(); model.invalidate() }
-        }
-        .onDisappear { visible = false; model.suspend(); model.invalidate() }
     }
 }

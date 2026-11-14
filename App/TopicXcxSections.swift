@@ -142,6 +142,10 @@ struct TopicXcxActionBar: View {
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
     var openPricing: (() -> Void)?
+    var shareURL: URL? = nil
+    var shareTitle: String? = nil
+    var isFavorited: Bool? = nil
+    var onToggleFavorite: (() -> Void)? = nil
     var body: some View {
         VStack(spacing: 6) {
             if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
@@ -165,6 +169,24 @@ struct TopicXcxActionBar: View {
                 case .signUp:
                     Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                         .disabled(topic.merchantClosed)
+                }
+                if let onToggleFavorite {
+                    Button(action: onToggleFavorite) {
+                        Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
+                    .accessibilityIdentifier("topic.cta.favorite")
+                }
+                if let shareURL {
+                    ShareLink(item: shareURL, subject: shareTitle.map { Text(verbatim: $0) }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel(Text("mp.common.share"))
+                    .accessibilityIdentifier("topic.cta.share")
                 }
             }
             .controlSize(.large)

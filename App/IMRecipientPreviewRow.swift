@@ -204,7 +204,34 @@ private struct IMRecipientPreviewLineView: View {
                 .foregroundStyle(CYColor.textSecondary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
-            CurA11yDashText(shown: line.value, font: CYTypography.meta, color: CYColor.textPrimary)
+            if line.kind == .issued {
+                issuedValueText
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                CurA11yDashText(shown: line.value, font: CYTypography.meta, color: CYColor.textPrimary)
+            }
+        }
+    }
+
+    @ViewBuilder private var issuedValueText: some View {
+        switch line.slot {
+        case "file-authorization":
+            Text("im.preview.issued.fileAuthorization", tableName: "IMRecipientPreview")
+        case "file-preview":
+            Text("im.preview.issued.file", tableName: "IMRecipientPreview")
+        case "video-authorization":
+            Text("im.preview.issued.videoAuthorization", tableName: "IMRecipientPreview")
+        case "video-preview":
+            Text("im.preview.issued.video", tableName: "IMRecipientPreview")
+        case "voice-message":
+            Text("im.preview.issued.voice", tableName: "IMRecipientPreview")
+        case "voice-authorization":
+            Text("im.preview.issued.voiceAuthorization", tableName: "IMRecipientPreview")
+        default:
+            Text("im.preview.ready", tableName: "IMRecipientPreview")
         }
     }
 

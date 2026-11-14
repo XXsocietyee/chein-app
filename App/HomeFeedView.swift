@@ -9,6 +9,7 @@ import UIKit
     var sourceTimeZone: TimeZone? = nil
     var viewerNickname: String? = nil
     var viewerAvatar: String? = nil
+    var viewerIsMerchant: Bool = false
     var selectedCity: String? = nil
     var showsHeroBanners: Bool = false
     var continuationCards: [HomeIndexParityPresentation.ContinuationCard] = []
@@ -70,6 +71,7 @@ import UIKit
                             nickname: viewerNickname,
                             selectedCity: localSelectedCity ?? selectedCity,
                             isNationwide: localIsNationwide,
+                            isMerchantViewer: viewerIsMerchant,
                             avatarSource: viewerAvatar,
                             onSelectCity: onSelectCity != nil ? { city, nationwide in
                                 localSelectedCity = city
@@ -96,7 +98,7 @@ import UIKit
                     if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 5, gate: reveal) }
                     // Mini-program store card (city pass entry): one feed card, never a paywall.
                     MPPassExploreCard()
-                    if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
+                    if !continuationCards.isEmpty {
                         PlayContinuationBannerView(
                             cards: continuationCards,
                             readAvailability: continuationReadAvailability,
