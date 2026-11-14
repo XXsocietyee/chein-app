@@ -4,7 +4,7 @@ import XCTest
 @MainActor final class WorkshopPurchasedTransportTests: XCTestCase {
     private let base=URL(string:"https://example.com/native")!
     private func deployment()throws->ReviewedAppDeployment{try .init(market:.china,baseURL:base.absoluteString,approvedBaseURLs:[.china:[base.absoluteString]],verifiedCapabilities:[.domesticChinaPhone],bundleIdentifier:"test.workshop.purchased",realm:"synthetic")}
-    private func context(_ d:ReviewedAppDeployment,role:String="player")throws->RuntimeDependencyContext{.init(market:.china,baseURL:base,role:role,session:try .init(accountID:7,epoch:1,namespace:d.storageScope.service,token:"synthetic"))}
+    private func context(_ d:ReviewedAppDeployment,role:String="player")throws->RuntimeDependencyContext{.init(market:.china,baseURL:base,role:role,session:try .init(accountID:7,epoch:1,namespace:d.storageScope.service,token:"synthetic",role:role))}
     private func request(path:String="list",body:String="")->URLRequest{
         var r=URLRequest(url:base.appendingPathComponent("api/workshop/v2/purchased/"+path));r.httpMethod="POST";r.httpBody=Data(body.utf8);r.setValue("synthetic",forHTTPHeaderField:"Authorization");r.setValue(String(body.utf8.count),forHTTPHeaderField:"Content-Length");r.setValue("application/x-www-form-urlencoded; charset=utf-8",forHTTPHeaderField:"Content-Type");r.cachePolicy = .reloadIgnoringLocalCacheData;r.setValue("no-store",forHTTPHeaderField:"Cache-Control");r.setValue("no-cache",forHTTPHeaderField:"Pragma");return r
     }
