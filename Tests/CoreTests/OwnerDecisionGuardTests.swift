@@ -181,7 +181,9 @@ final class OwnerDecisionGuardTests: XCTestCase {
         for path in ChinaReviewedRouteCapability.ownerDecisionGuardGrant {
             XCTAssertTrue(lease.contains(String(path.dropFirst())), path)
         }
-        XCTAssertFalse(lease.contains("api/club/personal-receiver/bind"))
+        // WP-01/05 binds the receiver; the app lease admits it only while `ReviewedAreaSwitch.payout` is open.
+        let bridge = try source("App/PayoutReceiverBridge.swift")
+        XCTAssertTrue(bridge.contains("guard await open() else { throw APIError.notConfigured }"))
         XCTAssertTrue(lease.contains("ReviewedAreaSwitch.payout"))
         XCTAssertTrue(lease.contains("ReviewedAreaSwitch.merchantWrites"))
     }

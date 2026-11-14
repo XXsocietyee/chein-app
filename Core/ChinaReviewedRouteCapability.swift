@@ -2589,7 +2589,8 @@ public enum ReleaseMoneyWriteSwitch {
             return .payment
         case "/api/club/settlement/withdraw",
              "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind",
-             "/api/merchant/payout-account/save", "/api/merchant/payout-account":
+             "/api/merchant/payout-account/save", "/api/merchant/payout-account",
+             "/api/club/personal-receiver/status":
             return .payout
         case "/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw":
             return .withdrawal
