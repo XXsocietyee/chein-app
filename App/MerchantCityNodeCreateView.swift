@@ -49,7 +49,9 @@ import SwiftUI
         ScrollView {
             VStack(alignment: .leading, spacing: 16) { content }.padding()
         }
-        .safeAreaInset(edge: .bottom) { if c.isCurrent, c.snapshot != nil || submittedID != nil { submitBar } }
+        .safeAreaInset(edge: .bottom, spacing: 0) { if c.isCurrent, c.snapshot != nil || submittedID != nil { submitBar } }
+        .cyDomainScreen(.merchant)
+        .cyHideTabBar(true)
         .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.create.title"))
         .task(id: service.scope) { resetDraft(); await model.load(); seedIfNeeded() }
         .onChange(of: c.snapshot?.observedAt) { _, stamp in
@@ -254,13 +256,15 @@ import SwiftUI
 
     private var submitBar: some View {
         let ready = templateID > 0 && picked != nil && confirmed
-        return Button { submit() } label: {
-            HStack(spacing: 8) {
-                if submitting { ProgressView() }
-                MerchantCityNodeCopy.text(submittedID != nil ? "merchantCityNode.create.reread" : "merchantCityNode.create.submit")
-            }.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
-        }.buttonStyle(.questifyPrimary).disabled(!ready && submittedID == nil).padding().background(.bar)
-            .accessibilityIdentifier("cityNodeCreate.submit")
+        return CYFooterBar {
+            Button { submit() } label: {
+                HStack(spacing: 8) {
+                    if submitting { ProgressView() }
+                    MerchantCityNodeCopy.text(submittedID != nil ? "merchantCityNode.create.reread" : "merchantCityNode.create.submit")
+                }.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
+            }.buttonStyle(.questifyPrimary).disabled(!ready && submittedID == nil)
+                .accessibilityIdentifier("cityNodeCreate.submit")
+        }
     }
 
     // MARK: Draft state

@@ -352,10 +352,10 @@ import SwiftUI
                     }
                 }
             }.cyGroupedSurface()
-            .scrollContentBackground(.hidden).background(CYColor.bgElevated)
+            .scrollContentBackground(.hidden).background(CYColor.sheetGlass)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button { model.closeSheets() } label: { Text("playStoreDay.mask.close", tableName: "PlayStoreDay") } } }
         }
-        .presentationBackground(CYColor.bgElevated).presentationDragIndicator(.visible)
+        .cyPlayerSheetGlass().presentationDragIndicator(.visible)
     }
     private var taskSheet: some View {
         NavigationStack {
@@ -374,9 +374,9 @@ import SwiftUI
                         .accessibilityIdentifier("storeDayPage.task.later")
                 }
             }.cyGroupedSurface()
-            .scrollContentBackground(.hidden).background(CYColor.bgElevated)
+            .scrollContentBackground(.hidden).background(CYColor.sheetGlass)
         }
-        .presentationBackground(CYColor.bgElevated).presentationDragIndicator(.visible)
+        .cyPlayerSheetGlass().presentationDragIndicator(.visible)
     }
 
     // MARK: Copy

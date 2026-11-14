@@ -132,6 +132,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                     NavigationLink {
                         ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
+                            .cyPushedChrome()
                     } label: {
                         CYListRow("club.directory", trailing: .chevron) { CYRowIcon(systemImage: "magnifyingglass") }
                     }
@@ -139,6 +140,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     if !discoveryScope.isMerchantViewer {
                         NavigationLink {
                             ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
+                                .cyPushedChrome()
                         } label: {
                             CYListRow("club.owned", trailing: .chevron) { CYRowIcon(systemImage: "person.crop.circle") }
                         }
@@ -179,6 +181,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         .navigationDestination(item: $openedClubID) { id in
             ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
                 .cyHeroDestinationWithFallback(id, in: hero)
+                .cyPushedChrome()
         }
         .onChange(of: requestedClubID?.wrappedValue, initial: true) { _, id in
             guard let id else { return }

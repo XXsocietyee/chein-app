@@ -51,7 +51,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
             } else { ProgressView("merchant.loading") }
         }
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .appNavigationTitle("merchant.orders")
         .toolbar {
             if reader.isSignedIn && reader.isConfigured && model.errorKey != "merchant.access.denied" {
@@ -90,6 +90,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                 }
             }
             .presentationDetents([.medium, .large])
+            .cyPlayerSheetGlass()
         }
         .sheet(item: $selection) { selected in
             NavigationStack {
@@ -98,6 +99,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { selection = nil } } }
                 } else { ContentUnavailableView("merchant.signIn", systemImage: "lock") }
             }
+            .cyPlayerSheetGlass()
         }
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
         .onChange(of: reader.sessionRevision) { _, _ in selection = nil; showFilters = false }

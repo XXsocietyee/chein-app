@@ -20,6 +20,7 @@ import QuestifyCore
             }
         }
         .padding()
+        .cyDomainScreen(.topicEditor)
     }
 
     @ViewBuilder
@@ -597,6 +598,7 @@ enum StoryAnswerFeedback: Equatable {
     return ScrollView {
         StoryParticipationView(coordinator: model, onJoinTap: {}, onSubmitNodeAnswer: { _ in }, joinBlocked: true)
             .padding()
+        .cyDomainScreen(.topicEditor)
     }
     .background(CYColor.bgPage)
 }

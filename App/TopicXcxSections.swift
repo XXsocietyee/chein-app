@@ -143,38 +143,35 @@ struct TopicXcxActionBar: View {
     var openSelfPlay: () -> Void
     var openPricing: (() -> Void)?
     var body: some View {
-        VStack(spacing: 6) {
-            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
-            HStack {
-                switch TopicXcxFacts.action(topic) {
-                case .ticketWallet:
-                    Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
-                case .locked(let lifecycle):
-                    if TopicXcxFacts.opensPricing(topic), let openPricing {
-                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
-                            .accessibilityIdentifier("topic.cta.pricing")
-                    } else {
-                        Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+        CYFooterBar {
+            VStack(spacing: 6) {
+                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
+                HStack {
+                    switch TopicXcxFacts.action(topic) {
+                    case .ticketWallet:
+                        Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                    case .locked(let lifecycle):
+                        if TopicXcxFacts.opensPricing(topic), let openPricing {
+                            Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .accessibilityIdentifier("topic.cta.pricing")
+                        } else {
+                            Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+                        }
+                    case .selfPlay(let price):
+                        Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
+                        Button(action: openSelfPlay) {
+                            if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
+                            else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
+                        }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                    case .signUp:
+                        Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                            .disabled(topic.merchantClosed)
                     }
-                case .selfPlay(let price):
-                    Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
-                    Button(action: openSelfPlay) {
-                        if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
-                        else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
-                    }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
-                case .signUp:
-                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
-                        .disabled(topic.merchantClosed)
                 }
+                .controlSize(.large)
+                .accessibilityIdentifier("topic.actionBar")
             }
-            .controlSize(.large)
-            .accessibilityIdentifier("topic.actionBar")
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, Theme.Space.pageX)
-        .padding(.vertical, Theme.Space.s2_5)
-        .background(.bar)
-        .overlay(alignment: .top) { Rectangle().fill(palette.borderSubtle).frame(height: 0.5) }
     }
 }
 

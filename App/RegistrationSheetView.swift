@@ -174,6 +174,7 @@ struct RegistrationSheetView: View {
                     RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
                         isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
                             destination: flow.waitlistOrderDestination, isActive: scenePhase == .active) })
+                        .cyPlayerSheetGlass()
                 }
             }
             .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
@@ -183,6 +184,7 @@ struct RegistrationSheetView: View {
                     RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { resultOrderDestination == presentation &&
                             flow.resultOrderDestination == presentation.destination && scenePhase == .active })
+                        .cyPlayerSheetGlass()
                 }
             }
             .sheet(item: $recoveredOrderDestination) { presentation in
@@ -190,6 +192,7 @@ struct RegistrationSheetView: View {
                     RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { recoveredOrderDestination == presentation &&
                             flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
+                        .cyPlayerSheetGlass()
                 }
             }
             .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
@@ -204,6 +207,7 @@ struct RegistrationSheetView: View {
                             onSaved: { if participantCoordinator.savedParticipant == nil { Task { await flow.loadParticipants() } } },
                             onCreated: { row, identity in Task { await flow.selectCreatedParticipant(row, identity: identity) } })
                     }
+                    .cyPlayerSheetGlass()
                 }
             }
             .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
@@ -218,6 +222,7 @@ struct RegistrationSheetView: View {
             }
             .onDisappear { flow.leave() }
         }
+        .cyPlayerSheetGlass()
         .accessibilityIdentifier("registration.form.sheet")
     }
     @ViewBuilder private var recoveredOrderSection: some View {
@@ -358,39 +363,39 @@ struct RegistrationSheetView: View {
     @State private var blockedTaps = 0
     private var checkoutBar: some View {
         let copy = CoreLoopCopy(locale: locale)
-        return VStack(spacing: CYSpacing.sm) {
-            HStack(spacing: CYSpacing.md) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                        .lineLimit(1).minimumScaleFactor(0.6).layoutPriority(1)
+        return CYFooterBar {
+            VStack(spacing: CYSpacing.sm) {
+                HStack(spacing: CYSpacing.md) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                            .lineLimit(1).minimumScaleFactor(0.6).layoutPriority(1)
+                    }
+                    TimelineView(.periodic(from: .now, by: 1)) { _ in
+                        let blocked = flow.confirmationBlock != nil
+                        Button {
+                            focusedField = nil
+                            if blocked { blockedTaps += 1; return }
+                            if flow.prepareConfirmation() { showingConfirmation = true }
+                        } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
+                        .buttonStyle(.cyPrimary)
+                        // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
+                        .cyHaptic(.warning, trigger: blockedTaps)
+                        .accessibilityAddTraits(blocked ? .isButton : [])
+                        .accessibilityHint(blockReason(copy) ?? "")
+                        .accessibilityIdentifier("registration.form.review")
+                    }
                 }
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    let blocked = flow.confirmationBlock != nil
-                    Button {
-                        focusedField = nil
-                        if blocked { blockedTaps += 1; return }
-                        if flow.prepareConfirmation() { showingConfirmation = true }
-                    } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(.cyPrimary)
-                    // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
-                    .cyHaptic(.warning, trigger: blockedTaps)
-                    .accessibilityAddTraits(blocked ? .isButton : [])
-                    .accessibilityHint(blockReason(copy) ?? "")
-                    .accessibilityIdentifier("registration.form.review")
-                }
-            }
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                if let reason = blockReason(copy) {
-                    Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityIdentifier("registration.form.blockReason")
+                    if let reason = blockReason(copy) {
+                        Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("registration.form.blockReason")
+                    }
                 }
             }
         }
-        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
-        .background(.bar)
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
     private var participantSection: some View {

@@ -127,9 +127,11 @@ public struct CYConfirmSheet: View {
                 }
             }
             .padding(CYSpacing.lg)
-            .background(CYColor.bgElevated)
+            .background(CYColor.sheetGlass)
         }
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : (consequences.isEmpty ? [.fraction(0.36), .large] : [.medium, .large]))
+        .presentationCornerRadius(CYRadius.sheet)
+        .presentationBackground(CYColor.sheetGlass)
         .presentationDragIndicator(.visible)
         .overlay { if rewarding { joinReward } }
     }
@@ -146,14 +148,14 @@ public struct CYConfirmSheet: View {
     private var joinReward: some View {
         ZStack {
             Circle()
-                .fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(colors: [CYColor.brand, CYColor.brandStrong], startPoint: .top, endPoint: .bottom))
                 .frame(width: 72, height: 72)
-                .shadow(color: CYNight.lantern.opacity(0.45), radius: 16)
+                .shadow(color: CYColor.brand.opacity(0.45), radius: 16)
                 .overlay {
-                    Circle().strokeBorder(CYNight.ink0.opacity(0.7), lineWidth: 3).padding(12)
+                    Circle().strokeBorder(CYColor.textOnAccent.opacity(0.7), lineWidth: 3).padding(12)
                     Image(systemName: "checkmark")
                         .font(.system(.title2, design: .rounded).weight(.heavy))
-                        .foregroundStyle(CYNight.ink0)
+                        .foregroundStyle(CYColor.textOnAccent)
                 }
                 .transition(reduceMotion ? .opacity : .scale(scale: 0.55).combined(with: .opacity))
             CYBurst(origin: .center, count: 32, duration: 0.9, style: .dust, reach: 140)

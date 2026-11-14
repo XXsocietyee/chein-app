@@ -73,21 +73,24 @@ import SwiftUI
             }.disabled(!model.allows(.saveTitle) || saveLocked)
             if invalid { invoiceText("notSaved").font(.footnote).foregroundStyle(.red) }
         }
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.allows(.saveTitle), !saveLocked {
-                CYPillButton("save", style: .primary, tableName: "InvoiceLaunchUI") {
-                    do {
-                        let draft = try InvoiceLaunchTitleRules.draft(id: title?.id, type: type,
-                            name: name, tax: tax, isDefault: isDefault)
-                        invalid = false
-                        Task { if await model.save(draft) { tax = ""; dismiss() } }
-                    } catch { invalid = true }
+                CYFooterBar {
+                    CYPillButton("save", style: .primary, tableName: "InvoiceLaunchUI") {
+                        do {
+                            let draft = try InvoiceLaunchTitleRules.draft(id: title?.id, type: type,
+                                name: name, tax: tax, isDefault: isDefault)
+                            invalid = false
+                            Task { if await model.save(draft) { tax = ""; dismiss() } }
+                        } catch { invalid = true }
+                    }
+                    .disabled(!InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
+                    .accessibilityIdentifier("invoice.title.save")
                 }
-                .disabled(!InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
-                .accessibilityIdentifier("invoice.title.save")
-                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
             }
         }
+        .cyPushedChrome(domain: .player)
+        .cyDomainPageBackground()
         .navigationTitle(invoiceText(title == nil ? "addTitle" : "editTitle"))
         .onChange(of: type) { _, _ in tax = "" }
         .onChange(of: scenePhase) { _, phase in

@@ -165,6 +165,7 @@ struct RoamItemDetailView: View {
         .cyStampOverlay(celebrations)
         .privacySensitive()
         .presentationDragIndicator(.visible)
+        .cyPlayerSheetGlass()
         .accessibilityIdentifier("roam.detail")
     }
     private var content: some View {

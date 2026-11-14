@@ -274,21 +274,20 @@ struct ParticipantFormView: View {
                     }
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .safeAreaInset(edge: .bottom) {
-                    CYPillButton(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
-                        : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check")) {
-                        focusedField = model.reviewForSave()
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CYFooterBar {
+                        CYPillButton(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
+                            : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check")) {
+                            focusedField = model.reviewForSave()
+                        }
+                        .disabled(!model.canReviewForSave)
+                        .accessibilityIdentifier("participant.form.save")
                     }
-                    .disabled(!model.canReviewForSave)
-                    .accessibilityIdentifier("participant.form.save")
-                    .padding(CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.md)
-                    .background(CYColor.bgPage)
                 }
             }
         }
         .cyGroupedSurface()
-        .themeDomain(.player)
+        .cyPushedChrome(domain: .player)
         .appNavigationTitle(key: model.id == nil ? "participant.form.add" : "participant.form.edit")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

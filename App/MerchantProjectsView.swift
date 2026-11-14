@@ -100,7 +100,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
             } else { ProgressView("merchant.loading") }
         }
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .appNavigationTitle("merchant.projects")
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
         .onChange(of: context) { _, _ in presentation.invalidate(); tab = .topic }
@@ -131,6 +131,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                                         guard let current = model.value, current.id == snapshot.id else { return false }
                                         return sourceFresh && presentation.selectionIsCurrent(selected, snapshot: current, context: context)
                                     })
+                                    .cyPushedChrome(domain: .merchant)
                             } label: { Label("merchant.projectEvents.open", systemImage: "bell") }
                             .padding().frame(maxWidth: .infinity).background(.regularMaterial)
                             .accessibilityIdentifier("merchant.projectEvents.open")
@@ -138,19 +139,23 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     }
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { presentation.closeSummary(id: selected.id) }.accessibilityIdentifier("merchant.projectSummary.close") } }
                     .navigationDestination(item: presentation.workspaceBinding()) { route in
-                        if let factory = workspaceReadFactory, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
-                            MerchantProjectWorkspaceReadHost(factory: factory, topicID: route.topicID, merchantID: route.merchantID,
-                                isCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) }, owner: presentation.readOwner)
-                                .id(route.id)
-                        } else if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
-                            MerchantContentDocumentView(service: contentService, query: .project(topicID: route.topicID),
-                                focusedTopicID: route.topicID, focusedMerchantID: route.merchantID,
-                                projectEntryIsCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) })
-                                .id(route.id)
-                        } else { Text("merchant.projectWorkspace.changed") }
+                        Group {
+                            if let factory = workspaceReadFactory, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
+                                MerchantProjectWorkspaceReadHost(factory: factory, topicID: route.topicID, merchantID: route.merchantID,
+                                    isCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) }, owner: presentation.readOwner)
+                                    .id(route.id)
+                            } else if let contentService, presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) {
+                                MerchantContentDocumentView(service: contentService, query: .project(topicID: route.topicID),
+                                    focusedTopicID: route.topicID, focusedMerchantID: route.merchantID,
+                                    projectEntryIsCurrent: { presentation.workspaceIsCurrent(route, snapshot: model.value, context: context, sourceFresh: sourceFresh) })
+                                    .id(route.id)
+                            } else { Text("merchant.projectWorkspace.changed") }
+                        }
+                        .cyPushedChrome(domain: .merchant)
                     }
                 } else { ContentUnavailableView("merchant.projectWorkspace.changed", systemImage: "lock") }
             }
+            .cyPlayerSheetGlass()
             #if DEBUG
             .onAppear { recordSummaryFixture("sheet appeared") }
             #endif

@@ -157,7 +157,7 @@ struct QuestifyApp: App {
                 #endif
             }
             .modifier(AppLanguageEnvironment(stored: storedLanguage))
-            .tint(QuestifyPalette.accent)
+            .tint(CYColor.brand)
             #if DEBUG
             .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))
             #endif
@@ -262,6 +262,7 @@ struct SessionRootView: View {
     @State private var showsAreaPicker=false
     @State private var presentation = RootPresentationCoordinator()
     @State private var reachability = NetworkReachability()
+    @State private var isTabBarHidden = false
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
@@ -318,7 +319,9 @@ struct SessionRootView: View {
                 .onAppear { reachability.start() }
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
-                .overlay { CYNightTabBar(selection: selectedTab) }
+                .environment(\.cyTabBarHidden, isTabBarHidden)
+                .onPreferenceChange(CYTabBarHiddenPreferenceKey.self) { isTabBarHidden = $0 }
+                .overlay { CYNightTabBar(selection: selectedTab).environment(\.cyTabBarHidden, isTabBarHidden) }
                 .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
                 .cyHaptic(.selection, trigger: selectedTab)
                 .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } } // Publish is no player tab (W1-1)
@@ -512,8 +515,12 @@ struct SessionRootView: View {
         // One presentation at a time: the consent gate goes first, native entry and the area picker queue behind it.
         .sheet(item: Binding(get: { presentation.allowsSecondaryRootSheet ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
+                .cyPlayerSheetGlass()
         }
-        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
+        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) {
+            RoamAreaPicker(onSelect:{ session.roamArea=$0 })
+                .cyPlayerSheetGlass()
+        }
         .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, presentation: presentation, onDecline: { browsingAsGuest = true })
     }
 
@@ -521,7 +528,10 @@ struct SessionRootView: View {
         v
         .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
-        .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
+        .sheet(isPresented: $showsScannerFixture) {
+            NativeQRScanner { _ in }
+                .cyPlayerSheetGlass()
+        }
         .onAppear {
             if ProcessInfo.processInfo.arguments.contains("--uitesting-scanner") {
                 showsScannerFixture = true

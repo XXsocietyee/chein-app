@@ -228,6 +228,8 @@ extension EnvironmentValues {
         }
         .listStyle(.insetGrouped)
         .cyGroupedSurface()
+        .cyDomainScreen(.merchant)
+        .cyHideTabBar(true)
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom, spacing: 0) { primaryBar }
         .cyHaptic(.impactMedium, trigger: preparing) { old, new in !old && new }

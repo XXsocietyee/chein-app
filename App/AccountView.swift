@@ -44,6 +44,7 @@ import SwiftUI
                 if let invoice = session.makeInvoiceLaunchPresentation() {
                     NavigationLink {
                         InvoiceLaunchHistoryView(model: invoice)
+                            .cyPushedChrome()
                     } label: { invoiceText("history") }
                     .accessibilityIdentifier("account.invoices")
                 }
@@ -52,7 +53,7 @@ import SwiftUI
                 Section("wallet.assets") {
                     // Passport keeps one Wallet entry (the circle action above); the legacy account page keeps the row.
                     if !showsPassportOverview {
-                    NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope)                     } label: {
+                    NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome()                     } label: {
                         CYListRow("wallet.title", trailing: .none) { CYRowIcon(systemImage: "wallet.pass") }
                     }.accessibilityIdentifier("account.wallet")
                     }
@@ -62,15 +63,16 @@ import SwiftUI
                 Section("account.section.collection") {
                     NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
                             .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
+                            .cyPushedChrome()
                     } label: {
                         CYListRow("growth.title", trailing: .none) { CYRowIcon(systemImage: "chart.bar.xaxis") }
                     }.accessibilityIdentifier("account.growthCenter")
                     ProfileAccountLinks(reader:session.profileReader, part: .collection)
-                    NavigationLink { SessionObjectCardsView()                     } label: {
+                    NavigationLink { SessionObjectCardsView().cyPushedChrome()                     } label: {
                         CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
                     }.accessibilityIdentifier("account.objectCards")
                     if session.playerGapService != nil {
-                        NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")) } label: {
+                        NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")).cyPushedChrome() } label: {
                             CYListRow("playerGap.cityFavorites.title", trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
                         }.accessibilityIdentifier("account.cityFavorites")
                     }
@@ -78,11 +80,11 @@ import SwiftUI
                 Section {
                     NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
                         SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: PassMarketPointsBridge.statistics(for: session), owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session, nicknameReader: session.profileNicknameReader, currentReviewReader: session.profileCurrentReviewReader, savedMedia: session.profileSavedMediaReaders), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
-                    }.id(session.socialAccountReader.identity) } label: {
+                    }.id(session.socialAccountReader.identity).cyPushedChrome() } label: {
                         CYListRow("social.profile", trailing: .none) { CYRowIcon(systemImage: "person.crop.rectangle") }
                     }.accessibilityIdentifier("account.publicProfile")
                     ProfileFollowListAccountEntry(session: session)
-                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders)                     } label: {
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).cyPushedChrome()                     } label: {
                         CYListRow("profile.edit.title", trailing: .none) { CYRowIcon(systemImage: "pencil") }
                     }.accessibilityIdentifier("account.editProfile")
                 }
@@ -101,34 +103,34 @@ import SwiftUI
                 SquareMineAccountLinks() // 我的帖文 / 我的收藏; hidden without the G4 capability bundle
                 Section {
                     if !showsPassportOverview { // Passport has the Messages circle action instead
-                        NavigationLink { SessionMessagingHome(session: session) } label: {
+                        NavigationLink { SessionMessagingHome(session: session).cyPushedChrome() } label: {
                             HStack(spacing: CYSpacing.sm) {
                                 CYListRow("messaging.title", trailing: .none) { CYRowIcon(systemImage: "bubble.left.and.bubble.right") }
                                 IMUnreadEntryBadge(reader: session.imUnreadTotalReader)
                             }
                         }.accessibilityIdentifier("account.messages")
                     }
-                    NavigationLink { SessionTeamHomeView() } label: {
+                    NavigationLink { SessionTeamHomeView().cyPushedChrome() } label: {
                         CYListRow("team.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
                     }.accessibilityIdentifier("account.teams")
                     // The Clubs tab is the one Clubs entry on the player bar.
                     if !showsPassportOverview {
-                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, authorSquare: session.squareReader).id(session.sessionRevision) } label: {
+                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, authorSquare: session.squareReader).id(session.sessionRevision).cyPushedChrome() } label: {
                         CYListRow("club.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
                     }.accessibilityIdentifier("account.clubs")
                     }
                     if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
-                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity) } label: {
+                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome() } label: {
                         CYListRow("social.invites.title", trailing: .none) { CYRowIcon(systemImage: "person.2.badge.plus") }
                     }.accessibilityIdentifier("account.inviteHistory")
-                    NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity) } label: {
+                    NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity).cyPushedChrome() } label: {
                         CYListRow("social.guide.title", trailing: .none) { CYRowIcon(systemImage: "book") }
                     }.accessibilityIdentifier("account.playGuide")
-                    NavigationLink { SessionDoorInviterView(session: session) } label: {
+                    NavigationLink { SessionDoorInviterView(session: session).cyPushedChrome() } label: {
                         CYListRow("door.inviter.title", trailing: .none) { CYRowIcon(systemImage: "person.badge.plus") }
                     }.accessibilityIdentifier("door.inviter.entry")
                     if session.playerGapService != nil {
-                        NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")) } label: {
+                        NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).cyPushedChrome() } label: {
                             CYListRow("playerGap.playerCode.title", trailing: .none) { CYRowIcon(systemImage: "qrcode") }
                         }.accessibilityIdentifier("account.playerCode")
                     }
@@ -136,7 +138,7 @@ import SwiftUI
                 Section {
                     PrivateHomeAccountLink(coordinator: privateHomeCoordinator)
                         .environment(\.nativeHomeReturnSelection, nativeHomeReturnSelection)
-                    NavigationLink { PersonalLocationShareEntry(recipientId: nil) } label: {
+                    NavigationLink { PersonalLocationShareEntry(recipientId: nil).cyPushedChrome() } label: {
                         Label { Text("personalLocationShare.title.management", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
                     }.accessibilityIdentifier("account.personalLocationShare")
                     ProfileComplaintPreparationLink(session: session)
@@ -180,20 +182,21 @@ import SwiftUI
                     .accessibilityLabel(Text("settings.title"))
                 }
             }
-            .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope) }
-            .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session) }
-            .navigationDestination(isPresented:$showsPassportStamps) { RoamHistoryView(reader: session.roamExperienceReader) }
-            .navigationDestination(isPresented:$showsPassportBadges) { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope) }
+            .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPassportStamps) { RoamHistoryView(reader: session.roamExperienceReader).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPassportBadges) { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope).cyPushedChrome() }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
                     ProfileFavoriteTopicDestination(selection: selected, session: session,
-                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
+                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id).cyPushedChrome()
                 }
                 ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in
                     ProfileFavoriteDetailDestination(selection: selected,
                         makeReader: { session.makeProfileFavoriteDetailReader(selected) },
                         accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
                         .id(selected.id)
+                        .cyPushedChrome()
                 }
             }
             .onChange(of: session.profileFavoritesReader.scope) { _, scope in
@@ -210,15 +213,20 @@ import SwiftUI
                           }) else { return }
                     showsSettings = false
                 } })
+                .cyPlayerSheetGlass()
             }
-            .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope) }
+            .sheet(isPresented:$showsCooperation) {
+                CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope)
+                    .presentationCornerRadius(CYRadius.sheet)
+            }
             .sheet(isPresented:$showsTicketPass, onDismiss: { if opensWalletAfterPass { opensWalletAfterPass = false; showsTickets = true } }) {
                 TicketPassSheet(reader: session.ticketWalletReader, onClose: { showsTicketPass = false },
                                 onOpenWallet: { opensWalletAfterPass = true; showsTicketPass = false },
                                 lifecycleCoordinator: session.orderLifecycleCoordinator, makeTeamCoordinator: { session.makeTeamCoordinator() })
                     .id(session.ticketWalletReader.scope)
+                    .cyPlayerSheetGlass()
             }
-            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope) }
+            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).cyPlayerSheetGlass() }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible,presenting:logoutConfirmation) { expected in
                 Button("auth.signOut",role:.destructive) {
                     logoutConfirmation = nil; confirmsLogout = false
@@ -288,6 +296,7 @@ import SwiftUI
         }
         .navigationDestination(isPresented: $showsMerchantApplication) {
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
+                .cyPushedChrome(domain: .merchant)
         }
     }
 
@@ -295,6 +304,7 @@ import SwiftUI
         Section("profile.selfProjects.title") {
             NavigationLink {
                 SessionCreatorProjectsView(session: session)
+                    .cyPushedChrome(domain: .topicEditor)
             } label: { CYListRow("creatorContent.projects", trailing: .none) { CYRowIcon(systemImage: "square.stack") } }
             .accessibilityIdentifier("account.creatorProjects")
             WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
@@ -305,17 +315,17 @@ import SwiftUI
                     guard let pair = session.makeModInstallationWithOriginalReader(reference: reference) else { return nil }
                     return (pair.controller, pair.originalReader)
                 })
-            NavigationLink { WorkshopLicenseLibraryView() } label: {
+            NavigationLink { WorkshopLicenseLibraryView().cyPushedChrome(domain: .topicEditor) } label: {
                 Label { Text("workshopCommerce.library.title", tableName: "WorkshopCommerce") } icon: { Image(systemName: "checkmark.seal") }
             }.accessibilityIdentifier("account.workshopLicenses")
             OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
-            NavigationLink { ProjectEditLaunchView().id(session.sessionRevision)                     } label: {
+            NavigationLink { ProjectEditLaunchView().id(session.sessionRevision).cyPushedChrome(domain: .topicEditor)                     } label: {
                 CYListRow("projectEdit.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
             }.accessibilityIdentifier("account.projectEditor")
-            NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity)                     } label: {
+            NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity).cyPushedChrome(domain: .topicEditor)                     } label: {
                 CYListRow("templateAuthor.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
             }.accessibilityIdentifier("account.templateAuthoring")
-            NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext, creatorStudio: session.creatorStudioService).id(session.creatorContentReader.scope)                     } label: {
+            NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext, creatorStudio: session.creatorStudioService).id(session.creatorContentReader.scope).cyPushedChrome(domain: .topicEditor)                     } label: {
                 CYListRow("creatorContent.center", trailing: .none) { CYRowIcon(systemImage: "pencil.and.outline") }
             }.accessibilityIdentifier("account.creatorCenter")
         }
@@ -324,13 +334,13 @@ import SwiftUI
     @ViewBuilder private var merchantSection: some View {
         Section { // players never see merchant rows; code stays for the merchant role
             if themeDomain != .player { // players never see merchant rows; code stays for the merchant role
-            NavigationLink { SessionMerchantOverviewView(session: session) } label: {
+            NavigationLink { SessionMerchantOverviewView(session: session).cyPushedChrome(domain: .merchant) } label: {
                 CYListRow("account.merchantOverview", trailing: .none) { CYRowIcon(systemImage: "chart.bar.doc.horizontal") }
             }.accessibilityIdentifier("account.merchantOverview")
-            NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
+            NavigationLink { SessionMerchantProjectBrowseView(session: session).cyPushedChrome(domain: .merchant) } label: {
                 CYListRow("merchant.projects", trailing: .none) { CYRowIcon(systemImage: "calendar") }
             }.accessibilityIdentifier("account.merchantProjectBrowse")
-            NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) })                     } label: {
+            NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) }).cyPushedChrome(domain: .merchant)                     } label: {
                 CYListRow("merchant.title", trailing: .none) { CYRowIcon(systemImage: "storefront") }
             }.accessibilityIdentifier("account.merchant")
             PayoutAccountLinks(audience: .merchant)

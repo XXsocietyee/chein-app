@@ -22,7 +22,7 @@ struct CYSquareActivityPicker: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark").font(CYTypography.label.weight(.semibold))
                         .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
-                        .background(Circle().fill(CYNight.glassFill))
+                        .background(Circle().fill(CYColor.actionSecondary))
                 }
                 .buttonStyle(.cyPressable)
                 .accessibilityLabel(Text("activityPicker.close", tableName: "SocialParity"))
@@ -33,9 +33,9 @@ struct CYSquareActivityPicker: View {
                 content.padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xxl)
             }
         }
-        .background(CYNight.ink2.ignoresSafeArea())
+        .background(CYDomainPalette(.player).sheetGlass.ignoresSafeArea())
         .presentationDetents([.medium, .large])
-        .presentationBackground(CYNight.ink2)
+        .cyPlayerSheetGlass()
         .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: phase)
         .task(id: attempt) { await load() }
         .accessibilityIdentifier("square.activityPicker")
@@ -69,9 +69,9 @@ struct CYSquareActivityPicker: View {
             Group {
                 if let cover = activity.cover, let url = URL(string: cover), url.scheme == "https" {
                     AsyncImage(url: url) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { CYNight.indigo }
+                        if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgRaised }
                     }
-                } else { ZStack { CYNight.indigo; Image(systemName: "map").foregroundStyle(CYColor.textTertiary) } }
+                } else { ZStack { CYColor.bgRaised; Image(systemName: "map").foregroundStyle(CYColor.textTertiary) } }
             }
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
@@ -82,12 +82,12 @@ struct CYSquareActivityPicker: View {
                     .font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
             }
             Spacer(minLength: 0)
-            Image(systemName: "checkmark.circle.fill").font(CYTypography.sectionTitle).foregroundStyle(CYNight.verify)
+            Image(systemName: "checkmark.circle.fill").font(CYTypography.sectionTitle).foregroundStyle(CYColor.brand)
                 .accessibilityHidden(true)
         }
         .padding(CYSpacing.md)
         .frame(minHeight: CYSpacing.minTouchTarget)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink1))
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.sheetCard))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }

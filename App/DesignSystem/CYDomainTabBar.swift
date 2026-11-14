@@ -123,10 +123,37 @@ struct CYDomainTabBarStyle: ViewModifier {
     }
 }
 
+/// Preference key so pushed destinations inside any root tab hide custom floating tab bar chrome
+/// alongside SwiftUI's `.toolbar(.hidden, for: .tabBar)`.
+struct CYTabBarHiddenPreferenceKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
+private struct CYTabBarHiddenEnvironmentKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var cyTabBarHidden: Bool {
+        get { self[CYTabBarHiddenEnvironmentKey.self] }
+        set { self[CYTabBarHiddenEnvironmentKey.self] = newValue }
+    }
+}
+
 extension View {
     /// Apply once on the root `TabView` of a role (`.player` or `.merchant`).
     func cyDomainTabBar(_ domain: ThemeDomain) -> some View {
         modifier(CYDomainTabBarStyle(domain: domain))
+    }
+
+    /// Hide both the system tab bar and the floating player pill overlay on pushed routes.
+    func cyHideTabBar(_ hidden: Bool = true) -> some View {
+        toolbar(hidden ? .hidden : .visible, for: .tabBar)
+            .preference(key: CYTabBarHiddenPreferenceKey.self, value: hidden)
+            .environment(\.cyTabBarHidden, hidden)
     }
 }
 
@@ -188,6 +215,7 @@ struct CYRootTabBarStrip: View {
 #if canImport(UIKit)
 /// UIKit appearance for the parts SwiftUI cannot style: unselected items at 0.6 opacity
 /// (`Theme.MiniProgramChrome.tabUnselectedOpacity`), selected icon/label `#7A5CFF`.
+/// Call once at launch (for example from the App initialiser).
 @MainActor
 enum CYTabBarAppearance {
     static func install() {

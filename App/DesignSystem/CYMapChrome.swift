@@ -206,8 +206,7 @@ private struct CYMapSheetModifier<Sheet: View>: ViewModifier {
                 .presentationDetents(detents, selection: $selection)
                 .presentationDragIndicator(.visible)
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-                .presentationCornerRadius(28)
-                .presentationBackground(Color(red: 0.11, green: 0.11, blue: 0.118))
+                .cyPlayerSheetGlass()
                 .interactiveDismissDisabled()
                 .onAppear { if type.isAccessibilitySize { selection = .medium } }
         }

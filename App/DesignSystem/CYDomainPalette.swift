@@ -21,9 +21,11 @@ struct CYDomainPalette {
     init(_ domain: ThemeDomain) { self.domain = domain }
 
     private var isDark: Bool { domain.colorScheme == .dark }
+    /// Play runtime overlays `.theme-game` tokens onto the player dark stage rather than light gray merchant chrome.
+    private var surfaceDomain: ThemeDomain { domain == .game ? .player : domain }
 
     private func token(_ name: String, dark: CYRGB, light: CYRGB) -> Color {
-        if let value = Theme.Generated.color(name, in: domain) { return value }
+        if let value = Theme.Generated.color(name, in: surfaceDomain) { return value }
         return (isDark ? dark : light).swiftUIColor
     }
 
@@ -94,7 +96,7 @@ struct CYDomainPalette {
     var borderStrong: Color { token("--cy-color-border-strong", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.16), light: CYRGB(hex: 0xDBDBDB)) }
     /// Dark cards rise with a 0.5pt top-edge highlight (`--cy-comp-card-highlight`); light cards use a shadow instead.
     var cardHighlight: Color { token("--cy-comp-card-highlight", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0x000000, alpha: 0)) }
-    /// Neutral light-domain card shadow (`rgba(0,0,0,.05)` per unified shadow spec); clear in dark.
+    /// Neutral light-domain card shadow (`rgba(0,0,0,.05)` per unified shadow spec, no slate-blue); clear in dark.
     var cardShadowColor: Color { isDark ? .clear : CYRGB(hex: 0x000000, alpha: 0.05).swiftUIColor }
     /// Elevated float shadow (toasts, floating controls, modals).
     var floatShadowColor: Color { isDark ? CYRGB(hex: 0x000000, alpha: 0.28).swiftUIColor : CYRGB(hex: 0x000000, alpha: 0.10).swiftUIColor }

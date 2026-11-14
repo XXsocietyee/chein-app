@@ -305,6 +305,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .cyGroupedSurface()
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
+            .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.club")
             .background {
                 if let session = reader as? AppSession, let context = session.currentRuntimeDependencyContext,
                    reader.clubIdentity == ClubReadIdentity(accountID: context.session.accountID, epoch: context.session.epoch) {
@@ -332,9 +333,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             }
         }.appNavigationTitle("club.detail")
+            .cyPushedChrome(domain: .player)
             .cyDomainPageBackground()
-            .themeDomain(.player)
-            .tint(CYDomainPalette(.player).brand)
             .id(id)
             .onAppear {
                 guard managementNeedsRefresh else { return }
