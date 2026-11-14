@@ -176,6 +176,7 @@ struct PassMembershipView: View {
             HStack(spacing: CYSpacing.md) { planButtons(content) }
             VStack(spacing: CYSpacing.md) { planButtons(content) }
         }
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder private func planButtons(_ content: PassMembershipContent) -> some View {
@@ -193,7 +194,7 @@ struct PassMembershipView: View {
                     .strokeBorder(on ? CYColor.selection : Color.clear, lineWidth: on ? 2 : 0))
                 .overlay(alignment: .topTrailing) {
                     if plan.best {
-                        Text("mp.member.best").font(CYTypography.micro).foregroundStyle(CYColor.textOnAccent)
+                        Text("mp.member.best").font(CYTypography.micro).foregroundStyle(CYNight.ink0)
                             .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                             .background(CYNight.lantern, in: Capsule())
                             .offset(x: -CYSpacing.sm, y: -CYSpacing.sm)
@@ -203,12 +204,10 @@ struct PassMembershipView: View {
                 .cyAnimation(.spring(response: 0.3, dampingFraction: 0.7), value: on)
             }
             .buttonStyle(.plain)
-                .accessibilityAddTraits(on ? [.isSelected] : [])
-                .accessibilityIdentifier("membership.plan.\(plan.code)")
-                .cyHaptic(.selection, trigger: on)
-            }
+            .accessibilityAddTraits(on ? [.isSelected] : [])
+            .accessibilityIdentifier("membership.plan.\(plan.code)")
+            .cyHaptic(.selection, trigger: on)
         }
-        .accessibilityElement(children: .contain)
     }
 
     private func renewNote(_ content: PassMembershipContent) -> some View {

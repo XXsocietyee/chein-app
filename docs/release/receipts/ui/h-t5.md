@@ -158,3 +158,27 @@
 - `App/DesignFixtures/DesignFixtureReleaseExclusionAudit.swift`
 - `tools/check_design_lint.py` (removed cleared allowlist entries for `App/TicketWalletView.swift`, `App/E1CommerceComponents.swift`, `App/OrderLifecycleView.swift`)
 - `docs/release/receipts/ui/h-t5.md`
+
+## Per-File `xcrun swiftc -parse` Verification
+
+```text
+App/DesignFixtures/DesignFixtureRegistry.swift -> parse=0 debug_parse=0
+App/DesignFixtures/DesignFixtureReleaseExclusionAudit.swift -> parse=0 debug_parse=0
+App/E1CommerceComponents.swift -> parse=0 debug_parse=0
+App/FreeExploreBundleLaunchView.swift -> parse=0 debug_parse=0
+App/JourneyLandingViews.swift -> parse=0 debug_parse=0
+App/JourneyReportViews.swift -> parse=0 debug_parse=0
+App/MPParityKit.swift -> parse=0 debug_parse=0
+App/OrderCardComponents.swift -> parse=0 debug_parse=0
+App/OrderCenterEntryView.swift -> parse=0 debug_parse=0
+App/OrderLifecycleView.swift -> parse=0 debug_parse=0
+App/PassMarketViews.swift -> parse=0 debug_parse=0
+App/PassMembershipViews.swift -> parse=0 debug_parse=0
+App/ProfileOrderFilterSection.swift -> parse=0 debug_parse=0
+App/ProfileOrderSourceDetailSections.swift -> parse=0 debug_parse=0
+App/ProfileOrdersView.swift -> parse=0 debug_parse=0
+App/PublisherLifecycleViews.swift -> parse=0 debug_parse=0
+App/RegistrationSheetView.swift -> parse=0 debug_parse=0
+App/TicketWalletView.swift -> parse=0 debug_parse=0
+```
+
