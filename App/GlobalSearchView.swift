@@ -137,6 +137,7 @@ import SwiftUI
         .cySkeletonTiming(isLoading: loading, visible: $skeletonShown)
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         .appNavigationTitle("searchMap.title")
+        .cyHideTabBar()
         .navigationDestination(item: $mapRoute) { route in
             let _ = recordRoute(route)
             switch route {

@@ -29,6 +29,7 @@ import SwiftUI
     var modelPreview: OwnMediaModelPreviewAccess? = nil
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
     @State private var showsRoam = false
+    @State private var homeAutoLocationEnabled = !HomeCityLocationDeclineStore.read()
 
     var body: some View {
         Form {
@@ -38,6 +39,17 @@ import SwiftUI
                 NavigationLink {
                     SettingsLegalDocumentView(type: .privacyPolicy, market: market, reader: legalReader)
                 } label: { Text(LocalizedStringKey(SettingsLegalType.privacyPolicy.titleKey)) }
+            }
+            Section {
+                Toggle(isOn: $homeAutoLocationEnabled) {
+                    Text("member.privacy.homeAutoLocation.title", tableName: "MemberProfile")
+                }
+                .accessibilityIdentifier("member.privacy.homeAutoLocation")
+                .onChange(of: homeAutoLocationEnabled) { _, enabled in
+                    HomeCityLocationDeclineStore.saveLocationDeclined(!enabled)
+                }
+            } footer: {
+                Text("member.privacy.homeAutoLocation.detail", tableName: "MemberProfile")
             }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
@@ -60,6 +72,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyHideTabBar()
         .sheet(isPresented: $showsRoam) {
             if let compliance {
                 NavigationStack {
@@ -137,6 +150,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyHideTabBar()
         .privacySensitive()
         .toolbar {
             if controller.phase == .ready || controller.phase == .failed || controller.phase == .denied {

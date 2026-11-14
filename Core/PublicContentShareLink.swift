@@ -16,6 +16,11 @@ public enum PublicContentShareLink {
         return universalLink(path: NativeContentTarget.Kind.post.sourcePath, id: id)
     }
 
+    /// Mini-program `pages/topic/index/index?id=`.
+    public static func topic(id: Int) -> URL? {
+        universalLink(path: NativeContentTarget.Kind.topic.sourcePath, id: id)
+    }
+
     /// Mini-program `pages/templatedetail/templatedetail?id=`.
     public static func discoveryTemplate(id: Int) -> URL? {
         universalLink(path: NativeContentTarget.Kind.template.sourcePath, id: id)

@@ -99,6 +99,48 @@
         "en": { "stringUnit": { "state": "translated", "value": "Preview" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "可预览" } }
       }
+    },
+    "im.preview.issued.fileAuthorization": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "File authorization issued" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文件访问已授权" } }
+      }
+    },
+    "im.preview.issued.file": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "File preview available" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文件可安全预览" } }
+      }
+    },
+    "im.preview.issued.videoAuthorization": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Video authorization issued" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "视频播放已授权" } }
+      }
+    },
+    "im.preview.issued.video": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Video preview available" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "视频缩略图可查看" } }
+      }
+    },
+    "im.preview.issued.voice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Voice playback available" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语音消息可播放" } }
+      }
+    },
+    "im.preview.issued.voiceAuthorization": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Voice authorization issued" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "语音播放已授权" } }
+      }
     }
   }
 }

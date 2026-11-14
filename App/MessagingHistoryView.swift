@@ -191,6 +191,7 @@ struct MessagingHistoryView: View {
         .privacySensitive()
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if currentHistoryReady,

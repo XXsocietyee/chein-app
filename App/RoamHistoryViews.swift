@@ -98,7 +98,7 @@ import SwiftUI
                     }
                 }
             }.padding(CYSpacing.pageHorizontal)
-        }.background(CYColor.bgPage.ignoresSafeArea()).navigationTitle("roam.experience.history")
+        }.background(CYColor.bgPage.ignoresSafeArea()).navigationTitle("roam.experience.history").cyHideTabBar()
             .task(id: RoamHistoryLiveOwner(reader: reader)) { load() }
             .onAppear { liveEntry.appear() }
             .onDisappear { liveEntry.disappear() }
@@ -352,6 +352,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
         }.background(CYColor.bgPage.ignoresSafeArea())
             .modifier(RoamHistoryHeroDestination(id: timestamp, hero: hero))
             .navigationTitle("roam.experience.session")
+            .cyHideTabBar()
             .task(id: readKey) { showShare = false; selectedMedal = nil; load() }
             .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }
             .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }

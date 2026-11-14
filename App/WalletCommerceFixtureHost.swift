@@ -29,7 +29,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
     static func designLedger(path: String) -> String? {
         switch path {
         case "/api/balance/list", "/api/user/balance/list":
-            let rows = #"[{"id":1,"changeBalance":"58.00","afterBalance":"128.50","changeType":1,"eventType":2,"currency":"CNY","changeReason":"Weekend city walk share","createTime":"2026-11-06 18:20:00"},{"id":2,"changeBalance":"30.00","afterBalance":"70.50","changeType":2,"eventType":3,"currency":"CNY","changeReason":"Withdrawal request","createTime":"2026-11-02 09:41:00"},{"id":3,"changeBalance":"24.50","afterBalance":"100.50","changeType":1,"eventType":1,"currency":"CNY","changeReason":"Old Town route share","createTime":"2026-10-28 20:05:00"},{"id":4,"changeBalance":"12.00","afterBalance":"76.00","changeType":1,"eventType":5,"currency":"CNY","changeReason":"Cafe referral reward","createTime":"2026-10-15 13:12:00"},{"id":5,"changeBalance":"40.00","afterBalance":"64.00","changeType":1,"eventType":2,"currency":"CNY","changeReason":"Riverside night ride share","createTime":"2026-09-30 21:30:00"},{"id":6,"changeBalance":"18.00","afterBalance":"24.00","changeType":2,"eventType":3,"currency":"CNY","changeReason":"Withdrawal request","createTime":"2026-09-12 10:00:00"}]"#
+            let rows = #"[{"id":6,"changeBalance":"58.00","afterBalance":"128.50","changeType":1,"eventType":2,"currency":"CNY","changeReason":"Weekend city walk share","createTime":"2026-11-06 18:20:00"},{"id":5,"changeBalance":"30.00","afterBalance":"70.50","changeType":2,"eventType":3,"currency":"CNY","changeReason":"Withdrawal request","createTime":"2026-11-02 09:41:00"},{"id":4,"changeBalance":"24.50","afterBalance":"100.50","changeType":1,"eventType":1,"currency":"CNY","changeReason":"Old Town route share","createTime":"2026-10-28 20:05:00"},{"id":3,"changeBalance":"12.00","afterBalance":"76.00","changeType":1,"eventType":5,"currency":"CNY","changeReason":"Cafe referral reward","createTime":"2026-10-15 13:12:00"},{"id":2,"changeBalance":"40.00","afterBalance":"64.00","changeType":1,"eventType":2,"currency":"CNY","changeReason":"Riverside night ride share","createTime":"2026-09-30 21:30:00"},{"id":1,"changeBalance":"18.00","afterBalance":"24.00","changeType":2,"eventType":3,"currency":"CNY","changeReason":"Withdrawal request","createTime":"2026-09-12 10:00:00"}]"#
             return path == "/api/balance/list" ? rows : "{\"rows\":" + rows + ",\"total\":6}"
         case "/api/points/list", "/api/user/points/list":
             let rows = #"[{"id":11,"changePoints":20,"afterPoints":340,"changeType":1,"changeReason":"Check-in stamp: Old Town","createTime":"2026-11-07 10:12:00"},{"id":12,"changePoints":-50,"afterPoints":320,"changeType":2,"changeReason":"Redeemed postcard","createTime":"2026-11-03 16:40:00"},{"id":13,"changePoints":15,"afterPoints":370,"changeType":1,"changeReason":"Finished route: River loop","createTime":"2026-10-24 19:02:00"},{"id":14,"changePoints":10,"afterPoints":355,"changeType":1,"changeReason":"Daily sign-in","createTime":"2026-10-20 08:00:00"}]"#
@@ -64,6 +64,9 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
         }
         if arguments.contains("--design-fixture"), let rich = Self.designLedger(path: request.url?.path ?? "") {
             return (Data(("{\"code\":200,\"data\":" + rich + "}").utf8), 200)
+        }
+        if arguments.contains("--design-fixture"), request.url?.path == "/api/user/info" {
+            return (Data(#"{"code":200,"data":{"balance":"128.50","currency":"CNY"}}"#.utf8), 200)
         }
         guard request.url?.path == "/api/wallet/stages" else { return try await fallback.send(request) }
         reads += 1

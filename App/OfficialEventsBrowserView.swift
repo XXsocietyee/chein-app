@@ -53,6 +53,7 @@ import SwiftUI
                 }
             }
             .appNavigationTitle("official.title")
+            .cyHideTabBar()
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
                 // The app has no WeChat capsule, so 我发布的 and 邀约 take the top-right slot.

@@ -310,6 +310,7 @@ public enum RoamEntryPeekState: Equatable {
     }
 }
 
+#if DEBUG
 /// Synthetic offline rows for previews and UI tests. Never a real place, price or reward.
 @MainActor public final class RoamEntryNearbyFixtureReader: RoamEntryNearbyReading {
     public enum Scenario: String { case content, empty, failure, login, denied }
@@ -337,3 +338,4 @@ public enum RoamEntryPeekState: Equatable {
         }
     }
 }
+#endif

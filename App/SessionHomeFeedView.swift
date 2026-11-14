@@ -90,6 +90,7 @@ import SwiftUI
                 unavailableMessageKey: session.homeReadAvailability.messageKey,
                 viewerNickname: session.account?.nickname,
                 viewerAvatar: session.account?.avatar,
+                viewerIsMerchant: session.account?.role == "merchant",
                 selectedCity: session.roamArea?.label,
                 showsHeroBanners: true,
                 continuationCards: continuationCards,
