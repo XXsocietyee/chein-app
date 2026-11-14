@@ -22,6 +22,10 @@ public struct PlayCommandRefusal: Error, Equatable {
     /// Node ids from the frozen station's contract-approved replacement list. Strings on the wire.
     public let approvedFallbacks: [Int]
     public let appealable: Bool
+    /// WP-02 guard appeal binding (`arrival-guard-view.js`): positive decimal ids, and the appeal type the server named.
+    public let guardLogID: String?
+    public let routeSessionID: String?
+    public let appealBizType: String?
 
     public init?(envelope: PlayWireValue) {
         guard envelope.object != nil, let code = envelope["code"].tolerantInteger, code != 200 else { return nil }
@@ -44,6 +48,11 @@ public struct PlayCommandRefusal: Error, Equatable {
         }
         approvedFallbacks = Array(fallbacks.prefix(8))
         appealable = envelope["appealable"].bool == true
+        func positive(_ key: String) -> String? {
+            ClubEditionEmptyReason.idText(envelope[key]).flatMap { PlayGuardAppealReference.positiveID($0) ? $0 : nil }
+        }
+        guardLogID = positive("guardLogId"); routeSessionID = positive("routeSessionId")
+        appealBizType = envelope["appealBizType"].text == "play_arrive_guard" ? "play_arrive_guard" : nil
     }
 
     /// The contract fields are present. An older server sends only `code` + `msg`; that reply
@@ -128,9 +137,14 @@ public struct PlayArrivalFailure: Equatable {
     public let actions: [PlayArrivalFailureReason.Action]
     public let replacements: [Replacement]
     public let refreshRequired: Bool
+    /// WP-02: set only for an appealable `play_arrive_guard` refusal of a request with a known action id.
+    public let guardReference: PlayGuardAppealReference?
 
-    public init(nodeID: Int, refusal: PlayCommandRefusal, snapshot: PlaySnapshot?) {
+    public init(nodeID: Int, refusal: PlayCommandRefusal, snapshot: PlaySnapshot?, arrivalRequestID: String? = nil) {
         self.nodeID = nodeID
+        guardReference = refusal.appealable && refusal.appealBizType != nil
+            ? PlayGuardAppealReference(guardLogID: refusal.guardLogID, routeSessionID: refusal.routeSessionID, nodeID: nodeID, arrivalRequestID: arrivalRequestID)
+            : nil
         reason = refusal.arrivalReason
         message = refusal.message
         let node = snapshot?.visibleNodes.first { $0.id == nodeID }

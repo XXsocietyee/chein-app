@@ -6,11 +6,11 @@ import FoundationNetworking
 
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 997)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 996)  // WP-02 drops the dead api/template/report-receipt client path (997 -> 996)
         XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 793)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
         // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 204)  // 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 203)  // WP-02: report-receipt dropped (204 -> 203). 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.liveInProductionCount
                 + ChinaReviewedRouteCapability.newBackendOnlyCount

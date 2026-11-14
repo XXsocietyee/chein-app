@@ -240,6 +240,15 @@ public struct PlayLeadProgress: Equatable {
     public let arrived: Int?
     public let meArrived: Bool
     public let members: [Member]
+    /// WP-02 (`leadUnlock` / `_leadSkipRequests`): current and next chapter ids; nil current means none released yet.
+    public let currentChapterID: Int?
+    public let nextChapterID: Int?
+    /// Members stuck at a sensor station who asked to skip it. At most eight, as the mini-program shows.
+    public let skipRequests: [SkipRequest]
+    public struct SkipRequest: Equatable, Identifiable {
+        public var id: String { "\(memberID):\(nodeID)" }
+        public let memberID: Int; public let nodeID: Int; public let nickname: String?
+    }
     public var allArrived: Bool { !members.isEmpty && (arrived ?? -1) >= members.count }
     init(_ raw: PlayWireValue) throws {
         guard let exists = raw["exists"].bool else { throw PlayExperienceError.malformed }
@@ -251,6 +260,12 @@ public struct PlayLeadProgress: Equatable {
             return Member(id: id, name: item["nickname"].text, done: item["done"].integer, arrived: item["arrived"].bool == true, isLeader: item["isLeader"].bool == true)
         }
         guard Set(members.map(\.id)).count == members.count else { throw PlayExperienceError.malformed }
+        currentChapterID = raw["currentChapterId"].integer.flatMap { $0 > 0 ? $0 : nil }
+        nextChapterID = raw["nextChapterId"].integer.flatMap { $0 > 0 ? $0 : nil }
+        skipRequests = Array((raw["skipRequests"].array ?? []).compactMap { row -> SkipRequest? in
+            guard let member = row["memberId"].integer, member > 0, let node = row["nodeId"].integer, node > 0 else { return nil }
+            return SkipRequest(memberID: member, nodeID: node, nickname: row["nickname"].text.flatMap { $0.isEmpty ? nil : $0 })
+        }.prefix(8))
     }
     public func allows(_ action: PlayLeadAction, accountID: Int) -> Bool {
         if action == .arrive { return exists && !meArrived }
@@ -262,4 +277,27 @@ public struct PlayLeadProgress: Equatable {
 }
 public enum PlayLeadAction: String, CaseIterable {
     case start, arrive, broadcast, unlockChapter = "unlock-chapter", settle, editTime = "edit-ops"
+}
+/// WP-02 `leadUnlock`: one frozen chapter command. The same `commandId` is resent or read back, never replaced
+/// while its outcome is unknown. `expectedChapterID` 0 means no chapter has been released yet.
+public struct PlayLeadUnlockCommand: Codable, Equatable {
+    public let commandID: String
+    public let activityID: Int
+    public let expectedChapterID: Int
+    public let targetChapterID: Int
+    public var receiptOnly = false
+    public init?(commandID: String = UUID().uuidString.lowercased(), activityID: Int, expectedChapterID: Int?, targetChapterID: Int?) {
+        guard activityID > 0, let targetChapterID, targetChapterID > 0, (expectedChapterID ?? 0) >= 0,
+              commandID.range(of: "^[A-Za-z0-9:_-]{1,80}$", options: .regularExpression) != nil else { return nil }
+        self.commandID = commandID; self.activityID = activityID; self.expectedChapterID = expectedChapterID ?? 0; self.targetChapterID = targetChapterID
+    }
+    var fields: [String: String] {
+        ["activityId": String(activityID), "commandId": commandID,
+         "expectedChapterId": String(expectedChapterID), "targetChapterId": String(targetChapterID)]
+    }
+    /// The server's replayed receipt names this command and its chapters.
+    public func confirms(_ data: PlayWireValue) -> Bool {
+        data["commandId"].text == commandID && data["expectedChapterId"].tolerantInteger == expectedChapterID
+            && data["targetChapterId"].tolerantInteger == targetChapterID
+    }
 }

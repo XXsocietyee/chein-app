@@ -15,7 +15,7 @@ final class PlayGapOwnerGrantTests: XCTestCase {
     }
 
     func testGrantDoesNotRaiseTheContractBaseline() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 204)  // 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404) // channels contract 8.1 blacklist routes are live
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 203)  // WP-02: report-receipt dropped (204 -> 203). 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404) // channels contract 8.1 blacklist routes are live
         XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home/return/restore"))
@@ -37,5 +37,17 @@ final class PlayGapOwnerGrantTests: XCTestCase {
     func testProductNamesUseAnEmDashWhenMissing() {
         let payload = PlayWireValue.object(["data": .array([.object(["productId": .integer(4), "productName": .string("  ")])])])
         XCTAssertEqual(PlayGapProduct.parse(payload).first?.name, "—")
+    }
+
+    /// WP-02: the audit and guard appeal routes are on the play grant in both lists; the money-area routes are not.
+    @MainActor func testCreatorTailRoutesAreGrantedInBothListsAndMoneyStaysOff() {
+        for path in PlayerGapService.creatorTailPaths {
+            XCTAssertTrue(ReviewedProductionGateLeases.playPaths.contains(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        for gated in [PlayerGapService.editionEmptyReasonPath, "api/club/lead/release-station", "api/club/lead/unlock-chapter-receipt"] {
+            XCTAssertFalse(ReviewedProductionGateLeases.playPaths.contains(gated), gated)
+        }
+        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: "www.chengyinhub.com"))
     }
 }

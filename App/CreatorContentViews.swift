@@ -114,6 +114,7 @@ private struct CreatorContentIssueView: View {
                                 .contextMenu { MyProjectRowOperationsMenu(project: project) }
                                 .questifyCardListRow()
                             MyProjectSaveAsTemplateEntry(project: project) { Task { await refresh() } }
+                            MyProjectAuditEntry(project: project)
                         } else {
                             card(project).questifyCardListRow()
                         }

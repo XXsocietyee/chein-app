@@ -1579,7 +1579,11 @@ struct ClubGovernanceReadView: View {
         }
     }
     @ViewBuilder private func dataRows(_ rows: [ClubGovernanceValue]) -> some View {
-        if rows.isEmpty { CYEmptyState(systemImage: "tray", "club.gov.empty") }
+        if rows.isEmpty {
+            // WP-02: an empty editions list asks the server why (`edition-empty-reason.js`).
+            if operation == .editions, let clubID = scope.clubID, clubID > 0 { ClubEditionEmptyReasonView(clubID: clubID, reload: { Task { await load() } }) }
+            else { CYEmptyState(systemImage: "tray", "club.gov.empty") }
+        }
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             Section {
                 if let target = customerTopicRoute(row) {

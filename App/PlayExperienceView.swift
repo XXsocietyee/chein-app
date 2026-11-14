@@ -610,6 +610,9 @@ import SwiftUI
                     onRefresh: { Task { await model.load() } },
                     onOpenNode: openNode)
             }
+            // WP-02: the original-run guard appeal for this stop (kept across visits by owner and session).
+            PlayGuardAppealSection(scope: model.scope, nodeID: nodeID,
+                                   reference: model.arrivalFailure?.nodeID == nodeID ? model.arrivalFailure?.guardReference : nil)
             if let reading = model.arrivalReading, model.reward?["nodeId"].tolerantInteger == nodeID {
                 PlayArrivalReadingSection(reading: reading)
             }
@@ -928,7 +931,11 @@ struct PlayExperienceIssueView: View {
                     if lead.exists, case .activity(let activityID) = model.scope { LeadMemberTicketScanButton(activityID: activityID) }
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
                     if !lead.exists { actionButton(context: context, .start) }
-                    else { actionButton(context: context, .broadcast); actionButton(context: context, .unlockChapter); actionButton(context: context, .settle) }
+                    else {
+                        actionButton(context: context, .broadcast)
+                        PlayLeadChapterTools(model: model, lead: lead, context: context)
+                        actionButton(context: context, .settle)
+                    }
                 }
                 if model.leaderOutcomeUnknown { Text("playx.lead.unknown") }
                 if model.leadReadFailed { PlayRuntimePhaseText(phase: "failed") }

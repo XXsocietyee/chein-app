@@ -56,6 +56,7 @@ public enum ChinaReviewedRouteCapability {
         if creatorStudioOwnerGrant.contains(key) { return true }
         if clubAndMerchantCoopOwnerGrant.contains(key) { return true }
         if playGapOwnerGrant.contains(key) { return true }
+        if playCreatorTailOwnerGrant.contains(key) { return true }
         if admitsRewardPledge(key) { return true }
         if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
         if beGapMerchantOwnerGrant.contains(key) { return true }
@@ -219,6 +220,21 @@ public enum ChinaReviewedRouteCapability {
         "/api/analytics/events/batch"
     ]
 
+    /// WP-02 play/creator tail (PlayerGapService.creatorTailPaths, PlayExperienceService leader tools). The audit and guard
+    /// appeal routes are non-money player/author routes on the play grant. The station release and chapter receipt run only
+    /// under the `.leader` play capability, and the editions empty reason only where ReviewedAreaSwitch.moneyPayments opens,
+    /// so neither reaches the production host from the player grant.
+    private static let playCreatorTailOwnerGrant: Set<String> = [
+        "/api/audit/timeline",
+        "/api/audit/appeal",
+        "/api/audit/appeal/receipt",
+        "/api/audit/guard/reference",
+        "/api/audit/guard/appeal",
+        "/api/audit/guard/appeal/receipt",
+        "/api/club/lead/release-station",
+        "/api/club-compensation/editions/empty-reason"
+    ]
+
     /// G7/G8 owner approval: non-money player reads and writes the mini-program calls (PlayerGapService).
     /// Payment readiness, payout receiver, club settlement, lead settle, and club host-only routes stay out.
     private static let playerGapOwnerGrant: Set<String> = [
@@ -377,7 +393,6 @@ public enum ChinaReviewedRouteCapability {
         "/api/v1/community/reference-options/{}", "/api/v1/community/reports", "/api/v1/community/media/register",
         "/api/topic/cover/selection/current", "/api/topic/cover/upload", "/api/topic/cover/selection",
         "/api/topic/cover/selection/status", "/api/topic/cover/{}/content",
-        "/api/template/report-receipt",
         "/api/support/tickets/list", "/api/support/tickets/detail",
         "/api/friend/directory", "/api/friend/directory/detail", "/api/friend/remark", "/api/friend/group/save",
         "/api/friend/group/delete", "/api/friend/metadata", "/api/friend/metadata/receipt", "/api/friend/group/list",
@@ -1461,7 +1476,6 @@ public enum ChinaReviewedRouteCapability {
         "/api/template/personal-report": .liveInProduction,
         "/api/template/publish": .liveInProduction,
         "/api/template/report": .liveInProduction,
-        "/api/template/report-receipt": .missing,
         "/api/template/topic-template/info": .liveInProduction,
         "/api/template/topic-template/list": .liveInProduction,
         "/api/template/topic-template/use": .liveInProduction,
