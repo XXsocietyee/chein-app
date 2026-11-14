@@ -85,7 +85,12 @@ import SwiftUI
                 .buttonStyle(.borderless).disabled(capture == nil).accessibilityIdentifier("projectNodeOverview.open")
             if let reason = projection.reason { Text(LocalizedStringKey("projectNodeOverview.reason." + reason.rawValue), tableName: "ProjectDraftNodeOverview").font(.caption) }
         }
-        .sheet(item: controller.binding(original)) { original in ProjectDraftNodeOverview(controller: controller, original: original) }
+        .sheet(item: controller.binding(original)) { original in
+            ProjectDraftNodeOverview(controller: controller, original: original)
+                .themeDomain(.topicEditor)
+                .presentationCornerRadius(CYRadius.sheet)
+                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+        }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }

@@ -109,30 +109,35 @@ enum ActivityPublishingStatusHelper {
     let onBack: () -> Void
     let onNext: () -> Void
     let onReview: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        // Pinned bar chrome: one compact row at every size (type capped), the form above keeps scrolling.
-        HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.md))
+        layout {
+            secondary(current, fullWidth: dynamicTypeSize.isAccessibilitySize)
+            primary(current)
+        }
     }
-    @ViewBuilder private func secondary(_ current: Int) -> some View {
+    @ViewBuilder private func secondary(_ current: Int, fullWidth: Bool) -> some View {
         if current == 0 {
-            CYPillButton("publishModes.cancel", style: .secondary, fullWidth: false, action: onCancel)
+            CYPillButton("publishModes.cancel", style: .secondary, fullWidth: fullWidth, compact: true, action: onCancel)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.wizard.cancel")
         } else {
-            CYPillButton("publishModes.wizard.back", style: .secondary, fullWidth: false, action: onBack)
+            CYPillButton("publishModes.wizard.back", style: .secondary, fullWidth: fullWidth, compact: true, action: onBack)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.wizard.back")
         }
     }
     @ViewBuilder private func primary(_ current: Int) -> some View {
         if current < ActivityPublishingWizard.steps.count - 1 {
-            CYPillButton("publishModes.wizard.next", action: onNext)
+            CYPillButton("publishModes.wizard.next", compact: true, action: onNext)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.wizard.next")
         } else {
-            CYPillButton("publishModes.review", action: onReview)
+            CYPillButton("publishModes.review", compact: true, action: onReview)
                 .disabled(!enabled)
                 .accessibilityIdentifier("publishModes.activity.review")
         }
@@ -144,6 +149,7 @@ enum ActivityPublishingStatusHelper {
     let rawSummary: ActivityPublishingWizard.ReviewSummary
     var merchantHost: Bool = false
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     private var summary: ActivityPublishingWizard.ReviewSummary { copy.reviewSummary(rawSummary) }
     init(summary: ActivityPublishingWizard.ReviewSummary, merchantHost: Bool = false) {
@@ -161,7 +167,9 @@ enum ActivityPublishingStatusHelper {
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.heading")
 
             if merchantHost {
-                CYStatusChip(verbatim: copy.merchantFreeTicketOnlyNotice, tone: .info, systemImage: "info.circle")
+                Text(verbatim: copy.merchantFreeTicketOnlyNotice)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("publishModes.activity.reviewSummary.merchantFreeNotice")
             }
 
@@ -188,19 +196,17 @@ enum ActivityPublishingStatusHelper {
     private func summaryRow(label: String, value: String, id: String) -> some View {
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+                Text(verbatim: label).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                 Text(verbatim: value).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         } else {
             LabeledContent {
                 Text(verbatim: value)
-                    .font(CYTypography.bodyCompact)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             } label: {
                 Text(verbatim: label)
-                    .font(CYTypography.meta)
                     .foregroundStyle(palette.textSecondary)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")

@@ -21,13 +21,35 @@ enum PublishDesignFixtures {
             let mode = name.hasSuffix("rows") ? "rows" : name.hasSuffix("empty") ? "empty" : "loading"
             return wrap(NavigationStack { PublishingProjectsView(service: nil, account: nil, openResource: { _ in }, designPreview: mode) })
         case "publish-quick":
-            return wrap(NavigationStack { QuickPublishingView(placeSearch: nil, account: nil, openProfessional: { _ in }) })
+            return wrapCreator(NavigationStack { QuickPublishingView(placeSearch: nil, account: nil, openProfessional: { _ in }) })
         case "publish-activity":
-            return wrap(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil) })
+            return wrapCreator(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil) })
         case "rep3-merchant-publish":
             return wrapMerchant(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil) })
         case "rep3-merchant-publish-missing":
             return wrapMerchant(NavigationStack { Rep3MerchantPublishMissingHost() })
+        case "t11-fabu":
+            return wrapCreator(NavigationStack { T11ProjectEditFixtureHost(signedIn: true) })
+        case "t11-fabu-blocked":
+            return wrapCreator(NavigationStack { T11ProjectEditFixtureHost(signedIn: false) })
+        case "t11-quick-ai":
+            return wrapCreator(PublishingAIDraftSheet(client: nil, product: .city, initialIdea: "Sample city walk (debug fixture)", accept: { _ in }))
+        case "t11-quick-error":
+            return wrapCreator(NavigationStack { QuickPublishingView(placeSearch: nil, account: nil, openProfessional: { _ in }).disabled(true) })
+        case "t11-template-author":
+            return wrapCreator(NavigationStack { T11TemplateAuthorFixtureHost(signedIn: true) })
+        case "t11-template-author-locked":
+            return wrapCreator(NavigationStack { T11TemplateAuthorFixtureHost(signedIn: false) })
+        case "t11-template-intro":
+            return wrapCreator(NavigationStack { T11TemplateIntroFixtureHost(configured: true) })
+        case "t11-template-intro-empty":
+            return wrapCreator(NavigationStack { T11TemplateIntroFixtureHost(configured: false) })
+        case "t11-activity-locked":
+            return wrapCreator(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil).disabled(true) })
+        case "t11-coupon-create":
+            return wrapCreator(CouponManagementFixtureHost(showsHarness: false))
+        case "t11-coupon-unknown":
+            return wrapCreator(NavigationStack { CouponManagementView(coordinator: CouponManagementCoordinator(adapter: .init(transport: nil, syntheticWritesEnabled: false), authorizer: nil, locks: nil, currentSession: { nil }), sessionKey: nil, isSourceVisible: true) })
         case "template-topics": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader()) })
         case "template-games": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(), startOnGames: true) })
         case "template-detail":
@@ -81,6 +103,10 @@ enum PublishDesignFixtures {
     @MainActor private static func wrapMerchant<V: View>(_ view: V) -> AnyView {
         AnyView(view.cyDomainScreen(.merchant).preferredColorScheme(.light))
     }
+
+    @MainActor private static func wrapCreator<V: View>(_ view: V) -> AnyView {
+        AnyView(view.themeDomain(.topicEditor).cyDomainPageBackground())
+    }
 }
 
 /// Non-happy Merchant LIGHT publish fixture showing missing-field blockers, failed draft save, and preview summary.
@@ -123,6 +149,82 @@ enum PublishDesignFixtures {
         }
         .navigationTitle(Text("publishModes.activity"))
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+@MainActor private struct T11ProjectEditFixtureHost: View {
+    @StateObject private var state: Holder
+    init(signedIn: Bool) { _state = StateObject(wrappedValue: Holder(signedIn: signedIn)) }
+    var body: some View { ProjectEditView(coordinator: state.coordinator, sessionRevision: 1) }
+
+    @MainActor private final class Holder: ObservableObject {
+        let coordinator: ProjectEditCoordinator
+        private let heldSession: ProjectEditSession?
+        init(signedIn: Bool) {
+            let session = signedIn ? (try? ProjectEditSession(accountID: 901, epoch: 1, storageNamespace: "synthetic-t11-fabu")) : nil
+            heldSession = session
+            let service = ProjectEditSyntheticService()
+            service.snapshot = ProjectEditSyntheticFixtures.snapshot(scope: .full)
+            coordinator = ProjectEditCoordinator(
+                initial: signedIn ? service.snapshot : nil,
+                service: service,
+                store: ProjectEditLocalStore(storage: ProjectEditMemoryStorage()),
+                currentSession: { session }
+            )
+        }
+    }
+}
+
+@MainActor private struct T11TemplateAuthorFixtureHost: View {
+    @StateObject private var state: Holder
+    init(signedIn: Bool) { _state = StateObject(wrappedValue: Holder(signedIn: signedIn)) }
+    var body: some View {
+        TemplateAuthoringView(coordinator: state.coordinator, sessionRevision: 1, metadataReader: state.reader)
+    }
+
+    @MainActor private final class Holder: ObservableObject {
+        let coordinator: TemplateAuthoringCoordinator
+        let reader = DiscoveryFixtureReader()
+        init(signedIn: Bool) {
+            let session = signedIn ? (try? TemplateAuthoringSession(accountID: 901, namespace: "synthetic-t11-temp", epoch: 1, authorizationRevision: "member-fixture")) : nil
+            let coord = TemplateAuthoringCoordinator(
+                adapter: .init(transport: TemplateAuthoringSyntheticTransport()),
+                store: TemplateAuthoringLocalStore(storage: TemplateAuthoringMemoryStorage()),
+                currentSession: { session }
+            )
+            coord.open(seed: TemplateAuthoringSyntheticFixtures.draft())
+            self.coordinator = coord
+        }
+    }
+}
+
+@MainActor private struct T11TemplateIntroFixtureHost: View {
+    @StateObject private var state = Holder()
+    let configured: Bool
+    var body: some View {
+        Form {
+            Section {
+                TemplateAuthoringIntroExperience(model: state.model, reader: configured ? state.reader : nil, onContinue: {})
+            }
+        }
+        .formStyle(.grouped)
+        .cyGroupedSurface()
+        .cyDomainScreen(.topicEditor)
+    }
+
+    @MainActor private final class Holder: ObservableObject {
+        let model: TemplateAuthoringModel
+        let reader = DiscoveryFixtureReader()
+        init() {
+            let session = try? TemplateAuthoringSession(accountID: 901, namespace: "synthetic-t11-intro", epoch: 1, authorizationRevision: "member-fixture")
+            let coord = TemplateAuthoringCoordinator(
+                adapter: .init(transport: TemplateAuthoringSyntheticTransport()),
+                store: TemplateAuthoringLocalStore(storage: TemplateAuthoringMemoryStorage()),
+                currentSession: { session }
+            )
+            coord.open(seed: TemplateAuthoringSyntheticFixtures.draft())
+            self.model = TemplateAuthoringModel(coordinator: coord)
+        }
     }
 }
 #endif

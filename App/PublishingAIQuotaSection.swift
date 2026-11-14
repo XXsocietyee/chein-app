@@ -4,27 +4,38 @@ import SwiftUI
 /// estimate or new generation capability is inferred from a quota response.
 @MainActor struct PublishingAIQuotaSection: View {
     let flow: PublishingAIDraftFlow
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         Section("publishingAIQuota.title") {
             if flow.quotaReadState == .loading { ProgressView("publishingAIQuota.loading") }
             if let quota = flow.quota {
                 if flow.quotaIsStale {
-                    Label("publishingAIQuota.stale", systemImage: "clock").font(.caption)
+                    CYStatusChip("publishingAIQuota.stale", tone: .warning, systemImage: "clock")
                         .accessibilityIdentifier("publishingAIQuota.stale")
                 }
                 if quota.limited {
                     if let limit = quota.limit {
-                        LabeledContent("publishingAIQuota.limit") { Text(verbatim: String(limit)).monospacedDigit() }
+                        LabeledContent("publishingAIQuota.limit") {
+                            Text(verbatim: String(limit))
+                                .font(CYTypography.bodyCompact.monospacedDigit())
+                                .foregroundStyle(palette.textPrimary)
+                        }
                     } else { PublishingStatusRow(title: Text("publishingAIQuota.limitUnknown")) }
                     if let remaining = quota.remaining {
-                        LabeledContent("contextPublish.ai.remaining") { Text(verbatim: String(remaining)).font(.headline).monospacedDigit() }
-                            .accessibilityIdentifier("publishingAIQuota.remaining")
+                        LabeledContent("contextPublish.ai.remaining") {
+                            Text(verbatim: String(remaining))
+                                .font(CYTypography.cardTitle.monospacedDigit())
+                                .foregroundStyle(remaining == 0 ? palette.danger : palette.textPrimary)
+                        }
+                        .accessibilityIdentifier("publishingAIQuota.remaining")
                     }
                     if quota.exhausted { PublishingStatusRow(title: Text("contextPublish.ai.exhausted"), symbol: "info.circle") }
                 } else { PublishingStatusRow(title: Text("publishingAIQuota.notMarkedLimited")) }
                 if let readAt = flow.quotaReadAt {
                     LabeledContent("publishingAIQuota.lastRead") {
-                        Text(readAt, format: .dateTime.month().day().hour().minute()).font(.footnote).foregroundStyle(.secondary)
+                        Text(readAt, format: .dateTime.month().day().hour().minute())
+                            .font(CYTypography.meta)
+                            .foregroundStyle(palette.textSecondary)
                     }
                 }
             } else if flow.quotaReadState == .idle { PublishingStatusRow(title: Text("publishingAIQuota.notRead")) }
