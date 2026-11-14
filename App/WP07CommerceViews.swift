@@ -164,7 +164,7 @@ struct CouponUsabilitySection: View {
                 } else {
                     ForEach(rows) { row in
                         LabeledContent {
-                            Text(reason(row))
+                            reason(row)
                                 .foregroundStyle(CYColor.textPrimary)
                         } label: {
                             Text(verbatim: row.name ?? "—")
