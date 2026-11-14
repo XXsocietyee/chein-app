@@ -395,6 +395,11 @@
     "zh-Hans": "未开始"
   },
   {
+    "key": "orderLifecycle.state.passReady",
+    "en": "Ready to use",
+    "zh-Hans": "可使用"
+  },
+  {
     "key": "orderLifecycle.state.inProgress",
     "en": "In progress",
     "zh-Hans": "进行中"

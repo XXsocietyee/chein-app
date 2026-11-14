@@ -132766,6 +132766,23 @@
         }
       }
     },
+    "orderLifecycle.state.passReady": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可使用"
+          }
+        }
+      }
+    },
     "orderLifecycle.state.pendingPayment": {
       "extractionState": "manual",
       "localizations": {

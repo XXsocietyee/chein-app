@@ -36,7 +36,7 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
         XCTAssertEqual(wire.requests[1].url?.path, "/prod-api/api/marketing/affiliate/summary")
         XCTAssertEqual(wire.requests[1].url?.query, "limit=20")
         do {
-            _ = try await journey.rate(ownerType: 3, ownerID: "9", rating: 5, contents: "一起玩", token: "session-token")
+            _ = try await journey.rate(ownerType: 3, ownerID: "9", rating: 5, contents: "一起玩", requestID: "rateintent0000001", token: "session-token")
             XCTFail("owner type")
         } catch JourneyRefusal.invalidRequest {}
         XCTAssertEqual(wire.requests.count, 2)
