@@ -7687,8 +7687,8 @@ final class AppSession: ObservableObject {
     func expireIfMatching(error:Error,stamp:UInt64,credential:String?) {
         guard error as? APIError == .unauthorized, credential != nil,
               gate.isCurrent(stamp), credential == token else { return }
-        sessionRestorationRetry.discard()
-        nativeWeChatPaymentAdapter.cancelPending()
+        sessionRestorationRetry.discard(); retainedPersonalLocationShareHost?.prepareLogout()
+        nativeWeChatPaymentAdapter.cancelPending(); weChatAuth.cancel(); authChannels.cancel()
         invalidateInvoiceLaunch()
         invalidateWorkshopReadBindings()
         ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()

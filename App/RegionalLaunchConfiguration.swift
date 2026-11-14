@@ -274,13 +274,11 @@ struct E2ETestHostTransport: HTTPTransport {
         do {
             let (data, status) = try await underlying.send(outgoing)
             let body = LogFieldRedaction.redacted(String(decoding: data.prefix(600), as: UTF8.self))
-            NSLog("[E2E] %@ %@ -> %d %.0fms %@", outgoing.httpMethod ?? "GET",
-                  LogFieldRedaction.redacted(outgoing.url?.absoluteString ?? ""),
+            NSLog("[E2E] %@ %@ -> %d %.0fms %@", outgoing.httpMethod ?? "GET", outgoing.url?.path ?? "",
                   status, Date().timeIntervalSince(started) * 1000, body)
             return (data, status)
         } catch {
-            NSLog("[E2E] %@ %@ -> error %@", outgoing.httpMethod ?? "GET",
-                  LogFieldRedaction.redacted(outgoing.url?.absoluteString ?? ""),
+            NSLog("[E2E] %@ %@ -> error %@", outgoing.httpMethod ?? "GET", outgoing.url?.path ?? "",
                   LogFieldRedaction.redacted("\(error)"))
             throw error
         }

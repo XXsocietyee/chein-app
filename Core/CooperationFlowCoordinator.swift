@@ -45,7 +45,11 @@ public extension CoopFlowExecuting {
     private func write(_ keys: Set<String>) throws {
         do {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            #if os(iOS)
+            try JSONEncoder().encode(keys.sorted()).write(to: url, options: [.atomic, .completeFileProtection])
+            #else
             try JSONEncoder().encode(keys.sorted()).write(to: url, options: [.atomic])
+            #endif
         } catch { throw CoopFlowFailure.storage }
     }
     public func contains(_ key: String) throws -> Bool { try read().contains(key) }

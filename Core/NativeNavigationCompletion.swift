@@ -16,9 +16,12 @@ public struct TeamInvitationRoute: Equatable {
 /// are presentation/invitation data only; they never imply ownership, role or entitlement.
 public enum NativeNavigationContract {
     public static func parseInternal(_ text: String) -> NativeEntryIntent? {
-        guard text.utf8.count <= 4096, !text.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }),
+        guard text.utf8.count <= 4096, !text.contains("\\"),
+              !text.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }),
               let c = URLComponents(string: text), c.scheme == nil, c.host == nil,
-              c.user == nil, c.password == nil, c.fragment == nil else { return nil }
+              c.user == nil, c.password == nil, c.fragment == nil,
+              !c.percentEncodedPath.lowercased().contains("%2e"),
+              !c.path.split(separator: "/").contains(where: { $0 == ".." || $0 == "." }) else { return nil }
         return parse(path: c.percentEncodedPath, items: c.queryItems ?? [])
     }
     static func parse(path: String, items: [URLQueryItem]) -> NativeEntryIntent? {

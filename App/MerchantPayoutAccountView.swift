@@ -21,6 +21,7 @@ import UIKit
         .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver"))
         .refreshable { await load() }
         .task { await load() }
+        .appSwitcherPrivacyShield()
     }
 
     @ViewBuilder private var content: some View {

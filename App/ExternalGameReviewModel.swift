@@ -1,4 +1,5 @@
 import Foundation
+import Security
 #if canImport(QuestifyCore)
 import QuestifyCore
 #endif
@@ -151,14 +152,47 @@ import QuestifyCore
 
     /// Owner 2026-11-13: the server's Ed25519 key is pinned per environment (API host) on first use. A different key
     /// for the same host is refused, so packages keep verifying against the pinned key only. No host, no key.
+    /// Production pinning (default UserDefaults.standard) is anchored in Keychain (WhenUnlockedThisDeviceOnly).
     static func pin(_ raw: Data, host: String?, defaults: UserDefaults = .standard) -> Data? {
         guard let host = host?.lowercased(), !host.isEmpty, raw.count == 32 else { return nil }
+        if defaults === UserDefaults.standard {
+            return pinKeychain(raw, host: host)
+        }
         let name = "externalGame.signingKey.pinned." + host
         if let stored = defaults.string(forKey: name).flatMap({ Data(base64Encoded: $0) }) {
             return stored == raw ? stored : nil
         }
         defaults.set(raw.base64EncodedString(), forKey: name)
         return raw
+    }
+
+    private static func pinKeychain(_ raw: Data, host: String) -> Data? {
+        let baseQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "questify.externalGame.signingKey.v1",
+            kSecAttrAccount as String: host,
+            kSecAttrSynchronizable as String: false,
+        ]
+        var readQuery = baseQuery
+        readQuery[kSecReturnAttributes as String] = true
+        readQuery[kSecReturnData as String] = true
+        readQuery[kSecMatchLimit as String] = kSecMatchLimitOne
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(readQuery as CFDictionary, &result)
+        if status == errSecSuccess,
+           let attrs = result as? [String: Any],
+           let stored = attrs[kSecValueData as String] as? Data,
+           stored.count == 32 {
+            return stored == raw ? stored : nil
+        }
+        if status == errSecItemNotFound {
+            var addQuery = baseQuery
+            addQuery[kSecValueData as String] = raw
+            addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            guard SecItemAdd(addQuery as CFDictionary, nil) == errSecSuccess else { return nil }
+            return raw
+        }
+        return nil
     }
 
     private func client(_ session: ExternalGameSessionBridge?) -> ExternalGameReviewClient? {

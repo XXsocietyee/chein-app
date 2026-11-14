@@ -36,7 +36,13 @@ import Foundation
     public func insert(_ key: String) throws { var values = try load(); values.insert(key); try save(values) }
     public func remove(_ key: String) throws { var values = try load(); values.remove(key); try save(values) }
     private func save(_ values: Set<String>) throws {
-        do { try JSONEncoder().encode(values).write(to: url, options: .atomic) }
+        do {
+            #if os(iOS)
+            try JSONEncoder().encode(values).write(to: url, options: [.atomic, .completeFileProtection])
+            #else
+            try JSONEncoder().encode(values).write(to: url, options: .atomic)
+            #endif
+        }
         catch { throw OfficialActionFailure.storage }
     }
 }

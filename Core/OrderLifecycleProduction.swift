@@ -100,7 +100,11 @@ public struct OrderLifecycleReservation: Codable, Equatable {
         guard previous.isEmpty || (record.action == OrderLifecycleAction.refund.rawValue && previous.allSatisfy({ $0.action == OrderLifecycleAction.payment.rawValue && $0.paymentObservedPaid == true })) else { throw OrderLifecycleFailure.alreadyAttempted }
         rows.append(record)
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        #if os(iOS)
+        try JSONEncoder().encode(rows).write(to: url, options: [.atomic, .completeFileProtection])
+        #else
         try JSONEncoder().encode(rows).write(to: url, options: .atomic)
+        #endif
         guard try pending(owner: record.owner, orderID: record.orderID) == record else { throw APIError.malformedResponse }
     }
     public func observePaid(_ record: OrderLifecycleReservation, detail: OrderLifecycleDetail) throws {
@@ -109,7 +113,11 @@ public struct OrderLifecycleReservation: Codable, Equatable {
         var rows = try records()
         guard let index = rows.firstIndex(of: record) else { throw APIError.invalidRequest }
         rows[index].paymentObservedPaid = true
+        #if os(iOS)
+        try JSONEncoder().encode(rows).write(to: url, options: [.atomic, .completeFileProtection])
+        #else
         try JSONEncoder().encode(rows).write(to: url, options: .atomic)
+        #endif
         guard try records()[index].paymentObservedPaid == true else { throw APIError.malformedResponse }
     }
 }

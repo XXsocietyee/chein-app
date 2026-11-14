@@ -181,6 +181,7 @@ import SwiftUI
                 }
             }
             .accessibilityIdentifier("ticketWallet.list")
+            .appSwitcherPrivacyShield()
             }
         }
     }

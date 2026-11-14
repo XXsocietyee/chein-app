@@ -68,7 +68,11 @@ public struct DoorReferralJournal: Codable, Equatable {
         return try JSONDecoder().decode(DoorReferralJournal.self, from: Data(contentsOf: url))
     }
     public func save(_ value: DoorReferralJournal) throws {
+        #if os(iOS)
+        try JSONEncoder().encode(value).write(to: url, options: [.atomic, .completeFileProtection])
+        #else
         try JSONEncoder().encode(value).write(to: url, options: .atomic)
+        #endif
     }
 }
 

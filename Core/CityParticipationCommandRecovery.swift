@@ -65,7 +65,11 @@ import FoundationNetworking
     }
     private func write(_ bytes: Data, to url: URL) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        #if os(iOS)
+        try bytes.write(to: url, options: [.atomic, .completeFileProtection])
+        #else
         try bytes.write(to: url, options: .atomic)
+        #endif
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
         guard try Data(contentsOf: url) == bytes else { throw CityParticipationCommandFailure.storage }
     }

@@ -27,7 +27,14 @@ public struct MerchantExportRecoveryRecord: Codable, Equatable {
     }
     public func remove(_ record: MerchantExportRecoveryRecord) throws { try write(read().filter { $0 != record }) }
     private func write(_ records: [MerchantExportRecoveryRecord]) throws {
-        do { try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true); try JSONEncoder().encode(records).write(to: url, options: .atomic) }
+        do {
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            #if os(iOS)
+            try JSONEncoder().encode(records).write(to: url, options: [.atomic, .completeFileProtection])
+            #else
+            try JSONEncoder().encode(records).write(to: url, options: .atomic)
+            #endif
+        }
         catch { throw MerchantBusinessFailure.journal }
     }
 }

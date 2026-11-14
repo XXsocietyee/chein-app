@@ -350,6 +350,76 @@ import CryptoKit
         XCTAssertEqual(gate.phase, .externalGameReviewed)
         XCTAssertEqual(gate.externalGameServerStatus, "REJECTED")
     }
+
+    func testStrictCSPRemovesAttackerMetaAndEntryVerifiesIntegrityAndPinning() throws {
+        let htmlWithPermissiveCSP = """
+        <HTML><HEAD><META HTTP-EQUIV='Content-Security-Policy' CONTENT="script-src 'unsafe-inline' *"></HEAD><body>hi</body></HTML>
+        """
+        let files = ["index.html": Data(htmlWithPermissiveCSP.utf8)]
+        let sha = ExternalGameValidator.computePackageSHA256(files)
+        var manifest = ExternalGameManifest(
+            id: "rpg.csp.hardening",
+            name: "CSP Hardening",
+            version: "1.0.0",
+            entry: "index.html",
+            sha256: sha,
+            signature: ""
+        )
+        let sig = signer.signPayload(ExternalGameValidator.canonicalSigningPayload(for: manifest))
+        manifest = ExternalGameManifest(
+            id: manifest.id, name: manifest.name, version: manifest.version,
+            entry: manifest.entry, sha256: manifest.sha256, signature: sig
+        )
+        let (store, tempDir) = makeTempStore()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        _ = try store.prepareImport(archive: ExternalGamePackageArchive(manifest: manifest, files: files), source: .file(URL(fileURLWithPath: "/tmp/csp.json")))
+        let installed = try store.confirmInstall()
+        let entryURL = try XCTUnwrap(store.entryFileURL(for: installed))
+        let writtenHTML = try String(contentsOf: entryURL, encoding: .utf8)
+        XCTAssertFalse(writtenHTML.contains("unsafe-inline' *"))
+        XCTAssertTrue(writtenHTML.hasPrefix("<meta http-equiv=\"Content-Security-Policy\" content=\""))
+
+        // Tampering with the installed HTML must fail closed before load
+        try Data("<script>evil()</script>".utf8).write(to: entryURL)
+        XCTAssertNil(store.entryFileURL(for: installed))
+
+        // Unpinned empty key must fail closed even on unmodified store
+        let unpinnedStore = ExternalGameStore(rootDirectory: tempDir, verificationPublicKey: Data())
+        XCTAssertNil(unpinnedStore.entryFileURL(for: installed))
+    }
+
+    func testBridgeRejectsUnexpectedArgsBadStorageKeysBadHapticAndTotalQuota() throws {
+        let archive = sample(id: "rpg.bridge.hardening", permissions: ["storage", "haptics"])
+        var progress: [String: String] = [:]
+
+        let metaWithArgs = try JSONEncoder().encode(ExternalGameBridgeRequest(apiVersion: "1.0", action: "getMetadata", payload: ["extra": "1"]))
+        XCTAssertEqual(ExternalGameBridgeHandler.handle(rawJSON: metaWithArgs, manifest: archive.manifest, progressStore: &progress).error, "INVALID_ARGUMENTS")
+
+        let badKey = try JSONEncoder().encode(ExternalGameBridgeRequest(apiVersion: "1.0", action: "saveProgress", payload: ["bad/key": "1"]))
+        XCTAssertEqual(ExternalGameBridgeHandler.handle(rawJSON: badKey, manifest: archive.manifest, progressStore: &progress).error, "STORAGE_QUOTA_EXCEEDED")
+
+        let badHaptic = try JSONEncoder().encode(ExternalGameBridgeRequest(apiVersion: "1.0", action: "haptic", payload: ["style": "arbitrary"]))
+        XCTAssertEqual(ExternalGameBridgeHandler.handle(rawJSON: badHaptic, manifest: archive.manifest, progressStore: &progress).error, "INVALID_ARGUMENTS")
+
+        let okHaptic = try JSONEncoder().encode(ExternalGameBridgeRequest(apiVersion: "1.0", action: "haptic", payload: ["style": "light"]))
+        XCTAssertTrue(ExternalGameBridgeHandler.handle(rawJSON: okHaptic, manifest: archive.manifest, progressStore: &progress).ok)
+
+        // Filling beyond 64 total entries across multiple calls hits STORAGE_QUOTA_EXCEEDED
+        var batch1: [String: String] = [:]
+        var batch2: [String: String] = [:]
+        for i in 0..<32 { batch1["k\(i)"] = "v"; batch2["m\(i)"] = "v" }
+        XCTAssertTrue(ExternalGameBridgeHandler.handle(
+            rawJSON: try JSONEncoder().encode(ExternalGameBridgeRequest(apiVersion: "1.0", action: "saveProgress", payload: batch1)),
+            manifest: archive.manifest, progressStore: &progress
+        ).ok)
+        XCTAssertTrue(ExternalGameBridgeHandler.handle(
+            rawJSON: try JSONEncoder().encode(ExternalGameBridgeRequest(apiVersion: "1.0", action: "saveProgress", payload: batch2)),
+            manifest: archive.manifest, progressStore: &progress
+        ).ok)
+        let extra = try JSONEncoder().encode(ExternalGameBridgeRequest(apiVersion: "1.0", action: "saveProgress", payload: ["overflow": "1"]))
+        XCTAssertEqual(ExternalGameBridgeHandler.handle(rawJSON: extra, manifest: archive.manifest, progressStore: &progress).error, "STORAGE_QUOTA_EXCEEDED")
+    }
 }
 
 final class ExternalGameFixtureSigner {

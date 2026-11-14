@@ -91,7 +91,11 @@ public final class FileClientOperationIDStore: ClientOperationIDStore {
     }
     private func persist() throws {
         let data = try JSONEncoder().encode(entries)
+        #if os(iOS)
+        try data.write(to: fileURL, options: [.atomic, .completeFileProtection])
+        #else
         try data.write(to: fileURL, options: .atomic)
+        #endif
     }
     public func operationID(subject: String, object: String, body: Data) throws -> ClientOperationID {
         guard ClientOperationID.isValid(subject) else { throw ClientOperationIDError.blankSubject }

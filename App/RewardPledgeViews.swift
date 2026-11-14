@@ -210,7 +210,13 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
         }
         let data = try JSONEncoder().encode(memory)
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        do { try data.write(to: url, options: .atomic) } catch { throw RewardPledgeFailure.closed("journal") }
+        do {
+            #if os(iOS)
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            #else
+            try data.write(to: url, options: .atomic)
+            #endif
+        } catch { throw RewardPledgeFailure.closed("journal") }
     }
 
     /// An empty requested store restores the one store recorded for this account. Two stores stay closed.

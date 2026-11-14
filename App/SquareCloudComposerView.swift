@@ -614,8 +614,47 @@ enum SquareCloudDraftDisk {
         var phase: String
     }
 
+    private static func storageDirectory() -> URL? {
+        guard let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        return root.appendingPathComponent("SquareCloudDrafts-v1", isDirectory: true)
+    }
+
+    private static func fileURL(for key: String) -> URL? {
+        guard let dir = storageDirectory() else { return nil }
+        let hex = key.utf8.map { String(format: "%02x", $0) }.joined()
+        return dir.appendingPathComponent(hex + ".json", isDirectory: false)
+    }
+
+    private static func writeProtected(_ data: Data, key: String) {
+        guard let url = fileURL(for: key), let dir = storageDirectory() else { return }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        var protectedDir = dir
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? protectedDir.setResourceValues(values)
+        #if os(iOS)
+        try? data.write(to: url, options: [.atomic, .completeFileProtection])
+        #else
+        try? data.write(to: url, options: .atomic)
+        #endif
+        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        UserDefaults.standard.removeObject(forKey: key)
+    }
+
+    private static func readProtected(key: String) -> Data? {
+        UserDefaults.standard.removeObject(forKey: key)
+        guard let url = fileURL(for: key), FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return try? Data(contentsOf: url)
+    }
+
+    private static func removeProtected(key: String) {
+        UserDefaults.standard.removeObject(forKey: key)
+        guard let url = fileURL(for: key), FileManager.default.fileExists(atPath: url.path) else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
     static func load(topicID: String) -> SquareComposeDraftEnvelope? {
-        guard let data = UserDefaults.standard.data(forKey: draftKey(topicID)),
+        guard let data = readProtected(key: draftKey(topicID)),
               let envelope = try? JSONDecoder().decode(Envelope.self, from: data) else { return nil }
         return SquareComposeDraftEnvelope(memberID: envelope.memberID, savedAt: envelope.savedAt, contents: envelope.contents)
     }
@@ -623,14 +662,12 @@ enum SquareCloudDraftDisk {
     static func save(topicID: String, memberID: String, contents: String) {
         let envelope = Envelope(memberID: memberID, savedAt: Date(), contents: contents)
         guard let data = try? JSONEncoder().encode(envelope) else { return }
-        let key = draftKey(topicID)
-        UserDefaults.standard.set(data, forKey: key)
+        writeProtected(data, key: draftKey(topicID))
     }
 
     /// True only when a following read no longer returns this member's draft.
     static func remove(topicID: String, memberID: String) -> Bool {
-        let key = draftKey(topicID)
-        UserDefaults.standard.removeObject(forKey: key)
+        removeProtected(key: draftKey(topicID))
         guard let left = load(topicID: topicID) else { return true }
         return left.memberID != memberID
     }
@@ -645,11 +682,11 @@ enum SquareCloudDraftDisk {
         case .idle: name = "idle"
         }
         guard let data = try? JSONEncoder().encode(Pending(requestID: requestID, phase: name)) else { return }
-        UserDefaults.standard.set(data, forKey: pendingKey(memberID))
+        writeProtected(data, key: pendingKey(memberID))
     }
 
     static func pending(memberID: String) -> (requestID: String, phase: SquareComposeLock.Phase)? {
-        guard let data = UserDefaults.standard.data(forKey: pendingKey(memberID)),
+        guard let data = readProtected(key: pendingKey(memberID)),
               let pending = try? JSONDecoder().decode(Pending.self, from: data) else { return nil }
         let phase: SquareComposeLock.Phase
         switch pending.phase {
@@ -663,7 +700,7 @@ enum SquareCloudDraftDisk {
     }
 
     static func clearPending(memberID: String) {
-        UserDefaults.standard.removeObject(forKey: pendingKey(memberID))
+        removeProtected(key: pendingKey(memberID))
     }
 
     private static func draftKey(_ topicID: String) -> String { "pro_editor_draft_topic_" + topicID }
