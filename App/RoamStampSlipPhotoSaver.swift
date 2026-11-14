@@ -71,6 +71,10 @@ struct RoamStampSlipSaveRow: View {
     let pictureURL: String?
     @StateObject private var saver = RoamStampSlipPhotoSaver()
     @Environment(\.openURL) private var openURL
+    @Environment(\.locale) private var locale
+    @State private var showingPermissionModal = false
+    @State private var toastMessage: String?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Button {
@@ -86,11 +90,37 @@ struct RoamStampSlipSaveRow: View {
             }
             if saver.phase == .permissionDenied {
                 Button("roam.share.openPhotoSettings") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    showingPermissionModal = true
                 }
                 .accessibilityLabel(Text("roam.share.openPhotoSettings"))
                 .accessibilityValue(Text("roam.share.photoPermissionDenied"))
                 .accessibilityHint(Text("roam.share.openPhotoSettings"))
+            }
+        }
+        .cyModalOverlay(isPresented: $showingPermissionModal) {
+            PlayPhotoAlbumPermissionModal(
+                onOpenSettings: {
+                    showingPermissionModal = false
+                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                },
+                onBack: { showingPermissionModal = false }
+            )
+        }
+        .cyToast(verbatimMessage: $toastMessage)
+        .onChange(of: saver.phase) { _, next in
+            switch next {
+            case .permissionDenied:
+                showingPermissionModal = true
+            case .saved:
+                toastMessage = PlayCloseCopy.text("已保存到相册", "Saved to Photos", locale: locale)
+            case .needsTear:
+                toastMessage = PlayCloseCopy.text("撕开邮票后可保存纪念图", "Tear the stamp first to save the image", locale: locale)
+            case .noPicture:
+                toastMessage = PlayCloseCopy.text("本枚邮票暂无图片可保存", "This stamp has no image to save", locale: locale)
+            case .failed, .unavailable, .restricted:
+                toastMessage = PlayCloseCopy.text("保存失败，请重试", "Could not save photo. Try again.", locale: locale)
+            case .idle, .saving:
+                break
             }
         }
         .onDisappear { saver.cancel() }

@@ -53,12 +53,19 @@ import SwiftUI
             } else { Text("playkit.compare.invalid") }
         }
         .onAppear { if selection.revision == nil, let question { selection.restore(question, revision: revision) } }
-        .confirmationDialog("playkit.compare.reloadQuestion", isPresented: $resetSelection, titleVisibility: .visible) {
-            Button("playkit.compare.reload", role: .destructive) {
+        .cyModalConfirm(
+            isPresented: resetSelection,
+            title: appLocalized("playkit.compare.reloadQuestion", locale: .current),
+            cancelTitle: appLocalized("playkit.cancel", locale: .current),
+            confirmTitle: appLocalized("playkit.compare.reload", locale: .current),
+            isDestructive: true,
+            confirmIdentifier: "playkit.compare.reload.confirm",
+            onCancel: { resetSelection = false },
+            onConfirm: {
+                resetSelection = false
                 if let question { selection.restore(question, revision: revision); issue = nil }
-            }.accessibilityIdentifier("playkit.compare.reload.confirm")
-            Button("playkit.cancel", role: .cancel) {}
-        }
+            }
+        )
     }
     @ViewBuilder private func timelines(_ question: PlayCompareQuestion, horizontal: Bool) -> some View {
         if horizontal {

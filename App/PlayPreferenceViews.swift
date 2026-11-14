@@ -4,11 +4,13 @@ import SwiftUI
     @Bindable var model: PlayPreferenceCoordinator
     var onFinished: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var useExisting = true
     @State private var selectedTagID = 0
     @State private var review: PlayPreferenceReview?
     @State private var confirm = false
     @State private var tagConfirm = false
+    @State private var tagSheetShow = false
     @State private var correctedValue = ""
     @State private var error: PlayExperienceError?
     /// Mini-program shows one calibration question at a time; a server tiebreak jumps to the new last step.
@@ -51,6 +53,13 @@ import SwiftUI
                             }
                             Button("playx.preference.correctTag") { tagConfirm = true }
                                 .disabled(correctedValue.isEmpty || correctedValue == tag.value || model.phase != "completed" || !submission.canDiscloseTag)
+                            Button {
+                                tagSheetShow = true
+                            } label: {
+                                Text(verbatim: PlayCloseCopy.text("改成哪个结果", "Choose another outcome", locale))
+                            }
+                            .disabled(model.phase != "completed" || !submission.canDiscloseTag)
+                            .accessibilityIdentifier("playx.preference.tagSheetButton")
                         }
                     }
                 }
@@ -123,15 +132,52 @@ import SwiftUI
                 stepIndex = new > old && old > 0 ? new - 1 : min(stepIndex, max(0, new - 1))
                 pickFirst = false
             }
-            .confirmationDialog("playx.review", isPresented: $confirm, titleVisibility: .visible) {
-                Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil; useExisting = false } } }
-                Button("playx.cancel", role: .cancel) { model.cancelReview(); review = nil }
-            } message: { Text(LocalizedStringKey(review?.reusedTagCode == nil ? "playx.preference.submitNotice" : "playx.preference.reuseNotice")) }
-            .confirmationDialog("playx.preference.tag", isPresented: $tagConfirm, titleVisibility: .visible) {
-                Button("playx.submit") { Task { await model.writeTag(correctedValue: correctedValue.isEmpty ? nil : correctedValue) } }
-            } message: {
-                if let disclosure = model.submission?.disclosure,
-                   let recipient = disclosure["recipientLabel"].text, let purpose = disclosure["purpose"].text { Text(verbatim: recipient + "\n" + purpose) }
+            .cyModalConfirm(
+                isPresented: confirm,
+                title: appLocalized("playx.review", locale: locale),
+                message: appLocalized(String.LocalizationValue(stringLiteral: review?.reusedTagCode == nil ? "playx.preference.submitNotice" : "playx.preference.reuseNotice"), locale: locale),
+                cancelTitle: appLocalized("playx.cancel", locale: locale),
+                confirmTitle: appLocalized("playx.submit", locale: locale),
+                onCancel: { confirm = false; model.cancelReview(); review = nil },
+                onConfirm: {
+                    confirm = false
+                    if let review { Task { await model.submit(review); self.review = nil; useExisting = false } }
+                }
+            )
+            .cyModalConfirm(
+                isPresented: tagConfirm,
+                title: appLocalized("playx.preference.tag", locale: locale),
+                message: {
+                    if let disclosure = model.submission?.disclosure,
+                       let recipient = disclosure["recipientLabel"].text, let purpose = disclosure["purpose"].text {
+                        return recipient + "\n" + purpose
+                    }
+                    return nil
+                }(),
+                cancelTitle: appLocalized("playx.cancel", locale: locale),
+                confirmTitle: appLocalized("playx.submit", locale: locale),
+                onCancel: { tagConfirm = false },
+                onConfirm: {
+                    tagConfirm = false
+                    Task { await model.writeTag(correctedValue: correctedValue.isEmpty ? nil : correctedValue) }
+                }
+            )
+            .sheet(isPresented: $tagSheetShow) {
+                CYOptionSheet(
+                    title: PlayCloseCopy.text("改成哪个结果", "Select outcome tag", locale),
+                    items: (model.submission?.availableTagValues ?? []).map {
+                        CYOptionSheetItem(id: $0, title: $0)
+                    },
+                    selectedID: correctedValue.isEmpty ? nil : correctedValue,
+                    closeIdentifier: "playx.preference.tagSheet.close",
+                    onSelect: { value in
+                        correctedValue = value
+                        tagSheetShow = false
+                        tagConfirm = true
+                    },
+                    onClose: { tagSheetShow = false }
+                )
+                .cyDomainSheet(detents: [.half])
             }
             .onDisappear { model.cancelReview(); review = nil; onFinished() }
     }
@@ -176,14 +222,21 @@ import SwiftUI
         .onChange(of: model.phase) { _, phase in
             if phase != "ready" { confirm = false; presentation.cancelRevocation() }
         }
-        .confirmationDialog("playx.os.revoke", isPresented: $confirm, titleVisibility: .visible) {
-            if let review = presentation.review {
-                Button("playx.os.revoke", role: .destructive) {
+        .cyModalConfirm(
+            isPresented: confirm,
+            title: appLocalized("playx.os.revoke", locale: .current),
+            message: appLocalized("playx.os.revokeNotice", locale: .current),
+            cancelTitle: appLocalized("playx.cancel", locale: .current),
+            confirmTitle: appLocalized("playx.os.revoke", locale: .current),
+            isDestructive: true,
+            onCancel: { confirm = false; presentation.cancelRevocation() },
+            onConfirm: {
+                confirm = false
+                if let review = presentation.review {
                     Task { await presentation.revoke(review, model: model, current: sourceIsCurrent) }
                 }
             }
-            Button("playx.cancel", role: .cancel) { presentation.cancelRevocation() }
-        } message: { Text("playx.os.revokeNotice") }
+        )
     }
     private var currentContent: some View {
         List {

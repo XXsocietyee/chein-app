@@ -63,6 +63,7 @@ private struct CreatorContentIssueView: View {
     /// Nil while my-project writes are gated; then no row offers a write.
     @State private var mutation: MyProjectMutationModel?
     @State private var query = CreatorContentQuery(type: "topic")
+    @State private var toastMessage: String?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.myProjectTemplateShelf) private var templateShelf
@@ -134,6 +135,7 @@ private struct CreatorContentIssueView: View {
             guard let request, request.readerScope == reader.scope, reader.isAuthenticated else { return }
             Task { await refresh() }
         }
+        .cyToast(verbatimMessage: $toastMessage)
     }
     private var typeTabs: some View {
         HStack(spacing: 0) {

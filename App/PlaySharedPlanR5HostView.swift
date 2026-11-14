@@ -53,10 +53,18 @@ import SwiftUI
         }.cyGroupedSurface()
         .navigationTitle("原题组")
         .task { await host.load() }
-        .confirmationDialog("开始当前原题组？", isPresented: $startConfirmation, titleVisibility: .visible) {
-            Button("确认开始") { Task { await host.startConfirmed() } }.disabled(!host.canStart)
-            Button("取消", role: .cancel) {}
-        } message: { Text("只使用当前方案的真实节点与场次。启动响应丢失时会保留原记录，不自动重做。") }
+        .cyModalConfirm(
+            isPresented: startConfirmation,
+            title: "开始当前原题组？",
+            message: "只使用当前方案的真实节点与场次。启动响应丢失时会保留原记录，不自动重做。",
+            cancelTitle: "取消",
+            confirmTitle: "确认开始",
+            onCancel: { startConfirmation = false },
+            onConfirm: {
+                startConfirmation = false
+                Task { await host.startConfirmed() }
+            }
+        )
     }
 }
 
@@ -93,9 +101,16 @@ import SwiftUI
             )
             if model.busy { ProgressView() }
         }
-        .confirmationDialog("确认原检定动作", isPresented: $actionConfirmation, titleVisibility: .visible) {
-            if let offered {
-                Button("确认" + title(offered.action)) {
+        .cyModalConfirm(
+            isPresented: actionConfirmation,
+            title: "确认原检定动作",
+            message: "使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。",
+            cancelTitle: "取消",
+            confirmTitle: offered.map { "确认" + title($0.action) } ?? "确认",
+            onCancel: { actionConfirmation = false; offered = nil },
+            onConfirm: {
+                actionConfirmation = false
+                if let offered {
                     Task {
                         await SessionOfflineSyncModel.shared.performWriteOptIn(
                             environmentSession: offlineWriteSession.session,
@@ -107,10 +122,16 @@ import SwiftUI
                     }
                 }
             }
-            Button("取消", role: .cancel) { offered = nil }
-        } message: { Text("使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。") }
-        .confirmationDialog("重试同一原请求？", isPresented: $retryConfirmation, titleVisibility: .visible) {
-            Button("确认原请求重试") {
+        )
+        .cyModalConfirm(
+            isPresented: retryConfirmation,
+            title: "重试同一原请求？",
+            message: "只重放已保存的原请求与原编号，不创建新的检定。",
+            cancelTitle: "取消",
+            confirmTitle: "确认原请求重试",
+            onCancel: { retryConfirmation = false },
+            onConfirm: {
+                retryConfirmation = false
                 Task {
                     await SessionOfflineSyncModel.shared.performWriteOptIn(
                         environmentSession: offlineWriteSession.session,
@@ -120,8 +141,7 @@ import SwiftUI
                     }
                 }
             }
-            Button("取消", role: .cancel) {}
-        } message: { Text("只重放已保存的原请求与原编号，不创建新的检定。") }
+        )
     }
     private func title(_ action: String) -> String {
         switch action { case "ROLL_CHECK": return "投掷"; case "REROLL_CHECK": return "重掷"; default: return "提交检定" }

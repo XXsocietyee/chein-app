@@ -163,9 +163,13 @@ import SwiftUI
                 }.cyGroupedSurface().modifier(SharedPlanFormAppearance()).navigationTitle("核对原动作").interactiveDismissDisabled(model.busy)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { offered = nil } } }
             }
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.play)
         }
         .sheet(item: $shownOperation, onDismiss: { Task { await model.closeOperation() } }) { ticket in
             PlaySharedPlanOperationSurface(model: model, ticket: ticket, makeDestination: operationDestination)
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.play)
         }
     }
     private func enabled(_ action: PlaySharedPlanAction, _ p: PlaySharedPlanProjection, _ row: PlaySharedPlanRow? = nil) -> Bool { model.canInteract && model.writesEnabled && p.allows(action, row: row) }

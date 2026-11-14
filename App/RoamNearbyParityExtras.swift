@@ -103,6 +103,9 @@ struct RoamPlaceExtrasSection: View {
     @State private var copiedNotice: String?
     @State private var myStars = 0
     @State private var myText = ""
+    @State private var showingReviewSheet = false
+    @State private var confirmPublishReview = false
+    @State private var toastMessage: String?
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
@@ -111,7 +114,14 @@ struct RoamPlaceExtrasSection: View {
             infoRows
             if !extras.quotes.isEmpty { quotes }
             reviews
-            if extras.game?.completed == true && !extras.reviewed { compose }
+            if extras.game?.completed == true && !extras.reviewed {
+                Button {
+                    showingReviewSheet = true
+                } label: {
+                    Text(verbatim: c.t("评价据点", "Review this place"))
+                }
+                .accessibilityIdentifier("roam.place.reviewSheetOpen")
+            }
             if let credit = extras.photoCredit, !credit.isEmpty { creditRow(credit) }
             if let copiedNotice {
                 Text(verbatim: copiedNotice).font(CYTypography.meta).foregroundStyle(CYColor.successText)
@@ -119,6 +129,33 @@ struct RoamPlaceExtrasSection: View {
             }
         }
         .accessibilityIdentifier("roam.place.extras")
+        .sheet(isPresented: $showingReviewSheet) {
+            PlayCloseSheetHost(
+                title: c.t("评价据点", "Review Place"),
+                detents: [.half],
+                onClose: { showingReviewSheet = false }
+            ) {
+                compose
+                    .padding(CYSpacing.pageHorizontal)
+                    .padding(.bottom, CYSpacing.lg)
+            }
+        }
+        .cyModalOverlay(isPresented: confirmPublishReview) {
+            CYModal(
+                title: c.t("确认发布评价？", "Publish review?"),
+                message: c.t("发布后可在据点页展示或再调整。", "Your review will be published on this place."),
+                cancelTitle: c.t("取消", "Cancel"),
+                confirmTitle: c.t("发布", "Publish"),
+                onCancel: { confirmPublishReview = false },
+                onConfirm: {
+                    confirmPublishReview = false
+                    showingReviewSheet = false
+                    onPublish(myStars, myText.trimmingCharacters(in: .whitespacesAndNewlines))
+                    toastMessage = c.t("已提交评价", "Review submitted")
+                }
+            )
+        }
+        .cyToast(verbatimMessage: $toastMessage)
     }
 
     private func gameCard(_ game: RoamPlaceGame) -> some View {
@@ -247,7 +284,7 @@ struct RoamPlaceExtrasSection: View {
                 .accessibilityIdentifier("roam.place.reviewText")
             if let error = extras.reviewError { Text(verbatim: error).font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
             CYPillButton(verbatim: extras.reviewBusy ? c.t("发布中…", "Publishing…") : c.t("发布评价", "Publish review"), style: .secondary) {
-                onPublish(myStars, myText.trimmingCharacters(in: .whitespacesAndNewlines))
+                confirmPublishReview = true
             }
             .disabled(extras.reviewBusy || myStars == 0 || myText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityIdentifier("roam.place.reviewPublish")

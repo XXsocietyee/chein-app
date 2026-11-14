@@ -46,7 +46,7 @@ class PlayDirectorPrefabSourceChecks(unittest.TestCase):
     def test_director_editor_uses_actual_source_reason_codes(self):
         text=self.read('App/PlayDirectorView.swift')
         for code in ['ONSITE','ONSITE_REJECT']:self.assertIn('"'+code+'"',text)
-        self.assertIn('projection.allows(command)',text);self.assertIn('confirmationDialog',text)
+        self.assertIn('projection.allows(command)',text);self.assertIn('CYModal',text)
     def test_director_reason_codes_external_flutter_parity(self):
         source=read_flutter_source(self, 'feature/club/club_director_controller.dart')
         for code in ['ONSITE','ONSITE_REJECT']:self.assertIn("'"+code+"'",source)

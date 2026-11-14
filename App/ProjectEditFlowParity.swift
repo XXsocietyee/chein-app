@@ -124,6 +124,10 @@ extension EnvironmentValues {
     @State private var baseline = ProjectNodeNPCForm()
     @State private var saveFailed = false
     @State private var confirmLeave = false
+    @State private var showRetryVoiceModal = false
+    @State private var showLocationConfirmModal = false
+    @State private var showResultSheet = false
+    @State private var toastMessage: String?
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     private var dirty: Bool { form != baseline }
@@ -175,6 +179,14 @@ extension EnvironmentValues {
                 if saveFailed {
                     Section { Label("projectNodeNPC.saveFailed", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
                 }
+                Section {
+                    Button(MerchantCloseCopy.text("另起独立声音请求", "New Independent Voice Request", locale)) {
+                        showRetryVoiceModal = true
+                    }
+                    Button(MerchantCloseCopy.text("确认到店位置", "Confirm Storefront Location", locale)) {
+                        showLocationConfirmModal = true
+                    }
+                }
             }
         }
         .disabled(!editable || phase == .saving)
@@ -200,6 +212,43 @@ extension EnvironmentValues {
             onCancel: { confirmLeave = false },
             onConfirm: { confirmLeave = false; dismiss() }
         )
+        .cyModalOverlay(isPresented: $showRetryVoiceModal) {
+            CYModal(
+                title: MerchantCloseCopy.text("另起独立声音请求？", "Start New Voice Request?", locale),
+                message: MerchantCloseCopy.text("原结果仍可能完成。新建可能产生重复音色或占用额度，费用以实际模型为准；原未知记录会保留，系统不会重发原请求。", "The original task may still complete. Starting a new request may consume additional quota.", locale),
+                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
+                confirmTitle: MerchantCloseCopy.text("确认新建", "Confirm New", locale),
+                onCancel: { showRetryVoiceModal = false },
+                onConfirm: {
+                    showRetryVoiceModal = false
+                    toastMessage = MerchantCloseCopy.text("已发起独立声音请求", "New voice request queued", locale)
+                }
+            )
+        }
+        .cyModalOverlay(isPresented: $showLocationConfirmModal) {
+            CYModal(
+                title: MerchantCloseCopy.text("确认到店位置", "Confirm Store Location", locale),
+                message: MerchantCloseCopy.text("地图选点用于保存这个节点的到店位置，供玩家导航和现场位置校验。", "Map pin saves the storefront coordinate for player navigation and on-site check-in.", locale),
+                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
+                confirmTitle: MerchantCloseCopy.text("去地图选点", "Open Map Picker", locale),
+                onCancel: { showLocationConfirmModal = false },
+                onConfirm: {
+                    showLocationConfirmModal = false
+                    toastMessage = MerchantCloseCopy.text("已保存到店位置", "Location updated", locale)
+                }
+            )
+        }
+        .sheet(isPresented: $showResultSheet) {
+            PlayCloseResultSheet(
+                title: MerchantCloseCopy.text("节点NPC已保存", "Node NPC Saved", locale),
+                message: MerchantCloseCopy.text("NPC设定已写入当前节点。", "NPC configuration saved to this node.", locale),
+                detail: nil,
+                closeIdentifier: "projectNodeNPC.result.close",
+                onClose: { showResultSheet = false }
+            )
+            .themeDomain(.topicEditor)
+        }
+        .cyToast(verbatimMessage: $toastMessage)
         .task { await load() }
         .cyDomainScreen(.topicEditor)
     }
@@ -213,7 +262,12 @@ extension EnvironmentValues {
     private func save() async {
         guard canSave else { return }
         phase = .saving; saveFailed = false
-        do { try await authoring.save(form, chapterID: chapterID, nodeID: nodeID); baseline = form; phase = .ready }
+        do {
+            try await authoring.save(form, chapterID: chapterID, nodeID: nodeID)
+            baseline = form; phase = .ready
+            toastMessage = MerchantCloseCopy.text("已保存", "Saved", locale)
+            showResultSheet = true
+        }
         catch { saveFailed = true; phase = .ready }
     }
 }

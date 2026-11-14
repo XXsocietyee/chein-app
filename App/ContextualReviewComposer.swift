@@ -48,10 +48,15 @@ import SwiftUI
             ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }
         }
         .interactiveDismissDisabled(busy || draft != ContextualReviewDraft())
-        .confirmationDialog("context.review.discard", isPresented: $confirmDiscard) {
-            Button("context.review.discard", role: .destructive) { draft = .init(); dismiss() }
-            Button("action.cancel", role: .cancel) { }
-        }
+        .cyModalConfirm(
+            isPresented: confirmDiscard,
+            title: appLocalized("context.review.discard", locale: .current),
+            cancelTitle: appLocalized("action.cancel", locale: .current),
+            confirmTitle: appLocalized("context.review.discard", locale: .current),
+            isDestructive: true,
+            onCancel: { confirmDiscard = false },
+            onConfirm: { confirmDiscard = false; draft = .init(); dismiss() }
+        )
         .sheet(isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
             NavigationStack {
                 Form {
@@ -67,6 +72,7 @@ import SwiftUI
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { review = nil; captured = nil }.disabled(busy) } }
             }.interactiveDismissDisabled(busy)
             .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
         }
         .cyDomainScreen(.player)
         .onChange(of: owner?.writer.session) { _, _ in draft = .init(); review = nil; captured = nil; busy = false; revision += 1 }

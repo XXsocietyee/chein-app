@@ -26,6 +26,8 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @State private var showIntroSheet = false
+    @State private var toastMessage: String?
     init(coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext? = nil, authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil) {
         _model = StateObject(wrappedValue: .init(coordinator, reform: reform, authorFlow: authorFlow))
     }
@@ -71,6 +73,19 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.merchant)
             }
+            .sheet(isPresented: $showIntroSheet) {
+                MerchantCloseSheetHost(
+                    title: MerchantCloseCopy.text("AI 店铺角色介绍", "AI Store Character", locale),
+                    closeIdentifier: "aiNPC.intro.close",
+                    onClose: { showIntroSheet = false }
+                ) {
+                    Text(MerchantCloseCopy.text("设置门店专属 NPC 的形象、人设与开场音色，供到店玩家互动。", "Customize store NPC avatar, persona, and voice for arriving players.", locale))
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .padding(.vertical, CYSpacing.sm)
+                }
+            }
+            .cyToast(verbatimMessage: $toastMessage)
             .cyModalConfirm(
                 isPresented: discardPresented.wrappedValue,
                 title: String(localized: LocalizedStringResource("storeCharacter.discard.title", table: "StoreCharacter", locale: locale)),
@@ -486,7 +501,8 @@ private struct StoreCharacterFieldSheet: View {
             }
         }
         .interactiveDismissDisabled(c.saving || c.field.map { $0.value != $0.initial } == true)
-        .presentationDetents(c.field?.field.multiline == true ? Set<PresentationDetent>([.large]) : Set<PresentationDetent>([.medium]))
+        .cyDomainSheet(detents: c.field?.field.multiline == true ? [.full] : [.half])
+        .themeDomain(.merchant)
     }
     private func label(_ field: StoreCharacterField) -> Text {
         switch field {

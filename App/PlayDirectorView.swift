@@ -3,7 +3,15 @@ import UIKit
 
 @MainActor struct PlayDirectorView: View {
     @Bindable var model: PlayDirectorCoordinator
+    @Environment(\.locale) private var locale
+    @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var editor: PlayDirectorAction?
+    @State private var showingPlanFallbackSheet = false
+    @State private var planFallbackReason = ""
+    @State private var planFallbackStatus: PlayPlanFallbackStatus?
+    @State private var showingPlanFallbackConfirm = false
+    @State private var planFallbackBusy = false
+    @State private var toastMessage: String?
     var body: some View {
         List {
             Section {
@@ -36,6 +44,18 @@ import UIKit
                             .disabled(model.phase != "ready" || (action == .start && !projection.canStart))
                             .accessibilityIdentifier("playx.director.action.\(action.rawValue)")
                     }
+                    Button {
+                        showingPlanFallbackSheet = true
+                        Task {
+                            if let load = popupCloseActions.loadPlanFallback {
+                                planFallbackStatus = await load(projection.activityID, projection.revision)
+                            }
+                        }
+                    } label: {
+                        Text(verbatim: PlayCloseCopy.text("默认结局收尾（Plan Fallback）", "Default ending fallback", locale))
+                    }
+                    .disabled(model.phase != "ready")
+                    .accessibilityIdentifier("playx.director.action.planFallback")
                 }
                 Section("playx.director.stations") {
                     ForEach(Array(projection.stations.enumerated()), id: \.offset) { _, station in
@@ -102,8 +122,75 @@ import UIKit
             .sheet(item: $editor) { action in
                 if let projection = model.projection {
                     NavigationStack { PlayDirectorCommandEditor(projection: projection, action: action) { command in editor = nil; Task { await model.submit(command) } } }
+                        .cyDomainSheet(detents: [.half, .full])
                 }
             }
+            .sheet(isPresented: $showingPlanFallbackSheet) {
+                if let projection = model.projection {
+                    PlayCloseSheetHost(
+                        title: PlayCloseCopy.text("默认结局收尾", "Default Ending Fallback", locale),
+                        detents: [.half],
+                        onClose: { showingPlanFallbackSheet = false }
+                    ) {
+                        VStack(alignment: .leading, spacing: CYSpacing.md) {
+                            if planFallbackStatus?.present == false {
+                                Text(verbatim: PlayCloseCopy.text("当前暂无待处理的 Plan Fallback", "No active Plan Fallback state.", locale))
+                                    .font(CYTypography.caption)
+                                    .foregroundStyle(CYColor.textSecondary)
+                            }
+                            CYField(
+                                label: PlayCloseCopy.text("收尾原因", "Fallback reason", locale),
+                                placeholder: PlayCloseCopy.text("说明默认结局收尾原因（最多 500 字）", "Reason (up to 500 chars)", locale),
+                                text: $planFallbackReason,
+                                maxLength: 500,
+                                multiline: true
+                            )
+                            Button {
+                                guard PlayPlanFallbackStatus.validatedReason(planFallbackReason) != nil else {
+                                    toastMessage = PlayCloseCopy.text("请填写 1–500 字收尾原因", "Enter 1–500 chars reason", locale)
+                                    return
+                                }
+                                showingPlanFallbackSheet = false
+                                showingPlanFallbackConfirm = true
+                            } label: {
+                                Text(verbatim: PlayCloseCopy.text("提交默认结局收尾", "Submit default wrap-up", locale))
+                            }
+                            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+                        }
+                        .padding(CYSpacing.pageHorizontal)
+                        .padding(.bottom, CYSpacing.lg)
+                    }
+                }
+            }
+            .cyModalOverlay(isPresented: showingPlanFallbackConfirm) {
+                if let projection = model.projection {
+                    PlayDirectorPlanFallbackConfirmModal(
+                        reason: planFallbackReason,
+                        busy: planFallbackBusy,
+                        onCancel: { showingPlanFallbackConfirm = false },
+                        onConfirm: {
+                            guard let submit = popupCloseActions.submitPlanFallback else {
+                                showingPlanFallbackConfirm = false
+                                toastMessage = PlayCloseCopy.text("当前账号暂无权执行默认收尾", "No permission to submit fallback", locale)
+                                return
+                            }
+                            planFallbackBusy = true
+                            Task {
+                                defer { planFallbackBusy = false; showingPlanFallbackConfirm = false }
+                                switch await submit(projection.activityID, projection.revision, planFallbackReason) {
+                                case .success:
+                                    planFallbackReason = ""
+                                    toastMessage = PlayCloseCopy.text("已确认默认结局收尾", "Default wrap-up submitted", locale)
+                                    await model.load()
+                                case .failure:
+                                    toastMessage = PlayCloseCopy.text("默认结局收尾未成功", "Default wrap-up failed", locale)
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+            .cyToast(verbatimMessage: $toastMessage)
         .cyDomainScreen(.game)
     }
 }
@@ -112,6 +199,7 @@ import UIKit
     let action: PlayDirectorAction
     let submit: (PlayDirectorCommand) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var teamID = 0
     @State private var memberID = 0
     @State private var sourceMemberID = 0
@@ -179,9 +267,29 @@ import UIKit
             }
         }.cyGroupedSurface().navigationTitle("playx.director.title")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
-            .confirmationDialog("playx.review", isPresented: $confirm, titleVisibility: .visible) {
-                Button("playx.submit") { if let draft { submit(draft) } }
-            } message: { Text(LocalizedStringKey(action == .finish ? "playx.director.finishNotice" : action == .broadcast ? "playx.director.broadcastNotice" : "playx.director.commandNotice")) }
+            .cyModalOverlay(isPresented: confirm) {
+                CYModal(
+                    title: PlayCloseCopy.text("确认指令", "Confirm command", locale),
+                    message: directorLocalized(noticeKey),
+                    cancelTitle: PlayCloseCopy.cancel(locale),
+                    confirmTitle: PlayCloseCopy.confirm(locale),
+                    onCancel: { confirm = false },
+                    onConfirm: {
+                        confirm = false
+                        if let draft { submit(draft) }
+                    }
+                )
+            }
+    }
+    private var noticeKey: StaticString {
+        switch action {
+        case .finish: return "playx.director.finishNotice"
+        case .broadcast: return "playx.director.broadcastNotice"
+        default: return "playx.director.commandNotice"
+        }
+    }
+    private func directorLocalized(_ key: StaticString) -> String {
+        String(localized: LocalizedStringResource(key, locale: locale))
     }
     private func idPicker(_ key: String, rows: [PlayWireValue], idKey: String, labelKeys: [String], selection: Binding<Int>) -> some View {
         Picker(LocalizedStringKey(key), selection: selection) {

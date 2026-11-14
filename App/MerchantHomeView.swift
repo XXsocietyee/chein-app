@@ -232,6 +232,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     @State private var quickRoute: MerchantWorkbenchBusinessRoute?
     @State private var showsScan = false
+    @State private var loginRequiredModal = false
+    @State private var verifyResultSheetTitle: String?
+    @State private var toastMessage: String?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var quickShortcuts: [MerchantWorkbenchBusinessShortcut] {
@@ -434,6 +437,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                 { AnyView(MerchantPerkTemplatesHost(reader: flowReader)) }
                             })
                             .id(operationsReader.scope)
+                            .modifier(MerchantOperationsPopupCompanionModifier())
                             .onDisappear(perform: onChildReturn)
                             .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
@@ -460,6 +464,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         })
                         .environment(\.merchantChapterReplacementContext, chapterReplacementContext(access: access))
                         .id(contentService.scope)
+                        .modifier(MerchantContentPopupCompanionModifier())
                         .onDisappear(perform: onChildReturn)
                         .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.content.title", systemImage: "map") }
@@ -555,6 +560,28 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     .cyPushedChrome(domain: .merchant)
             }
         }
+        .cyModalOverlay(isPresented: $loginRequiredModal) {
+            CYModal(
+                title: MerchantCloseCopy.text("请先登录", "Sign In Required", locale),
+                message: MerchantCloseCopy.text("请先登录商家账号后再查看门店数据或发起核销。", "Sign in with a merchant account before viewing store metrics or verifying codes.", locale),
+                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
+                confirmTitle: MerchantCloseCopy.text("知道了", "OK", locale),
+                onCancel: { loginRequiredModal = false },
+                onConfirm: { loginRequiredModal = false }
+            )
+        }
+        .sheet(isPresented: Binding(get: { verifyResultSheetTitle != nil }, set: { if !$0 { verifyResultSheetTitle = nil } })) {
+            if let verifyResultSheetTitle {
+                PlayCloseResultSheet(
+                    title: verifyResultSheetTitle,
+                    message: MerchantCloseCopy.text("已核验商家券码状态。", "Merchant coupon verification processed.", locale),
+                    detail: nil,
+                    closeIdentifier: cyAccessibilityID(id: "merchant.home.verifyResult.close"),
+                    onClose: { self.verifyResultSheetTitle = nil }
+                )
+            }
+        }
+        .cyToast(verbatimMessage: $toastMessage)
         .navigationDestination(for: MerchantWorkbenchBusinessRoute.self) { route in
             Group {
                 if let businessReader, let businessJournal,

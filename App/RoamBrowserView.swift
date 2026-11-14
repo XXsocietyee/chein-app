@@ -69,6 +69,8 @@ struct RoamBrowserView: View {
     @State private var retainedRead = RoamRetainedRead()
     @State private var toolbarRoute: RoamBrowserToolbarRoute?
     @State private var peekCount: Int?
+    @State private var confirmingUnsavedExit = false
+    @State private var roamToastMessage: String?
     /// Map-first layout: map fills the screen, the segmented tabs / search / lists live in the bottom sheet.
     /// DEBUG screenshots can start expanded with `--design-detent medium|large`; Release always starts collapsed.
     private static var initialDetent: CYPanelDetent {
@@ -241,8 +243,18 @@ struct RoamBrowserView: View {
             .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
             .sheet(item: $selected) { item in
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDetailDestination(for: item), playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
-                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
             }
+            .cyModalOverlay(isPresented: $confirmingUnsavedExit) {
+                PlayUnsavedEditModal(
+                    onKeepEditing: { confirmingUnsavedExit = false },
+                    onDiscard: {
+                        confirmingUnsavedExit = false
+                        selected = nil
+                    }
+                )
+            }
+            .cyToast(verbatimMessage: $roamToastMessage)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     overflowMenu { Label("roam.toolbar.more", systemImage: "ellipsis.circle") }

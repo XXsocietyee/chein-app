@@ -103,6 +103,7 @@ import SwiftUI
         }
         .environment(\.deepLinkDirtyTracker, dirtyTracker)
         .environment(\.memberPopupActions, session.memberPopupActions())
+        .environment(\.popupCloseActions, session.popupCloseActions())
         .interactiveDismissDisabled(dirtyTracker.isDirty)
         .onDisappear {
             dirtyTracker.isDirty = false

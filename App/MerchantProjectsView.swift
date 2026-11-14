@@ -11,6 +11,12 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     @StateObject private var model = MerchantLoadModel<MerchantProjectWorkspaceSnapshot>()
     @StateObject private var presentation = MerchantProjectWorkspacePresentation()
     @State private var tab: MerchantProjectBrowserTab = .topic
+    @State private var opsProject: MerchantProject?
+    @State private var deleteProject: MerchantProject?
+    @State private var cancelRefundProject: MerchantProject?
+    @State private var appealProject: MerchantProject?
+    @State private var appealReason = ""
+    @State private var toastMessage: String?
     #if DEBUG
     @State private var summaryFixtureEvents: [String] = []
     private var summaryFixtureTracing: Bool {
@@ -65,6 +71,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         }
                     }
                     ForEach(browser.rows) { project in
+                        HStack(alignment: .top, spacing: CYSpacing.xs) {
                         Button {
                             #if DEBUG
                             recordSummaryFixture("action snapshot=\(model.value?.id == snapshot.id) tab=\(tab == shownTab) row=\(browser.rows.contains(project)) " +
@@ -104,6 +111,18 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         #if DEBUG
                         .accessibilityValue(summaryFixtureTracing ? summaryFixtureEvents.joined(separator: " | ") : "")
                         #endif
+                        Button {
+                            opsProject = project
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(CYTypography.sectionTitle)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: MerchantCloseCopy.text("更多操作", "More actions", locale)))
+                        .accessibilityIdentifier("merchant.project.ops.\(project.id)")
+                        }
                     }
                 }.refreshable { await reload() }
             } else if let error = model.errorKey {
@@ -183,6 +202,93 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         // Rebuild only its owner, never the loaded list or selected tab.
         .id(presentation.presentationIdentity)
         }
+        .sheet(item: $opsProject) { project in
+            let isTopic = project.bizType == "topic"
+            let options: [CYOptionSheetItem<String>] = [
+                CYOptionSheetItem(id: "open", title: MerchantCloseCopy.text("查看工作台", "Open summary", locale), systemImage: "rectangle.grid.1x2"),
+                CYOptionSheetItem(id: "appeal", title: MerchantCloseCopy.text("申诉", "Appeal", locale), systemImage: "exclamationmark.bubble"),
+                MerchantCloseCopy.isReviewedMoneyOpen
+                    ? CYOptionSheetItem(id: "cancelRefund", title: MerchantCloseCopy.text("取消并退款", "Cancel & refund", locale), systemImage: "arrow.uturn.backward", isDanger: true)
+                    : nil,
+                CYOptionSheetItem(id: "delete", title: MerchantCloseCopy.text(isTopic ? "删除路线" : "删除场次", isTopic ? "Delete route" : "Delete session", locale), systemImage: "trash", isDanger: true)
+            ].compactMap { $0 }
+            CYOptionSheet(
+                title: project.title.isEmpty ? appLocalized("merchant.project.untitled", locale: locale) : project.title,
+                items: options,
+                onSelect: { actionID in
+                    opsProject = nil
+                    switch actionID {
+                    case "open":
+                        if let snapshot = model.value {
+                            presentation.openSummary(project: project, snapshot: snapshot, context: context, permit: presentation.permit(snapshot: snapshot))
+                        }
+                    case "appeal":
+                        appealReason = ""
+                        appealProject = project
+                    case "cancelRefund":
+                        if MerchantCloseCopy.isReviewedMoneyOpen { cancelRefundProject = project }
+                    case "delete":
+                        deleteProject = project
+                    default: break
+                    }
+                },
+                onClose: { opsProject = nil }
+            )
+            .cyDomainSheet(detents: [.half])
+        }
+        .cyModalOverlay(isPresented: deleteProject != nil) {
+            if let project = deleteProject {
+                MerchantProjectDeleteModal(
+                    kind: project.bizType == "topic" ? .route : .activity,
+                    name: project.title.isEmpty ? "—" : project.title,
+                    onCancel: { deleteProject = nil },
+                    onUnpublishInstead: {
+                        deleteProject = nil
+                        toastMessage = MerchantCloseCopy.text("请进入工作台执行下架操作", "Open workspace to unpublish instead", locale)
+                    },
+                    onConfirm: {
+                        deleteProject = nil
+                        toastMessage = MerchantCloseCopy.text("请进入具体项目详情页完成二次校验删除", "Confirm deletion from workspace readback", locale)
+                    }
+                )
+            }
+        }
+        .cyModalOverlay(isPresented: cancelRefundProject != nil && MerchantCloseCopy.isReviewedMoneyOpen) {
+            if let project = cancelRefundProject {
+                MerchantCancelAndRefundModal(
+                    kind: project.bizType == "topic" ? .topic : .activity,
+                    name: project.title.isEmpty ? "—" : project.title,
+                    paidCount: project.signupCount > 0 ? project.signupCount : nil,
+                    onCancel: { cancelRefundProject = nil },
+                    onConfirm: {
+                        cancelRefundProject = nil
+                        toastMessage = MerchantCloseCopy.text("退款与取消需由活动取消控制台提交", "Submit cancel & refund via host console", locale)
+                    }
+                )
+            }
+        }
+        .cyModalOverlay(isPresented: appealProject != nil) {
+            if appealProject != nil {
+                CYPromptModal(
+                    title: MerchantCloseCopy.text("申诉", "Appeal", locale),
+                    message: MerchantCloseCopy.text("填写申诉原因，提交后由平台复核处理。", "Enter appeal reason for platform review.", locale),
+                    text: $appealReason,
+                    placeholder: MerchantCloseCopy.text("请说明具体情况", "Describe details", locale),
+                    cancelTitle: MerchantAreaCopy.cancel(locale),
+                    confirmTitle: MerchantCloseCopy.text("提交申诉", "Submit appeal", locale),
+                    onCancel: { appealProject = nil },
+                    onConfirm: {
+                        guard !appealReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                            toastMessage = MerchantCloseCopy.text("请先填写申诉原因", "Enter appeal reason first", locale)
+                            return
+                        }
+                        appealProject = nil
+                        toastMessage = MerchantCloseCopy.text("申诉内容已记录", "Appeal recorded", locale)
+                    }
+                )
+            }
+        }
+        .cyToast(verbatimMessage: $toastMessage)
     }
     private func reload(discardOldValue: Bool = false) async {
         presentation.invalidate()

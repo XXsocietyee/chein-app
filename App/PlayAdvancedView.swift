@@ -26,6 +26,9 @@ import SwiftUI
     @State private var openKit: PlayAdvancedKitSheet?
     @State private var kitDirty = false
     @State private var albumCapture = false
+    @State private var showingAlbumRetry = false
+    @State private var toastMessage: String?
+    @Environment(\.locale) private var locale
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -144,10 +147,19 @@ import SwiftUI
         .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID); model.closeAdvancedPanel() }
         .sheet(item: $openKit, onDismiss: { kitDirty = false; albumCapture = false; model.closePlayKitSheet() }) { sheet in
             NavigationStack { kitSheet(sheet) }
-                .presentationDetents(sheet.halfSheet ? [.medium, .large] : [.large])
-                .presentationDragIndicator(.visible)
+                .cyDomainSheet(detents: sheet.halfSheet ? [.half, .full] : [.full])
                 .interactiveDismissDisabled(kitDirty)
         }
+        .cyModalOverlay(isPresented: showingAlbumRetry) {
+            PlayKitAlbumRetryModal(
+                onCancel: { showingAlbumRetry = false },
+                onConfirm: {
+                    showingAlbumRetry = false
+                    albumCapture = true
+                }
+            )
+        }
+        .cyToast(verbatimMessage: $toastMessage)
         .onChange(of: model.playKitPresentation.playKitOpen) { _, open in if !open { openKit = nil } }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { model.endTeamSurface(id: teamSurfaceID) }
@@ -247,6 +259,12 @@ extension PlayAdvancedView {
                     }
                 }
                     .accessibilityIdentifier("playkit.album.reconcile")
+                Button {
+                    showingAlbumRetry = true
+                } label: {
+                    Text(verbatim: PlayCloseCopy.text("查看/重试审核", "View / retry review", locale))
+                }
+                .accessibilityIdentifier("playkit.album.retryReview")
             }
             .padding(.horizontal)
             .accessibilityIdentifier("playkit.album.unknown")

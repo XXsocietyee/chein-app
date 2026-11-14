@@ -29,6 +29,7 @@ struct DiscoveryTemplateBrowserView: View {
     @StateObject private var games = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var shelfGames = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
+    @State private var toastMessage: String?
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
 
@@ -103,6 +104,7 @@ struct DiscoveryTemplateBrowserView: View {
         }
         .appNavigationTitle("discovery.templateTab.title")
         .navigationBarTitleDisplayMode(.large)
+        .cyToast(verbatimMessage: $toastMessage)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {

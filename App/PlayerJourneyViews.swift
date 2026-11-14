@@ -61,6 +61,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
             }
         }
         .sheet(isPresented: $login) { LoginView(intent: .player) }
+        .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
         .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
     }
 }

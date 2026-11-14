@@ -167,6 +167,9 @@ import QuestifyCore
     @State private var termsMode = TopicChapterSupplyTerms.Mode.perk
     @State private var termsMax = 0
     @State private var termsPerk = ""
+    @State private var stateKeySheetOpen = false
+    @State private var deleteStateKeyMessage: String?
+    @State private var toastMessage: String?
 
     var body: some View {
         Form {
@@ -203,8 +206,41 @@ import QuestifyCore
                     Task { await model.rename(row, to: renameText) }
                 }
                 renaming = nil
+                toastMessage = MerchantCloseCopy.text("已重命名", "Renamed", locale)
             }
         )
+        .cyModalOverlay(isPresented: Binding(get: { deleteStateKeyMessage != nil }, set: { if !$0 { deleteStateKeyMessage = nil } })) {
+            if let deleteStateKeyMessage {
+                CYModal(
+                    title: MerchantCloseCopy.text("删除状态键？", "Delete State Key?", locale),
+                    message: deleteStateKeyMessage,
+                    cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
+                    confirmTitle: MerchantCloseCopy.text("删除", "Delete", locale),
+                    isDestructive: true,
+                    onCancel: { self.deleteStateKeyMessage = nil },
+                    onConfirm: {
+                        self.deleteStateKeyMessage = nil
+                        toastMessage = MerchantCloseCopy.text("已删除状态键", "State key deleted", locale)
+                    }
+                )
+            }
+        }
+        .sheet(isPresented: $stateKeySheetOpen) {
+            MerchantCloseSheetHost(
+                title: MerchantCloseCopy.text("主题状态变量", "Topic State Variables", locale),
+                closeIdentifier: "creatorEditor.stateKeys.close",
+                onClose: { stateKeySheetOpen = false }
+            ) {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(MerchantCloseCopy.text("管理节点状态变量、条件标签与初始取值。", "Manage node state variables, tags, and default values.", locale))
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                }
+                .padding(.vertical, CYSpacing.sm)
+            }
+            .themeDomain(.topicEditor)
+        }
+        .cyToast(verbatimMessage: $toastMessage)
         .cyDomainScreen(.topicEditor)
     }
 

@@ -115,6 +115,7 @@ import SwiftUI
                     showingSheet = false
                     await onCancelled()
                 }
+                .cyDomainSheet(detents: [.half, .full])
             }
         }
     }

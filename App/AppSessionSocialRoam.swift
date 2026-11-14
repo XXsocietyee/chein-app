@@ -47,5 +47,6 @@ struct SocialRoamCapabilityRoot: ViewModifier {
             .environment(\.gameplayPresetClient, session.gameplayPresetClient())
             .environment(\.wp09APIHost, session.regionalConfiguration?.apiConfiguration?.baseURL.host)
             .environment(\.memberPopupActions, session.memberPopupActions())
+            .environment(\.popupCloseActions, session.popupCloseActions())
     }
 }

@@ -207,9 +207,12 @@ import SwiftUI
     /// Kept for callers; the source shows organizer controls without a client-side publisher check.
     let publisher: Bool
     var window: OfficialServiceWindow? = nil
+    @Environment(\.locale) private var locale
+    @State private var pendingAction: OfficialResponseAction?
     @State private var reviewed: OfficialActionCommand?
     @State private var reviewedAction: OfficialResponseAction?
     @State private var transferHint = false
+    @State private var toastMessage: String?
     private var actions: [OfficialResponseAction] { OfficialInboxPresentation.actions(for: invite) }
     var body: some View {
         Section("officialAction.respond") {
@@ -227,10 +230,13 @@ import SwiftUI
             }
             ForEach(actions, id: \.self) { action in
                 CYPillButton(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action)), style: .secondary) {
-                    if OfficialInboxPresentation.requiresOrganizerTransfer(invite, action: action) { transferHint = true; return }
+                    if OfficialInboxPresentation.requiresOrganizerTransfer(invite, action: action) {
+                        transferHint = true
+                        toastMessage = PlayCloseCopy.text("请前往主办方转移入口处理", "Handle this in organizer transfer", locale)
+                        return
+                    }
                     transferHint = false
-                    reviewedAction = action
-                    reviewed = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
+                    pendingAction = action
                 }
                     .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)").e1ActionRow()
             }
@@ -238,11 +244,30 @@ import SwiftUI
                 Text("official.privateParity.inbox.organizerTransferHint").font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("official.inbox.transferHint.\(invite.id)")
             }
-        }.sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } })) {
+        }
+        .cyModalOverlay(isPresented: pendingAction != nil) {
+            if let action = pendingAction {
+                CYModal(
+                    title: PlayCloseCopy.text("确认回应官方邀约", "Respond to official invite", locale),
+                    message: appLocalized(String.LocalizationValue(stringLiteral: OfficialInboxPresentation.confirmationBodyKey(invite, action: action)), locale: locale),
+                    cancelTitle: PlayCloseCopy.cancel(locale),
+                    confirmTitle: PlayCloseCopy.confirm(locale),
+                    onCancel: { pendingAction = nil },
+                    onConfirm: {
+                        pendingAction = nil
+                        reviewedAction = action
+                        reviewed = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
+                    }
+                )
+            }
+        }
+        .cyToast(verbatimMessage: $toastMessage)
+        .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } })) {
             if let reviewed {
                 OfficialActionSheet(coordinator: coordinator, command: reviewed,
                                     noticeTitleKey: reviewedAction.map { OfficialInboxPresentation.confirmationTitleKey(invite, action: $0) },
                                     noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) })
+                    .cyDomainSheet(detents: [.half, .full])
             }
         }
     }

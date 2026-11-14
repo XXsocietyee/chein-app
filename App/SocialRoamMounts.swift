@@ -82,7 +82,10 @@ import SwiftUI
                         .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
-            .sheet(item: $rating) { MerchantSafetyRatingSheet(merchantID: $0.merchantID, client: capabilities.client) }
+            .sheet(item: $rating) {
+                MerchantSafetyRatingSheet(merchantID: $0.merchantID, client: capabilities.client)
+                    .cyDomainSheet(detents: [.half, .full])
+            }
         }
     }
 

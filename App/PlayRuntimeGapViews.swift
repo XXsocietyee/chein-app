@@ -165,7 +165,11 @@ import SwiftUI
                                 icon: { Image(systemName: setup.closed ? "clock" : setup.ready(ticked: ticked) ? "checkmark.circle" : "info.circle") }
                         }.accessibilityIdentifier("play.prep.row")
                     }
-                    .sheet(isPresented: $showing) { sheet(setup) }
+                    .sheet(isPresented: $showing) {
+                        sheet(setup)
+                            .cyDomainSheet(detents: [.half, .full])
+                            .themeDomain(.play)
+                    }
                 }
             }
         }

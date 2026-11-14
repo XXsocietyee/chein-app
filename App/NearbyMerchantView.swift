@@ -26,6 +26,7 @@ extension EnvironmentValues {
     @State private var purposeAccepted = false
     @State private var operation: Task<Void, Never>?
     @State private var publicHomeSelection: NearbyMerchantCoordinator.PublicHomeSelection?
+    @State private var toastMessage: String?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     var body: some View {
@@ -129,6 +130,7 @@ extension EnvironmentValues {
             .onChange(of: purposeAccepted) { _, accepted in if !accepted { cancel() } }
             .onChange(of: scenePhase) { _, phase in if phase == .background { cancel() } }
             .onChange(of: model.available) { _, available in if !available { cancel() } }
+        .cyToast(verbatimMessage: $toastMessage)
         .cyDomainScreen(.merchant)
     }
     private func cancel() {

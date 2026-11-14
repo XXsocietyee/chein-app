@@ -71,6 +71,7 @@ struct ClubGovernanceEntryButton: View {
                     .environment(\.clubStoryTemplates, storyTemplates)
                     .environment(\.clubTerminalSessions, terminalSessions)
                     .environment(\.clubOwnerFunds, ownerFunds)
+                    .cyDomainSheet(detents: [.half, .full])
             }
     }
 }
@@ -674,7 +675,10 @@ struct ClubGovernanceReadView: View {
         .cyGroupedSurface()
         .cyHeroScreen()
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
-        .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
+        .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
+            NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) }
+                .cyDomainSheet(detents: [.half, .full])
+        }
         .background {
             if let item = seriesUpdateReturn.item {
                 ClubSeriesUpdatePresentationOwner(item: item, owner: seriesUpdateReturn,
@@ -1698,6 +1702,8 @@ struct ClubGovernanceEventView: View {
     @State private var storyExpanded = false
     @State private var selectedTemplate: ClubStoryTemplateSelection?
     @State private var selectedAnswer: ClubStoryAnswerRoute?
+    @State private var answerSheetTarget: ClubStoryAnswerRoute?
+    @State private var storyToastMessage: String?
     @State private var mediaScope = UUID()
 
     private var sourceIsCurrent: Bool {
@@ -1811,6 +1817,22 @@ struct ClubGovernanceEventView: View {
                 selectedAnswer = nil
             }
         }
+        .sheet(item: $answerSheetTarget) { target in
+            PlayCloseSheetHost(
+                title: appLocalized("club.gov.nodeAnswer", locale: .current),
+                detents: [.half, .full],
+                onClose: { answerSheetTarget = nil }
+            ) {
+                if current(target) {
+                    ClubGovernanceReadView(operation: .nodeAnswer, scope: target.scope, identity: identity, access: access, coordinator: coordinator)
+                        .id(target.id)
+                } else {
+                    Text("club.story.sourceUnavailable")
+                        .padding(CYSpacing.pageHorizontal)
+                }
+            }
+        }
+        .cyToast(verbatimMessage: $storyToastMessage)
         .task(id: reloadContext) {
             // The overview is also covered. On return, obtain a fresh source
             // through its original scoped loader, rather than reuse old cards.
@@ -1884,6 +1906,16 @@ struct ClubGovernanceEventView: View {
                             guard selectedAnswer == nil, selectedTemplate == nil, current(target) else { return }
                             selectedAnswer = target
                         }.accessibilityIdentifier("club.story.answer.\(play.id)")
+                        Button {
+                            guard current(target) else {
+                                storyToastMessage = "请先刷新剧情数据"
+                                return
+                            }
+                            answerSheetTarget = target
+                        } label: {
+                            Text(verbatim: "弹窗查看答案")
+                        }
+                        .accessibilityIdentifier("club.story.answerSheet.\(play.id)")
                     }
                 }.id("\(mediaScope).play.\(play.id)")
             }
@@ -1906,7 +1938,7 @@ struct ClubGovernanceEventView: View {
         sourceIsCurrent && route.isCurrent(snapshot: snapshot, context: context, snapshotGeneration: snapshotGeneration)
     }
     private func invalidateSelection(resetChapter: Bool = false) {
-        selectedTemplate = nil; selectedAnswer = nil; storyExpanded = false
+        selectedTemplate = nil; selectedAnswer = nil; answerSheetTarget = nil; storyExpanded = false
         if resetChapter { selectedChapter = 0; mediaScope = UUID() }
     }
 }

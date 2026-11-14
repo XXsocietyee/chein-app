@@ -20,6 +20,8 @@ import SwiftUI
     /// Personal gameplay rows from the last theme-state read when the host passed no coordinator.
     @State private var liveGameplay: PlayThemeGameplayCoordinator?
     @State private var gameplayFlow = PlayThemeGameplayFlow()
+    @State private var inspectedItem: PlayThemeBackpack.Item?
+    @State private var backpackToastMessage: String?
     /// A ROUTE team run shows the TEAM backpack instead of the personal projection.
     @State private var teamActive = false
     private struct ActionSelection: Identifiable {
@@ -76,7 +78,28 @@ import SwiftUI
         }
         .sheet(item: $selection, onDismiss: { discardQuantities = [:]; actionError = nil }) { choice in
             actionReview(choice)
+                .cyDomainSheet(detents: [.half, .full])
         }
+        .sheet(item: $inspectedItem) { item in
+            PlayCloseSheetHost(
+                title: itemName(item.name),
+                detents: [.half],
+                onClose: { inspectedItem = nil }
+            ) {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(verbatim: effect(item.effect).description)
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                    if let q = item.quantity {
+                        Text(verbatim: copy("持有数量：\(q)", "Owned: \(q)"))
+                            .font(CYTypography.meta)
+                    }
+                }
+                .padding(CYSpacing.pageHorizontal)
+                .padding(.bottom, CYSpacing.lg)
+            }
+        }
+        .cyToast(verbatimMessage: $backpackToastMessage)
     }
 
     @ViewBuilder private func content(_ bag: PlayThemeBackpack) -> some View {

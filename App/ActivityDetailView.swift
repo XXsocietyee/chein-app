@@ -186,6 +186,7 @@ struct ActivityDetailView: View {
             if let access, case .allowed(let detail) = access {
                 CatalogShareCardView(content: shareContent(detail), tint: .sunset)
                     .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
             }
         }
         .cyDomainPageBackground()
@@ -228,6 +229,7 @@ struct ActivityDetailView: View {
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
                 .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
         }
         .sheet(isPresented:$showsRegistration) {
             Group {
@@ -236,6 +238,7 @@ struct ActivityDetailView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.full])
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.

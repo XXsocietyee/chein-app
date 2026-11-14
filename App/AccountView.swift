@@ -174,7 +174,9 @@ import SwiftUI
             .navigationBarTitleDisplayMode(.large)
             // Stamp grid cells zoom into the stamp detail (Passport tab only draws the cells).
             .cyPassportStampHost()
-            .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
+            .environment(\.nativeVerificationDestination, {
+                AnyView(SessionNativeVerificationView().modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow)))
+            })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
                     Button("settings.title",systemImage:"gearshape") {

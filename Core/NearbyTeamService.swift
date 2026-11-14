@@ -25,10 +25,20 @@ public struct NearbyTeamRequest: Equatable {
     }
     public static func applications(_ team: NearbyTeamID) throws -> Self { guard team.rawValue > 0 else { throw NearbyTeamFailure.invalidRequest }; return try post("applications", body: ["teamId": team.rawValue], mutation: false) }
     public static func myApplications() -> Self { .init(method: "POST", path: "/api/team/my-applications", query: [:], body: nil, mutation: false) }
-    public static func action(_ action: NearbyTeamAction) throws -> Self {
+    public static let maxApplyMessageLength = 200
+    public static func action(_ action: NearbyTeamAction, message: String? = nil) throws -> Self {
         guard action.teamID.rawValue > 0 else { throw NearbyTeamFailure.invalidRequest }
         switch action {
-        case .apply(let team), .withdraw(let team): return try post(action.operation, body: ["teamId": team.rawValue], mutation: true)
+        case .apply(let team):
+            var body: [String: Any] = ["teamId": team.rawValue]
+            if let raw = message {
+                let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard trimmed.count <= maxApplyMessageLength else { throw NearbyTeamFailure.invalidRequest }
+                if !trimmed.isEmpty { body["message"] = trimmed }
+            }
+            return try post(action.operation, body: body, mutation: true)
+        case .withdraw(let team):
+            return try post(action.operation, body: ["teamId": team.rawValue], mutation: true)
         case .handle(let team, let applicant, let approved):
             guard applicant.rawValue > 0 else { throw NearbyTeamFailure.invalidRequest }
             return try post("handle", body: ["teamId": team.rawValue, "memberId": applicant.rawValue, "approved": approved], mutation: true)
@@ -70,7 +80,7 @@ public enum NearbyWriteResult: Equatable { case simulated(expiry: NearbyServerTi
         guard session.valid else { return .notSent }
         if let fake {
             let request: NearbyTeamRequest
-            do { request = try .action(action); try Task.checkCancellation() } catch { return .notSent }
+            do { request = try .action(action, message: review?.note); try Task.checkCancellation() } catch { return .notSent }
             do { return Self.decodeWrite(try await fake.send(request, session: session), action: action, synthetic: true) }
             catch { return .unknown }
         }

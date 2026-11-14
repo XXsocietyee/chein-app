@@ -193,6 +193,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     @State private var wizardBlock: String?
     @State private var abandonConfirm = false
     @State private var draftSaveState: CYPublishSaveState = .unsavedChanges
+    @State private var showResultSheet = false
+    @State private var toastMessage: String?
     private var busy: Bool { submission.busy }
     @State private var message = ""
     private var acknowledged: Bool { submission.outcome == .acknowledged }
@@ -224,7 +226,20 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             guard let id, id > 0, submission.receipt?.committed == true else { return }
             MiniProgramAnalytics.track(analytics, "activity_publish_success", bizType: "activity", bizID: id,
                 pagePath: "/pages/publish/activity/index", properties: ["name": .string(draft.name)])
+            toastMessage = MerchantCloseCopy.text("活动已发布", "Activity published", locale)
+            showResultSheet = true
         }
+        .sheet(isPresented: $showResultSheet) {
+            PlayCloseResultSheet(
+                title: MerchantCloseCopy.text("活动已提交发布", "Activity Submitted", locale),
+                message: MerchantCloseCopy.text("可在项目管理查看活动状态与审核进度。", "Track activity status in your project list.", locale),
+                detail: nil,
+                closeIdentifier: cyAccessibilityID(id: "publishModes.activity.result.close"),
+                onClose: { showResultSheet = false }
+            )
+            .themeDomain(.topicEditor)
+        }
+        .cyToast(verbatimMessage: $toastMessage)
         .cyDomainScreen(.merchant)
         .background {
             if let original = timeRange.presentation {

@@ -8,6 +8,12 @@ public struct NearbyTeamReview: Identifiable, Equatable {
     public let team: NearbyTeam?
     public let applicant: NearbyApplicant?
     public let application: NearbyMyApplication?
+    public var note: String?
+    public init(id: UUID, action: NearbyTeamAction, session: NearbyTeamSession, revision: UInt64,
+                team: NearbyTeam?, applicant: NearbyApplicant?, application: NearbyMyApplication?, note: String? = nil) {
+        self.id = id; self.action = action; self.session = session; self.revision = revision
+        self.team = team; self.applicant = applicant; self.application = application; self.note = note
+    }
 }
 @MainActor public final class NearbyTeamCoordinator {
     public private(set) var teams: [NearbyTeam] = []
@@ -98,13 +104,18 @@ public struct NearbyTeamReview: Identifiable, Equatable {
             if let expiry = row.applyExpireTime?.date() { return expiry > now }; return true
         }
     }
-    public func prepare(_ action: NearbyTeamAction, now: Date = Date()) {
+    public func prepare(_ action: NearbyTeamAction, note: String? = nil, now: Date = Date()) {
         guard allowed(action, now: now), let session else { messageKey = "nearby.actionUnavailable"; return }
         let applicant: NearbyApplicant?
         if case .handle(_, let id, _) = action { applicant = applicants.first { $0.id == id } } else { applicant = nil }
-        review = .init(id: UUID(), action: action, session: session, revision: revision, team: teams.first { $0.id == action.teamID }, applicant: applicant, application: myApplications.first { $0.id == action.teamID })
+        review = .init(id: UUID(), action: action, session: session, revision: revision, team: teams.first { $0.id == action.teamID }, applicant: applicant, application: myApplications.first { $0.id == action.teamID }, note: note)
     }
-    public func confirm(_ snapshot: NearbyTeamReview, now: Date = Date()) async {
+    public func confirm(_ snapshot: NearbyTeamReview, now: Date = Date(), note: String? = nil) async {
+        var snapshot = snapshot
+        if let note, review == snapshot {
+            snapshot.note = note
+            review?.note = note
+        }
         guard review == snapshot, snapshot.session == session, snapshot.revision == revision, allowed(snapshot.action, now: now) else { review = nil; messageKey = "nearby.stale"; return }
         guard canSubmit else { messageKey = "nearby.dormant"; review = nil; return }
         let capturedGeneration = generation; let capturedSession = snapshot.session

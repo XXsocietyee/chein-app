@@ -67,17 +67,21 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil; reviewedCompletion = nil } } }
             }.privacySensitive()
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
         }
         .safeAreaInset(edge: .bottom) {
             if presentation == .sheet, let item = review { reviewPanel(item) }
         }
-        .confirmationDialog("playkit.discardQuestion", isPresented: $leaveReview, titleVisibility: .visible) {
-            Button("playkit.discard", role: .destructive) { clearTransient(); dismiss() }
-            Button("playkit.keepEditing", role: .cancel) {}
-        } message: { Text("playkit.discardBoundary") }
+        .cyModalConfirm(
+            isPresented: leaveReview,
+            title: appLocalized("playkit.discardQuestion", locale: .current),
+            message: appLocalized("playkit.discardBoundary", locale: .current),
+            cancelTitle: appLocalized("playkit.keepEditing", locale: .current),
+            confirmTitle: appLocalized("playkit.discard", locale: .current),
+            isDestructive: true,
+            onCancel: { leaveReview = false },
+            onConfirm: { leaveReview = false; clearTransient(); dismiss() }
+        )
         .onAppear { loadInitial() }
         .onChange(of: model.playKitPresentation.playKitOpen) { _, open in
             if !open { review = nil; reviewedCompletion = nil }

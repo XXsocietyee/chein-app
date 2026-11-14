@@ -200,6 +200,7 @@ struct OfficialOrganizerConsoleView: View {
             publishSection
             pauseSection
             resumeSection
+            OfficialAttendanceSectionView(eventID: model.eventID, activityID: 0, organizer: true)
         }
         .accessibilityIdentifier("official.organizer.content")
     }

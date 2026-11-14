@@ -137,6 +137,7 @@ struct CoopFlowHandleEditor: View {
     @State private var reason = ""
     @State private var confirmHandle = false
     @State private var proceedPreview = false
+    @State private var toastMessage: String?
 
     private var modalTitle: String {
         switch action {
@@ -204,6 +205,7 @@ struct CoopFlowHandleEditor: View {
         .navigationDestination(isPresented: $proceedPreview) {
             CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason))
         }
+        .cyToast(verbatimMessage: $toastMessage)
     }
 }
 /// Context is supplied only by a current, approved merchant chapter application.

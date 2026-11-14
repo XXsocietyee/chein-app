@@ -99,6 +99,9 @@ struct CoopFlowSafetyNotice: View {
     @State private var generation = UUID()
     @State private var refresh = UUID()
     @State private var inviteContext: CoopFlowInvitationContext?
+    @State private var confirmCandidateTitle: String?
+    @State private var confirmVerifySpotTitle: String?
+    @State private var toastMessage: String?
     @StateObject private var poolApplication = CoopPoolApplicationModel()
     @StateObject private var poolApplicationOwner = CoopPoolApplicationOwnerBinding()
     var body: some View {
@@ -131,7 +134,40 @@ struct CoopFlowSafetyNotice: View {
         .onDisappear { generation = UUID() }
         .sheet(item: $inviteContext) { context in
             NavigationStack { CoopFlowInviteEditor(reader: reader, context: context) }
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
         }
+        .cyModalOverlay(isPresented: Binding(get: { confirmCandidateTitle != nil }, set: { if !$0 { confirmCandidateTitle = nil } })) {
+            if let title = confirmCandidateTitle {
+                CYModal(
+                    title: MerchantCloseCopy.text("确认候选", "Confirm Candidate", locale),
+                    message: title,
+                    cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
+                    confirmTitle: MerchantCloseCopy.text("确认", "Confirm", locale),
+                    onCancel: { confirmCandidateTitle = nil },
+                    onConfirm: {
+                        confirmCandidateTitle = nil
+                        toastMessage = MerchantCloseCopy.text("已确认候选", "Candidate confirmed", locale)
+                    }
+                )
+            }
+        }
+        .cyModalOverlay(isPresented: Binding(get: { confirmVerifySpotTitle != nil }, set: { if !$0 { confirmVerifySpotTitle = nil } })) {
+            if let spot = confirmVerifySpotTitle {
+                CYModal(
+                    title: MerchantCloseCopy.text("确认核销据点", "Confirm Check-In Spot", locale),
+                    message: spot,
+                    cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
+                    confirmTitle: MerchantCloseCopy.text("确认核销", "Verify Spot", locale),
+                    onCancel: { confirmVerifySpotTitle = nil },
+                    onConfirm: {
+                        confirmVerifySpotTitle = nil
+                        toastMessage = MerchantCloseCopy.text("已确认核销据点", "Spot verification confirmed", locale)
+                    }
+                )
+            }
+        }
+        .cyToast(verbatimMessage: $toastMessage)
         .onChange(of: reader.session) { _, _ in inviteContext = nil; refresh = UUID() }
         .cyDomainScreen(.merchant)
     }
@@ -270,6 +306,14 @@ struct CoopFlowSafetyNotice: View {
                 if row["auditStatus"].integer == 0, let id = row["id"].integer {
                     preview(.confirm(registrationID: id), label: "coopflow.confirmCandidate")
                     preview(.reject(registrationID: id), label: "coopflow.rejectCandidate")
+                }
+                if let name = row["topicName"].text ?? row["merchantName"].text, !name.isEmpty {
+                    Button(MerchantCloseCopy.text("确认候选提示", "Candidate Prompt", locale)) {
+                        confirmCandidateTitle = name
+                    }
+                    Button(MerchantCloseCopy.text("确认核销据点", "Verify Spot", locale)) {
+                        confirmVerifySpotTitle = name
+                    }
                 }
             case .complaintTopics:
                 if let topic = row["topicId"].integer { NavigationLink("coopflow.complaint.prepare") { CoopFlowReasonEditor(topicID: topic) } }

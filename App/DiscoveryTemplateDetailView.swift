@@ -17,6 +17,7 @@ struct DiscoveryTemplateDetailView: View {
     @State private var adoption: Adoption?
     @State private var tab: TemplateDetailTab = .details
     @State private var capabilityPreview: TemplateNodePreviewState?
+    @State private var toastMessage: String?
     /// Caller override. Nil uses `PublicContentShareLink.discoveryTemplate` when that path is already parsed.
     var shareURL: URL? = nil
     private struct Adoption: Identifiable, Hashable {
@@ -134,6 +135,7 @@ struct DiscoveryTemplateDetailView: View {
         }
         .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
+        .cyToast(verbatimMessage: $toastMessage)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 UGCSafetyMenuButton(

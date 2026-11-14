@@ -21,6 +21,8 @@ import QuestifyCore
     var onWriteCitySlip: (() -> Void)? = nil
     @Environment(\.cyPalette) private var palette
     @Environment(\.openURL) private var openURL
+    @Environment(\.locale) private var locale
+    @State private var showingChoiceSheet = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -171,6 +173,28 @@ import QuestifyCore
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if !node.options.isEmpty {
+                    Button {
+                        showingChoiceSheet = true
+                    } label: {
+                        Text(verbatim: PlayCloseCopy.text("选择答案", "Choose answer", locale))
+                            .font(CYTypography.caption.weight(.semibold))
+                            .foregroundStyle(palette.actionPrimaryBg)
+                    }
+                    .sheet(isPresented: $showingChoiceSheet) {
+                        CYOptionSheet(
+                            title: readable(node.question).isEmpty ? PlayCloseCopy.text("选择答案", "Choose answer", locale) : readable(node.question),
+                            items: Array(node.options.enumerated()).map { idx, opt in
+                                CYOptionSheetItem(id: idx, title: readable(opt))
+                            },
+                            selectedID: coordinator.selectedOptionIndex,
+                            onSelect: { idx in
+                                coordinator.selectedOptionIndex = idx
+                                showingChoiceSheet = false
+                            },
+                            onClose: { showingChoiceSheet = false }
+                        )
+                        .cyDomainSheet(detents: [.half])
+                    }
                     ForEach(Array(node.options.enumerated()), id: \.offset) { idx, option in
                         CYChoiceRow(label: readable(option), selected: coordinator.selectedOptionIndex == idx) {
                             coordinator.selectedOptionIndex = idx
@@ -369,6 +393,7 @@ import QuestifyCore
                 RoamStampCameraView()
             }
             .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
         }
         .task {
             guard coordinator == nil else { return }

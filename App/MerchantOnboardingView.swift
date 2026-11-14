@@ -25,6 +25,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @State private var showSubmitConfirmation = false
     @State private var showLicenseRemoval = false
     @State private var licenseRemoval: MerchantOnboardingModel.LicenseRemoval?
+    @State private var toastMessage: String?
     init(session: Session, coordinator: MerchantOnboardingCoordinator, openMerchant: (() -> Void)? = nil) {
         self.session = session; _model = StateObject(wrappedValue: MerchantOnboardingModel(coordinator: coordinator))
         self.openMerchant = openMerchant
@@ -167,8 +168,10 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             onConfirm: {
                 showSubmitConfirmation = false
                 model.submitConfirmed()
+                toastMessage = MerchantCloseCopy.text("已提交入驻资料", "Onboarding submitted", locale)
             }
         )
+        .cyToast(verbatimMessage: $toastMessage)
         .onChange(of: showSubmitConfirmation) { _, shown in
             if !shown, model.confirmation != nil, !model.isBusy { model.cancelConfirmation() }
         }

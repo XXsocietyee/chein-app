@@ -4059,7 +4059,7 @@ enum ReviewedOrientOfficialRoute {
         if exact("api/official/command") || exact("api/official/command/cancel") {
             guard keys.isSuperset(of: ["targetId", "action", "requestId"]), keys.count <= 24, hex32(object["requestId"]),
                   positive(object["targetId"] as? String),
-                  let action = object["action"] as? String, OfficialOrganizerAction(rawValue: action) != nil else { return false }
+                  let action = object["action"] as? String, OfficialOrganizerAction(rawValue: action) != nil || OfficialAttendanceAction(rawValue: action) != nil else { return false }
             return object.values.allSatisfy { $0 is String }
         }
         return false

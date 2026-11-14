@@ -21,15 +21,22 @@ enum ReviewedNearbyTeamWriteRoute {
               url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
               let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
               parts.user == nil, parts.password == nil, parts.query == nil,
-              let body = request.httpBody, body.count <= 96,
+              let body = request.httpBody, body.count <= 1024,
               let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
               let teamID = object["teamId"] as? Int, teamID > 0 else { return false }
         func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
         func canonical(_ value: [String: Any]) -> Bool {
             (try? JSONSerialization.data(withJSONObject: value, options: .sortedKeys)) == body
         }
-        if exactPath("api/team/apply") || exactPath("api/team/withdraw") {
-            return object.count == 1 && canonical(["teamId": teamID])
+        if exactPath("api/team/apply") {
+            if object.count == 1 { return body.count <= 96 && canonical(["teamId": teamID]) }
+            guard object.count == 2, let rawMessage = object["message"] as? String else { return false }
+            let trimmed = rawMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, trimmed == rawMessage, trimmed.count <= NearbyTeamRequest.maxApplyMessageLength else { return false }
+            return canonical(["teamId": teamID, "message": trimmed])
+        }
+        if exactPath("api/team/withdraw") {
+            return body.count <= 96 && object.count == 1 && canonical(["teamId": teamID])
         }
         guard exactPath("api/team/handle"), object.count == 3,
               let memberID = object["memberId"] as? Int, memberID > 0,

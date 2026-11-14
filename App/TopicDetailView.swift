@@ -22,7 +22,24 @@ struct TopicDetailView: View {
     @State private var generation = 0
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
+    @Environment(\.locale) private var locale
+    @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var showsPricing = false
+    @State private var showingGraduateBetaConfirm = false
+    @State private var showingClubTransferPicker = false
+    @State private var transferClubs: [ClubRecord] = []
+    @State private var selectedTransferClub: ClubRecord?
+    @State private var showingTransferConfirm = false
+    @State private var showingTransferredResult = false
+    @State private var transferredTopicID: Int?
+    @State private var showingContactPromptModal = false
+    @State private var showingContactSheet = false
+    @State private var contactRealName = ""
+    @State private var contactPhone = ""
+    @State private var popupBusy = false
+    @State private var resultSheetTitle: String?
+    @State private var resultSheetMessage: String?
+    @State private var topicToastMessage: String?
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -60,10 +77,14 @@ struct TopicDetailView: View {
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
                 .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
         }
         .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false }
         .sheet(isPresented: $showingTickets) {
-            if let ticketWalletDestination { ticketWalletDestination(id) }
+            if let ticketWalletDestination {
+                ticketWalletDestination(id)
+                    .cyDomainSheet(detents: [.half, .full])
+            }
         }
         .sheet(isPresented: $showingSelfPlay) {
             Group {
@@ -73,7 +94,125 @@ struct TopicDetailView: View {
                 }
             }
             .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
         }
+        .sheet(isPresented: $showingClubTransferPicker) {
+            CYOptionSheet(
+                title: PlayCloseCopy.text("选择承接俱乐部", "Choose host club", locale),
+                items: transferClubs.map { club in
+                    CYOptionSheetItem(id: club.id, title: club.name, subtitle: club.city, systemImage: "person.3")
+                },
+                selectedID: selectedTransferClub?.id,
+                closeIdentifier: cyAccessibilityID(id: "topic.transfer.clubSheet.close"),
+                onSelect: { clubID in
+                    showingClubTransferPicker = false
+                    selectedTransferClub = transferClubs.first(where: { $0.id == clubID })
+                    showingTransferConfirm = selectedTransferClub != nil
+                },
+                onClose: { showingClubTransferPicker = false }
+            )
+            .cyDomainSheet(detents: [.half, .full])
+        }
+        .sheet(isPresented: $showingContactSheet) {
+            PlayCloseSheetHost(
+                title: PlayCloseCopy.text("补全姓名和手机号", "Complete Name & Phone", locale),
+                detents: [.half],
+                onClose: { showingContactSheet = false }
+            ) {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    CYField(
+                        label: PlayCloseCopy.text("真实姓名", "Real name", locale),
+                        placeholder: PlayCloseCopy.text("请输入姓名", "Enter name", locale),
+                        text: $contactRealName,
+                        isRequired: true
+                    )
+                    CYField(
+                        label: PlayCloseCopy.text("手机号", "Phone number", locale),
+                        placeholder: PlayCloseCopy.text("请输入手机号", "Enter phone", locale),
+                        text: $contactPhone,
+                        isRequired: true
+                    )
+                    Button {
+                        saveContactBeforeSelfPlay()
+                    } label: {
+                        Text(verbatim: PlayCloseCopy.text("保存并继续", "Save and continue", locale))
+                    }
+                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: popupBusy))
+                    .disabled(popupBusy || contactRealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || contactPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+                .padding(CYSpacing.pageHorizontal)
+                .padding(.bottom, CYSpacing.lg)
+            }
+        }
+        .sheet(isPresented: Binding(get: { resultSheetTitle != nil }, set: { if !$0 { resultSheetTitle = nil; resultSheetMessage = nil } })) {
+            if let title = resultSheetTitle, let message = resultSheetMessage {
+                PlayCloseResultSheet(
+                    title: title,
+                    message: message,
+                    onPrimary: nil,
+                    onClose: { resultSheetTitle = nil; resultSheetMessage = nil }
+                )
+            }
+        }
+        .cyModalOverlay(isPresented: showingGraduateBetaConfirm) {
+            CYModal(
+                title: PlayCloseCopy.text("转为正式主题", "Graduate to Official Topic", locale),
+                message: PlayCloseCopy.text("转正后不再显示 Beta 标记。主题内容、已售出的票和进行中的行程都不受影响。", "The Beta tag will be removed. Topic content, sold tickets, and active runs stay unaffected.", locale),
+                cancelTitle: PlayCloseCopy.cancel(locale),
+                confirmTitle: PlayCloseCopy.text("确认转正", "Confirm", locale),
+                isConfirmLoading: popupBusy,
+                confirmIdentifier: "topic.graduateBeta.confirm",
+                onCancel: { showingGraduateBetaConfirm = false },
+                onConfirm: { graduateCurrentBetaTopic() }
+            )
+        }
+        .cyModalOverlay(isPresented: showingTransferConfirm) {
+            if let club = selectedTransferClub {
+                CYModal(
+                    title: PlayCloseCopy.text("移交给俱乐部承接", "Transfer to Club", locale),
+                    message: PlayCloseCopy.text("将复制一份新的城市定向主题(有人带),挂到「\(club.name)」名下。原草稿与历史记录会保留。", "Creates an instructor-led City Orienteering copy under \"\(club.name)\".", locale),
+                    cancelTitle: PlayCloseCopy.cancel(locale),
+                    confirmTitle: PlayCloseCopy.text("确认移交", "Confirm transfer", locale),
+                    isConfirmLoading: popupBusy,
+                    confirmIdentifier: "topic.transferClub.confirm",
+                    onCancel: { showingTransferConfirm = false },
+                    onConfirm: { performTopicClubTransfer(club) }
+                )
+            }
+        }
+        .cyModalOverlay(isPresented: showingTransferredResult) {
+            CYModal(
+                title: PlayCloseCopy.text("已移交", "Transferred", locale),
+                message: PlayCloseCopy.text("已生成新的城市定向草稿，去配置票种并邀请该俱乐部承接?", "Created a new City Orienteering draft. Configure tickets and invite the club to host?", locale),
+                cancelTitle: PlayCloseCopy.text("留在本页", "Stay here", locale),
+                confirmTitle: PlayCloseCopy.text("去配置票种", "Configure tickets", locale),
+                confirmIdentifier: "topic.transferred.configure",
+                onCancel: { showingTransferredResult = false },
+                onConfirm: {
+                    showingTransferredResult = false
+                    if pricingDestination != nil {
+                        showsPricing = true
+                    } else if let transferredTopicID {
+                        topicToastMessage = PlayCloseCopy.text("已生成新草稿 #\(transferredTopicID)", "Created draft #\(transferredTopicID)", locale)
+                    }
+                }
+            )
+        }
+        .cyModalOverlay(isPresented: showingContactPromptModal) {
+            CYModal(
+                title: PlayCloseCopy.text("还差姓名和手机号", "Name and phone needed", locale),
+                message: PlayCloseCopy.text("建单要用你的真实姓名和手机号，补一次就好，之后不用再填。", "Your real name and phone are needed to place this order. Save them once for future orders.", locale),
+                cancelTitle: PlayCloseCopy.cancel(locale),
+                confirmTitle: PlayCloseCopy.text("去填写", "Fill in", locale),
+                confirmIdentifier: "topic.contactPrompt.fill",
+                onCancel: { showingContactPromptModal = false },
+                onConfirm: {
+                    showingContactPromptModal = false
+                    showingContactSheet = true
+                }
+            )
+        }
+        .cyToast(verbatimMessage: $topicToastMessage)
     }
     private func content(_ value: TopicDetail) -> some View {
         ScrollViewReader { proxy in
@@ -230,6 +369,34 @@ struct TopicDetailView: View {
                 }
             }
             if let publisherDestination { publisherDestination(value) }
+            if popupCloseActions.graduateBetaTopic != nil || popupCloseActions.transferTopicToClub != nil || popupCloseActions.saveUserPhoneAndName != nil {
+                Section(PlayCloseCopy.text("主题运维与快捷资料", "Topic Actions & Profile", locale)) {
+                    if popupCloseActions.graduateBetaTopic != nil {
+                        Button {
+                            showingGraduateBetaConfirm = true
+                        } label: {
+                            Text(verbatim: PlayCloseCopy.text("转为正式主题", "Graduate from Beta", locale))
+                        }
+                        .accessibilityIdentifier("topic.graduateBeta.open")
+                    }
+                    if popupCloseActions.loadTransferClubs != nil, popupCloseActions.transferTopicToClub != nil {
+                        Button {
+                            loadClubsForTransfer()
+                        } label: {
+                            Text(verbatim: PlayCloseCopy.text("移交给俱乐部承接", "Transfer to club", locale))
+                        }
+                        .accessibilityIdentifier("topic.transferClub.open")
+                    }
+                    if popupCloseActions.saveUserPhoneAndName != nil {
+                        Button {
+                            showingContactPromptModal = true
+                        } label: {
+                            Text(verbatim: PlayCloseCopy.text("补充姓名和手机号", "Add name & phone", locale))
+                        }
+                        .accessibilityIdentifier("topic.contactPrompt.open")
+                    }
+                }
+            }
             let lineup = TopicXcxFacts.lineup(value)
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
             // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
@@ -311,11 +478,13 @@ struct TopicDetailView: View {
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
                 .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
         }
         .sheet(isPresented: $showsPricing) {
             if let pricingDestination {
                 NavigationStack { pricingDestination(value.id) }
                     .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
             }
         }
         .accessibilityIdentifier("topic.detail.content")
@@ -346,6 +515,80 @@ struct TopicDetailView: View {
         catch {
             guard operation == generation, captured == key, !Task.isCancelled else { return }
             phase = .failed(TopicScreenIssue(error), retry: nil); loadedKey = captured
+        }
+    }
+
+    private func graduateCurrentBetaTopic() {
+        guard let graduate = popupCloseActions.graduateBetaTopic else {
+            showingGraduateBetaConfirm = false
+            return
+        }
+        popupBusy = true
+        Task {
+            defer { popupBusy = false; showingGraduateBetaConfirm = false }
+            switch await graduate(id) {
+            case .success(let message):
+                resultSheetTitle = PlayCloseCopy.text("已转为正式主题", "Graduated to Official Topic", locale)
+                resultSheetMessage = message.isEmpty
+                    ? PlayCloseCopy.text("主题已去除 Beta 标记，可继续正常售票与运营。", "The Beta tag has been removed.", locale)
+                    : message
+                loads.start { await load() }
+            case .failure:
+                topicToastMessage = PlayCloseCopy.text("转正操作未成功", "Could not graduate topic", locale)
+            }
+        }
+    }
+
+    private func loadClubsForTransfer() {
+        guard let loadClubs = popupCloseActions.loadTransferClubs else { return }
+        popupBusy = true
+        Task {
+            defer { popupBusy = false }
+            let clubs = await loadClubs()
+            if clubs.isEmpty {
+                topicToastMessage = PlayCloseCopy.text("暂无可移交的俱乐部", "No eligible clubs found", locale)
+            } else {
+                transferClubs = clubs
+                showingClubTransferPicker = true
+            }
+        }
+    }
+
+    private func performTopicClubTransfer(_ club: ClubRecord) {
+        guard let transfer = popupCloseActions.transferTopicToClub else {
+            showingTransferConfirm = false
+            return
+        }
+        popupBusy = true
+        Task {
+            defer { popupBusy = false; showingTransferConfirm = false }
+            switch await transfer(id, club.id) {
+            case .success(let newTopicID):
+                transferredTopicID = newTopicID
+                showingTransferredResult = true
+                loads.start { await load() }
+            case .failure:
+                topicToastMessage = PlayCloseCopy.text("移交俱乐部未成功", "Transfer failed", locale)
+            }
+        }
+    }
+
+    private func saveContactBeforeSelfPlay() {
+        guard let save = popupCloseActions.saveUserPhoneAndName else {
+            showingContactSheet = false
+            return
+        }
+        popupBusy = true
+        Task {
+            defer { popupBusy = false }
+            switch await save(contactRealName, contactPhone) {
+            case .success:
+                showingContactSheet = false
+                topicToastMessage = PlayCloseCopy.text("资料已保存，请继续建单", "Contact saved. Continue placing your order", locale)
+                showingSelfPlay = true
+            case .failure:
+                topicToastMessage = PlayCloseCopy.text("保存失败，请检查姓名与手机号", "Save failed. Check name and phone", locale)
+            }
         }
     }
 }

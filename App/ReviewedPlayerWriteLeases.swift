@@ -681,7 +681,9 @@ enum ReviewedPlayerReadRoute {
         "api/audit/guard/reference", "api/audit/guard/appeal", "api/audit/guard/appeal/receipt",
         // Final sweep: non-money creator project list mutations (`api/activity/cancel` stays behind ReviewedAreaSwitch.moneyPayments).
         "api/activity/update_publish_status", "api/topic/update_user_status",
-        "api/activity/delete", "api/topic/delete", "api/template/delete", "api/template/updateLibraryStatus"
+        "api/activity/delete", "api/topic/delete", "api/template/delete", "api/template/updateLibraryStatus",
+        // Popup parity closure: beta topic graduation, club transfer, and attendance commands (non-money).
+        "api/topic/beta/graduate", "api/topic/transfer-to-club", "api/club/my"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
@@ -709,7 +711,9 @@ enum ReviewedPlayerReadRoute {
         // cur-team-u0802: the TEAM command receipt re-read.
         "api/game/session/receipt",
         // E2E-20261113b (coordinator): the paused-run read restoreRun needs before Start can run.
-        "api/play/run-session"
+        "api/play/run-session",
+        // Popup parity closure: player & organizer event attendance readback.
+        "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage"
     ]
     static let externalGamePaths: Set<String> = [
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",

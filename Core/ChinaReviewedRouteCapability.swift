@@ -78,8 +78,23 @@ public enum ChinaReviewedRouteCapability {
         }
         if wp06PartialPagesOwnerGrant.contains(key) { return true }
         if ownerDecisionGuardGrant.contains(key) { return true }
+        if popupCloseOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
+
+    /// Popup-closure owner grant: reviewed non-money routes surfaced by the popup parity closure pass
+    /// (`beta/graduate`, `transfer-to-club`, owned clubs lookup, and official attendance read/commands).
+    /// Money/payment/withdrawal/refund paths stay excluded and governed by `ReleaseMoneyWriteSwitch`.
+    public static let popupCloseOwnerGrant: Set<String> = [
+        "/api/topic/beta/graduate",
+        "/api/topic/transfer-to-club",
+        "/api/club/my",
+        "/api/official/events/{}/attendance",
+        "/api/official/events/{}/attendance/manage",
+        "/api/official/command",
+        "/api/official/command/query",
+        "/api/official/command/cancel"
+    ]
 
     /// HANDOVER 36, WP-07. Group/school quote and coupon usability are reads.
     /// Create and activate are listed and stay closed: they are payment kinds, so

@@ -220,6 +220,11 @@ enum OfficialDetailID {
                         // infer settlement from its acknowledgement/unknown result.
                         readback = UUID()
                     })
+                    OfficialAttendanceSectionView(
+                        eventID: id,
+                        activityID: OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) ?? id,
+                        organizer: false
+                    )
                 }
                 // Source CTA wording. Only the theme CTA navigates (to its bound topic); signup stays with
                 // OfficialParticipationActions. An action label that cannot act here is not drawn as a button:

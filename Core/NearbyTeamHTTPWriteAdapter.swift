@@ -106,7 +106,7 @@ public struct NearbyTeamDispatchRecord: Codable, Equatable {
         let operationKey = owner + "|" + target
         guard !inFlight.contains(operationKey) else { return .unknown }
         let descriptor: NearbyTeamRequest
-        do { descriptor = try .action(review.action) } catch { return .notSent }
+        do { descriptor = try .action(review.action, message: review.note) } catch { return .notSent }
         guard let approval, session.valid, descriptor.mutation, descriptor.method == "POST",
               ["/api/team/apply", "/api/team/withdraw", "/api/team/handle"].contains(descriptor.path),
               approval.allows(configuration: configuration, namespace: session.namespace, accountID: session.accountID, path: String(descriptor.path.dropFirst())) else { return .notSent }

@@ -24,6 +24,9 @@ import SwiftUI
     @State private var longitude = ""
     @State private var radius = 3000
     @State private var showingRange = false
+    @State private var showingMapStyle = false
+    @State private var mapStyle: PlayNearbyMapStyle = .paper
+    @State private var toastMessage: String?
     @State private var tab = 0
     @State private var viewMode = NearbyTeamViewMode.map
     @State private var focusedTeamID: NearbyTeamID?
@@ -130,8 +133,17 @@ import SwiftUI
                 PlayAreaNearbyRangeSheet(radii: NearbyQueryContext.radii, selected: radius, onSelect: { picked in
                     radius = picked
                     showingRange = false
+                    toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(picked / 1000) km", locale: locale)
                 }, onClose: { showingRange = false })
             }
+            .sheet(isPresented: $showingMapStyle) {
+                PlayAreaNearbyMapStyleSheet(selected: mapStyle, onSelect: { picked in
+                    mapStyle = picked
+                    showingMapStyle = false
+                    toastMessage = PlayCloseCopy.text("已切换地图样式：\(picked.title(locale: locale))", "Map style: \(picked.title(locale: locale))", locale: locale)
+                }, onClose: { showingMapStyle = false })
+            }
+            .cyToast(verbatimMessage: $toastMessage)
             .task {
                 coordinator.resume()
                 if let context = initialContext {
@@ -244,6 +256,13 @@ import SwiftUI
                 }
                 .accessibilityIdentifier("nearby.radius")
                 .accessibilityLabel(Text(verbatim: PlayAreaPopupCopy.text("范围", "Range", locale: locale)))
+                Button { showingMapStyle = true } label: {
+                    Text(verbatim: mapStyle.title(locale: locale))
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary)
+                }
+                .accessibilityIdentifier("nearby.mapStyle")
+                .accessibilityLabel(Text(verbatim: PlayCloseCopy.text("地图样式", "Map style", locale: locale)))
                 Spacer(minLength: 8)
                 CYPillButton("nearby.search", style: .secondary, systemImage: "magnifyingglass", fullWidth: false) { Task { await refresh() } }
                     .disabled(model.running).accessibilityIdentifier("nearby.search")
@@ -452,6 +471,13 @@ import SwiftUI
     @ObservedObject var model: NearbyTeamScreenModel
     let snapshot: NearbyTeamReview
     @Environment(\.locale) private var locale
+    @State private var note: String
+
+    init(model: NearbyTeamScreenModel, snapshot: NearbyTeamReview) {
+        self.model = model
+        self.snapshot = snapshot
+        _note = State(initialValue: snapshot.note ?? "")
+    }
 
     private var isDestructiveAction: Bool {
         switch snapshot.action {
@@ -470,6 +496,23 @@ import SwiftUI
     }
 
     var body: some View {
+        if case .apply = snapshot.action {
+            PlayNearbyApplyNoteModal(
+                teamName: snapshot.team?.title ?? "",
+                note: $note,
+                busy: model.running || !model.coordinator.canSubmit,
+                onCancel: { model.cancel() },
+                onConfirm: {
+                    let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+                    Task { await model.run { await model.coordinator.confirm(snapshot, note: trimmed) } }
+                }
+            )
+        } else {
+            reviewSheetBody
+        }
+    }
+
+    private var reviewSheetBody: some View {
         CYSheetContainer(
             title: appLocalized(String.LocalizationValue(stringLiteral: snapshot.action.key), locale: locale),
             onClose: model.running ? nil : { model.cancel() }

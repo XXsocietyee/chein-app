@@ -16,6 +16,7 @@ extension EnvironmentValues {
     @State private var visit = CityMerchantVisitAdmission()
     @State private var active = false
     @State private var work: Task<Void, Never>?
+    @State private var toastMessage: String?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
@@ -140,10 +141,19 @@ extension EnvironmentValues {
             isDestructive: controller.confirmation?.kind == .pause,
             onCancel: { controller.dismissConfirmation() },
             onConfirm: {
-                guard !ReviewedAreaSwitch.merchantWritesBlocked(host: playGapAPIHost) else { return }
-                if let captured = controller.confirmation, controller.admitConfirmation(captured) { perform { await controller.confirm(captured) } }
+                guard !ReviewedAreaSwitch.merchantWritesBlocked(host: playGapAPIHost) else {
+                    toastMessage = String(localized: LocalizedStringResource("cityMerchant.status.writesClosed", table: "CityMerchantOperations", locale: locale))
+                    return
+                }
+                if let captured = controller.confirmation, controller.admitConfirmation(captured) {
+                    perform {
+                        await controller.confirm(captured)
+                        toastMessage = MerchantCloseCopy.text("门店状态已更新", "Store status updated", locale)
+                    }
+                }
             }
         )
+        .cyToast(verbatimMessage: $toastMessage)
     }
     private func actionLabel(_ key: String) -> some View {
         Text(LocalizedStringKey(key), tableName: table)

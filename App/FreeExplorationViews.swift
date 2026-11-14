@@ -263,11 +263,20 @@ struct FreeExplorationStoreName: View {
             }
         }
         .privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.store.detail")
-            .confirmationDialog("playx.review", isPresented: $showingReview, titleVisibility: .visible) {
-                Button("playFree.evidence.submit") { guard let review else { return }; self.review = nil; Task { await model.submit(review) } }
-                Button("playx.cancel", role: .cancel) { review = nil; model.cancelReview() }
-            } message: { Text("playFree.evidence.notice") }
-            .onChange(of: showingReview) { _, visible in if !visible, review != nil { review = nil; model.cancelReview() } }
+            .cyModalConfirm(
+                isPresented: showingReview,
+                title: appLocalized("playx.review", locale: .current),
+                message: appLocalized("playFree.evidence.notice", locale: .current),
+                cancelTitle: appLocalized("playx.cancel", locale: .current),
+                confirmTitle: appLocalized("playFree.evidence.submit", locale: .current),
+                onCancel: { showingReview = false; review = nil; model.cancelReview() },
+                onConfirm: {
+                    showingReview = false
+                    guard let review else { return }
+                    self.review = nil
+                    Task { await model.submit(review) }
+                }
+            )
             .onDisappear { device?.cancel(); review = nil; model.cancelReview() }
     }
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {

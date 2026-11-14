@@ -115,12 +115,23 @@ import SwiftUI
                 actionRead: routeActionRead ?? heldRouteActionRead)
                 .cyPushedChrome(domain: .game)
         }
-        .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
-            Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
-        } message: { Text("playx.run.end.detail") }
+        .cyModalConfirm(
+            isPresented: confirmEnd,
+            title: appLocalized("playx.run.end", locale: locale),
+            message: appLocalized("playx.run.end.detail", locale: locale),
+            cancelTitle: appLocalized("playx.cancel", locale: locale),
+            confirmTitle: appLocalized("playx.run.end", locale: locale),
+            isDestructive: true,
+            onCancel: { confirmEnd = false },
+            onConfirm: {
+                confirmEnd = false
+                Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
+            }
+        )
         .sheet(isPresented: $showEmergencyHelp) {
             PlayEmergencyHelpSheet()
                 .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
         }
         .sheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
@@ -128,6 +139,7 @@ import SwiftUI
                     withAnimation(CYMotion.standard) { chapterFilter = picked }
                 }
                 .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
             }
         }
         .overlay { titleCardOverlay }
@@ -687,6 +699,8 @@ import SwiftUI
     @State private var teamPool: TeamPoolHintModel?
     @State private var showHelpPanel = false
     @State private var skippedHere = false
+    @State private var showUnsavedDiscard = false
+    @State private var nodeToastMessage: String?
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
     private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
     var body: some View {
@@ -956,31 +970,52 @@ import SwiftUI
         .onChange(of: node?.done) { _, _ in
             if let node { journey?.updateNodeDone(node.done == true) }
         }
-        .confirmationDialog("playx.review", isPresented: $showReview, titleVisibility: .visible) {
-            Button("playx.submit") {
+        .cyModalConfirm(
+            isPresented: showReview,
+            title: appLocalized("playx.review", locale: .current),
+            message: appLocalized("playx.review.detail", locale: .current),
+            cancelTitle: appLocalized("playx.cancel", locale: .current),
+            confirmTitle: appLocalized("playx.submit", locale: .current),
+            confirmIdentifier: "playx.confirm",
+            onCancel: { showReview = false; model.cancelReview(); review = nil },
+            onConfirm: {
+                showReview = false
                 guard let review else { return }
-                self.review = nil // Consume before adaptive dismissal, which otherwise means cancellation.
+                self.review = nil // Consume before adaptive dismissal
                 Task { await model.submit(review) }
-            }.accessibilityIdentifier("playx.confirm")
-            Button("playx.cancel", role: .cancel) { model.cancelReview(); review = nil }
-        } message: { Text("playx.review.detail") }
+            }
+        )
         .onChange(of: showReview) { _, visible in
             // A popover's outside-tap dismissal has no visible Cancel button.
             if !visible, review != nil { model.cancelReview(); review = nil }
         }
-        .confirmationDialog("playx.hints.request", isPresented: $showHint, titleVisibility: .visible) {
-            Button("playx.hints.confirm") {
+        .cyModalConfirm(
+            isPresented: showHint,
+            title: appLocalized("playx.hints.request", locale: .current),
+            message: appLocalized("playx.hints.consequence", locale: .current),
+            cancelTitle: appLocalized("playx.cancel", locale: .current),
+            confirmTitle: appLocalized("playx.hints.confirm", locale: .current),
+            confirmIdentifier: "playx.hints.confirm",
+            onCancel: { showHint = false },
+            onConfirm: {
+                showHint = false
                 let context = hintContext, level = hintLevel
                 hintContext = nil
                 Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
             }
-            .accessibilityIdentifier("playx.hints.confirm")
-        } message: { Text("playx.hints.consequence") }
+        )
         .overlay {
             if showHelpPanel, let help, helpEnabled {
                 PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
             }
         }
+        .cyModalOverlay(isPresented: showUnsavedDiscard) {
+            PlayUnsavedEditModal(
+                onKeepEditing: { showUnsavedDiscard = false },
+                onDiscard: { showUnsavedDiscard = false; answer = "" }
+            )
+        }
+        .cyToast(verbatimMessage: $nodeToastMessage)
         .onChange(of: help?.skipped) { _, skipped in
             // The server settled the skip (0 points, assisted). No success verdict; progress is re-read by the model.
             if skipped == true { skippedHere = true; showHelpPanel = false }
@@ -1158,15 +1193,22 @@ struct PlayExperienceIssueView: View {
             }
         }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
-        .confirmationDialog("playx.review", isPresented: $review, titleVisibility: .visible) {
-            Button("playx.submit") {
+        .cyModalConfirm(
+            isPresented: review,
+            title: appLocalized("playx.review", locale: .current),
+            message: appLocalized(String.LocalizationValue(stringLiteral: action == .settle ? "playx.lead.settle.consequence" : "playx.lead.review"), locale: .current),
+            cancelTitle: appLocalized("playx.cancel", locale: .current),
+            confirmTitle: appLocalized("playx.submit", locale: .current),
+            onCancel: { review = false; actionContext = nil },
+            onConfirm: {
+                review = false
                 if let action {
                     let context = actionContext, message = action == .broadcast ? text : nil
                     actionContext = nil
                     Task { await model.performLead(action, text: message, context: context) }
                 }
             }
-        } message: { Text(LocalizedStringKey(action == .settle ? "playx.lead.settle.consequence" : "playx.lead.review")) }
+        )
     }
     private func actionButton(context: PlayInteractionContext?, _ value: PlayLeadAction) -> some View {
         Button(LocalizedStringKey("playx.lead." + value.rawValue)) { action = value; actionContext = context; review = true }

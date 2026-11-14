@@ -27,6 +27,10 @@ struct RegistrationSheetView: View {
     @State private var nonRefundableConfirmed = false
     @State private var showingWaitlistCancellation = false
     @State private var showingAddParticipant = false
+    @State private var showingTicketSheet = false
+    @State private var showingParticipantSheet = false
+    @State private var showingPaymentPending = false
+    @State private var toastMessage: String?
     @State private var orderDestination: RegistrationWaitlistOrderVisit?
     @State private var resultOrderDestination: RegistrationResultOrderPresentation?
     @State private var recoveredOrderDestination: RegistrationRecoveredOrderPresentation?
@@ -153,6 +157,45 @@ struct RegistrationSheetView: View {
                 }
             }
             .overlay { registrationPopups }
+            .cyToast(verbatimMessage: $toastMessage)
+            .sheet(isPresented: $showingTicketSheet) {
+                CYOptionSheet(
+                    title: PlayCloseCopy.text("选择票种", "Select ticket", locale),
+                    items: flow.activity.tickets.map { ticket in
+                        CYOptionSheetItem(
+                            id: ticket.id,
+                            title: ticket.name,
+                            subtitle: gatedPayAmount(ticket.price),
+                            systemImage: "ticket"
+                        )
+                    },
+                    selectedID: flow.selectedTicketID,
+                    closeIdentifier: cyAccessibilityID(id: "registration.ticketSheet.close"),
+                    onSelect: { id in
+                        showingTicketSheet = false
+                        if flow.selectTicket(id: id) { Task { await flow.requestQuote() } }
+                    },
+                    onClose: { showingTicketSheet = false }
+                )
+                .cyDomainSheet(detents: [.half, .full])
+            }
+            .sheet(isPresented: $showingParticipantSheet) {
+                CYOptionSheet(
+                    title: PlayCloseCopy.text("选择参与人信息", "Select participant", locale),
+                    items: flow.participants.map { row in
+                        CYOptionSheetItem(id: row.id, title: row.fullName, subtitle: row.phone, systemImage: "person")
+                    },
+                    selectedID: flow.selectedParticipantID,
+                    closeIdentifier: cyAccessibilityID(id: "registration.participantSheet.close"),
+                    onSelect: { id in
+                        showingParticipantSheet = false
+                        flow.selectParticipant(id: id)
+                        toastMessage = PlayCloseCopy.text("已选择参与人", "Participant selected", locale)
+                    },
+                    onClose: { showingParticipantSheet = false }
+                )
+                .cyDomainSheet(detents: [.half, .full])
+            }
             .onChange(of: flow.waitlistCancellation) { _, value in
                 if value == nil { showingWaitlistCancellation = false }
             }
@@ -260,6 +303,16 @@ struct RegistrationSheetView: View {
                     orderReader.identity?.accountID != destination.identity.accountID ||
                     orderReader.identity?.epoch != destination.identity.epoch)
                 .accessibilityIdentifier("registration.result.openOrder")
+                if PlayAreaPopupCopy.paymentsOpen {
+                    Button {
+                        showingPaymentPending = true
+                    } label: {
+                        Text(verbatim: PlayCloseCopy.text("支付结果待确认", "Payment status pending", locale))
+                            .font(CYTypography.caption.weight(.semibold))
+                            .foregroundStyle(CYColor.brandStrong)
+                    }
+                    .accessibilityIdentifier("registration.result.paymentPendingModal")
+                }
             }
         }
     }
@@ -406,6 +459,15 @@ struct RegistrationSheetView: View {
                 showingWaitlistCancellation = false
                 flow.dismissWaitlistCancellation()
             })
+        } else if showingPaymentPending, PlayAreaPopupCopy.paymentsOpen {
+            PlayPaymentPendingModal(
+                detailed: flow.resultOrderDestination == nil,
+                onGoOrders: {
+                    showingPaymentPending = false
+                    toastMessage = PlayCloseCopy.text("请在“我的 - 订单”查看支付结果", "Check final status in Me > Orders", locale)
+                },
+                onClose: { showingPaymentPending = false }
+            )
         }
     }
     private var showsCheckoutBar: Bool {
@@ -458,6 +520,7 @@ struct RegistrationSheetView: View {
                         .buttonStyle(.cyPrimary)
                         // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
                         .cyHaptic(.warning, trigger: blockedTaps)
+                        .onChange(of: blockedTaps) { _, _ in toastMessage = blockReason(copy) }
                         .accessibilityHint(blockReason(copy) ?? "")
                         .pageTemplateControl(
                             label: Text("registration.form.review"),
@@ -499,6 +562,16 @@ struct RegistrationSheetView: View {
                         Text(verbatim: participant.fullName).tag(Optional(participant.id))
                     }
                 }.accessibilityIdentifier("registration.form.participantPicker")
+                Button {
+                    focusedField = nil
+                    showingParticipantSheet = true
+                } label: {
+                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Select participant sheet", locale))
+                        .font(CYTypography.caption.weight(.semibold))
+                        .foregroundStyle(CYColor.brandStrong)
+                }
+                .disabled(!flow.canEdit)
+                .accessibilityIdentifier("registration.form.openParticipantSheet")
             }
             if let participantReader, let participantCoordinator,
                participantReader.identity != nil, participantReader.identity == participantCoordinator.identity {
@@ -539,6 +612,16 @@ struct RegistrationSheetView: View {
                         Text(verbatim: ticket.name).tag(Optional(ticket.id))
                     }
                 }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.ticketPicker")
+                Button {
+                    focusedField = nil
+                    showingTicketSheet = true
+                } label: {
+                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose ticket sheet", locale))
+                        .font(CYTypography.caption.weight(.semibold))
+                        .foregroundStyle(CYColor.brandStrong)
+                }
+                .disabled(!flow.canEdit)
+                .accessibilityIdentifier("registration.form.openTicketSheet")
                 if let ticket = flow.selectedTicket {
                     RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
