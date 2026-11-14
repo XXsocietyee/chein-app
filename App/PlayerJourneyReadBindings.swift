@@ -367,7 +367,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
             if reread {
                 envelope = try await source.rereadRunFeedback(draft, token: session)
             } else {
-                envelope = try await source.runFeedback(draft, token: session)
+                envelope = try await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    routes: ["/api/play/feedback/submit"]
+                ) {
+                    try await source.runFeedback(draft, token: session)
+                }
             }
         } catch JourneyRefusal.noSavedRequest {
             // Nothing saved under this run: the last answer was final; the receipt cannot be re-read.

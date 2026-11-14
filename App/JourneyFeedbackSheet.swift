@@ -15,6 +15,7 @@ import SwiftUI
     @State private var category: PostGameFeedbackCategory = .place
     @State private var nodeID: String?
     @State private var text = ""
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
 
     private var locked: Bool {
         switch state {
@@ -91,6 +92,10 @@ import SwiftUI
                 .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
         }
         status
+        CYScreenOfflineWriteBanner(
+            routes: ["/api/play/feedback/submit"],
+            session: offlineWriteSession.session
+        )
         footer
     }
 

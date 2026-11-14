@@ -19,6 +19,7 @@ struct RegistrationSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
@@ -77,6 +78,10 @@ struct RegistrationSheetView: View {
                     Section { Label("registration.form.sessionChanged", systemImage: "person.crop.circle.badge.exclamationmark") }
                 } else {
                     // Source checkout banner: shown, never blocking (the viewer may register someone else).
+                    CYScreenOfflineWriteSection(
+                        routes: ["/api/registration/create", "/api/compliance/consents"],
+                        session: offlineWriteSession.session
+                    )
                     alreadyRegisteredSection
                     if flow.hasRetainedIntent {
                         activitySection
@@ -131,7 +136,21 @@ struct RegistrationSheetView: View {
                 }
             }
             .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
-                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirmAndReadBack() } }
+                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) {
+                    let isPaidRegistration = (flow.confirmation?.quote.payAmount ?? 0) > 0
+                    Task {
+                        if isPaidRegistration {
+                            await flow.confirmAndReadBack()
+                        } else {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/registration/create", "/api/compliance/consents"]
+                            ) {
+                                await flow.confirmAndReadBack()
+                            }
+                        }
+                    }
+                }
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {

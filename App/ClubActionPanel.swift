@@ -27,6 +27,7 @@ struct ClubActionPanel: View {
     @State private var rewardHandedOff = false
     @State private var rewardPhase: CYJoinReward.Phase = .landing
     @Environment(\.locale) private var locale
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @QuestifyReduceMotion private var reduceMotion
 
     private var availability: ClubActionAvailability {
@@ -48,6 +49,10 @@ struct ClubActionPanel: View {
             } else {
                 // Same-account original result/UNKNOWN remains visible after grant revocation.
                 // Its journal is not a current permission and cannot enable a new writer.
+                CYScreenOfflineWriteBanner(
+                    routes: ["/api/club/join", "/api/club/quit"],
+                    session: offlineWriteSession.session
+                )
                 stateContent(state)
                 if !coordinator.isConfigured {
                     Text("club.action.unavailable").foregroundStyle(.secondary)
@@ -224,9 +229,16 @@ struct ClubActionPanel: View {
         confirmation = nil; isWorking = true; issueKey = nil
         generation &+= 1
         let operation = generation
+        let route = value.action == .leave ? "/api/club/quit" : "/api/club/join"
+        let offlineSession = offlineWriteSession.session
         task = Task {
             var readbackGeneration: UInt64?
-            _ = await coordinator.confirm(value, onReadbackStarted: { readbackGeneration = onReadbackStarted() })
+            _ = await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineSession,
+                routes: [route]
+            ) {
+                await coordinator.confirm(value, onReadbackStarted: { readbackGeneration = onReadbackStarted() })
+            }
             guard operation == generation, !Task.isCancelled, coordinator.identity == value.identity else { return }
             isWorking = false; revision &+= 1
             let reduced = reduceMotion

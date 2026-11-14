@@ -13,6 +13,7 @@ import WebKit
 @MainActor struct ExternalGameLibrarySection: View {
     @Environment(\.locale) private var locale
     @Environment(\.externalGameSession) private var environmentSession
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @Bindable var store: ExternalGameStore
     private let injectedSession: ExternalGameSessionBridge?
     @State private var review: ExternalGameReviewModel
@@ -64,6 +65,10 @@ import WebKit
                     .accessibilityIdentifier("externalGame.submitReview")
             }
             ExternalGameCatalogSection(model: review, session: session) { showSubmissions = true }
+            CYScreenOfflineWriteBanner(
+                routes: ["/api/external-game/submissions"],
+                session: offlineWriteSession.session
+            )
             if !review.notice.isEmpty {
                 Text(review.notice).font(CYTypography.bodyCompact).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("externalGame.notice")
@@ -137,7 +142,14 @@ import WebKit
             let accessed = url.startAccessingSecurityScopedResource()
             defer { if accessed { url.stopAccessingSecurityScopedResource() } }
             guard let data = try? Data(contentsOf: url) else { return }
-            Task { await review.submit(archive: data, session: session) }
+            Task {
+                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineWriteSession.session,
+                    routes: ["/api/external-game/submissions"]
+                ) {
+                    await review.submit(archive: data, session: session)
+                }
+            }
         }
         .fileImporter(
             isPresented: $showingFileImporter,
