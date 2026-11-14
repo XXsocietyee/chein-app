@@ -64,7 +64,7 @@ final class ExternalGameReviewClientTests: XCTestCase {
         let wire = ExternalGameWire()
         wire.handler = { request in
             let path = request.url?.path ?? ""
-            if path.hasSuffix("/submissions/mine") { return (Data(Self.routeAbsent), 404) }
+            if path.hasSuffix("/submissions/mine") { return (Data(Self.routeAbsent.utf8), 404) }
             return (Data(), 500)
         }
         let client = try make(wire)
