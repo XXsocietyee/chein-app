@@ -1,6 +1,6 @@
 # ui/cur-wp-07
 
-HANDOVER 36, WP-07 commerce. Parent `a2a9d82e78459df7c22c5545e2c5bf19f2f0ff46` (`origin/ui/main`). The WP-07 section was read from `e1969026e9469669e165937013e0e4f5c61b4252` (`docs/completeness-2`). That commit is not the base.
+HANDOVER 36, WP-07 commerce. Parent `a2a9d82e78459df7c22c5545e2c5bf19f2f0ff46` (`origin/ui/main`). Implementation commit `4a3fbac20067322b24c53a0d5850c0358726baea`. The branch tip is the commit that records this line. The WP-07 section was read from `e1969026e9469669e165937013e0e4f5c61b4252` (`docs/completeness-2`). That commit is not the base.
 
 `docs/release/completeness-matrix.csv` is not on `ui/main`. Row status is only in this receipt. The matrix was not imported.
 
