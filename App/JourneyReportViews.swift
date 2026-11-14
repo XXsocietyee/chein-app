@@ -736,7 +736,7 @@ struct JourneySettleView: View {
                 flow(report)
             }
         }
-        .background { MPNightGround(glow: step == .overview) }
+        .cyPushedChrome(domain: .player)
         .navigationTitle(Text("mp.settle.title"))
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(phase.isReady && step != .overview)
@@ -773,7 +773,7 @@ struct JourneySettleView: View {
                             JourneyRankBoardView(state: rank, onScope: onRankScope, onPeriod: onRankPeriod, onRetry: onLoadRank)
                         }
                         .padding(CYSpacing.lg)
-                        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
                         .padding(.horizontal, CYSpacing.sm)
                     }
                     .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
@@ -875,7 +875,7 @@ struct JourneySettleView: View {
                             Text(Self.tagKeys[index]).font(CYTypography.label)
                                 .foregroundStyle(on ? CYColor.textOnAccent : CYColor.textSecondary)
                                 .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
-                                .background(on ? AnyShapeStyle(CYColor.selection) : AnyShapeStyle(CYNight.ink2), in: Capsule())
+                                .background(on ? AnyShapeStyle(CYColor.selection) : AnyShapeStyle(CYColor.bgRaised), in: Capsule())
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.plain)
@@ -888,7 +888,7 @@ struct JourneySettleView: View {
                     TextField(text: $review, axis: .vertical) { Text("mp.settle.rate.placeholder") }
                         .lineLimit(3...6)
                         .padding(CYSpacing.lg)
-                        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .onChange(of: review) { _, value in
                             if value.count > Self.reviewMax { review = String(value.prefix(Self.reviewMax)) }
                             localError = nil
@@ -949,7 +949,7 @@ struct JourneySettleView: View {
 
     private var thanks: some View {
         ZStack {
-            CYNight.ink0.opacity(0.7).ignoresSafeArea().accessibilityHidden(true)
+            CYColor.bgPage.opacity(0.85).ignoresSafeArea().accessibilityHidden(true)
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "star.fill").font(CYTypography.display).foregroundStyle(CYNight.lantern)
                     .background { Circle().fill(CYNight.glow(radius: 50)).frame(width: 160, height: 160) }
@@ -959,7 +959,7 @@ struct JourneySettleView: View {
                 CYPillButton("mp.settle.toShare") { go(.share) }.accessibilityIdentifier("journeySettle.toShare")
             }
             .padding(CYSpacing.xxl)
-            .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
+            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
             .padding(CYSpacing.xxl)
             .transition(.scale(scale: 0.9).combined(with: .opacity))
             .accessibilityElement(children: .contain)

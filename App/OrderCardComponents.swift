@@ -3,19 +3,13 @@ import SwiftUI
 // D3 presentation pieces shared by the orders, tickets and coupons screens.
 // Built only from CY tokens; candidates to fold into the design kit once it exists.
 
-/// Revolut-style card: `bgElevated` fill, soft radius, hairline border, no shadow in dark.
+/// Revolut-style borderless card: `bgElevated` fill with dark inner top highlight / light soft shadow.
 struct OrderCardSurface: ViewModifier {
     var padding: CGFloat = CYSpacing.lg
     func body(content: Content) -> some View {
         content
-            .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-                    .strokeBorder(CYColor.borderSubtle, lineWidth: 1)
-                    .allowsHitTesting(false)
-            }
+            .cyDomainCard(radius: CYRadius.lg, padding: padding)
     }
 }
 
@@ -28,8 +22,9 @@ struct OrderStatusChip: View {
     let title: LocalizedStringKey
     let systemImage: String
     var emphasized = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        Label { Text(title).lineLimit(1).minimumScaleFactor(0.75) } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
+        Label { Text(title).lineLimit(typeSize.isAccessibilitySize ? 3 : 1).minimumScaleFactor(0.75) } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
             .font(CYTypography.caption.weight(.semibold))
             .foregroundStyle(emphasized ? CYColor.textPrimary : CYColor.textSecondary)
             .padding(.horizontal, CYSpacing.md)
@@ -69,14 +64,17 @@ struct OrderPillLabel: View {
     let title: Text
     var systemImage: String? = nil
     var fullWidth = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
-            title.lineLimit(1).minimumScaleFactor(0.8)
+            title.lineLimit(typeSize.isAccessibilitySize ? 2 : 1).minimumScaleFactor(0.8)
+                .multilineTextAlignment(.center)
         }
         .font(CYTypography.label)
         .foregroundStyle(CYColor.textOnAccent)
         .padding(.horizontal, CYSpacing.xl)
+        .padding(.vertical, CYSpacing.xs)
         .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
         .background(CYColor.actionPrimaryBg, in: Capsule(style: .continuous))
     }
@@ -108,6 +106,7 @@ struct OrderAmountHero: View {
     let amount: Decimal?
     var showsCurrencyCaveat = true
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     private var figure: String {
         guard let amount else { return "—" }
         let formatter = NumberFormatter(); formatter.locale = locale; formatter.numberStyle = .decimal
@@ -120,7 +119,8 @@ struct OrderAmountHero: View {
             Text(verbatim: figure)
                 .font(CYTypography.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
-                .lineLimit(1).minimumScaleFactor(0.5)
+                .lineLimit(typeSize.isAccessibilitySize ? 2 : 1).minimumScaleFactor(0.5)
+                .fixedSize(horizontal: false, vertical: true)
                 .privacySensitive()
             if amount != nil, showsCurrencyCaveat {
                 Text(verbatim: appLocalized("activity.currencyUnconfirmed", locale: locale))

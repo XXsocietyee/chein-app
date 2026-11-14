@@ -58,12 +58,7 @@ import SwiftUI
                                     .accessibilityIdentifier("ticketWallet.emptyHint")
                             }
                         }
-                        .padding(CYSpacing.md)
-                        .background {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .fill(CYNight.glassFill)
-                                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-                        }
+                        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
                         .listRowBackground(Color.clear)
                     }
                     let shown = filtered(snapshot.tickets)
@@ -126,7 +121,7 @@ import SwiftUI
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
-            .cyDomainPageBackground()
+            .cyDomainScreen(.player)
             .listSectionSpacing(20)
             .appNavigationTitle("ticketWallet.title")
             .toolbar {
@@ -293,7 +288,7 @@ private struct TicketWalletRow: View {
     private var art: [Color] {
         let sets: [[Color]] = [
             [Color(red: 0.10, green: 0.32, blue: 0.36), Color(red: 0.04, green: 0.10, blue: 0.14)],
-            [Color(red: 0.24, green: 0.20, blue: 0.46), Color(red: 0.07, green: 0.06, blue: 0.16)],
+            [Color(red: 0.14, green: 0.20, blue: 0.28), Color(red: 0.05, green: 0.07, blue: 0.10)],
             [Color(red: 0.42, green: 0.17, blue: 0.22), Color(red: 0.13, green: 0.05, blue: 0.08)],
             [Color(red: 0.30, green: 0.34, blue: 0.16), Color(red: 0.08, green: 0.10, blue: 0.05)]]
         return sets[abs(ticket.id) % sets.count]
@@ -307,7 +302,7 @@ private struct TicketWalletRow: View {
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
                 LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
-                Image(systemName: "ticket.fill").font(.system(size: 120)).rotationEffect(.degrees(-14))
+                Image(systemName: "ticket.fill").resizable().scaledToFit().frame(width: 120, height: 120).rotationEffect(.degrees(-14))
                     .foregroundStyle(.white.opacity(0.07)).offset(x: 90, y: -10).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     TicketWalletStatusBadge(status: ticket.status)
@@ -356,7 +351,7 @@ private struct TicketWalletRow: View {
                 }
                 Spacer(minLength: 0)
                 if !typeSize.isAccessibilitySize, ticket.action == .detail {
-                    Image(systemName: "qrcode").font(.system(size: 34)).foregroundStyle(CYColor.textPrimary.opacity(0.85))
+                    Image(systemName: "qrcode").resizable().scaledToFit().frame(width: 34, height: 34).foregroundStyle(CYColor.textPrimary.opacity(0.85))
                         .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .accessibilityHidden(true)
                 }

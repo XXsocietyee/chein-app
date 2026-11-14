@@ -120,8 +120,10 @@ struct RegistrationSheetView: View {
             .modifier(G6PromotionCatalogLoader(activityID: flow.activity.summary.id))
             .task { await reloadCoupons() }
             .safeAreaInset(edge: .bottom, spacing: 0) { if showsCheckoutBar { checkoutBar } }
+            .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
-            .background(CYColor.bgPage)
+            .themeDomain(.player)
+            .cyDomainPageBackground()
             .appNavigationTitle("registration.form.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -310,21 +312,27 @@ struct RegistrationSheetView: View {
                 }
                 .padding(CYSpacing.lg)
                 E1Perforation()
-                HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 2) {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        }
+                        Spacer(minLength: CYSpacing.sm)
+                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .lineLimit(1).layoutPriority(1)
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     }
-                    Spacer(minLength: CYSpacing.sm)
-                    Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                        .minimumScaleFactor(0.7).lineLimit(1).layoutPriority(1)
                 }
                 .padding(CYSpacing.lg)
                 .accessibilityElement(children: .combine)
             }
-            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYColor.bgElevated))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
-            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)).listRowBackground(Color.clear)
+            .cyDomainCard(radius: CYRadius.lg, padding: 0)
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0)).listRowBackground(Color.clear)
         } header: { E1IconHeader(systemImage: "calendar", title: copy.t("活动信息", "Activity")) }
     }
     private func ticketPriceText(_ copy: CoreLoopCopy) -> String {

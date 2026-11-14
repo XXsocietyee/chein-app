@@ -125,6 +125,7 @@ enum DesignFixtureRegistry {
         // HERO roam (RoamFixtures): roam-go, roam-walking, roam-reveal, roam-sheet-half, roam-paused
         case let n where n.hasPrefix("roam-") && RoamFixtures.make(n) != nil: return RoamFixtures.make(n)!
         default:
+            if let t5 = MainActor.assumeIsolated({ T5PageFixtures.make(name) }) { return t5 }
             if let gap = MainActor.assumeIsolated({ CoreGapPageFixtures.make(name) }) { return gap }
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
             if let e4p = MainActor.assumeIsolated({ E4PurchaseFixtures.make(name) }) { return e4p }
@@ -355,5 +356,422 @@ enum CoreGapPageFixtures {
         _model = State(initialValue: NearbyMerchantCoordinator(reader: CoreGapNearbyFixtureReader(empty: empty), location: CoreGapNearbyFixtureLocation(), approved: { true }))
     }
     var body: some View { NavigationStack { NearbyMerchantView(model: model) } }
+}
+
+// MARK: T5 fixtures (DEBUG only, strictly offline synthetic data)
+
+enum T5PageFixtures {
+    private static let samplePass = PassProductCard(
+        id: "t5-pass-1",
+        name: "Hangzhou Old Town 3-Play Pass",
+        kind: .cityBundle,
+        city: "Hangzhou",
+        validity: .daysAfterPurchase(30),
+        seats: 2,
+        cashPriceText: "¥168.00",
+        pointsPrice: 1200,
+        topics: ["88", "89", "90"],
+        giftAllowed: true,
+        giftOnly: false,
+        isExtraSeat: false,
+        faceText: "HZ PASS"
+    )
+
+    @MainActor static func make(_ name: String) -> AnyView? {
+        switch name {
+        case "t5-baoming": return wrapPlayer(RegistrationFixtureHostView(scenario: .standard))
+        case "t5-baoming-error": return wrapPlayer(RegistrationFixtureHostView(scenario: .quoteError))
+        case "t5-pricing": return wrapMerchant(T5PublisherPricingFixtureHost(failed: false))
+        case "t5-pricing-error": return wrapMerchant(T5PublisherPricingFixtureHost(failed: true))
+        case "t5-partner": return wrapMerchant(T5PublisherPartnerFixtureHost(failed: false))
+        case "t5-partner-error": return wrapMerchant(T5PublisherPartnerFixtureHost(failed: true))
+        case "t5-order-center": return wrapPlayer(T5OrderCenterFixtureHost(failed: false))
+        case "t5-order-center-error": return wrapPlayer(T5OrderCenterFixtureHost(failed: true))
+        case "t5-free-explore": return wrapPlayer(T5FreeExploreFixtureHost(failed: false))
+        case "t5-free-explore-error": return wrapPlayer(T5FreeExploreFixtureHost(failed: true))
+        case "t5-pass-market":
+            let content = PassMarketContent(
+                products: [
+                    samplePass,
+                    PassProductCard(
+                        id: "t5-pass-2",
+                        name: "West Lake Weekend Timed Pass",
+                        kind: .timedPass,
+                        city: "Hangzhou",
+                        validity: .daysFromFirstPlay(7),
+                        seats: nil,
+                        cashPriceText: "¥88.00",
+                        pointsPrice: nil,
+                        topics: ["88"],
+                        giftAllowed: false,
+                        giftOnly: false,
+                        isExtraSeat: false,
+                        faceText: "7D"
+                    )
+                ],
+                orders: [],
+                giftsBought: [],
+                giftsReceived: []
+            )
+            return wrapPlayer(NavigationStack {
+                PassMarketView(
+                    state: PassMarketState(content: .ready(content), pointBalance: 1280, member: .plans("¥19/mo"), refreshFailed: false),
+                    initialTab: .shop,
+                    onReload: { _ in },
+                    onOpenProduct: { _ in },
+                    onOpenGiftClaim: {},
+                    onOpenMembership: {}
+                )
+            })
+        case "t5-pass-market-error":
+            return wrapPlayer(NavigationStack {
+                PassMarketView(
+                    state: PassMarketState(content: .failed("Offline load error"), pointBalance: nil, member: nil, refreshFailed: false),
+                    initialTab: .shop,
+                    onReload: { _ in },
+                    onOpenProduct: { _ in },
+                    onOpenGiftClaim: {},
+                    onOpenMembership: {}
+                )
+            })
+        case "t5-pass-detail":
+            let checkout = [
+                PassCheckoutRow(kind: .price, valueText: "¥168.00", note: nil, off: false),
+                PassCheckoutRow(kind: .cash, valueText: "¥168.00", note: nil, off: false),
+                PassCheckoutRow(kind: .points, valueText: "1200", note: "Fixture points quote", off: false)
+            ]
+            let detail = PassDetailState(
+                product: .ready(samplePass),
+                forGift: false,
+                buy: .buyable(
+                    payModes: [PassPayMode(mode: .cash, amountText: "¥168.00"), PassPayMode(mode: .points, amountText: "1200 pts")],
+                    cashReason: nil
+                ),
+                checkout: checkout,
+                unlockSteps: [],
+                giftShare: nil,
+                groupQuote: nil,
+                activateTopicID: "88"
+            )
+            return wrapPlayer(NavigationStack {
+                PassDetailView(state: detail, onRetry: {}, onForGift: { _ in }, onOpenCheckout: { _, _ in }, onResultDone: { _ in })
+            })
+        case "t5-pass-detail-unavailable":
+            let detail = PassDetailState(
+                product: .ready(samplePass),
+                forGift: false,
+                buy: .unavailable(reason: "Channel unavailable in fixture"),
+                checkout: [PassCheckoutRow(kind: .cash, valueText: "—", note: "Cash checkout disabled", off: true)],
+                unlockSteps: [],
+                giftShare: nil,
+                groupQuote: nil,
+                activateTopicID: nil
+            )
+            return wrapPlayer(NavigationStack {
+                PassDetailView(state: detail, onRetry: {}, onForGift: { _ in }, onOpenCheckout: { _, _ in }, onResultDone: { _ in })
+            })
+        case "t5-pass-gift":
+            return wrapPlayer(NavigationStack {
+                PassGiftClaimView(state: PassGiftClaimState(phase: .ready, claiming: false), onClaim: {}, onOpenGifts: {})
+            })
+        case "t5-pass-gift-expired":
+            return wrapPlayer(NavigationStack {
+                PassGiftClaimView(state: PassGiftClaimState(phase: .failed(reason: "Gift link expired"), claiming: false), onClaim: {}, onOpenGifts: {})
+            })
+        case "t5-membership":
+            let content = PassMembershipContent(
+                active: true,
+                untilText: "2026-12-31",
+                themeCount: 24,
+                plans: [
+                    PassPlanCard(code: "Y", priceText: "¥198", line: .year(monthlyText: "16.5"), best: true),
+                    PassPlanCard(code: "M", priceText: "¥28", line: .month, best: false)
+                ],
+                selectedPlan: "Y",
+                buyBlock: nil
+            )
+            return wrapPlayer(NavigationStack {
+                PassMembershipView(phase: .ready(content), onRetry: {}, onSelectPlan: { _ in }, onOpenLibrary: {})
+            })
+        case "t5-membership-off":
+            return wrapPlayer(NavigationStack {
+                PassMembershipView(phase: .notEnabled, onRetry: {}, onSelectPlan: { _ in }, onOpenLibrary: nil)
+            })
+        case "t5-library":
+            let cards = [
+                PassLibraryCard(id: "88", title: "West Lake Night Walk", coverURL: nil, city: "Hangzhou", kind: .city, minutes: 90, freeWithPass: true),
+                PassLibraryCard(id: "89", title: "Grand Canal Lanterns", coverURL: nil, city: "Hangzhou", kind: .free, minutes: 60, freeWithPass: false)
+            ]
+            return wrapPlayer(NavigationStack {
+                PassLibraryView(phase: .ready(cards), initialKind: .all, onLoad: { _ in }, onOpenTopic: { _ in })
+            })
+        case "t5-library-empty":
+            return wrapPlayer(NavigationStack {
+                PassLibraryView(phase: .ready([]), initialKind: .all, onLoad: { _ in }, onOpenTopic: nil)
+            })
+        case "t5-seats":
+            let seats = JourneySeatsContent(
+                headName: "West Lake Night Walk",
+                headCoverURL: nil,
+                me: JourneyPerson(name: "Alex", avatarURL: nil),
+                showsParty: true,
+                occupied: 2,
+                seatCount: 4,
+                circles: [
+                    JourneySeatCircle(no: 1, kind: .me, avatarURL: nil, initial: "A", tappable: false),
+                    JourneySeatCircle(no: 2, kind: .invited, avatarURL: nil, initial: nil, tappable: false),
+                    JourneySeatCircle(no: 3, kind: .open, avatarURL: nil, initial: nil, tappable: true),
+                    JourneySeatCircle(no: 4, kind: .open, avatarURL: nil, initial: nil, tappable: true)
+                ],
+                canInvite: true,
+                openCount: 2,
+                invited: [JourneyInvitedRow(invitationID: "inv-1", no: 2, kind: .invited, expiresText: "23h left", canCancel: true)],
+                multi: true,
+                tiles: [],
+                canGoToStart: true,
+                actionError: nil,
+                inviteShareURL: nil
+            )
+            return wrapPlayer(NavigationStack {
+                JourneySeatsView(phase: .ready(seats), onRetry: {}, onInvite: {}, onCancel: { _ in }, onStart: {}, onEditMe: {})
+            })
+        case "t5-seats-error":
+            return wrapPlayer(NavigationStack {
+                JourneySeatsView(phase: .failed, onRetry: {}, onInvite: {}, onCancel: { _ in }, onStart: {}, onEditMe: {})
+            })
+        case "t5-settle":
+            let report = JourneyReport(
+                legacy: false,
+                result: .legitimate,
+                dateLabel: "2026-11-14",
+                nodesText: "5/5",
+                elapsedText: "48:20",
+                score: 960,
+                rank: 3,
+                rankBasisCount: 5,
+                penaltyText: nil,
+                rewardItems: 2,
+                runID: "run-1",
+                topicID: "88",
+                activityID: "12",
+                coverURL: nil,
+                nodes: [],
+                finished: true,
+                inProgress: false
+            )
+            return wrapPlayer(NavigationStack {
+                JourneySettleView(
+                    phase: .ready(report),
+                    rank: JourneyRankState(),
+                    rate: .idle,
+                    shareURL: nil,
+                    topicName: "West Lake Night Walk",
+                    onRetry: {},
+                    onSignIn: {},
+                    onLoadRank: {},
+                    onRankScope: { _ in },
+                    onRankPeriod: { _ in },
+                    onSubmitRating: { _, _ in },
+                    onDone: {}
+                )
+            })
+        case "t5-settle-error":
+            return wrapPlayer(NavigationStack {
+                JourneySettleView(
+                    phase: .failed(gone: false),
+                    rank: JourneyRankState(),
+                    rate: .idle,
+                    shareURL: nil,
+                    topicName: nil,
+                    onRetry: {},
+                    onSignIn: {},
+                    onLoadRank: {},
+                    onRankScope: { _ in },
+                    onRankPeriod: { _ in },
+                    onSubmitRating: { _, _ in },
+                    onDone: {}
+                )
+            })
+        default: return nil
+        }
+    }
+
+    @MainActor private static func wrapPlayer<V: View>(_ view: V) -> AnyView {
+        AnyView(view.themeDomain(.player).cyDomainPageBackground().preferredColorScheme(.dark))
+    }
+
+    @MainActor private static func wrapMerchant<V: View>(_ view: V) -> AnyView {
+        AnyView(view.themeDomain(.merchant).cyDomainPageBackground().preferredColorScheme(.light))
+    }
+}
+
+private actor T5PublisherFixtureTransport: HTTPTransport {
+    let failedPricing: Bool
+    let failedPartner: Bool
+    init(failedPricing: Bool = false, failedPartner: Bool = false) {
+        self.failedPricing = failedPricing
+        self.failedPartner = failedPartner
+    }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let path = request.url?.lastPathComponent ?? ""
+        if failedPricing && path == "preview" {
+            return (Data(#"{"code":500,"msg":"Offline pricing error"}"#.utf8), 500)
+        }
+        if failedPartner && (path == "detail" || path == "public-detail") {
+            return (Data(#"{"code":500,"msg":"Offline partner error"}"#.utf8), 500)
+        }
+        let payload: String
+        switch path {
+        case "preview":
+            payload = #"{"priceMin":12.5,"referencePrice":28.0,"cityReferenceSampleSize":6,"lineup":[{"toType":"club","toId":9,"shareMode":1,"shareRate":20}]}"#
+        case "detail", "public-detail":
+            payload = #"{"id":9,"name":"Old Town Explorers Club","description":"Partner organizer in synthetic offline fixture"}"#
+        default:
+            payload = "null"
+        }
+        return (Data("{\"code\":200,\"msg\":\"ok\",\"data\":\(payload)}".utf8), 200)
+    }
+}
+
+@MainActor private final class T5PublisherFixtureJournal: OperationPendingJournal {
+    var records: [String: OperationPendingRecord] = [:]
+    func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { records[ownerKey + targetKey] }
+    func write(_ record: OperationPendingRecord) throws { records[record.ownerKey + record.targetKey] = record }
+    func clear(_ record: OperationPendingRecord) throws { records.removeValue(forKey: record.ownerKey + record.targetKey) }
+}
+
+@MainActor private enum T5PublisherWiring {
+    static func make(failedPricing: Bool = false, failedPartner: Bool = false) -> (PublisherLifecycleHTTP, PublisherLifecycleCoordinator) {
+        let config = try! APIConfiguration(baseURL: URL(string: "https://example.com/offline/")!)
+        let session = PublishingSession(namespace: "offline-t5", accountID: 7, epoch: UUID(), role: "member", region: .china)
+        let credential = try! PublishingCredentials(session: session, token: "offline-token")
+        let grant = try! OperationEndpointApproval(
+            baseURL: config.baseURL,
+            namespace: session.namespace,
+            accountID: 7,
+            paths: ["api/topic/pricing/preview", "api/club/detail", "api/merchant/public-detail"]
+        )
+        let client = PublisherLifecycleHTTP(
+            configuration: config,
+            transport: T5PublisherFixtureTransport(failedPricing: failedPricing, failedPartner: failedPartner),
+            grants: .init(reads: grant),
+            credentials: { credential }
+        )
+        let coordinator = PublisherLifecycleCoordinator(client: client, journal: T5PublisherFixtureJournal()) { resource, _ in
+            PublisherAuthority(resource: resource, ownerAccountID: 7, revision: "offline-t5", beta: true, eligibleClubIDs: [9])
+        }
+        return (client, coordinator)
+    }
+}
+
+@MainActor private struct T5PublisherPricingFixtureHost: View {
+    private let client: PublisherLifecycleHTTP
+    private let coordinator: PublisherLifecycleCoordinator
+    init(failed: Bool) {
+        (client, coordinator) = T5PublisherWiring.make(failedPricing: failed)
+    }
+    var body: some View {
+        NavigationStack { PublisherPricingView(topicID: 4, client: client, coordinator: coordinator) }
+    }
+}
+
+@MainActor private struct T5PublisherPartnerFixtureHost: View {
+    private let client: PublisherLifecycleHTTP
+    @State private var row: PublisherLineup?
+    init(failed: Bool) {
+        (client, _) = T5PublisherWiring.make(failedPartner: failed)
+    }
+    var body: some View {
+        NavigationStack {
+            if let row {
+                PublisherPartnerView(topicID: 4, row: row, client: client)
+            } else {
+                CYLoadingStateView(rows: 2).padding(CYSpacing.pageHorizontal)
+            }
+        }
+        .task {
+            guard row == nil, let input = try? PublisherPricingInput(topicID: 4, subtype: .selfPlay, leadCost: nil, teamSize: nil),
+                  let preview = try? await client.pricing(input) else { return }
+            row = preview.lineup.first
+        }
+    }
+}
+
+private actor T5OrderCenterTransport: HTTPTransport {
+    let failed: Bool
+    init(failed: Bool) { self.failed = failed }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        if failed {
+            return (Data(#"{"code":404,"msg":"Order not found"}"#.utf8), 404)
+        }
+        let json = #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"Hangzhou Old Town Pass","statusText":"Paid","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
+        return (Data(json.utf8), 200)
+    }
+}
+
+@MainActor private struct T5OrderCenterFixtureHost: View {
+    @StateObject private var model: OrderCenterEntryModel
+    init(failed: Bool) {
+        let service = OrderCenterDetailService(
+            baseURL: URL(string: "https://example.com/offline/")!,
+            transport: T5OrderCenterTransport(failed: failed),
+            token: { "offline-fixture-valid-token-value" },
+            enabled: { true }
+        )
+        _model = StateObject(wrappedValue: OrderCenterEntryModel(service: service))
+    }
+    var body: some View {
+        NavigationStack { OrderCenterEntryView(model: model, initialOutTradeNo: "CY20260001") }
+    }
+}
+
+@MainActor private struct T5FreeExploreFixtureHost: View {
+    let failed: Bool
+    @State private var model: FreeExploreBundleLaunchModel?
+    @MainActor private final class Store: TemplateAuthoringStorage {
+        var values: [String: Data] = [:]
+        func read(_ key: String) throws -> Data? { values[key] }
+        func write(_ data: Data, key: String) throws { values[key] = data }
+        func remove(_ key: String) throws { values.removeValue(forKey: key) }
+    }
+    @MainActor private final class Wire: FreeExploreLaunchServing {
+        let session: FreeExploreLaunchSession
+        let failed: Bool
+        var isCurrent = true
+        var permitsReservationDispatch = false
+        init(failed: Bool) throws {
+            self.failed = failed
+            session = try .init(baseURL: URL(string: "https://example.test")!, accountID: 7, market: "CN", namespace: "t5-fixture",
+                                role: "player", epoch: 1, token: "synthetic-token")
+        }
+        private func decode<T: Decodable>(_ value: Any) throws -> T {
+            try JSONDecoder().decode(T.self, from: JSONSerialization.data(withJSONObject: value))
+        }
+        func catalog(topicID: FreeExploreLaunchID) async throws -> FreeExploreLaunchCatalog {
+            if failed { throw FreeExploreLaunchFailure.response(status: 503, code: 503, businessCode: nil) }
+            return try decode(["topicId": 88, "topicName": "Sample free-explore bundle", "productType": 2, "saleEnabled": false, "reservationEnabled": true,
+                               "items": [["chapterId": 3, "name": "Old-town chapter", "unitsPerHolder": 1,
+                                          "stores": [["offerId": 29, "merchantName": "Sample Tea House", "validEnd": "2026-12-31"]]]]])
+        }
+        func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder {
+            try decode(["registrationId": 41, "bundle": [
+                "order": ["registrationId": 41, "holderMemberId": 7, "topicId": 88],
+                "units": [["id": 17, "registrationId": 41, "holderMemberId": 7, "chapterId": 3, "status": "AVAILABLE"]],
+                "reservations": []]])
+        }
+        func reserve(_ command: FreeExploreLaunchReservationCommand) async throws -> FreeExploreLaunchReservation { throw FreeExploreLaunchFailure.disabled }
+        func receipt(_ command: FreeExploreLaunchReservationCommand) async throws -> FreeExploreLaunchReservation? { nil }
+        func refundQuote(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchRefundQuote { throw FreeExploreLaunchFailure.disabled }
+    }
+    var body: some View {
+        NavigationStack {
+            if let model { FreeExploreBundleLaunchView(model: model) }
+        }.task {
+            guard model == nil, let wire = try? Wire(failed: failed), let topic = try? FreeExploreLaunchID(88),
+                  let registration = try? FreeExploreLaunchID(41) else { return }
+            model = try? FreeExploreBundleLaunchModel(topicID: topic, registrationID: registration, service: wire,
+                                                      pending: FreeExploreLaunchPendingStore(storage: Store(), session: wire.session), dispatchAllowed: { true })
+        }
+    }
 }
 #endif
