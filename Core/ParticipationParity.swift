@@ -5,6 +5,7 @@ import Foundation
 public struct ParticipationParityFacts: Equatable {
     public let activityCancelTime: String?
     public let firstSuccessfulScanAt: String?
+    public let selfPlayPass: Bool
     /// isFreeOrder: explicit zero totalAmount and payableAmount, and no non-zero point/WeChat payment.
     public let isFree: Bool
     public init(raw: PlayWireValue) {
@@ -15,7 +16,12 @@ public struct ParticipationParityFacts: Equatable {
         }
         let activity = raw["cmsActivity"]
         activityCancelTime = activity.object == nil ? nil : moment(activity["cancelTime"])
-        firstSuccessfulScanAt = moment(raw["firstSuccessfulScanAt"])
+        if raw["firstSuccessfulScanAt"].integer == 0 {
+            firstSuccessfulScanAt = "0"
+        } else {
+            firstSuccessfulScanAt = moment(raw["firstSuccessfulScanAt"])
+        }
+        selfPlayPass = Self.isSelfPlayPass(raw)
         func zero(_ value: PlayWireValue) -> Bool {
             switch value {
             case .integer(let number): return number == 0
@@ -30,6 +36,22 @@ public struct ParticipationParityFacts: Equatable {
         isFree = zero(raw["totalAmount"]) && zero(raw["payableAmount"])
             && absentOrZero(raw["pointPaymentAmount"]) && absentOrZero(raw["wechatPaymentAmount"])
     }
+
+    /// order-status.js isSelfPlayPass. A present purchase kind wins. Ticket id 0 stays 0 and is not a ticket.
+    static func isSelfPlayPass(_ raw: PlayWireValue) -> Bool {
+        let kind = raw["purchaseKind"]
+        let kindPresent: Bool
+        switch kind {
+        case .null: kindPresent = false
+        case .string(let text): kindPresent = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        default: kindPresent = true
+        }
+        if kindPresent { return kind.tolerantInteger == 2 }
+        let ticket = raw["ticketId"].tolerantInteger
+        let noTicket = ticket == nil || ticket == 0
+        let expires = raw["expiresAt"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return raw["ownerType"].tolerantInteger == 1 && noTicket && !expires.isEmpty
+    }
 }
 
 /// Source mycanyu/mycanyuinfo status: summarizeOrderState with its activity-cancel,
@@ -37,8 +59,17 @@ public struct ParticipationParityFacts: Equatable {
 public struct ParticipationStatus: Equatable {
     public let state: OrderLifecycleState
     public let activityCancelled: Bool
+    /// Unused self-play pass: state stays notStarted, and the label is 可使用.
+    public let passReady: Bool
+    public init(state: OrderLifecycleState, activityCancelled: Bool, passReady: Bool = false) {
+        self.state = state
+        self.activityCancelled = activityCancelled
+        self.passReady = passReady
+    }
     public var labelKey: String {
-        activityCancelled ? "playerJourney.parity.state.activityCancelled" : "orderLifecycle.state." + state.rawValue
+        if activityCancelled { return "playerJourney.parity.state.activityCancelled" }
+        if passReady { return "orderLifecycle.state.passReady" }
+        return "orderLifecycle.state." + state.rawValue
     }
     public enum Tone: Equatable { case info, success, warning, neutral }
     /// List: not started info, in progress success, else neutral. Detail also marks pending/refunding.
@@ -69,6 +100,9 @@ public extension ParticipationRecord {
         let end = OrderLifecycleTime.date(order.ownerEndDate) ?? start
         if let end, now > end { return plain(.completed) }
         if let start, now < start { return plain(.notStarted) }
+        if parity.selfPlayPass, OrderLifecycleTime.date(parity.firstSuccessfulScanAt) == nil {
+            return ParticipationStatus(state: .notStarted, activityCancelled: false, passReady: true)
+        }
         return plain(.inProgress)
     }
     /// 自由探索 / 城市定向 / 线下活动, the same rule as the source modeText.

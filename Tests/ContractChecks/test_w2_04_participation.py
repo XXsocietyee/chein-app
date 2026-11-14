@@ -81,7 +81,7 @@ class ParticipationParityChecks(unittest.TestCase):
 
     def test_core_tests_present(self):
         tests = read('Tests/CoreTests/ParticipationParityTests.swift')
-        self.assertEqual(len(re.findall(r'func test\w+\(', tests)), 8)
+        self.assertEqual(len(re.findall(r'func test\w+\(', tests)), 9)
 
 
 if __name__ == '__main__':

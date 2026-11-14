@@ -83,4 +83,32 @@ final class ProfileOrderHistoryFilterTests: XCTestCase {
         XCTAssertEqual(try order(#""payableAmount":30"#).actualPaidAmount, 30)
         XCTAssertNil(try order().actualPaidAmount)
     }
+    func testUnusedSelfPlayPassReadsReadyInsteadOfInProgress() throws {
+        let window = #""registrationStatus":2,"paymentStatus":2,"cmsTopic":{"startDate":"2026-10-01","endDate":"2026-12-01"}"#
+        let pass = try order(window + #","purchaseKind":2"#)
+        XCTAssertTrue(pass.isSelfPlayPass)
+        XCTAssertEqual(pass.historyState(now: now), .notStarted)
+        XCTAssertTrue(pass.showsUnusedPass(now: now))
+        XCTAssertEqual(pass.historyTagKey(now: now), "orderLifecycle.state.passReady")
+        XCTAssertEqual(pass.stateNotice(now: now)?.tagKey, "orderLifecycle.state.passReady")
+        XCTAssertEqual(pass.stateNotice(now: now)?.titleKey, "orderLifecycle.state.passReady")
+        let scanned = try order(window + #","purchaseKind":2,"firstSuccessfulScanAt":"2026-10-10 12:00:00""#)
+        XCTAssertEqual(scanned.historyState(now: now), .completed)
+        XCTAssertFalse(scanned.showsUnusedPass(now: now))
+        let future = try order(#""registrationStatus":2,"purchaseKind":2,"cmsTopic":{"startDate":"2026-10-20","endDate":"2026-10-21"}"#)
+        XCTAssertEqual(future.historyState(now: now), .notStarted)
+        XCTAssertFalse(future.showsUnusedPass(now: now))
+        XCTAssertEqual(future.historyTagKey(now: now), "orderLifecycle.state.notStarted")
+        let zeroTicket = try order(window + #","ownerType":1,"ticketId":0,"expiresAt":"2027-01-01 00:00:00""#)
+        XCTAssertEqual(zeroTicket.ticketID, 0)
+        XCTAssertTrue(zeroTicket.isSelfPlayPass)
+        XCTAssertEqual(zeroTicket.historyTagKey(now: now), "orderLifecycle.state.passReady")
+        let zeroScan = try order(window + #","purchaseKind":2,"firstSuccessfulScanAt":0"#)
+        XCTAssertEqual(zeroScan.historyFacts.firstSuccessfulScanAt, "0")
+        XCTAssertNil(OrderLifecycleTime.date(zeroScan.historyFacts.firstSuccessfulScanAt))
+        XCTAssertTrue(zeroScan.showsUnusedPass(now: now))
+        let other = try order(window + #","purchaseKind":1"#)
+        XCTAssertFalse(other.isSelfPlayPass)
+        XCTAssertEqual(other.historyState(now: now), .inProgress)
+    }
 }

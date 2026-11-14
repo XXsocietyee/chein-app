@@ -397,6 +397,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var phase: JourneySettlePhase = .loading
     private(set) var rank = JourneyRankState()
     private(set) var rate: JourneyRateState = .idle
+    /// One settle-rating intent. Cleared only after a confirmed write so a retry reuses it.
+    private var rateRequestID: String?
     let shareURL: URL? = nil
     private(set) var topicName: String?
     private let scope: JourneyRunScope
@@ -501,9 +503,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
             rate = .error("—")
             return
         }
+        let requestID = ratingRequestID()
         do {
-            let envelope = try await source.rate(ownerType: owner.0, ownerID: owner.1, rating: stars, contents: text, token: session)
+            let envelope = try await source.rate(ownerType: owner.0, ownerID: owner.1, rating: stars, contents: text, requestID: requestID, token: session)
             if envelope.ok, !envelope.unconfirmed {
+                rateRequestID = nil
                 rate = .thanks
             } else {
                 rate = .error(envelope.message ?? JourneyEnvelope.networkFailure.message ?? "—")
@@ -511,6 +515,13 @@ struct PlayerJourneySignInSheet: ViewModifier {
         } catch {
             rate = .error(JourneyEnvelope.networkFailure.message ?? "—")
         }
+    }
+
+    private func ratingRequestID() -> String {
+        if let saved = rateRequestID, JourneyLoopSource.isCommentRequestID(saved) { return saved }
+        let made = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        rateRequestID = made
+        return made
     }
 }
 

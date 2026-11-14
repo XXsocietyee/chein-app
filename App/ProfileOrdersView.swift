@@ -55,7 +55,7 @@ struct ProfileOrdersView: View {
                         Section {
                             ForEach(visible) { order in
                                 NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { [owner = filterOwner] in lookupOpenedOrder($0, expectedOwner: owner) }) } label: {
-                                    ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date))
+                                    ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date), statusKey: order.historyTagKey(now: clock.date))
                                 }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .questifyHidesLinkIndicator()
@@ -129,6 +129,7 @@ struct ProfileOrdersView: View {
 private struct ProfileOrderRow: View {
     let order: ProfileOrder
     let historyState: OrderLifecycleState
+    let statusKey: String
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
@@ -147,7 +148,7 @@ private struct ProfileOrderRow: View {
         .orderCardSurface()
     }
     private var stateChip: some View {
-        OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
+        OrderStatusChip(title: LocalizedStringKey(statusKey),
                         systemImage: Self.symbol(historyState),
                         emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress)
     }

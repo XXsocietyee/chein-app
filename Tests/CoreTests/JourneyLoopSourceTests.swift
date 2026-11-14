@@ -97,12 +97,18 @@ final class JourneyLoopSourceTests: XCTestCase {
         XCTAssertEqual(wire.requests[10].url?.path, "/api/play/seat-invitations/44")
         XCTAssertNil(wire.requests[10].url?.query)
 
-        let rated = try await source.rate(ownerType: 1, ownerID: "9", rating: 5, contents: "一起玩", token: "session-token")
+        let rated = try await source.rate(ownerType: 1, ownerID: "9", rating: 5, contents: "一起玩", requestID: "rateintent0000001", token: "session-token")
         XCTAssertTrue(rated.ok)
         XCTAssertEqual(wire.requests[11].url?.path, "/api/comment/add")
         XCTAssertEqual(wire.requests[11].value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded;")
         XCTAssertEqual(String(data: wire.requests[11].httpBody ?? Data(), encoding: .utf8),
-                       "owner_type=1&owner_id=9&rating=5&contents=%E4%B8%80%E8%B5%B7%E7%8E%A9&reply_id=0")
+                       "owner_type=1&owner_id=9&rating=5&contents=%E4%B8%80%E8%B5%B7%E7%8E%A9&reply_id=0&request_id=rateintent0000001")
+        let before = wire.requests.count
+        do {
+            _ = try await source.rate(ownerType: 1, ownerID: "9", rating: 5, contents: "一起玩", requestID: "short", token: "session-token")
+            XCTFail("short request id")
+        } catch JourneyRefusal.invalidRequest {}
+        XCTAssertEqual(wire.requests.count, before)
     }
 
     func testMoneyWritesAndBadIdsSendNothing() async throws {
