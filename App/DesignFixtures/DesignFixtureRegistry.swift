@@ -137,6 +137,8 @@ enum DesignFixtureRegistry {
             // G1 / G7-G8 / parity-b player views on a synthetic transport (GParityFixtures): g-<view>[-<non-happy state>]
             if let g = MainActor.assumeIsolated({ GParityFixtures.make(name) }) { return g }
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
+            // Workshop v2, WP-07, WP-08, and the other screens whose types compile on this base (CurFixtures5).
+            if let cur5 = MainActor.assumeIsolated({ CurFixtures5.make(name) }) { return cur5 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
