@@ -3,6 +3,33 @@ import Foundation
 import FoundationNetworking
 #endif
 
+/// Same paths as `ChinaReviewedRouteCapability.ownerDecisionGuardGrant`.
+/// Reads are admitted. Payout and merchant writes also need `ReviewedAreaSwitch`, which stays closed on www.chengyinhub.com.
+enum OwnerDecisionGuardLease {
+    static let paths: Set<String> = [
+        "api/club/personal-receiver/status",
+        "api/club/personal-receiver/unbind",
+        "api/merchant/payout-account",
+        "api/merchant/payout-account/save"
+    ]
+
+    static func admits(relative: String, method: String, body: Data?, host: String?) -> Bool {
+        guard paths.contains(relative) else { return false }
+        let production = host?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == ReviewedAreaSwitch.productionAPIHost
+        if relative == "api/club/personal-receiver/status" {
+            return method == "GET" && (body == nil || body?.isEmpty == true)
+        }
+        if relative == "api/merchant/payout-account" {
+            return method == "POST" && (body == nil || body?.isEmpty == true)
+        }
+        guard !production, !ReleaseMoneyWriteSwitch.blocks("/" + relative), ReviewedAreaSwitch.payout(host: host) else { return false }
+        if relative.hasPrefix("api/merchant/") {
+            guard ReviewedAreaSwitch.merchantWrites(host: host) else { return false }
+        }
+        return method == "POST" && body?.isEmpty == false
+    }
+}
+
 extension ReviewedProductionFormMutationRoute {
     /// Admits one owner-approved player write when that writer was constructed for this viewer.
     @MainActor static func acceptsPlayerWrite(_ request: URLRequest, baseURL: URL, token: String?,
@@ -21,6 +48,9 @@ extension ReviewedProductionFormMutationRoute {
             return method == "POST"
         }
         if relative == "api/roam/presence" || relative == "api/roam/presence-visibility" { return false }
+        if OwnerDecisionGuardLease.admits(relative: relative, method: method, body: request.httpBody, host: url.host) {
+            return true
+        }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         if relative == "api/registration/create" {
             return method == "POST" && grant.registration.paths.contains(relative) && freeRegistrationBody(request)

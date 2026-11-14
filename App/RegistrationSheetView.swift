@@ -563,9 +563,6 @@ struct RegistrationSheetView: View {
                             get: { flow.usePoints },
                             set: { if flow.setUsePoints($0) { Task { await flow.requestQuote() } } }
                         )).disabled(!flow.canEdit).accessibilityIdentifier("registration.form.usePoints")
-                        if flow.usePoints, quote.pointsDeductYuan == .zero {
-                            Text("registration.form.insufficientPoints").font(.caption).foregroundStyle(.secondary)
-                        }
                     }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
                         .font(CYTypography.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
@@ -582,6 +579,12 @@ struct RegistrationSheetView: View {
                 case .idle, .loading:
                     Text("registration.form.quoteNeeded").foregroundStyle(.secondary)
                 }
+            }
+            if let notice = flow.pointsToggleNotice, !notice.isEmpty {
+                Text(verbatim: notice)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("registration.form.pointsNotice")
             }
             CYPillButton("registration.form.refreshQuote", style: .secondary) { Task { await flow.requestQuote() } }
                 .disabled(!flow.quoteEnabled || !flow.canEdit || flow.isQuoting)

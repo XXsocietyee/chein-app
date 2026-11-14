@@ -842,14 +842,15 @@ import XCTest
         }
         for money in ["api/registration/payment-readiness", "api/club/personal-receiver/bind", "api/club/personal-receiver/unbind",
                       "api/club/settlement/mine", "api/club/settlement/withdraw", "api/wallet/withdraw", "api/registration/pay",
-                      "api/club-compensation/editions/empty-reason", "api/club/lead/release-station"] {
+                      "api/club-compensation/editions/empty-reason", "api/club/lead/release-station", "api/merchant/payout-account/save"] {
             XCTAssertFalse(grant.play.paths.contains(money), money)
             await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(money), #"{"activityId":3}"#, token: player.session.token)) }
         }
         var status = URLRequest(url: base.appendingPathComponent("api/club/personal-receiver/status")); status.httpMethod = "GET"
         status.setValue(player.session.token, forHTTPHeaderField: "Authorization")
-        await assertClosed { try await transport.send(status) }
-        XCTAssertEqual(recorder.paths.count, before)
+        _ = try await transport.send(status)
+        XCTAssertEqual(recorder.paths.last, "api/club/personal-receiver/status")
+        XCTAssertEqual(recorder.paths.count, before + 1)
     }
 
     /// Parity package P-B: organiser shared-run control, the lead ticket scan, editor alternatives, the circle host,

@@ -91,7 +91,10 @@ public struct QuickPublishDraft: Codable, Equatable {
               nodes.allSatisfy({ $0.confirmedPlace != nil && !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw PublishModesError.invalidDraft }
         var result = ProjectEditDraft(product: product); result.name = title.trimmingCharacters(in: .whitespacesAndNewlines)
         result.description = description.trimmingCharacters(in: .whitespacesAndNewlines); result.subtitle = subtitle ?? ""
-        if let aiTraceID, !aiTraceID.isEmpty { result.preserved["aiTraceId"] = .string(aiTraceID) }
+        if let aiTraceID, !aiTraceID.isEmpty {
+            result.preserved["aiTraceId"] = .string(aiTraceID)
+            result.description = OwnerDecisionAILabel.draftDescription(result.description, traceID: aiTraceID)
+        }
         result.preserved["publishMode"] = .string("ai_simple")
         var chapter = ProjectEditChapter(); chapter.id = "quick_chapter"; chapter.name = "路线"; chapter.description = result.description
         chapter.nodes = nodes.enumerated().map { index, node in

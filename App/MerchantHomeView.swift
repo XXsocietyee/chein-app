@@ -324,6 +324,15 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 Text("merchant.access.noReadSurfaces").foregroundStyle(.secondary)
             }
             // Source "更多" sheet plus the remaining tools, as one native group. A section with no visible rows renders nothing.
+            if access.allows(.finance) {
+                Section {
+                    NavigationLink { MerchantPayoutAccountEntry(permissions: access.permissions.map(\.rawValue)) } label: {
+                        Label {
+                            Text(verbatim: ChannelCopy.text("收款账户", "Payout account", locale: Locale.current))
+                        } icon: { Image(systemName: "building.columns") }
+                    }.accessibilityIdentifier("merchant.payoutAccount.open")
+                }
+            }
             Section("merchant.workbench.more") {
                 Color.clear.frame(height: 0).id("merchant.workbench.moreSection").accessibilityHidden(true)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)

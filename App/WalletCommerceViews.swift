@@ -913,21 +913,46 @@ private struct WalletIncomeListCard: ViewModifier {
     @StateObject private var model = WalletScreen<[WalletPointsTask]>()
     var body: some View {
         List {
-            if model.loading { CYSkeleton() }
+            if model.loading { CYSkeleton().accessibilityIdentifier("wallet.tasks.loading") }
             else if let rows = model.value, model.loadedScope == reader.scope {
-                if rows.isEmpty { Text("wallet.empty") }
-                ForEach(rows) { item in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))
-                        if let description = item.description { Text(verbatim: description) }
-                        Text(verbatim: item.value.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)
-                        LabeledContent("wallet.doneCount", value: item.pointsNum == nil ? PointsHistoryPageModel.unknownMark : format.count(item.pointsNum))
-                    }.accessibilityElement(children: .combine)
+                if rows.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.tasks.empty") }
+                let earn = rows.filter(\.isEarnTask)
+                let spend = rows.filter(\.isSpendRule)
+                if !earn.isEmpty {
+                    Section {
+                        ForEach(earn) { item in pointsRuleRow(item) }
+                    } header: {
+                        Text(verbatim: ChannelCopy.text("获取积分", "Points you earn", locale: locale))
+                    }.accessibilityIdentifier("wallet.tasks.earn")
+                }
+                if !spend.isEmpty {
+                    Section {
+                        ForEach(spend) { item in pointsRuleRow(item) }
+                    } header: {
+                        Text(verbatim: ChannelCopy.text("积分消耗", "Points spent", locale: locale))
+                    }.accessibilityIdentifier("wallet.tasks.spend")
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
         }.appNavigationTitle("wallet.tasks").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }
+    @ViewBuilder private func pointsRuleRow(_ item: WalletPointsTask) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))
+            if let description = item.description { Text(verbatim: description) }
+            Text(verbatim: item.value.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)
+            LabeledContent("wallet.doneCount", value: item.pointsNum == nil ? PointsHistoryPageModel.unknownMark : format.count(item.pointsNum))
+        }.accessibilityElement(children: .combine)
+    }
+}
+
+/// Author revenue tab (OWN-D-10). Empty and non-participants hide the tab.
+/// A failed read says 「收益暂不可用」 and never draws 0.
+enum WalletAuthorRevenueTab {
+    static let unavailable = OwnerDecisionRevenueGate.unavailable
+    static func phase(readFailed: Bool, participant: Bool, isEmpty: Bool) -> OwnerDecisionRevenueGate.Phase {
+        OwnerDecisionRevenueGate.phase(readFailed: readFailed, participant: participant, isEmpty: isEmpty)
+    }
 }
 
 /// Wallet figures appear after a spinner; VoiceOver users get one generic announcement (never the amount, which is privacy sensitive).

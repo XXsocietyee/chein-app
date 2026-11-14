@@ -44,6 +44,11 @@ public final class RegistrationUIFlow {
     public private(set) var selectedParticipantID: Int?
     public private(set) var selectedTicketID: Int?
     public private(set) var usePoints = false
+    /// Set when a points quote comes back at 0 and the toggle is turned off.
+    /// 「暂无可用积分」 when the balance is 0, otherwise 「该票不支持积分抵扣」.
+    public private(set) var pointsToggleNotice: String?
+    /// Optional balance when the quote itself does not carry one.
+    public var viewerPointBalance: Int?
     public private(set) var consented = false
     public private(set) var confirmation: RegistrationUIConfirmation?
     public private(set) var waitlistCancellation: RegistrationUIWaitlistCancellation?
@@ -219,7 +224,9 @@ public final class RegistrationUIFlow {
     }
     @discardableResult public func setUsePoints(_ value: Bool) -> Bool {
         guard canEdit, value != usePoints else { return false }
-        usePoints = value; applySelection(); changed(); return true
+        usePoints = value
+        if value { pointsToggleNotice = nil }
+        applySelection(); changed(); return true
     }
     public func setConsent(_ value: Bool) {
         guard canEdit, creationPolicy.permitsCreation else { return }
@@ -261,7 +268,10 @@ public final class RegistrationUIFlow {
         _ = await coordinator.requestQuote()
         guard matches(stamp, identity), quoteStamp == quoteGeneration else { return }
         isQuoting = false
-        if case .received = coordinator.quoteState { quoteReceivedAt = now() }
+        if case .received(let quote) = coordinator.quoteState {
+            quoteReceivedAt = now()
+            applyPointsToggle(quote)
+        }
         changed()
     }
     @discardableResult public func prepareConfirmation() -> Bool {
@@ -498,6 +508,20 @@ public final class RegistrationUIFlow {
     private var expectedSelection: RegistrationQuoteRequest? {
         try? RegistrationQuoteRequest(ownerID: activity.summary.id, ticketID: selectedTicketID, usePoints: usePoints, waitlistOffer: activeWaitlistOffer)
     }
+    /// `baoming.js` turns the toggle off when the quote deducts nothing, and says why.
+    private func applyPointsToggle(_ quote: RegistrationQuote) {
+        let balance = viewerPointBalance ?? quote.availablePoints
+        let evaluation = RegistrationCoreLoopRules.pointsAutoDisableEvaluation(
+            usePoints: usePoints, quote: quote, userAvailablePoints: balance)
+        guard evaluation.shouldDisable else {
+            if usePoints { pointsToggleNotice = nil }
+            return
+        }
+        pointsToggleNotice = evaluation.notice
+        guard usePoints else { return }
+        usePoints = false
+        if let selection = expectedSelection { _ = coordinator.select(selection) }
+    }
     private func applySelection() {
         quoteGeneration &+= 1; isQuoting = false; quoteReceivedAt = nil; invalidateConfirmation()
         if let selection = expectedSelection { _ = coordinator.select(selection) }
@@ -513,7 +537,8 @@ public final class RegistrationUIFlow {
     private func clearForm() {
         resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil; durableStatusFailed = false
         draft = .init(); participantSuppliedDraft = false; participants = []; participantProjectionIdentity = nil; participantsState = .idle; selectedParticipantID = nil
-        selectedTicketID = nil; usePoints = false; consented = false; confirmation = nil; block = nil
+        selectedTicketID = nil; usePoints = false; pointsToggleNotice = nil; viewerPointBalance = nil
+        consented = false; confirmation = nil; block = nil
         manuallyEdited = false; isQuoting = false; isSubmitting = false; isReadingStatus = false
     }
     private func changed() { onChange?() }

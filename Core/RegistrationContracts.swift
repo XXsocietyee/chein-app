@@ -40,6 +40,8 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let pointsUsed: Int
     public let pointsDeductYuan: Decimal?
     public let pointsUsable: Bool
+    /// Server point balance on the quote, when the quote carries one. Nil stays unknown.
+    public let availablePoints: Int?
     public let memberDiscountYuan: Decimal?
     public let couponDeductYuan: Decimal?
     public let clubMember: Bool
@@ -55,7 +57,7 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let refundableNow: Bool?
 
     private enum CodingKeys: String, CodingKey {
-        case payAmount, pointsUsed, pointsDeductYuan, pointsUsable
+        case payAmount, pointsUsed, pointsDeductYuan, pointsUsable, pointsBalance, availablePoints, userPoints
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
         case prioritySignupEnabled, refundDeadline, refundableNow
     }
@@ -65,6 +67,10 @@ public struct RegistrationQuote: Decodable, Equatable {
         pointsUsed = try c.decodeIfPresent(Int.self, forKey: .pointsUsed) ?? 0
         pointsDeductYuan = try c.registrationMoney(forKey: .pointsDeductYuan)
         pointsUsable = try c.decodeIfPresent(Bool.self, forKey: .pointsUsable) ?? true
+        availablePoints = try c.decodeIfPresent(Int.self, forKey: .pointsBalance)
+            ?? c.decodeIfPresent(Int.self, forKey: .availablePoints)
+            ?? c.decodeIfPresent(Int.self, forKey: .userPoints)
+        if let availablePoints, availablePoints < 0 { throw APIError.malformedResponse }
         memberDiscountYuan = try c.registrationMoney(forKey: .memberDiscountYuan)
         couponDeductYuan = try c.registrationMoney(forKey: .couponDeductYuan)
         clubMember = try c.decodeIfPresent(Bool.self, forKey: .clubMember) ?? false

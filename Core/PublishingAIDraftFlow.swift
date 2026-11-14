@@ -134,7 +134,11 @@ public struct PublishingAIThemeDraft: Equatable {
             return true
         }
     }
-    public var canGenerate: Bool { isCurrent && !busy && quotaTask == nil && client?.canGenerate == true && !((quota?.exhausted) ?? false) }
+    public var canGenerate: Bool {
+        isCurrent && !busy && quotaTask == nil && client?.canGenerate == true
+            && quotaReadState != .failed && quotaReadState != .unavailable
+            && !((quota?.exhausted) ?? false)
+    }
     public var canRefreshQuota: Bool { isCurrent && !busy && quotaTask == nil && client != nil }
     public func loadQuota() async {
         guard canRefreshQuota, let client else { return }
@@ -162,7 +166,11 @@ public struct PublishingAIThemeDraft: Equatable {
     }
     public func generate() async {
         _ = candidate // Retire any previous-owner projection before considering a new request.
-        guard canGenerate else { messageKey = quota?.exhausted == true ? "contextPublish.ai.exhausted" : "contextPublish.ai.unavailable"; onChange?(); return }
+        guard canGenerate else {
+            let failedRead = quotaReadState == .failed || quotaReadState == .unavailable
+            messageKey = !failedRead && quota?.exhausted == true ? "contextPublish.ai.exhausted" : "contextPublish.ai.unavailable"
+            onChange?(); return
+        }
         let prompt = idea.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty, prompt.count <= 300 else { messageKey = "contextPublish.ai.promptRequired"; onChange?(); return }
         guard let client else { return }

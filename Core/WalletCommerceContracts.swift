@@ -202,7 +202,14 @@ public struct WalletPointsTask: Decodable, Equatable, Identifiable {
     public let value: WalletAmount?
     public let pointsNum: Int?
     public let status: Int?
-    public var isEarnTask: Bool { status == 1 && eventType != 14 }
+    /// Source `delFlag`. Missing stays listed. Any non-zero value is a deleted rule.
+    public let delFlag: Int?
+    public var isDeletedRule: Bool { delFlag.map { $0 != 0 } ?? false }
+    /// Earn rules. eventType 14 is a spend rule and is not dropped from the list; it is grouped separately.
+    public var isEarnTask: Bool { status == 1 && eventType != 14 && !isDeletedRule }
+    /// eventType 14 「积分消耗」. Deleted rows stay out.
+    public var isSpendRule: Bool { status == 1 && eventType == 14 && !isDeletedRule }
+    public var isListedRule: Bool { isEarnTask || isSpendRule }
 }
 
 /// Read-only phase for `subpackageA/pages/assetcenter/analysis/index`.
