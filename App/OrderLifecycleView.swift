@@ -119,7 +119,7 @@ import SwiftUI
     @ViewBuilder private func acceptedDetail(_ detail: OrderLifecycleDetail) -> some View {
             summary(detail)
             payment(detail)
-            if detail.summary().state == .unpaid, detail.id > 0 {
+            if detail.summary().state == .pendingPayment, detail.id > 0 {
                 RegistrationPaySection(
                     registrationID: detail.id,
                     payableAmount: detail.payableAmount,
