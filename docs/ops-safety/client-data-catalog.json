@@ -654,6 +654,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "Core/PlayCreatorTailFlows.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "WP-02 author audit-appeal and original-run guard-appeal drafts with their frozen request ids, so an unconfirmed appeal is recovered by its own receipt",
+      "retention": "until the server receipt settles the appeal",
+      "deletion": "pending"
+    },
+    {
       "file": "Core/PlayerGapRoutes.swift",
       "kinds": [
         "userDefaults"
