@@ -50,13 +50,9 @@ public struct SettingsClubPickerService {
             case .unauthorized, .forbidden, .httpStatus, .rejected, .membershipRequired:
                 return .failed(message: Self.loadFailureMessage)
             }
-        } catch let error as APIError {
-            switch error {
-            case .network:
-                return .failed(message: Self.networkFailureMessage)
-            case .invalidRequest, .notConfigured, .unauthorized, .httpError, .malformedResponse:
-                return .failed(message: Self.loadFailureMessage)
-            }
+        } catch is APIError {
+            // APIError has no transport case; URLError below is the network failure.
+            return .failed(message: Self.loadFailureMessage)
         } catch is URLError {
             return .failed(message: Self.networkFailureMessage)
         } catch {
