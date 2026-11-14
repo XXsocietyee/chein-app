@@ -84,6 +84,14 @@ final class RegistrationServiceTests: XCTestCase {
         XCTAssertEqual(request.httpBody, canonical)
     }
 
+    /// `docs/release/e2e/requests.02-home.log` line 2. Same envelope, code 200. Not an activity-signup scene.
+    func testCapturedConsentEnvelopeIsAccepted() async throws {
+        let captured = #"{"msg":"操作成功","code":200,"data":{"occurredAt":"2026-11-13T14:00:37.000+08:00","requestId":"acdd910c-3a78-48c3-bcb2-db16ed9745b4","docType":"privacy_policy","eventType":"AGREE","docVersion":"v2.1","scene":"home_city_location"}}"#
+        let transport = RegistrationFixtureTransport(captured)
+        try await service(transport).agreeToActivitySignup(requestID: "app-9004-free", token: "fixture-raw-token")
+        XCTAssertEqual(transport.requests.count, 1)
+    }
+
     func testQuoteUsesExactJSONSelectionAndRawAuthorization() async throws {
         let transport = RegistrationFixtureTransport(quoteJSON)
         let selection = try RegistrationQuoteRequest(ownerID: 7, ticketID: 11, usePoints: true)

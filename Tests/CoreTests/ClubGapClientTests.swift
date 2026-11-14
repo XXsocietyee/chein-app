@@ -84,6 +84,46 @@ final class ClubGapClientTests: XCTestCase {
         XCTAssertEqual(ClubGapPaths.catalog.count, 22)
         XCTAssertFalse(ClubGapPaths.catalog.contains(ClubGapPaths.merchantCooperationWrite))
     }
+
+    /// Paths already sent or built by the tests above stay there. These are the catalog calls that had no stub.
+    func testRemainingCatalogCallsPinMethodAndPath() async {
+        let covered: Set<String> = [
+            ClubGapPaths.settlementsExport, ClubGapPaths.channels, ClubGapPaths.lead, ClubGapPaths.post
+        ]
+        let script = ClubGapScript()
+        script.result = .success((Data(), 500))
+        let client = ClubGapClient(baseURL: base, transport: script)
+        let pending = ClubGapSurface.all.filter { covered.contains($0.path) == false }
+        XCTAssertEqual(pending.count, 18)
+        for surface in pending {
+            script.sent.removeAll()
+            let reply = await client.perform(surface.call(), token: "token", allowsPayout: true, allowsMerchantWrite: false)
+            XCTAssertTrue(reply.sent, surface.path)
+            XCTAssertFalse(reply.succeeded, surface.path)
+            XCTAssertEqual(reply.message, "\u{2014}", surface.path)
+            guard let sent = script.sent.first else {
+                XCTFail(surface.path)
+                continue
+            }
+            XCTAssertEqual(sent.httpMethod, surface.method, surface.path)
+            XCTAssertEqual(sent.url?.path, "/prod-api/" + surface.path, surface.path)
+            XCTAssertNil(sent.url?.query, surface.path)
+        }
+    }
+
+    func testMerchantInvitePinsPostWhenTheWriteSwitchIsOn() async {
+        let script = ClubGapScript()
+        script.result = .success((Data(), 500))
+        let client = ClubGapClient(baseURL: base, transport: script)
+        let invite = ClubGapSurface.merchantInvite(topicID: 2, recipientID: 9)
+        let reply = await client.perform(invite, token: "token", allowsPayout: false, allowsMerchantWrite: true)
+        XCTAssertTrue(reply.sent)
+        XCTAssertFalse(reply.succeeded)
+        XCTAssertEqual(reply.message, "\u{2014}")
+        guard let sent = script.sent.first else { return XCTFail("invite was not sent") }
+        XCTAssertEqual(sent.httpMethod, "POST")
+        XCTAssertEqual(sent.url?.path, "/prod-api/api/coop/invite")
+    }
 }
 
 private final class ClubGapScript: HTTPTransport, @unchecked Sendable {
