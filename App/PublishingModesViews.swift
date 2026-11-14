@@ -192,6 +192,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     @State private var wizardStep = 0
     @State private var wizardBlock: String?
     @State private var abandonConfirm = false
+    @State private var draftSaveState: CYPublishSaveState = .unsavedChanges
     private var busy: Bool { submission.busy }
     @State private var message = ""
     private var acknowledged: Bool { submission.outcome == .acknowledged }
@@ -224,6 +225,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             MiniProgramAnalytics.track(analytics, "activity_publish_success", bizType: "activity", bizID: id,
                 pagePath: "/pages/publish/activity/index", properties: ["name": .string(draft.name)])
         }
+        .cyDomainScreen(.merchant)
         .background {
             if let original = timeRange.presentation {
                 ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in
@@ -271,20 +273,39 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         // tickets (collaborators, ticket options, add ticket, publisher identity).
         // Input errors sit in red under the field they refer to.
         Form {
-            Section { ActivityPublishingWizardChrome(step: wizardStep, block: wizardBlock) }
+            Section {
+                ActivityPublishingWizardChrome(
+                    step: wizardStep,
+                    block: wizardBlock,
+                    issues: ActivityPublishingStatusHelper.issues(for: draft, locale: locale),
+                    saveState: draftSaveState,
+                    isSubmittingReview: busy,
+                    onSelectStep: { target in
+                        wizardStep = ActivityPublishingWizard.clamp(target)
+                        wizardBlock = nil
+                    },
+                    onSubmitReview: { Task { await prepare() } }
+                )
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
             if ActivityPublishingWizard.clamp(wizardStep) == 0 {
                 Section {
                     HStack {
                         TextField("publishParity.activity.title", text: $draft.name)
+                            .foregroundStyle(palette.textPrimary)
                         clearButton(.name)
                     }
                     fieldError("name")
                     TextField("publishModes.addressName", text: $draft.addressName)
+                        .foregroundStyle(palette.textPrimary)
                     fieldError("addressName")
                     Button { picker = "place" } label: {
-                        chooserRow("publishModes.choosePlace", value: draft.place.map { $0.address.isEmpty ? $0.name : $0.address })
+                        chooserRow("publishModes.choosePlace", value: draft.place.map { $0.address.isEmpty ? $0.name : $0.address }, icon: "mappin.and.ellipse")
                     }
-                }.disabled(!editable)
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("配置基本信息", "Basics & Location")) }
+                .listRowBackground(palette.bgElevated)
+                .disabled(!editable)
                 Section {
                     Button {
                         localClear.invalidate()
@@ -292,43 +313,57 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     } label: { chooserRow("publishModes.chooseTimeRange", value: nil, icon: "calendar") }
                         .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
                         .accessibilityIdentifier("publishModes.activity.timeRange.open")
-                    TextField("publishModes.start", text: $draft.start).accessibilityIdentifier("publishModes.activity.start")
+                    TextField("publishModes.start", text: $draft.start)
+                        .foregroundStyle(palette.textPrimary)
+                        .accessibilityIdentifier("publishModes.activity.start")
                     fieldError("startDate")
                     TextField("publishModes.end", text: $draft.end)
+                        .foregroundStyle(palette.textPrimary)
                     fieldError("endDate")
-                }.disabled(!editable)
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("活动时间", "Schedule")) }
+                .listRowBackground(palette.bgElevated)
+                .disabled(!editable)
                 Section {
                     Button { picker = "category" } label: {
-                        chooserRow("publishParity.activity.type", value: draft.categoryIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.categoryIDs.count)", locale: locale))
+                        chooserRow("publishParity.activity.type", value: draft.categoryIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.categoryIDs.count)", locale: locale), icon: "tag")
                     }
                     fieldError("categoryIds")
-                }.disabled(!editable)
+                }
+                .listRowBackground(palette.bgElevated)
+                .disabled(!editable)
             }
             if ActivityPublishingWizard.clamp(wizardStep) == 1 {
                 Section {
                     HStack(alignment: .top) {
                         TextField("publishParity.activity.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
+                            .foregroundStyle(palette.textPrimary)
                         clearButton(.description)
                     }
                     fieldError("description")
                     // Without the cover upload service, an existing cover link is the only way to set one.
                     if makeActivityCover == nil {
                         TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .foregroundStyle(palette.textPrimary)
                     }
-                }.disabled(!editable)
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("活动介绍", "Description")) }
+                .listRowBackground(palette.bgElevated)
+                .disabled(!editable)
                 Section {
                     ActivityCoverAuthoringSection(owner: cover)
                     fieldError("imgUrl")
                 } header: { CYSectionHeader("publishModes.coverSection") }
+                .listRowBackground(palette.bgElevated)
                 Section {
                     Button {
                         localClear.invalidate(); timeRange.retire()
                         templateSelection.begin(service: service, expected: templateSelectionAction, allowed: mayEditTimeRange)
                     } label: {
-                        chooserRow("publishModes.template", value: draft.playTemplateID == nil ? nil : appLocalized("publishModes.selected", locale: locale))
+                        chooserRow("publishModes.template", value: draft.playTemplateID == nil ? nil : appLocalized("publishModes.selected", locale: locale), icon: "puzzlepiece")
                     }.accessibilityIdentifier("activityTemplate.open")
                     fieldError("templateId")
-                }.disabled(!editable)
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("关联玩法模板", "Play Template")) }
+                .listRowBackground(palette.bgElevated)
+                .disabled(!editable)
                 if templateSelection.open {
                     ActivityTemplateSelectionSection(owner: templateSelection, apply: { stamp in
                         templateSelection.apply(expected: stamp, draft: $draft, session: account, draftID: draftID,
@@ -339,34 +374,42 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             if ActivityPublishingWizard.clamp(wizardStep) == 2 {
                 Section {
                     Button { picker = "collaborator" } label: {
-                        chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale))
+                        chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale), icon: "person.2")
                     }
                     Text(verbatim: CoreLoopCopy(locale: locale).tr(ActivityPublishingWizard.collaboratorSettlementNotice))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.caption)
+                        .foregroundStyle(palette.textSecondary)
                     fieldError("collaborators")
-                }.disabled(!editable)
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("合作与核销", "Collaborators")) }
+                .listRowBackground(palette.bgElevated)
+                .disabled(!editable)
                 ForEach($draft.tickets) { $ticket in
                     let index = draft.tickets.firstIndex { $0.id == ticket.id } ?? 0
                         Section {
                             HStack {
                                 TextField("publishParity.ticket.name", text: $ticket.name)
+                                    .foregroundStyle(palette.textPrimary)
                                 clearButton(.ticketName(ticket.id))
                             }
                             fieldError("ticketName\(index)")
                             TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
+                                .foregroundStyle(palette.textPrimary)
                             fieldError("ticketPrice\(index)")
                             HStack {
                                 TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
+                                    .foregroundStyle(palette.textPrimary)
                                 clearButton(.ticketStock(ticket.id))
                             }
                             fieldError("ticketStock\(index)")
                             TextField("publishModes.start", text: $ticket.start)
+                                .foregroundStyle(palette.textPrimary)
                             fieldError("ticketStart\(index)")
                             TextField("publishModes.end", text: $ticket.end)
+                                .foregroundStyle(palette.textPrimary)
                             fieldError("ticketEnd\(index)")
                             Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
-                        } header: { Text("publishModes.ticketNumber \(index + 1)") }
+                        } header: { Text("publishModes.ticketNumber \(index + 1)").foregroundStyle(palette.textPrimary) }
+                        .listRowBackground(palette.bgElevated)
                         .disabled(!editable)
                 }
                 // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
@@ -375,6 +418,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         .disabled(!editable)
                     if wizardBlock == "ticket" { fieldError("ticket") }
                 }
+                .listRowBackground(palette.bgElevated)
                 if requiresIdentity {
                     PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
                 }
@@ -383,14 +427,14 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         summary: ActivityPublishingWizard.reviewSummary(draft: draft),
                         merchantHost: account?.role == "merchant"
                     )
-                }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("发布前预览", "Preview Before Publishing")) }
             }
             if account != nil && draftStore != nil {
                 Section {
                     Button("publishModes.saveLocal") {
-                        guard let account, let draftStore else { return }
-                        do { try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, activity: draft, wizardStep: wizardStep), session: account); message = "publishModes.savedLocal" }
-                        catch { message = "publishModes.storageFailed" }
+                        saveLocalDraft()
                     }.disabled(!editable)
                     Button("publishModes.restoreLocal") {
                         localClear.invalidate(); timeRange.retire()
@@ -398,15 +442,24 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         do {
                             if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity {
                                 draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal"
+                                draftSaveState = .savedDraft(updatedAt: Self.draftTimestampNow())
                                 wizardStep = ActivityPublishingWizard.resume(savedStep: saved.wizardStep, draft: activity)
                                 wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, activity)
                             } else { message = "publishModes.noSavedLocal" }
-                        } catch { message = "publishModes.storageFailed" }
+                        } catch {
+                            message = "publishModes.storageFailed"
+                            draftSaveState = .saveFailed(reason: appLocalized("publishModes.storageFailed", locale: locale), onRetry: { saveLocalDraft() })
+                        }
                     }.disabled(!editable)
-                }
+                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("草稿保存", "Draft Persistence")) }
+                .listRowBackground(palette.bgElevated)
             }
             submissionResult
-        }.publishFormChrome().navigationTitle(Text("publishModes.activity"))
+        }
+        .scrollContentBackground(.hidden)
+        .background(palette.bgPage)
+        .publishFormChrome()
+        .navigationTitle(Text("publishModes.activity"))
         .navigationBarTitleDisplayMode(.inline)
         // Large titles truncate at accessibility sizes ("Publish an act…"): inline title, type capped, shrinks before clipping.
         .toolbar { ToolbarItem(placement: .principal) {
@@ -414,18 +467,25 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 .lineLimit(1).minimumScaleFactor(0.7).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 .accessibilityAddTraits(.isHeader)
         } }
-        .questifyBottomAction {
-            VStack(spacing: 8) {
-                if !message.isEmpty {
-                    Text(LocalizedStringKey(message)).font(.footnote)
-                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
-                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("publishModes.message")
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            CYFooterBar {
+                VStack(spacing: CYSpacing.sm) {
+                    if !message.isEmpty {
+                        Text(LocalizedStringKey(message)).font(CYTypography.meta)
+                            .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
+                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("publishModes.message")
+                    }
+                    ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
                 }
-                ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
-            }.background(palette.bgPage)
+            }
         }
-        .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
+        .onChange(of: draft) { _, _ in
+            timeRange.retire()
+            if let review { service?.cancel(review) }
+            review = nil; localReview = false
+            draftSaveState = .unsavedChanges
+        }
         .onChange(of: account) { _, _ in
             cover.accountChanged(); localClear.invalidate(); timeRange.retire(); service?.invalidateReviews()
             draft = .init(); draftID = UUID(); review = nil; localReview = false; message = ""
@@ -456,6 +516,22 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         .task(id: templateReadID) { await templateSelection.read(templateReadID) }
     }
     private var mayClear: Bool { mayEditTimeRange && timeRange.presentation == nil }
+    private func saveLocalDraft() {
+        guard let account, let draftStore else { return }
+        do {
+            try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, activity: draft, wizardStep: wizardStep), session: account)
+            message = "publishModes.savedLocal"
+            draftSaveState = .savedDraft(updatedAt: Self.draftTimestampNow())
+        } catch {
+            message = "publishModes.storageFailed"
+            draftSaveState = .saveFailed(reason: appLocalized("publishModes.storageFailed", locale: locale), onRetry: { saveLocalDraft() })
+        }
+    }
+    private static func draftTimestampNow() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: Date())
+    }
     private var mayEditTimeRange: Bool {
         editable && review == nil && !localReview && picker == nil &&
             (service == nil || service?.currentSession == account)

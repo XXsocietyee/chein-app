@@ -24,6 +24,10 @@ enum PublishDesignFixtures {
             return wrap(NavigationStack { QuickPublishingView(placeSearch: nil, account: nil, openProfessional: { _ in }) })
         case "publish-activity":
             return wrap(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil) })
+        case "rep3-merchant-publish":
+            return wrapMerchant(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil) })
+        case "rep3-merchant-publish-missing":
+            return wrapMerchant(NavigationStack { Rep3MerchantPublishMissingHost() })
         case "template-topics": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader()) })
         case "template-games": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(), startOnGames: true) })
         case "template-detail":
@@ -72,6 +76,53 @@ enum PublishDesignFixtures {
 
     @MainActor private static func wrap<V: View>(_ view: V) -> AnyView {
         AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player))
+    }
+
+    @MainActor private static func wrapMerchant<V: View>(_ view: V) -> AnyView {
+        AnyView(view.cyDomainScreen(.merchant).preferredColorScheme(.light))
+    }
+}
+
+/// Non-happy Merchant LIGHT publish fixture showing missing-field blockers, failed draft save, and preview summary.
+@MainActor private struct Rep3MerchantPublishMissingHost: View {
+    @State private var step = 0
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        let issues = [
+            CYPublishValidationIssue(id: "name", stepIndex: 0, message: "请填写活动标题"),
+            CYPublishValidationIssue(id: "description", stepIndex: 1, message: "请补充活动内容与封面"),
+            CYPublishValidationIssue(id: "ticket", stepIndex: 2, message: "请至少配置 1 种有效票券")
+        ]
+        var draft = ActivityPublishDraft()
+        draft.addressName = "西湖茶室集合点（示例）"
+        return ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                ActivityPublishingWizardChrome(
+                    step: step,
+                    block: "name",
+                    issues: issues,
+                    saveState: .saveFailed(reason: "本地草稿保存失败（离线只读示例）", onRetry: {}),
+                    isSubmittingReview: false,
+                    onSelectStep: { step = $0 },
+                    onSubmitReview: {}
+                )
+                ActivityPublishingReviewSummaryCard(
+                    summary: ActivityPublishingWizard.reviewSummary(draft: draft),
+                    merchantHost: true
+                )
+            }
+            .padding(CYSpacing.pageHorizontal)
+        }
+        .background(palette.bgPage)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            CYFooterBar {
+                ActivityPublishingWizardNavigation(step: step, enabled: true, onCancel: {}, onBack: { step = max(0, step - 1) }, onNext: { step = min(2, step + 1) }, onReview: {})
+            }
+        }
+        .navigationTitle(Text("publishModes.activity"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 #endif

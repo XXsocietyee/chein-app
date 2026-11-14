@@ -50,6 +50,7 @@ import SwiftUI
     @State private var finishReport: (any JourneyReportBinding)?
     @State private var finishShownFor: String?
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     /// 切换章节: nil shows every chapter's places.
     @State private var chapterFilter: Int?
     @State private var showChapterPicker = false
@@ -223,12 +224,67 @@ import SwiftUI
     }
     private var orientationList: some View {
         List {
-            // Game header: topic and progress, the run clock, and the run / map controls in one card
-            // (mini-program top bar + bottom run stack).
+            // Template 6 order: (1) Current goal + location/arrival + 6-state status + primary CTA FIRST,
+            // (2) Progress & runtime header, (3) Ordered stops (`CYRouteNodeRow`) & recovery/records.
+            if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
+               let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
+               let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
+                Section("referenceTask.current") {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        HStack(alignment: .center, spacing: CYSpacing.sm) {
+                            CYStatusChip(
+                                LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue),
+                                tone: .info,
+                                systemImage: "flag.fill"
+                            )
+                            CYStatusChip(
+                                verbatim: node.arrived == true
+                                    ? CoreLoopCopy(locale: locale).t("已到达", "Arrived")
+                                    : (node.needGPS == true || node.needScan == true
+                                        ? CoreLoopCopy(locale: locale).t("待到达", "Not arrived")
+                                        : CoreLoopCopy(locale: locale).t("线上/现场均可", "Flexible")),
+                                tone: node.arrived == true ? .success : .neutral,
+                                systemImage: node.arrived == true ? "checkmark.circle.fill" : "location.fill"
+                            )
+                            Spacer(minLength: 0)
+                            PlayTaskStatusBadge(node: node, snapshot: snapshot)
+                        }
+                        if let place = node.address, !place.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Label {
+                                Text(verbatim: place)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            } icon: {
+                                Image(systemName: "mappin.and.ellipse")
+                                    .foregroundStyle(palette.actionPrimaryBg)
+                                    .accessibilityHidden(true)
+                            }
+                            .font(CYTypography.meta)
+                            .foregroundStyle(palette.textSecondary)
+                        }
+                        CYTaskStatusCard(
+                            title: node.name ?? "#\(node.id)",
+                            state: PlayTaskStatusCardMapper.state(
+                                node: node,
+                                snapshot: snapshot,
+                                model: model,
+                                locale: locale,
+                                ctaTitle: appLocalized("referenceTask.open", locale: locale),
+                                onOpen: { selectedNode = id },
+                                onRefresh: { Task { await model.load() } }
+                            )
+                        )
+                        Button("referenceTask.open") { selectedNode = id }
+                            .buttonStyle(.questifyPrimary)
+                            .accessibilityIdentifier("referenceTask.open")
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                }
+            }
             Section {
                 if let snapshot = model.snapshot {
                     PlayTaskSummaryView(snapshot: snapshot, phase: model.phase.rawValue)
-                    if let note = snapshot.result.timeNote { Text(verbatim: note).foregroundStyle(.secondary) }
+                    if let note = snapshot.result.timeNote { Text(verbatim: note).foregroundStyle(palette.textSecondary) }
                 }
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
                 if model.phase == .loading { CYSkeleton().accessibilityIdentifier("playx.loading") }
@@ -236,11 +292,11 @@ import SwiftUI
                 if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
                     // The server refused to open this run for this build; nothing was skipped or started.
                     Text("playCompat.refused.next", tableName: "PlayFullStory").font(CYTypography.caption)
-                        .foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("playCompat.refused")
+                        .foregroundStyle(palette.textSecondary).accessibilityIdentifier("playCompat.refused")
                 }
                 PlayResyncAction(model: model)
                 if model.hasCurrentMediaSnapshot, let notice = model.routeNotice { PlayRouteNoticeRow(notice: notice) }
-                if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(CYColor.warningText) }
+                if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(palette.warning) }
             }
             if let compatibility = model.compatibility, model.hasCurrentMediaSnapshot {
                 PlayCompatibilitySection(compatibility: compatibility)
@@ -259,17 +315,6 @@ import SwiftUI
                     Text("playGap.entry", tableName: "PlayGapMisc")
                 }
                 .accessibilityIdentifier("playGap.entry")
-            }
-            if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
-               let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
-               let node = snapshot.visibleNodes.first(where: { $0.id == id }) {
-                Section("referenceTask.current") {
-                    PlayNodeTitle(name: node.name).font(.headline).fixedSize(horizontal: false, vertical: true)
-                    Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue))
-                    PlayTaskStatusBadge(node: node, snapshot: snapshot)
-                    Button("referenceTask.open") { selectedNode = id }
-                        .buttonStyle(.questifyPrimary).accessibilityIdentifier("referenceTask.open")
-                }
             }
             if model.unresolved {
                 Section("playx.unknown.title") {
@@ -329,15 +374,29 @@ import SwiftUI
                     }
                 }
                 Section {
-                    ForEach((model.snapshot?.visibleNodes ?? []).filter { chapterFilter == nil || $0.chapterID == chapterFilter }) { node in
+                    let visibleList = (model.snapshot?.visibleNodes ?? []).filter { chapterFilter == nil || $0.chapterID == chapterFilter }
+                    let currentID = model.snapshot.flatMap { PlayTaskSummaryPresentation(snapshot: $0).currentNodeID }
+                    ForEach(Array(visibleList.enumerated()), id: \.element.id) { index, node in
                         Button { selectedNode = node.id } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                PlayNodeTitle(name: node.name).font(.headline)
-                                Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node).rawValue))
-                                    .foregroundStyle(.secondary)
-                                if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
-                                if let reason = model.snapshot?.lockReason(node) { Text(verbatim: reason).font(.footnote) }
-                            }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4)
+                            if let snapshot = model.snapshot {
+                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                    CYRouteNodeRow(
+                                        index: index + 1,
+                                        title: node.name ?? "#\(node.id)",
+                                        distanceAndETA: [node.address, node.businessTime].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: " · "),
+                                        requirement: PlayTaskStatusCardMapper.arrivalRequirement(for: node),
+                                        completion: PlayTaskStatusCardMapper.routeCompletion(for: node, in: snapshot, currentNodeID: currentID),
+                                        isFirst: index == 0,
+                                        isLast: index == visibleList.count - 1
+                                    )
+                                    PlayTaskStatusBadge(node: node, snapshot: snapshot)
+                                    if let reason = snapshot.lockReason(node) {
+                                        Text(verbatim: reason).font(CYTypography.caption).foregroundStyle(palette.warning)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, CYSpacing.xs)
+                            }
                         }.accessibilityIdentifier("playx.node.\(node.id)")
                     }
                 } header: {
@@ -608,6 +667,8 @@ import SwiftUI
     var makeTeamPool: ((Int) -> TeamPoolHintModel?)? = nil
     /// Opens another stop from the outcome card ("Next stop"); nil hides that shortcut.
     var openNode: ((Int) -> Void)? = nil
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     @State private var answer = ""
     /// Shared full-screen verdict (mini-program play-verdict) after this stop's own submission settles.
     @State private var verdict: CYPlayVerdict?
@@ -656,28 +717,107 @@ import SwiftUI
                     }.accessibilityIdentifier("journey.record.open.questions.\(nodeID)")
                 }
                 Section {
-                    PlayNodeTitle(name: node.name).font(.title2.bold())
-                    if let body = node.storyText ?? node.description { Text(verbatim: body) }
-                    if let instructions = node.ruleInstructions { Text(verbatim: instructions) }
-                    if let question = node.question { Text(verbatim: question).font(.headline) }
-                    // Mini-program question card: the question image sits under the question.
-                    if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, let image = node.questionImage, !image.isEmpty {
-                        PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                            .accessibilityIdentifier("playx.question.image")
+                    // Template 6 outdoor-readable node brief: (1) what to do now, (2) where + arrival status, (3) 6-state status card.
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        HStack(spacing: CYSpacing.sm) {
+                            if let snapshot = model.snapshot {
+                                CYStatusChip(
+                                    LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue),
+                                    tone: .info,
+                                    systemImage: "flag.fill"
+                                )
+                            }
+                            CYStatusChip(
+                                verbatim: node.arrived == true
+                                    ? CoreLoopCopy(locale: locale).t("已到达", "Arrived")
+                                    : (node.needGPS == true || node.needScan == true
+                                        ? CoreLoopCopy(locale: locale).t("待到达", "Arrival required")
+                                        : CoreLoopCopy(locale: locale).t("自由打卡", "Open check-in")),
+                                tone: node.arrived == true ? .success : .neutral,
+                                systemImage: node.arrived == true ? "checkmark.circle.fill" : "location.fill"
+                            )
+                        }
+                        PlayNodeTitle(name: node.name)
+                            .font(CYTypography.pageTitle)
+                            .foregroundStyle(palette.textPrimary)
+                        if let body = node.storyText ?? node.description {
+                            Text(verbatim: body)
+                                .font(CYTypography.body)
+                                .foregroundStyle(palette.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        if let instructions = node.ruleInstructions {
+                            Text(verbatim: instructions)
+                                .font(CYTypography.bodyCompact)
+                                .foregroundStyle(palette.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        if let question = node.question {
+                            Text(verbatim: question)
+                                .font(CYTypography.cardTitle)
+                                .foregroundStyle(palette.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        // Mini-program question card: the question image sits under the question.
+                        if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, let image = node.questionImage, !image.isEmpty {
+                            PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                .accessibilityIdentifier("playx.question.image")
+                        }
+                        if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
+                            Text(verbatim: requirement)
+                                .font(CYTypography.cardTitle)
+                                .foregroundStyle(palette.textPrimary)
+                                .accessibilityIdentifier("playx.photo.requirement")
+                        }
+                        if node.validationMethod == 4 {
+                            Text("playx.scan.prompt")
+                                .font(CYTypography.cardTitle)
+                                .foregroundStyle(palette.textPrimary)
+                                .accessibilityIdentifier("playx.scan.prompt")
+                        }
+                        if let address = node.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Label {
+                                Text(verbatim: address).fixedSize(horizontal: false, vertical: true)
+                            } icon: {
+                                Image(systemName: "mappin.and.ellipse").foregroundStyle(palette.actionPrimaryBg).accessibilityHidden(true)
+                            }
+                            .font(CYTypography.meta)
+                            .foregroundStyle(palette.textSecondary)
+                        }
                     }
-                    if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
-                        Text(verbatim: requirement).font(.headline).accessibilityIdentifier("playx.photo.requirement")
-                    }
-                    if node.validationMethod == 4 {
-                        Text("playx.scan.prompt").font(.headline).accessibilityIdentifier("playx.scan.prompt")
-                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+
                     PlatformChapterAudioHost(selection: PlatformChapterAudioSelection.resolve(snapshot: model.snapshot, nodeID: nodeID, extras: model.extras, currentRead: model.hasCurrentMediaSnapshot), scope: mediaScope, makeModel: makeAudio)
                     if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
                         if let audio = node.questionAudio, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: mediaScope, makeModel: makeAudio) }
                         PlatformExternalMapHost(destination: .init(name: node.name ?? "#\(node.id)", address: node.address, latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
                     }
-                    if let snapshot = model.snapshot { PlayTaskStatusBadge(node: node, snapshot: snapshot) }
+                    if let snapshot = model.snapshot {
+                        CYTaskStatusCard(
+                            title: node.name ?? "#\(node.id)",
+                            state: PlayTaskStatusCardMapper.state(
+                                node: node,
+                                snapshot: snapshot,
+                                model: model,
+                                locale: locale,
+                                ctaTitle: appLocalized("playx.review", locale: locale),
+                                onOpen: {
+                                    if PlayNodeTask.resolve(mode: snapshot.result.mode, node: node) == .answer,
+                                       !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                        prepare(.answer(answer), context: context)
+                                    }
+                                },
+                                onRefresh: { Task { await model.load() } }
+                            )
+                        )
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                        PlayTaskStatusBadge(node: node, snapshot: snapshot)
+                    }
                 }
                 if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, node.npc != nil, let shopNPC {
                     Section {
@@ -692,18 +832,23 @@ import SwiftUI
                 if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) == .answer {
                     Section("playx.answer") {
                         if let options = node.options, node.validationMethod == 3 {
-                            // Keyed option cards (A / B / C) as in the mini-program; the picked one is filled.
+                            // Keyed option cards (A / B / C) with outdoor high-contrast game runtime tokens.
                             VStack(spacing: CYSpacing.sm) {
                                 ForEach(options.keys.sorted(), id: \.self) { key in
                                     let on = answer == key
                                     Button { answer = key } label: {
                                         HStack(spacing: CYSpacing.md) {
-                                            Text(verbatim: key).font(CYTypography.cardTitle).foregroundStyle(on ? CYColor.bgSurface : Color.secondary)
-                                            Text(verbatim: options[key] ?? key).font(CYTypography.body).foregroundStyle(on ? CYColor.bgSurface : Color.primary)
+                                            Text(verbatim: key)
+                                                .font(CYTypography.cardTitle)
+                                                .foregroundStyle(on ? palette.actionPrimaryFg : palette.textSecondary)
+                                            Text(verbatim: options[key] ?? key)
+                                                .font(CYTypography.body)
+                                                .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
+                                                .fixedSize(horizontal: false, vertical: true)
                                             Spacer(minLength: 0)
                                         }
-                                        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 52)
-                                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(on ? Color.primary : CYColor.bgSurfaceSubtle))
+                                        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm).frame(minHeight: 52)
+                                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(on ? palette.actionPrimaryBg : palette.bgRaised))
                                         .contentShape(Rectangle())
                                     }
                                     .buttonStyle(.plain)
@@ -712,9 +857,16 @@ import SwiftUI
                                 }
                             }
                             .accessibilityIdentifier("playx.answer.options")
-                        } else { TextField("playx.answer.placeholder", text: $answer, axis: .vertical).accessibilityIdentifier("playx.answer.field") }
-                        Button("playx.review") { prepare(.answer(answer), context: context) }.disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            .accessibilityIdentifier("playx.answer.review")
+                        } else {
+                            TextField("playx.answer.placeholder", text: $answer, axis: .vertical)
+                                .foregroundStyle(palette.textPrimary)
+                                .accessibilityIdentifier("playx.answer.field")
+                        }
+                        CYPillButton("playx.review", systemImage: "checkmark.circle.fill") {
+                            prepare(.answer(answer), context: context)
+                        }
+                        .disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .accessibilityIdentifier("playx.answer.review")
                     }
                 }
                 if helpEnabled || skippedHere {

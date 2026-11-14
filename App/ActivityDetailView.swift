@@ -90,6 +90,7 @@ struct ActivityDetailView: View {
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var startsWithMoreInfoOpen = false
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
     /// Collapsed by default: the 12 secondary sections live behind one disclosure row.
     @State private var showsMoreInfo = false
@@ -352,15 +353,21 @@ struct ActivityDetailView: View {
     /// First fold: hero, three action tiles, info card, map, people, tickets, reviews, one "More info" row.
     /// Everything else (topic, about, plays, journeys) sits behind the disclosure; host cancel stays its own section.
     private func detailContent(_ detail:ActivityDetail) -> some View {
+        ScrollViewReader { proxy in
         List {
             Section {
                 E1ActivityHero(summary:detail.summary)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                E1ActivityStatsRow(detail: detail)
+                    .questifyCardListRow()
+                E1ActivitySectionTabs(proxy: proxy)
+                    .listRowInsets(EdgeInsets()).listRowBackground(palette.bgPage).listRowSeparator(.hidden)
                 ActivityActionTiles(onDirections: directionsAction(detail),
                                     onReview: canReview(detail) ? { showsReview = true } : nil)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
                 E1ActivityInfoCard(detail:detail)
                     .questifyCardListRow()
+                    .id(E1ActivityAnchor.overview.rawValue)
             }
             if detail.isCancelled {
                 Section {
@@ -411,8 +418,10 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("票种", "Tickets")) }
+            .id(E1ActivityAnchor.tickets.rawValue)
             // Mini-program order: reviews (count, 写评价, 还没有评价) follow the tickets on the first fold.
             ActivityReviewsSection(reviews: detail.reviews)
+                .id(E1ActivityAnchor.details.rawValue)
             Section {
                 if canReview(detail) {
                     Button { showsReview = true } label: {
@@ -459,6 +468,7 @@ struct ActivityDetailView: View {
                     await load()
                 }
             }
+        }
         }
         .listStyle(.insetGrouped)
         .listSectionSpacing(CYSpacing.xl)
