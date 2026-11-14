@@ -1,7 +1,9 @@
 import XCTest
 import SwiftUI
 @testable import Questify
+#if canImport(QuestifyCore)
 @testable import QuestifyCore
+#endif
 
 @MainActor
 final class OfflineBannerPackage63Tests: XCTestCase {

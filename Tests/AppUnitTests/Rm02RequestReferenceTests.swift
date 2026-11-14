@@ -1,6 +1,5 @@
 import XCTest
-@testable import QuestifyCore
-@testable import QuestifyApp
+@testable import Questify
 
 /// OWN-OPT-072: Non-play unknown-result and error surfaces mount `RequestReferenceRow`
 /// backed by `RequestReferenceLedger` without inventing synthetic request IDs.
