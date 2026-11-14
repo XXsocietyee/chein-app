@@ -251,6 +251,7 @@ struct MemberScoreChipChrome<Label: View>: View {
         case .warning: return palette.warning
         case .danger: return palette.danger
         case .info: return palette.info
+        case .rare: return palette.rare
         }
     }
     private var background: Color {
@@ -260,6 +261,7 @@ struct MemberScoreChipChrome<Label: View>: View {
         case .warning: return palette.warningSoft
         case .danger: return palette.dangerSoft
         case .info: return palette.infoSoft
+        case .rare: return palette.rareSoft
         }
     }
 }
