@@ -64,7 +64,7 @@ import SwiftUI
                             }
                             .font(.system(.largeTitle, design: .rounded).weight(.heavy)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                             .contentTransition(.numericText())
-                            .lineLimit(1).minimumScaleFactor(0.5)
+                            .cyWrapText()
                             Text("roam.history.km").font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
                         }
                         .accessibilityElement(children: .combine)
@@ -84,7 +84,7 @@ import SwiftUI
                                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                                         Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
                                             .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
-                                        RoamRunCardTitle(record: record, font: .headline).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                                        RoamRunCardTitle(record: record, font: .headline).foregroundStyle(CYColor.textPrimary).cyWrapText()
                                         Spacer(minLength: 8)
                                         RoamRunCardDateText(record: record)
                                     }

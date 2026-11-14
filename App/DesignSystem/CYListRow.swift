@@ -127,6 +127,7 @@ struct CYListRow<Leading: View>: View {
                 titleText
                     .font(CYTypography.cardTitle)
                     .foregroundStyle(titleColor)
+                    .cyWrapText()
                 if let verbatimMeta {
                     Text(verbatim: verbatimMeta)
                         .font(CYTypography.meta)
@@ -188,8 +189,7 @@ struct CYListRow<Leading: View>: View {
         Text(verbatim: value)
             .font(CYTypography.numericBody)
             .foregroundStyle(effectiveDisabled ? palette.textDisabled : palette.textSecondary)
-            .lineLimit(1)
-            .truncationMode(.tail)
+            .cyWrapText(alignment: .trailing)
     }
     private var chevron: some View {
         Image(systemName: "chevron.right")

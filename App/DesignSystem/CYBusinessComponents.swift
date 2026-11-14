@@ -1090,6 +1090,7 @@ public struct CYPublishStatusBar: View {
     private let onSubmitReview: () -> Void
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     public init(
         stepTitles: [String] = CYPublishStatusBar.defaultStepTitles,
@@ -1109,6 +1110,44 @@ public struct CYPublishStatusBar: View {
         self.onSubmitReview = onSubmitReview
     }
 
+    private var publishTitle: some View {
+        Text(verbatim: "发布状态")
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(palette.textPrimary)
+            .cyWrapText()
+    }
+
+    private var stepButtons: some View {
+        ForEach(Array(stepTitles.enumerated()), id: \.offset) { index, title in
+            let hasIssue = issues.contains { $0.stepIndex == index }
+            let isActive = index == currentStep
+            Button {
+                onSelectStep(index)
+            } label: {
+                HStack(spacing: CYSpacing.xs) {
+                    Text(verbatim: "\(index + 1).\(title)")
+                        .font(CYTypography.caption.weight(isActive ? .bold : .medium))
+                        .cyWrapText(alignment: .center)
+                    if hasIssue {
+                        Circle()
+                            .fill(palette.danger)
+                            .frame(width: 6, height: 6)
+                    }
+                }
+                .foregroundStyle(isActive ? palette.actionPrimaryFg : palette.textSecondary)
+                .padding(.horizontal, CYSpacing.md)
+                .frame(maxWidth: .infinity, minHeight: 36)
+                .background(
+                    RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+                        .fill(isActive ? palette.actionPrimaryBg : palette.bgSurfaceSubtle)
+                )
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
     private var canSubmitReview: Bool {
         if case .savedDraft = saveState {
             return issues.isEmpty && !isSubmittingReview
@@ -1118,42 +1157,19 @@ public struct CYPublishStatusBar: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack(spacing: CYSpacing.sm) {
-                Text(verbatim: "发布状态")
-                    .font(CYTypography.sectionTitle)
-                    .foregroundStyle(palette.textPrimary)
-                Spacer()
-                saveBadge
+            Group {
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) { publishTitle; saveBadge }
+                } else {
+                    HStack(spacing: CYSpacing.sm) { publishTitle; Spacer(); saveBadge }
+                }
             }
 
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(Array(stepTitles.enumerated()), id: \.offset) { index, title in
-                    let hasIssue = issues.contains { $0.stepIndex == index }
-                    let isActive = index == currentStep
-                    Button {
-                        onSelectStep(index)
-                    } label: {
-                        HStack(spacing: CYSpacing.xs) {
-                            Text(verbatim: "\(index + 1).\(title)")
-                                .font(CYTypography.caption.weight(isActive ? .bold : .medium))
-                                .lineLimit(1)
-                            if hasIssue {
-                                Circle()
-                                    .fill(palette.danger)
-                                    .frame(width: 6, height: 6)
-                            }
-                        }
-                        .foregroundStyle(isActive ? palette.actionPrimaryFg : palette.textSecondary)
-                        .padding(.horizontal, CYSpacing.md)
-                        .frame(maxWidth: .infinity, minHeight: 36)
-                        .background(
-                            RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-                                .fill(isActive ? palette.actionPrimaryBg : palette.bgSurfaceSubtle)
-                        )
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+            Group {
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) { stepButtons }
+                } else {
+                    HStack(spacing: CYSpacing.sm) { stepButtons }
                 }
             }
 

@@ -24,7 +24,7 @@ struct OrderStatusChip: View {
     var emphasized = false
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        Label { Text(title).lineLimit(typeSize.isAccessibilitySize ? 3 : 1).minimumScaleFactor(0.75) } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
+        Label { Text(title).cyWrapText() } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
             .font(CYTypography.caption.weight(.semibold))
             .foregroundStyle(emphasized ? CYColor.textPrimary : CYColor.textSecondary)
             .padding(.horizontal, CYSpacing.md)
@@ -68,8 +68,7 @@ struct OrderPillLabel: View {
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
-            title.lineLimit(typeSize.isAccessibilitySize ? 2 : 1).minimumScaleFactor(0.8)
-                .multilineTextAlignment(.center)
+            title.cyWrapText(alignment: .center)
         }
         .font(CYTypography.label)
         .foregroundStyle(CYColor.textOnAccent)
@@ -119,8 +118,7 @@ struct OrderAmountHero: View {
             Text(verbatim: figure)
                 .font(CYTypography.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
-                .lineLimit(typeSize.isAccessibilitySize ? 2 : 1).minimumScaleFactor(0.5)
-                .fixedSize(horizontal: false, vertical: true)
+                .cyWrapText()
                 .privacySensitive()
             if amount != nil, showsCurrencyCaveat {
                 Text(verbatim: appLocalized("activity.currencyUnconfirmed", locale: locale))

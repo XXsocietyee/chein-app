@@ -226,8 +226,7 @@ private struct SettingsFactRow: View {
         let text = Text(verbatim: shown)
             .font(CYTypography.numericBody)
             .foregroundStyle(palette.textSecondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
+            .cyWrapText()
         if let value {
             text
                 .accessibilityLabel(Text(title))

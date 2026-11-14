@@ -158,7 +158,7 @@ struct SquareCloudStravaBlock: View {
     private func stat(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: label).font(.caption).foregroundStyle(.white.opacity(0.62))
-            Text(verbatim: value).font(.subheadline.weight(.semibold)).foregroundStyle(.white).monospacedDigit().lineLimit(1)
+            Text(verbatim: value).font(.subheadline.weight(.semibold)).foregroundStyle(.white).monospacedDigit().cyWrapText()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -195,7 +195,7 @@ struct SquareCloudStravaBlock: View {
 
     private var inlineComment: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Text(verbatim: card.commentAuthor ?? SquareCountDisplay.unknownMark).font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
+            Text(verbatim: card.commentAuthor ?? SquareCountDisplay.unknownMark).font(.subheadline.weight(.semibold)).foregroundStyle(.white).cyWrapText()
             Text(verbatim: card.commentBody ?? SquareCountDisplay.unknownMark).font(.subheadline).foregroundStyle(.white.opacity(0.8)).lineLimit(2)
         }
         .accessibilityElement(children: .combine)
@@ -406,7 +406,7 @@ struct SquareCloudJoinedActivityList: View {
             ForEach(rows) { item in
                 Button { onSelect(item) } label: {
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text(verbatim: item.name).font(.headline).foregroundStyle(.white).lineLimit(1)
+                        Text(verbatim: item.name).font(.headline).foregroundStyle(.white).cyWrapText()
                         Text(verbatim: item.sourceLabel).font(.caption).foregroundStyle(.white.opacity(0.62))
                     }
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
@@ -546,7 +546,7 @@ struct SquareCloudCompletedActivityPicker: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: item.name).font(.headline).foregroundStyle(.white).lineLimit(1)
+                Text(verbatim: item.name).font(.headline).foregroundStyle(.white).cyWrapText()
                 Text(verbatim: copy("完成 \(SquareStravaCard.nodeText(done: item.doneCount, total: item.total)) · 已通关", "Done \(SquareStravaCard.nodeText(done: item.doneCount, total: item.total)) · cleared"))
                     .font(.caption).foregroundStyle(.white.opacity(0.72))
             }

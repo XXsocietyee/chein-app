@@ -349,16 +349,16 @@ struct RegistrationSheetView: View {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                            Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
                         }
                         Spacer(minLength: CYSpacing.sm)
                         Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                            .lineLimit(1).layoutPriority(1)
+                            .cyWrapText().layoutPriority(1)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary).cyWrapText()
                     }
                 }
                 .padding(CYSpacing.lg)
@@ -406,11 +406,11 @@ struct RegistrationSheetView: View {
         let copy = CoreLoopCopy(locale: locale)
         return CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
-                HStack(spacing: CYSpacing.md) {
+                CurA11yActions {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                            .lineLimit(1).minimumScaleFactor(0.6).layoutPriority(1)
+                            .cyWrapText().layoutPriority(1)
                     }
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let blocked = flow.confirmationBlock != nil
@@ -437,7 +437,6 @@ struct RegistrationSheetView: View {
                 }
             }
         }
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
     private var participantSection: some View {
         Section {

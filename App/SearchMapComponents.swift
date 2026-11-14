@@ -62,8 +62,7 @@ struct SearchMapCard: View {
                     // Mini-program result card: tags are small filled chips, at most three, and they wrap.
                     HStack(spacing: CYSpacing.xs) {
                         ForEach(Array(row.tags.prefix(3).enumerated()), id: \.offset) { _, tag in
-                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).cyWrapText()
                                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
                                 .background(Capsule(style: .continuous).fill(CYColor.bgSurfaceSubtle))
                         }

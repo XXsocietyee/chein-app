@@ -211,7 +211,7 @@ struct CYRootTabBarStrip: View {
                         Text(LocalizedStringKey(CYDomainTabIcons.titleKey(for: tab, domain: domain)))
                             .font(CYTypography.micro.weight(isSelected ? .semibold : .medium))
                             .foregroundStyle(isSelected ? palette.tabSelectedTint : unselectedColor)
-                            .lineLimit(1)
+                            .cyWrapText(alignment: .center)
                     }
                     .frame(maxWidth: .infinity, minHeight: Theme.MiniProgramChrome.minHit)
                     .contentShape(Rectangle())

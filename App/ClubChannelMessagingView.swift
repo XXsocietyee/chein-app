@@ -319,7 +319,7 @@ public struct ClubChannelMessagingView: View {
         let button = Button {
             showRulesSheet = true
         } label: {
-            Text(copy("查看公约", "Review rules")).lineLimit(1)
+            Text(copy("查看公约", "Review rules")).cyWrapText(alignment: .center)
         }
         .buttonStyle(.cyDomainPrimary(fullWidth: !horizontal))
         .accessibilityIdentifier("club.channel.rulesGate.review")
@@ -358,8 +358,7 @@ public struct ClubChannelMessagingView: View {
                         Text(channel.name)
                             .font(CYTypography.cardTitle)
                             .foregroundStyle(palette.textPrimary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .cyWrapText()
                     }
                     if channel.isReadOnlyAnnouncement {
                         Text(copy("公告 · 只读", "Announcement · read only"))
@@ -370,7 +369,7 @@ public struct ClubChannelMessagingView: View {
                         Text(copy("已开启免打扰", "Muted"))
                             .font(CYTypography.caption)
                             .foregroundStyle(palette.textTertiary)
-                            .lineLimit(1)
+                            .cyWrapText()
                     }
                 }
             }
@@ -471,8 +470,7 @@ public struct ClubChannelMessagingView: View {
                 Text(channel.name)
                     .font((channel.unreadCount ?? 0) > 0 && !channel.isMuted ? CYTypography.label : CYTypography.bodyCompact)
                     .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .cyWrapText()
                 Spacer()
                 if let mentionBadge = channel.mentionBadgeText {
                     Text(mentionBadge)
@@ -900,7 +898,7 @@ private struct ChannelBurstGroupCard: View {
                     Text(group.headerTimestampText)
                         .font(.caption2)
                         .foregroundStyle(palette.textSecondary)
-                        .lineLimit(1)
+                        .cyWrapText()
                 }
 
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -940,6 +938,7 @@ private struct ChannelBurstGroupCard: View {
                                     Text(attachment.title)
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(palette.textPrimary)
+                                        .cyWrapText()
                                     if let sub = attachment.subtitle, !sub.isEmpty {
                                         Text(sub)
                                             .font(.caption2)

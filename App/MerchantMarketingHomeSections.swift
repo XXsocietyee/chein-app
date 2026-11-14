@@ -96,7 +96,7 @@ import SwiftUI
                 .font(CYTypography.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
-                .minimumScaleFactor(0.6).lineLimit(1)
+                .cyWrapText(alignment: .center)
             Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
         }
@@ -116,7 +116,7 @@ import SwiftUI
                     .font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: heroDisplay)
                     .font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
-                    .minimumScaleFactor(0.6).lineLimit(1)
+                    .cyWrapText(alignment: .center)
                     .accessibilityIdentifier("merchantOps.marketing.hero.value")
                 Group {
                     if home.analytics == nil {

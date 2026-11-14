@@ -171,7 +171,7 @@ struct DiscoveryTemplateBrowserView: View {
 
     private func filterChip(_ title: Text, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            title.font(CYTypography.meta.weight(.semibold)).lineLimit(1)
+            title.font(CYTypography.meta.weight(.semibold)).cyWrapText(alignment: .center)
                 .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textSecondary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: CYSpacing.minTouchTarget)
                 .background(selected ? palette.actionPrimaryBg : Color.clear, in: Capsule(style: .continuous))

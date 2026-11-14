@@ -113,6 +113,7 @@ struct MessagingHistoryView: View {
             && !isLoading && issue == nil
     }
     @Environment(\.imRecipientPreviewLeases) private var previewLeases
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// E2E-20261113b N1. The lease's conversation is server-provided only: the decoded conversation record, else the
     /// decoded messages' own conversation. The route's `conversationID` is never used; `issue` re-checks each message.
     private var recipientPreviewInput: IMRecipientPreviewInput {
@@ -228,7 +229,9 @@ struct MessagingHistoryView: View {
                     HStack(spacing: CYSpacing.sm) {
                         CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
                             .frame(width: 28, height: 28).clipShape(Circle())
-                        MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
+                        if !dynamicTypeSize.isAccessibilitySize {
+                            MessagingConversationName(conversation: conversation).font(.headline).cyWrapText()
+                        }
                     }
                     .accessibilityElement(children: .combine)
                 } else { Text("messaging.history.title").font(.headline) }
@@ -262,8 +265,7 @@ struct MessagingHistoryView: View {
                 if conversation != nil {
                     MessagingConversationName(conversation: conversation)
                         .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.bottom, CYSpacing.xs)
+                        .cyWrapText().padding(.bottom, CYSpacing.xs)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("messaging.history.hero")
                 }

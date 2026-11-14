@@ -126,7 +126,7 @@ private struct PassportRollingCount: View {
                 Text(verbatim: "—").font(.system(.largeTitle, design: .rounded).weight(.bold)).foregroundStyle(palette.textTertiary)
             }
         }
-        .fixedSize(horizontal: false, vertical: true)
+        .cyWrapText()
         .onAppear { reveal() }
         .onChange(of: value) { _, _ in reveal() }
     }
@@ -187,9 +187,7 @@ private struct PassportRollingCount: View {
                     .font(CYTypography.meta)
                     .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(typeSize.isAccessibilitySize ? 3 : 2)
-                    .minimumScaleFactor(0.8)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .cyWrapText(alignment: .center)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())

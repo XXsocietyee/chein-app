@@ -248,7 +248,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         Text(verbatim: W8Text.t("Hi，\(displayName)", "Hi, \(displayName)"))
                             .font(CYTypography.pageTitle)
                             .foregroundStyle(CYColor.textPrimary)
-                            .lineLimit(2)
+                            .cyWrapText()
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("merchant.store.name")
@@ -286,8 +286,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                     .font(CYTypography.data2XL)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textPrimary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.5)
+                                    .cyWrapText(alignment: .center)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, CYSpacing.lg)

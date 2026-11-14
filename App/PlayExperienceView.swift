@@ -403,7 +403,7 @@ import SwiftUI
                     HStack {
                         Text("playx.nodes")
                         if let chapterFilter, let chapter = model.snapshot?.result.chapters.first(where: { $0.id == chapterFilter }) {
-                            Text(verbatim: "· " + chapterTitle(chapter.name)).lineLimit(1)
+                            Text(verbatim: "· " + chapterTitle(chapter.name)).cyWrapText()
                             Spacer()
                             Button("mpd.chapters.all") { withAnimation(CYMotion.standard) { self.chapterFilter = nil } }
                                 .font(CYTypography.meta).textCase(nil)
@@ -528,7 +528,7 @@ import SwiftUI
                     HStack(spacing: CYSpacing.sm) {
                         Image(systemName: "timer").accessibilityHidden(true)
                         Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
-                            .font(CYTypography.dataXL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
+                            .font(CYTypography.dataXL).monospacedDigit().cyWrapText()
                             .accessibilityIdentifier("playx.run.clock")
                     }.foregroundStyle(.white)
                 }

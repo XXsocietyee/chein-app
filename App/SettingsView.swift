@@ -226,9 +226,9 @@ struct SettingsAccountCard: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .cyWrapText()
                 Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .cyWrapText()
             }
             Spacer(minLength: 0)
             if tappable { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }

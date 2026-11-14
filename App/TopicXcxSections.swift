@@ -169,7 +169,7 @@ struct TopicXcxLineup: View {
                     UGCBlockedFilterContainer(authorName: member.name) {
                         VStack(spacing: CYSpacing.xs) {
                             CYAvatarView(name: member.name, size: .lg)
-                            Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                            Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
                             Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
                         }
                         .frame(width: 88)
@@ -337,7 +337,7 @@ struct TopicXcxTemplatesSection: View {
                                 Text(verbatim: template.title)
                                     .font(CYTypography.cardTitle)
                                     .foregroundStyle(palette.textPrimary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .cyWrapText()
                                 if let players = template.players {
                                     Text(verbatim: players)
                                         .font(CYTypography.caption)

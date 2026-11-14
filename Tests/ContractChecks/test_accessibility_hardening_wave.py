@@ -35,9 +35,9 @@ class FPA2HomeSearchAndPublish(unittest.TestCase):
 
     def test_search_entry_has_search_trait_and_wraps(self):
         s = src('App/HomeSearchTabParityViews.swift')
-        # Restyle (cur-t1-2): the player-first placeholder wraps instead of truncating; the search trait stays.
+        # Dynamic Type: the player-first placeholder wraps instead of truncating; the search trait stays.
         entry = s[s.index('searchMap.placeholder.player'):s.index('"homeIndex.hero.searchEntry"')]
-        self.assertIn('.fixedSize(horizontal: false, vertical: true)', entry)
+        self.assertIn('.cyWrapText()', entry)
         self.assertNotIn('.lineLimit(1)', entry)
         self.assertIn('.accessibilityAddTraits(.isSearchField)', entry)
 
@@ -66,7 +66,7 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
         top = s[s.index('private var channelTopBar'):s.index('"club.channel.muteButton"')]
         self.assertIn('Text(channel.name)', top)
         self.assertNotIn('.lineLimit(1)\n                            .truncationMode(.tail)', top)
-        self.assertIn('.fixedSize(horizontal: false, vertical: true)', top)
+        self.assertIn('.cyWrapText()', top)
 
 
 class FPA4ActivityDetail(unittest.TestCase):
@@ -86,11 +86,7 @@ class FPA5WalletAndGrowth(unittest.TestCase):
     def test_no_fixed_system_size_fonts(self):
         self.assertNotIn('.system(size:', src('App/GrowthCenterView.swift'))
         wallet = src('App/WalletCommerceViews.swift')
-        # Only the @ScaledMetric-driven digit glyphs may use a computed system size.
-        for line in wallet.splitlines():
-            if '.system(size:' in line:
-                self.assertRegex(line, r'\.system\(size: size( \* 0\.7)?, ')
-        self.assertIn('@ScaledMetric(relativeTo: .largeTitle) private var size', wallet)
+        self.assertNotIn('.system(size:', wallet)
         self.assertIn('.font(CYTypography.data2XL).monospacedDigit()', wallet)
         self.assertIn('CYTypography.data2XL', src('App/GrowthCenterView.swift'))
 

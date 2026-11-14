@@ -92,7 +92,7 @@ import SwiftUI
                         Rectangle().fill(CYNight.ink2).frame(width: 2).frame(maxHeight: .infinity)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(verbatim: displayName).font(.headline).foregroundStyle(.white).lineLimit(1)
+                        Text(verbatim: displayName).font(.headline).foregroundStyle(.white).cyWrapText()
                             .accessibilityIdentifier("square.cloud.author")
                         ZStack(alignment: .topLeading) {
                             if contents.isEmpty {
@@ -142,7 +142,7 @@ import SwiftUI
     private func chip(_ title: String, _ symbol: String, clear: @escaping () -> Void) -> some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: symbol).foregroundStyle(.white)
-            Text(verbatim: title).lineLimit(1).foregroundStyle(.white)
+            Text(verbatim: title).cyWrapText().foregroundStyle(.white)
             Spacer(minLength: CYSpacing.sm)
             Button(action: clear) { Image(systemName: "xmark") }
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
@@ -278,7 +278,7 @@ import SwiftUI
                         Button { pick(row) } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 HStack {
-                                    Text(verbatim: row.nickname).font(.headline).foregroundStyle(.white).lineLimit(1)
+                                    Text(verbatim: row.nickname).font(.headline).foregroundStyle(.white).cyWrapText()
                                     Spacer(minLength: CYSpacing.sm)
                                     Text(verbatim: row.date).font(.caption).foregroundStyle(.white.opacity(0.62))
                                 }

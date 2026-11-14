@@ -28,6 +28,7 @@ enum ActivityPublishingStatusHelper {
 
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private static let fieldOwned: Set<String> = ["name", "addressName", "startDate", "endDate", "categoryIds",
         "description", "imgUrl", "templateId", "collaborators", "ticket"]
     private static let ticketPrefixes = ["ticketName", "ticketPrice", "ticketStock", "ticketStart", "ticketEnd"]
@@ -63,8 +64,7 @@ enum ActivityPublishingStatusHelper {
                         Text(Self.titleKey(item.key))
                             .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
                             .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
-                            .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .cyWrapText(alignment: .center)
                     }
                     .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .combine)
@@ -72,8 +72,6 @@ enum ActivityPublishingStatusHelper {
                     .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
                 }
             }
-            // Three step columns cannot hold accessibility-size words: cap the labels (the heading below still scales).
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
                     .font(CYTypography.meta)
@@ -89,6 +87,23 @@ enum ActivityPublishingStatusHelper {
         }
         .padding(.vertical, CYSpacing.xs)
         .accessibilityIdentifier("publishModes.activity.wizard.step." + String(current))
+    }
+    @ViewBuilder private func wizardSteps(_ current: Int) -> some View {
+        ForEach(ActivityPublishingWizard.progress(current)) { item in
+            VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center, spacing: 6) {
+                Capsule()
+                    .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
+                    .frame(height: 4)
+                Text(Self.titleKey(item.key))
+                    .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
+                    .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
+                    .cyWrapText(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+            }
+            .frame(maxWidth: .infinity, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("publishModes.activity.wizard.progress." + item.key)
+            .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
+        }
     }
     private static func titleKey(_ key: String) -> LocalizedStringKey {
         switch key {

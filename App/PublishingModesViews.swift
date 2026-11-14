@@ -477,7 +477,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         // Large titles truncate at accessibility sizes ("Publish an act…"): inline title, type capped, shrinks before clipping.
         .toolbar { ToolbarItem(placement: .principal) {
             Text("publishModes.activity").font(.headline).foregroundStyle(palette.textPrimary)
-                .lineLimit(1).minimumScaleFactor(0.7).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .cyWrapText(alignment: .center)
                 .accessibilityAddTraits(.isHeader)
         } }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -1039,7 +1039,6 @@ struct ActivityPublishingTimeRangeDraft {
                         .accessibilityIdentifier("publishModes.activity.timeRange.next")
                     }
                 }
-                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                 .background(palette.bgPage)
             }

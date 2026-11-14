@@ -205,7 +205,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     if cooldown > 0 { Text("auth.phone.resendIn \(cooldown)").monospacedDigit() }
                     else { Text(hasSentBefore ? "auth.channels.resendCode" : "auth.channels.sendCode") }
                 }
-                .font(.system(.subheadline, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                .font(.system(.subheadline, weight: .semibold)).cyWrapText()
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .background(canSend ? CYColor.brandSoft : CYColor.bgRaised, in: Capsule())
             }

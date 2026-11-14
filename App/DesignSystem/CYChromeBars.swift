@@ -19,6 +19,7 @@ public struct CYNavBar<Trailing: View>: View {
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     public init(
         title: String,
@@ -37,34 +38,47 @@ public struct CYNavBar<Trailing: View>: View {
     }
 
     public var body: some View {
-        ZStack {
-            Text(verbatim: title)
-                .font(CYTypography.pageTitle)
-                .foregroundStyle(titleColor)
-                .lineLimit(1)
-                .padding(.horizontal, 48)
-
-            HStack {
-                if showsBack {
-                    Button(action: { onBack?() }) {
-                        backGlyph
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("action.back"))
-                } else {
-                    Color.clear.frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+        VStack(spacing: CYSpacing.xs) {
+            ZStack {
+                if !typeSize.isAccessibilitySize {
+                    titleLabel
+                        .padding(.horizontal, 48)
                 }
+                HStack {
+                    if showsBack {
+                        Button(action: { onBack?() }) {
+                            backGlyph
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("action.back"))
+                    } else {
+                        Color.clear.frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                    }
 
-                Spacer()
+                    Spacer()
 
-                trailing
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    trailing
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                }
+                .padding(.horizontal, CYSpacing.xs)
             }
-            .padding(.horizontal, CYSpacing.xs)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            if typeSize.isAccessibilitySize {
+                titleLabel
+                    .padding(.horizontal, CYSpacing.lg)
+                    .padding(.bottom, CYSpacing.xs)
+            }
         }
-        .frame(height: CYSpacing.minTouchTarget)
         .padding(.top, includesTopSafeArea ? 44 : 0)
         .background(backgroundSurface)
+    }
+
+    private var titleLabel: some View {
+        Text(verbatim: title)
+            .font(CYTypography.pageTitle)
+            .foregroundStyle(titleColor)
+            .cyWrapText(alignment: .center)
+            .frame(maxWidth: .infinity)
     }
 
     private var titleColor: Color {

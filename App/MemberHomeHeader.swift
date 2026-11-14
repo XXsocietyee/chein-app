@@ -189,10 +189,8 @@ import SwiftUI
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
     private func stat(_ value: String?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody.weight(.bold)).foregroundStyle(palette.textPrimary)
-            label().font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody.weight(.bold)).monospacedDigit().foregroundStyle(palette.textPrimary)
+            label().font(CYTypography.meta).foregroundStyle(palette.textSecondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 64)
         .padding(.horizontal, CYSpacing.xs)

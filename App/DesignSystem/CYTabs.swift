@@ -107,7 +107,7 @@ public struct CYTabs<ID: Hashable>: View {
                     }
                 }
                 .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
-                .lineLimit(1)
+                .cyWrapText(alignment: .center)
                 Spacer(minLength: 0)
                 Group {
                     if isSelected {
@@ -141,7 +141,7 @@ public struct CYTabs<ID: Hashable>: View {
                         }
                         Text(verbatim: item.title)
                             .font(CYTypography.label.weight(isSelected ? .bold : .semibold))
-                            .lineLimit(1)
+                            .cyWrapText(alignment: .center)
                     }
                     .foregroundStyle(isSelected ? palette.textInverse : palette.textSecondary)
                     .frame(maxWidth: .infinity, minHeight: 36)
