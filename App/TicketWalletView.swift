@@ -28,8 +28,10 @@ import SwiftUI
     var body: some View {
         let offeredPresentation = model.presentation
         let offeredPendingPresentation = pendingOrderEntry.presentationID
+        // The reader wraps the stack, not the stack's root: as the root it made SwiftUI build a second list
+        // whose disappearance cancelled the first load (TicketWalletFlowTests, 2026-11-14).
+        ScrollViewReader { proxy in
         NavigationStack {
-            ScrollViewReader { proxy in
             List {
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
@@ -128,8 +130,6 @@ import SwiftUI
                         .accessibilityIdentifier("ticketWallet.readOnly")
                 }
             }
-            .onAppear { focusTopic(proxy) }
-            .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy) }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
@@ -184,7 +184,9 @@ import SwiftUI
             }
             .accessibilityIdentifier("ticketWallet.list")
             .appSwitcherPrivacyShield()
-            }
+            .onAppear { focusTopic(proxy) }
+            .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy) }
+        }
         }
     }
     private func focusTopic(_ proxy: ScrollViewProxy) {
@@ -195,7 +197,11 @@ import SwiftUI
     }
     private func replacePresentation() {
         retirePendingOrder()
-        guard isVisible, scenePhase == .active else { model.endPresentation(preservingValues: false); return }
+        guard isVisible, scenePhase == .active else {
+            // Launch can make the list appear while the scene is still inactive; load once it turns active.
+            if isVisible { refreshOnActive = true }
+            model.endPresentation(preservingValues: false); return
+        }
         schedule(model.beginPresentation(owner: key))
     }
     private func retirePendingOrder() {
