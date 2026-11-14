@@ -22,6 +22,8 @@ import UIKit
     }
     func requestAuthorization() async -> RoamSharePhotoSaveState.Authorization {
         guard isConfigured else { return .unavailable }
+        // The add-only system prompt waits until the explanation has been continued.
+        guard await CYPermissionSystemPrompt.precede(.photos) else { return .notDetermined }
         return await withCheckedContinuation { continuation in
             PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
                 continuation.resume(returning: Self.map(status))
@@ -74,6 +76,11 @@ import UIKit
             if case .notDetermined = status { status = await self.writer.requestAuthorization() }
             // Permission can outlive a sheet, record, account or route-selection change.
             guard self.isCurrent(attempt, source: isCurrent) else { return }
+            // Not now on the explanation leaves Photos unasked. That is not a failed save.
+            if case .notDetermined = status {
+                self.state.abandonRequest(for: attempt)
+                return
+            }
             guard self.state.authorize(status, for: attempt) else { return }
             do {
                 try await self.writer.add(image)

@@ -17,6 +17,22 @@
         }
       }
     },
+    "authEntry.deregister.coolingOffEndedAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooling-off ended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冷静期结束时间"
+          }
+        }
+      }
+    },
     "authEntry.deregister.executeAfter": {
       "localizations": {
         "en": {
@@ -241,6 +257,22 @@
         }
       }
     },
+    "authEntry.gate.continueMeans": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuing means you agree"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续即表示同意"
+          }
+        }
+      }
+    },
     "authEntry.gate.decline": {
       "localizations": {
         "en": {
@@ -269,6 +301,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看完整说明"
+          }
+        }
+      }
+    },
+    "authEntry.gate.lead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We only handle the information a feature needs, when you use it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们只在你使用相关功能时处理必要信息。"
           }
         }
       }
@@ -374,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Privacy and location"
+            "value": "Privacy protection"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "隐私与定位"
+            "value": "隐私保护"
           }
         }
       }

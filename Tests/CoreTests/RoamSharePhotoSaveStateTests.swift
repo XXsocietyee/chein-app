@@ -24,6 +24,13 @@ final class RoamSharePhotoSaveStateTests: XCTestCase {
         state.prepare(card)
         XCTAssertEqual(state.phase, .saved); XCTAssertNil(state.begin(for: card))
     }
+    func testDeclinedExplanationKeepsThePreparedCardReady() throws {
+        var state = RoamSharePhotoSaveState(); let card = try selection()
+        state.prepare(card); let attempt = try XCTUnwrap(state.begin(for: card))
+        state.abandonRequest(for: attempt)
+        XCTAssertEqual(state.phase, .ready); XCTAssertEqual(state.selection, card)
+        XCTAssertNotNil(state.begin(for: card))
+    }
     func testDeniedPermissionCanBeRetriedWithFreshAttempt() throws {
         var state = RoamSharePhotoSaveState(); let card = try selection()
         state.prepare(card); let first = try XCTUnwrap(state.begin(for: card))

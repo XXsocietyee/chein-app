@@ -1,24 +1,17 @@
 appId: invalid.example.questify.ios
 ---
-# Cold start. The body sits inside a collapsed disclosure, so the flow opens
-# authEntry.gate.details once and then asserts the body. It does not tap the
-# disclosure again. The generated launch screen has no accessibility identifier.
-# clearState and clearKeychain keep a saved token from being restored. No launch
-# arguments, typed text, payment, or host URL. Decline is not tapped.
+# Cold start. The lead is on screen. The generated launch screen has no
+# accessibility identifier. clearState and clearKeychain keep a saved token
+# from being restored. No launch arguments, typed text, payment, or host URL.
+# Decline is not tapped.
 - launchApp:
     clearState: true
     clearKeychain: true
     stopApp: true
 - extendedWaitUntil:
     visible:
-      id: "authEntry.gate.details"
+      id: "authEntry.gate.lead"
     timeout: 20000
-- tapOn:
-    id: "authEntry.gate.details"
-- extendedWaitUntil:
-    visible:
-      id: "authEntry.gate.body"
-    timeout: 10000
 - assertVisible:
     id: "authEntry.gate.privacyGuide"
 - scrollUntilVisible:

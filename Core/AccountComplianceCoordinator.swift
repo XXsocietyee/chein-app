@@ -504,4 +504,9 @@ public struct AccountMarketingReadIntent {
         guard let session = current(), session.valid else { throw ComplianceFailure.staleSession }
         return try await service.consent(.homeCityLocation, event: .agree, requestID: UUID().uuidString.lowercased(), session: session)
     }
+    /// Same consent write as the mini-program privacy page's 关闭: `privacy_policy` / `home_city_location` / `REVOKE`.
+    public func recordHomeCityLocationRevoke() async throws -> ComplianceConsent {
+        guard let session = current(), session.valid else { throw ComplianceFailure.staleSession }
+        return try await service.consent(.homeCityLocation, event: .revoke, requestID: UUID().uuidString.lowercased(), session: session)
+    }
 }

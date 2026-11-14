@@ -38,7 +38,7 @@ import UIKit
                 case .denied: self.phase = .permissionDenied; return
                 case .restricted: self.phase = .restricted; return
                 case .unavailable: self.phase = .unavailable; return
-                case .notDetermined: self.phase = .failed; return
+                case .notDetermined: self.phase = .idle; return
                 }
                 do {
                     let data = try await self.fetch(url)

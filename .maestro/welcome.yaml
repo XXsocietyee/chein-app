@@ -1,6 +1,6 @@
 appId: invalid.example.questify.ios
 ---
-# Welcome after a local consent agree. Opens the disclosure once, then agrees.
+# Welcome after a local consent agree. The confirm button agrees to both documents.
 # Role, settings, browse, and draft entries are asserted and not opened. No
 # typed text, credential entry, payment, or host URL.
 - launchApp:
@@ -9,21 +9,8 @@ appId: invalid.example.questify.ios
     stopApp: true
 - extendedWaitUntil:
     visible:
-      id: "authEntry.gate.details"
+      id: "authEntry.gate.lead"
     timeout: 20000
-- tapOn:
-    id: "authEntry.gate.details"
-- extendedWaitUntil:
-    visible:
-      id: "authEntry.gate.body"
-    timeout: 10000
-- scrollUntilVisible:
-    element:
-      id: "authEntry.gate.checkbox"
-    direction: DOWN
-    timeout: 15000
-- tapOn:
-    id: "authEntry.gate.checkbox"
 - scrollUntilVisible:
     element:
       id: "authEntry.gate.agree"
@@ -37,7 +24,7 @@ appId: invalid.example.questify.ios
     timeout: 10000
 - extendedWaitUntil:
     notVisible:
-      id: "authEntry.gate.body"
+      id: "authEntry.gate.lead"
     timeout: 10000
 - assertVisible:
     id: "welcome.merchant"
