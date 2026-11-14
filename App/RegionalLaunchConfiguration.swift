@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
 
 /// Deployment metadata is independent of language. The only reviewed host is the China
 /// registry in `ReviewedMarketLaunch`. The United States registry has no host.
@@ -191,7 +194,12 @@ enum RegionalLaunchConfiguration {
         do {
             try validate(reviewed, build: build)
             let guarded: () -> any HTTPTransport = {
-                ChinaReviewedProductionTransport(underlying: makeTransport())
+                ChinaReviewedProductionTransport(
+                    underlying: ReadRetryHTTPTransport(
+                        underlying: makeTransport(),
+                        isOnline: { SharedNetworkReachabilityState.shared.isOnline }
+                    )
+                )
             }
             return .init(deployment: .reviewed(reviewed), storage: storage, makeTransport: guarded)
         } catch {
