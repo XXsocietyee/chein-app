@@ -274,8 +274,8 @@ final class OPTTriageClosureTests: XCTestCase {
         let hits = try sourceHits(#""/?api/cart/(add|settlement|submit)"#, excluding: .unifiedOPT)
         let locations = hits.map(\.location)
         XCTAssertEqual(locations, [
-            "Core/ChinaReviewedRouteCapability.swift:2454",
-            "Core/ChinaReviewedRouteCapability.swift:645",
+            "Core/ChinaReviewedRouteCapability.swift:2519",
+            "Core/ChinaReviewedRouteCapability.swift:719",
             "Core/WalletCommerceSafety.swift:323",
             "Core/WalletCommerceService.swift:76",
             "Core/WalletCommerceSyntheticFixtures.swift:63",
@@ -284,8 +284,8 @@ final class OPTTriageClosureTests: XCTestCase {
         XCTAssertTrue(byLocation["Core/WalletCommerceSafety.swift:323"]?.contains("\"api/cart/settlement\"") == true)
         XCTAssertTrue(byLocation["Core/WalletCommerceService.swift:76"]?.contains("send(path: \"api/cart/settlement\"") == true)
         XCTAssertTrue(byLocation["Core/WalletCommerceSyntheticFixtures.swift:63"]?.contains("\"/api/cart/settlement\"") == true)
-        XCTAssertTrue(byLocation["Core/ChinaReviewedRouteCapability.swift:645"]?.contains("\"/api/cart/settlement\"") == true)
-        let blockList = byLocation["Core/ChinaReviewedRouteCapability.swift:2454"] ?? ""
+        XCTAssertTrue(byLocation["Core/ChinaReviewedRouteCapability.swift:719"]?.contains("\"/api/cart/settlement\"") == true)
+        let blockList = byLocation["Core/ChinaReviewedRouteCapability.swift:2519"] ?? ""
         XCTAssertTrue(blockList.contains("\"/api/cart/add\""))
         XCTAssertFalse(blockList.contains("send("))
         let joined = hits.map(\.text).joined(separator: "\n")
