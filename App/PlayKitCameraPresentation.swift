@@ -22,14 +22,20 @@ import PhotosUI
     @State private var authorizing = false
     @State private var showing = false
     @State private var failed = false
+    @State private var denied = false
     @State private var generation = UUID()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Button("playkitCamera.openOverlay") { purpose = true }.disabled(!cameraEnabled || !active || authorizing)
             Text("playkitCamera.screenSpaceOnly").font(.footnote).foregroundStyle(.secondary)
             if !cameraEnabled { Text("playkitCamera.configGate").font(.footnote) }
             if failed { Text("playkitCamera.failedFallback").font(.footnote) }
+            if denied {
+                Button(action: openCameraSettings) { Text("scanner.openSettings") }
+                    .accessibilityIdentifier("playkit.camera.openSettings")
+            }
             if authorizing { ProgressView("playkitCamera.authorizing") }
         }
         .confirmationDialog("playkitCamera.purpose", isPresented: $purpose, titleVisibility: .visible) {
@@ -54,22 +60,33 @@ import PhotosUI
         guard cameraEnabled, active, !authorizing,
               UIImagePickerController.isSourceTypeAvailable(.camera), UIImagePickerController.isCameraDeviceAvailable(.rear),
               let purpose = Bundle.main.object(forInfoDictionaryKey: "NSCameraUsageDescription") as? String, !purpose.isEmpty else { failed = true; return }
-        generation = UUID(); let token = generation; authorizing = true; failed = false
+        generation = UUID(); let token = generation; authorizing = true; failed = false; denied = false
         Task {
             let allowed: Bool
+            var declinedPrimer = false
             switch AVCaptureDevice.authorizationStatus(for: .video) {
             case .authorized: allowed = true
             case .notDetermined:
                 if await CYPermissionSystemPrompt.precede(.camera) {
                     allowed = await AVCaptureDevice.requestAccess(for: .video)
-                } else { allowed = false }
+                } else { allowed = false; declinedPrimer = true }
+            case .denied, .restricted: allowed = false; denied = true
             default: allowed = false
             }
             guard generation == token else { return }
             authorizing = false
-            guard allowed, active, scenePhase == .active, !Task.isCancelled else { failed = true; return }
+            if denied { return }
+            guard allowed, active, scenePhase == .active, !Task.isCancelled else {
+                if declinedPrimer { return }
+                let status = AVCaptureDevice.authorizationStatus(for: .video)
+                if status == .denied || status == .restricted { denied = true } else { failed = true }
+                return
+            }
             showing = true
         }
+    }
+    private func openCameraSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
     }
     private func cancel() { generation = UUID(); authorizing = false; purpose = false; showing = false }
 }

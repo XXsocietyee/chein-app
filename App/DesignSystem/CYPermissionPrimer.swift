@@ -8,7 +8,7 @@ import UIKit
 // Location copy is the draft in docs/roam-fog/location-permission-copy.md. The host decides when to continue.
 
 enum CYPermissionPromptKind: String, Equatable {
-    case location, camera, notification
+    case location, camera, notification, photos
 }
 
 // MARK: - Content
@@ -29,8 +29,8 @@ struct CYPermissionPrimerContent: Equatable {
         return CYPermissionPrimerContent(
             glyph: "location.fill",
             title: c("Light up where you walk", "点亮你走过的地方"),
-            body: c("Chengyin uses your location while the app is open to light up the places you walk and show what is nearby. It never runs in the background.",
-                    "城瘾仅在你使用时获取位置，用来点亮你走过的地方并显示附近内容，不会在后台定位。"),
+            body: c("Use your location only while the app is open and when you choose to roam, play a location-based activity, find nearby places, or explicitly start personal location sharing with a selected person. Personal sharing uploads your location to the service for that person until you stop or the approved sharing period ends. Location is never used in the background.",
+                    "仅在应用使用期间，且你主动选择漫游、参与基于位置的玩法、查找附近地点或明确向指定对象开启个人位置分享时使用你的位置。个人分享会将位置上传至服务端并展示给该对象，直到你停止或获准的分享期限结束。不会在后台使用位置。"),
             points: [
                 c("Only while the app is open", "仅在使用 App 时"),
                 c("Never in the background", "不会在后台定位"),
@@ -60,8 +60,8 @@ struct CYPermissionPrimerContent: Equatable {
         return CYPermissionPrimerContent(
             glyph: "camera.fill",
             title: c("Camera for this moment", "相机只用于这一刻"),
-            body: c("Chengyin uses the camera when you take a stamp photo, scan a code, or frame a play moment. It does not record in the background.",
-                    "城瘾只在你拍摄印章、扫描二维码或完成玩法取景时使用相机，不会在后台录制。"),
+            body: c("Use the camera to scan QR codes or take aftercare evidence photos when you choose.",
+                    "当你主动选择时，使用相机扫描二维码或拍摄售后凭证照片。"),
             points: [
                 c("Only when you choose to capture", "仅在你选择拍摄或扫码时"),
                 c("Nothing is recorded in the background", "不会在后台录制"),
@@ -115,6 +115,34 @@ struct CYPermissionPrimerContent: Equatable {
         )
     }
 
+    /// No mini-program screen explains Photos before `saveImageToPhotosAlbum`. The body is the installed add-only purpose.
+    static func photosPriming(locale: Locale) -> CYPermissionPrimerContent {
+        let c = CYKitCopy(locale: locale)
+        return CYPermissionPrimerContent(
+            glyph: "photo",
+            title: c("Save to Photos", "保存到相册"),
+            body: c("Save a walk card, a medal card, or a city stamp slip picture to Photos when you choose Save to Photos.",
+                    "仅在你选择“保存到相册”时，将足迹卡、勋章卡或城市签小票图片添加到相册。"),
+            points: [],
+            primaryTitle: c("Continue", "继续"),
+            secondaryTitle: c("Not now", "以后再说")
+        )
+    }
+
+    /// Denied save. The mini-program modal confirms, then calls `wx.openSetting`. This card uses the installed denial sentence and Open Settings.
+    static func photosDenied(locale: Locale) -> CYPermissionPrimerContent {
+        let c = CYKitCopy(locale: locale)
+        return CYPermissionPrimerContent(
+            glyph: "photo",
+            title: c("Save to Photos", "保存到相册"),
+            body: c("Allow this app to add photos in Settings, then return and retry saving.",
+                    "请在设置中允许本应用添加照片，返回后重试保存。"),
+            points: [],
+            primaryTitle: c("Open Settings", "打开设置"),
+            secondaryTitle: c("Not now", "以后再说")
+        )
+    }
+
     static func content(for step: RoamLocationPrimerStep, locale: Locale) -> CYPermissionPrimerContent {
         content(for: .location, denied: step == .denied, locale: locale)
     }
@@ -124,6 +152,7 @@ struct CYPermissionPrimerContent: Equatable {
         case .location: denied ? .locationDenied(locale: locale) : .locationPriming(locale: locale)
         case .camera: denied ? .cameraDenied(locale: locale) : .cameraPriming(locale: locale)
         case .notification: denied ? .notificationDenied(locale: locale) : .notificationPriming(locale: locale)
+        case .photos: denied ? .photosDenied(locale: locale) : .photosPriming(locale: locale)
         }
     }
 }
@@ -279,7 +308,8 @@ final class CYPermissionPrimerWindow {
         let next = queue.removeFirst()
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else {
-            next.1.resume(returning: true)
+            // No window means the explanation was not shown, so the system prompt must not run.
+            next.1.resume(returning: false)
             drain()
             return
         }
@@ -332,4 +362,14 @@ final class CYPermissionPrimerWindow {
 #Preview("Permission · notification zh") {
     CYPermissionPrimerScreen(kind: .notification, onPrimary: {}, onSecondary: {})
         .environment(\.locale, Locale(identifier: "zh-Hans"))
+}
+#Preview("Permission · photos") {
+    CYPermissionPrimerScreen(kind: .photos, onPrimary: {}, onSecondary: {})
+}
+#Preview("Permission · photos denied zh") {
+    CYPermissionPrimer(kind: .photos, denied: true, locale: Locale(identifier: "zh-Hans"), onPrimary: {}, onSecondary: {})
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxHeight: .infinity)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
 }

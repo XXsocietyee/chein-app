@@ -12,6 +12,8 @@ import UserNotifications
     private let permission: any IMInviteReminderPermissionReading
     private let primer: any IMInviteReminderPriming
     private(set) var presentation: IMInviteReminderPresentation = .unknown
+    /// System denial or alerts turned off. The switch then offers the existing notification Settings URL.
+    private(set) var offersSettings = false
     var isEnabled: Bool { presentation.isEnabled }
 
     init(defaults: UserDefaults = .standard,
@@ -23,7 +25,9 @@ import UserNotifications
     }
 
     func reload() async {
-        presentation = Self.resolve(stored: defaults.bool(forKey: Self.storageKey), permission: await permission.current())
+        let reading = await permission.current()
+        presentation = Self.resolve(stored: defaults.bool(forKey: Self.storageKey), permission: reading)
+        offersSettings = Self.systemSettingsNeeded(reading)
     }
 
     func setEnabled(_ on: Bool) async -> Bool {
@@ -32,23 +36,33 @@ import UserNotifications
             await reload()
             return false
         }
-        let current = await permission.current()
-        if current == .unknown {
+        let reading = await permission.current()
+        if reading == .unknown {
             defaults.set(false, forKey: Self.storageKey)
             presentation = .unknown
+            offersSettings = false
             return false
         }
-        if current == .notDetermined {
+        if reading == .notDetermined {
             switch await primer.precedeNotification() {
             case .denied, .unavailable:
                 defaults.set(false, forKey: Self.storageKey)
                 presentation = .off
+                offersSettings = false
                 return false
             case .allowed:
                 return apply(await permission.request())
             }
         }
-        return apply(current)
+        return apply(reading)
+    }
+
+    /// Denied, or alerts switched off, is the state that can only be changed in Settings.
+    static func systemSettingsNeeded(_ reading: IMInviteReminderPermission) -> Bool {
+        switch reading {
+        case .denied, .authorized(alerts: false): return true
+        default: return false
+        }
     }
 
     /// A stored choice counts only together with a visible alert grant.
@@ -61,10 +75,11 @@ import UserNotifications
         }
     }
 
-    private func apply(_ permission: IMInviteReminderPermission) -> Bool {
-        let granted = permission == .authorized(alerts: true)
+    private func apply(_ reading: IMInviteReminderPermission) -> Bool {
+        let granted = reading == .authorized(alerts: true)
         defaults.set(granted, forKey: Self.storageKey)
-        presentation = Self.resolve(stored: granted, permission: permission)
+        presentation = Self.resolve(stored: granted, permission: reading)
+        offersSettings = Self.systemSettingsNeeded(reading)
         return presentation == .on
     }
 }
