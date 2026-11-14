@@ -35,10 +35,10 @@ class FPA2HomeSearchAndPublish(unittest.TestCase):
 
     def test_search_entry_has_search_trait_and_wraps(self):
         s = src('App/HomeSearchTabParityViews.swift')
-        # Restyle: the player-first placeholder is one deliberate line that truncates; the search trait stays.
+        # Restyle (cur-t1-2): the player-first placeholder wraps instead of truncating; the search trait stays.
         entry = s[s.index('searchMap.placeholder.player'):s.index('"homeIndex.hero.searchEntry"')]
-        self.assertIn('.lineLimit(1)', entry)
-        self.assertIn('.truncationMode(.tail)', entry)
+        self.assertIn('.fixedSize(horizontal: false, vertical: true)', entry)
+        self.assertNotIn('.lineLimit(1)', entry)
         self.assertIn('.accessibilityAddTraits(.isSearchField)', entry)
 
 

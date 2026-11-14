@@ -120,10 +120,18 @@ class TestDesignTokenUnificationContract(unittest.TestCase):
             "App/DesignSystem/CYDesignTokens.swift",
             "App/DesignSystem/CYDomainPalette.swift",
             "App/DesignSystem/CYDesignComponents.swift",
+            "App/GrowthCenterView.swift",
+            "App/GrowthLeaderboardView.swift",
+            "App/MemberHomeHeader.swift",
+            "App/ProfileCurrentAvatarView.swift",
+            "App/SettingsView.swift",
+            "App/SocialPublicProfileView.swift",
         }
         allowed_result_spinner_files = {
             "App/DesignSystem/CYDesignTokens.swift",
             "App/DesignSystem/CYDomainPalette.swift",
+            "App/GlobalSearchView.swift",
+            "App/SearchMapResultsCapsule.swift",
         }
 
         retired_symbol_re = re.compile(

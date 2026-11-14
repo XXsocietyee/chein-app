@@ -31,7 +31,7 @@ class W207SquareParity(unittest.TestCase):
 
     def test_list_keeps_existing_identifiers_and_feed_wire(self):
         browser = read('App/SquareBrowserView.swift')
-        for exact in ['.accessibilityIdentifier("square.row.\\(post.id)")', 'accessibilityIdentifier("square.empty")',
+        for exact in ['.accessibilityIdentifier("square.row.\\(post.id)")', 'messageIdentifier: "square.empty"',
                       'SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false)',
                       'NativeMediaGalleryEntry(sources: post.images, scope: reader.scope',
                       'operation == generation, captured == key']:

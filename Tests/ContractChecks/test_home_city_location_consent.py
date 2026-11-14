@@ -14,10 +14,10 @@ class HomeCityLocationConsentWiring(unittest.TestCase):
         self.assertNotIn('.searchable', host)
         self.assertEqual(host.count('magnifyingglass'), 1)
         card = feed.index('if let consent = cityLocationConsent')
-        rails = feed.index('feedSection(.recommended, order: 1)')
+        rails = feed.index('feedSection(.recommended, order: 2)')
         self.assertLess(card, rails)
-        self.assertLess(rails, feed.index('feedSection(.nearby, order: 2)'))
-        self.assertLess(feed.index('feedSection(.nearby, order: 2)'), feed.index('feedSection(.upcoming, order: 3)'))
+        self.assertLess(rails, feed.index('feedSection(.nearby, order: 3)'))
+        self.assertLess(feed.index('feedSection(.nearby, order: 3)'), feed.index('feedSection(.upcoming, order: 4)'))
 
     def test_agree_records_privacy_policy_home_city_and_decline_saves_locally(self):
         model = (ROOT / 'App/HomeCityLocationConsentHost.swift').read_text()
