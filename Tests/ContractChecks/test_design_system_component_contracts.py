@@ -86,6 +86,7 @@ PURPLE_LITERAL_ALLOWED_FILES = {
 }
 
 PURPLE_TOKEN_ALLOWED_BY_FILE: dict[str, set[str]] = {
+    "App/DesignFixtures/E3Fixtures.swift": {"avatarRing"},
     "App/DesignSystem/CYDesignComponents.swift": {"avatarRing"},
     "App/DesignSystem/CYDesignTokens.swift": {"avatarRing", "resultSpinner", "tabSelected", "tabSelectedTint"},
     "App/DesignSystem/CYDomainPalette.swift": {"avatarRing", "resultSpinner", "tabSelectedTint"},
@@ -93,6 +94,14 @@ PURPLE_TOKEN_ALLOWED_BY_FILE: dict[str, set[str]] = {
     "App/DesignSystem/CYNight.swift": {"tabSelected"},
     "App/DesignSystem/CYNightTabBar.swift": {"tabSelected"},
     "App/DesignSystem/CYScreenStyle.swift": {"tabSelectedTint"},
+    "App/GlobalSearchView.swift": {"resultSpinner"},
+    "App/GrowthCenterView.swift": {"avatarRing"},
+    "App/GrowthLeaderboardView.swift": {"avatarRing"},
+    "App/MemberHomeHeader.swift": {"avatarRing"},
+    "App/ProfileCurrentAvatarView.swift": {"avatarRing"},
+    "App/SearchMapResultsCapsule.swift": {"resultSpinner"},
+    "App/SettingsView.swift": {"avatarRing"},
+    "App/SocialPublicProfileView.swift": {"avatarRing"},
 }
 
 

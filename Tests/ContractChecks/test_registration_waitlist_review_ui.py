@@ -7,7 +7,7 @@ class WaitlistReviewUIContracts(unittest.TestCase):
     def test_cancel_confirmation_retains_negative_and_terminal_assertions(self):
         source = (ROOT / 'Tests/AppUITests/RegistrationWaitlistUITests.swift').read_text()
         method = source.split('func testWaitingAndLeavingRemainInTheRegistrationForm()')[1].split('func testOfferRequires')[0]
-        self.assertLess(method.index('confirmation.buttons["Cancel"].tap()'), method.index('confirmation.buttons["Leave waitlist"].tap()'))
+        self.assertLess(method.index('app.buttons["Cancel"].tap()'), method.index('app.buttons["Leave waitlist"].tap()'))
         self.assertIn('XCTAssertTrue(app.staticTexts["Waiting for an available place"].exists, app.debugDescription)', method)
         self.assertEqual(method.count('XCTAssertFalse(app.staticTexts["Waitlist entry cancelled"].exists)'), 2)
         self.assertIn('XCTAssertTrue(app.staticTexts["Waitlist entry cancelled"].waitForExistence(timeout: 5), app.debugDescription)', method)
