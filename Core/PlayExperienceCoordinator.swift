@@ -783,6 +783,11 @@ public struct PlayCompletionReview: Equatable {
         }
     }
     public func startRun(now: TimeInterval) {
+        #if DEBUG
+        NSLog("[E2E] startRun canManage=%@ owner=%@ lease=%@ pending=%@ busy=%@ recoveryFailed=%@ phase=%@", String(canManageRun),
+              String(loadedSession != nil && currentSession() == loadedSession && pausedOwner == loadedSession), String(pausedLease != nil),
+              String(pausedLease?.value?.pendingRemote == true), String(runStorageBusy), String(localRecoveryFailed), String(describing: clock.phase))
+        #endif
         guard canManageRun, let loadedSession, currentSession() == loadedSession, pausedOwner == loadedSession, pausedLease != nil, pausedLease?.value?.pendingRemote != true, !runStorageBusy, !localRecoveryFailed else { return }
         try? clock.start(monotonicNow: now)
     }
