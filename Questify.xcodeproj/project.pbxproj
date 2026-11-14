@@ -3315,6 +3315,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "EDB0FC7F28FCA2B7E501BF4C";
 		};
+		"A346A4671EAE5DE715530591" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/Cur3UITestFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"9F74ECD8760FA1185B1E6ACE" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A346A4671EAE5DE715530591";
+		};
 		"0CA0C490B2EC100B9A737D02" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -38884,6 +38894,7 @@
 				"368362C4D52A66D3C6EAA898",
 				"48EA87AD994B1F148ACCA1CA",
 				"EDB0FC7F28FCA2B7E501BF4C",
+				"A346A4671EAE5DE715530591",
 				"0CA0C490B2EC100B9A737D02",
 				"983E4F4A515049BFC1647968",
 				"CF2B676C2317254407CF074F",
@@ -42454,6 +42465,7 @@
 				"8F8C4744DE9B4409380B8566",
 				"0DD06FC2B8C2EAAD3131CD5F",
 				"B6EAAC044EE74AA25BB164C5",
+				"E35C02999B18821E0D35F919",
 				"898B4CA8ABB5C99A021239EA",
 				"966D2C93A8CF638AE9207040",
 				"C92754FDA1F6D9402B4CB19D",
@@ -43888,6 +43900,7 @@
 				"14441368CAC714E51B5331A1",
 				"689AB97547688F230C9D0548",
 				"FF81A391BDE760E702E5958A",
+				"9F74ECD8760FA1185B1E6ACE",
 				"02240838A37D3159E6F7594D",
 				"263851C408F43819D3F4AAA5",
 				"843640297630A42AB861E5DE",
@@ -47518,7 +47531,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift CarouselFixtures.swift ClubCardFixtures.swift Cur4Fixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift WaveFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift CarouselFixtures.swift ClubCardFixtures.swift Cur3UITestFixtures.swift Cur4Fixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift WaveFixtures.swift";
 			};
 			"baseConfigurationReference" = "2DE2C287CCE985622F66EC30";
 		};
@@ -48020,6 +48033,16 @@
 		"207C9424C99319903EBD84F6" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B6EAAC044EE74AA25BB164C5";
+		};
+		"E35C02999B18821E0D35F919" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/Cur3OfflineUITests.swift";
+			"sourceTree" = "<group>";
+		};
+		"0D41F3A30FE3591368080D50" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E35C02999B18821E0D35F919";
 		};
 		"898B4CA8ABB5C99A021239EA" = {
 			"isa" = "PBXFileReference";
@@ -50972,6 +50995,7 @@
 				"48A69D299EA4DDCD07654701",
 				"47FF0FF9FD28098A84983681",
 				"207C9424C99319903EBD84F6",
+				"0D41F3A30FE3591368080D50",
 				"6355F41F897CF8B9FFCBAEC2",
 				"A0D37CFDB74370E33EC5F4F6",
 				"6777FB7D26EF9038E71478D1",

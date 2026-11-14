@@ -7,6 +7,8 @@ enum RegistrationFixtureScenario: String, CaseIterable {
     case waitlistWaiting, waitlistOffer, waitlistExpiringOffer, waitlistClaimed, waitlistConverted, waitlistOrderError
     /// Source checkout parity: isSignUp=1 banner, ticket meeting point and a priority-only club benefit.
     case alreadyRegistered
+    /// Server quote deducts nothing while the viewer has points. The sheet turns points off and quotes again.
+    case pointsRefused
     var isWaitlist: Bool { self == .waitlistWaiting || isOffer || isOrder }
     var isOrder: Bool { self == .waitlistClaimed || self == .waitlistConverted || self == .waitlistOrderError }
     var isOffer: Bool { self == .waitlistOffer || self == .waitlistExpiringOffer }
@@ -41,6 +43,9 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
         quotes += 1
         if scenario == .quoteError, quotes == 1 { throw URLError(.notConnectedToInternet) }
         if scenario == .unknownAmounts { return try decode(#"{"pointsUsable":true,"quoteSign":"offline-only"}"#) }
+        if scenario == .pointsRefused, selection.usePoints {
+            return try decode(#"{"payAmount":12.5,"pointsUsed":0,"pointsDeductYuan":0,"pointsUsable":true,"memberDiscountYuan":0,"couponDeductYuan":0,"quoteSign":"offline-only-points-refused"}"#)
+        }
         let amount = selection.ticketID == 9403 ? 0 : (selection.usePoints ? 10 : 12.5)
         return try decode("""
         {"payAmount":\(amount),"pointsUsed":\(selection.usePoints ? 250 : 0),
@@ -161,10 +166,24 @@ struct RegistrationFixtureHostView: View {
                                       participantReader: model.store, orderReader: model.store, currentIdentity: { model.store.identity },
                                       quoteEnabled: true,
                                       creationPolicy: model.scenario == .disabled ? .disabled : .offlineFixture,
-                                      waitlistService: model.scenario.isWaitlist ? model.store : nil)
+                                      waitlistService: model.scenario.isWaitlist ? model.store : nil,
+                                      availablePoints: model.scenario == .pointsRefused ? { 300 } : nil)
+                    .safeAreaInset(edge: .bottom) {
+                        if model.scenario == .pointsRefused { RegistrationPointsPayClosedNote() }
+                    }
                     .modifier(AccessibilityFixtureOptions())
             }
         }
+    }
+}
+
+/// Pay stays on the closed side of the money switch. No executor, so the sheet cannot submit a charge.
+private struct RegistrationPointsPayClosedNote: View {
+    var body: some View {
+        List {
+            RegistrationPaySection(registrationID: 9401, payableAmount: 12.5, consented: false)
+        }
+        .frame(minHeight: 88)
     }
 }
 
