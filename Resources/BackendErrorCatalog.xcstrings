@@ -289,6 +289,278 @@
         }
       }
     },
+    "backendError.status.501": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That action isn't implemented yet. Try a different action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此接口尚未实现，请改用其他操作。"
+          }
+        }
+      }
+    },
+    "backendError.status.601": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service sent a warning. Read it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务返回了警告，请查看后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.ADVANCED_FIRST": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish this stop's task before arriving."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先完成这一站的任务，再记录到达。"
+          }
+        }
+      }
+    },
+    "backendError.code.ANSWER_WRONG": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That answer wasn't accepted. Submit a new answer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案不正确，请提交新的答案。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_ACCURACY_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locate again. This is not a cheating verdict."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新定位。这不是作弊判定。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_ACCURACY_LOW": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move into the open and locate again. A weak signal does not widen the stop's area."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请到开阔处重新定位。信号差不会放宽这一站的范围。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_ACCURACY_MISSING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locate again so the reading includes its accuracy. This is not a cheating verdict."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新定位，让读数带上精度。这不是作弊判定。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_COORD_NOT_CONFIGURED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trying again will not help. The organiser needs to fix this stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试不会成功，需要组织者修正这一站。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_FIRST": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record your arrival at this stop before answering."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先记录到达这一站，再作答。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_GUARD_SPEED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending again would be refused the same way. Check this on the stop again on site."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次发送也会被同样拒绝，请在现场重新核验。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_GUARD_THROTTLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait a moment, then locate again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请稍等片刻再重新定位。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_GUARD_WINDOW_DISTANCE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending again would be refused the same way. Check this on the stop again on site."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次发送也会被同样拒绝，请在现场重新核验。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_LOCATION_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locate again and send the new reading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新定位后再提交新的读数。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_LOCATION_MISSING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow location for Questify, then locate again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请允许城瘾使用定位，然后重新定位。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_LOCATION_STALE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locate again to send a fresh reading."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请重新定位，提交新的读数。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_NOT_RECORDED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record your arrival here before answering."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先记录到达这一站，再作答。"
+          }
+        }
+      }
+    },
+    "backendError.code.ARRIVE_TOO_FAR": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk closer to the stop, then locate again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请走近这一站后重新定位。"
+          }
+        }
+      }
+    },
     "backendError.code.BOARD_CURSOR_STALE": {
       "localizations": {
         "en": {
@@ -301,6 +573,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "列表已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.CASH_CLOSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cash case did not complete a payment. Cash payout is closed. Choose a non-cash reason."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次现金处理没有完成支付。现金发放已关闭，请改用非现金原因。"
+          }
+        }
+      }
+    },
+    "backendError.code.CHAPTER_REDEEMED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter is already redeemed. Continue to the next stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章已核销，请前往下一站。"
           }
         }
       }
@@ -369,6 +673,22 @@
         }
       }
     },
+    "backendError.code.CONFIG_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stop isn't set up. Ask the organiser to fix it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一站尚未配置，请联系组织者修正。"
+          }
+        }
+      }
+    },
     "backendError.code.DIRECTORY_CHANGED": {
       "localizations": {
         "en": {
@@ -397,6 +717,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "未找到该好友分组。"
+          }
+        }
+      }
+    },
+    "backendError.code.EVENT_UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That event isn't supported. Choose a listed event and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "事件不合法，请选择已列出的事件后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.FEATURE_CLOSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This did not complete a payment. Cash and payout stay closed on this host. Use a non-cash reward, or try again only where payments are open."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次没有完成支付。本主机的现金与发放保持关闭。请改用非现金奖励，或仅在支付开放时再试。"
           }
         }
       }
@@ -465,6 +817,22 @@
         }
       }
     },
+    "backendError.code.GUILD_FORBIDDEN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join this club before managing it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入后才能操作。"
+          }
+        }
+      }
+    },
     "backendError.code.H5_REJECTED": {
       "localizations": {
         "en": {
@@ -525,6 +893,134 @@
           "stringUnit": {
             "state": "translated",
             "value": "此会话已关闭。"
+          }
+        }
+      }
+    },
+    "backendError.code.INTENT_ACTION_REUSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action was already used for different input. Start a new attempt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次操作已用于另一份输入，请重新开始一次。"
+          }
+        }
+      }
+    },
+    "backendError.code.INTENT_INPUT_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That action isn't valid. Check it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次操作无效，请检查后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.INTENT_PENDING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check this same action later. Do not start a new one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请稍后查询同一次操作，不要重新开始。"
+          }
+        }
+      }
+    },
+    "backendError.code.INTENT_SCOPE_DENIED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't have permission for this play. Open a run you can join."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你没有这次游玩的权限，请打开可参加的对局。"
+          }
+        }
+      }
+    },
+    "backendError.code.INTENT_SESSION_ENDED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This run has ended. Start a new run."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局已结束，请开始新的一局。"
+          }
+        }
+      }
+    },
+    "backendError.code.INTENT_SESSION_MISMATCH": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This run is not yours. Open your own run."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这不是你的对局，请打开自己的对局。"
+          }
+        }
+      }
+    },
+    "backendError.code.INTENT_STALE_STATE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh this run, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请刷新本局后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.INVALID_INPUT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That input isn't valid. Check it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入无效，请检查后再试。"
           }
         }
       }
@@ -669,6 +1165,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "这个名字已被使用。"
+          }
+        }
+      }
+    },
+    "backendError.code.NODE_DELISTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It cannot be completed now. Stops you already finished stay in your history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现在无法完成。已完成的站点仍保留在记录中。"
+          }
+        }
+      }
+    },
+    "backendError.code.NODE_NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That stop was not found. Refresh the route."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到这一站，请刷新路线。"
+          }
+        }
+      }
+    },
+    "backendError.code.NOT_CONFIRM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This isn't confirmed yet. Confirm it before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未确认，请先确认后再继续。"
+          }
+        }
+      }
+    },
+    "backendError.code.NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That item was not found. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到对应内容，请刷新后再试。"
           }
         }
       }
@@ -1009,6 +1569,22 @@
         }
       }
     },
+    "backendError.code.PUZZLE_STATE_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The puzzle couldn't be read. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解谜状态暂时读不到，请重试。"
+          }
+        }
+      }
+    },
     "backendError.code.RELATION_UNAVAILABLE": {
       "localizations": {
         "en": {
@@ -1105,6 +1681,134 @@
         }
       }
     },
+    "backendError.code.REVISION_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This subscription changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订阅已被修改，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.ROUTE_EGG_OFFLINE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route eggs are offline. Continue without collecting one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "途中彩蛋已下线。请继续路线，不必再领取。"
+          }
+        }
+      }
+    },
+    "backendError.code.ROUTE_LOCKED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh to see which stop comes first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请刷新，查看应先去哪一站。"
+          }
+        }
+      }
+    },
+    "backendError.code.SCAN_CODE_AMBIGUOUS": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code matches more than one stop. Scan the code for this stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个码对应多个站点，请扫描这一站的码。"
+          }
+        }
+      }
+    },
+    "backendError.code.SCAN_CODE_EXPIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code has expired. Scan a current one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个码已过期，请扫描仍有效的码。"
+          }
+        }
+      }
+    },
+    "backendError.code.SCAN_CODE_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code isn't valid. Scan the code for this stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销码无效，请扫描这一站的码。"
+          }
+        }
+      }
+    },
+    "backendError.code.SCAN_CODE_NODE_MISMATCH": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code is for a different stop. Scan this stop's code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个码属于另一站，请扫描这一站的码。"
+          }
+        }
+      }
+    },
+    "backendError.code.SCAN_CODE_USED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code was already used. Ask for a new one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个码已使用，请换一个新码。"
+          }
+        }
+      }
+    },
     "backendError.code.SCREENING_PENDING": {
       "localizations": {
         "en": {
@@ -1117,6 +1821,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先完成原逐条规则。欢迎屏不能替代规则同意，也不触发重发消息。"
+          }
+        }
+      }
+    },
+    "backendError.code.SENSOR_REJECTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sensor check didn't pass. Complete the challenge again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器判定未通过，请重新完成挑战。"
+          }
+        }
+      }
+    },
+    "backendError.code.STORE_SCAN_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location cannot replace the merchant's scan here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里不能用定位代替商家扫码。"
+          }
+        }
+      }
+    },
+    "backendError.code.TASK_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival alone does not complete this stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅到达不能完成这一站。"
+          }
+        }
+      }
+    },
+    "backendError.code.TEAM_LEAD_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The leader releases this chapter before anyone can continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长放行本章后才能继续。"
           }
         }
       }
@@ -1249,18 +2017,306 @@
         }
       }
     },
-    "backendError.code.WEBHOOK_RESULT_UNKNOWN": {
+    "backendError.code.WEBHOOK_BODY_INVALID": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The webhook result is still unknown."
+            "value": "The webhook body must be JSON with content of 1–2000 characters. Fix it and send again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "回调结果尚未确定。"
+            "value": "Webhook 正文须为含 1–2000 字 content 的 JSON，请修正后再发。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_BODY_TOO_LARGE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That webhook body is too large. Shorten it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook 请求体过大，请缩短后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_CHANGE_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That webhook name isn't valid. Use 1–64 characters and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称不合法，请使用 1–64 字的名称后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_CHANNEL_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This channel can't receive the webhook. Check the channel and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该频道无法接收 Webhook，请检查频道后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_CONTENT_BLOCKED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That content was blocked. Change it and send again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容未通过审核，请修改后再发。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_CRYPTO_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook signing isn't configured. Set the encryption key, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签名密钥加密未配置，请配置后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_ENDPOINT_PAUSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This webhook endpoint is paused. Resume it before sending again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该 Webhook 端点已暂停，请恢复后再发送。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_FORBIDDEN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't manage webhooks here. Ask a manager, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你无权管理该频道的 Webhook，请联系管理员后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_INBOUND_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbound webhooks aren't configured. Set the receive address and encryption key, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入站 Webhook 未配置接收地址或加密密钥，请配置后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_IP_NOT_ALLOWED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This address isn't allowed. Use an allowed address."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源地址不在白名单内，请改用允许的地址。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_NONCE_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The webhook nonce isn't valid. Send a new nonce of 16–64 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook nonce 无效，请使用 16–64 位的新 nonce。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That webhook was not found. Refresh the list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该 Webhook，请刷新列表。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_PAUSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This subscription is paused. Resume it before testing again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订阅已暂停，请恢复后再测试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_RATE_LIMITED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many webhook calls. Wait and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook 调用过于频繁，请稍后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_REPLAYED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This webhook was already received. Send a new nonce."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条 Webhook 已接收过，请换新的 nonce。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_RESULT_UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The webhook result is still unknown. Check the original delivery before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回调结果尚未确定，请先核对原投递再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_SECRET_UNRECOVERABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The signing secret can't be recovered. Rotate the secret, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签名密钥无法恢复，请轮换密钥后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_SIGNATURE_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The signature doesn't match. Sign again with the endpoint secret."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签名不匹配，请用端点密钥重新签名。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_TIMESTAMP_OUT_OF_WINDOW": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The webhook timestamp is outside the allowed window. Send a current timestamp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook 时间戳超出允许窗口，请使用当前时间重发。"
           }
         }
       }
@@ -1757,6 +2813,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先登录"
+          }
+        }
+      }
+    },
+    "backendError.message.routeEggOffline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route eggs are offline. Continue without collecting one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "途中彩蛋已下线。请继续路线，不必再领取。"
           }
         }
       }
