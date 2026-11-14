@@ -58,7 +58,7 @@ S = {
     # B68 subpackageP3/pages/growthcenter
     'u10.growth.board': ('Total points board', '总积分榜'),
     'u10.growth.boardRank %lld': ('Total points board · No. %lld', '总积分榜 · 第 %lld 名'),
-    'u10.growth.unit.exp': ('EXP', 'EXP'),
+    'u10.growth.unit.exp': ('EXP', '经验'),
     'u10.growth.unit.badge': ('badges', '枚'),
     'u10.growth.unit.topic': ('topics', '个'),
     'u10.growth.badge.hint': ('See when you earned it', '查看获得时刻'),
