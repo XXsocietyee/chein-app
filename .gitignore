@@ -1,5 +1,7 @@
 .DS_Store
 .build/
+build/appstore-screenshots/
+build/appstore-screenshots-derived/
 DerivedData/
 *.xcuserstate
 xcuserdata/

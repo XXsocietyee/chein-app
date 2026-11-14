@@ -23,6 +23,7 @@ enum DesignFixtureReleaseExclusionAudit {
         "AlbumKitFixture",
         "AlbumObjectCardFixtureReader",
         "AlbumStampFixtureReader",
+        "AppStoreScreenshotHarness",
         "CarouselFixtures",
         "ClubCardFixtures",
         "ClubCardsContinuityHost",

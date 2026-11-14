@@ -21,7 +21,7 @@ struct QuestifyApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if let designFixture = fixtureArgument("--design-fixture") {
+                if let designFixture = AppStoreScreenshotHarness.mountedFixtureID(arguments: ProcessInfo.processInfo.arguments) ?? fixtureArgument("--design-fixture") {
                     DesignFixtureRegistry.make(designFixture)
                 } else if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
                     OwnerDraftFixtureHost(mode: fixtureArgument("--owner-draft-fixture") ?? "ready")
@@ -194,6 +194,13 @@ final class AppSessionContainer: ObservableObject {
 
     init(composition: AppCompositionRoot? = nil, arguments: [String] = ProcessInfo.processInfo.arguments) {
         #if DEBUG
+        AppStoreScreenshotHarness.applyStoredLanguage(arguments: arguments)
+        if AppStoreScreenshotHarness.mountedFixtureID(arguments: arguments) != nil {
+            integratedAcceptance = nil
+            couponRuntime = nil
+            session = nil
+            return
+        }
         let fixture = composition == nil ? IntegratedNativeAcceptanceFixture.selected(arguments: arguments) : nil
         integratedAcceptance = fixture
         let coupon = composition == nil ? CouponRuntimeFixture.selected(arguments) : nil
