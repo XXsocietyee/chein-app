@@ -60,6 +60,60 @@ final class ExternalGameReviewClientTests: XCTestCase {
         XCTAssertFalse(wire.requests.contains { $0.httpMethod == "POST" && ($0.httpBody ?? Data()).starts(with: [0x50, 0x4b]) })
     }
 
+    func testUncoveredReadsPinGetPaths() async throws {
+        let wire = ExternalGameWire()
+        wire.handler = { request in
+            let path = request.url?.path ?? ""
+            if path.hasSuffix("/submissions/mine") { return (Data(Self.routeAbsent), 404) }
+            return (Data(), 500)
+        }
+        let client = try make(wire)
+        let mine = await client.submissions(token: "session-token")
+        XCTAssertNil(mine)
+        let detail = await client.downloadApproved(gameID: "rpg.one", token: "session-token")
+        XCTAssertNil(detail)
+        let package = await client.downloadPackage(downloadPath: "/api/external-game/catalog/rpg.one/package?sourceVersion=1", token: "session-token")
+        XCTAssertNil(package)
+        XCTAssertEqual(wire.requests.map(\.httpMethod), ["GET", "GET", "GET"])
+        XCTAssertEqual(wire.requests[0].url?.path, "/api/external-game/submissions/mine")
+        XCTAssertEqual(wire.requests[0].url?.query, "limit=20")
+        XCTAssertEqual(wire.requests[1].url?.path, "/api/external-game/catalog/rpg.one")
+        XCTAssertEqual(wire.requests[2].url?.path, "/api/external-game/catalog/rpg.one/package")
+        XCTAssertEqual(wire.requests[2].url?.query, "sourceVersion=1")
+    }
+
+    func testCancelResubmitAndReportPinPostPaths() async throws {
+        let wire = ExternalGameWire()
+        wire.handler = { _ in (Data(), 500) }
+        let client = try make(wire)
+        let archive = Data(#"{"manifest":{"id":"rpg.one"},"files":{"index.html":"aGkh"}}"#.utf8)
+        let cancelled = await client.cancel(submissionID: "9", token: "session-token")
+        guard case .unknown = cancelled else { return XCTFail("lost cancel stays unknown") }
+        let resubmitted = await client.resubmit(submissionID: "9", archive: archive, token: "session-token")
+        guard case .unknown = resubmitted else { return XCTFail("lost resubmit stays unknown") }
+        let draft = ExternalGameReportDraft(gameID: "rpg.one", version: nil, sha256: nil, reasonCode: "BROKEN", detail: nil, blocked: false)
+        let reported = await client.report(draft, token: "session-token")
+        guard case .unknown = reported else { return XCTFail("lost report stays unknown") }
+        XCTAssertEqual(wire.requests.map(\.httpMethod), ["POST", "POST", "POST"])
+        XCTAssertEqual(wire.requests[0].url?.path, "/api/external-game/submissions/9/cancel")
+        XCTAssertEqual(wire.requests[1].url?.path, "/api/external-game/submissions/9/resubmit")
+        XCTAssertEqual(wire.requests[2].url?.path, "/api/external-game/reports")
+    }
+
+    /// Captured TEST 8120 body, not a success payload.
+    /// `docs/release/e2e/20261113b/requests.batch1.log` lines 5, 8 and 11.
+    func testCapturedRouteAbsentBodyDoesNotDecodeAGame() {
+        let data = Data(Self.routeAbsent.utf8)
+        let key = ExternalGameReviewClient.signingKey(from: data)
+        XCTAssertEqual(key?.configured, false)
+        XCTAssertNil(key?.publicKeyRaw)
+        XCTAssertNil(ExternalGameReviewClient.catalogPage(from: data))
+        XCTAssertNil(ExternalGameReviewClient.catalogFact(from: data))
+        XCTAssertNil(ExternalGameReviewClient.submissionFact(from: data))
+    }
+
+    private static let routeAbsent = #"{"msg":"请求路径不存在","code":404}"#
+
     func testGrantKeyFoldsTheCatalogGameID() {
         XCTAssertEqual(
             ChinaReviewedRouteCapability.externalGameGrantKey("/api/external-game/catalog/rpg.one/package"),

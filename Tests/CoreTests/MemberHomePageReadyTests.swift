@@ -199,4 +199,36 @@ extension MemberHomePageReadyTests {
         let identity = try await service(MemberHomeTwoReadWire()).identity(token: "synthetic-member")
         XCTAssertEqual(identity.followCount, 3); XCTAssertTrue(identity.countersReady)
     }
+
+    /// `docs/release/e2e/20261113b/requests.batch2.log` line 68. Known zeros stay 0. The em dash is only for a missing count.
+    func testCapturedUserInfoKeepsLiteralZeros() async throws {
+        let wire = CapturedUserInfoWire()
+        let identity = try await service(wire).identity(token: "synthetic-member")
+        XCTAssertEqual(identity.id, 9004)
+        XCTAssertEqual(identity.nickname, "玩家小城")
+        XCTAssertEqual(identity.followCount, 0)
+        XCTAssertEqual(identity.followCountText, "0")
+        XCTAssertNotEqual(identity.followCountText, "—")
+        XCTAssertEqual(identity.balanceText, "0.00")
+        XCTAssertTrue(identity.countersReady)
+        let sent = await wire.requests
+        XCTAssertEqual(sent.count, 2)
+        XCTAssertEqual(sent[1].httpMethod, "POST")
+        XCTAssertTrue(sent[1].url?.path.hasSuffix("/api/user/info") == true)
+    }
+}
+
+/// First read is the existing session `api/userInfo` (no counters). Second read is the captured `api/user/info` body.
+private actor CapturedUserInfoWire: HTTPTransport {
+    private(set) var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        let path = request.url?.path ?? ""
+        if path.hasSuffix("/api/userInfo") {
+            let session = #"{"code":200,"msg":"ok","appUser":{"nickName":"玩家小城"}}"#
+            return (Data(session.utf8), 200)
+        }
+        let captured = #"{"msg":"操作成功","code":200,"data":{"id":9004,"userType":1,"role":"player","phone":"13900000004","name":"","wechat":"","levelId":1,"nickname":"玩家小城","avatar":"","casePics":"","caseIntroducton":"","website":"","introduction":"","balance":0.00,"point":0,"createTime":"2026-11-13 22:37:59","followNum":0,"friendNum":0,"fansNum":0,"topicNum":0,"activityNum":0,"likeNum":0,"isFollow":0,"sysCategoryList":null}}"#
+        return (Data(captured.utf8), 200)
+    }
 }
