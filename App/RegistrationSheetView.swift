@@ -151,6 +151,7 @@ struct RegistrationSheetView: View {
                         }
                     }
                 }
+                .accessibilityIdentifier("registration.form.confirm")
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {

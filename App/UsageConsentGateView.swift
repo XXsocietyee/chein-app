@@ -103,7 +103,12 @@ struct UsageConsentGateView: View {
             .sheet(item: $document) { sheet in
                 NavigationStack {
                     SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
-                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { document = nil } } }
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("action.close") { document = nil }
+                                    .accessibilityIdentifier("usageConsent.legal.close")
+                            }
+                        }
                 }
             }
         }

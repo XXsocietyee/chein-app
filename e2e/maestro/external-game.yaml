@@ -95,3 +95,10 @@ env:
                 timeout: 8000
             - tapOn:
                 id: "externalGame.reportSubmit"
+- runFlow:
+    when:
+      visible:
+        id: "miniGames.close"
+    commands:
+      - tapOn:
+          id: "miniGames.close"

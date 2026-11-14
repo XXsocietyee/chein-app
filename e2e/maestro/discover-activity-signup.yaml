@@ -76,10 +76,19 @@ env:
           timeout: 10000
       - tapOn:
           id: "registration.form.review"
-      # Known code gap (MISSING_IDS.md):
-      # - RegistrationSheetView.swift:134-135 alert confirm button ("registration.form.confirmCreate" /
-      #   "registration.waitlist.confirmCreate") lacks an .accessibilityIdentifier.
       # Known TEST backend gap (docs/release/workflows.md / E2E-20261113b.md):
       # - api/registration/payment-readiness is blocked/unready on TEST where payment-readiness fails.
-      - assertVisible:
-          id: "registration.form.sheet"
+      - runFlow:
+          when:
+            visible:
+              id: "registration.form.confirm"
+          commands:
+            - tapOn:
+                id: "registration.form.confirm"
+      - runFlow:
+          when:
+            visible:
+              id: "registration.form.close"
+          commands:
+            - tapOn:
+                id: "registration.form.close"

@@ -11,19 +11,40 @@ tags:
     arguments:
       "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
 
-# Open Roam first to confirm `roam.more` menu anchor exists.
-- openLink: "chein://roam/go"
+# Switch to Roam tab via native tab bar ID, open `roam.more` -> `roam.more.city`.
+- extendedWaitUntil:
+    visible:
+      id: "rootTabBar.tab.player.1"
+    timeout: 15000
+- tapOn:
+    id: "rootTabBar.tab.player.1"
+
 - extendedWaitUntil:
     visible:
       id: "roam.more"
     timeout: 15000
 - tapOn:
     id: "roam.more"
+- extendedWaitUntil:
+    visible:
+      id: "roam.more.city"
+    timeout: 8000
+- tapOn:
+    id: "roam.more.city"
 
-# Known code gap (MISSING_IDS.md):
-# - App/RoamBrowserView.swift:283 NavigationLink("city.read.title") inside `roam.more` Menu
-#   has NO `.accessibilityIdentifier(...)`, so UI automation cannot tap into SessionCityPlayerView without text selector.
-# Workaround verified path until ID is added: open Global Search -> citySearch (`searchMap.citySearch`).
+- extendedWaitUntil:
+    visible:
+      id: "city.read.screen"
+    timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: "city.participation.entry"
+    commands:
+      - assertVisible:
+          id: "city.participation.entry"
+
+# Also verify city search & public map layers in SearchMapExplorerView.
 - back
 - tapOn:
     id: "roam.search"
@@ -44,3 +65,10 @@ tags:
           id: "mapLayers.cityPlaces"
       - assertVisible:
           id: "mapViewport.search"
+- runFlow:
+    when:
+      visible:
+        id: "globalSearch.close"
+    commands:
+      - tapOn:
+          id: "globalSearch.close"

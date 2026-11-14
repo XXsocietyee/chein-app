@@ -8,10 +8,8 @@ tags:
 ---
 # Covers Roam exploration export (`roam.export.screen`), NPC chat data (`npcData.screen`),
 # and account cancellation (`compliance.open.cancellation`, non-destructive precheck check).
-# Known code gap (MISSING_IDS.md):
-# - When signed in on PassportView, Settings gear (`AccountView.swift:177-180`) has NO .accessibilityIdentifier,
-#   blocking navigation from Passport into Settings -> `npcData.open` and `compliance.open.cancellation`.
-# - Workaround on signed-out state: `welcome.more` -> `welcome.settings` opens SettingsView directly.
+# Signed-out run uses `welcome.more` -> `welcome.settings`; signed-in runs can also reach
+# Settings via `rootTabBar.tab.player.3` -> `account.settings`.
 # Known TEST backend gap (docs/release/workflows.md B5):
 # - Account deregistration / cancellation API returns UNAVAILABLE on TEST.
 - launchApp:
@@ -63,5 +61,5 @@ tags:
     timeout: 10000
 - back
 
-# 3. Roam data export entry (`roam.export.open`) requires signed-in session (via Passport -> Roam Tools
-#    in RoamPassportToolsViews.swift:65); see MISSING_IDS.md for Passport Settings gear & Root TabView IDs.
+# 3. Roam data export entry (`roam.export.open` in RoamPassportToolsViews.swift:65 and
+#    `roamSub.w208.history.tool.export` in RoamSubpageParityViews.swift:130) requires a signed-in session.
