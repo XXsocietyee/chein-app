@@ -265,12 +265,13 @@ public final class ReadRetryHTTPTransport: HTTPMetadataTransport, @unchecked Sen
     }
 
     private func backoffDelaySeconds(statusCode: Int?, retryAfterSeconds: Int?, attemptIndex: Int) -> TimeInterval {
+        // The audit helper returns nil outside its 0...2 attempt window; fall back to the plain exponential delay.
         let baseFloor = NetworkReachabilityAndRetryBackoffAudit.effectiveRetryDelaySeconds(
-            httpStatusCode: statusCode,
+            httpStatusCode: statusCode ?? 0,
             retryAfterSecondsHeader: retryAfterSeconds,
             attemptIndex: attemptIndex,
             baseDelayMs: policy.baseDelayMs
-        )
+        ) ?? (Double(policy.baseDelayMs) / 1000.0) * pow(2.0, Double(attemptIndex))
         let jitter = policy.jitterRatio > 0 ? baseFloor * Double.random(in: 0...policy.jitterRatio) : 0
         return baseFloor + jitter
     }

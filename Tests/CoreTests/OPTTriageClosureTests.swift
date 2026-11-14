@@ -402,7 +402,7 @@ final class OPTTriageClosureTests: XCTestCase {
         XCTAssertEqual(QuickPublishSimpleCount.parse(.number(0)).text, "0")
         XCTAssertEqual(QuickPublishSimpleCount.parse(nil), .unknown)
         XCTAssertEqual(QuickPublishSimpleCount.parse(nil).text, "—")
-        XCTAssertEqual(OwnerDecisionGuards.assistedMark, "[AI 辅助生成]")
+        XCTAssertEqual(OwnerDecisionAILabel.assistedMark, "[AI 辅助生成]")
         let journey = try source("Core/QuickPublishValidation.swift")
         XCTAssertTrue(journey.contains("enum QuickPublishSimpleJourneyService"))
         XCTAssertTrue(journey.contains("func confirmAndSeed"))

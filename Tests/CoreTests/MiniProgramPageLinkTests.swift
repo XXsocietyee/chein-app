@@ -125,15 +125,15 @@ final class MiniProgramPageLinkTests: XCTestCase {
             "/subpackageJourney/pages/report/index?activityId=abc",
             "https://evil.test/subpackageMember/market/membership/index",   // internal paths carry no host
             "/pages/coop/list/index?tab=other",                             // not a sent or received list
-            "/pages/roam/index",                                            // roam recall template is empty
-            "/pages/index/index",                                           // fallback page, not a configured type
-            "/pages/merchant/index/index",
-            "/pages/club/workbench/index",
-            "/pages/activity/official-detail/index?id=1",                   // official template id is not configured
         ]
         for path in rejected {
             if case .miniProgramPage = NativeNavigationContract.parseInternal(path) { XCTFail(path) }
         }
+        // cur-deeplinks-2 opens these page-map paths as links; a push tap still cannot reach them (no configured template).
+        for page in ["pages/roam/index", "pages/index/index", "pages/merchant/index/index", "pages/club/workbench/index"] {
+            XCTAssertNil(PushTapRouter().intent(userInfo: ["page": page]), page)
+        }
+        XCTAssertNil(PushTapRouter().intent(userInfo: ["page": "pages/activity/official-detail/index?id=1"]))
         XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/market/pass/index", query: ["id": String(repeating: "a", count: 513)]))
         XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/market/pass/index", query: ["id": "a\u{7}"]))
         XCTAssertNil(PushTapRouter().intent(userInfo: ["page": "subpackageJourney/pages/promo/index"]))

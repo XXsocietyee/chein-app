@@ -254,6 +254,7 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
               !rawString.contains("\\"),
               !rawString.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }),
               !rawString.lowercased().contains("%00"),
+              !rawString.lowercased().contains("%5c"),
               !rawString.lowercased().contains("%252e") else {
             return AuditReport(decision: .rejected(.malformedURL))
         }

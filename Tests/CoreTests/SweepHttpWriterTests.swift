@@ -16,7 +16,7 @@ import XCTest
         }
     }
 
-    private func config() throws -> APIConfiguration {
+    nonisolated private func config() throws -> APIConfiguration {
         try APIConfiguration(baseURL: URL(string: "https://example.test")!)
     }
 

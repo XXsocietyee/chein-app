@@ -52,7 +52,7 @@ private final class DelayRecorder: @unchecked Sendable {
     }
 }
 
-final class OfflineRetryPackage63Tests: XCTestCase {
+@MainActor final class OfflineRetryPackage63Tests: XCTestCase {
 
     // MARK: - Read Retry + Backoff + Retry-After
 
