@@ -18,6 +18,7 @@ import simd
     @State private var failedThisVisit = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.openURL) private var openURL
     private var configuration: PlayKitSpatialRequest? { try? .init(segment: segment, approval: approval) }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -26,6 +27,10 @@ import simd
             if configuration == nil { Text(LocalizedStringKey("playkitSpatial.error." + configurationError.rawValue)).font(.footnote) }
             if !ARWorldTrackingConfiguration.isSupported { Text("playkitSpatial.error.deviceUnavailable").font(.footnote) }
             if let issue { Text(LocalizedStringKey("playkitSpatial.error." + issue.rawValue)).font(.footnote) }
+            if issue == .permissionDenied {
+                Button(action: openCameraSettings) { Text("scanner.openSettings") }
+                    .accessibilityIdentifier("playkit.spatial.openSettings")
+            }
             if working { CYSkeleton().accessibilityLabel(Text("playkitSpatial.loading")) }
         }
         .confirmationDialog("playkitSpatial.purpose", isPresented: $purpose, titleVisibility: .visible) {
@@ -71,7 +76,12 @@ import simd
                 default: allowed = false
                 }
                 guard token == generation else { return }; authorizing = false
-                guard allowed else { throw PlayKitSpatialError.permissionDenied }
+                guard allowed else {
+                    working = false
+                    let status = AVCaptureDevice.authorizationStatus(for: .video)
+                    if status == .denied || status == .restricted { issue = .permissionDenied }
+                    return
+                }
                 guard UIApplication.shared.applicationState == .active, !Task.isCancelled else { throw PlayKitSpatialError.interrupted }
                 working = false; prepared = Prepared(request: configuration, image: image, marker: marker, model: model)
             } catch {
@@ -81,6 +91,9 @@ import simd
         }
     }
     private func cancel() { generation = UUID(); loadTask?.cancel(); loadTask = nil; working = false; authorizing = false; prepared = nil; purpose = false }
+    private func openCameraSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+    }
     struct Prepared: Identifiable {
         let id = UUID(); let request: PlayKitSpatialRequest; let image: UIImage; let marker: UIImage?; let model: SCNScene?
     }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - 我的举报 entry in the system conversation
 
@@ -69,6 +70,7 @@ enum IMInviteReminderPresentation: Equatable {
 @MainActor protocol IMInviteReminderBinding: AnyObject {
     var isEnabled: Bool { get }
     var presentation: IMInviteReminderPresentation { get }
+    var offersSettings: Bool { get }
     func reload() async
     func setEnabled(_ on: Bool) async -> Bool
 }
@@ -83,7 +85,9 @@ extension EnvironmentValues {
 
 @MainActor struct IMInviteReminderToggle: View {
     @Environment(\.imInviteReminder) private var binding
+    @Environment(\.openURL) private var openURL
     @State private var presentation: IMInviteReminderPresentation = .unknown
+    @State private var offersSettings = false
     @State private var ready = false
     @State private var busy = false
     @State private var result: LocalizedStringKey?
@@ -100,6 +104,11 @@ extension EnvironmentValues {
                 } else if let result {
                     Text(result).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                         .transition(.opacity)
+                }
+                if offersSettings {
+                    Button(action: openNotificationSettings) { Text("d7.notifyPermission.settings") }
+                        .font(CYTypography.caption)
+                        .accessibilityIdentifier("im.coopStrip.inviteReminder.settings")
                 }
             }
             .task {
@@ -132,6 +141,7 @@ extension EnvironmentValues {
     }
     private func apply(_ binding: any IMInviteReminderBinding, changedTo value: Bool?) {
         presentation = binding.presentation
+        offersSettings = binding.offersSettings
         switch binding.presentation {
         case .unknown:
             result = nil
@@ -140,6 +150,9 @@ extension EnvironmentValues {
         case .off:
             result = value == true ? "mpd.im.inviteReminder.denied" : nil
         }
+    }
+    private func openNotificationSettings() {
+        if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
     }
 }
 
