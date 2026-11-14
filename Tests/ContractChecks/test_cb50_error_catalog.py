@@ -101,6 +101,38 @@ class CB50ErrorCatalogTests(unittest.TestCase):
         )
         self.assertNotIn("47.103.124.64", joined)
 
+    def test_closed_feature_table_and_unknown_mark(self):
+        table = {
+            "FEATURE_CLOSED": (
+                "This did not complete a payment. Cash and payout stay closed on this host. Use a non-cash reward, or try again only where payments are open.",
+                "这次没有完成支付。本主机的现金与发放保持关闭。请改用非现金奖励，或仅在支付开放时再试。",
+            ),
+            "CASH_CLOSED": (
+                "This cash case did not complete a payment. Cash payout is closed. Choose a non-cash reason.",
+                "这次现金处理没有完成支付。现金发放已关闭，请改用非现金原因。",
+            ),
+            "ROUTE_EGG_OFFLINE": (
+                "Route eggs are offline. Continue without collecting one.",
+                "途中彩蛋已下线。请继续路线，不必再领取。",
+            ),
+        }
+        for code, (en, zh) in table.items():
+            self.assertEqual(catalog.sentence(code=code, language="en"), en)
+            self.assertEqual(catalog.sentence(code=code, language="zh-Hans"), zh)
+            self.assertNotIn("Payment complete", en)
+            self.assertNotIn("支付成功", zh)
+            self.assertNotEqual(en, "0")
+            self.assertNotEqual(en, "—")
+            self.assertTrue(en.strip() and zh.strip())
+        source = (ROOT / "Core/BackendErrorCatalog.swift").read_text(encoding="utf-8")
+        self.assertIn('public static let unknownMark = "—"', source)
+        self.assertNotIn('unknownMark = "0"', source)
+        self.assertNotIn('unknownMark = ""', source)
+        start = source.index("public static func paymentSucceeded")
+        body = source[start:source.index("public static func requireConfiguration")]
+        self.assertEqual(body.count("return false"), 2)
+        self.assertNotIn("return true", body)
+
 
 if __name__ == "__main__":
     unittest.main()
