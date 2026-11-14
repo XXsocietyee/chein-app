@@ -343,6 +343,12 @@ private struct CoopRelationContextLabel: View {
             }
         }, image: home.image, identityChanges: session.objectWillChange.eraseToAnyPublisher())
         CoopRelationDiscoveryView(reader: reader, profiles: profiles, squareReader: session.squareReader)
+            .environment(\.cooperationRelationPostFeed, CoopRelationPostFeedFactory.make(
+                community: session.clubCommunityContext,
+                identity: {
+                    if session.account == nil { return nil }
+                    return session.clubIdentity
+                }))
     }
 }
 

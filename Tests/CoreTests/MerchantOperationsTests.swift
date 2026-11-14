@@ -312,6 +312,22 @@ final class MerchantOperationsCoordinatorTests: XCTestCase {
         let reader = MerchantOperationsSessionReader(service: nil, currentSession: { nil })
         do { try await reader.saveExample(.template(.init())); XCTFail() } catch { XCTAssertEqual(error as? MerchantOperationsFailure, .liveWritesDisabled) }
     }
+
+    /// `MerchantOperationsHomeView.load` calls `reader.access()`. This drives that read.
+    func testDecorHomeSessionReaderSendsAccessRead() async throws {
+        let transport = MerchantOperationsTransport()
+        transport.replies = [#"{"code":200,"data":{"active":true,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":["merchant:profile:write"]}}"#]
+        let session = try MerchantOperationsSession(accountID: 8, epoch: 1, token: "synthetic-token")
+        let service = try MerchantOperationsService(configuration: APIConfiguration(baseURL: URL(string: "https://api.example.com")!), transport: transport)
+        let reader = MerchantOperationsSessionReader(service: service, currentSession: { session })
+        XCTAssertFalse(reader.canSave)
+        let access = try await reader.access()
+        XCTAssertTrue(access.identity.active)
+        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertEqual(transport.requests[0].url?.path, "/api/merchant/access/me")
+        XCTAssertEqual(transport.requests[0].httpMethod, "POST")
+        XCTAssertNil(transport.requests[0].httpBody)
+    }
 }
 
 final class MerchantProfileBenefitsContractTests: XCTestCase {
