@@ -112,6 +112,14 @@ enum MPParityRoute: Hashable, Identifiable {
     case clubPayoutReceiver(clubID: Int?, mine: Bool)
     case merchantPayoutAccount
     case clubSettlement(clubID: Int?, mine: Bool, personal: Bool)
+    /// `subpackageMember/order/order`. Signup, start, and refund subscribe messages share this list.
+    case playerOrderList
+    /// `pages/coop/list/index`. Absent `tab` is received; `tab=sent` is the sender list.
+    case coopList(CooperationDirection)
+    /// `subpackageA/pages/myproject/index`.
+    case myProjects
+    /// `pages/merchant/ledger/index`. Read-only settlement overview. Payout stays off.
+    case merchantLedger
 
     var id: Self { self }
 
@@ -164,6 +172,14 @@ enum MPParityRoute: Hashable, Identifiable {
             let mine = query["mine"] == "1"
             guard club != nil || mine else { return nil }
             self = .clubSettlement(clubID: club, mine: mine, personal: query["personal"] == "1")
+        case "subpackageMember/order/order":
+            self = .playerOrderList
+        case "pages/coop/list/index":
+            self = .coopList(query["tab"] == "sent" ? .sent : .received)
+        case "subpackageA/pages/myproject/index":
+            self = .myProjects
+        case "pages/merchant/ledger/index":
+            self = .merchantLedger
         default:
             return nil
         }
@@ -207,6 +223,8 @@ enum MPParityRoute: Hashable, Identifiable {
             MerchantPayoutAccountView()
         case .clubSettlement(let clubID, let mine, let personal):
             if let clubID { ClubPersonalSettlementView(clubID: clubID, personal: personal) } else if mine { ClubSettlementMineView() } else { unavailable }
+        case .playerOrderList, .coopList, .myProjects, .merchantLedger:
+            SubscribeMessageTapEntry(route: route)
         }
     }
 
