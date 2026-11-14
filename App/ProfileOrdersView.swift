@@ -251,6 +251,8 @@ struct ProfileOrderDetailView: View {
     @State private var ticketPresentationID = UUID()
     @State private var readBackForID: Int?
     @State private var openedOrderID: Int64?
+    @State private var copyToast: LocalizedStringKey?
+    @State private var copyTone: CYToastTone = .success
     var body: some View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }) { order in
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
@@ -264,7 +266,10 @@ struct ProfileOrderDetailView: View {
                             .accessibilityIdentifier("profile.order.detail.name")
                     }
                     ProfileOptionalRow(key: "profile.orders.number", value: order.registrationNo)
-                    ProfileOrderNumberCopySection(order: order, requestedID: id, reader: reader)
+                    ProfileOrderNumberCopySection(order: order, requestedID: id, reader: reader) { ok in
+                        copyTone = ok ? .success : .warning
+                        copyToast = ok ? "localCopy.copied" : "localCopy.failed"
+                    }
                     LabeledContent("profile.orders.state") { ProfileOrderStatus(order: order) }
                     ProfileOptionalRow(key: "profile.orders.serverHint", value: order.orderHint)
                     LabeledContent("profile.orders.amount") { ProfileOrderAmountLabel(amount: order.payableAmount) }
@@ -375,6 +380,7 @@ struct ProfileOrderDetailView: View {
         .onChange(of: ticketReader?.isAuthenticated) { _, _ in retireTicketEntry() }
         .onChange(of: ticketReader?.isConfigured) { _, _ in retireTicketEntry() }
         .onChange(of: id) { _, _ in retireTicketEntry() }
+        .cyToast(message: $copyToast, tone: copyTone)
     }
     /// One locateByOrderId for the id this page already holds. The returned first
     /// ORDER id must equal that id. A different id is not opened.

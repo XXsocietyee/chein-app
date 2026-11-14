@@ -31,12 +31,12 @@ struct ProfileDraftReviewSection: View {
             .accessibilityIdentifier("profile.reviewRestore.compare")
             Button("profile.reviewRestore.open", role: .destructive) { showsRestore = true }
                 .disabled(!canRestore).accessibilityIdentifier("profile.reviewRestore.open")
-                .confirmationDialog("profile.reviewRestore.title", isPresented: $showsRestore, titleVisibility: .visible) {
-                    Button("profile.reviewRestore.confirm", role: .destructive, action: restore)
-                        .accessibilityIdentifier("profile.reviewRestore.confirm")
-                    Button("action.cancel", role: .cancel) { }
-                        .accessibilityIdentifier("profile.reviewRestore.cancel")
-                } message: { Text("profile.reviewRestore.message") }
+                .sheet(isPresented: $showsRestore) {
+                    MemberProfileDiscardConfirmSheet(kind: .reviewRestore) {
+                        showsRestore = false
+                        restore()
+                    }
+                }
         }
     }
     @ViewBuilder private func value(_ value: ProfileEditReviewValue) -> some View {

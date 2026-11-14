@@ -234,8 +234,11 @@ struct ReportAppealSection: View {
                     .accessibilityIdentifier("report.appeal.open")
             }
         } header: { Text(verbatim: PlayerCapabilityCopy.text("申诉", "Appeal", locale)) }
-        .confirmationDialog(PlayerCapabilityCopy.text("确认提交申诉？", "Submit this appeal?", locale), isPresented: $confirming) {
-            Button(PlayerCapabilityCopy.text("提交", "Submit", locale)) { Task { await submit() } }
+        .sheet(isPresented: $confirming) {
+            MemberReportAppealConfirmSheet {
+                confirming = false
+                Task { await submit() }
+            }
         }
     }
 

@@ -18,10 +18,12 @@ class ProfileDraftReviewLayoutContracts(unittest.TestCase):
   for label in ['Before','After saving','Trail Friend','Trail Friend Local']:
    self.assertIn('app.staticTexts["'+label+'"].exists',old)
  def testLocalRestoreAndConfirmationContractStillBelongToExactReview(self):
-  host=self.read('App/ProfileEditView.swift');source=self.read('App/ProfileDraftReviewSection.swift')
+  host=self.read('App/ProfileEditView.swift');source=self.read('App/ProfileDraftReviewSection.swift');popups=self.read('App/MemberAreaPopupSurfaces.swift')
   self.assertIn('restore: { _ = model.restoreReviewedDraft(value) })\n                        .id(value.id)',host)
-  for token in ['.disabled(!canRestore)','role: .destructive, action: restore','Button("action.cancel", role: .cancel)', 'ForEach(summary.changes)']:
+  for token in ['.disabled(!canRestore)','MemberProfileDiscardConfirmSheet(kind: .reviewRestore)','restore()', 'ForEach(summary.changes)']:
    self.assertIn(token,source)
+  for token in ['case .reviewRestore:', 'appLocalized("profile.reviewRestore.confirm"', 'isDestructive: true', 'CYConfirmSheet']:
+   self.assertIn(token,popups)
   for token in ['.save(','.load(','.recover(','.grant(', 'URLSession', 'AppSession']:
    self.assertNotIn(token,source)
  def testExactTextAndUnknownImagePresentationRemain(self):

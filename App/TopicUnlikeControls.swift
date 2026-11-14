@@ -38,14 +38,14 @@ struct TopicUnlikeFlow: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         if let controller {
             content
-                .alert(Text("member.unlike.confirmTitle", tableName: "MemberProfile"), isPresented: Binding(
+                .sheet(isPresented: Binding(
                     get: { if case .confirming = controller.phase { return true }; return false },
                     set: { if !$0 { controller.cancel() } })) {
-                    Button(role: .destructive) {
+                    MemberTopicUnlikeConfirmSheet {
                         if case .confirming(_, let id) = controller.phase { Task { await controller.confirm(id) } }
-                    } label: { Text("member.unlike.confirm", tableName: "MemberProfile") }
-                    Button(role: .cancel) { controller.cancel() } label: { Text("member.unlike.cancel", tableName: "MemberProfile") }
-                } message: { Text("member.unlike.confirmMessage", tableName: "MemberProfile") }
+                    }
+                    .themeDomain(.player)
+                }
                 .safeAreaInset(edge: .bottom) { TopicUnlikeStatus(controller: controller) }
                 .onChange(of: controller.phase) { _, phase in
                     if case .removed(let id) = phase { onRemoved(id) }

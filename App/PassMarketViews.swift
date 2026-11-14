@@ -686,8 +686,7 @@ struct PassGiftReadySheet: View {
             .accessibilityIdentifier("passDetail.giftReady.send")
         }
         .padding(CYSpacing.xxl)
-        .presentationDetents([.medium])
-        .presentationDragIndicator(.visible)
+        .cyDomainSheet(detents: [.half])
         .accessibilityIdentifier("passDetail.giftReady")
     }
 }

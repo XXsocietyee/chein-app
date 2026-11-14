@@ -190,6 +190,7 @@ enum DesignFixtureReleaseExclusionAudit {
         "KitGalleryFixture",
         "LabDetail",
         "LoginFixture",
+        "MemberAreaPopupFixtures",
         "MerchantConsoleFixture",
         "OnboardingFixture",
         "OrdersWalletFixtures",

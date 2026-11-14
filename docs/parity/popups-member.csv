@@ -1,0 +1,85 @@
+mini-program file:line,trigger,title/copy,buttons/actions,native screen,native equivalent file:line,status
+chengyinhub-xcx/pages/shezhi/shezhi.js:317,logout action (account.logout),退出当前账号? — 本机登录态清除，下次进入需要重新登录；已购通行证、订单和券都保留在账号里，不会丢,退出登录 / 取消,App/AccountView.swift,App/AccountView.swift:232,DONE
+chengyinhub-xcx/pages/shezhi/shezhi.js:317,logout action (settings entry),退出当前账号? — 清除本机登录态,退出登录 / 取消,App/SettingsAccountEntries.swift,App/SettingsAccountEntries.swift:45,DONE
+chengyinhub-xcx/pages/shezhi/shezhi.wxml:50,agreement link tap,用户服务协议 (cy-agreement-sheet),关闭,App/SettingsLegalDocumentView.swift,App/SettingsAboutView.swift:66,DONE
+chengyinhub-xcx/pages/shezhi/shezhi.wxml:52,privacy settings tap,隐私与定位 (cy-privacy-sheet),关闭 / 撤回同意 / 关闭分享,App/SettingsPrivacyLocationView.swift,App/SettingsPrivacyLocationView.swift:68,DONE
+chengyinhub-xcx/pages/shezhi/components/privacy-sheet/index.js:69,disable presence sharing,已关闭附近的人位置分享,toast,App/SettingsPrivacyLocationView.swift,App/SettingsPrivacyLocationView.swift:44,MISSING
+chengyinhub-xcx/pages/shezhi/components/privacy-sheet/index.js:104,withdraw roam location consent,已撤回漫游定位同意,toast,App/SettingsPrivacyLocationView.swift,App/SettingsPrivacyLocationView.swift:63,MISSING
+chengyinhub-xcx/pages/shezhi/components/privacy-sheet/index.wxml:2,cy-scene-sheet show={{show}},隐私与定位,关闭 / 同意管理,App/AccountComplianceViews.swift,App/SettingsPrivacyLocationView.swift:68,DONE
+chengyinhub-xcx/pages/shezhi/shezhi.wxml:53,post governance tap,帖文处置与申诉 (cy-sheet),关闭 / 提交申诉,App/SettingsPostGovernanceView.swift,App/SettingsPostGovernanceView.swift:20,DONE
+chengyinhub-xcx/pages/shezhi/shezhi.wxml:91,discard scene changes,放弃本轮修改,确认放弃 / 继续编辑,gap: native SettingsView pushes direct screens,—,MISSING
+chengyinhub-xcx/pages/shezhi/shezhi.js:123,load club info fail,俱乐部信息加载失败 / 网络异常，俱乐部信息加载失败,toast,gap: SettingsView club handoff is separate,—,MISSING
+chengyinhub-xcx/pages/shezhi/shezhi.js:255,scene open fail,场景无法打开,toast,App/SettingsView.swift,App/SettingsView.swift,DONE
+chengyinhub-xcx/pages/shezhi/about/index.js:58,tap pending player code (explainQrPending),身份码开通后会自动出现,toast,App/SettingsAboutView.swift,App/SettingsAboutView.swift:115,DONE
+chengyinhub-xcx/pages/shezhi/about/index.js:66,copy attribution source link,来源地址已复制 / 复制失败，可长按选中地址,toast,App/SettingsAboutView.swift,App/SettingsAboutView.swift:115,DONE
+chengyinhub-xcx/pages/shezhi/about/index.wxml:67,open service agreement,用户服务协议 (cy-agreement-sheet),关闭,App/SettingsAboutView.swift,App/SettingsAboutView.swift:66,DONE
+chengyinhub-xcx/pages/shezhi/marketing/index.wxml:5,marketing channel opt-in/out toggle,确认这项商户触达选择？,同意此渠道触达 / 退订此渠道触达 / 关闭,App/AccountComplianceViews.swift,App/AccountComplianceViews.swift:452,DONE
+chengyinhub-xcx/utils/danger-actions.js:1191,cancel deregistration application (account.deregister.cancel),撤销注销申请? — 撤销后账号立即恢复正常使用。,撤销申请 / 取消,App/AccountComplianceViews.swift,App/AccountComplianceViews.swift:201,DONE
+chengyinhub-xcx/utils/deregister-flow.js,submit account deregistration (account.deregister.submit),注销此账号？ — 这会提交你的申请。申请处理中时，你仍可以撤销。,确认提交申请 / 关闭,App/AccountDeregistrationImpactSection.swift,App/AccountDeregistrationImpactSection.swift:102,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.js:97,tap withdraw (withdraw-cs),联系平台客服提现 (cy-sheet + 已复制微信号),复制微信号 / 关闭,App/WithdrawalSupportLandingView.swift,App/WithdrawalSupportContactView.swift:62,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.js:94,missing withdrawable role,暂无提现权限,toast,App/WithdrawalSupportLandingView.swift,App/WithdrawalSupportLandingView.swift:72,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.js:140,all withdrawal with unloaded/zero balance,余额没取到，请先重试 / 无可提现金额,toast,App/BankWithdrawalView.swift,App/BankWithdrawalView.swift:20,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.js:294,abandon withdrawal form,放弃本次提现填写？ — 已填写的信息不会被保存,放弃 / 继续填写,App/BankWithdrawalView.swift,App/BankWithdrawalView.swift:64,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.wxml:16,open income detail sheet,收益明细 (cy-scene-sheet),关闭,App/WalletCommerceViews.swift,App/WalletCommerceViews.swift:513,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.wxml:21,open withdraw history sheet,提现记录 (cy-scene-sheet / tixian.wxml:35),关闭,App/WalletCommerceViews.swift,App/WalletCommerceViews.swift:312,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.wxml:26,open invite history sheet,我的邀请 (cy-scene-sheet),关闭,App/WalletCommerceViews.swift,App/SocialInviteHistoryView.swift:3,DONE
+chengyinhub-xcx/subpackageA/pages/assetcenter/earnings/index.wxml:37,withdraw form sheet (txSheet),提现 (cy-sheet),提交 / 取消,App/BankWithdrawalView.swift,App/BankWithdrawalView.swift:11,DONE
+chengyinhub-xcx/subpackageMember/tixian/tixian.js:44,unauthorized withdraw page,暂无提现权限,toast,App/WithdrawalSupportLandingView.swift,App/WithdrawalSupportLandingView.swift:72,DONE
+chengyinhub-xcx/subpackageMember/tixian/tixian.wxml:35,open withdraw history sheet,提现记录 (cy-sheet),关闭,App/WithdrawalSupportLandingView.swift,App/WithdrawalSupportLandingView.swift:61,DONE
+chengyinhub-xcx/subpackageMember/points-history/index.js:36,refresh failure keeping list,刷新失败，稍后再试,toast,App/WalletCommerceViews.swift,App/WalletCommerceViews.swift:463,DONE
+chengyinhub-xcx/subpackageMember/appeal-mine/index.wxml:45,reputation score card tap,账号信誉 (cy-sheet),关闭,App/MemberScoreAppealDetailView.swift,App/MemberScoreAppealDetailView.swift:3,DONE
+chengyinhub-xcx/subpackageMember/complaint/index.js:294,submit validation error,请选择投诉的活动 / 请填写至少 5 字的投诉内容,toast,App/ProfileComplaintPreparationView.swift,App/ProfileComplaintPreparationView.swift:207,DONE
+chengyinhub-xcx/subpackageMember/complaint/index.js:304,confirm complaint submission,确认提交这条投诉？ — 平台客服会查看这条投诉，提交后无法修改。,提交投诉 / 取消,App/ProfileComplaintPreparationView.swift,App/ProfileComplaintPreparationView.swift:152,DONE
+chengyinhub-xcx/subpackageMember/complaint/index.wxml:96,open topic picker sheet,选择投诉活动 (cy-sheet),关闭 / 选择,App/ProfileComplaintPreparationView.swift,App/ProfileComplaintPreparationView.swift:165,DONE
+chengyinhub-xcx/subpackageMember/complaint/index.wxml:102,open type picker sheet,选择投诉类型 (cy-sheet),关闭 / 选择,App/ProfileComplaintPreparationView.swift,App/ProfileComplaintPreparationView.swift:175,DONE
+chengyinhub-xcx/subpackageMember/components/cy/ai-chat-records/index.wxml:1,AI chat records option sheet,AI 对话记录 (cy-option-sheet),选择 / 取消,gap: native exposes log deletion screen directly,—,MISSING
+chengyinhub-xcx/subpackageMember/components/cy/ai-chat-records/index.js:48,confirm clear NPC chat data (ai.npc.chatData.delete),删除你的全部 NPC 聊天日志？ — 清除我的对话记录? (3条不可逆后果),删除日志 / 取消,App/NPCChatDataView.swift,App/NPCChatDataView.swift:239,DONE
+chengyinhub-xcx/subpackageMember/components/cy/npc-chat/index.js:160,confirm clear NPC chat data from chat sheet,清除我的对话记录? (ai.npc.chatData.delete),清除对话记录 / 取消,App/NPCChatDataView.swift,App/NPCChatDataView.swift:239,DONE
+chengyinhub-xcx/subpackageMember/components/cy/npc-chat/index.wxml:9,NPC chat full sheet,漫游 AI 向导 / 店铺形象 (cy-sheet),关闭,gap: native NPC chat sheet not mounted,—,MISSING
+chengyinhub-xcx/subpackageMember/components/cy/coop-invite-sheet/index.wxml:2,open cooperation invite sheet,发送邀约 (cy-sheet),发送 / 关闭,gap: native uses CooperationBrowserView webview,—,MISSING
+chengyinhub-xcx/subpackageMember/components/cy/merchant-correction-sheet/index.wxml:1,merchant info correction flow,哪里不对 / 信息纠错 / 正在提交纠错 / 纠错已提交,下一步 / 提交 / 重试 / 取消,gap: merchant correction live in merchant area,—,MISSING
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.js:1029,favorite merchant node toggle,已收藏节点 / 已取消收藏,toast,App/AccountCollectionFavoritesView.swift,App/AccountCollectionFavoritesView.swift:145,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.js:1805,follow/unfollow member,关注成功 / 已取消关注 / 预览中，不能关注自己,toast,App/SocialAccountComponents.swift,App/AccountView.swift,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.js:1879,scan QR verification,核销成功 / 二维码无效 / 核销失败,toast,App/ProfileOrdersView.swift,App/OrderLifecycleView.swift,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.js:2094,share profile from more menu,点击右上角分享主页,toast,App/AccountView.swift,App/AccountView.swift,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.wxml:586,profile more menu,更多菜单 (cy-scene-sheet),编辑资料 / 设置 / 票夹 / 分享,App/AccountView.swift,App/AccountView.swift:120,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.wxml:617,select chapter to verify,选择核销章节 (cy-scene-sheet),关闭 / 选择,App/OrderLifecycleView.swift,App/OrderLifecycleView.swift,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.wxml:630,select station to verify,选择核销节点 (cy-scene-sheet),关闭 / 选择,App/OrderLifecycleView.swift,App/OrderLifecycleView.swift,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.wxml:709,discard profile edits,放弃修改并返回？ — 放弃本轮修改,放弃修改并返回 / 取消,App/ProfileEditView.swift,App/ProfileEditView.swift:636,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.wxml:709,reload profile discarding edits,重新加载个人资料？ — 重新加载会替换尚未保存的修改和新头像。,放弃并重新加载 / 取消,App/ProfileEditView.swift,App/ProfileEditView.swift:650,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.wxml:709,restore reviewed local draft,放弃这些本机改动？ — 将清除本次确认中的所有更改，不会保存任何内容。,放弃改动并留在此页 / 取消,App/ProfileDraftReviewSection.swift,App/ProfileDraftReviewSection.swift:35,DONE
+chengyinhub-xcx/subpackageMember/components/cy/profile/index.wxml:709,discard staged avatar,放弃这张头像？,放弃新头像 / 取消,App/ProfileAvatarDraftSection.swift,App/ProfileAvatarDraftSection.swift:129,DONE
+chengyinhub-xcx/utils/danger-actions.js:913,delete participant info (address.delete),删除这条参与人信息? — 姓名和手机号只用于报名联系与到场核验 (2条不可逆后果),删除参与人信息 / 取消,App/ProfileParticipantsView.swift,App/ProfileParticipantsView.swift:354,DONE
+chengyinhub-xcx/subpackageMember/components/cy/report-sheet/index.wxml:4,report reason sheet (user/content),举报原因 (cy-option-sheet + cy-sheet + cy-result-sheet),下一步 / 提交 / 重试 / 取消,App/CommunityTrustPlayerViews.swift,App/CommunityTrustPlayerViews.swift:238,DONE
+chengyinhub-xcx/subpackageMember/components/cy/team-report-sheet/index.wxml:1,report team from nearby sheet,举报这支队伍 (cy-option-sheet + cy-result-sheet),提交举报 / 取消 / 重试 / 完成,App/TeamReportReasonSheet.swift,App/TeamReportReasonSheet.swift:77,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-deep-link/index.wxml:78,close dirty deep-link scene,放弃当前修改？ — 当前内容还没有保存，关闭后会丢失。,放弃并关闭 / 继续编辑,gap: native deep-link uses direct routes,—,MISSING
+chengyinhub-xcx/subpackageMember/components/cy/scene-member-order-detail/index.js:556,choose team size when creating team (team-up.js:47),队伍人数 (cy-option-sheet),选择人数 / 取消,App/OrderLifecycleView.swift,App/OrderLifecycleView.swift,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-member-order-detail/index.js:594,copy order number,已复制订单号,toast,App/ProfileOrdersView.swift,App/ProfileOrdersView.swift:383,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-member-order-detail/index.js:618,cancel/refund registration order,取消报名? / 取消并退款 / 取消订单 (order.cancel*),确认取消 / 取消,App/OrderLifecycleView.swift,App/OrderLifecycleView.swift:344,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-member-order-detail/index.js:764,cancel payment,您已取消支付,toast,App/OrderLifecycleView.swift,App/PaymentProviderReturnSheet.swift:22,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-member-order-detail/index.js:774,payment outcome unknown modal,支付结果待确认 — 暂不要重复支付，请稍后刷新订单查看最终状态。,确认,App/OrderLifecycleView.swift,App/PaymentProviderReturnSheet.swift:17,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-member-order-history/index.js:362,cancel/refund order from history list,取消报名? / 取消并退款 / 取消订单,确认取消 / 取消,App/OrderLifecycleView.swift,App/OrderLifecycleView.swift:344,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-member-order-history/index.js:578,payment success on order history,支付成功 — 票已放入票夹，可随时出示入场码,确认,App/OrderLifecycleView.swift,App/PaymentProviderReturnSheet.swift:19,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-route-content/index.js:350,unlike post/topic in favorites/likes,提示 — 确定要取消点赞吗？,确定 / 取消,App/AccountCollectionFavoritesView.swift,App/TopicUnlikeControls.swift:44,DONE
+chengyinhub-xcx/subpackageMember/components/cy/scene-route-content/index.js:350,favorites and recommendations note,收藏与推荐 — 推荐会参考你的浏览、点赞等行为...,知道了,App/AccountCollectionFavoritesView.swift,App/AccountCollectionFavoritesView.swift:145,DONE
+chengyinhub-xcx/subpackageMember/coupon/coupon.js:232,stop merchant coupon (merchant.coupon.stop),停发「{name}」? — 还没领的人再也领不到;已领到的券照常可用、可核销；此操作不可撤销,停发该券 / 取消,App/CouponManagementView.swift,App/CouponManagementView.swift:311,DONE
+chengyinhub-xcx/subpackageMember/coupon/coupon.wxml:45,open coupon detail sheet,优惠券详情 (cy-sheet),停发 / 关闭,App/CouponCodeView.swift,App/CouponCodeView.swift:55,DONE
+chengyinhub-xcx/subpackageMember/couponInfo/couponInfo.js:208,discard coupon draft edit,放弃编辑？ — 已填写的优惠券内容不会保存。,放弃 / 继续编辑,App/CouponManagementView.swift,App/CouponManagementView.swift:225,DONE
+chengyinhub-xcx/subpackageMember/couponInfo/couponInfo.wxml:88,select coupon type/validity range sheet,选择优惠券类型 / 有效期设置 (cy-sheet),关闭 / 完成,App/CouponValidityRangeEditor.swift,App/CouponManagementView.swift:240,DONE
+chengyinhub-xcx/subpackageMember/free-explore/index.js:219,cancel bundle booking (waiver or standard),使用本月豁免取消预约？ / 确认取消预约？,确认取消 / 返回,App/BundleCancelView.swift,App/BundleCancelView.swift:57,DONE
+chengyinhub-xcx/subpackageMember/free-explore/index.js:265,swap merchant in bundle,更换商家？ — 改选{merchant}，有效期不变。,更换 / 取消,App/BundleExitSwapView.swift,App/BundleExitSwapView.swift:102,DONE
+chengyinhub-xcx/subpackageMember/free-explore/index.wxml:1,review free-explore bundle booking,预约确认 (sheet),确认 / 取消,App/FreeExploreBundleLaunchView.swift,App/FreeExploreBundleLaunchView.swift:98,DONE
+chengyinhub-xcx/subpackageMember/invoice-apply/index.js:88,select orders across different issuers,不同开票单位需分开申请 / 开票单位开通后可申请,toast,App/InvoiceLaunchApplyView.swift,App/InvoiceLaunchApplyView.swift:52,MISSING
+chengyinhub-xcx/subpackageMember/invoice-apply/index.wxml:74,choose invoice title sheet,选择发票抬头 (cy-sheet),选择 / 关闭,App/InvoiceLaunchApplyView.swift,App/InvoiceLaunchApplyView.swift:96,DONE
+chengyinhub-xcx/subpackageMember/invoice-titles/index.js:49,delete invoice title,删除发票抬头 — 删除后不影响已提交的申请。,删除 / 取消,App/InvoiceLaunchTitlesView.swift,App/InvoiceLaunchTitlesView.swift:60,DONE
+chengyinhub-xcx/subpackageMember/invoice/base.js:162,withdraw invoice application (detail & list),撤回发票申请 — 撤回后，订单可重新申请开票。,撤回申请 / 取消,App/InvoiceLaunchDetailView.swift,App/InvoiceLaunchDetailView.swift:59,DONE
+chengyinhub-xcx/subpackageMember/invoice/index.js:95,withdraw invoice result from history list,撤回发票申请 / 撤回结果未确认，请刷新查看,撤回申请 / 取消 + toast,App/InvoiceLaunchHistoryView.swift,App/InvoiceLaunchHistoryView.swift:62,DONE
+chengyinhub-xcx/subpackageMember/market/pass/index.js:110,confirm purchase pass/card,确认购买 — {card} · {payMode},确认 / 取消,App/PassMarketViews.swift,App/PassMarketViews.swift:590,DONE (gated behind MPCommerceGate)
+chengyinhub-xcx/subpackageMember/market/pass/index.wxml:53,gift pass purchase receipt sheet,礼品已买好 — 领取前你和好友都不能游玩 (cy-sheet),复制礼品码 / 关闭,App/PassMarketViews.swift,App/PassMarketViews.swift:667,DONE
+chengyinhub-xcx/subpackageMember/mytemplate/mytemplate.js:106,delete/publish/unpublish template (template.delete),删除节点玩法「{name}」? (3段式后果) / 上下架确认,删除玩法 / 确认 / 取消,App/TemplateAuthoringMineView.swift,App/TemplateAuthoringMineView.swift:138,DONE
+chengyinhub-xcx/subpackageMember/mytemplate/mytemplate.js:134,submit template for review / toggle success,已提交广场审核 / 操作成功 / 操作失败，请重试,toast,App/TemplateAuthoringMineView.swift,App/TemplateAuthoringMineView.swift:165,DONE
+chengyinhub-xcx/subpackageMember/orient-score/index.js:186,manual check / resume sync / settle / appeal / dispute,确认提交？ — 提交历史操作人工核对 / 继续原任务同步 / 结算本局成绩 / 提交计分申诉 / 提交成绩争议,确认提交 / 取消,App/OrientScoreReviewSection.swift,App/OrientScoreReviewSection.swift:82,DONE
+chengyinhub-xcx/subpackageMember/orient-score/index.wxml:102,orient score appeal/dispute sheet,计分申诉 / 成绩争议 (cy-sheet),提交 / 关闭,App/OrientScoreReviewSection.swift,App/OrientScoreReviewSection.swift:26,DONE
+chengyinhub-xcx/subpackageMember/report-detail/index.wxml:55,appeal submission result sheet,提交申诉 / 申诉已受理 / 申诉没有提交成功 / 还没确认申诉是否提交 (cy-sheet),提交 / 重试 / 完成,App/CommunityTrustPlayerViews.swift,App/CommunityTrustPlayerViews.swift:238,DONE
+chengyinhub-xcx/subpackageMember/report-detail/index.js:69,refresh failure keeping data,刷新失败，稍后再试,toast,App/MemberReportProgressDetailView.swift,App/CommunityTrustPlayerViews.swift:241,DONE
+chengyinhub-xcx/subpackageMember/signup/index.js:252,unavailable ticket item tap,暂不可查看票据,toast,App/TicketWalletDetailView.swift,App/TicketWalletDetailView.swift:150,DONE

@@ -74,7 +74,7 @@ import SwiftUI
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .cyDomainSheet(detents: [.half, .full])
         .interactiveDismissDisabled(state == .submitting)
     }
 

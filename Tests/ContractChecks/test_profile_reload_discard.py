@@ -41,7 +41,8 @@ class ProfileReloadDiscardContracts(unittest.TestCase):
         self.assertNotIn('.save(',text);self.assertNotIn('prepare(',text)
     def test_cancel_performs_no_read_and_changes_no_draft(self):
         text=VIEW.read_text();self.assertIn('func cancelReload() { reloadConfirmation = nil }',text)
-        self.assertIn('Button("action.cancel", role: .cancel) { model.cancelReload() }',text)
+        self.assertIn('onCancel: { model.cancelReload() }',text)
+        self.assertIn('MemberProfileDiscardConfirmSheet(kind: .reloadDiscard',text)
     def test_confirmation_consumes_synchronously_and_queued_task_rechecks(self):
         text=VIEW.read_text().split('@discardableResult func confirmReload')[1].split('private func synchronizeContext')[0]
         self.assertIn('guard reloadConfirmation?.id == value.id else { return nil }',text)
@@ -73,8 +74,9 @@ class ProfileReloadDiscardContracts(unittest.TestCase):
         catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
         self.assertEqual(len(fragment),3)
         for key,row in fragment.items():self.assertEqual(catalog[key],row)  # merged centrally
+        popups=(ROOT/'App/MemberAreaPopupSurfaces.swift').read_text()
         for key,row in fragment.items():
-            self.assertIn('"'+key+'"',VIEW.read_text())
+            self.assertIn('"'+key+'"',popups)
             for lang in ['en','zh-Hans']:self.assertTrue(row['localizations'][lang]['stringUnit']['value'])
     def test_twenty_authored_tests_cover_cancel_failure_exact_context_and_unknown_lock(self):
         text=(ROOT/'Tests/AppUnitTests/ProfileReloadDiscardTests.swift').read_text();self.assertEqual(len(re.findall(r'func test',text)),20)

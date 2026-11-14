@@ -75,15 +75,13 @@ extension EnvironmentValues {
                 statusView
             }
         }
-        .confirmationDialog(
-            Text("orientScore.review.confirmTitle"),
-            isPresented: Binding(
-                get: { if case .awaitingConfirmation = model.state { return true } else { return false } },
-                set: { if !$0 { model.cancel() } }),
-            titleVisibility: .visible
+        .sheet(isPresented: Binding(
+            get: { if case .awaitingConfirmation = model.state { return true } else { return false } },
+            set: { if !$0 { model.cancel() } })
         ) {
-            Button("orientScore.review.send") { Task { await model.confirm() } }
-            Button("action.cancel", role: .cancel) { model.cancel() }
+            MemberOrientScoreConfirmSheet {
+                Task { await model.confirm() }
+            }
         }
     }
 

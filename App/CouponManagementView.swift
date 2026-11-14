@@ -221,9 +221,13 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .navigationTitle("couponManagement.create")
         .interactiveDismissDisabled(model.core.draft.dirty || model.working)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("couponManagement.cancel") { if model.core.draft.dirty { discard = true } else { dismiss() } }.disabled(model.working) } }
-        .confirmationDialog("couponManagement.discardTitle", isPresented: $discard, titleVisibility: .visible) {
-            Button("couponManagement.discard", role: .destructive) { model.core.discardDraft(); model.revision += 1; dismiss() }
-            Button("couponManagement.keepEditing", role: .cancel) {}
+        .sheet(isPresented: $discard) {
+            MemberCouponDiscardConfirmSheet {
+                discard = false
+                model.core.discardDraft()
+                model.revision += 1
+                dismiss()
+            }
         }
         .sheet(item: $rangeEditor, onDismiss: {
             // Mini-program toast 时间设置完成 after a confirmed range, shown inline instead of a toast.
@@ -231,7 +235,10 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { rangeCompleted = true }
             }
             rangeBaseline = nil
-        }) { editor in NavigationStack { CouponValidityRangeEditor(model: editor) } }
+        }) { editor in
+            NavigationStack { CouponValidityRangeEditor(model: editor) }
+                .cyDomainSheet(detents: [.half, .full])
+        }
         .onChange(of: model.core.session) { _, _ in closeRangeEditor() }
         .onChange(of: model.revision) { _, _ in closeRangeEditor() }
         .onDisappear { closeRangeEditor(); model.cancelReview() }

@@ -51,13 +51,14 @@ extension EnvironmentValues {
             }.padding().frame(maxWidth: .infinity)
         }.navigationTitle("couponCode.title").navigationBarTitleDisplayMode(.inline)
             .privacySensitive().accessibilityIdentifier("couponCode.view")
-            .confirmationDialog("couponCode.review", isPresented: $review, titleVisibility: .visible) {
-                Button("couponCode.show") {
+            .sheet(isPresented: $review) {
+                MemberCouponShowConfirmSheet {
+                    review = false
                     guard let offer = model.offerConfirmation(presentation: presentation) else { return }
                     appearance.actionTask?.cancel()
                     appearance.actionTask = Task { await model.confirmPresentation(permit: offer) }
                 }
-            } message: { Text("couponCode.review.detail") }
+            }
             .onAppear {
                 guard let permit = appearance.begin(model: model) else { return }
                 if scenePhase == .active { resume(presentation: permit, appearance: appearance) } else { model.pause(presentation: permit) }

@@ -93,19 +93,35 @@ struct InvoiceLaunchApplyIntent {
         }
     }
     private var titlePicker: some View {
-        NavigationStack {
-            List(model.overview?.titles ?? [], id: \.id) { candidate in
-                Button {
-                    titleID = candidate.id; choosingTitle = false
-                } label: {
-                    HStack {
-                        Text(verbatim: candidate.titleName)
-                        Spacer()
-                        if candidate.id == titleID { Image(systemName: "checkmark") }
+        CYSheetContainer(title: MemberPopupCopy.table("chooseTitle", table: "InvoiceLaunchUI", locale: locale), onClose: { choosingTitle = false }) {
+            VStack(spacing: CYSpacing.sm) {
+                ForEach(model.overview?.titles ?? [], id: \.id) { candidate in
+                    Button {
+                        titleID = candidate.id
+                        choosingTitle = false
+                    } label: {
+                        HStack {
+                            Text(verbatim: candidate.titleName)
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: CYSpacing.sm)
+                            if candidate.id == titleID {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(CYColor.brand)
+                            }
+                        }
+                        .padding(CYSpacing.md)
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }
-                }.disabled(!model.allows(.apply))
-            }.navigationTitle(invoiceText("chooseTitle"))
-        }        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+                    .buttonStyle(.plain)
+                    .disabled(!model.allows(.apply))
+                }
+            }
+            .padding(.bottom, CYSpacing.lg)
+        }
+        .cyDomainSheet(detents: [.half, .full])
     }
     private func applyAmount(_ order: InvoiceLaunchOrder) -> String {
         let line = applyPage.lines.first { $0.orderID == order.orderId }

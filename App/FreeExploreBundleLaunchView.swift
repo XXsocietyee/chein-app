@@ -95,6 +95,7 @@ import SwiftUI
                         .listRowBackground(Color.clear)
                 }.navigationTitle(text("review"))
             }
+            .cyDomainSheet(detents: [.half, .full])
         }
         // A reopened destination must receive a fresh model from its authorized host.
         .onDisappear { model.cancelReview() }

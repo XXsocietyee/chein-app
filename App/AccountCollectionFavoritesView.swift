@@ -141,10 +141,9 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
         .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
-        .alert(Text("member.favorites.recommendNote.title", tableName: "MemberProfile"), isPresented: $showRecommendNote) {
-            Button(role: .cancel) {} label: { Text("member.favorites.recommendNote.dismiss", tableName: "MemberProfile") }
-        } message: {
-            Text("member.favorites.recommendNote.body", tableName: "MemberProfile")
+        .sheet(isPresented: $showRecommendNote) {
+            MemberFavoritesRecommendNoteSheet { showRecommendNote = false }
+                .themeDomain(.player)
         }
     }
     private func refresh() async {

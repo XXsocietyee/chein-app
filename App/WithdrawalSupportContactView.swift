@@ -20,6 +20,7 @@ extension EnvironmentValues {
     @State private var loadedScope: WalletCommerceScope?
     @State private var issue: String?
     @State private var busy = false
+    @State private var copyToast: LocalizedStringKey?
     @State private var actions = WithdrawalSupportActionFence()
     private var generation: UUID { actions.id }
     private struct ReaderKey: Equatable {
@@ -58,10 +59,11 @@ extension EnvironmentValues {
             }
         }
         .onDisappear { clear() }
-        .presentationDetents([.medium, .large])
+        .cyToast(message: $copyToast, tone: .success)
+        .cyDomainSheet(detents: [.half, .full])
     }
     private func clear() {
-        actions.invalidate(); configuration = nil; loadedScope = nil; issue = nil; busy = false
+        actions.invalidate(); configuration = nil; loadedScope = nil; issue = nil; busy = false; copyToast = nil
     }
     private func load(offered: UUID) async {
         guard scenePhase == .active, actions.accepts(offered), !Task.isCancelled else { return }
@@ -88,6 +90,7 @@ extension EnvironmentValues {
             // Contact only: no balance, account ID, token, draft amount, or diagnostics.
             UIPasteboard.general.setItems([["public.utf8-plain-text": contact]], options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
             issue = "localCopy.copied"
+            copyToast = "localCopy.copied"
             UIAccessibility.post(notification: .announcement, argument: appLocalized("localCopy.copied", locale: locale))
         } catch {
             guard ticket == generation, !Task.isCancelled else { return }

@@ -148,12 +148,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
         .onDisappear { progress.retire() }
         .onChange(of: scenePhase) { _, phase in if phase == .background { progress.retire() } }
         .privacySensitive()
-        .alert("profile.complaint.submit.confirmTitle", isPresented: $confirmingSend) {
-            Button("profile.complaint.submit.action") {
+        .sheet(isPresented: $confirmingSend) {
+            MemberComplaintSubmitConfirmSheet {
+                confirmingSend = false
                 if let review = model.review { Task { await sending.send(review: review, isCurrent: { model.contextMatches }) } }
             }
-            Button("action.cancel", role: .cancel) {}
-        } message: { Text("profile.complaint.submit.confirmBody") }
+            .themeDomain(.player)
+        }
     }
     private func editor(_ topics: [ProfileComplaintTopic]) -> some View {
         Group {

@@ -13,6 +13,7 @@ import UIKit
     let requestedID: Int
     let reader: any ProfileReading
     let writeText: @MainActor (String) throws -> Void
+    let onCopyResult: (@MainActor (Bool) -> Void)?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @State private var model: ProfileOrderNumberCopyModel
@@ -20,8 +21,11 @@ import UIKit
         .capture(order: order, requestedID: requestedID, reader: reader)
     }
     init(order: ProfileOrder, requestedID: Int, reader: any ProfileReading,
-        writeText: (@MainActor (String) throws -> Void)? = nil) {
-        self.order = order; self.requestedID = requestedID; self.reader = reader; self.writeText = writeText ?? ProfileOrderNumberLocalClipboard.write
+        writeText: (@MainActor (String) throws -> Void)? = nil,
+        onCopyResult: (@MainActor (Bool) -> Void)? = nil) {
+        self.order = order; self.requestedID = requestedID; self.reader = reader
+        self.writeText = writeText ?? ProfileOrderNumberLocalClipboard.write
+        self.onCopyResult = onCopyResult
         _model = State(initialValue: .init(context: .capture(order: order, requestedID: requestedID, reader: reader)))
     }
     var body: some View {
@@ -32,6 +36,7 @@ import UIKit
                     Button("profile.orderNumberCopy.open", systemImage: "doc.on.doc") {
                         guard scenePhase == .active,
                               let result = model.copy(renderedPermit, current: { context }, write: writeText) else { return }
+                        onCopyResult?(result == .copied)
                         UIAccessibility.post(notification: .announcement,
                             argument: appLocalized(result == .copied ? "localCopy.copied" : "localCopy.failed", locale: locale))
                     }.frame(minHeight: 44).accessibilityIdentifier("profile.orderNumberCopy.open")

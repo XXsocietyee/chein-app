@@ -60,9 +60,12 @@ import SwiftUI
                 if hasInput || showReview { confirmDiscard = true } else { clear(); dismiss() }
             }.disabled(busy) }
         }
-        .confirmationDialog("bank.withdrawal.discardQuestion", isPresented: $confirmDiscard, titleVisibility: .visible) {
-            Button("bank.withdrawal.discard", role: .destructive) { clear(); dismiss() }
-            Button("action.cancel", role: .cancel) {}
+        .sheet(isPresented: $confirmDiscard) {
+            MemberBankWithdrawalDiscardConfirmSheet {
+                confirmDiscard = false
+                clear()
+                dismiss()
+            }
         }
         .sheet(isPresented: $showReview, onDismiss: { snapshot = nil; review = nil; proof = nil }) {
             reviewSheet
