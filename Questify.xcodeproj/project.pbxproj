@@ -3345,6 +3345,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "EDB0FC7F28FCA2B7E501BF4C";
 		};
+		"A346A4671EAE5DE715530591" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/Cur3UITestFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"9F74ECD8760FA1185B1E6ACE" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A346A4671EAE5DE715530591";
+		};
 		"0CA0C490B2EC100B9A737D02" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -39147,6 +39157,7 @@
 				"77908F76E30A9F106924A2C1",
 				"48EA87AD994B1F148ACCA1CA",
 				"EDB0FC7F28FCA2B7E501BF4C",
+				"A346A4671EAE5DE715530591",
 				"0CA0C490B2EC100B9A737D02",
 				"3F7E058FB85AC70E7C84B3E9",
 				"0DA2B6CAFE68C999416653F2",
@@ -42740,6 +42751,7 @@
 				"8F8C4744DE9B4409380B8566",
 				"0DD06FC2B8C2EAAD3131CD5F",
 				"B6EAAC044EE74AA25BB164C5",
+				"E35C02999B18821E0D35F919",
 				"88AAB429950DF48C79BE36CC",
 				"A01A1A7892E6CCA8049CF5B8",
 				"94430D07741A6F5C46004835",
@@ -44186,6 +44198,7 @@
 				"F596030E7C378BD2837E2258",
 				"689AB97547688F230C9D0548",
 				"FF81A391BDE760E702E5958A",
+				"9F74ECD8760FA1185B1E6ACE",
 				"02240838A37D3159E6F7594D",
 				"FE795673329993CA216C7C7F",
 				"CED3A1470342D77A4FDE4F30",
@@ -47839,7 +47852,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift AppStoreScreenshotHarness.swift CarouselFixtures.swift ClubCardFixtures.swift Cur4Fixtures.swift Cur7Fixtures.swift Cur9Fixtures.swift CurFixtures2.swift CurFixtures3.swift CurFixtures5.swift CurFixtures6.swift CurFixtures8.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift UGCSafetyFixtures.swift WaveFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift AppStoreScreenshotHarness.swift CarouselFixtures.swift ClubCardFixtures.swift Cur3UITestFixtures.swift Cur4Fixtures.swift Cur7Fixtures.swift Cur9Fixtures.swift CurFixtures2.swift CurFixtures3.swift CurFixtures5.swift CurFixtures6.swift CurFixtures8.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift UGCSafetyFixtures.swift WaveFixtures.swift";
 			};
 			"baseConfigurationReference" = "2DE2C287CCE985622F66EC30";
 		};
@@ -48341,6 +48354,16 @@
 		"207C9424C99319903EBD84F6" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B6EAAC044EE74AA25BB164C5";
+		};
+		"E35C02999B18821E0D35F919" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/Cur3OfflineUITests.swift";
+			"sourceTree" = "<group>";
+		};
+		"0D41F3A30FE3591368080D50" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E35C02999B18821E0D35F919";
 		};
 		"88AAB429950DF48C79BE36CC" = {
 			"isa" = "PBXFileReference";
@@ -51363,6 +51386,7 @@
 				"48A69D299EA4DDCD07654701",
 				"47FF0FF9FD28098A84983681",
 				"207C9424C99319903EBD84F6",
+				"0D41F3A30FE3591368080D50",
 				"8A3A60E336697BA8026DBF54",
 				"2D4BD1F2640079301C0D8105",
 				"98AD62416EF6A62D94A780CB",
