@@ -157,7 +157,8 @@ final class IMPreviewTemplateLeaseTests: XCTestCase {
         XCTAssertEqual(IMPreviewRouteTemplates.grantPatterns, expected)
         for pattern in expected {
             XCTAssertTrue(ChinaReviewedRouteCapability.channelsSocialOwnerGrant.contains(pattern), pattern)
-            XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: pattern), .missing, pattern)
+            // 2026-11-13: IM routes are live on TEST r2 aa3dcc89d; the owner grant still admits them.
+            XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: pattern), .liveInProduction, pattern)
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(pattern), pattern)
         }
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/im/file/message/42/preview"))

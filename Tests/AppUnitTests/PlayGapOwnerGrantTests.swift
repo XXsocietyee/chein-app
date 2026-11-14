@@ -15,7 +15,7 @@ final class PlayGapOwnerGrantTests: XCTestCase {
     }
 
     func testGrantDoesNotRaiseTheContractBaseline() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 370) // channels contract 8.1 blacklist routes are live
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 204)  // 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404) // channels contract 8.1 blacklist routes are live
         XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home/return/restore"))

@@ -7,10 +7,10 @@ import FoundationNetworking
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
         XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 997)
-        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 627)
+        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 793)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
         // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 370)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 204)  // 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.liveInProductionCount
                 + ChinaReviewedRouteCapability.newBackendOnlyCount
@@ -49,7 +49,8 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
             XCTAssertEqual(ChinaReviewedRouteCapability.hidingCapability(for: path), .digitalContentPayment, path)
         }
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/pay/create"), .missing)
+        // Live on TEST r2 f37301c79, but still never admitted: virtual goods stay forced off.
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/pay/create"), .liveInProduction)
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/pay/create"))
     }
 

@@ -15,7 +15,7 @@ final class ActivityDetailPageReadyTests: XCTestCase {
     func testCapabilityStaysOnTheLiveReadAndKeepsWritesHidden() {
         XCTAssertEqual(ActivityDetailPageCapability.readPath, SignedInContentDetailReadRoute.activity.path)
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: ActivityDetailPageCapability.readPath), .liveInProduction)
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/activity/detail"), .missing)
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/activity/detail"), .liveInProduction) // live on TEST r2 (club gaps)
         XCTAssertFalse(ChinaReviewedRouteCapability.isHiddenFromChinaReviewed("/api/club/activity/detail"))
         XCTAssertFalse(ActivityDetailPageCapability.showsMerchantChoice)
         XCTAssertFalse(ActivityDetailPageCapability.paymentEnabled)

@@ -27,7 +27,7 @@ import QuestifyCore
             submissionsFailed = true
             return
         }
-        adoptKey(await client.signingKey(token: token))
+        adoptKey(await client.signingKey(token: token), host: session?.baseURL.host)
         switch await client.catalog(token: token) {
         case .loaded(let rows):
             catalog = rows
@@ -51,7 +51,7 @@ import QuestifyCore
             notice = Self.unavailable
             return
         }
-        adoptKey(await client.signingKey(token: token))
+        adoptKey(await client.signingKey(token: token), host: session?.baseURL.host)
         guard let data = await client.downloadApproved(gameID: gameID, token: token) else {
             notice = Self.downloadFailed
             return
@@ -143,9 +143,22 @@ import QuestifyCore
         _ = workshop.applyExternalGameServerStatus(status, requestID: requestID)
     }
 
-    private func adoptKey(_ key: ExternalGameSigningKeyFact?) {
-        guard let key, key.configured, key.algorithm == "Ed25519", let raw = key.publicKeyRaw, raw.count == 32 else { return }
-        store.adoptVerificationKey(raw)
+    private func adoptKey(_ key: ExternalGameSigningKeyFact?, host: String?) {
+        guard let key, key.configured, key.algorithm == "Ed25519", let raw = key.publicKeyRaw, raw.count == 32,
+              let pinned = Self.pin(raw, host: host) else { return }
+        store.adoptVerificationKey(pinned)
+    }
+
+    /// Owner 2026-11-13: the server's Ed25519 key is pinned per environment (API host) on first use. A different key
+    /// for the same host is refused, so packages keep verifying against the pinned key only. No host, no key.
+    static func pin(_ raw: Data, host: String?, defaults: UserDefaults = .standard) -> Data? {
+        guard let host = host?.lowercased(), !host.isEmpty, raw.count == 32 else { return nil }
+        let name = "externalGame.signingKey.pinned." + host
+        if let stored = defaults.string(forKey: name).flatMap({ Data(base64Encoded: $0) }) {
+            return stored == raw ? stored : nil
+        }
+        defaults.set(raw.base64EncodedString(), forKey: name)
+        return raw
     }
 
     private func client(_ session: ExternalGameSessionBridge?) -> ExternalGameReviewClient? {

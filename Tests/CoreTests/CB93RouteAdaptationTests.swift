@@ -45,7 +45,7 @@ final class CB93RouteAdaptationTests: XCTestCase {
         // H2 marks /api/topic/publish-status missing on production (996 -> 997, 374 -> 375).
         XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 997)
         // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 370)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 204)  // 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404)
     }
 
     func testChinaTransportRewritesOnlyMatchingBodies() async throws {

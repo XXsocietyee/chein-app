@@ -256,6 +256,8 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     @GestureState private var drag: CGFloat = 0
     @Environment(\.dynamicTypeSize) private var type
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// E2E-20261113b N3: inside a tab the panel's visible content ends above the floating tab bar; its fill still runs under it.
+    @Environment(\.cyTabBarClearance) private var tabBarClearance
     @ScaledMetric(relativeTo: .body) private var peekLine: CGFloat = 52
     /// Grabber row: a 44 pt drag/adjust target (the bar itself stays 40 x 5).
     private let grabberHeight: CGFloat = 44
@@ -316,7 +318,8 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                     }
                     .clipped()
                 }
-                .frame(height: panelHeight, alignment: .top)
+                .padding(.bottom, tabBarClearance)
+                .frame(height: panelHeight + tabBarClearance, alignment: .top)
                 .background(alignment: .top) {
                     UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous)
                         .fill(cyMapPanelColor)

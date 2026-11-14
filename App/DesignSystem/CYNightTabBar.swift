@@ -105,6 +105,21 @@ extension View {
 
 private struct CYFloatingTabBarClearance: ViewModifier {
     func body(content: Content) -> some View {
-        if #available(iOS 26, *) { content.safeAreaPadding(.bottom, 56) } else { content }
+        if #available(iOS 26, *) {
+            content.safeAreaPadding(.bottom, CYFloatingTabBarClearanceKey.height).environment(\.cyTabBarClearance, CYFloatingTabBarClearanceKey.height)
+        } else { content }
+    }
+}
+
+/// Height a self-sizing bottom panel (the map scaffold) reserves for the floating tab bar inside a tab. Zero outside tabs.
+struct CYFloatingTabBarClearanceKey: EnvironmentKey {
+    static let height: CGFloat = 56
+    static let defaultValue: CGFloat = 0
+}
+
+extension EnvironmentValues {
+    var cyTabBarClearance: CGFloat {
+        get { self[CYFloatingTabBarClearanceKey.self] }
+        set { self[CYFloatingTabBarClearanceKey.self] = newValue }
     }
 }

@@ -41,4 +41,17 @@ final class ReviewedAreaSwitchTests: XCTestCase {
         ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
     }
+
+    /// External-game Ed25519 key: pinned per API host on first use; a different key for that host is refused.
+    @MainActor func testExternalGameSigningKeyIsPinnedPerEnvironment() throws {
+        let suite = "pin-" + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite)); defer { defaults.removePersistentDomain(forName: suite) }
+        let first = Data(repeating: 1, count: 32), rotated = Data(repeating: 2, count: 32)
+        XCTAssertEqual(ExternalGameReviewModel.pin(first, host: "8120.example.test", defaults: defaults), first)
+        XCTAssertEqual(ExternalGameReviewModel.pin(first, host: "8120.EXAMPLE.test", defaults: defaults), first)
+        XCTAssertNil(ExternalGameReviewModel.pin(rotated, host: "8120.example.test", defaults: defaults))
+        XCTAssertEqual(ExternalGameReviewModel.pin(rotated, host: "other.example.test", defaults: defaults), rotated)
+        XCTAssertNil(ExternalGameReviewModel.pin(first, host: nil, defaults: defaults))
+        XCTAssertNil(ExternalGameReviewModel.pin(Data(count: 16), host: "x.example.test", defaults: defaults))
+    }
 }

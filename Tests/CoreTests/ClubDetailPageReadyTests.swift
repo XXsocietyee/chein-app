@@ -136,10 +136,11 @@ final class ClubDetailPageReadyTests: XCTestCase {
         XCTAssertFalse(member.showsRoleManagement)
         XCTAssertTrue(member.showsAppealEntry)
         XCTAssertTrue(member.showsChat)
-        XCTAssertFalse(member.showsChannels)
+        // 2026-11-13: `/api/club/channels` is live on TEST r2 aa3dcc89d, so members see Channels (owner rule: nothing hidden).
+        XCTAssertTrue(member.showsChannels)
         XCTAssertTrue(member.showsLeaderboard)
         XCTAssertFalse(member.showsOwnerAI)
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/channels"), .missing)
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/channels"), .liveInProduction)
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/channels"))
 
         let owner = try ready(#"{"id":81,"isOwner":true,"isJoined":true}"#)
@@ -209,7 +210,7 @@ final class ClubDetailPageReadyTests: XCTestCase {
         XCTAssertEqual(readyClub.levelText, "L3")
         XCTAssertEqual(readyClub.joinPolicyKey, "club.detail.joinPolicy.review")
         XCTAssertTrue(readyClub.showsChat)
-        XCTAssertFalse(readyClub.showsChannels)
+        XCTAssertTrue(readyClub.showsChannels)
 
         let unknown = try ready(ClubDetailPageFixtureData.unknownNumbers)
         XCTAssertEqual(unknown.memberCountText, dash)

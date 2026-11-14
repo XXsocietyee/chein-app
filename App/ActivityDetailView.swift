@@ -214,7 +214,11 @@ struct ActivityDetailView: View {
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
-            if let playReaderForActivity { PlaySessionView(reader: playReaderForActivity(id)) }
+            // N5: the full runtime (advanced prerequisites, hint ladder, TEAM backpack) when this session can build it;
+            // the basic reader otherwise.
+            if let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
+                SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
+            } else if let playReaderForActivity { PlaySessionView(reader: playReaderForActivity(id)) }
         }
         .sheet(isPresented:$showsTicketWallet) {
             // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
