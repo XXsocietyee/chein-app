@@ -36,6 +36,9 @@ public enum ChinaReviewedRouteCapability {
     /// Release switch is off, even if the path is later added to the wired catalog.
     public static func admitsChinaProductionCall(_ path: String) -> Bool {
         let key = normalized(path)
+        // Prefix literals are not routes. Concrete children stay on their own keys.
+        if key == "/api/workshop/purchased" || key == "/api/reward-pledge/versions"
+            || key == "/api/friend/channel-invite" || key == "/api/friend/team-invite" { return false }
         if ReleaseMoneyWriteSwitch.blocks(key) { return false }
         // A forced-off money route opens only while its own Release switch is on (DEBUG/TEST off the production host).
         if forcedOff(key) != nil, !ReleaseMoneyWriteSwitch.opens(key) { return false }
@@ -511,6 +514,7 @@ public enum ChinaReviewedRouteCapability {
     /// Opaque ids shorter than 32 characters and 64-hex award ids do not collapse, so the two trees match by prefix.
     public static func admitsRewardPledge(_ key: String) -> Bool {
         if key == "/api/coupon" { return true }
+        if key == "/api/reward-pledge/versions" { return false }
         if key == "/api/reward-pledge" || key.hasPrefix("/api/reward-pledge/") { return true }
         if key == "/api/rewards/noncash" || key.hasPrefix("/api/rewards/noncash/") { return true }
         return false
@@ -1716,8 +1720,6 @@ public enum ChinaReviewedRouteCapability {
         "/api/workshop/owned/detail": .liveInProduction,
         "/api/workshop/owned/list": .liveInProduction,
         "/api/workshop/owned/package": .liveInProduction,
-        "/api/workshop/purchased": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
-        "/api/workshop/purchased/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
         "/api/workshop/purchased/detail": .liveInProduction,
         "/api/workshop/purchased/install": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
         "/api/workshop/purchased/install/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
@@ -1729,6 +1731,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/workshop/purchased/professional-operations/submit": .liveInProduction,
         "/api/workshop/purchased/professional-targets/detail": .liveInProduction,
         "/api/workshop/purchased/professional-targets/list": .liveInProduction,
+        "/api/workshop/v2/purchased/detail": .liveInProduction,
+        "/api/workshop/v2/purchased/list": .liveInProduction,
     ]
 
     private static let wiredPatterns: Set<String> = [

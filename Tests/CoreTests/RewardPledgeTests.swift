@@ -236,6 +236,28 @@ final class RewardPledgeTests: XCTestCase {
         } catch RewardPledgeFailure.stale {}
     }
 
+    func testVersionPrefixStaysUnsentWhileHoldAndWithdrawUseConcreteChildren() throws {
+        let base = URL(string: "https://8120.example.test/")!
+        var bare = URLRequest(url: base.appendingPathComponent("api/reward-pledge/versions"))
+        bare.httpMethod = "GET"
+        XCTAssertNil(RewardPledgeRoutes.operation(bare, baseURL: base))
+        bare.httpMethod = "POST"
+        XCTAssertNil(RewardPledgeRoutes.operation(bare, baseURL: base))
+        let hold = try RewardPledgeRequests.hold(versionID: "ver1", baseURL: base, token: "fixture-token")
+        let withdraw = try RewardPledgeRequests.withdraw(versionID: "ver1", baseURL: base, token: "fixture-token")
+        XCTAssertEqual(hold.httpMethod, "POST")
+        XCTAssertEqual(withdraw.httpMethod, "POST")
+        XCTAssertEqual(hold.url?.host, "8120.example.test")
+        XCTAssertTrue(hold.url?.path.hasSuffix("/api/reward-pledge/versions/ver1/hold") == true)
+        XCTAssertTrue(withdraw.url?.path.hasSuffix("/api/reward-pledge/versions/ver1/withdraw") == true)
+        XCTAssertEqual(RewardPledgeRoutes.operation(hold, baseURL: base), "hold")
+        XCTAssertEqual(RewardPledgeRoutes.operation(withdraw, baseURL: base), "withdraw")
+        let production = URLRequest(url: URL(string: "https://www.chengyinhub.com/prod-api/api/reward-pledge/versions")!)
+        XCTAssertThrowsError(try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(production)) { error in
+            XCTAssertEqual(error as? APIError, .notConfigured)
+        }
+    }
+
     private func staffPreviewWrongStore(_ machine: inout RewardPledgeMachine) throws -> RewardPledgeGrant {
         let preview = machine.preview(permissionStore: "8", seen: machine.scope)
         guard case .success(let value) = preview else { throw RewardPledgeFailure.stale }
