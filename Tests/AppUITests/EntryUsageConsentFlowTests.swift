@@ -13,10 +13,10 @@ final class EntryUsageConsentFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
 
     func testGateRequiresCheckboxAndDeclineKeepsGuestBrowsing() {
-        XCTAssertTrue(app.navigationBars["Privacy and location"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["authEntry.gate.body"].exists)
+        XCTAssertTrue(app.navigationBars["Privacy protection"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["authEntry.gate.lead"].exists)
         let agree = app.buttons["authEntry.gate.agree"]
-        XCTAssertTrue(agree.exists); XCTAssertFalse(agree.isEnabled)
+        XCTAssertTrue(agree.exists); XCTAssertTrue(agree.isEnabled)
         let decline = app.buttons["authEntry.gate.decline"]
         if !decline.isHittable { app.swipeUp() }
         decline.tap()
@@ -46,12 +46,11 @@ final class EntryUsageConsentFlowTests: XCTestCase {
         XCTAssertTrue(agreement.waitForExistence(timeout: 5)); agreement.tap()
         XCTAssertTrue(app.staticTexts["settingsNative.legal.version"].waitForExistence(timeout: 5))
         app.buttons["Close"].firstMatch.tap()
-        let checkbox = app.switches["authEntry.gate.checkbox"]
-        XCTAssertTrue(checkbox.waitForExistence(timeout: 5))
-        if !checkbox.isHittable { app.swipeUp() }
-        checkbox.tap()
         let agree = app.buttons["authEntry.gate.agree"]
-        XCTAssertTrue(agree.isEnabled); agree.tap()
+        XCTAssertTrue(agree.waitForExistence(timeout: 5))
+        XCTAssertTrue(agree.isEnabled)
+        if !agree.isHittable { app.swipeUp() }
+        agree.tap()
         let channels = app.buttons["auth.otherChannels"]
         XCTAssertTrue(channels.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["authEntry.gate.requiredForSignIn"].exists)

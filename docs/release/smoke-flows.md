@@ -2,7 +2,7 @@
 
 Flows live in `.maestro/` and select controls only by accessibility identifiers that already exist in the SwiftUI sources. This change does not add or edit identifiers, Swift, or the Xcode project.
 
-`authEntry.gate.body` sits inside a collapsed `DisclosureGroup` (`App/UsageConsentGateView.swift`). Each smoke flow taps `authEntry.gate.details` once, then asserts the body. A second tap would collapse it, so the flows do not tap it again.
+`authEntry.gate.lead` is on the consent sheet (`App/UsageConsentGateView.swift`). The confirm button agrees to both documents. There is no checkbox and no collapsed disclosure.
 
 The app id is the committed `PRODUCT_BUNDLE_IDENTIFIER` in `Config/Base.xcconfig`: `invalid.example.questify.ios`.
 
@@ -25,11 +25,9 @@ These flows were not executed in this workspace. It has no iOS Simulator or Maes
 
 | Identifier | Source | Flows |
 |---|---|---|
-| `authEntry.gate.details` | `App/UsageConsentGateView.swift` | launch, consent, welcome, sign-in |
-| `authEntry.gate.body` | `App/UsageConsentGateView.swift` | launch, consent, welcome, sign-in |
+| `authEntry.gate.lead` | `App/UsageConsentGateView.swift` | launch, consent, welcome, sign-in |
 | `authEntry.gate.privacyGuide` | `App/UsageConsentGateView.swift` | launch, consent |
 | `authEntry.gate.agreement` | `App/UsageConsentGateView.swift` | consent |
-| `authEntry.gate.checkbox` | `App/UsageConsentGateView.swift` | consent, welcome, sign-in |
 | `authEntry.gate.decline` | `App/UsageConsentGateView.swift` | launch, consent |
 | `authEntry.gate.agree` | `App/UsageConsentGateView.swift` | consent, welcome, sign-in |
 | `welcome.player` | `App/WelcomeView.swift` (`welcome.` + `RegistrationIntent.player`) | consent, welcome, sign-in |
