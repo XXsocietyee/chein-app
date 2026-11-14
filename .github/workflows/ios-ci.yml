@@ -123,3 +123,15 @@ jobs:
         run: |
           test -f tools/check_design_lint.py
           python3 -B tools/check_design_lint.py
+
+  a11y-lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Accessibility lint
+        run: |
+          test -f tools/check_a11y.py
+          python3 -B tools/check_a11y.py

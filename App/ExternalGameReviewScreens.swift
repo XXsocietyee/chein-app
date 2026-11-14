@@ -15,35 +15,50 @@ import QuestifyCore
 
     @ViewBuilder private var catalogBody: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(W8Text.t("可玩的 HTML 游戏", "HTML games you can play"))
+            Text(verbatim: W8Text.t("可玩的 HTML 游戏", "HTML games you can play"))
                 .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("externalGame.catalog")
-            Text(indexNotice)
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textTertiary)
-                .accessibilityIdentifier("externalGame.reviewIndex")
+            CurA11yNotice(
+                text: Text(verbatim: indexNotice),
+                hint: Text("curA11y.external.notice.hint", tableName: "CurA11y"),
+                identifier: "externalGame.reviewIndex",
+                tone: CYColor.textSecondary
+            )
             if !model.removedByKillSwitch.isEmpty {
-                Text(W8Text.t("已下架并从本机移除：\(model.removedByKillSwitch.joined(separator: ", "))", "Removed from this device because they are no longer published: \(model.removedByKillSwitch.joined(separator: ", "))"))
-                    .font(CYTypography.bodyCompact)
+                Text(verbatim: W8Text.t("已下架并从本机移除：\(model.removedByKillSwitch.joined(separator: ", "))", "Removed from this device because they are no longer published: \(model.removedByKillSwitch.joined(separator: ", "))"))
+                    .font(CYTypography.body)
                     .foregroundStyle(CYColor.dangerText)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("externalGame.killSwitch")
             }
             if model.catalogFailed, model.catalog.isEmpty {
-                Text(W8Text.t("目录没有加载出来。", "The catalog did not load."))
-                    .font(CYTypography.bodyCompact)
+                Text(verbatim: W8Text.t("目录没有加载出来。", "The catalog did not load."))
+                    .font(CYTypography.body)
                     .foregroundStyle(CYColor.dangerText)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("externalGame.catalog.error")
             } else if model.catalog.isEmpty {
-                Text(W8Text.t("还没有已通过的游戏。", "No approved games yet."))
-                    .font(CYTypography.bodyCompact)
+                Text(verbatim: W8Text.t("还没有已通过的游戏。", "No approved games yet."))
+                    .font(CYTypography.body)
                     .foregroundStyle(CYColor.textSecondary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("externalGame.catalog.empty")
             } else {
                 ForEach(model.catalog, id: \.gameID) { row in catalogRow(row) }
             }
-            Button(W8Text.t("我的提交", "My submissions"), action: onSubmissions)
-                .accessibilityIdentifier("externalGame.submissions")
+            CurA11yTextButton(
+                title: Text(verbatim: W8Text.t("我的提交", "My submissions")),
+                hint: Text("curA11y.external.submissions.hint", tableName: "CurA11y"),
+                identifier: "externalGame.submissions",
+                action: onSubmissions
+            )
         }
     }
 
@@ -56,13 +71,19 @@ import QuestifyCore
 
     private func catalogRow(_ row: ExternalGameCatalogFact) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(row.name).font(CYTypography.cardTitle)
-            Text(meta(row)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-            Text(dash(row.summary)).font(CYTypography.bodyCompact)
-            Button(W8Text.t("下载并安装", "Download and install")) {
-                Task { await model.install(gameID: row.gameID, session: session) }
-            }
-            .accessibilityIdentifier("externalGame.install.\(row.gameID)")
+            Text(verbatim: row.name)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+            CurA11yDashText(shown: meta(row), font: CYTypography.meta, color: CYColor.textSecondary)
+            CurA11yDashText(shown: dash(row.summary), font: CYTypography.body, color: CYColor.textPrimary)
+            CurA11yTextButton(
+                title: Text(verbatim: W8Text.t("下载并安装", "Download and install")),
+                hint: Text("curA11y.external.install.hint", tableName: "CurA11y"),
+                identifier: "externalGame.install.\(row.gameID)",
+                action: { Task { await model.install(gameID: row.gameID, session: session) } }
+            )
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("externalGame.catalog.\(row.gameID)")
@@ -105,22 +126,44 @@ import QuestifyCore
         List {
             if let requestID = model.unconfirmedRequestID {
                 Section {
-                    Text(W8Text.t("结果未知，仍保留请求 \(requestID)。", "The result is unknown. Request \(requestID) is still saved."))
+                    Text(verbatim: W8Text.t("结果未知，仍保留请求 \(requestID)。", "The result is unknown. Request \(requestID) is still saved."))
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityHint(Text("curA11y.playGap.result.hint", tableName: "CurA11y"))
+                        .accessibilityAddTraits(.isStaticText)
                         .accessibilityIdentifier("externalGame.unconfirmed")
                 }
             }
             if !model.notice.isEmpty {
-                Text(model.notice).foregroundStyle(CYColor.dangerText)
+                Text(verbatim: model.notice)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.dangerText)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Section {
-                LabeledContent(W8Text.t("审核状态", "Review status"), value: model.workshopStatusText)
-                    .accessibilityIdentifier("externalGame.workshopStatus")
+                CurA11yLabeled(
+                    title: Text(verbatim: W8Text.t("审核状态", "Review status")),
+                    value: Text(verbatim: model.workshopStatusText),
+                    hint: Text("curA11y.external.notice.hint", tableName: "CurA11y"),
+                    identifier: "externalGame.workshopStatus"
+                )
             }
             if model.submissionsFailed, model.submissions.isEmpty {
-                Text(W8Text.t("提交列表没有加载出来。", "Submissions did not load."))
+                Text(verbatim: W8Text.t("提交列表没有加载出来。", "Submissions did not load."))
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.dangerText)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("externalGame.submissions.error")
             } else if model.submissions.isEmpty {
-                Text(W8Text.t("还没有提交。", "No submissions yet."))
+                Text(verbatim: W8Text.t("还没有提交。", "No submissions yet."))
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("externalGame.submissions.empty")
             } else {
                 ForEach(model.submissions, id: \.submissionID) { row in submissionRow(row) }
@@ -130,22 +173,32 @@ import QuestifyCore
 
     private func submissionRow(_ row: ExternalGameSubmissionFact) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(row.name).font(CYTypography.cardTitle)
-            Text("\(row.gameID) · v\(row.version) · \(row.status?.rawValue ?? "—")")
-                .font(CYTypography.meta)
-            Text(W8Text.t("驳回原因", "Reject reason") + " " + (row.rejectReason ?? "—"))
-                .font(CYTypography.bodyCompact)
+            Text(verbatim: row.name)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+            CurA11yDashText(shown: "\(row.gameID) · v\(row.version) · \(row.status?.rawValue ?? "—")", font: CYTypography.meta, color: CYColor.textSecondary)
+            CurA11yDashText(shown: W8Text.t("驳回原因", "Reject reason") + " " + (row.rejectReason ?? "—"), font: CYTypography.body, color: CYColor.textPrimary)
                 .accessibilityIdentifier("externalGame.rejectReason.\(row.submissionID)")
             if row.canCancel {
-                Button(W8Text.t("撤回", "Cancel")) { Task { await model.cancel(submissionID: row.submissionID, session: session) } }
-                    .accessibilityIdentifier("externalGame.cancel.\(row.submissionID)")
+                CurA11yTextButton(
+                    title: Text(verbatim: W8Text.t("撤回", "Cancel")),
+                    hint: Text("curA11y.external.cancel.hint", tableName: "CurA11y"),
+                    identifier: "externalGame.cancel.\(row.submissionID)",
+                    action: { Task { await model.cancel(submissionID: row.submissionID, session: session) } }
+                )
             }
             if row.canResubmit {
-                Button(W8Text.t("重新提交", "Resubmit")) {
-                    resubmitID = row.submissionID
-                    picking = true
-                }
-                .accessibilityIdentifier("externalGame.resubmit.\(row.submissionID)")
+                CurA11yTextButton(
+                    title: Text(verbatim: W8Text.t("重新提交", "Resubmit")),
+                    hint: Text("curA11y.external.resubmit.hint", tableName: "CurA11y"),
+                    identifier: "externalGame.resubmit.\(row.submissionID)",
+                    action: {
+                        resubmitID = row.submissionID
+                        picking = true
+                    }
+                )
             }
         }
         .accessibilityIdentifier("externalGame.submission.\(row.submissionID)")
@@ -161,19 +214,37 @@ import QuestifyCore
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text(W8Text.t("这个游戏的分级是 \(game.manifest.contentRating)。确认你的年龄符合这个分级后再开始。", "This game is rated \(game.manifest.contentRating). Confirm you meet that rating before you play."))
+                Text(verbatim: W8Text.t("这个游戏的分级是 \(game.manifest.contentRating)。确认你的年龄符合这个分级后再开始。", "This game is rated \(game.manifest.contentRating). Confirm you meet that rating before you play."))
                     .font(CYTypography.body)
-                Text(game.manifest.name).font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: game.manifest.name)
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
             }
             .padding(CYSpacing.lg)
-            .navigationTitle(W8Text.t("年龄分级", "Age rating"))
+            .navigationTitle(Text(verbatim: W8Text.t("年龄分级", "Age rating")))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(W8Text.t("取消", "Cancel"), action: onCancel)
+                    CurA11yTextButton(
+                        title: Text(verbatim: W8Text.t("取消", "Cancel")),
+                        hint: Text("curA11y.external.ageCancel.hint", tableName: "CurA11y"),
+                        expands: false,
+                        action: onCancel
+                    )
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(W8Text.t("符合分级", "I meet this rating"), action: onConfirm)
-                        .accessibilityIdentifier("externalGame.ageGate.confirm")
+                    CurA11yTextButton(
+                        title: Text(verbatim: W8Text.t("符合分级", "I meet this rating")),
+                        hint: Text("curA11y.external.ageConfirm.hint", tableName: "CurA11y"),
+                        identifier: "externalGame.ageGate.confirm",
+                        expands: false,
+                        action: onConfirm
+                    )
                 }
             }
         }
@@ -193,22 +264,52 @@ import QuestifyCore
     var body: some View {
         NavigationStack {
             Form {
-                Picker(W8Text.t("原因", "Reason"), selection: $reason) {
+                Picker(selection: $reason) {
                     ForEach(ExternalGameReviewClient.reasonCodes, id: \.self) { code in
-                        Text(code).tag(code)
+                        Text(verbatim: code).tag(code)
                     }
+                } label: {
+                    Text(verbatim: W8Text.t("原因", "Reason"))
                 }
-                TextField(W8Text.t("补充说明", "Details"), text: $detail)
-                Toggle(W8Text.t("同时在本机屏蔽", "Also block on this device"), isOn: $blocked)
+                .frame(minHeight: CurA11y.hit)
+                .accessibilityLabel(Text(verbatim: W8Text.t("原因", "Reason")))
+                .accessibilityHint(Text("curA11y.external.reason.hint", tableName: "CurA11y"))
+                CurA11yField(
+                    title: Text(verbatim: W8Text.t("补充说明", "Details")),
+                    hint: Text("curA11y.external.detail.hint", tableName: "CurA11y"),
+                    text: $detail
+                )
+                Toggle(isOn: $blocked) {
+                    Text(verbatim: W8Text.t("同时在本机屏蔽", "Also block on this device"))
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(minHeight: CurA11y.hit)
+                .accessibilityHint(Text("curA11y.external.block.hint", tableName: "CurA11y"))
+                .accessibilityAddTraits(blocked ? .isSelected : [])
             }
-            .navigationTitle(W8Text.t("举报", "Report"))
+            .navigationTitle(Text(verbatim: W8Text.t("举报", "Report")))
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button(W8Text.t("取消", "Cancel"), action: onCancel) }
+                ToolbarItem(placement: .cancellationAction) {
+                    CurA11yTextButton(
+                        title: Text(verbatim: W8Text.t("取消", "Cancel")),
+                        hint: Text("curA11y.external.reportCancel.hint", tableName: "CurA11y"),
+                        expands: false,
+                        action: onCancel
+                    )
+                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(W8Text.t("提交举报", "Send report")) {
-                        onSend(ExternalGameReportDraft(gameID: manifest.id, version: manifest.version, sha256: manifest.sha256, reasonCode: reason, detail: detail, blocked: blocked))
-                    }
-                    .accessibilityIdentifier("externalGame.reportSubmit")
+                    CurA11yTextButton(
+                        title: Text(verbatim: W8Text.t("提交举报", "Send report")),
+                        hint: Text("curA11y.external.reportSend.hint", tableName: "CurA11y"),
+                        identifier: "externalGame.reportSubmit",
+                        expands: false,
+                        action: {
+                            onSend(ExternalGameReportDraft(gameID: manifest.id, version: manifest.version, sha256: manifest.sha256, reasonCode: reason, detail: detail, blocked: blocked))
+                        }
+                    )
                 }
             }
         }

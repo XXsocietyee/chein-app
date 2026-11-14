@@ -37,13 +37,25 @@ private struct ClubGapSurfaceRow: View {
     let send: (ClubGapCall) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: surface.title(chinese: chinese)).font(.body)
-            Text(verbatim: surface.method + " /" + surface.path).font(.body)
-            Text(verbatim: ClubGapSurfaceRow.line(reply)).font(.body)
-            Button(action: { send(surface.call()) }) {
-                Text(verbatim: chinese ? "发送" : "Send").font(.body)
-            }
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: surface.title(chinese: chinese))
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            Text(verbatim: surface.method + " /" + surface.path)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+            CurA11yDashText(shown: ClubGapSurfaceRow.line(reply), color: CYColor.textSecondary)
+                .accessibilityHint(Text("curA11y.club.result.hint", tableName: "CurA11y"))
+            CurA11yTextButton(
+                title: Text(verbatim: chinese ? "发送" : "Send"),
+                hint: Text("curA11y.club.send.hint", tableName: "CurA11y"),
+                action: { send(surface.call()) }
+            )
             if surface.path == ClubGapPaths.coop {
                 ClubGapMerchantRow(chinese: chinese, reply: merchantReply, send: send)
             }
@@ -64,12 +76,20 @@ private struct ClubGapMerchantRow: View {
     let send: (ClubGapCall) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: chinese ? "商家合作邀请" : "Merchant cooperation invite").font(.body)
-            Text(verbatim: ClubGapSurfaceRow.line(reply)).font(.body)
-            Button(action: { send(ClubGapSurface.merchantInvite(topicID: 2, recipientID: 9)) }) {
-                Text(verbatim: chinese ? "邀请" : "Invite").font(.body)
-            }
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: chinese ? "商家合作邀请" : "Merchant cooperation invite")
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            CurA11yDashText(shown: ClubGapSurfaceRow.line(reply), color: CYColor.textSecondary)
+                .accessibilityHint(Text("curA11y.club.result.hint", tableName: "CurA11y"))
+            CurA11yTextButton(
+                title: Text(verbatim: chinese ? "邀请" : "Invite"),
+                hint: Text("curA11y.club.invite.hint", tableName: "CurA11y"),
+                action: { send(ClubGapSurface.merchantInvite(topicID: 2, recipientID: 9)) }
+            )
         }
     }
 }

@@ -376,35 +376,50 @@ import SwiftUI
         switch model.phase {
         case .loading:
             CYLoadingStateView(rows: 2)
+                .frame(minHeight: CurA11y.hit, alignment: .leading)
                 .accessibilityLabel(Text("play.teamBackpack.loading"))
+                .accessibilityHint(Text("curA11y.playTeam.retry.hint", tableName: "CurA11y"))
+                .accessibilityAddTraits(.isStaticText)
                 .accessibilityIdentifier("play.teamBackpack.loading")
         case .empty:
-            Text("play.teamBackpack.empty")
-                .accessibilityIdentifier("play.teamBackpack.empty")
+            CurA11yNotice(
+                text: Text("play.teamBackpack.empty"),
+                hint: Text("curA11y.playTeam.item.hint", tableName: "CurA11y"),
+                identifier: "play.teamBackpack.empty",
+                heading: true
+            )
         case .failed:
-            Text("play.teamBackpack.failed")
-                .foregroundStyle(CYColor.dangerText)
-                .accessibilityIdentifier("play.teamBackpack.failed")
-            Button("play.teamBackpack.retry") { Task { await model.reload() } }
-                .accessibilityIdentifier("play.teamBackpack.retry")
+            CurA11yNotice(
+                text: Text("play.teamBackpack.failed"),
+                hint: Text("curA11y.fixture.failed.hint", tableName: "CurA11y"),
+                identifier: "play.teamBackpack.failed",
+                heading: true,
+                tone: CYColor.dangerText
+            )
+            CurA11yTextButton(
+                title: Text("play.teamBackpack.retry"),
+                hint: Text("curA11y.playTeam.retry.hint", tableName: "CurA11y"),
+                identifier: "play.teamBackpack.retry",
+                action: { Task { await model.reload() } }
+            )
         case .ready:
             EmptyView()
         }
     }
 
     @ViewBuilder private var itemRows: some View {
-        Section("play.teamBackpack.items") {
+        Section {
             ForEach(model.items) { item in
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     itemTitle(item.name, quantity: item.quantity)
-                    HStack {
+                    CurA11yActions {
                         if model.canUse {
-                            commandButton("play.teamBackpack.use", enabled: item.usable, id: "play.teamBackpack.use." + item.id) {
+                            commandButton("play.teamBackpack.use", hint: Text("curA11y.playTeam.use.hint", tableName: "CurA11y"), enabled: item.usable, id: "play.teamBackpack.use." + item.id) {
                                 Task { await model.use(item.id) }
                             }
                         }
                         if model.canDiscard {
-                            commandButton("play.teamBackpack.discard", enabled: item.discardable, id: "play.teamBackpack.discard." + item.id) {
+                            commandButton("play.teamBackpack.discard", hint: Text("curA11y.playTeam.discard.hint", tableName: "CurA11y"), enabled: item.discardable, id: "play.teamBackpack.discard." + item.id) {
                                 Task { await model.discard(item.id) }
                             }
                         }
@@ -412,34 +427,50 @@ import SwiftUI
                 }
                 .accessibilityIdentifier("play.teamBackpack.item." + item.id)
             }
+        } header: {
+            Text("play.teamBackpack.items")
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
         }
     }
 
     @ViewBuilder private var pendingRows: some View {
-        Section("play.teamBackpack.pending") {
+        Section {
             ForEach(model.pending) { item in
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     itemTitle(item.name, quantity: item.quantity)
                     if model.canReceive {
-                        commandButton("play.teamBackpack.receive", enabled: true, id: "play.teamBackpack.receive." + item.id) {
+                        commandButton("play.teamBackpack.receive", hint: Text("curA11y.playTeam.receive.hint", tableName: "CurA11y"), enabled: true, id: "play.teamBackpack.receive." + item.id) {
                             Task { await model.receive(item.id) }
                         }
                     }
                 }
                 .accessibilityIdentifier("play.teamBackpack.pending." + item.id)
             }
+        } header: {
+            Text("play.teamBackpack.pending")
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
         }
     }
 
     @ViewBuilder private var receiptRows: some View {
-        Section("play.teamBackpack.receipt") {
+        Section {
             receiptLabel
-            LabeledContent("play.teamBackpack.outcome") { Text(verbatim: model.receipt.outcome).monospacedDigit() }
-            LabeledContent("play.teamBackpack.receiptID") { Text(verbatim: model.receipt.receiptID).monospacedDigit() }
-            LabeledContent("play.teamBackpack.revision") { Text(verbatim: model.receipt.revision).monospacedDigit() }
+            receiptLine("play.teamBackpack.outcome", model.receipt.outcome)
+            receiptLine("play.teamBackpack.receiptID", model.receipt.receiptID)
+            receiptLine("play.teamBackpack.revision", model.receipt.revision)
             if let message = model.receipt.serverMessage, !message.isEmpty {
-                Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                CurA11yDashText(shown: message, font: CYTypography.meta, color: CYColor.textSecondary)
+                    .accessibilityHint(Text("curA11y.playTeam.receipt.hint", tableName: "CurA11y"))
             }
+        } header: {
+            Text("play.teamBackpack.receipt")
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
         }
         .accessibilityIdentifier("play.teamBackpack.receipt")
     }
@@ -447,29 +478,61 @@ import SwiftUI
     @ViewBuilder private var receiptLabel: some View {
         switch model.receipt.kind {
         case .applied:
-            Text("play.teamBackpack.applied").accessibilityIdentifier("play.teamBackpack.applied")
+            outcome("play.teamBackpack.applied", "play.teamBackpack.applied")
         case .failed:
-            Text("play.teamBackpack.failedOutcome").accessibilityIdentifier("play.teamBackpack.failedOutcome")
+            outcome("play.teamBackpack.failedOutcome", "play.teamBackpack.failedOutcome")
         case .business:
-            Text("play.teamBackpack.failedOutcome").accessibilityIdentifier("play.teamBackpack.business")
+            outcome("play.teamBackpack.failedOutcome", "play.teamBackpack.failedOutcome")
+                .accessibilityIdentifier("play.teamBackpack.business")
         case .unknown:
-            Text("play.teamBackpack.unknown").accessibilityIdentifier("play.teamBackpack.unknown")
+            outcome("play.teamBackpack.unknown", "play.teamBackpack.unknown")
         case .refused:
-            Text("play.teamBackpack.refused").accessibilityIdentifier("play.teamBackpack.refused")
+            outcome("play.teamBackpack.refused", "play.teamBackpack.refused")
         case .blank:
             EmptyView()
         }
     }
 
+    private func outcome(_ key: LocalizedStringKey, _ identifier: String) -> some View {
+        Text(key)
+            .font(CYTypography.body)
+            .foregroundStyle(CYColor.textPrimary)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, minHeight: CurA11y.hit, alignment: .leading)
+            .accessibilityAddTraits(.isStaticText)
+            .accessibilityIdentifier(identifier)
+    }
+
     private func itemTitle(_ name: String?, quantity: Int?) -> some View {
         let title = name ?? PlayTeamCommandInterpretation.dash
         let count = quantity.map(String.init) ?? PlayTeamCommandInterpretation.dash
-        return LabeledContent { Text(verbatim: count).monospacedDigit() } label: { Text(verbatim: title) }
+        return CurA11yPair(
+            leading: CurA11yDashText(shown: title, color: CYColor.textPrimary),
+            trailing: CurA11yDashText(shown: count, color: CYColor.textSecondary)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("curA11y.playTeam.item.hint", tableName: "CurA11y"))
+        .accessibilityAddTraits(.isStaticText)
     }
 
-    private func commandButton(_ title: LocalizedStringKey, enabled: Bool, id: String, action: @escaping () -> Void) -> some View {
-        Button(title, action: action)
+    private func receiptLine(_ title: LocalizedStringKey, _ shown: String) -> some View {
+        CurA11yPair(
+            leading: Text(title)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true),
+            trailing: CurA11yDashText(shown: shown, color: CYColor.textSecondary)
+        )
+        .frame(minHeight: CurA11y.hit, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("curA11y.playTeam.receipt.hint", tableName: "CurA11y"))
+        .accessibilityAddTraits(.isStaticText)
+    }
+
+    private func commandButton(_ title: LocalizedStringKey, hint: Text, enabled: Bool, id: String, action: @escaping () -> Void) -> some View {
+        CurA11yTextButton(title: Text(title), hint: hint, identifier: id, expands: false, action: action)
             .disabled(!enabled || model.busy)
-            .accessibilityIdentifier(id)
     }
 }

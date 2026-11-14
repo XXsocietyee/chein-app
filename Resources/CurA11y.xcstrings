@@ -1,0 +1,662 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "curA11y.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
+          }
+        }
+      }
+    },
+    "curA11y.beGap.switch.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows whether this switch is open. Nothing is sent from this row."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示这个开关是否开启。这一行不会发送请求。"
+          }
+        }
+      }
+    },
+    "curA11y.beGap.gate.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows whether a write would be sent. A closed switch refuses the write."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示写入会不会发出。开关关闭时拒绝写入。"
+          }
+        }
+      }
+    },
+    "curA11y.beGap.fact.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This fact is unknown. It is shown as a dash."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这项事实未知。屏幕上显示为破折号。"
+          }
+        }
+      }
+    },
+    "curA11y.beGap.note.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explains that this screen does not create a payment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明这个页面不会创建付款。"
+          }
+        }
+      }
+    },
+    "curA11y.beGapIm.read.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads this record and shows the server text below. An unknown result is spoken as Unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取这条记录，并在下方显示服务器原文。未知结果朗读为未知。"
+          }
+        }
+      }
+    },
+    "curA11y.beGapIm.write.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sends this request and shows the server text below. A closed path is not marked done."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送这条请求，并在下方显示服务器原文。未开放的路径不会记为完成。"
+          }
+        }
+      }
+    },
+    "curA11y.beGapIm.channel.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel or conversation number used by the buttons below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下方按钮使用的频道或会话编号。"
+          }
+        }
+      }
+    },
+    "curA11y.beGapIm.message.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message number used by the media read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "媒体读取使用的消息编号。"
+          }
+        }
+      }
+    },
+    "curA11y.beGapIm.record.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record or receipt number used by the buttons below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下方按钮使用的记录或回执编号。"
+          }
+        }
+      }
+    },
+    "curA11y.beGapIm.board.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Board key or note used by the buttons below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下方按钮使用的看板键或说明。"
+          }
+        }
+      }
+    },
+    "curA11y.beGapIm.result.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server text from the last read or write. Unknown is a dash on screen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一次读取或写入的服务器原文。未知在屏幕上是破折号。"
+          }
+        }
+      }
+    },
+    "curA11y.club.send.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sends this request. An unknown result shows as a dash and is spoken as Unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送这条请求。未知结果在屏幕上是破折号，朗读为未知。"
+          }
+        }
+      }
+    },
+    "curA11y.club.invite.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sends the merchant cooperation invite. An unknown result is spoken as Unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送商家合作邀请。未知结果朗读为未知。"
+          }
+        }
+      }
+    },
+    "curA11y.club.result.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result of the last request. Unknown shows as a dash."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一次请求的结果。未知显示为破折号。"
+          }
+        }
+      }
+    },
+    "curA11y.external.submissions.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the list of games you submitted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开你提交的游戏列表。"
+          }
+        }
+      }
+    },
+    "curA11y.external.install.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads this approved game and installs it on this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载这款已通过的游戏，并安装到本机。"
+          }
+        }
+      }
+    },
+    "curA11y.external.cancel.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraws this submission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回这条提交。"
+          }
+        }
+      }
+    },
+    "curA11y.external.resubmit.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picks a package and sends this submission again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个包，并重新发送这条提交。"
+          }
+        }
+      }
+    },
+    "curA11y.external.ageConfirm.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirms you meet the age rating and starts the game."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认你符合年龄分级，然后开始游戏。"
+          }
+        }
+      }
+    },
+    "curA11y.external.ageCancel.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closes the age rating sheet without starting the game."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭年龄分级，不开始游戏。"
+          }
+        }
+      }
+    },
+    "curA11y.external.reportSend.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sends the report. It stays open until the server marks it resolved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交举报。在服务器标为已解决之前，举报保持未处理。"
+          }
+        }
+      }
+    },
+    "curA11y.external.reportCancel.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closes the report sheet without sending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭举报页，不发送。"
+          }
+        }
+      }
+    },
+    "curA11y.external.reason.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooses the report reason code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择举报原因代码。"
+          }
+        }
+      }
+    },
+    "curA11y.external.detail.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional details sent with the report."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随举报一起发送的补充说明，可以留空。"
+          }
+        }
+      }
+    },
+    "curA11y.external.block.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also hides this game on this device when the report is sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交举报时同时在本机屏蔽这款游戏。"
+          }
+        }
+      }
+    },
+    "curA11y.external.notice.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How HTML games, review, and removal work on this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明 HTML 游戏、审核和从本机移除的规则。"
+          }
+        }
+      }
+    },
+    "curA11y.imPreview.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recipient preview for this message. A dash on screen is spoken as Unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条消息的收件人预览。屏幕上的破折号朗读为未知。"
+          }
+        }
+      }
+    },
+    "curA11y.playGap.open.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens this play record screen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开这个游玩记录页面。"
+          }
+        }
+      }
+    },
+    "curA11y.playGap.action.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runs this read or write and shows the result below. Unknown is spoken as Unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行这次读取或写入，并在下方显示结果。未知朗读为未知。"
+          }
+        }
+      }
+    },
+    "curA11y.playGap.field.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text used by the buttons on this screen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页按钮使用的文字。"
+          }
+        }
+      }
+    },
+    "curA11y.playGap.result.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result of the last action. Unknown shows as a dash."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一次操作的结果。未知显示为破折号。"
+          }
+        }
+      }
+    },
+    "curA11y.playGap.buy.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asks to buy this product. Cash checkout is not started from this screen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求购买这件商品。此页不发起现金结账。"
+          }
+        }
+      }
+    },
+    "curA11y.playTeam.use.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sends ITEM_USE for this item."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对这件物品发送 ITEM_USE。"
+          }
+        }
+      }
+    },
+    "curA11y.playTeam.discard.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sends ITEM_DISCARD for this item."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对这件物品发送 ITEM_DISCARD。"
+          }
+        }
+      }
+    },
+    "curA11y.playTeam.receive.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sends ITEM_RECEIVE for this item."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对这件物品发送 ITEM_RECEIVE。"
+          }
+        }
+      }
+    },
+    "curA11y.playTeam.retry.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loads the team backpack again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取团队背包。"
+          }
+        }
+      }
+    },
+    "curA11y.playTeam.receipt.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command receipt. Unknown numbers show as a dash and are spoken as Unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令回执。未知数字显示为破折号，朗读为未知。"
+          }
+        }
+      }
+    },
+    "curA11y.playTeam.item.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item name and quantity. A missing quantity is spoken as Unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "物品名称和数量。缺少的数量朗读为未知。"
+          }
+        }
+      }
+    },
+    "curA11y.fixture.failed.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The preview could not be built."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法生成这个预览。"
+          }
+        }
+      }
+    },
+    "curA11y.teamCreate.closed.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team creation did not open. Nothing was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建队没有打开。没有发送请求。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

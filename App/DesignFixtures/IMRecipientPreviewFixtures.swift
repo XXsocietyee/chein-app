@@ -51,8 +51,12 @@ private struct IMRecipientPreviewFixtureScreen: View {
             List {
                 IMRecipientPreviewRow(message: message, input: input)
                     .listRowBackground(CYColor.bgElevated)
+                    .frame(minHeight: CurA11y.hit, alignment: .leading)
             }
             .navigationTitle(Text("im.preview.section", tableName: "IMRecipientPreview"))
+            .accessibilityLabel(Text("im.preview.section", tableName: "IMRecipientPreview"))
+            .accessibilityHint(Text("curA11y.imPreview.hint", tableName: "CurA11y"))
+            .accessibilityAddTraits(.isHeader)
         }
     }
 }

@@ -14,7 +14,15 @@ import SwiftUI
 @MainActor struct PlayTeamBackpackFixtureHost: View {
     var body: some View {
         if let model = Self.model() { PlayTeamBackpackView(model: model) }
-        else { Text("play.teamBackpack.failed").accessibilityIdentifier("play.teamBackpack.failed") }
+        else {
+            CurA11yNotice(
+                text: Text("play.teamBackpack.failed"),
+                hint: Text("curA11y.fixture.failed.hint", tableName: "CurA11y"),
+                identifier: "play.teamBackpack.failed",
+                heading: true,
+                tone: CYColor.dangerText
+            )
+        }
     }
 
     static func model() -> PlayTeamBackpackCoordinator? {
