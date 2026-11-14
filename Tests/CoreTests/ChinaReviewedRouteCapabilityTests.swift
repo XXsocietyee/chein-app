@@ -6,11 +6,11 @@ import FoundationNetworking
 
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 997)
-        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 793)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 986)
+        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 974)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
         // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 204)  // 2026-11-13: club, rewards, workshop, IM/channels/guilds, merchant and misc live on TEST r2 f37301c79 (offer-withdrawal/request still 404)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)  // 2026-11-13 backend-final-gaps: only the 12 backend-closed workshop stubs stay missing (each row says why)
         XCTAssertEqual(
             ChinaReviewedRouteCapability.liveInProductionCount
                 + ChinaReviewedRouteCapability.newBackendOnlyCount
@@ -120,7 +120,8 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/os/15"))
         XCTAssertEqual(ChinaReviewedRouteCapability.normalized("/api/play/os/15"), "/api/play/os/{}")
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/coupon/command-receipt"))
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/coupon/command-receipt"), .missing)
+        // 2026-11-13 backend-final-gaps: served on TEST r2; the app feature is still not wired (listed for follow-up).
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/coupon/command-receipt"), .liveInProduction)
     }
 
     func testOnlyTheChinaProductionHostIsGated() async throws {

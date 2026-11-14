@@ -9,7 +9,8 @@ final class OfficialInboxPageReadyTests: XCTestCase {
 
     func testExistingPartyInboxRouteStaysVisibleAndMissingRoutesStayHidden() {
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: OfficialInboxPageModel.partyInboxPath), .liveInProduction)
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/official/v2/organizer-invites/{}/{}"), .missing)
+        // 2026-11-13 backend-final-gaps: served on TEST r2; the app feature is still not wired (listed for follow-up).
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/official/v2/organizer-invites/{}/{}"), .liveInProduction)
         XCTAssertNil(OfficialInboxPageModel.state(path: "api/official/v2/organizer-invites/9/decline", loading: false, failed: false, rows: []))
         XCTAssertNil(OfficialInboxPageModel.state(path: "api/not-a-route", loading: true, failed: false, rows: nil))
     }

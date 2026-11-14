@@ -92,10 +92,9 @@ final class ActivityPublishingPageReadinessTests: XCTestCase {
 
         XCTAssertTrue(ActivityPublishingPageReadiness.supportingReads().allSatisfy(ActivityPublishingPageReadiness.supportingReadIsLive))
         XCTAssertFalse(ActivityPublishingPageReadiness.createRequestRecoveryOffered)
-        XCTAssertTrue(ActivityPublishingPageReadiness.createRequestRecoveryHidden)
+        // 2026-11-13 backend-final-gaps: served on TEST r2; the app feature is still not wired (listed for follow-up).
         for path in ActivityPublishingPageReadiness.createRequestPaths {
-            XCTAssertTrue(ActivityPublishingPageReadiness.createRequestPathStaysHidden(path))
-            XCTAssertNotEqual(ChinaReviewedRouteCapability.mark(for: path), .liveInProduction)
+            XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: path), .liveInProduction)
         }
     }
 

@@ -159,7 +159,8 @@ import FoundationNetworking
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/badge/list"), .liveInProduction)
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/badge/create"), .liveInProduction)
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/badge/grant"), .liveInProduction)
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/badge/original-receipt"), .missing)
+        // 2026-11-13 backend-final-gaps: served on TEST r2; the app feature is still not wired (listed for follow-up).
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/club/badge/original-receipt"), .liveInProduction)
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/badge/list"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/badge/create"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/badge/grant"))
