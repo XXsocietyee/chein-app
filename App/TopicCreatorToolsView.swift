@@ -209,7 +209,7 @@ import QuestifyCore
                 toastMessage = MerchantCloseCopy.text("已重命名", "Renamed", locale)
             }
         )
-        .cyModalOverlay(isPresented: Binding(get: { deleteStateKeyMessage != nil }, set: { if !$0 { deleteStateKeyMessage = nil } })) {
+        .cyModalOverlay(isPresented: deleteStateKeyMessage != nil) {
             if let deleteStateKeyMessage {
                 CYModal(
                     title: MerchantCloseCopy.text("删除状态键？", "Delete State Key?", locale),

@@ -245,7 +245,7 @@ struct RoamBrowserView: View {
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDetailDestination(for: item), playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
                     .cyDomainSheet(detents: [.half, .full])
             }
-            .cyModalOverlay(isPresented: $confirmingUnsavedExit) {
+            .cyModalOverlay(isPresented: confirmingUnsavedExit) {
                 PlayUnsavedEditModal(
                     onKeepEditing: { confirmingUnsavedExit = false },
                     onDiscard: {

@@ -137,7 +137,7 @@ struct CoopFlowSafetyNotice: View {
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)
         }
-        .cyModalOverlay(isPresented: Binding(get: { confirmCandidateTitle != nil }, set: { if !$0 { confirmCandidateTitle = nil } })) {
+        .cyModalOverlay(isPresented: confirmCandidateTitle != nil) {
             if let title = confirmCandidateTitle {
                 CYModal(
                     title: MerchantCloseCopy.text("确认候选", "Confirm Candidate", locale),
@@ -152,7 +152,7 @@ struct CoopFlowSafetyNotice: View {
                 )
             }
         }
-        .cyModalOverlay(isPresented: Binding(get: { confirmVerifySpotTitle != nil }, set: { if !$0 { confirmVerifySpotTitle = nil } })) {
+        .cyModalOverlay(isPresented: confirmVerifySpotTitle != nil) {
             if let spot = confirmVerifySpotTitle {
                 CYModal(
                     title: MerchantCloseCopy.text("确认核销据点", "Confirm Check-In Spot", locale),

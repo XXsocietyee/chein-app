@@ -284,16 +284,23 @@ struct PlayCloseResultSheet: View {
     @Environment(\.locale) private var locale
     let title: String
     let message: String
+    var detail: String? = nil
     var primaryTitle: String? = nil
-    let onPrimary: (() -> Void)?
+    var onPrimary: (() -> Void)? = nil
+    var closeIdentifier: String? = nil
     let onClose: () -> Void
 
     var body: some View {
-        CYSheetContainer(title: title, onClose: onClose) {
+        CYSheetContainer(title: title, closeIdentifier: closeIdentifier, onClose: onClose) {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text(verbatim: message)
                     .font(CYTypography.body)
                     .foregroundStyle(CYColor.textSecondary)
+                if let detail, !detail.isEmpty {
+                    Text(verbatim: detail)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                }
                 CurA11yActions {
                     if let primaryTitle, let onPrimary {
                         Button(action: onPrimary) {

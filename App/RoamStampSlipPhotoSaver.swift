@@ -97,7 +97,7 @@ struct RoamStampSlipSaveRow: View {
                 .accessibilityHint(Text("roam.share.openPhotoSettings"))
             }
         }
-        .cyModalOverlay(isPresented: $showingPermissionModal) {
+        .cyModalOverlay(isPresented: showingPermissionModal) {
             PlayPhotoAlbumPermissionModal(
                 onOpenSettings: {
                     showingPermissionModal = false

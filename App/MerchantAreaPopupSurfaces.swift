@@ -215,7 +215,7 @@ struct MerchantChoiceOptionSheet: View {
                     title: $0.title,
                     subtitle: $0.subtitle,
                     systemImage: $0.systemImage,
-                    isDestructive: $0.isDestructive
+                    isDanger: $0.isDestructive
                 )
             },
             selectedID: selectedID,

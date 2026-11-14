@@ -35,8 +35,8 @@ extension AppSession {
                 guard let self, let context = self.publisherLifecycleContext else {
                     return .failure(PublisherLifecycleError.unavailable)
                 }
-                let resource = PublishedResource(kind: .topic, value: topicID)
                 do {
+                    let resource = try PublishedResource(kind: .topic, value: topicID)
                     let coordinator = context.coordinator(for: resource)
                     let review = try await coordinator.prepare(.graduate(topicID: topicID))
                     let outcome = await coordinator.confirm(review, consequentialApproval: true)
@@ -64,8 +64,8 @@ extension AppSession {
                 guard let self, let context = self.publisherLifecycleContext else {
                     return .failure(PublisherLifecycleError.unavailable)
                 }
-                let resource = PublishedResource(kind: .topic, value: topicID)
                 do {
+                    let resource = try PublishedResource(kind: .topic, value: topicID)
                     let coordinator = context.coordinator(for: resource)
                     let review = try await coordinator.prepare(.transfer(topicID: topicID, clubID: clubID))
                     let outcome = await coordinator.confirm(review, consequentialApproval: true)
@@ -100,7 +100,7 @@ extension AppSession {
                 req.httpBody = try? JSONSerialization.data(withJSONObject: ["realName": trimmedName, "phonenumber": trimmedPhone], options: [.sortedKeys])
                 do {
                     let (_, status) = try await self.compositionTransport.send(req)
-                    return (200..<300).contains(status) ? .success(()) : .failure(APIError.httpError(statusCode: status, message: ""))
+                    return (200..<300).contains(status) ? .success(()) : .failure(APIError.httpStatus(status))
                 } catch {
                     return .failure(error)
                 }

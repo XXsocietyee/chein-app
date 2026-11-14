@@ -674,7 +674,7 @@ import SwiftUI
             onCancel: { discardConfirmation = false },
             onConfirm: { discardConfirmation = false; model.discard() }
         )
-        .cyModalOverlay(isPresented: Binding(get: { activeEditorModal != nil }, set: { if !$0 { activeEditorModal = nil } })) {
+        .cyModalOverlay(isPresented: activeEditorModal != nil) {
             if let modal = activeEditorModal {
                 editorParityModalView(modal)
             }

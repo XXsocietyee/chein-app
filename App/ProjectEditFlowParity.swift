@@ -212,7 +212,7 @@ extension EnvironmentValues {
             onCancel: { confirmLeave = false },
             onConfirm: { confirmLeave = false; dismiss() }
         )
-        .cyModalOverlay(isPresented: $showRetryVoiceModal) {
+        .cyModalOverlay(isPresented: showRetryVoiceModal) {
             CYModal(
                 title: MerchantCloseCopy.text("另起独立声音请求？", "Start New Voice Request?", locale),
                 message: MerchantCloseCopy.text("原结果仍可能完成。新建可能产生重复音色或占用额度，费用以实际模型为准；原未知记录会保留，系统不会重发原请求。", "The original task may still complete. Starting a new request may consume additional quota.", locale),
@@ -225,7 +225,7 @@ extension EnvironmentValues {
                 }
             )
         }
-        .cyModalOverlay(isPresented: $showLocationConfirmModal) {
+        .cyModalOverlay(isPresented: showLocationConfirmModal) {
             CYModal(
                 title: MerchantCloseCopy.text("确认到店位置", "Confirm Store Location", locale),
                 message: MerchantCloseCopy.text("地图选点用于保存这个节点的到店位置，供玩家导航和现场位置校验。", "Map pin saves the storefront coordinate for player navigation and on-site check-in.", locale),

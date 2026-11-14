@@ -16,7 +16,7 @@ enum PlayAreaPopupCloseFixtures {
                 onClose: {}
             ))
         case "play-close-popup-album-permission":
-            return player(PlayPhotoAlbumPermissionModal(onCancel: {}, onOpenSettings: {}))
+            return player(PlayPhotoAlbumPermissionModal(onOpenSettings: {}, onBack: {}))
         case "play-close-popup-plan-fallback":
             return player(PlayDirectorPlanFallbackConfirmModal(
                 reason: "全队同意按默认结局收尾",
@@ -40,7 +40,7 @@ enum PlayAreaPopupCloseFixtures {
                 onClose: {}
             ))
         case "play-close-popup-payment-pending":
-            return player(PlayPaymentPendingModal(onCancel: {}, onRetryCheck: {}))
+            return player(PlayPaymentPendingModal(detailed: false, onGoOrders: {}, onClose: {}))
         default:
             return nil
         }

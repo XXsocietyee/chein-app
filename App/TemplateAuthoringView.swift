@@ -320,7 +320,7 @@ import Combine
             onCancel: { discard = false },
             onConfirm: { discard = false; model.discard() }
         )
-        .cyModalOverlay(isPresented: Binding(get: { toolInfoTitle != nil }, set: { if !$0 { toolInfoTitle = nil } })) {
+        .cyModalOverlay(isPresented: toolInfoTitle != nil) {
             if let toolInfoTitle {
                 CYModal(
                     title: toolInfoTitle,

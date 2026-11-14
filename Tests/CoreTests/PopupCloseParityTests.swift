@@ -19,7 +19,7 @@ final class PopupCloseParityTests: XCTestCase {
         }
     }
 
-    private let baseConfig = try! APIConfiguration(baseURL: URL(string: "https://example.invalid")!)
+    private let baseConfig = try! APIConfiguration(baseURL: URL(string: "https://8120.example.test/")!)
 
     func testNearbyTeamApplyRequestEncodesTrimmedOptionalMessageAndRejectsOverlong() throws {
         let reqWithMessage = try NearbyTeamRequest.action(.apply(NearbyTeamID(18)), message: "  今晚七点到  ")
@@ -74,10 +74,11 @@ final class PopupCloseParityTests: XCTestCase {
             XCTAssertEqual(request.httpMethod, "POST")
             let body = request.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
             XCTAssertEqual(body["action"] as? String, "PLAN_FALLBACK")
-            XCTAssertEqual(body["reason"] as? String, "队员一致同意默认收尾")
-            return (Data(#"{"code":200,"data":{"endingTitle":"和平落幕","endingKey":"PEACE"}}"#.utf8), 200)
+            let payload = body["payload"] as? [String: Any]
+            XCTAssertEqual(payload?["reason"] as? String, "队员一致同意默认收尾")
+            return (Data(#"{"code":200,"data":{"outcome":"APPLIED","result":{"result":{"title":"和平落幕","endingKey":"PEACE"}}}}"#.utf8), 200)
         }
-        let service = await PlayExperienceService(configuration: baseConfig, transport: transport, capabilities: .all)
+        let service = PlayExperienceService(configuration: baseConfig, transport: transport, enabled: [.reads, .directorCommands])
         let result = try await service.submitPlanFallback(
             activityID: 91,
             expectedRevision: 4,

@@ -16,11 +16,12 @@ enum MerchantCloseCopy {
 struct MerchantCloseSheetHost<Content: View>: View {
     let title: String
     var detents: [CYSheetDetent] = [.half, .full]
+    var closeIdentifier: String? = nil
     let onClose: () -> Void
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        CYSheetContainer(title: title, onClose: onClose) {
+        CYSheetContainer(title: title, closeIdentifier: closeIdentifier, onClose: onClose) {
             content()
         }
         .cyDomainSheet(detents: detents)
@@ -303,7 +304,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                     .accessibilityIdentifier(cyAccessibilityID(id: "popupClose.merchantProject.actions"))
                 }
             }
-            .cyModalOverlay(isPresented: $showSupplyPauseModal) {
+            .cyModalOverlay(isPresented: showSupplyPauseModal) {
                 CYModal(
                     title: MerchantCloseCopy.text("暂停这份供给？", "Pause This Supply?", locale),
                     message: MerchantCloseCopy.text("暂停后将暂时停止接收新的节点承接派单。", "New stop assignments will pause while this supply is paused.", locale),
@@ -316,7 +317,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                     }
                 )
             }
-            .cyModalOverlay(isPresented: $showChapterFinishModal) {
+            .cyModalOverlay(isPresented: showChapterFinishModal) {
                 MerchantChapterFinishModal(
                     chapterName: MerchantCloseCopy.text("当前章节", "Current Chapter", locale),
                     onCancel: { showChapterFinishModal = false },
@@ -330,7 +331,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                     }
                 )
             }
-            .cyModalOverlay(isPresented: Binding(get: { chapterDangerTitle != nil }, set: { if !$0 { chapterDangerTitle = nil } })) {
+            .cyModalOverlay(isPresented: chapterDangerTitle != nil) {
                 MerchantChapterActionDangerModal(
                     kind: .withdrawApplication,
                     onCancel: { chapterDangerTitle = nil },
@@ -340,7 +341,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                     }
                 )
             }
-            .cyModalOverlay(isPresented: $showCandidateConfirm) {
+            .cyModalOverlay(isPresented: showCandidateConfirm) {
                 CYModal(
                     title: MerchantCloseCopy.text("确认候选", "Confirm Candidate", locale),
                     message: MerchantCloseCopy.text("确认选定该承接商家进入下一阶段吗？", "Confirm this merchant candidate for the next stage?", locale),
@@ -353,16 +354,16 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                     }
                 )
             }
-            .cyModalOverlay(isPresented: $showAlbumPermissionModal) {
+            .cyModalOverlay(isPresented: showAlbumPermissionModal) {
                 PlayPhotoAlbumPermissionModal(
-                    onBack: { showAlbumPermissionModal = false },
                     onOpenSettings: {
                         showAlbumPermissionModal = false
                         toastMessage = MerchantCloseCopy.text("请在系统设置开启相册权限", "Enable Photos permission in Settings", locale)
-                    }
+                    },
+                    onBack: { showAlbumPermissionModal = false }
                 )
             }
-            .cyModalOverlay(isPresented: $showApplyDiscardModal) {
+            .cyModalOverlay(isPresented: showApplyDiscardModal) {
                 CYModal(
                     title: MerchantCloseCopy.text("放弃这次报名?", "Discard this sign-up?", locale),
                     message: MerchantCloseCopy.text("已填写的报名信息不会被保存。", "Entered sign-up details will not be saved.", locale),
@@ -428,7 +429,7 @@ struct MerchantVerificationPopupCompanionModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .cyModalOverlay(isPresented: $wrongEntryModal) {
+            .cyModalOverlay(isPresented: wrongEntryModal) {
                 CYModal(
                     title: MerchantCloseCopy.text("核销入口不对", "Wrong Verification Entry", locale),
                     message: MerchantCloseCopy.text("当前二维码属于其他门店或非本场次券码，请切换到对应活动或据点后再试。", "This code belongs to another store or session. Switch to the matching event or spot.", locale),
@@ -490,7 +491,7 @@ struct MerchantOperationsPopupCompanionModifier: ViewModifier {
                     .accessibilityIdentifier(cyAccessibilityID(id: "popupClose.merchantOperations.menu"))
                 }
             }
-            .cyModalOverlay(isPresented: $showTierContactModal) {
+            .cyModalOverlay(isPresented: showTierContactModal) {
                 CYModal(
                     title: MerchantCloseCopy.text("暂未开通该权益", "Feature Not Enabled", locale),
                     message: MerchantCloseCopy.text("请点下方「联系运营开通」获取当前门店的合作分级说明。", "Tap \"Contact Operations\" below to enable this merchant tier.", locale),
@@ -577,7 +578,7 @@ struct MerchantQuickPublishingPopupCompanionModifier: ViewModifier {
                 }
                 .themeDomain(.topicEditor)
             }
-            .cyModalOverlay(isPresented: $showRewardAbandonModal) {
+            .cyModalOverlay(isPresented: showRewardAbandonModal) {
                 CYModal(
                     title: MerchantCloseCopy.text("放弃创建？", "Discard Creation?", locale),
                     message: MerchantCloseCopy.text("已填写的优惠券信息不会保存。", "Entered coupon details will not be saved.", locale),

@@ -146,7 +146,7 @@ import UIKit
                                 multiline: true
                             )
                             Button {
-                                guard PlayPlanFallbackStatus.validatedReason(planFallbackReason) != nil else {
+                                guard (try? PlayPlanFallbackStatus.validatedReason(planFallbackReason)) != nil else {
                                     toastMessage = PlayCloseCopy.text("请填写 1–500 字收尾原因", "Enter 1–500 chars reason", locale)
                                     return
                                 }

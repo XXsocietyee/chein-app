@@ -560,7 +560,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     .cyPushedChrome(domain: .merchant)
             }
         }
-        .cyModalOverlay(isPresented: $loginRequiredModal) {
+        .cyModalOverlay(isPresented: loginRequiredModal) {
             CYModal(
                 title: MerchantCloseCopy.text("请先登录", "Sign In Required", locale),
                 message: MerchantCloseCopy.text("请先登录商家账号后再查看门店数据或发起核销。", "Sign in with a merchant account before viewing store metrics or verifying codes.", locale),

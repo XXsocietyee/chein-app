@@ -19,7 +19,7 @@ final class MemberAreaPopupClosureTests: XCTestCase {
         }
     }
 
-    private let baseConfig = try! APIConfiguration(baseURL: URL(string: "https://example.invalid")!)
+    private let baseConfig = try! APIConfiguration(baseURL: URL(string: "https://8120.example.test/")!)
 
     func testDisableRoamPresencePostsVisibleFalseAndReturnsDisabledOnFalseEcho() async {
         let transport = StubHTTPTransport { request in
