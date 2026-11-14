@@ -8,7 +8,7 @@
   {"key": "im.inbox.emptySystem", "en": "No system notifications yet", "zh-Hans": "还没有系统通知"},
   {"key": "im.inbox.emptySystemHint", "en": "Registration and review notifications will appear here.", "zh-Hans": "报名、审核这些通知会出现在这里"},
   {"key": "im.inbox.emptyGroup", "en": "No group chats yet", "zh-Hans": "还没有群聊"},
-  {"key": "im.inbox.emptySquare", "en": "Find people in Square", "zh-Hans": "去广场找人"},
+  {"key": "im.inbox.emptySquare", "en": "Find people in Discover", "zh-Hans": "去发现找人"},
   {"key": "im.inbox.officialTag", "en": "Official", "zh-Hans": "官方"},
   {"key": "im.inbox.mutedLabel", "en": "Muted", "zh-Hans": "已开启免打扰"},
   {"key": "im.entry.inbox", "en": "Messages", "zh-Hans": "站内消息"},
