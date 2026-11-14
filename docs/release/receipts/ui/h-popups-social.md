@@ -119,3 +119,13 @@ Added `#if DEBUG` previews in [`App/DesignFixtures/PopupsSocialFixtures.swift`](
   - `App/TeamComponents.swift`: `parse=0 debug_parse=0`
   - `App/TeamReportReasonSheet.swift`: `parse=0 debug_parse=0`
   - `App/TopicUnlikeControls.swift`: `parse=0 debug_parse=0`
+
+## Verification (VPS `work`)
+
+Executed on VPS sandbox `work` in `/data/workspace/appcheck-ui-h-popups-social` at commit `94909539c9172559d3b9e2a078e6236d4eb3aa10` (no code or resource changes after this run):
+
+- `python3 tools/check_design_lint.py` (exit `0`): `PASS design lint: scanned 1635 App Swift files outside DesignSystem and Theme; allowlist 29 files (44 existing violations)`
+- `python3 tools/check_a11y.py` (exit `0`): `PASS accessibility lint: 10 scoped screens, helper checked, 2 range views left, 3106 other App views not scanned` (`LEFT ExternalGameCatalogLaunch, CYFloatingTabBarClearance`)
+- `python3 tools/check_scaffold.py` (exit `0`): `missing_keys: 0`, `untranslated_values: 0`, `key_identifier_mismatches: 0`, `gaps: 0`, `Release config check passed`, `PASS privacy manifest`, `PASS appsession ratchet`, `PASS page route table: 262 pages`, `PASS structural checks: 4775 Swift source files, 16620 bilingual keys, references, scheme, read-only expected project equivalence`
+- `python3 tools/check_missing_string_keys.py` (exit `0`): `missing_keys: 0`, `wrong_table: 0`, `incomplete_locales: 0`, `missing: 0`
+- `python3 tools/contract_ratchet.py --check` (exit `0`): `contract ratchet: 186 failing, baseline 186, new 0, fixed 0`
