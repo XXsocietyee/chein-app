@@ -149,9 +149,11 @@ struct IMSafetyCopy {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            .accessibilityLabel(Text(LocalizedStringKey(copy.confirmKey)))
             .accessibilityIdentifier("im.safety.confirm")
             Button("action.cancel", role: .cancel) { close() }
                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                .accessibilityLabel(Text("action.cancel"))
                 .accessibilityIdentifier("im.safety.cancel")
         case .submitting:
             loadingBlock("im.safety.submitting").accessibilityIdentifier("im.safety.submitting")

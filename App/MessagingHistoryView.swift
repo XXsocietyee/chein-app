@@ -503,9 +503,12 @@ private struct MessagingBubble: View {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     Button(role: item == .hide || item == .block ? .destructive : nil) { select(item) } label: {
                         Label(title(item), systemImage: symbol(item))
-                    }.accessibilityIdentifier("im.chat.more.\(identifier(item))")
+                    }
+                    .accessibilityLabel(Text(title(item)))
+                    .accessibilityIdentifier("im.chat.more.\(identifier(item))")
                 }
             } label: { Label("im.chat.more", systemImage: "ellipsis") }
+            .accessibilityLabel(Text("im.chat.more"))
             .accessibilityIdentifier("im.chat.more")
         }
     }

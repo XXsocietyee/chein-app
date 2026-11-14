@@ -407,6 +407,7 @@ public struct ClubChannelMessagingView: View {
                 } label: {
                     Label(copy("举报当前频道", "Report channel"), systemImage: "flag")
                 }
+                .accessibilityLabel(Text(verbatim: copy("举报当前频道", "Report channel")))
                 .accessibilityIdentifier("club.channel.reportChannelButton")
             } label: {
                 Image(systemName: "ellipsis.circle")
@@ -513,6 +514,8 @@ public struct ClubChannelMessagingView: View {
             } label: {
                 Label(copy("举报该频道", "Report channel"), systemImage: "flag")
             }
+            .accessibilityLabel(Text(verbatim: copy("举报该频道", "Report channel")))
+            .accessibilityIdentifier("club.channel.report")
         }
     }
 
@@ -986,12 +989,16 @@ private struct ChannelBurstGroupCard: View {
                                 } label: {
                                     Label(copy("举报该消息", "Report message"), systemImage: "exclamationmark.bubble")
                                 }
+                                .accessibilityLabel(Text(verbatim: copy("举报该消息", "Report message")))
+                                .accessibilityIdentifier("club.channel.message.report")
 
                                 Button(role: .destructive) {
                                     onBlockAuthor(senderID)
                                 } label: {
                                     Label(copy("拉黑该用户", "Block user"), systemImage: "hand.raised.fill")
                                 }
+                                .accessibilityLabel(Text(verbatim: copy("拉黑该用户", "Block user")))
+                                .accessibilityIdentifier("club.channel.message.block")
                             }
 
                             if senderID == viewerMemberID || policy.canModerateMessages {
@@ -1117,6 +1124,8 @@ public struct ClubChannelMemberRosterSheet: View {
                                             }
                                         }
                                         .tint(.orange)
+                                        .accessibilityLabel(Text(verbatim: isBlocked ? copy("取消拉黑", "Unblock") : copy("拉黑", "Block")))
+                                        .accessibilityIdentifier("club.channel.roster.block")
 
                                         Button(copy("举报", "Report")) {
                                             Task {
@@ -1131,6 +1140,8 @@ public struct ClubChannelMemberRosterSheet: View {
                                             }
                                         }
                                         .tint(.yellow)
+                                        .accessibilityLabel(Text(verbatim: copy("举报", "Report")))
+                                        .accessibilityIdentifier("club.channel.roster.report")
 
                                         if policy.canRemoveOrBanMembers {
                                             Button(copy("移除", "Remove"), role: .destructive) {

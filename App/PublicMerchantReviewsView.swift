@@ -94,7 +94,9 @@ import SwiftUI
                                 if item.canReport, let writes, let page = itemPages[item.id] {
                                     NavigationLink("merchant.publicHome.report") {
                                         PublicMerchantReviewEditor(target: target, reportItem: item, page: page, context: writes)
-                                    }.accessibilityIdentifier("merchant.publicHome.report.\(item.id)")
+                                    }
+                                    .accessibilityLabel(Text("merchant.publicHome.report"))
+                                    .accessibilityIdentifier("merchant.publicHome.report.\(item.id)")
                                 }
                                 if let reply = item.merchantReply, !reply.isEmpty {
                                     LabeledContent("merchant.publicHome.reply", value: reply)

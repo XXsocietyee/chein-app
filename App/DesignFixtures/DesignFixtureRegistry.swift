@@ -147,6 +147,7 @@ enum DesignFixtureRegistry {
             // Workshop v2, WP-07, WP-08, and the other screens whose types compile on this base (CurFixtures5).
             if let cur5 = MainActor.assumeIsolated({ CurFixtures5.make(name) }) { return cur5 }
             if name.hasPrefix("cur7-"), let cur7 = Cur7Fixtures.make(name) { return cur7 }
+            if name.hasPrefix("ugc-"), let ugc = UGCSafetyFixtures.make(name) { return ugc }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }

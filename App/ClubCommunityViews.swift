@@ -517,7 +517,10 @@ struct ClubCommunityPostTile: View {
                     if allows(.update(content: post.content, images: post.images, requestID: "display")) { Button("club.community.edit") { editing = true } }
                     if allows(.pin(!post.pinned, requestID: "display")) { Button(post.pinned ? "club.community.unpin" : "club.community.pin") { Task { await model.prepare(.pin(!post.pinned, requestID: UUID().uuidString), clubID: clubID, post: post) } } }
                     if allows(.delete) { Button("club.community.delete", role: .destructive) { Task { await model.prepare(.delete, clubID: clubID, post: post) } } }
-                    if allows(.report) { Button("club.community.report") { Task { await model.prepare(.report, clubID: clubID, post: post) } } }
+                    if allows(.report) {
+                        Button("club.community.report") { Task { await model.prepare(.report, clubID: clubID, post: post) } }
+                            .accessibilityLabel(Text("club.community.report"))
+                    }
                 } label: { Label("club.community.actions", systemImage: "ellipsis") }
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
