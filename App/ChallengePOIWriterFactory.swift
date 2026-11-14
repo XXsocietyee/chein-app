@@ -3,9 +3,11 @@ import Foundation
 import QuestifyCore
 #endif
 
-/// Seam for the POI challenge writer (POST /api/city/nodes/{id}/complete). Production is gated: nothing
-/// is sent and the UI says "Not available yet". Composition may replace `makeWriter` once a write route
-/// and grant are approved.
+/// Seam for the POI challenge writer (POST /api/city/nodes/{id}/complete). Defaults to `GatedChallengePOIWriter`
+/// until root composition installs the live writer backed by the signed-in China session.
 @MainActor enum ChallengePOIWriterFactory {
     static var makeWriter: () -> ChallengePOIWriting = { GatedChallengePOIWriter() }
+
+    /// True once composition replaced the gated writer.
+    static var isLive: Bool { !(makeWriter() is GatedChallengePOIWriter) }
 }
