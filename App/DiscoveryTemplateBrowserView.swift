@@ -46,6 +46,8 @@ struct DiscoveryTemplateBrowserView: View {
         Group {
             if !reader.isConfigured {
                 ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+            } else if tab == .topics {
+                topicPage
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -158,6 +160,121 @@ struct DiscoveryTemplateBrowserView: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
+    private var topicPage: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
+                shelfChrome
+                topicShelf
+                if let rows = topics.value {
+                    if rows.isEmpty {
+                        CYEmptyState(systemImage: "map", "discovery.emptyTopics", actionTitle: "discovery.emptyRefresh") { Task { await loadTopics() } }
+                            .accessibilityIdentifier("discovery.emptyRefresh")
+                    } else {
+                        let filtered = appliedTopicSearch.filter(rows)
+                        if filtered.isEmpty {
+                            CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults")
+                                .accessibilityIdentifier("discovery.topicNameSearch.noResults")
+                        } else {
+                            let matching = filtered.filter { $0.matchesCategory(categoryID) }
+                            let other = filtered.filter { !$0.matchesCategory(categoryID) }
+                            if !matching.isEmpty {
+                                CYSectionHeader(categoryID == nil ? "discovery.recommended" : "discovery.categoryMatches")
+                                ForEach(Array(matching.enumerated()), id: \.offset) { index, item in
+                                    topicCard(item, hero: index == 0)
+                                }
+                            }
+                            if !other.isEmpty {
+                                CYSectionHeader("discovery.otherTemplates", subtitle: "discovery.otherTemplatesHint")
+                                ForEach(Array(other.enumerated()), id: \.offset) { _, item in
+                                    topicCard(item, hero: false)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }.cyDomainPageBackground().refreshable { await reloadCurrent() }
+    }
+
+    private var gamePage: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
+                shelfChrome
+                gameShelf
+                if hasGameFilter {
+                    if games.isLoading { CYSkeleton() }
+                    if let error = games.error {
+                        DiscoveryErrorView(error: error) { Task { await loadGames() } }
+                    }
+                    if let rows = games.value {
+                        if rows.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
+                        else {
+                            CYSectionHeader("discovery.searchResults")
+                            ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
+                                gameCard(item, hero: false)
+                            }
+                        }
+                    }
+                } else {
+                    if home.isLoading { CYSkeleton() }
+                    if let error = home.error {
+                        DiscoveryErrorView(error: error) { Task { await loadHome() } }
+                    }
+                    if let value = home.value {
+                        if value.isEmpty { CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames") }
+                        if !value.banner.isEmpty {
+                            CYSectionHeader("discovery.featured")
+                            ForEach(Array(value.banner.enumerated()), id: \.offset) { index, item in
+                                gameCard(item, hero: index == 0)
+                            }
+                        }
+                        if !value.latest.isEmpty {
+                            CYSectionHeader("discovery.latest")
+                            ForEach(Array(value.latest.enumerated()), id: \.offset) { _, item in
+                                gameCard(item, hero: false)
+                            }
+                        }
+                        if !value.recommended.isEmpty {
+                            CYSectionHeader("discovery.recommended")
+                            ForEach(Array(value.recommended.enumerated()), id: \.offset) { _, item in
+                                gameCard(item, hero: false)
+                            }
+                        }
+                        if !value.mustPlay.isEmpty {
+                            CYSectionHeader("discovery.mustPlay")
+                            ForEach(Array(value.mustPlay.enumerated()), id: \.offset) { _, item in
+                                gameCard(item, hero: false)
+                            }
+                        }
+                        if !value.hot.isEmpty {
+                            CYSectionHeader("discovery.hot")
+                            ForEach(Array(value.hot.enumerated()), id: \.offset) { _, item in
+                                gameCard(item, hero: false)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }.cyDomainPageBackground().refreshable { await reloadCurrent() }
+    }
+
+    @ViewBuilder private var shelfChrome: some View {
+        if templateTabScope == .merchant(canManageProjects: false) {
+            Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+        }
+        Picker("discovery.shelf", selection: $tab) {
+            Text("discovery.topics").tag(Shelf.topics)
+            Text("discovery.games").tag(Shelf.games)
+        }.pickerStyle(.segmented).accessibilityIdentifier("discovery.shelf")
+    }
+
     @ViewBuilder private var topicShelf: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             searchPill("discovery.topicNameSearch", text: $topicKeyword, field: "discovery.topicNameSearch", submitID: "discovery.topicNameSearch.submit", submit: applyTopicSearch)
@@ -191,23 +308,6 @@ struct DiscoveryTemplateBrowserView: View {
         if topics.isLoading {
             if topics.value == nil { CYSkeleton() } else { DiscoveryTemplateSyncingRow(hasLoadedRows: true) }
         }
-        if let rows = topics.value {
-            if rows.isEmpty {
-                CYEmptyState(systemImage: "map", "discovery.emptyTopics", actionTitle: "discovery.emptyRefresh") { Task { await loadTopics() } }
-                    .accessibilityIdentifier("discovery.emptyRefresh")
-            } else {
-                let filtered = appliedTopicSearch.filter(rows)
-                if filtered.isEmpty {
-                    CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults")
-                        .accessibilityIdentifier("discovery.topicNameSearch.noResults")
-                } else {
-                    let matching = filtered.filter { $0.matchesCategory(categoryID) }
-                    let other = filtered.filter { !$0.matchesCategory(categoryID) }
-                    topicSection(categoryID == nil ? "discovery.recommended" : "discovery.categoryMatches", rows: matching, hero: true)
-                    topicSection("discovery.otherTemplates", rows: other, hint: "discovery.otherTemplatesHint")
-                }
-            }
-        }
         // Optional category loading must never replace a successful topic shelf with an error screen.
         if home.error != nil {
             HStack {
@@ -235,82 +335,49 @@ struct DiscoveryTemplateBrowserView: View {
                 }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
             }
         }
-        if hasGameFilter {
-            if games.isLoading { CYSkeleton() }
-            if let error = games.error {
-                DiscoveryErrorView(error: error) { Task { await loadGames() } }
-            }
-            if let rows = games.value {
-                if rows.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
-                else { gameSection("discovery.searchResults", rows: rows) }
-            }
-        } else {
-            if home.isLoading { CYSkeleton() }
-            if let error = home.error {
-                DiscoveryErrorView(error: error) { Task { await loadHome() } }
-            }
-            if let value = home.value {
-                if value.isEmpty { CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames") }
-                gameSection("discovery.featured", rows: value.banner, hero: true)
-                gameSection("discovery.latest", rows: value.latest)
-                gameSection("discovery.recommended", rows: value.recommended)
-                gameSection("discovery.mustPlay", rows: value.mustPlay)
-                gameSection("discovery.hot", rows: value.hot)
-            }
-        }
     }
-    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false) -> some View {
-        if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYSectionHeader(title, subtitle: hint)
-                ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
-                    Button {
-                        guard topicSelection == nil, topics.canOpen(reader: reader),
-                              topics.value?.contains(where: { $0.id == item.id }) == true else { return }
-                        topicSelection = .init(identity: reader.discoveryPresentationIdentity,
-                            coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
-                        topics.cover()
-                    } label: {
-                        if hero && index == 0 {
-                            CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
-                        } else {
-                            HStack(alignment: .top, spacing: CYSpacing.md) {
-                                DiscoveryTopicCoverThumb(urlString: item.imgUrl)
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle)
-                                        .foregroundStyle(palette.textPrimary)
-                                    if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary).lineLimit(2)
-                                    }
-                                    DiscoveryTopicMetadata(item: item)
-                                }
-                                Spacer(minLength: 0)
-                            }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+
+    private func topicCard(_ item: DiscoveryTopicTemplate, hero: Bool) -> some View {
+        Button {
+            guard topicSelection == nil, topics.canOpen(reader: reader),
+                  topics.value?.contains(where: { $0.id == item.id }) == true else { return }
+            topicSelection = .init(identity: reader.discoveryPresentationIdentity,
+                coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
+            topics.cover()
+        } label: {
+            if hero {
+                CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                    .cachingFeedImage()
+            } else {
+                HStack(alignment: .top, spacing: CYSpacing.md) {
+                    DiscoveryTopicCoverThumb(urlString: item.imgUrl)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle)
+                            .foregroundStyle(palette.textPrimary)
+                        if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary).lineLimit(2)
                         }
-                    }.buttonStyle(.plain).allowsHitTesting(topics.canOpen(reader: reader))
-                        .accessibilityIdentifier("discovery.topic.\(item.id)")
-                }
+                        DiscoveryTopicMetadata(item: item)
+                    }
+                    Spacer(minLength: 0)
+                }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
             }
-        }
+        }.buttonStyle(.plain).allowsHitTesting(topics.canOpen(reader: reader))
+            .accessibilityIdentifier("discovery.topic.\(item.id)")
     }
-    @ViewBuilder private func gameSection(_ title: LocalizedStringKey, rows: [DiscoveryPlayTemplate], hero: Bool = false) -> some View {
-        if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYSectionHeader(title)
-                ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
-                    NavigationLink {
-                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
-                    } label: {
-                        if hero && index == 0 {
-                            CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
-                        } else {
-                            DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
-                        }
-                    }.buttonStyle(.plain)
-                    .accessibilityIdentifier("discovery.play.\(item.id)")
-                }
+
+    private func gameCard(_ item: DiscoveryPlayTemplate, hero: Bool) -> some View {
+        NavigationLink {
+            DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
+        } label: {
+            if hero {
+                CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                    .cachingFeedImage()
+            } else {
+                DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
             }
-        }
+        }.buttonStyle(.plain)
+            .accessibilityIdentifier("discovery.play.\(item.id)")
     }
     private func applyTopicSearch() {
         appliedTopicSearch = DiscoveryTopicTemplateNameSearch(topicKeyword)

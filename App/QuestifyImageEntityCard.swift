@@ -11,6 +11,7 @@ struct QuestifyImageEntityCard<Details:View>:View {
     var minimumHeight:CGFloat=340
     var progressiveBlur:ProgressiveBlurParameters?=nil
     var artworkIdentity:QuestifyProgressiveBlurIdentity?=nil
+    var cachesFeedImage = false
     private let details:()->Details
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
@@ -24,6 +25,12 @@ struct QuestifyImageEntityCard<Details:View>:View {
         self.fallbackTitle=fallbackTitle;self.fallbackSymbol=fallbackSymbol
         self.minimumHeight=minimumHeight;self.details=details
         self.progressiveBlur=progressiveBlur;self.artworkIdentity=artworkIdentity
+    }
+
+    func cachingFeedImage(_ enabled: Bool = true) -> Self {
+        var copy = self
+        copy.cachesFeedImage = enabled
+        return copy
     }
 
     var body:some View {
@@ -63,6 +70,9 @@ struct QuestifyImageEntityCard<Details:View>:View {
                                     parameters:progressiveBlur,placeholder:{ placeholder })
                                     .frame(width:geometry.size.width,height:geometry.size.height)
                             } else { placeholder }
+                        } else if cachesFeedImage {
+                            PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { placeholder }, failure: { placeholder })
+                                .frame(width:geometry.size.width,height:geometry.size.height).clipped()
                         } else {
                             AsyncImage(url:url,transaction:Transaction(animation:reduceMotion ? nil : QuestifyMotion.content)) { phase in
                                 if let image=phase.image {

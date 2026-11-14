@@ -153,7 +153,6 @@ import UIKit
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
                     }
-                    .cySectionReveal(order: 7, gate: reveal)
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.top, CYSpacing.lg)
@@ -420,6 +419,11 @@ private struct HomeHeroStatusBarClearance: ViewModifier {
     }
 }
 
+private extension View {
+    /// Outer stack spacing is 24. Stream rows keep the previous 12pt pitch.
+    func homeFeedStreamPitch() -> some View { padding(.bottom, CYSpacing.md - CYSpacing.xxl) }
+}
+
 extension HomeFeedItem {
     var accessibilityKey: String {
         switch id { case .activity(let id): return "activity.\(id)"; case .topic(let id): return "topic.\(id)" }
@@ -440,6 +444,7 @@ struct HomeFeedShelfCard: View {
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
+            .cachingFeedImage()
     }
 }
 
@@ -471,6 +476,7 @@ struct HomeFeedCard: View {
             }
             .accessibilityIdentifier("homeFeed.stream.status")
         }
+        .cachingFeedImage()
     }
     private var priceRow: some View {
         statusRow("homeFeed.status.price") {
@@ -665,9 +671,7 @@ struct HomeTodayCard: View {
         ZStack {
             CYCoverArt(seed: c.title)
             if let url = c.imageURL, url.scheme?.lowercased() == "https" {
-                AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: CYMotion.Duration.standard))) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) } else { Color.clear }
-                }
+                PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { Color.clear }, failure: { Color.clear })
             }
             // Indigo dusk at the top, ink (never pure black) at the foot where the text sits.
             LinearGradient(stops: [.init(color: CYNight.indigo.opacity(0.45), location: 0),

@@ -10,22 +10,17 @@ struct DiscoveryTopicCoverThumb: View {
     var body: some View {
         Group {
             if let url = TemplateBrowserPort.coverURL(urlString) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                            .frame(width: side, height: side)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                            .accessibilityHidden(true)
-                    case .failure:
-                        DiscoveryCoverUnavailable(side: side)
-                    default:
-                        CYCoverArt(seed: url.absoluteString, showsDebugLabel: false, cornerRadius: CYRadius.sm)
-                            .frame(width: side, height: side)
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("discovery.loading"))
-                    }
-                }
+                PlayerFeedRemoteImage(url: url, maxPixel: 256, placeholder: {
+                    CYCoverArt(seed: url.absoluteString, showsDebugLabel: false, cornerRadius: CYRadius.sm)
+                        .frame(width: side, height: side)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("discovery.loading"))
+                }, failure: {
+                    DiscoveryCoverUnavailable(side: side)
+                })
+                .frame(width: side, height: side)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .accessibilityHidden(true)
             } else {
                 DiscoveryCoverUnavailable(side: side)
             }

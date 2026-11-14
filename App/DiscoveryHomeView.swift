@@ -143,6 +143,7 @@ struct DiscoveryHomeView: View {
     @ViewBuilder private func playLabel(_ item: DiscoveryPlayTemplate, hero: Bool) -> some View {
         if hero {
             CYImageCard(title: playTitle(item), meta: playMeta(item), imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                .cachingFeedImage()
         } else if typeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 DiscoveryTopicCoverThumb(urlString: item.imgUrl)
