@@ -363,10 +363,16 @@ struct ClubManagementView: View {
             if let message = receipt.message { serverMessage(message) } else { statusLine("club.management.acknowledged", symbol: "checkmark.circle") }
         case .rejected(let failure):
             if let message = failure.message { serverMessage(message) } else { statusLine("club.management.rejected", symbol: "xmark.circle") }
-        case .outcomeUnknown: statusLine("club.management.unknown", symbol: "questionmark.circle", identifier: "club.management.unknown")
+            if let row = RequestReferenceRow(pathFragment: "/api/club/") { row }
+        case .outcomeUnknown:
+            statusLine("club.management.unknown", symbol: "questionmark.circle", identifier: "club.management.unknown")
+            if let row = RequestReferenceRow(pathFragment: "/api/club/") { row }
         default: EmptyView()
         }
-        if readbackUnavailable { statusLine("club.management.readback_unavailable", symbol: "arrow.triangle.2.circlepath", identifier: "club.management.readbackUnavailable") }
+        if readbackUnavailable {
+            statusLine("club.management.readback_unavailable", symbol: "arrow.triangle.2.circlepath", identifier: "club.management.readbackUnavailable")
+            if let row = RequestReferenceRow(pathFragment: "/api/club/") { row }
+        }
     }
     /// Status copy stays a `Text` so existing UI tests can find the static text by identifier.
     private func statusLine(_ key: LocalizedStringKey, symbol: String, identifier: String? = nil) -> some View {

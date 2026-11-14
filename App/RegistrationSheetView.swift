@@ -99,10 +99,23 @@ struct RegistrationSheetView: View {
                             if flow.durableStatusFailed {
                                 Text("registration.form.statusUnavailable")
                                     .accessibilityIdentifier("registration.recovered.statusUnavailable")
+                                if let row = RequestReferenceRow(pathFragment: "/api/registration/info") { row }
                             }
                             if let snapshot = flow.durableStatus {
                                 Text(LocalizedStringKey(RegistrationUIStatus.registrationKey(snapshot.registrationStatus)))
                             }
+                        }
+                        if case .pending(let regID?) = flow.durableCreation, let snapshot = flow.durableStatus, snapshot.paymentStatus != 2 {
+                            RegistrationPaySection(
+                                registrationID: regID,
+                                payableAmount: flow.selectedTicket?.price,
+                                quote: flow.quoteState.quoteValue,
+                                quoteReceivedAt: flow.currentQuoteReceivedAt,
+                                consented: flow.consented,
+                                requiresFreshQuote: false,
+                                channel: .standard,
+                                onExpiredRebuild: { Task { await flow.requestQuote() } }
+                            )
                         }
                         recoveredOrderSection
                     } else {
@@ -630,6 +643,7 @@ struct RegistrationSheetView: View {
                 case .unavailable(let issue):
                     Text("registration.form.quoteFailed").foregroundStyle(.secondary)
                     RegistrationIssueText(issue: issue)
+                    if let row = RequestReferenceRow(pathFragment: "/api/registration/quote") { row }
                 case .idle, .loading:
                     Text("registration.form.quoteNeeded").foregroundStyle(.secondary)
                 }
@@ -759,6 +773,7 @@ private struct RegistrationOperationSections: View {
             Section("registration.form.outcomeUnknown") {
                 Text("registration.form.outcomeUnknownHint")
                     .accessibilityIdentifier("registration.form.outcomeUnknown")
+                if let row = RequestReferenceRow(pathFragment: "/api/registration/create") { row }
                 Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
                 if let orderReader { RegistrationUncertainOrdersCheck(flow: flow, reader: orderReader) }
             }
@@ -783,6 +798,18 @@ private struct RegistrationOperationSections: View {
                     bizID: MiniProgramAnalytics.bizID(flow.activity.summary.id), pagePath: "/pages/activity/baoming/baoming",
                     properties: properties, idempotencyKey: "signup_submit_registration_\(result.registrationID)")
             }
+            if (result.payableAmount ?? .zero) > .zero || result.hasPaymentParameters {
+                RegistrationPaySection(
+                    registrationID: result.registrationID,
+                    payableAmount: result.payableAmount,
+                    quote: flow.quoteState.quoteValue,
+                    quoteReceivedAt: flow.currentQuoteReceivedAt,
+                    consented: flow.consented,
+                    requiresFreshQuote: flow.quoteState.quoteValue != nil,
+                    channel: .standard,
+                    onExpiredRebuild: { Task { await flow.requestQuote() } }
+                )
+            }
         }
         switch flow.readbackState {
         case .idle: EmptyView()
@@ -791,6 +818,7 @@ private struct RegistrationOperationSections: View {
             Section {
                 Text("registration.form.statusUnavailable")
                 RegistrationIssueText(issue: issue)
+                if let row = RequestReferenceRow(pathFragment: "/api/registration/info") { row }
             }
         case .received(let snapshot):
             Section("registration.form.serverStatus") {

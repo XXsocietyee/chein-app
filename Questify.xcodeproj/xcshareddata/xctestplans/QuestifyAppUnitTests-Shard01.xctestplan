@@ -506,6 +506,7 @@
         "ReviewedChinaLaunchCompositionTests",
         "ReviewedHookWiring2Base",
         "ReviewedHookWiringTests",
+        "Rm02RequestReferenceTests",
         "RoamAlbumDenialHostTests",
         "RoamAlbumIntentLifetimeTests",
         "RoamAlbumMetadataReadAccessTests",

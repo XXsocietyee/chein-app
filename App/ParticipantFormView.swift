@@ -406,6 +406,7 @@ struct ParticipantOperationSections: View {
                 if let message = failure.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text(verbatim: message)
                 } else { Text("participant.form.rejectedHint") }
+                if let row = RequestReferenceRow(pathFragment: "/api/user/") { row }
             }
         case .notSent:
             Section { Text("participant.form.notSent") }
@@ -413,6 +414,7 @@ struct ParticipantOperationSections: View {
             Section("participant.form.unknown") {
                 Text("participant.form.unknownHint")
                 if let actionIssue { ParticipantIssueText(issue: actionIssue).accessibilityIdentifier("participant.recovery.actionIssue") }
+                if let row = RequestReferenceRow(pathFragment: "/api/user/") { row }
                 Button("participant.form.readBack", action: readAgain)
                         .disabled(!canReadAgain || readback == .loading).accessibilityIdentifier("participant.form.readBack")
                 if !canReadAgain { Text("participant.recovery.readUnavailable", tableName: "ProfileParticipantRecovery") }
