@@ -5,7 +5,7 @@ import FoundationNetworking
 #endif
 
 /// WP-09. Each row id is the test name. Synthetic payloads only.
-final class WP09PresetsTeamAfterSaleTests: XCTestCase {
+@MainActor final class WP09PresetsTeamAfterSaleTests: XCTestCase {
     private let testHost = "https://8120.example.test/native/"
     private let china = "https://www.chengyinhub.com/prod-api/"
 
