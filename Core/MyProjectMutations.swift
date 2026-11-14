@@ -86,16 +86,16 @@ public struct GatedMyProjectMutator: MyProjectMutating {
 /// Live HTTP mutator for my-project list actions (`subpackageA/pages/myproject/index.js`).
 /// Canceling an activity triggers automatic refunds on the backend and is gated behind `allowsCancelActivity`.
 public struct MyProjectHTTPMutator: MyProjectMutating {
-    private let configuration: @Sendable () -> APIConfiguration?
+    private let configuration: @Sendable () async -> APIConfiguration?
     private let transport: any HTTPTransport
-    private let tokenProvider: @Sendable () -> String?
-    private let allowsCancelActivity: @Sendable () -> Bool
+    private let tokenProvider: @Sendable () async -> String?
+    private let allowsCancelActivity: @Sendable () async -> Bool
 
     public init(
-        configuration: @escaping @Sendable () -> APIConfiguration?,
+        configuration: @escaping @Sendable () async -> APIConfiguration?,
         transport: any HTTPTransport,
-        tokenProvider: @escaping @Sendable () -> String?,
-        allowsCancelActivity: @escaping @Sendable () -> Bool = { true }
+        tokenProvider: @escaping @Sendable () async -> String?,
+        allowsCancelActivity: @escaping @Sendable () async -> Bool = { true }
     ) {
         self.configuration = configuration
         self.transport = transport
@@ -105,10 +105,10 @@ public struct MyProjectHTTPMutator: MyProjectMutating {
 
     public func perform(_ request: MyProjectMutationRequest) async -> MyProjectMutationOutcome {
         let relativePath = request.path.hasPrefix("/") ? String(request.path.dropFirst()) : request.path
-        if relativePath == "api/activity/cancel", !allowsCancelActivity() {
+        if relativePath == "api/activity/cancel", !(await allowsCancelActivity()) {
             return .unavailable
         }
-        guard let config = configuration(), let rawToken = tokenProvider() else {
+        guard let config = await configuration(), let rawToken = await tokenProvider() else {
             return .unavailable
         }
         let token = rawToken.trimmingCharacters(in: .whitespacesAndNewlines)

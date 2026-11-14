@@ -50,16 +50,16 @@ public struct ChallengePOIHTTPWriter: ChallengePOIWriting {
         "缺少定位",
     ]
 
-    private let configuration: @Sendable () -> APIConfiguration?
+    private let configuration: @Sendable () async -> APIConfiguration?
     private let transport: any HTTPTransport
-    private let tokenProvider: @Sendable () -> String?
-    private let isRouteOpen: @Sendable () -> Bool
+    private let tokenProvider: @Sendable () async -> String?
+    private let isRouteOpen: @Sendable () async -> Bool
 
     public init(
-        configuration: @escaping @Sendable () -> APIConfiguration?,
+        configuration: @escaping @Sendable () async -> APIConfiguration?,
         transport: any HTTPTransport,
-        tokenProvider: @escaping @Sendable () -> String?,
-        isRouteOpen: @escaping @Sendable () -> Bool = { true }
+        tokenProvider: @escaping @Sendable () async -> String?,
+        isRouteOpen: @escaping @Sendable () async -> Bool = { true }
     ) {
         self.configuration = configuration
         self.transport = transport
@@ -68,7 +68,7 @@ public struct ChallengePOIHTTPWriter: ChallengePOIWriting {
     }
 
     public func complete(_ request: ChallengePOICompleteRequest) async -> ChallengePOIWriteOutcome {
-        guard isRouteOpen(), let config = configuration(), let rawToken = tokenProvider() else {
+        guard await isRouteOpen(), let config = await configuration(), let rawToken = await tokenProvider() else {
             return .unavailable
         }
         let token = rawToken.trimmingCharacters(in: .whitespacesAndNewlines)

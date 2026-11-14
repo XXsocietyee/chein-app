@@ -107,27 +107,27 @@ extension AppSession: OrientScoreEntryProviding {
     static func installSweepWriters(for session: AppSession) {
         ChallengePOIWriterFactory.makeWriter = {
             ChallengePOIHTTPWriter(
-                configuration: { session.regionalConfiguration?.apiConfiguration },
+                configuration: { await MainActor.run { session.regionalConfiguration?.apiConfiguration } },
                 transport: session.runtimeHTTPTransport,
-                tokenProvider: { session.token },
-                isRouteOpen: {
+                tokenProvider: { await MainActor.run { session.token } },
+                isRouteOpen: { await MainActor.run {
                     session.isSignedIn
                         && session.regionalConfiguration?.market == .china
                         && (session.account?.role == "player" || session.account?.role == "club")
                         && session.regionalConfiguration?.showsRoute("/api/city/nodes/{}/complete") == true
-                }
+                } }
             )
         }
         MyProjectMutationFactory.makeMutator = {
             MyProjectHTTPMutator(
-                configuration: { session.regionalConfiguration?.apiConfiguration },
+                configuration: { await MainActor.run { session.regionalConfiguration?.apiConfiguration } },
                 transport: session.runtimeHTTPTransport,
-                tokenProvider: { session.token },
-                allowsCancelActivity: {
+                tokenProvider: { await MainActor.run { session.token } },
+                allowsCancelActivity: { await MainActor.run {
                     let host = session.regionalConfiguration?.apiConfiguration?.baseURL.host
                     return ReviewedAreaSwitch.moneyPayments(apiHost: host)
                         && !ReleaseMoneyWriteSwitch.blocks("/api/activity/cancel")
-                }
+                } }
             )
         }
     }
