@@ -14,7 +14,7 @@ struct SourceLineageSection: View {
                 .font(CYTypography.bodyCompact)
                 .accessibilityIdentifier("sourceLineage.identity")
             labeled(W8Text.t("继续当前版本", "Continue the current version"),
-                    facts.continueCurrent ? (continued ? W8Text.t("继续使用这一版", "Staying on this version") : W8Text.t("可以继续", "Available") : WP09Copy.unknown)
+                    facts.continueCurrent ? (continued ? W8Text.t("继续使用这一版", "Staying on this version") : W8Text.t("可以继续", "Available")) : WP09Copy.unknown)
             labeled(W8Text.t("查看新版差异", "View the new-version diff"), WP09Copy.unknown)
             labeled(W8Text.t("另存新草稿", "Save as a new draft"), WP09Copy.unknown)
             if facts.continueCurrent {
