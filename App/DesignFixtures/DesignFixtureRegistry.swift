@@ -137,6 +137,8 @@ enum DesignFixtureRegistry {
             // G1 / G7-G8 / parity-b player views on a synthetic transport (GParityFixtures): g-<view>[-<non-happy state>]
             if let g = MainActor.assumeIsolated({ GParityFixtures.make(name) }) { return g }
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
+            // parity-a, G6, mount-g45, be-gap and external-game screens (CurFixtures2): cur2-<view>[-<non-happy state>]
+            if let cur2 = MainActor.assumeIsolated({ CurFixtures2.make(name) }) { return cur2 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
