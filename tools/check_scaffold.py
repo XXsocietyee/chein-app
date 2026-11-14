@@ -275,6 +275,8 @@ if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_privacy_manifest.py
     raise SystemExit('Privacy manifest check failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_design_lint.py')]).returncode!=0:
     raise SystemExit('Design lint failed')
+if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_log_redaction.py')]).returncode!=0:
+    raise SystemExit('Log redaction check failed')
 for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),):
     if subprocess.run([sys.executable,'-B',str(ROOT/'tools'/gate)]).returncode!=0:
         raise SystemExit(label+' failed')
