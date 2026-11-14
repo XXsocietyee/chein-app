@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 @MainActor struct PlayKitSensorChallengeView: View {
     let kind: PlayKitScreenKind
@@ -11,6 +14,7 @@ import SwiftUI
     let currentRevisionIdentity: (() -> String)?
     @State private var stage: PlayKitSensorStageModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(kind: PlayKitScreenKind, segment: PlayWireValue, enabled: Bool, active: Bool,
@@ -37,6 +41,10 @@ import SwiftUI
             if let error = stage.issue {
                 CYStatusChip(LocalizedStringKey("playkit.sensor.error." + error.rawValue), tone: .danger, systemImage: "exclamationmark.triangle")
                     .accessibilityIdentifier("playkit.sensor.issue")
+                if error == .permissionDenied, let settingsURL = Self.settingsURL {
+                    CYPillButton("playkit.media.openSettings", style: .secondary, systemImage: "gear") { openURL(settingsURL) }
+                        .accessibilityIdentifier("playkit.sensor.openSettings")
+                }
             }
             sensorBoard
             Text(LocalizedStringKey("playkit.sensor.phase." + stage.phase.rawValue))
@@ -181,6 +189,13 @@ import SwiftUI
         }
     }
     private func decimal(_ number: Double) -> String { String(format: "%.1f", number) }
+    private static var settingsURL: URL? {
+        #if canImport(UIKit)
+        URL(string: UIApplication.openSettingsURLString)
+        #else
+        nil
+        #endif
+    }
 }
 
 /// Sensor values remain local and ephemeral. Review receives only the established

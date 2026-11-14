@@ -89,7 +89,15 @@ public struct PostGameRunReport: Equatable, Sendable {
         } else {
             items = nil
         }
-        let elapsed = PostGameJSON.int(object["elapsedSeconds"]).flatMap { $0 >= 0 ? $0 : nil }
+        let startedAt = PostGameJSON.date(object["startedAt"])
+        let completedAt = PostGameJSON.date(object["completedAt"])
+        let closeAt = completedAt ?? PostGameJSON.date(object["endedAt"])
+        let explicitElapsed = PostGameJSON.int(object["elapsedSeconds"]).flatMap { $0 >= 0 ? $0 : nil }
+        let elapsed: Int? = explicitElapsed ?? {
+            guard let startedAt, let closeAt else { return nil }
+            let seconds = Int(closeAt.timeIntervalSince(startedAt).rounded())
+            return (1...(7 * 24 * 3600)).contains(seconds) ? seconds : nil
+        }()
         return PostGameRunReport(
             completion: PostGameJSON.string(object["completionKind"]).flatMap(PostGameCompletion.init(rawValue:))
                 ?? PostGameJSON.string(object["runState"]).flatMap(PostGameCompletion.init(rawValue:)),
@@ -97,7 +105,7 @@ public struct PostGameRunReport: Equatable, Sendable {
             legacyScope: PostGameJSON.string(object["scopeKind"]) != "RUN",
             runID: PostGameJSON.id(object["runId"]), topicID: PostGameJSON.id(object["topicId"]),
             activityID: PostGameJSON.id(object["activityId"]),
-            completedAt: PostGameJSON.date(object["completedAt"]),
+            completedAt: closeAt,
             completedNodes: PostGameJSON.int(object["completedNodes"]).flatMap { $0 >= 0 ? $0 : nil },
             totalNodes: total, elapsedSeconds: elapsed, elapsedSource: PostGameJSON.string(object["elapsedSource"]),
             score: scored, penalties: penalties, rank: ranked,

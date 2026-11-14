@@ -118,6 +118,11 @@ import FoundationNetworking
         XCTAssertEqual(PlayPausedRecord.reconcile(local: local, remote: .init(record: remote)), remote)
         XCTAssertNil(PlayPausedRecord.reconcile(local: local, remote: .init(endedAt: 100)))
         XCTAssertEqual(PlayPausedRecord.reconcile(local: local, remote: nil), local)
+        XCTAssertEqual(PlayRunElapsedText.format(59), "00:59")
+        XCTAssertEqual(PlayRunElapsedText.format(3599), "59:59")
+        XCTAssertEqual(PlayRunElapsedText.format(3600), "1:00:00")
+        XCTAssertEqual(PlayRunElapsedText.format(118 * 60 + 41), "1:58:41")
+        XCTAssertEqual(PlayRunElapsedText.format(-4), "00:00")
         XCTAssertThrowsError(try PlayPausedRecord(elapsedSeconds: 604801, savedAt: 100))
         XCTAssertThrowsError(try JSONDecoder().decode(PlayPausedRecord.self, from: Data(#"{"elapsedSeconds":-1,"savedAt":20}"#.utf8)))
     }
@@ -125,6 +130,13 @@ import FoundationNetworking
         var clock = PlayRunClock(); try clock.start(monotonicNow: 10)
         let paused = try clock.pause(monotonicNow: 20, savedAt: 100); XCTAssertEqual(paused.elapsedSeconds, 10)
         try clock.start(monotonicNow: 1000); XCTAssertEqual(clock.elapsed(monotonicNow: 1001), 11)
+    }
+    func testPackSkipHonorsPlayingStateAnd300msGuard() {
+        let start = Date(timeIntervalSince1970: 100)
+        XCTAssertFalse(PlayPackSkipPolicy.canSkip(isPlaying: false, isOpen: false, startedAt: start, now: start.addingTimeInterval(1)))
+        XCTAssertFalse(PlayPackSkipPolicy.canSkip(isPlaying: true, isOpen: true, startedAt: start, now: start.addingTimeInterval(1)))
+        XCTAssertFalse(PlayPackSkipPolicy.canSkip(isPlaying: true, isOpen: false, startedAt: start, now: start.addingTimeInterval(0.299)))
+        XCTAssertTrue(PlayPackSkipPolicy.canSkip(isPlaying: true, isOpen: false, startedAt: start, now: start.addingTimeInterval(0.300)))
     }
     func testRunStorageSeparatesAccountNamespaceAndActivityTopic() throws {
         let a = PlayRunStorageKey.make(session: try session(), scope: .activity(41))

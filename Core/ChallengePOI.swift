@@ -38,6 +38,7 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
     public let options: [String]
     public let completed: Bool
     public let medal: ChallengePOIMedal?
+    public let coverUrl: String
 
     public init(
         id: Int,
@@ -51,7 +52,8 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
         question: String = "",
         options: [String] = [],
         completed: Bool = false,
-        medal: ChallengePOIMedal? = nil
+        medal: ChallengePOIMedal? = nil,
+        coverUrl: String = ""
     ) {
         self.id = id
         self.name = name
@@ -65,6 +67,7 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
         self.options = options
         self.completed = completed
         self.medal = medal
+        self.coverUrl = coverUrl
     }
 
     public static func decode(from raw: PlayWireValue, fallbackNodeId: Int) throws -> ChallengePOINode {
@@ -83,6 +86,10 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
             item.text ?? item["label"].text ?? item["text"].text
         }
         let completed = raw["completed"].bool == true || raw["done"].bool == true
+        let coverUrl = ["coverImg", "coverUrl", "imgUrl", "iconUrl", "img", "cover"]
+            .lazy
+            .compactMap { raw[$0].text?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first { !$0.isEmpty } ?? ""
         let medalRaw = raw["medal"]
         let medal: ChallengePOIMedal?
         if medalRaw.object != nil, let mName = medalRaw["name"].text ?? medalRaw["title"].text, !mName.isEmpty {
@@ -107,7 +114,8 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
             question: question,
             options: options,
             completed: completed,
-            medal: medal
+            medal: medal,
+            coverUrl: coverUrl
         )
     }
 }

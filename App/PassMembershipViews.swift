@@ -450,6 +450,7 @@ struct PassRevealPaidFacts: Hashable {
     @State private var route: MPParityRoute?
     @State private var timeline: Task<Void, Never>?
     @State private var skipVisible = false
+    @GestureState private var pressingSkip = false
 
     /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
     private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
@@ -468,7 +469,7 @@ struct PassRevealPaidFacts: Hashable {
         .toolbar {
             if full && skipVisible && step < 8 {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("mp.reveal.skip") { finish(); go() }.accessibilityIdentifier("passReveal.skip")
+                    Button("mp.reveal.skip") { finish() }.accessibilityIdentifier("passReveal.skip")
                 }
             }
         }
@@ -498,6 +499,8 @@ struct PassRevealPaidFacts: Hashable {
                     .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
             }
             .frame(height: 320)
+            .contentShape(Rectangle())
+            .onTapGesture { if full, step < 8 { finish() } }
             .accessibilityHidden(true)
             Spacer()
             VStack(spacing: CYSpacing.md) {
@@ -507,12 +510,21 @@ struct PassRevealPaidFacts: Hashable {
                 CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
                     .accessibilityIdentifier("passReveal.start")
                     .revealIn(step >= 8, reduceMotion: reduceMotion)
+                    .allowsHitTesting(step >= 8)
                     .padding(.top, CYSpacing.sm)
             }
-            .padding(.horizontal, CYSpacing.xxl)
-            .padding(.bottom, CYSpacing.xxl)
-            .accessibilityElement(children: .contain)
+        .padding(.horizontal, CYSpacing.xxl)
+        .padding(.bottom, CYSpacing.xxl)
+        .accessibilityElement(children: .contain)
         }
+        .opacity(pressingSkip && full && step < 8 && !reduceMotion ? 0.8 : 1)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .updating($pressingSkip) { _, state, _ in
+                    if full, step < 8, !reduceMotion { state = true }
+                }
+        )
+        .simultaneousGesture(TapGesture().onEnded { if full, step < 8 { finish() } })
         .background(alignment: .bottom) {
             LinearGradient(colors: [.clear, CYNight.ember.opacity(0.28), CYNight.lantern.opacity(0.18)], startPoint: .top, endPoint: .bottom)
                 .frame(height: 420)

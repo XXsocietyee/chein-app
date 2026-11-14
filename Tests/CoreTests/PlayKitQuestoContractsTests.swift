@@ -92,6 +92,30 @@ final class PlayKitQuestoContractsTests: XCTestCase {
         XCTAssertEqual(PlayKitPublishedWrites.accusationDetail(optionID: "a"), ["optionId": .string("a")])
     }
 
+    func testHangmanStationTextAndDuplicateOptionLetter() throws {
+        let blank = PlayKitHangmanProjection(segment: try wire(#"{"title":"  ","solved":false,"feedback":"hidden"}"#))
+        XCTAssertEqual(blank.feedback, "")
+        XCTAssertEqual(blank.stationTitle(question: " 一只猫 ", placeName: "站名"), "一只猫")
+        XCTAssertEqual(blank.stationFeedback(passText: "过了"), "")
+        let titled = PlayKitHangmanProjection(segment: try wire(#"{"title":"题面","solved":true,"feedback":" 服务端 "}"#))
+        XCTAssertEqual(titled.stationTitle(question: "题干", placeName: "站名"), "题面")
+        XCTAssertEqual(titled.stationFeedback(passText: "站点"), "服务端")
+        let fallback = PlayKitHangmanProjection(segment: try wire(#"{"solved":true}"#))
+        XCTAssertEqual(fallback.stationTitle(question: "", placeName: " 钟楼 "), "钟楼")
+        XCTAssertEqual(fallback.stationFeedback(passText: " 解开了 "), "解开了")
+        XCTAssertEqual(PlayKitImageOption.stripDuplicateKey("A 许禾自述", key: "A"), "许禾自述")
+        XCTAssertEqual(PlayKitImageOption.stripDuplicateKey("（a）许禾", key: "A"), "许禾")
+        XCTAssertEqual(PlayKitImageOption.stripDuplicateKey("A. 许禾", key: "A"), "许禾")
+        XCTAssertEqual(PlayKitImageOption.stripDuplicateKey("B 许禾", key: "A"), "B 许禾")
+        XCTAssertEqual(PlayKitImageOption.stripDuplicateKey("A", key: "A"), "A")
+        XCTAssertEqual(PlayKitImageOption.stripDuplicateKey("5 第五", key: "5"), "5 第五")
+        let pictures = try XCTUnwrap(PlayKitImageOption.read(try wire(#"""
+        {"options":[{"id":"1","label":"A 许禾","img":"https://cdn.example/a.jpg"},{"id":"2","t":"乙"}]}
+        """#)))
+        XCTAssertEqual(pictures.map(\.label), ["许禾", "乙"])
+        XCTAssertEqual(pictures.map(\.key), ["A", "B"])
+    }
+
     func testClosingThePlayKitSheetKeepsTheAdvancedPanel() {
         let open = AdvancedPlayKitPresentation(advancedOpen: true, playKitOpen: true)
         XCTAssertEqual(open.closingPlayKitSheet(), AdvancedPlayKitPresentation(advancedOpen: true, playKitOpen: false))

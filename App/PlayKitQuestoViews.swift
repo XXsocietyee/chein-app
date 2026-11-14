@@ -12,6 +12,10 @@ typealias PlayKitAccusationWrite = (String) -> Void
 @MainActor struct PlayKitHangmanView: View {
     let projection: PlayKitHangmanProjection
     var enabled = true
+    /// Station question and place name fill an empty kit title. Pass text fills empty solved feedback.
+    var stationQuestion: String? = nil
+    var stationName: String? = nil
+    var stationPassText: String? = nil
     var submit: PlayKitHangmanWrite? = nil
     var close: (() -> Void)? = nil
     @State private var text = ""
@@ -30,9 +34,10 @@ typealias PlayKitAccusationWrite = (String) -> Void
     var body: some View {
         VStack(spacing: CYSpacing.xxl) {
             Spacer(minLength: CYSpacing.xxl)
-            if !projection.title.isEmpty {
-                Text(verbatim: projection.title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            if !shownTitle.isEmpty {
+                Text(verbatim: shownTitle).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("playkit.hangman.title")
             }
             board
             if !projection.solved && wholeWord {
@@ -74,6 +79,11 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 Text(verbatim: projection.display.isEmpty ? "—" : projection.display)
                     .font(CYTypography.cardTitle).foregroundStyle(CYNight.verify)
                     .accessibilityIdentifier("playkit.hangman.display")
+                if !shownFeedback.isEmpty {
+                    Text(verbatim: shownFeedback).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("playkit.hangman.feedback")
+                }
             }
             Spacer(minLength: CYSpacing.xxl)
             if unavailable {
@@ -92,6 +102,9 @@ typealias PlayKitAccusationWrite = (String) -> Void
         }
         .cyDomainScreen(.game)
     }
+
+    private var shownTitle: String { projection.stationTitle(question: stationQuestion, placeName: stationName) }
+    private var shownFeedback: String { projection.stationFeedback(passText: stationPassText) }
 
     private var wrongLine: some View {
         Group {

@@ -75,5 +75,16 @@ import XCTest
         XCTAssertFalse(c.unknownSubmission)
         XCTAssertNotEqual(c.state, .done)
     }
+
+    func testNodeDecodesCoverUrlFallback() throws {
+        let withCover = try ChallengePOINode.decode(from: .object([
+            "id": .integer(7),
+            "name": .string("Tower"),
+            "coverImg": .string("https://cdn.example/cover.jpg")
+        ]), fallbackNodeId: 7)
+        XCTAssertEqual(withCover.coverUrl, "https://cdn.example/cover.jpg")
+        let noCover = try ChallengePOINode.decode(from: .object(["id": .integer(8), "name": .string("Park")]), fallbackNodeId: 8)
+        XCTAssertEqual(noCover.coverUrl, "")
+    }
 }
 #endif

@@ -527,7 +527,7 @@ import SwiftUI
                 CYGlassCapsule {
                     HStack(spacing: CYSpacing.sm) {
                         Image(systemName: "timer").accessibilityHidden(true)
-                        Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
+                        Text(verbatim: PlayRunElapsedText.format(seconds))
                             .font(CYTypography.dataXL).monospacedDigit().cyWrapText()
                             .accessibilityAddTraits(.updatesFrequently)
                             .accessibilityIdentifier("playx.run.clock")
@@ -642,7 +642,7 @@ import SwiftUI
     }
     private static func finishClockText(_ seconds: Int) -> String? {
         guard seconds > 0 else { return nil }
-        return String(format: "%d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60)
+        return PlayRunElapsedText.format(seconds)
     }
     private func projectAmbient() {
         guard let result = model.snapshot?.result else { return }
@@ -919,7 +919,8 @@ import SwiftUI
                 if let advanced, node.hasAdvancedPrerequisite {
                     NavigationLink("playx.advanced") {
                         PlayInteractionBoundContent(context: model.interactionContext) { advancedContext in
-                            PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval) { state in
+                            PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
+                                              stationQuestion: node.question, stationName: node.name, stationPassText: node.passText) { state in
                                 try? model.acceptAdvanced(state, context: advancedContext)
                             }
                         }

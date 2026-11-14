@@ -58,6 +58,22 @@ final class PostGameReportTests: XCTestCase {
         XCTAssertTrue(unqualified.inProgress)
     }
 
+    func testReportTimingDerivesElapsedAndFallsBackToEndedAt() throws {
+        let derived = try XCTUnwrap(PostGameRunReport.decode(data(#"""
+        {"runState":"COMPLETED","completionKind":"LEGITIMATE_COMPLETION","scopeKind":"RUN",
+         "startedAt":"2026-11-14 10:00:00","endedAt":"2026-11-14 10:05:30"}
+        """#)))
+        XCTAssertEqual(derived.elapsedSeconds, 330)
+        XCTAssertEqual(derived.elapsedText, "05:30")
+        XCTAssertEqual(derived.dateText, "2026.11.14")
+
+        let overWeek = try XCTUnwrap(PostGameRunReport.decode(data(#"""
+        {"runState":"ENDED","completionKind":"ENDED","scopeKind":"RUN",
+         "startedAt":"2026-11-01 10:00:00","completedAt":"2026-11-14 10:00:00"}
+        """#)))
+        XCTAssertNil(overWeek.elapsedSeconds)
+    }
+
     func testFinishResultOnlyClearsFromServerFacts() {
         XCTAssertEqual(PostGameFinishResult.resolve(report: .loaded(.legitimate), topicCompleted: false, allDone: true, chapterDone: true), .cleared)
         XCTAssertEqual(PostGameFinishResult.resolve(report: .loaded(.assisted), topicCompleted: true, allDone: true, chapterDone: true), .assisted)
