@@ -6,8 +6,8 @@ enum ThemeDomain: String, CaseIterable {
 
     var colorScheme: ColorScheme {
         switch self {
-        case .player, .dark: return .dark
-        case .merchant, .topicEditor, .game: return .light
+        case .player, .dark, .game: return .dark
+        case .merchant, .topicEditor: return .light
         }
     }
 }

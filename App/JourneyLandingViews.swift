@@ -682,7 +682,7 @@ private struct JourneyInviteSheet: View {
         }
         .padding(CYSpacing.pageHorizontal)
         .presentationDetents([.medium])
-        .presentationBackground(CYNight.ink0)
+        .cyPlayerSheetGlass()
     }
 }
 

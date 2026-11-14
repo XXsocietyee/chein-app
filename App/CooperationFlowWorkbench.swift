@@ -14,7 +14,7 @@ import SwiftUI
             }
             if operationScope == "MERCHANT", let officialRecruitmentDestination {
                 Section {
-                    NavigationLink { officialRecruitmentDestination(reader) } label: {
+                    NavigationLink { officialRecruitmentDestination(reader).cyPushedChrome(domain: .merchant) } label: {
                         Label("merchant.officialRecruitment.title", systemImage: "flag.checkered")
                     }.accessibilityIdentifier("merchant.officialRecruitment.open")
                 }
@@ -35,7 +35,7 @@ import SwiftUI
                 // 添加常备权益 is hidden: its review screen ends at a submit that is not wired in the app.
             }
             Section("coopflow.workflows") {
-                NavigationLink { CoopFlowNewInvitationView(reader: reader, operationScope: operationScope) } label: { Label("context.coop.new", systemImage: "person.crop.circle.badge.plus") }
+                NavigationLink { CoopFlowNewInvitationView(reader: reader, operationScope: operationScope).cyPushedChrome(domain: .merchant) } label: { Label("context.coop.new", systemImage: "person.crop.circle.badge.plus") }
                     .accessibilityIdentifier("context.coop.new")
                 link("coopflow.invitations", resource: .invitations)
                 link("coopflow.pool", resource: .pool)
@@ -45,12 +45,16 @@ import SwiftUI
                 link("coopflow.complaints", resource: .complaintTopics)
             }
         }.navigationTitle("coopflow.title").accessibilityIdentifier("coopflow.workbench")
+            .cyDomainScreen(.merchant)
     }
     private func link(_ key: String, resource: CoopFlowRead) -> some View {
         NavigationLink {
-            if resource == .relations { CoopRelationDiscoveryEntry(reader: reader) }
-            else if resource == .finance { CoopFinanceProfitView(reader: reader) }
-            else { CoopFlowReadView(reader: reader, resource: resource, title: key) }
+            Group {
+                if resource == .relations { CoopRelationDiscoveryEntry(reader: reader) }
+                else if resource == .finance { CoopFinanceProfitView(reader: reader) }
+                else { CoopFlowReadView(reader: reader, resource: resource, title: key) }
+            }
+            .cyPushedChrome(domain: .merchant)
         } label: { Text(LocalizedStringKey(key)) }.accessibilityIdentifier("coopflow.route.\(key)")
     }
 }
@@ -59,8 +63,11 @@ import SwiftUI
     @Environment(\.cooperationNearbyDestination) private var nearbyDestination
     let reader: any CoopFlowReading
     var body: some View {
-        if let nearbyDestination { nearbyDestination() }
-        else { gate }
+        Group {
+            if let nearbyDestination { nearbyDestination() }
+            else { gate }
+        }
+        .cyPushedChrome(domain: .merchant)
     }
     private var gate: some View {
         List {

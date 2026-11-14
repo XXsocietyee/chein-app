@@ -188,13 +188,13 @@ struct QuestifyRoundAction: View {
 extension View {
     /// Pins the screen's single primary action above the home indicator.
     func questifyBottomAction<Action: View>(@ViewBuilder _ action: () -> Action) -> some View {
-        safeAreaInset(edge: .bottom) {
-            action()
-                .buttonStyle(.questifyPrimary)
-                .controlSize(.large)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, Theme.Space.pageX)
-                .padding(.vertical, Theme.Space.s2)
+        safeAreaInset(edge: .bottom, spacing: 0) {
+            CYFooterBar {
+                action()
+                    .buttonStyle(.questifyPrimary)
+                    .controlSize(.large)
+                    .frame(maxWidth: .infinity)
+            }
         }
     }
 }

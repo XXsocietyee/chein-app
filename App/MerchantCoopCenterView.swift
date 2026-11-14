@@ -160,6 +160,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
             }
         }
         .navigationTitle(mcc("merchantCoopCenter.title", locale))
+        .cyDomainScreen(.merchant)
         .toolbar {
             if inboxDestination != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -169,7 +170,10 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                 }
             }
         }
-        .sheet(isPresented: $showsInbox) { inboxDestination?({ showsInbox = false }) }
+        .sheet(isPresented: $showsInbox) {
+            inboxDestination?({ showsInbox = false })
+                .cyPlayerSheetGlass()
+        }
         .task { model.start() }
     }
 

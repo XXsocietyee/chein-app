@@ -17,7 +17,7 @@ import UIKit
             ClubDirectLedgerSection(scope: .merchant(topicID: nil))
         }
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver"))
         .refreshable { await load() }
         .task { await load() }

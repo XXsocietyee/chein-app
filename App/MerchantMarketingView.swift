@@ -14,11 +14,14 @@ import SwiftUI
                 MerchantMarketingView(model: model, recommendationOrigin: suggestionDestination == nil ? nil : recommendationOrigin,
                     onSuggestion: { route in onSuggestion(route); selectedSuggestion = route })
                     .navigationDestination(item: $selectedSuggestion) { route in
-                        if case .recommendation(let target) = route, target.origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
-                        else if case .cooperationSettings(let origin) = route, origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
-                        else if case .cooperationCenter(let origin) = route, origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
-                        else if let suggestionDestination { suggestionDestination(route) }
-                        else { AnyView(Text("merchantMarketing.unavailable")) }
+                        Group {
+                            if case .recommendation(let target) = route, target.origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
+                            else if case .cooperationSettings(let origin) = route, origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
+                            else if case .cooperationCenter(let origin) = route, origin != recommendationOrigin { AnyView(Text("merchantMarketing.stale")) }
+                            else if let suggestionDestination { suggestionDestination(route) }
+                            else { AnyView(Text("merchantMarketing.unavailable")) }
+                        }
+                        .cyPushedChrome(domain: .merchant)
                     }
             } label: { Label("merchantMarketing.dashboard", systemImage: "chart.bar.xaxis") }
             .accessibilityIdentifier("merchantMarketing.entry")

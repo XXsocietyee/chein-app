@@ -113,26 +113,54 @@ struct CYDomainTabBarStyle: ViewModifier {
     }
 }
 
+/// Preference key so pushed destinations inside any root tab hide custom floating tab bar chrome
+/// alongside SwiftUI's `.toolbar(.hidden, for: .tabBar)`.
+struct CYTabBarHiddenPreferenceKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
+private struct CYTabBarHiddenEnvironmentKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var cyTabBarHidden: Bool {
+        get { self[CYTabBarHiddenEnvironmentKey.self] }
+        set { self[CYTabBarHiddenEnvironmentKey.self] = newValue }
+    }
+}
+
 extension View {
     /// Apply once on the root `TabView` of a role (`.player` or `.merchant`).
     func cyDomainTabBar(_ domain: ThemeDomain) -> some View {
         modifier(CYDomainTabBarStyle(domain: domain))
     }
+
+    /// Hide both the system tab bar and the floating player pill overlay on pushed routes.
+    func cyHideTabBar(_ hidden: Bool = true) -> some View {
+        toolbar(hidden ? .hidden : .visible, for: .tabBar)
+            .preference(key: CYTabBarHiddenPreferenceKey.self, value: hidden)
+            .environment(\.cyTabBarHidden, hidden)
+    }
 }
 
 #if canImport(UIKit)
-/// UIKit appearance for the parts SwiftUI cannot style: unselected items at 45% label colour
-/// (`.tabbar__icon { opacity: .45 }`). Call once at launch (for example from the App initialiser).
+/// UIKit appearance for the parts SwiftUI cannot style: unselected items at 60% label colour
+/// (`Theme.MiniProgramChrome.tabUnselectedOpacity`). Call once at launch (for example from the App initialiser).
 @MainActor
 enum CYTabBarAppearance {
     static func install() {
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
 
+        let unselectedOpacity = Theme.MiniProgramChrome.tabUnselectedOpacity
         let unselected = UIColor { traits in
             traits.userInterfaceStyle == .dark
-                ? UIColor(white: 1, alpha: 0.45)
-                : UIColor(white: 0, alpha: 0.45)
+                ? UIColor(white: 1, alpha: unselectedOpacity)
+                : UIColor(white: 0, alpha: unselectedOpacity)
         }
         let layouts: [UITabBarItemAppearance] = [
             appearance.stackedLayoutAppearance,

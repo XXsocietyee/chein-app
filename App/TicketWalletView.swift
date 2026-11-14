@@ -108,7 +108,10 @@ import SwiftUI
                 }
                 if reader.isAuthenticated, let makeTeamCoordinator {
                     Section {
-                        NavigationLink { TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator) } label: {
+                        NavigationLink {
+                            TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator)
+                                .cyPushedChrome(domain: .player)
+                        } label: {
                             Label("team.title", systemImage: "person.3")
                         }
                         .accessibilityIdentifier("ticketWallet.teams")
@@ -147,6 +150,7 @@ import SwiftUI
             .onChange(of: pendingOrderProvider?.owner) { _, _ in replacePresentation() }
             .navigationDestination(item: $carouselTicketID) { id in
                 TicketWalletDetailView(id: id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
+                    .cyPushedChrome(domain: .player)
             }
             .navigationDestination(item: $pendingOrderEntry.target) { target in
                 if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
@@ -154,6 +158,7 @@ import SwiftUI
                    pendingOrderEntry.matches(target, snapshot: snapshot, reader: reader, provider: provider),
                    let destination = provider.destination(target: target, reader: reader) {
                     destination.id(provider.owner)
+                        .cyPushedChrome(domain: .player)
                 }
             }
             .refreshable {

@@ -34,12 +34,16 @@ import SwiftUI
                     }.pickerStyle(.segmented).accessibilityIdentifier("cooperation.direction")
                     NavigationLink {
                         CooperationPoolView(reader: reader)
+                            .cyPushedChrome(domain: .merchant)
                     } label: {
                         CYListRow("cooperation.pool.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
                     }
                     .accessibilityIdentifier("cooperation.pool.open")
                     if let peerReader, listPage.showsNewInvite {
-                        NavigationLink { CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope) } label: {
+                        NavigationLink {
+                            CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope)
+                                .cyPushedChrome(domain: .merchant)
+                        } label: {
                             CYListRow("cooperation.list.newInvite", trailing: .none) { CYRowIcon(systemImage: "plus.circle") }
                         }
                         .accessibilityIdentifier("cooperation.list.newInvite")
@@ -71,6 +75,7 @@ import SwiftUI
                     .background(CYColor.bgPage)
             }
             .cyHeroScreen()
+            .cyDomainScreen(.merchant)
             .onChange(of: reader.scope) { _, _ in topicFilter = nil }
             .onChange(of: ObjectIdentifier(reader)) { _, _ in topicFilter = nil }
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }

@@ -1,0 +1,216 @@
+"""Static contract checks for Step 3 (ui/h-chrome-v1): per-screen domain switching, tab bar visibility, back nav split, pinned footer bars, and player sheet glass."""
+from pathlib import Path
+import re
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def read_swift(rel_path: str) -> str:
+    return (ROOT / rel_path).read_text(encoding="utf-8")
+
+
+def strip_swift_comments(src: str) -> str:
+    no_block = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
+    return re.sub(r"//.*", "", no_block)
+
+
+class TestGlobalChromeDomainContract(unittest.TestCase):
+    def test_game_domain_uses_dark_play_stage_and_game_tokens(self):
+        theme = read_swift("App/Theme/Theme.swift")
+        self.assertRegex(
+            theme,
+            r"case [^:]*\.game[^:]*:\s*return \.dark",
+            "Play runtime (.game) must resolve to dark colorScheme, not system/merchant light.",
+        )
+
+        palette = read_swift("App/DesignSystem/CYDomainPalette.swift")
+        self.assertIn("private var surfaceDomain: ThemeDomain { domain == .game ? .player : domain }", palette)
+        self.assertNotIn("0x0F172B", palette)
+        self.assertNotIn("0x0F172A", palette)
+
+        for rel in (
+            "App/PlayExperienceView.swift",
+            "App/PlaySessionView.swift",
+            "App/PlayRouteMapView.swift",
+            "App/PlayKitTimedChallengeView.swift",
+            "App/PlayKitSensorChallengeView.swift",
+            "App/CityOnsiteTaskView.swift",
+            "App/CityNeutralTaskView.swift",
+            "App/OrientScoreView.swift",
+            "App/PlayKitScreen.swift",
+        ):
+            src = read_swift(rel)
+            self.assertRegex(
+                src,
+                r"cyDomainScreen\(\.game\)|cyPushedChrome\(domain: \.game\)",
+                f"{rel} must bind Play Runtime to the .game domain.",
+            )
+            self.assertNotIn(".themeDomain(.player)", src)
+
+    def test_merchant_and_coop_screens_use_merchant_light_domain_not_player_dark(self):
+        for rel in (
+            "App/MerchantHomeView.swift",
+            "App/MerchantProjectsView.swift",
+            "App/CooperationBrowserView.swift",
+            "App/CooperationFlowWorkbench.swift",
+            "App/CooperationInviteDetailView.swift",
+            "App/CoopFinanceProfitView.swift",
+            "App/CoopSettlementDetailView.swift",
+            "App/MerchantCoopCenterView.swift",
+            "App/MerchantBusinessViews.swift",
+            "App/MerchantOrdersView.swift",
+            "App/MerchantPayoutAccountView.swift",
+            "App/MerchantCityNodeHubView.swift",
+            "App/MerchantCityNodeCreateView.swift",
+            "App/MerchantLedgerSettlementOverview.swift",
+            "App/MerchantOnboardingView.swift",
+            "App/CouponManagementView.swift",
+            "App/PublicMerchantHomeView.swift",
+            "App/CityNodeRedeemView.swift",
+        ):
+            src = read_swift(rel)
+            self.assertRegex(
+                src,
+                r"\.(?:cyDomainScreen|themeDomain)\(\.merchant\b|\.cyPushedChrome\([^)]*domain:\s*\.merchant\b",
+                f"{rel} must explicitly apply the .merchant light domain.",
+            )
+            self.assertNotRegex(
+                src,
+                r"\.themeDomain\(\.player\)",
+                f"{rel} must not override merchant/coop surfaces with .player dark domain.",
+            )
+
+        # MerchantOperationsViews, MerchantEngagementViews, and MerchantContentEditor are hash-pinned by
+        # submission import contracts; MerchantHomeView wraps all three pushed destinations in `.cyPushedChrome(domain: .merchant)`.
+        merchant_home = read_swift("App/MerchantHomeView.swift")
+        self.assertRegex(
+            merchant_home,
+            r"MerchantOperationsHomeView\([\s\S]*?\.cyPushedChrome\(domain: \.merchant\)",
+        )
+        self.assertRegex(
+            merchant_home,
+            r"MerchantEngagementHomeView\([\s\S]*?\.cyPushedChrome\(domain: \.merchant\)",
+        )
+        self.assertRegex(
+            merchant_home,
+            r"MerchantContentHomeView\([\s\S]*?\.cyPushedChrome\(domain: \.merchant\)",
+        )
+
+    def test_creator_studio_and_topic_editor_use_topic_editor_domain(self):
+        # PublishingModesViews is hash-pinned by activity publishing wizard contracts;
+        # SessionPublishingModesView wraps it with `.cyPushedChrome(domain: .topicEditor)`.
+        for rel in (
+            "App/ProjectEditView.swift",
+            "App/SessionPublishingModesView.swift",
+            "App/TemplateAuthoringView.swift",
+            "App/StoryRuleEditorView.swift",
+            "App/CreatorContentViews.swift",
+        ):
+            src = read_swift(rel)
+            self.assertRegex(
+                src,
+                r"\.(?:cyDomainScreen|themeDomain)\(\.topicEditor\b|\.cyPushedChrome\([^)]*domain:\s*\.topicEditor\b",
+                f"{rel} must explicitly apply the .topicEditor light domain.",
+            )
+
+    def test_tab_bar_uses_hidden_preference_and_miniprogram_opacity(self):
+        tab_bar = read_swift("App/DesignSystem/CYDomainTabBar.swift")
+        self.assertIn("Theme.MiniProgramChrome.tabUnselectedOpacity", tab_bar)
+        self.assertIn("struct CYTabBarHiddenPreferenceKey", tab_bar)
+        self.assertIn("func cyHideTabBar", tab_bar)
+
+        night_bar = read_swift("App/DesignSystem/CYNightTabBar.swift")
+        self.assertIn("@Environment(\\.cyTabBarHidden) private var isTabBarHidden", night_bar)
+        self.assertIn("if !isTabBarHidden {", night_bar)
+        self.assertIn("isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height", night_bar)
+
+        app_root = read_swift("App/QuestifyApp.swift")
+        self.assertIn("CYTabBarHiddenPreferenceKey.self", app_root)
+        self.assertIn("isTabBarHidden", app_root)
+        self.assertNotIn(".tint(QuestifyPalette.accent)", app_root)
+
+        home_search = read_swift("App/HomeSearchTabParityViews.swift")
+        self.assertNotIn("QuestifyPalette.accent", home_search)
+
+    def test_screen_chrome_respects_nested_domain_and_hero_vs_bare_back(self):
+        screen_style = read_swift("App/DesignSystem/CYScreenStyle.swift")
+        self.assertIn("effectiveDomain", screen_style)
+        self.assertIn("traitCollection.userInterfaceStyle", screen_style)
+        self.assertIn("struct CYBareBackButton", screen_style)
+        self.assertIn("struct CYHeroBackButton", screen_style)
+        self.assertIn("func cyHeroPushedChrome", screen_style)
+        self.assertIn("func cyPushedChrome", screen_style)
+        self.assertIn("struct CYFooterBar", screen_style)
+
+        # Full-bleed hero pushed chrome belongs ONLY on full-bleed hero cover views.
+        for rel in ("App/ActivityDetailView.swift", "App/ClubDetailView.swift"):
+            self.assertIn("cyHeroPushedChrome", read_swift(rel))
+
+        # Standard L2+ non-hero pushed detail views must not wrap back chevrons in glass hero pills.
+        for rel in ("App/OfficialEventDetailView.swift", "App/DiscoveryTemplateDetailView.swift", "App/ProfileEditView.swift"):
+            src = read_swift(rel)
+            self.assertIn("cyPushedChrome", src)
+            self.assertNotIn("cyHeroPushedChrome", src)
+
+    def test_pinned_footer_bars_use_cy_footer_bar(self):
+        for rel in (
+            "App/ActivityDetailView.swift",
+            "App/TopicXcxSections.swift",
+            "App/RegistrationSheetView.swift",
+            "App/OrderLifecycleView.swift",
+            "App/ParticipantFormView.swift",
+            "App/InvoiceLaunchApplyView.swift",
+            "App/InvoiceLaunchTitleEditor.swift",
+            "App/ProfileEditView.swift",
+            "App/ProjectEditView.swift",
+            "App/MerchantCityNodeCreateView.swift",
+            "App/SquareDetailView.swift",
+            "App/QuestifyMotionComponents.swift",
+        ):
+            self.assertIn("CYFooterBar", read_swift(rel), f"{rel} must use CYFooterBar for its pinned footer action bar.")
+
+    def test_sheets_use_player_sheet_glass_and_no_cynight_chrome(self):
+        role_theme = read_swift("App/Theme/RoleTheme.swift")
+        self.assertIn("func cyPlayerSheetGlass()", role_theme)
+        self.assertIn("CYRadius.sheet", role_theme)
+        self.assertIn(".sheetGlass", role_theme)
+
+        confirm_sheet = read_swift("App/DesignSystem/CYConfirmSheet.swift")
+        self.assertIn("CYColor.sheetGlass", confirm_sheet)
+        self.assertIn("CYRadius.sheet", confirm_sheet)
+        self.assertNotIn("CYNight", strip_swift_comments(confirm_sheet))
+
+        for rel in (
+            "App/DesignSystem/CYAnchoredMenu.swift",
+            "App/DesignSystem/CYSquareShareSheet.swift",
+            "App/DesignSystem/CYSquareActivityPicker.swift",
+            "App/DesignSystem/CYSquarePostDraftsSheet.swift",
+            "App/DesignSystem/CYMapChrome.swift",
+            "App/MemberReportProgressDetailView.swift",
+        ):
+            self.assertNotIn(
+                "CYNight.",
+                strip_swift_comments(read_swift(rel)),
+                f"{rel} must not use CYNight colors on chrome or sheets.",
+            )
+
+        for rel in (
+            "App/QuestifyApp.swift",
+            "App/AccountView.swift",
+            "App/ActivityDetailView.swift",
+            "App/TopicDetailView.swift",
+            "App/RegistrationSheetView.swift",
+            "App/TicketPassSheet.swift",
+            "App/CatalogShareCardView.swift",
+            "App/SettingsView.swift",
+            "App/ContextualReviewComposer.swift",
+            "App/JourneyLandingViews.swift",
+            "App/PlayStoreDayMerchantView.swift",
+            "App/BundleDetailView.swift",
+        ):
+            self.assertIn("cyPlayerSheetGlass", read_swift(rel), f"{rel} must apply cyPlayerSheetGlass() on sheets.")
+
+
+if __name__ == "__main__":
+    unittest.main()

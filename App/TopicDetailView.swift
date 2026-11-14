@@ -37,17 +37,22 @@ struct TopicDetailView: View {
         }
         .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .cyPushedChrome(domain: .player)
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
+                .cyPlayerSheetGlass()
         }
         .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false }
         .sheet(isPresented: $showingSelfPlay) {
-            if let detail {
-                if let selfPlayDestination { selfPlayDestination(detail) }
-                else { TopicSelfPlayUnavailableSheet(topic: detail) }
+            Group {
+                if let detail {
+                    if let selfPlayDestination { selfPlayDestination(detail) }
+                    else { TopicSelfPlayUnavailableSheet(topic: detail) }
+                }
             }
+            .cyPlayerSheetGlass()
         }
     }
     private func content(_ value: TopicDetail) -> some View {
@@ -258,8 +263,14 @@ struct TopicDetailView: View {
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
+                .cyPlayerSheetGlass()
         }
-        .sheet(isPresented: $showsPricing) { if let pricingDestination { NavigationStack { pricingDestination(value.id) } } }
+        .sheet(isPresented: $showsPricing) {
+            if let pricingDestination {
+                NavigationStack { pricingDestination(value.id) }
+                    .cyPlayerSheetGlass()
+            }
+        }
         .accessibilityIdentifier("topic.detail.content")
         }
     }

@@ -43,7 +43,7 @@ import SwiftUI
                     }
                     .padding(CYSpacing.lg)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("report.detail.head")
                     .listRowInsets(gutter)

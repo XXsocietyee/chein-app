@@ -37,14 +37,14 @@ struct CYSquarePostDraftsSheet: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark").font(CYTypography.label.weight(.semibold))
                         .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
-                        .background(Circle().fill(CYNight.glassFill))
+                        .background(Circle().fill(CYColor.actionSecondary))
                 }
                 .buttonStyle(.cyPressable)
                 .accessibilityLabel(Text("drafts.close", tableName: "SocialParity"))
                 .accessibilityIdentifier("square.drafts.close")
             }
             .padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.lg).padding(.bottom, CYSpacing.md)
-            Divider().overlay(CYNight.glassEdgeBottom)
+            Divider().overlay(CYColor.borderSubtle)
             ScrollView {
                 Group {
                     if loading {
@@ -73,9 +73,9 @@ struct CYSquarePostDraftsSheet: View {
             }
         }
         .safeAreaInset(edge: .bottom) { if undoID != nil { undoBar } }
-        .background(CYNight.ink2.ignoresSafeArea())
+        .background(CYDomainPalette(.player).sheetGlass.ignoresSafeArea())
         .presentationDetents([.large])
-        .presentationBackground(CYNight.ink2)
+        .cyPlayerSheetGlass()
         .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: visible)
         .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: undoID)
         .onDisappear { commitPending() }
@@ -117,12 +117,12 @@ struct CYSquarePostDraftsSheet: View {
             .accessibilityIdentifier("square.drafts.delete.\(row.id)")
         }
         .padding(.vertical, CYSpacing.md)
-        .overlay(alignment: .bottom) { Divider().overlay(CYNight.glassEdgeBottom) }
+        .overlay(alignment: .bottom) { Divider().overlay(CYColor.borderSubtle) }
     }
 
     private var skeletonRow: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            Circle().fill(CYNight.ink1).frame(width: 40, height: 40)
+            Circle().fill(CYColor.sheetCard).frame(width: 40, height: 40)
             CYSkeleton()
         }
     }
@@ -132,14 +132,14 @@ struct CYSquarePostDraftsSheet: View {
             Text("drafts.deleted", tableName: "SocialParity").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
             Spacer()
             Button { undoTask?.cancel(); undoTask = nil; undoID = nil } label: {
-                Text("drafts.undo", tableName: "SocialParity").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYNight.lantern)
+                Text("drafts.undo", tableName: "SocialParity").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.brand)
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             }
             .buttonStyle(.cyPressable)
             .accessibilityIdentifier("square.drafts.undo")
         }
         .padding(.horizontal, CYSpacing.lg)
-        .background(Capsule().fill(CYNight.ink1).overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1)))
+        .background(Capsule().fill(CYColor.sheetCard).overlay(Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1)))
         .padding(CYSpacing.lg)
         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
     }

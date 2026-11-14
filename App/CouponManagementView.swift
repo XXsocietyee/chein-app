@@ -76,13 +76,16 @@ import SwiftUI
         }
         .merchantM02Page()
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .navigationTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false
             if isSourceVisible, sessionKey != nil { await model.core.load(); model.revision += 1 }
         }
-        .sheet(isPresented: $creating) { NavigationStack { CouponManagementEditor(model: model) } }
+        .sheet(isPresented: $creating) {
+            NavigationStack { CouponManagementEditor(model: model) }
+                .cyPlayerSheetGlass()
+        }
         .onChange(of: sessionKey) { _, _ in creating = false; model.synchronize() }
         .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }
     }
