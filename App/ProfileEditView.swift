@@ -608,17 +608,16 @@ struct ProfileEditView: View {
     private var editorNavigation: some View {
         editorForm
         .cyGroupedSurface()
-        .themeDomain(.player)
+        .cyPushedChrome(domain: .player)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
-                CYPillButton("profile.edit.review") { Task { await model.prepare() } }
-                    .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
-                              || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
-                    .accessibilityIdentifier("profile.edit.review")
-                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
-                    .frame(maxWidth: .infinity)
-                    .background(.bar)
-                    .sensoryFeedback(.selection, trigger: model.confirmation?.id)
+                CYFooterBar {
+                    CYPillButton("profile.edit.review") { Task { await model.prepare() } }
+                        .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
+                                  || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
+                        .accessibilityIdentifier("profile.edit.review")
+                        .sensoryFeedback(.selection, trigger: model.confirmation?.id)
+                }
             }
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
@@ -717,6 +716,7 @@ struct ProfileEditView: View {
                     }
                 }.appNavigationTitle("profile.edit.reviewTitle")
             }.interactiveDismissDisabled(model.busy)
+            .cyPlayerSheetGlass()
         }
     }
     private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {

@@ -20,6 +20,7 @@ import QuestifyCore
             }
         }
         .padding()
+        .cyDomainScreen(.topicEditor)
     }
 
     @ViewBuilder
@@ -440,7 +441,7 @@ enum StoryAnswerFeedback: Equatable {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(station.name)
                     .font(CYTypography.label)
-                    .foregroundStyle(selected ? CYColor.accentText : CYColor.textPrimary)
+                    .foregroundStyle(selected ? CYColor.brand : CYColor.textPrimary)
                 if !station.roleName.isEmpty {
                     Text(station.roleName)
                         .font(CYTypography.meta)
@@ -450,7 +451,7 @@ enum StoryAnswerFeedback: Equatable {
             .padding(.horizontal, CYSpacing.md)
             .padding(.vertical, CYSpacing.sm)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(selected ? CYColor.accentSoft : CYColor.bgSurfaceSubtle,
+            .background(selected ? CYColor.brandSoft : CYColor.bgSurfaceSubtle,
                         in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
             .contentShape(Rectangle())
         }
@@ -541,7 +542,7 @@ enum StoryAnswerFeedback: Equatable {
                 } label: {
                     HStack(spacing: CYSpacing.md) {
                         Image(systemName: selected ? "largecircle.fill.circle" : "circle")
-                            .foregroundStyle(selected ? CYColor.accentText : CYColor.textTertiary)
+                            .foregroundStyle(selected ? CYColor.brand : CYColor.textTertiary)
                             .accessibilityHidden(true)
                         Text("\(opt.key). \(opt.label)")
                             .font(CYTypography.bodyCompact)
@@ -597,6 +598,7 @@ enum StoryAnswerFeedback: Equatable {
     return ScrollView {
         StoryParticipationView(coordinator: model, onJoinTap: {}, onSubmitNodeAnswer: { _ in }, joinBlocked: true)
             .padding()
+        .cyDomainScreen(.topicEditor)
     }
     .background(CYColor.bgPage)
 }

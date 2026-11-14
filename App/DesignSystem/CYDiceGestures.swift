@@ -99,7 +99,7 @@ struct CYHoldToRollButton: View {
         let shape = RoundedRectangle(cornerRadius: look?.buttonRadius ?? CYRadius.pill, style: .continuous)
         ZStack(alignment: .leading) {
             shape.fill(colors?.ink.swiftUIColor ?? CYColor.textPrimary)
-            shape.fill((colors?.a.swiftUIColor ?? CYColor.accent).opacity(0.85))
+            shape.fill((colors?.a.swiftUIColor ?? CYColor.brand).opacity(0.85))
                 .scaleEffect(x: max(charge, 0.0001), y: 1, anchor: .leading)
                 .clipShape(shape)
             HStack(spacing: CYSpacing.sm) {

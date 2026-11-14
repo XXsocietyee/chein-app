@@ -339,6 +339,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         NavigationLink {
                             MerchantOrdersView(reader: reader)
                                 .onDisappear(perform: onChildReturn)
+                                .cyPushedChrome(domain: .merchant)
                         } label: { Label("merchant.orders", systemImage: "receipt") }
                             .accessibilityIdentifier("merchant.orders.entry")
                     }
@@ -346,6 +347,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         NavigationLink {
                             MerchantProjectsView(reader: reader, contentService: contentService)
                                 .onDisappear(perform: onChildReturn)
+                                .cyPushedChrome(domain: .merchant)
                         } label: { Label("merchant.projects", systemImage: "calendar") }
                             .accessibilityIdentifier("merchant.projects.entry")
                     }
@@ -356,7 +358,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             // Source "更多" sheet plus the remaining tools, as one native group. A section with no visible rows renders nothing.
             if access.allows(.finance) {
                 Section {
-                    NavigationLink { MerchantPayoutAccountView() } label: {
+                    NavigationLink {
+                        MerchantPayoutAccountView()
+                            .cyPushedChrome(domain: .merchant)
+                    } label: {
                         Label {
                             Text(verbatim: ChannelCopy.text("收款账户", "Payout account", locale: Locale.current))
                         } icon: { Image(systemName: "building.columns") }
@@ -378,6 +383,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: businessReader, journal: businessJournal))
                             .id(businessReader.scope)
                             .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.business.title", systemImage: "building.2.crop.circle") }
                         .accessibilityIdentifier("merchant.business.open")
                 }
@@ -391,6 +397,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink {
                         merchantAuthoringDestination()
                             .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
                     } label: { Label { Text("orphanMount.merchantAuthoring.entry", tableName: "OrphanMounts") } icon: { Image(systemName: "sparkles.rectangle.stack") } }
                     .accessibilityIdentifier("merchant.authoring.open")
                 }
@@ -402,6 +409,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             })
                             .id(operationsReader.scope)
                             .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
                     .accessibilityIdentifier("merchant.operations.open")
                 }
@@ -411,6 +419,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             exportRecovery: exportRecovery, businessReader: businessReader)
                             .id(engagementReader.scope)
                             .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
                     .accessibilityIdentifier("merchant.engagement.open")
                 }
@@ -426,6 +435,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         .environment(\.merchantChapterReplacementContext, chapterReplacementContext(access: access))
                         .id(contentService.scope)
                         .onDisappear(perform: onChildReturn)
+                        .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.content.title", systemImage: "map") }
                         .accessibilityIdentifier("merchant.content.open")
                 }
@@ -433,6 +443,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink {
                         coopCenterDestination(.plaza, nil)
                             .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
                     } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
                         .accessibilityIdentifier("merchant.coopCenter.open")
                 }
@@ -440,6 +451,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink {
                         CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT")
                             .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
                         .accessibilityIdentifier("merchant.cooperationFlows.open")
                 }
@@ -473,39 +485,47 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(CYSpacing.xxl)
         .navigationDestination(item: $quickRoute) { route in
-            if let businessReader, let businessJournal,
-               route.isCurrent(reader: businessReader, journal: businessJournal) {
-                // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
-                if route.shortcut == .finance {
-                    MerchantLedgerSettlementOverview(reader: route.reader)
+            Group {
+                if let businessReader, let businessJournal,
+                   route.isCurrent(reader: businessReader, journal: businessJournal) {
+                    // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
+                    if route.shortcut == .finance {
+                        MerchantLedgerSettlementOverview(reader: route.reader)
+                            .onDisappear(perform: onChildReturn)
+                    } else {
+                        MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                        .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                        .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
+                        .id(route)
                         .onDisappear(perform: onChildReturn)
+                    }
                 } else {
-                    MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
-                    .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
-                    .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
-                    .id(route)
-                    .onDisappear(perform: onChildReturn)
+                    Text("merchant.business.stale")
                 }
-            } else {
-                Text("merchant.business.stale")
             }
+            .cyPushedChrome(domain: .merchant)
         }
         .navigationDestination(isPresented: $showsScan) {
             if let nativeVerificationDestination {
-                nativeVerificationDestination().onDisappear(perform: onChildReturn)
+                nativeVerificationDestination()
+                    .onDisappear(perform: onChildReturn)
+                    .cyPushedChrome(domain: .merchant)
             }
         }
         .navigationDestination(for: MerchantWorkbenchBusinessRoute.self) { route in
-            if let businessReader, let businessJournal,
-               route.isCurrent(reader: businessReader, journal: businessJournal) {
-                MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
-                    .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
-                    .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
-                    .id(route)
-                    .onDisappear(perform: onChildReturn)
-            } else {
-                Text("merchant.business.stale")
+            Group {
+                if let businessReader, let businessJournal,
+                   route.isCurrent(reader: businessReader, journal: businessJournal) {
+                    MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)
+                        .environment(\.merchantAftercareEvidenceDependencies, aftercareEvidenceDependencies(journal: route.journal))
+                        .environment(\.merchantCustomerQueryDestination, customerQueryDestination(source: route.reader, journal: route.journal))
+                        .id(route)
+                        .onDisappear(perform: onChildReturn)
+                } else {
+                    Text("merchant.business.stale")
+                }
             }
+            .cyPushedChrome(domain: .merchant)
         }
         .refreshable {
             await refreshAccess()

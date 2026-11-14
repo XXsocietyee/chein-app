@@ -12,7 +12,7 @@ struct HomeCityLocationConsentCard: View {
             Label {
                 Text("homeCityConsent.title").font(CYTypography.cardTitle)
             } icon: {
-                Image(systemName: "location.circle").foregroundStyle(CYColor.accent)
+                Image(systemName: "location.circle").foregroundStyle(CYColor.brand)
             }
             .foregroundStyle(CYColor.textPrimary)
             Text("homeCityConsent.body")

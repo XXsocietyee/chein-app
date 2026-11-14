@@ -1,13 +1,91 @@
 import SwiftUI
 
-/// Mini-program `tpl-chips` (L2 category chips): one horizontally scrolling row, first chip is the
-/// unfiltered "recommended" choice, selected chip is solid + heavier weight (two cues, not colour alone).
-/// Presentation only: the caller owns the selection binding.
+/// Standalone filter chip (`32pt` capsule pill inside `44pt` hit box; unselected `bgElevated`,
+/// selected `actionPrimaryBg` + `actionPrimaryFg`, zero outer border).
+public struct CYFilterChip: View {
+    private let titleKey: LocalizedStringKey?
+    private let verbatim: String?
+    private let systemImage: String?
+    private let count: Int?
+    private let isSelected: Bool
+    private let action: () -> Void
+
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    public init(
+        _ titleKey: LocalizedStringKey,
+        systemImage: String? = nil,
+        count: Int? = nil,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) {
+        self.titleKey = titleKey
+        self.verbatim = nil
+        self.systemImage = systemImage
+        self.count = count
+        self.isSelected = isSelected
+        self.action = action
+    }
+
+    public init(
+        verbatim title: String,
+        systemImage: String? = nil,
+        count: Int? = nil,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) {
+        self.titleKey = nil
+        self.verbatim = title
+        self.systemImage = systemImage
+        self.count = count
+        self.isSelected = isSelected
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            HStack(spacing: CYSpacing.xs) {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(CYTypography.caption.weight(.semibold))
+                }
+                if let verbatim {
+                    Text(verbatim: verbatim)
+                } else if let titleKey {
+                    Text(titleKey)
+                }
+                if let count {
+                    Text(verbatim: "\(count)")
+                        .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(isSelected ? palette.actionPrimaryFg.opacity(0.85) : palette.textTertiary)
+                }
+            }
+            .font(isSelected ? CYTypography.label.weight(.semibold) : CYTypography.label)
+            .foregroundStyle(isSelected ? palette.actionPrimaryFg : palette.textSecondary)
+            .padding(.horizontal, CYSpacing.lg)
+            .frame(minHeight: Theme.length("--cy-btn-h-sm"))
+            .background(
+                Capsule(style: .continuous)
+                    .fill(isSelected ? palette.actionPrimaryBg : palette.bgElevated)
+            )
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: isSelected)
+    }
+}
+
+/// Horizontal scrollable category/filter chip rail (`32pt` capsule pills, right fade scrim,
+/// selected chip uses solid `actionPrimaryBg` + heavier weight; no perimeter border).
 public struct CYChipRow<Item: Identifiable>: View where Item.ID == Int {
     private let allTitle: LocalizedStringKey
     private let items: [Item]
     private let name: (Item) -> String
     @Binding private var selection: Int?
+    @Environment(\.cyPalette) private var palette
 
     public init(allTitle: LocalizedStringKey, items: [Item], selection: Binding<Int?>, name: @escaping (Item) -> String) {
         self.allTitle = allTitle
@@ -19,28 +97,27 @@ public struct CYChipRow<Item: Identifiable>: View where Item.ID == Int {
     public var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: CYSpacing.sm) {
-                chip(isSelected: selection == nil) { selection = nil } label: { Text(allTitle) }
+                CYFilterChip(allTitle, isSelected: selection == nil) {
+                    selection = nil
+                }
                 ForEach(items) { item in
-                    chip(isSelected: selection == item.id) { selection = item.id } label: { Text(verbatim: name(item)) }
+                    CYFilterChip(verbatim: name(item), isSelected: selection == item.id) {
+                        selection = item.id
+                    }
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.xs)
         }
-    }
-
-    private func chip<Label: View>(isSelected: Bool, action: @escaping () -> Void, @ViewBuilder label: () -> Label) -> some View {
-        Button(action: action) {
-            label()
-                .font(isSelected ? CYTypography.label.weight(.semibold) : CYTypography.label)
-                .foregroundStyle(isSelected ? CYColor.textInverse : CYColor.textPrimary)
-                .padding(.horizontal, CYSpacing.lg)
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .background(isSelected ? CYColor.textPrimary : Color.clear, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(CYColor.borderStrong, lineWidth: isSelected ? 0 : 1))
+        .overlay(alignment: .trailing) {
+            LinearGradient(
+                colors: [palette.bgPage.opacity(0), palette.bgPage],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: 24)
+            .allowsHitTesting(false)
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

@@ -175,7 +175,7 @@ import SwiftUI
             if segment["openFrom"].text != nil || segment["openTo"].text != nil {
                 Text("playkitLegacy.window.range \(clock(segment["openFrom"].text)) \(clock(segment["openTo"].text))")
                     .font(CYTypography.bodyMedium).monospacedDigit()
-                    .foregroundStyle(CYColor.accentText)
+                    .foregroundStyle(CYColor.brand)
                     .accessibilityIdentifier("nativePlatform.reminder.range")
             }
             if let window = stage?.window, !window.openNow {

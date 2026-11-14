@@ -209,11 +209,14 @@ struct RoamBrowserView: View {
                 recoveryEntry.setForeground(phase == .active, reader: experienceReader, hasDestination: liveDestination != nil)
             }
             .navigationDestination(item: $recoveryEntry.target) { target in
-                if recoveryEntry.matches(target, reader: experienceReader, hasDestination: liveDestination != nil), let liveDestination {
-                    liveDestination()
-                } else {
-                    CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed")
+                Group {
+                    if recoveryEntry.matches(target, reader: experienceReader, hasDestination: liveDestination != nil), let liveDestination {
+                        liveDestination()
+                    } else {
+                        CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed")
+                    }
                 }
+                .cyPushedChrome()
             }
             .appNavigationTitle("roam.title")
             .navigationBarTitleDisplayMode(.inline)
@@ -238,6 +241,7 @@ struct RoamBrowserView: View {
             .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
             .sheet(item: $selected) { item in
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDetailDestination(for: item), playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
+                    .cyPlayerSheetGlass()
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -245,14 +249,17 @@ struct RoamBrowserView: View {
                 }
             }
             .navigationDestination(item: $toolbarRoute) { route in
-                switch route {
-                case .experience:
-                    if let experienceReader {
-                        RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination)
+                Group {
+                    switch route {
+                    case .experience:
+                        if let experienceReader {
+                            RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination)
+                        }
+                    case .city: cityDestination?()
+                    case .nearbyTeams: nearbyTeamsDestination?()
                     }
-                case .city: cityDestination?()
-                case .nearbyTeams: nearbyTeamsDestination?()
                 }
+                .cyPushedChrome()
             }
         }
         // Hosts the stamp slam (a stamp made in the pushed camera, or in the item sheet, which re-hosts the overlay).
@@ -450,16 +457,16 @@ struct RoamBrowserView: View {
                 }, floating: {
                     // Mini-program layout: rules (info) · GO · open map. Three floating controls, no more.
                     HStack(spacing: CYSpacing.xxl) {
-                        NavigationLink { RoamPreflightRulesView() } label: { CYGlassLabel(systemImage: "info") }
+                        NavigationLink { RoamPreflightRulesView().cyPushedChrome() } label: { CYGlassLabel(systemImage: "info") }
                             .buttonStyle(.plain).accessibilityLabel(Text("roam.preflightRules.availability"))
                             .accessibilityIdentifier("roam.rules")
-                        NavigationLink { startDestination() } label: { CYGoLabel() }
+                        NavigationLink { startDestination().cyPushedChrome() } label: { CYGoLabel() }
                             .buttonStyle(CYGoPressStyle())
                             .accessibilityLabel(Text("GO"))
                             .accessibilitySortPriority(10)   // the one primary action is read before rules / open map
                             .accessibilityIdentifier("roam.go")
                         if let nearbyTeamsDestination {
-                            NavigationLink { nearbyTeamsDestination() } label: { CYGlassLabel(systemImage: "map") }
+                            NavigationLink { nearbyTeamsDestination().cyPushedChrome() } label: { CYGlassLabel(systemImage: "map") }
                                 .buttonStyle(.plain).accessibilityLabel(Text("nearby.title"))
                                 .accessibilityIdentifier("roam.openMap")
                         } else {

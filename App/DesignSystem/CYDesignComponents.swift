@@ -9,7 +9,7 @@ public enum CYCardVariant: Sendable {
     case elevated
     /// Subtle inset group surface (`CYColor.bgSurfaceSubtle`, no shadow).
     case subtle
-    /// Highlighted brand tint surface (`CYColor.accentSoft`, accent border).
+    /// Highlighted brand tint surface (`CYColor.brandSoft`, no border).
     case accentTint
 }
 
@@ -22,7 +22,7 @@ public struct CYCardSurfaceModifier: ViewModifier {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.md,
+        radius: CGFloat = CYRadius.lg,
         padding: CGFloat = CYSpacing.lg
     ) {
         self.variant = variant
@@ -35,44 +35,43 @@ public struct CYCardSurfaceModifier: ViewModifier {
         case .surface: return CYColor.bgSurface
         case .elevated: return CYColor.bgElevated
         case .subtle: return CYColor.bgSurfaceSubtle
-        case .accentTint: return CYColor.accentSoft
-        }
-    }
-
-    private var borderColor: Color {
-        switch variant {
-        case .surface, .elevated:
-            return CYColor.borderSubtle
-        case .subtle:
-            return .clear
-        case .accentTint:
-            return CYColor.accent.opacity(0.32)
+        case .accentTint: return CYColor.brandSoft
         }
     }
 
     public func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let showLightShadow = variant == .elevated && colorScheme == .light
         content
             .padding(padding)
             .background(shape.fill(backgroundColor))
-            .overlay(shape.strokeBorder(borderColor, lineWidth: 1))
+            .overlay {
+                if colorScheme == .dark && (variant == .elevated || variant == .surface) {
+                    VStack(spacing: 0) {
+                        Rectangle()
+                            .fill(CYColor.cardHighlight)
+                            .frame(height: 0.5)
+                        Spacer(minLength: 0)
+                    }
+                    .clipShape(shape)
+                    .allowsHitTesting(false)
+                }
+            }
             .shadow(
-                color: (variant == .elevated && colorScheme == .light)
-                    ? Color.black.opacity(0.05)
-                    : Color.clear,
+                color: showLightShadow ? CYColor.cardShadowColor : Color.clear,
                 // A clear shadow still costs an offscreen blur pass; zero it unless it is drawn.
-                radius: (variant == .elevated && colorScheme == .light) ? 10 : 0,
+                radius: showLightShadow ? 8 : 0,
                 x: 0,
-                y: (variant == .elevated && colorScheme == .light) ? 4 : 0
+                y: showLightShadow ? 2 : 0
             )
     }
 }
 
 public extension View {
-    /// Applies the standard Chengyin card surface, continuous squircle radius, and semantic border.
+    /// Applies the standard Chengyin card surface and continuous squircle radius (no outer stroke border).
     func cyCardSurface(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.md,
+        radius: CGFloat = CYRadius.lg,
         padding: CGFloat = CYSpacing.lg
     ) -> some View {
         modifier(CYCardSurfaceModifier(variant: variant, radius: radius, padding: padding))
@@ -88,7 +87,7 @@ public struct CYCard<Content: View>: View {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.md,
+        radius: CGFloat = CYRadius.lg,
         padding: CGFloat = CYSpacing.lg,
         @ViewBuilder content: () -> Content
     ) {
@@ -110,7 +109,9 @@ public struct CYCard<Content: View>: View {
 /// Standard section header with title, optional subtitle/eyebrow, and optional trailing action button.
 public struct CYSectionHeader: View {
     private let title: LocalizedStringKey
+    private let verbatimTitle: String?
     private let subtitle: LocalizedStringKey?
+    private let verbatimSubtitle: String?
     private let actionTitle: LocalizedStringKey?
     private let action: (() -> Void)?
 
@@ -121,7 +122,23 @@ public struct CYSectionHeader: View {
         action: (() -> Void)? = nil
     ) {
         self.title = title
+        self.verbatimTitle = nil
         self.subtitle = subtitle
+        self.verbatimSubtitle = nil
+        self.actionTitle = actionTitle
+        self.action = action
+    }
+
+    public init(
+        verbatim title: String,
+        subtitle: String? = nil,
+        actionTitle: LocalizedStringKey? = nil,
+        action: (() -> Void)? = nil
+    ) {
+        self.title = ""
+        self.verbatimTitle = title
+        self.subtitle = nil
+        self.verbatimSubtitle = subtitle
         self.actionTitle = actionTitle
         self.action = action
     }
@@ -129,12 +146,22 @@ public struct CYSectionHeader: View {
     public var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(title)
-                    .font(CYTypography.sectionTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .accessibilityAddTraits(.isHeader)
+                Group {
+                    if let verbatimTitle {
+                        Text(verbatim: verbatimTitle)
+                    } else {
+                        Text(title)
+                    }
+                }
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
 
-                if let subtitle {
+                if let verbatimSubtitle {
+                    Text(verbatim: verbatimSubtitle)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                } else if let subtitle {
                     Text(subtitle)
                         .font(CYTypography.meta)
                         .foregroundStyle(CYColor.textTertiary)
@@ -151,7 +178,7 @@ public struct CYSectionHeader: View {
                         Image(systemName: "chevron.right")
                             .font(.caption.weight(.semibold))
                     }
-                    .foregroundStyle(CYColor.accentText)
+                    .foregroundStyle(CYColor.brand)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
                 }
@@ -163,94 +190,345 @@ public struct CYSectionHeader: View {
 
 // MARK: - 3. Primary, Secondary & Destructive Button Styles
 
-/// Primary pill button style using brand violet `#7A5CFF` (`>= 44pt` hit target, Reduce Motion aware).
+/// Primary pill button style using domain neutral action fill (`>= 44pt` hit target, Reduce Motion aware).
+public enum CYButtonSize: Sendable, Hashable {
+    case md
+    case sm
+    case xs
+
+    var visualHeight: CGFloat {
+        switch self {
+        case .md: return Theme.length("--cy-btn-h")
+        case .sm: return Theme.length("--cy-btn-h-sm")
+        case .xs: return Theme.length("--cy-btn-h-xs")
+        }
+    }
+
+    var horizontalPadding: CGFloat {
+        switch self {
+        case .md: return CYSpacing.xl
+        case .sm: return CYSpacing.lg
+        case .xs: return CYSpacing.s2_5
+        }
+    }
+
+    var font: Font {
+        switch self {
+        case .md: return CYTypography.button
+        case .sm: return CYTypography.meta.weight(.semibold)
+        case .xs: return CYTypography.caption.weight(.semibold)
+        }
+    }
+
+    func cornerRadius(isPill: Bool) -> CGFloat {
+        isPill || self == .xs ? CYRadius.pill : CYRadius.md
+    }
+}
+
+public enum CYButtonVariant: Sendable, Hashable {
+    case primary
+    case secondary
+    case ghost
+    case danger
+}
+
+/// 16pt single-arc loading indicator cycling over 700ms (falls back to static ProgressView under Reduce Motion).
+public struct CYButtonSpinner: View {
+    public var tint: Color
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var spinning = false
+
+    public init(tint: Color = CYColor.actionPrimaryFg) {
+        self.tint = tint
+    }
+
+    public var body: some View {
+        if reduceMotion {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(tint)
+                .frame(width: 16, height: 16)
+        } else {
+            Circle()
+                .trim(from: 0.12, to: 0.85)
+                .stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                .frame(width: 16, height: 16)
+                .rotationEffect(.degrees(spinning ? 360 : 0))
+                .onAppear {
+                    withAnimation(.linear(duration: 0.7).repeatForever(autoreverses: false)) {
+                        spinning = true
+                    }
+                }
+        }
+    }
+}
+
 public struct CYPrimaryButtonStyle: ButtonStyle {
     public var isFullWidth: Bool
+    public var size: CYButtonSize
+    public var isLoading: Bool
+    public var isPill: Bool
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    public init(isFullWidth: Bool = true) {
+    public init(isFullWidth: Bool = true, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
         self.isFullWidth = isFullWidth
+        self.size = size
+        self.isLoading = isLoading
+        self.isPill = isPill
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.pill, style: .continuous)
-        configuration.label
-            .font(CYTypography.label)
-            .foregroundStyle(isEnabled ? CYColor.textOnAccent : CYColor.textDisabled)
-            .padding(.horizontal, CYSpacing.xl)
-            .padding(.vertical, CYSpacing.md)
-            .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
-            .background(
-                shape.fill(
-                    !isEnabled
-                        ? CYColor.bgRaised
-                        : (configuration.isPressed ? CYColor.accentPressed : CYColor.accent)
-                )
+        let radius = size.cornerRadius(isPill: isPill)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let active = isEnabled && !isLoading
+        let fg = isEnabled ? CYColor.actionPrimaryFg : CYColor.textPlaceholder
+        ZStack {
+            configuration.label
+                .opacity(isLoading ? 0 : 1)
+            if isLoading {
+                CYButtonSpinner(tint: CYColor.actionPrimaryFg)
+            }
+        }
+        .font(size.font)
+        .foregroundStyle(fg)
+        .padding(.horizontal, size.horizontalPadding)
+        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
+        .background(
+            shape.fill(
+                !isEnabled
+                    ? CYColor.bgSurfaceSubtle
+                    : (configuration.isPressed ? CYColor.brandStrong : CYColor.actionPrimaryBg)
             )
-            .contentShape(shape)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1.0)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        )
+        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
+        .contentShape(Rectangle())
+        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
+        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
     }
 }
 
-/// Secondary button style with subtle surface fill and semantic border (`>= 44pt` hit target).
+/// Secondary button style with subtle surface fill and no outer border (`>= 44pt` hit target).
 public struct CYSecondaryButtonStyle: ButtonStyle {
     public var isFullWidth: Bool
+    public var size: CYButtonSize
+    public var isLoading: Bool
+    public var isPill: Bool
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    public init(isFullWidth: Bool = false) {
+    public init(isFullWidth: Bool = false, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
         self.isFullWidth = isFullWidth
+        self.size = size
+        self.isLoading = isLoading
+        self.isPill = isPill
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-        configuration.label
-            .font(CYTypography.label)
-            .foregroundStyle(isEnabled ? CYColor.textPrimary : CYColor.textDisabled)
-            .padding(.horizontal, CYSpacing.lg)
-            .padding(.vertical, CYSpacing.sm)
-            .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
-            .background(
-                shape.fill(configuration.isPressed ? CYColor.bgSurfaceStrong : CYColor.actionSecondary)
+        let radius = size.cornerRadius(isPill: isPill)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let active = isEnabled && !isLoading
+        let fg = isEnabled ? CYColor.textSecondary : CYColor.textPlaceholder
+        ZStack {
+            configuration.label
+                .opacity(isLoading ? 0 : 1)
+            if isLoading {
+                CYButtonSpinner(tint: CYColor.textSecondary)
+            }
+        }
+        .font(size.font)
+        .foregroundStyle(fg)
+        .padding(.horizontal, size.horizontalPadding)
+        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
+        .background(
+            shape.fill(
+                !isEnabled
+                    ? CYColor.bgSurfaceSubtle
+                    : (configuration.isPressed ? CYColor.bgSurfaceStrong : CYColor.actionSecondary)
             )
-            .overlay(
-                shape.strokeBorder(CYColor.borderStrong, lineWidth: 1)
-            )
-            .contentShape(shape)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1.0)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        )
+        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
+        .contentShape(Rectangle())
+        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
+        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
     }
 }
 
-/// Destructive button style for irreversible actions (cancel, delete, block).
-public struct CYDestructiveButtonStyle: ButtonStyle {
+/// Ghost button style (transparent background, text-primary/secondary label, press fill only).
+public struct CYGhostButtonStyle: ButtonStyle {
     public var isFullWidth: Bool
+    public var size: CYButtonSize
+    public var isLoading: Bool
+    public var isPill: Bool
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    public init(isFullWidth: Bool = false) {
+    public init(isFullWidth: Bool = false, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
         self.isFullWidth = isFullWidth
+        self.size = size
+        self.isLoading = isLoading
+        self.isPill = isPill
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-        configuration.label
-            .font(CYTypography.label)
-            .foregroundStyle(isEnabled ? CYColor.dangerText : CYColor.textDisabled)
-            .padding(.horizontal, CYSpacing.lg)
-            .padding(.vertical, CYSpacing.sm)
-            .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
-            .background(
-                shape.fill(configuration.isPressed ? CYColor.dangerSoft.opacity(0.85) : CYColor.dangerSoft)
-            )
-            .overlay(
-                shape.strokeBorder(CYColor.dangerText.opacity(0.28), lineWidth: 1)
-            )
-            .contentShape(shape)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1.0)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        let radius = size.cornerRadius(isPill: isPill)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let active = isEnabled && !isLoading
+        let fg = isEnabled ? CYColor.textPrimary : CYColor.textPlaceholder
+        ZStack {
+            configuration.label
+                .opacity(isLoading ? 0 : 1)
+            if isLoading {
+                CYButtonSpinner(tint: CYColor.textPrimary)
+            }
+        }
+        .font(size.font)
+        .foregroundStyle(fg)
+        .padding(.horizontal, size.horizontalPadding)
+        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
+        .background(shape.fill(active && configuration.isPressed ? CYColor.bgSurfaceSubtle : Color.clear))
+        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
+        .contentShape(Rectangle())
+        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
+        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+    }
+}
+
+/// Destructive button style (`--cy-color-action-danger-bg` `#D0323B` with `--cy-color-action-danger-fg` `#FFFFFF`).
+public struct CYDestructiveButtonStyle: ButtonStyle {
+    public var isFullWidth: Bool
+    public var size: CYButtonSize
+    public var isLoading: Bool
+    public var isPill: Bool
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    public init(isFullWidth: Bool = false, size: CYButtonSize = .md, isLoading: Bool = false, isPill: Bool = false) {
+        self.isFullWidth = isFullWidth
+        self.size = size
+        self.isLoading = isLoading
+        self.isPill = isPill
+    }
+
+    public func makeBody(configuration: Configuration) -> some View {
+        let radius = size.cornerRadius(isPill: isPill)
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let active = isEnabled && !isLoading
+        let fg = isEnabled ? CYColor.actionDangerFg : CYColor.textPlaceholder
+        ZStack {
+            configuration.label
+                .opacity(isLoading ? 0 : 1)
+            if isLoading {
+                CYButtonSpinner(tint: CYColor.actionDangerFg)
+            }
+        }
+        .font(size.font)
+        .foregroundStyle(fg)
+        .padding(.horizontal, size.horizontalPadding)
+        .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
+        .background(shape.fill(isEnabled ? CYColor.actionDangerBg : CYColor.bgSurfaceSubtle))
+        .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
+        .contentShape(Rectangle())
+        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
+        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+    }
+}
+
+/// Unified spec button supporting variants (`primary`, `secondary`, `ghost`, `danger`), sizes (`md`, `sm`, `xs`),
+/// footer `isPill`, `isLoading` lock, and disabled surface tokens.
+public struct CYButton<Label: View>: View {
+    private let variant: CYButtonVariant
+    private let size: CYButtonSize
+    private let isFullWidth: Bool
+    private let isLoading: Bool
+    private let isPill: Bool
+    private let action: () -> Void
+    private let label: Label
+
+    public init(
+        variant: CYButtonVariant = .primary,
+        size: CYButtonSize = .md,
+        isFullWidth: Bool = true,
+        isLoading: Bool = false,
+        isPill: Bool = false,
+        action: @escaping () -> Void,
+        @ViewBuilder label: () -> Label
+    ) {
+        self.variant = variant
+        self.size = size
+        self.isFullWidth = isFullWidth
+        self.isLoading = isLoading
+        self.isPill = isPill
+        self.action = action
+        self.label = label()
+    }
+
+    public var body: some View {
+        Group {
+            switch variant {
+            case .primary:
+                Button(action: action) { label }
+                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: isFullWidth, size: size, isLoading: isLoading, isPill: isPill))
+            case .secondary:
+                Button(action: action) { label }
+                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: isFullWidth, size: size, isLoading: isLoading, isPill: isPill))
+            case .ghost:
+                Button(action: action) { label }
+                    .buttonStyle(CYGhostButtonStyle(isFullWidth: isFullWidth, size: size, isLoading: isLoading, isPill: isPill))
+            case .danger:
+                Button(role: .destructive, action: action) { label }
+                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: isFullWidth, size: size, isLoading: isLoading, isPill: isPill))
+            }
+        }
+        .disabled(isLoading)
+    }
+}
+
+public extension CYButton where Label == Text {
+    init(
+        _ titleKey: LocalizedStringKey,
+        variant: CYButtonVariant = .primary,
+        size: CYButtonSize = .md,
+        isFullWidth: Bool = true,
+        isLoading: Bool = false,
+        isPill: Bool = false,
+        action: @escaping () -> Void
+    ) {
+        self.init(
+            variant: variant,
+            size: size,
+            isFullWidth: isFullWidth,
+            isLoading: isLoading,
+            isPill: isPill,
+            action: action
+        ) {
+            Text(titleKey)
+        }
+    }
+
+    init(
+        verbatim title: String,
+        variant: CYButtonVariant = .primary,
+        size: CYButtonSize = .md,
+        isFullWidth: Bool = true,
+        isLoading: Bool = false,
+        isPill: Bool = false,
+        action: @escaping () -> Void
+    ) {
+        self.init(
+            variant: variant,
+            size: size,
+            isFullWidth: isFullWidth,
+            isLoading: isLoading,
+            isPill: isPill,
+            action: action
+        ) {
+            Text(verbatim: title)
+        }
     }
 }
 
@@ -259,12 +537,22 @@ public extension ButtonStyle where Self == CYPrimaryButtonStyle {
     static func cyPrimary(fullWidth: Bool) -> CYPrimaryButtonStyle {
         CYPrimaryButtonStyle(isFullWidth: fullWidth)
     }
+    static func cyFooterPill(isLoading: Bool = false) -> CYPrimaryButtonStyle {
+        CYPrimaryButtonStyle(isFullWidth: true, size: .md, isLoading: isLoading, isPill: true)
+    }
 }
 
 public extension ButtonStyle where Self == CYSecondaryButtonStyle {
     static var cySecondary: CYSecondaryButtonStyle { CYSecondaryButtonStyle() }
     static func cySecondary(fullWidth: Bool) -> CYSecondaryButtonStyle {
         CYSecondaryButtonStyle(isFullWidth: fullWidth)
+    }
+}
+
+public extension ButtonStyle where Self == CYGhostButtonStyle {
+    static var cyGhost: CYGhostButtonStyle { CYGhostButtonStyle() }
+    static func cyGhost(fullWidth: Bool) -> CYGhostButtonStyle {
+        CYGhostButtonStyle(isFullWidth: fullWidth)
     }
 }
 
@@ -347,7 +635,7 @@ public struct CYErrorStateView: View {
 public enum CYUnreadBadgeStyle: Sendable {
     /// High-priority mention / DM unread (`CYColor.dangerSolid` red capsule).
     case danger
-    /// Brand accent unread (`CYColor.accent` violet capsule).
+    /// Neutral brand unread (`CYColor.brand` capsule).
     case accent
     /// Muted channel / silent notification (`CYColor.bgSurfaceStrong` neutral capsule).
     case muted
@@ -387,7 +675,7 @@ public struct CYUnreadBadge: View {
     private var fillColor: Color {
         switch style {
         case .danger: return CYColor.dangerSolid
-        case .accent: return CYColor.accent
+        case .accent: return CYColor.brand
         case .muted: return CYColor.bgSurfaceStrong
         }
     }
@@ -508,7 +796,7 @@ public struct CYAvatarView: View {
             .overlay(
                 Circle()
                     .strokeBorder(
-                        showAccentRing ? CYColor.accent : CYColor.borderSubtle,
+                        showAccentRing ? CYColor.avatarRing : CYColor.borderSubtle,
                         lineWidth: showAccentRing ? 2 : 1
                     )
             )
@@ -529,10 +817,10 @@ public struct CYAvatarView: View {
 
     private var fallbackView: some View {
         ZStack {
-            CYColor.accentSoft
+            CYColor.brandSoft
             Text(verbatim: Self.monogram(for: name))
                 .font(monogramFont)
-                .foregroundStyle(CYColor.accentText)
+                .foregroundStyle(CYColor.brand)
         }
     }
 }

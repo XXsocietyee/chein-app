@@ -90,6 +90,9 @@ import SwiftUI
         .cyGroupedSurface()
         .cyMiniListScreen()
         .cyHeroScreen()
+        .themeDomain(.merchant)
+        .tint(CYDomainPalette(.merchant).brand)
+        .cyHideTabBar(true)
         .task(id: ReadTask(reader: ObjectIdentifier(reader), account: reader.session?.accountID, epoch: reader.session?.epoch, source: source.rawValue, recordID: id, refresh: refresh)) { await load() }
         .refreshable { await load() }
         .onDisappear { model.invalidate() }

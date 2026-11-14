@@ -551,7 +551,7 @@ struct SquareCloudCompletedActivityPicker: View {
                     .font(.caption).foregroundStyle(.white.opacity(0.72))
             }
             Spacer(minLength: CYSpacing.sm)
-            Image(systemName: "checkmark").foregroundStyle(CYNight.selection)
+            Image(systemName: "checkmark").foregroundStyle(CYColor.successText)
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
     }

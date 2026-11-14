@@ -214,7 +214,7 @@ struct CreatorFeedbackRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Image(systemName: item.ticketId != nil ? "link" : selected ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(selected ? CYColor.accent : CYColor.textTertiary).accessibilityHidden(true)
+                .foregroundStyle(selected ? CYColor.brand : CYColor.textTertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(spacing: CYSpacing.sm) {
                     CYStatusChip(CreatorFeedbackRow.category(item.category), tone: .info)

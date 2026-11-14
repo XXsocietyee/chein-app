@@ -124,7 +124,11 @@ struct RouteActionPageReadRequest {
                     .accessibilityIdentifier("playRoute.back").e1ActionRow()
             }
         }.cyGroupedSurface()
-        .privacySensitive().cyHeroScreen().accessibilityIdentifier("playRoute.screen")
+        .privacySensitive()
+        .cyHeroScreen()
+        .cyPushedChrome(domain: .game)
+        .tint(CYColor.gameAccent)
+        .accessibilityIdentifier("playRoute.screen")
         .navigationDestination(item: $selected) { choice in
             let nodeID = choice.nodeID(in: model)
             Group {
@@ -132,6 +136,7 @@ struct RouteActionPageReadRequest {
                     nodeDestination(nodeID)
                 } else { Text("playRoute.unavailable").accessibilityIdentifier("playRoute.selectionUnavailable") }
             }
+            .cyPushedChrome(domain: .game)
             // The map is covered while its task is pushed. Observe retirement on
             // the visible destination too, including a read retired before mount.
             .onChange(of: nodeID, initial: true) { _, _ in
@@ -388,7 +393,7 @@ struct RouteActionPageReadRequest {
                                 Text(verbatim: String(stop.order)).font(.caption.bold())
                             }.foregroundStyle(stop.state == .current ? CYColor.textOnAccent : Color.primary)
                                 .frame(minWidth: 44, minHeight: 44)
-                                .padding(4).background(stop.state == .current ? CYColor.accent : Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 12))
+                                .padding(4).background(stop.state == .current ? CYColor.actionPrimaryBg : Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 12))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(inspecting ? Color.primary : Color.clear, lineWidth: 2))
                         }.buttonStyle(.plain).disabled(request == nil)
                             .accessibilityLabel(stopName(stop) + Text(verbatim: ", ") + Text(LocalizedStringKey(stop.state.labelKey)))

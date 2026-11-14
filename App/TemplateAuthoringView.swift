@@ -261,7 +261,7 @@ import Combine
                 }
             }
         }
-        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen().cyPushedChrome(domain: .topicEditor)
         .modifier(TemplateAuthoringExitGuard(model: model, overlaysOpen: { preview || discard || media.review != nil }))
         .disabled(model.busy)
         .task { model.load(); media.reload() }
@@ -273,9 +273,11 @@ import Combine
         .modifier(TemplateMediaReviewPresentation(controller: media))
         .sheet(isPresented: $preview) {
             TemplateConfiguredRehearsalPreview(model: model) { TemplateAuthoringPreviewView(draft: model.draft) }
+                .cyPlayerSheetGlass()
         }
         .sheet(item: $model.review, onDismiss: { model.cancel() }) { value in
             NavigationStack { TemplateAuthoringReviewView(review: value, canSimulate: model.coordinator.canSimulate, canSubmit: model.coordinator.canSubmit, confirm: { Task { await model.confirm(value) } }, cancel: { model.cancel() }) }
+                .cyPlayerSheetGlass()
         }
         .confirmationDialog("templateAuthor.discardQuestion", isPresented: $discard, titleVisibility: .visible) {
             Button("templateAuthor.discard", role: .destructive) { model.discard() }

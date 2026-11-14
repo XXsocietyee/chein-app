@@ -182,7 +182,7 @@ import SwiftUI
     private func step(_ index: Int, done: Bool, title: String, detail: String, id: String) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             Image(systemName: done ? "checkmark.circle.fill" : "\(index).circle").font(.title3)
-                .foregroundStyle(done ? CYColor.accent : CYColor.textTertiary).accessibilityHidden(true)
+                .foregroundStyle(done ? CYColor.brand : CYColor.textTertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: title).font(CYTypography.label).foregroundStyle(done ? CYColor.textPrimary : CYColor.textTertiary)
                 Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
@@ -322,7 +322,7 @@ import SwiftUI
                                         HStack(spacing: CYSpacing.md) {
                                             Text(verbatim: option.key).bold()
                                             Text(verbatim: option.text).frame(maxWidth: .infinity, alignment: .leading)
-                                            if model.game.choice == option.key { Image(systemName: "checkmark").foregroundStyle(CYColor.accent) }
+                                            if model.game.choice == option.key { Image(systemName: "checkmark").foregroundStyle(CYColor.brand) }
                                         }.foregroundStyle(model.game.choice == option.key ? CYColor.textPrimary : CYColor.textSecondary)
                                         .frame(minHeight: CYSpacing.minTouchTarget)
                                     }
@@ -352,10 +352,10 @@ import SwiftUI
                     }
                 }
             }.cyGroupedSurface()
-            .scrollContentBackground(.hidden).background(CYColor.bgElevated)
+            .scrollContentBackground(.hidden).background(CYColor.sheetGlass)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button { model.closeSheets() } label: { Text("playStoreDay.mask.close", tableName: "PlayStoreDay") } } }
         }
-        .presentationBackground(CYColor.bgElevated).presentationDragIndicator(.visible)
+        .cyPlayerSheetGlass().presentationDragIndicator(.visible)
     }
     private var taskSheet: some View {
         NavigationStack {
@@ -374,9 +374,9 @@ import SwiftUI
                         .accessibilityIdentifier("storeDayPage.task.later")
                 }
             }.cyGroupedSurface()
-            .scrollContentBackground(.hidden).background(CYColor.bgElevated)
+            .scrollContentBackground(.hidden).background(CYColor.sheetGlass)
         }
-        .presentationBackground(CYColor.bgElevated).presentationDragIndicator(.visible)
+        .cyPlayerSheetGlass().presentationDragIndicator(.visible)
     }
 
     // MARK: Copy

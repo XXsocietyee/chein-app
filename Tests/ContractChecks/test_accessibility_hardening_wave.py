@@ -249,7 +249,7 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
         self.assertIn('CYColor.textOnAccent', im)
         route = src('App/PlayRouteMapView.swift')
         self.assertIn('stop.state == .current ? CYColor.textOnAccent : Color.primary', route)
-        self.assertIn('stop.state == .current ? CYColor.accent :', route)
+        self.assertIn('stop.state == .current ? CYColor.actionPrimaryBg :', route)
 
     def test_coordinate_pickers_offer_non_gesture_alternative(self):
         im = src('App/IMExpandedViews.swift')

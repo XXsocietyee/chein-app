@@ -54,21 +54,25 @@ struct TopicDetailView: View {
             }
         }
         .environment(\.ugcSafetySubjectID, detail?.id ?? id)
-        .cyHideTabBar()
+        .cyPushedChrome(domain: .player)
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
+                .cyPlayerSheetGlass()
         }
         .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false }
         .sheet(isPresented: $showingTickets) {
             if let ticketWalletDestination { ticketWalletDestination(id) }
         }
         .sheet(isPresented: $showingSelfPlay) {
-            if let detail {
-                if let selfPlayDestination { selfPlayDestination(detail) }
-                else { TopicSelfPlayUnavailableSheet(topic: detail) }
+            Group {
+                if let detail {
+                    if let selfPlayDestination { selfPlayDestination(detail) }
+                    else { TopicSelfPlayUnavailableSheet(topic: detail) }
+                }
             }
+            .cyPlayerSheetGlass()
         }
     }
     private func content(_ value: TopicDetail) -> some View {
@@ -83,10 +87,10 @@ struct TopicDetailView: View {
                     CYCard(variant: .elevated, radius: CYRadius.lg, padding: CYSpacing.xl) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                                .font(.title2.weight(.semibold)).foregroundStyle(CYColor.accentText)
+                                .font(.title2.weight(.semibold)).foregroundStyle(CYColor.brand)
                                 .accessibilityHidden(true)
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
-                                .font(CYTypography.label).foregroundStyle(CYColor.accentText)
+                                .font(CYTypography.label).foregroundStyle(CYColor.brand)
                             Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
                             if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineLimit(1) }
                             else { Text("topicXcx.coverHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
@@ -104,8 +108,8 @@ struct TopicDetailView: View {
                     HStack(spacing: 8) {
                         Text("topic.source.betaBadge").font(CYTypography.label)
                             .padding(.horizontal, 8).padding(.vertical, 3)
-                            .foregroundStyle(CYColor.accentText)
-                            .background(Capsule().fill(CYColor.accentSoft))
+                            .foregroundStyle(CYColor.brand)
+                            .background(Capsule().fill(CYColor.brandSoft))
                         Text("topic.source.betaNote").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                 }
@@ -120,6 +124,9 @@ struct TopicDetailView: View {
             Section {
                 TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if let venue = TopicXcxFacts.venue(value.addressName) {
+                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name).font(CYTypography.bodyMedium); if let address = venue.address { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(CYColor.brand) }
+                }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
             if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
@@ -280,8 +287,14 @@ struct TopicDetailView: View {
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
+                .cyPlayerSheetGlass()
         }
-        .sheet(isPresented: $showsPricing) { if let pricingDestination { NavigationStack { pricingDestination(value.id) } } }
+        .sheet(isPresented: $showsPricing) {
+            if let pricingDestination {
+                NavigationStack { pricingDestination(value.id) }
+                    .cyPlayerSheetGlass()
+            }
+        }
         .accessibilityIdentifier("topic.detail.content")
         }
     }

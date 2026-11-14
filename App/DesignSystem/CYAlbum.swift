@@ -449,7 +449,7 @@ private struct CYAlbumCardModifier: ViewModifier {
 }
 
 extension View {
-    /// Card surface shared by album pages and collection tiles: elevated continuous-corner card with a hairline rim.
+    /// Card surface shared by album pages and collection tiles: elevated continuous-corner card with no outer border.
     func cyAlbumCard(padding: CGFloat = CYSpacing.md) -> some View {
         modifier(CYAlbumCardModifier(padding: padding))
     }

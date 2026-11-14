@@ -72,6 +72,7 @@ struct ActivityDetailView: View {
             }
         }
         .appNavigationTitle("activity.details")
+        .cyPushedChrome(domain: .player)
         .cyDomainPageBackground()
         .cyHideTabBar()
     }
@@ -181,7 +182,10 @@ struct ActivityDetailView: View {
         }
         .environment(\.ugcSafetySubjectID, id)
         .sheet(isPresented: $showsShare) {
-            if let access, case .allowed(let detail) = access { CatalogShareCardView(content: shareContent(detail), tint: .sunset) }
+            if let access, case .allowed(let detail) = access {
+                CatalogShareCardView(content: shareContent(detail), tint: .sunset)
+                    .cyPlayerSheetGlass()
+            }
         }
         .cyDomainPageBackground()
         .task(id:id) { await loads.run { await load() } }
@@ -222,6 +226,7 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
+                .cyPlayerSheetGlass()
         }
         .sheet(isPresented:$showsRegistration) {
             Group {
@@ -229,6 +234,7 @@ struct ActivityDetailView: View {
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+            .cyPlayerSheetGlass()
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
@@ -246,6 +252,7 @@ struct ActivityDetailView: View {
                     .id(session.ticketWalletReader.scope)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
+                    .cyPlayerSheetGlass()
             }
         }
     }
@@ -458,6 +465,7 @@ struct ActivityDetailView: View {
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .accessibilityIdentifier("activity.detail.content")
+        .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.activity")
         // E2E-20261113b N3: the List did not inset for the pinned action, so the last section ("More info", which holds
         // the play row) ended under it. Reserve the pinned action's height below the content.
         .contentMargins(.bottom, registrationEnabled ? 112 : 0, for: .scrollContent)
@@ -570,8 +578,7 @@ struct ActivityDetailView: View {
         for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }
         return line
     }
-    private func registrationAction(_ detail: ActivityDetail) -> some View {
-        // Same placement as `.questifyBottomAction`: one primary action pinned above the home indicator.
+    private func registrationAction(_ detail: ActivityDetail) -> some View { CYFooterBar {
         VStack(spacing: CYSpacing.xs) {
             if let summary = pinnedSummary(detail) {
                 summary
@@ -596,10 +603,7 @@ struct ActivityDetailView: View {
                 .accessibilityLabel(Text(LocalizedStringKey(action.titleKey)))
             }
         }
-        .padding(.horizontal, CYSpacing.pageHorizontal)
-        .padding(.vertical, CYSpacing.md)
-        .background(CYColor.bgElevated)
-    }
+    } }
     @MainActor private func load() async {
         generation += 1
         let operation=generation

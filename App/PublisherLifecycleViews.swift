@@ -242,6 +242,7 @@ import SwiftUI
             if !message.isEmpty { Text(message) }
         }.accessibilityIdentifier("publisher.partner")
         .cyHeroScreen()
+        .cyPushedChrome(domain: .merchant)
         .task {
             guard topicID > 0, row.partnerID > 0 else { loading = false; return }
             do { result = try await client.partner(topicID: topicID, type: row.type, id: row.partnerID); failed = false }

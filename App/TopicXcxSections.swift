@@ -177,66 +177,63 @@ struct TopicXcxActionBar: View {
     var isFavorited: Bool? = nil
     var onToggleFavorite: (() -> Void)? = nil
     var body: some View {
-        VStack(spacing: 6) {
-            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
-            HStack {
-                switch TopicXcxFacts.action(topic) {
-                case .ticketWallet:
-                    if let openTickets {
-                        Button(action: openTickets) {
+        CYFooterBar {
+            VStack(spacing: 6) {
+                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
+                HStack {
+                    switch TopicXcxFacts.action(topic) {
+                    case .ticketWallet:
+                        if let openTickets {
+                            Button(action: openTickets) {
+                                Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                            }
+                            .accessibilityIdentifier("topic.cta.tickets")
+                        } else {
                             Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
                         }
-                        .accessibilityIdentifier("topic.cta.tickets")
-                    } else {
-                        Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                    case .locked(let lifecycle):
+                        if TopicXcxFacts.opensPricing(topic), let openPricing {
+                            Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .accessibilityIdentifier("topic.cta.pricing")
+                        } else {
+                            Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+                        }
+                    case .selfPlay(let price):
+                        Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
+                            .accessibilityIdentifier("topic.cta.sessions")
+                        Button(action: openSelfPlay) {
+                            if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
+                            else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
+                        }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                            .accessibilityIdentifier("topic.cta.selfPlay")
+                    case .signUp:
+                        Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                            .disabled(topic.merchantClosed)
+                            .accessibilityIdentifier("topic.cta.signUp")
                     }
-                case .locked(let lifecycle):
-                    if TopicXcxFacts.opensPricing(topic), let openPricing {
-                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
-                            .accessibilityIdentifier("topic.cta.pricing")
-                    } else {
-                        Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+                    if let onToggleFavorite {
+                        Button(action: onToggleFavorite) {
+                            Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
+                        .accessibilityIdentifier("topic.cta.favorite")
                     }
-                case .selfPlay(let price):
-                    Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
-                        .accessibilityIdentifier("topic.cta.sessions")
-                    Button(action: openSelfPlay) {
-                        if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
-                        else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
-                    }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
-                        .accessibilityIdentifier("topic.cta.selfPlay")
-                case .signUp:
-                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
-                        .disabled(topic.merchantClosed)
-                        .accessibilityIdentifier("topic.cta.signUp")
+                    if let shareURL {
+                        ShareLink(item: shareURL, subject: shareTitle.map { Text(verbatim: $0) }) {
+                            Image(systemName: "square.and.arrow.up")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel(Text("mp.common.share"))
+                        .accessibilityIdentifier("topic.cta.share")
+                    }
                 }
-                if let onToggleFavorite {
-                    Button(action: onToggleFavorite) {
-                        Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
-                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
-                    .accessibilityIdentifier("topic.cta.favorite")
-                }
-                if let shareURL {
-                    ShareLink(item: shareURL, subject: shareTitle.map { Text(verbatim: $0) }) {
-                        Image(systemName: "square.and.arrow.up")
-                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel(Text("mp.common.share"))
-                    .accessibilityIdentifier("topic.cta.share")
-                }
+                .controlSize(.large)
+                .accessibilityIdentifier("topic.actionBar")
             }
-            .controlSize(.large)
-            .accessibilityIdentifier("topic.actionBar")
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, Theme.Space.pageX)
-        .padding(.vertical, Theme.Space.s2_5)
-        .background(.bar)
-        .overlay(alignment: .top) { Rectangle().fill(palette.borderSubtle).frame(height: 0.5) }
     }
 }
 

@@ -93,6 +93,7 @@ struct MerchantCityNodeInlineError: View {
             LazyVStack(alignment: .leading, spacing: 16) { content }.padding()
         }
         .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.title"))
+        .cyDomainScreen(.merchant)
         .task(id: service.scope) { await reload(); everLoaded = true }
         .refreshable { if idle { await reload() } }
         .onAppear { posterVisible = true; if everLoaded, idle { Task { await reload() } } }
@@ -117,12 +118,19 @@ struct MerchantCityNodeInlineError: View {
                 Button(MerchantCityNodeCopy.string("merchantCityNode.action.cancel"), role: .cancel) { model.cancel() }
             }
         } message: { dialogMessage(c.review?.command) }
-        .sheet(isPresented: $showsClaim, onDismiss: { claimModel.cancel() }) { claimSheet }
+        .sheet(isPresented: $showsClaim, onDismiss: { claimModel.cancel() }) {
+            claimSheet
+                .cyPlayerSheetGlass()
+        }
         .sheet(item: $poster, onDismiss: { posterReads.retire() }) { shown in
-            if posterReadAllowed(poiID: shown.poiID) { posterSheet(shown) }
+            if posterReadAllowed(poiID: shown.poiID) {
+                posterSheet(shown)
+                    .cyPlayerSheetGlass()
+            }
         }
         .navigationDestination(isPresented: $showsCreate) {
             MerchantCityNodeCreateView(service: service, placeSearch: placeSearch, isOfflineFixture: isOfflineFixture, templateSeed: templateSeed)
+                .cyPushedChrome(domain: .merchant)
         }
     }
 

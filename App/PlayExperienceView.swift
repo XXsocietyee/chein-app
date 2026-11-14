@@ -97,24 +97,36 @@ import SwiftUI
                 }
             } else { CYEmptyState(systemImage: "questionmark.circle", "playMode.unavailable") }
         }
-        .privacySensitive().appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
+        .privacySensitive()
+        .cyDomainScreen(.game)
+        .cyPushedChrome(domain: .game)
+        .tint(CYColor.gameAccent)
+        .appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(item: $selectedNode) { id in nodeDestination(id) }
+        .navigationDestination(item: $selectedNode) { id in
+            nodeDestination(id)
+                .cyPushedChrome(domain: .game)
+        }
         .navigationDestination(isPresented: $showRouteMap) {
             PlayRouteMapView(
                 model: model,
                 nodeDestination: { AnyView(nodeDestination($0)) },
                 actionRead: routeActionRead ?? heldRouteActionRead)
+                .cyPushedChrome(domain: .game)
         }
         .confirmationDialog("playx.run.end", isPresented: $confirmEnd, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) { Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } }
         } message: { Text("playx.run.end.detail") }
-        .sheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
+        .sheet(isPresented: $showEmergencyHelp) {
+            PlayEmergencyHelpSheet()
+                .cyPlayerSheetGlass()
+        }
         .sheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
                     withAnimation(CYMotion.standard) { chapterFilter = picked }
                 }
+                .cyPlayerSheetGlass()
             }
         }
         .overlay { titleCardOverlay }

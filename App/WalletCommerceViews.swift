@@ -1027,7 +1027,7 @@ private struct WalletQuickAction: View {
             Image(systemName: icon).font(.title3.weight(.semibold))
                 .foregroundStyle(isPrimary ? CYColor.textOnAccent : CYColor.textPrimary)
                 .frame(width: 56, height: 56)
-                .background(isPrimary ? CYColor.accent : CYColor.bgElevated, in: Circle()).accessibilityHidden(true)
+                .background(isPrimary ? CYColor.actionPrimaryBg : CYColor.bgElevated, in: Circle()).accessibilityHidden(true)
             Text(title).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
                 .multilineTextAlignment(.center)
         }.frame(maxWidth: .infinity)

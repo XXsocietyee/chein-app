@@ -66,7 +66,8 @@ import QuestifyCore
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.lg)
         }
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.game)
+        .cyHideTabBar(true)
         .navigationTitle(Text("orientScore.title"))
         .task { await model.load() }
         .refreshable { await model.load() }

@@ -144,7 +144,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Image(systemName: "message.badge.filled.fill")
                 .symbolRenderingMode(.palette)
-                .foregroundStyle(CYColor.textOnAccent, CYColor.accent)
+                .foregroundStyle(CYColor.actionPrimaryFg, CYColor.actionPrimaryBg)
                 .font(.system(size: 26, weight: .semibold))
                 .frame(width: 56, height: 56)
                 .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -192,7 +192,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(focus == .phone ? CYColor.accent : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(focus == .phone ? CYColor.brand : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
             sendButton
         }
     }
@@ -207,9 +207,9 @@ struct PhoneSignInForm<AppleContent: View>: View {
                 }
                 .font(.system(.subheadline, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                .background(canSend ? CYColor.accent.opacity(0.16) : CYColor.bgRaised, in: Capsule())
+                .background(canSend ? CYColor.brandSoft : CYColor.bgRaised, in: Capsule())
             }
-            .foregroundStyle(canSend ? CYColor.accentText : CYColor.textSecondary)
+            .foregroundStyle(canSend ? CYColor.brand : CYColor.textSecondary)
             .disabled(!canSend)
             .accessibilityIdentifier("auth.channels.sendCode")
         }
@@ -244,7 +244,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                         .frame(maxWidth: .infinity, minHeight: 60)
                         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(hasError ? CYColor.dangerText : (active ? CYColor.accent : (i < chars.count ? CYColor.textPrimary.opacity(0.3) : CYColor.textPrimary.opacity(0.08))), lineWidth: active || hasError ? 2 : 1))
+                            .strokeBorder(hasError ? CYColor.dangerText : (active ? CYColor.brand : (i < chars.count ? CYColor.textPrimary.opacity(0.3) : CYColor.textPrimary.opacity(0.08))), lineWidth: active || hasError ? 2 : 1))
                         .scaleEffect(i < chars.count && !reduceMotion ? 1 : 0.98)
                         .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.6), value: chars.count)
                 }

@@ -380,7 +380,6 @@ struct CYClubRowCard: View {
                 .padding(CYSpacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(palette.cardFill, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 0.5))
                 .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             }
         }

@@ -215,9 +215,9 @@ struct CYRoamPlayerDot: View {
     var body: some View {
         ZStack {
             if walking && !reduceMotion {
-                Circle().fill(CYColor.accent.opacity(ping ? 0 : 0.35)).frame(width: 18, height: 18).scaleEffect(ping ? 3 : 1)
+                Circle().fill(CYColor.infoText.opacity(ping ? 0 : 0.35)).frame(width: 18, height: 18).scaleEffect(ping ? 3 : 1)
             }
-            Circle().fill(CYColor.accent).frame(width: 16, height: 16)
+            Circle().fill(CYColor.infoText).frame(width: 16, height: 16)
                 .overlay(Circle().strokeBorder(Color.white, lineWidth: 3))
                 .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
         }
@@ -275,7 +275,7 @@ struct CYRevealToast: View {
     let percent: Int?
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
-            Image(systemName: "sparkles").foregroundStyle(CYColor.accentText)
+            Image(systemName: "sparkles").foregroundStyle(CYColor.brand)
             Text("roam.fog.revealed").font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
             Text(verbatim: "·").foregroundStyle(CYColor.textTertiary)
             CYCountUpPercent(percent: percent).font(.subheadline.weight(.bold)).foregroundStyle(CYColor.textPrimary)
@@ -307,10 +307,10 @@ struct CYRoamPin: View {
     var body: some View {
         Image(systemName: symbol)
             .font(.footnote.weight(.bold))
-            .foregroundStyle(selected ? Color.black : Color.white)
+            .foregroundStyle(selected ? Color.black : CYColor.actionPrimaryFg)
             .frame(width: 32, height: 32)
-            .background(selected ? Color.white : CYColor.accent, in: Circle())
-            .overlay(Circle().strokeBorder(selected ? CYColor.accent : Color.white.opacity(0.85), lineWidth: selected ? 3 : 2))
+            .background(selected ? Color.white : CYColor.actionPrimaryBg, in: Circle())
+            .overlay(Circle().strokeBorder(selected ? CYColor.brand : Color.white.opacity(0.85), lineWidth: selected ? 3 : 2))
             .background { CYRingPulse(trigger: selected ? 1 : 0, idle: false).opacity(selected ? 1 : 0) }
             .scaleEffect(selected && !reduceMotion ? 1.28 : 1)
             .shadow(color: .black.opacity(0.4), radius: selected ? 8 : 3, y: 2)
@@ -427,12 +427,12 @@ struct CYRoamNearbyCard: View {
                 }
                 Spacer(minLength: 0)
                 Image(systemName: selected ? "mappin.circle.fill" : "chevron.right")
-                    .foregroundStyle(selected ? CYColor.accentText : CYColor.textTertiary)
+                    .foregroundStyle(selected ? CYColor.brand : CYColor.textTertiary)
             }
             .padding(CYSpacing.md)
-            .background(selected ? CYColor.accent.opacity(0.16) : CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                .strokeBorder(selected ? CYColor.accent : CYColor.borderSubtle, lineWidth: selected ? 2 : 1))
+            .background(selected ? CYColor.brandSoft : CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                .strokeBorder(selected ? CYColor.brandStrong : Color.clear, lineWidth: selected ? 2 : 0))
             .animation(reduceMotion ? nil : CYMotion.standard, value: selected)
         }
         .buttonStyle(CYPressableStyle())

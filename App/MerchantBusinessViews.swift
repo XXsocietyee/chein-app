@@ -351,26 +351,29 @@ import SwiftUI
             }.disabled(accessModel.isLoading(for: reader))
         }
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .appNavigationTitle("merchant.business.title")
         // The destination host remains outside the access-dependent rows. Clearing
         // Home on push does not remove a destination already on the navigation stack.
         .navigationDestination(for: MerchantBusinessHomeRoute.self) { route in
-            if route.isCurrent(reader: reader, journal: journal) {
-                switch route.target {
-                case .query(let query):
-                    if query == .overview { MerchantLedgerSettlementOverview(reader: route.reader) }
-                    else { MerchantBusinessPage(reader: route.reader, journal: route.journal, query: query) }
-                case .scan:
-                    if let nativeVerificationDestination { nativeVerificationDestination() }
-                    else { MerchantScanPreviewView() }
-                case .cityNode: CityNodeRedeemView(reader: route.reader, journal: route.journal)
-                case .cityArrival(let merchantID): SessionCityArrivalMerchantView(merchantID: merchantID)
-                case .anchor:
-                    if let access = route.anchorAccess, let anchor = merchantAnchorDestination(access) { anchor }
-                    else { MerchantAnchorReadRecoveryPresentation(state: "notConfigured", busy: false) }
-                }
-            } else { Text("merchant.business.stale") }
+            Group {
+                if route.isCurrent(reader: reader, journal: journal) {
+                    switch route.target {
+                    case .query(let query):
+                        if query == .overview { MerchantLedgerSettlementOverview(reader: route.reader) }
+                        else { MerchantBusinessPage(reader: route.reader, journal: route.journal, query: query) }
+                    case .scan:
+                        if let nativeVerificationDestination { nativeVerificationDestination() }
+                        else { MerchantScanPreviewView() }
+                    case .cityNode: CityNodeRedeemView(reader: route.reader, journal: route.journal)
+                    case .cityArrival(let merchantID): SessionCityArrivalMerchantView(merchantID: merchantID)
+                    case .anchor:
+                        if let access = route.anchorAccess, let anchor = merchantAnchorDestination(access) { anchor }
+                        else { MerchantAnchorReadRecoveryPresentation(state: "notConfigured", busy: false) }
+                    }
+                } else { Text("merchant.business.stale") }
+            }
+            .cyPushedChrome(domain: .merchant)
         }
         .task(id: queuedRequest?.id) {
             if let queuedRequest { await accessModel.load(reader: reader, request: queuedRequest) }
@@ -634,7 +637,7 @@ import SwiftUI
         let presentedEditorID = editor?.id ?? pendingMutationEditorID
         pageContent
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .appNavigationTitle(key: query.titleKey)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }

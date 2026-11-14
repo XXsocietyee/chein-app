@@ -250,7 +250,8 @@ enum OfficialDetailID {
             }
             }
         }
-        .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline).cyHideTabBar()
+        .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
+        .cyPushedChrome(domain: .player)
         .onAppear { visible = true }
         .onDisappear { visible = false; visit = UUID() }
         .onChange(of: id) { _, _ in visit = UUID() }

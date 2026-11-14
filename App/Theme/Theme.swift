@@ -6,8 +6,8 @@ enum ThemeDomain: String, CaseIterable {
 
     var colorScheme: ColorScheme {
         switch self {
-        case .player, .dark: return .dark
-        case .merchant, .topicEditor, .game: return .light
+        case .player, .dark, .game: return .dark
+        case .merchant, .topicEditor: return .light
         }
     }
 }
@@ -41,7 +41,7 @@ enum Theme {
         return value
     }
 
-    private static func length(_ name: String) -> CGFloat {
+    static func length(_ name: String) -> CGFloat {
         guard let value = Generated.length(name, in: .player) else {
             preconditionFailure("Missing generated Theme length: \(name)")
         }
@@ -90,21 +90,22 @@ enum Theme {
     }
 
     enum Font {
-        // Native semantic styles preserve SwiftUI's environment Dynamic Type,
-        // including preview/fixture overrides and accessibility sizes.
-        static let pageTitle = SwiftUI.Font.system(.title, weight: .semibold)
-        static let sheetTitle = SwiftUI.Font.system(.title2, weight: .semibold)
-        static let sectionTitle = SwiftUI.Font.system(.headline)
-        static let cardTitle = SwiftUI.Font.system(.callout, weight: .semibold)
-        static let button = SwiftUI.Font.system(.callout, weight: .semibold)
-        static let body = SwiftUI.Font.system(.body)
-        static let label = SwiftUI.Font.system(.caption)
+        // Native semantic TextStyle is preserved where it matches the mini-program base size
+        // (16pt .callout, 22pt .title2, 12pt .caption, 11pt .caption2); exact generated lengths
+        // supply the remaining mini-program ramp points (29pt, 28pt, 18pt, 14pt, 10pt, 32pt, 42pt).
+        static let pageTitle = SwiftUI.Font.system(size: Theme.length("--cy-type-page-title"), weight: .heavy)
+        static let sheetTitle = SwiftUI.Font.system(.title2, weight: .bold)
+        static let sectionTitle = SwiftUI.Font.system(size: Theme.length("--cy-type-section-title"), weight: .bold)
+        static let cardTitle = SwiftUI.Font.system(.callout, weight: .bold)
+        static let button = SwiftUI.Font.system(.callout, weight: .bold)
+        static let body = SwiftUI.Font.system(size: Theme.length("--cy-type-body"))
+        static let label = SwiftUI.Font.system(.caption, weight: .medium)
         static let caption = SwiftUI.Font.system(.caption2)
-        static let micro = SwiftUI.Font.system(.caption2)
+        static let micro = SwiftUI.Font.system(size: Theme.length("--cy-type-micro"), weight: .medium)
         // Fixed source display sizes are separate from readable body typography.
-        static let display = SwiftUI.Font.system(size: Theme.length("--cy-type-display"), weight: .semibold)
-        static let dataXL = SwiftUI.Font.system(size: Theme.length("--cy-type-data-xl"), weight: .semibold, design: .rounded)
-        static let data2XL = SwiftUI.Font.system(size: Theme.length("--cy-type-data-2xl"), weight: .semibold, design: .rounded)
+        static let display = SwiftUI.Font.system(size: Theme.length("--cy-type-display"), weight: .bold)
+        static let dataXL = SwiftUI.Font.system(size: Theme.length("--cy-type-data-xl"), weight: .bold, design: .rounded)
+        static let data2XL = SwiftUI.Font.system(size: Theme.length("--cy-type-data-2xl"), weight: .bold, design: .rounded)
     }
 
     enum Motion {

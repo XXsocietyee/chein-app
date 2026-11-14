@@ -486,9 +486,10 @@ import SwiftUI
         }
         .disabled(model.busy)
         .cyHeroScreen()
+        .cyPushedChrome(domain: .topicEditor)
         .toolbar { EditButton().disabled(!model.fullEdit) }
         .scrollDismissesKeyboard(.interactively)
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) { CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
                 HStack {
                     Button("projectEdit.saveLocal") { focusedField = nil; model.saveLocal() }
@@ -505,8 +506,8 @@ import SwiftUI
                     Button { focusedField = nil; model.review(intent: .saveCloudDraft) } label: { Text("action.saveCloud", tableName: "ProjectCloudDraftReceipt") }
                         .buttonStyle(.bordered).disabled(!model.canReview).accessibilityIdentifier("projectEdit.saveCloudDraft")
                 }
-            }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget).padding(CYSpacing.lg).background(.regularMaterial)
-        }
+            }
+        } }
         .task(id: sessionRevision) { await model.load() }
         .modifier(TemplateLocationTodosHost(topicID: model.coordinator.snapshot?.topicID, scope: model.draft.owner.rawValue))
         .modifier(ProjectEditAutosaveObservation(model: model))
@@ -537,21 +538,27 @@ import SwiftUI
             ProjectEditModeReviewSheet(controller: modeReview, original: original, finished: { created in
                 copiedCoordinator = created; showingCopy = true; modeCopyFailed = false
             }, failed: { modeCopyFailed = true })
+            .cyPlayerSheetGlass()
         }
         .sheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in
             submissionResult(receipt: receipt, submissionIncarnation: submissionIncarnation)
+                .cyPlayerSheetGlass()
         }
         .sheet(item: ownedCover.binding(coverPresentation)) { original in
             OwnedTopicCoverAuthorView(original: original, mayChange: { ownedCover.mayChange(original.opening) },
                 selected: { ownedCover.acceptedSelection($0); reviewRequest.retire(); approvedRelease.retire() }, close: { ownedCover.close(original) }, picker: ownedCoverPicker?())
+                .cyPlayerSheetGlass()
         }
         .sheet(item: approvedRelease.binding(releasePresentation)) { original in
             if approvedRelease.isPresented(original) {
                 ApprovedReleasePreparationView(original: original) { approvedRelease.close(original) }
+                    .cyPlayerSheetGlass()
             }
         }
         .sheet(item: reviewRequest.binding(reviewRequestPresentation)) { original in
-            if reviewRequest.isPresented(original) { ApprovedTopicReviewRequestView(original: original) { reviewRequest.close(original) } }
+            Group {
+                if reviewRequest.isPresented(original) { ApprovedTopicReviewRequestView(original: original) { reviewRequest.close(original) } }
+            }.cyPlayerSheetGlass()
         }
         .modifier(ProjectEditStarterPresentation(model: model, controller: starter))
         .modifier(ProjectEditPendingPresentation(model: model, controller: pending))

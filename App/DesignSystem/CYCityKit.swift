@@ -79,7 +79,7 @@ struct CYStepIndicator: View {
             }
             HStack {
                 Text(verbatim: ChannelCopy.text("第 \(current + 1) 步 / 共 \(titles.count) 步", "Step \(current + 1) of \(titles.count)", locale: locale))
-                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .font(CYTypography.meta.monospacedDigit()).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 if titles.indices.contains(current) {
                     Text(verbatim: titles[current]).font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textPrimary)

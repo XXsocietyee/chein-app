@@ -69,6 +69,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             }.privacySensitive()
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+            .cyPlayerSheetGlass()
         }
         .safeAreaInset(edge: .bottom) {
             if presentation == .sheet, let item = review { reviewPanel(item) }
@@ -339,6 +340,9 @@ private struct PlayKitScreenChrome: ViewModifier {
             // Navigation and sheet presentations share the title and the close button.
             content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + kind.rawValue)))
                 .navigationBarTitleDisplayMode(.inline).navigationBarBackButtonHidden(true)
+                .cyDomainScreen(.game)
+                .tint(CYColor.gameAccent)
+                .cyHideTabBar(true)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.close", action: close).accessibilityIdentifier("playkit.close") } }
         }
     }

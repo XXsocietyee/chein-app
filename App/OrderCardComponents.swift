@@ -78,11 +78,11 @@ struct OrderPillLabel: View {
         .foregroundStyle(CYColor.textOnAccent)
         .padding(.horizontal, CYSpacing.xl)
         .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
-        .background(CYColor.accent, in: Capsule(style: .continuous))
+        .background(CYColor.actionPrimaryBg, in: Capsule(style: .continuous))
     }
 }
 
-/// Horizontal pill filter; selected pill is white (the player accent), others sit on `bgElevated`.
+/// Horizontal pill filter; selected pill uses neutral primary fill (`actionPrimaryBg`), others sit on `bgElevated`.
 struct OrderFilterPill: View {
     let title: LocalizedStringKey
     let isSelected: Bool
@@ -94,7 +94,7 @@ struct OrderFilterPill: View {
                 .foregroundStyle(isSelected ? CYColor.textOnAccent : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg)
                 .frame(minHeight: CYSpacing.minTouchTarget)
-                .background(isSelected ? CYColor.accent : CYColor.bgElevated, in: Capsule(style: .continuous))
+                .background(isSelected ? CYColor.actionPrimaryBg : CYColor.bgElevated, in: Capsule(style: .continuous))
                 .contentShape(Capsule(style: .continuous))
         }
         .buttonStyle(.plain)

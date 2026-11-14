@@ -42,6 +42,168 @@ extension View {
     func cyScreenStyle() -> some View {
         modifier(CYScreenStyle())
     }
+
+    /// Apply a role/template domain explicitly to any pushed or root screen, forcing its domain palette
+    /// regardless of the device's system appearance.
+    func cyDomainScreen(_ domain: ThemeDomain) -> some View {
+        themeDomain(domain)
+            .cyDomainPageBackground()
+            .tint(CYDomainPalette(domain).brand)
+    }
+
+    /// Standard chrome for L2+ pushed screens: hides the root tab bar and optionally switches domain.
+    func cyPushedChrome(domain: ThemeDomain? = nil) -> some View {
+        modifier(CYPushedChromeModifier(domain: domain))
+    }
+
+    /// Full-bleed hero pushed chrome: hides the root tab bar, keeps navigation bar transparent,
+    /// and overlays the 32pt glass-pill back button ONLY over the hero edge.
+    func cyHeroPushedChrome(domain: ThemeDomain? = nil, backAccessibilityIdentifier: String? = nil, onBack: (() -> Void)? = nil) -> some View {
+        modifier(CYHeroPushedChromeModifier(domain: domain, backAccessibilityIdentifier: backAccessibilityIdentifier, onBack: onBack))
+    }
+}
+
+/// Global back-navigation chrome variants per DESIGN.md §7.1.
+enum CYBackNavigationStyle {
+    /// Bare chevron in a 44×44pt hit target for L2+ standard/solid pages.
+    case bareChevron
+    /// 32pt translucent glass circle in a 44×44pt hit target, restricted to full-bleed hero banners.
+    case heroGlassPill
+}
+
+/// Bare chevron back button (44×44pt hit target, no capsule/circle fill) for L2+ plain/solid headers.
+struct CYBareBackButton: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyPalette) private var palette
+    var label: LocalizedStringKey = "action.back"
+    var action: (() -> Void)? = nil
+
+    var body: some View {
+        Button {
+            if let action { action() } else { dismiss() }
+        } label: {
+            Image(systemName: "chevron.backward")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(palette.textPrimary)
+                .frame(minWidth: Theme.MiniProgramChrome.minHit, minHeight: Theme.MiniProgramChrome.minHit)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+/// 32pt translucent glass circular back button (centered in 44×44pt hit target) for full-bleed heroes ONLY.
+struct CYHeroBackButton: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    var label: LocalizedStringKey = "action.back"
+    var action: (() -> Void)? = nil
+
+    var body: some View {
+        Button {
+            if let action { action() } else { dismiss() }
+        } label: {
+            Image(systemName: "chevron.backward")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.white)
+                .frame(width: 32, height: 32)
+                .background {
+                    if reduceTransparency {
+                        Circle().fill(CYDomainPalette(.player).bgElevated)
+                    } else {
+                        Circle().fill(.ultraThinMaterial)
+                            .overlay(Circle().fill(CYDomainPalette(.player).bgGlass.opacity(0.45)))
+                    }
+                }
+                .frame(minWidth: Theme.MiniProgramChrome.minHit, minHeight: Theme.MiniProgramChrome.minHit)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+/// Pinned bottom footer bar (`cy-footer-bar`) for detail, checkout, and form pages:
+/// `bg-page` canvas background, optional 0.5pt `borderSubtle` hairline, and 12pt/16pt safe-area padding.
+struct CYFooterBar<Actions: View>: View {
+    @Environment(\.cyPalette) private var palette
+    var showsDivider: Bool = true
+    @ViewBuilder let actions: () -> Actions
+
+    init(showsDivider: Bool = true, @ViewBuilder actions: @escaping () -> Actions) {
+        self.showsDivider = showsDivider
+        self.actions = actions
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if showsDivider {
+                Rectangle()
+                    .fill(palette.borderSubtle)
+                    .frame(height: 0.5)
+                    .accessibilityHidden(true)
+            }
+            actions()
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.md)
+        }
+        .frame(maxWidth: .infinity)
+        .background(palette.bgPage.ignoresSafeArea(edges: .bottom))
+    }
+}
+
+extension CYFooterBar where Actions == CYPillButton {
+    /// Pinned footer bar with a single full-width pill CTA.
+    init(_ title: LocalizedStringKey, systemImage: String? = nil, showsDivider: Bool = true, action: @escaping () -> Void) {
+        self.init(showsDivider: showsDivider) {
+            CYPillButton(title, style: .primary, systemImage: systemImage, action: action)
+        }
+    }
+}
+
+private struct CYPushedChromeModifier: ViewModifier {
+    let domain: ThemeDomain?
+
+    func body(content: Content) -> some View {
+        let base = content.cyHideTabBar(true)
+        if let domain {
+            base.themeDomain(domain)
+                .tint(CYDomainPalette(domain).brand)
+        } else {
+            base
+        }
+    }
+}
+
+private struct CYHeroPushedChromeModifier: ViewModifier {
+    let domain: ThemeDomain?
+    let backAccessibilityIdentifier: String?
+    let onBack: (() -> Void)?
+    @Environment(\.dismiss) private var dismiss
+
+    func body(content: Content) -> some View {
+        let themed = content.cyPushedChrome(domain: domain)
+            .navigationBarBackButtonHidden(true)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .overlay(alignment: .topLeading) {
+                heroBack
+                    .padding(.leading, CYSpacing.xs)
+                    .padding(.top, CYSpacing.xs)
+            }
+        return themed
+    }
+
+    @ViewBuilder private var heroBack: some View {
+        let button = CYHeroBackButton {
+            if let onBack { onBack() } else { dismiss() }
+        }
+        if let backAccessibilityIdentifier {
+            button.accessibilityIdentifier(backAccessibilityIdentifier)
+        } else {
+            button
+        }
+    }
 }
 
 #if canImport(UIKit)
@@ -84,7 +246,7 @@ enum CYScreenChrome {
         let typeName = NSStringFromClass(type(of: view))
         // Map and web tiles are not screen chrome, and walking them is wasted work.
         if typeName.contains("MKMapView") || typeName.contains("WKWebView") { return }
-        let palette = CYDomainPalette(domain)
+        let palette = CYDomainPalette(effectiveDomain(for: view, rootDomain: domain))
         if let tab = view as? UITabBar {
             let violet = UIColor(palette.tabSelectedTint)
             if !same(tab.tintColor, violet, traits: tab.traitCollection) {
@@ -105,6 +267,13 @@ enum CYScreenChrome {
         for subview in view.subviews {
             correct(subview, domain: domain)
         }
+    }
+
+    private static func effectiveDomain(for view: UIView, rootDomain: ThemeDomain) -> ThemeDomain {
+        let style = view.traitCollection.userInterfaceStyle
+        if rootDomain.colorScheme == .dark && style == .light { return .merchant }
+        if rootDomain.colorScheme == .light && style == .dark { return .player }
+        return rootDomain
     }
 
     private static func apply(_ nav: UINavigationBar, palette: CYDomainPalette) {

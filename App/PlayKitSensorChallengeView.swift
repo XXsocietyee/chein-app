@@ -75,6 +75,8 @@ import SwiftUI
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical)
+        .cyDomainScreen(.game)
+        .tint(CYColor.gameAccent)
         .onAppear { stage.isActive = active }
         .onChange(of: revisionIdentity) { _, next in stage.updateRevision(next, segment: segment) }
         .onChange(of: active) { _, value in stage.isActive = value; if !value { stage.interrupt(.interrupted) } }

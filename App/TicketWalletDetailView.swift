@@ -141,6 +141,7 @@ import SwiftUI
                 }
             }
         .accessibilityIdentifier("ticketWallet.detail")
+        .cyPushedChrome(domain: .player)
         .appSwitcherPrivacyShield()
         .modifier(CYOptionalHeroDestination(id: heroID ?? id, namespace: heroNamespace))
         .fullScreenCover(isPresented: $presenting) {

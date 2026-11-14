@@ -123,6 +123,8 @@ private struct CreatorContentIssueView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .cyDomainScreen(.topicEditor)
+        .cyHideTabBar(true)
         .environment(\.myProjectMerchantScopeAccess, loadedAccess)
         .environment(\.myProjectMutation, loadedAccess.isBrowseOnly ? nil : mutation)
         .task(id: entryScope) { mutation = MyProjectMutationFactory.liveModel(scope: entryScope) }
@@ -260,6 +262,8 @@ private struct CreatorContentIssueView: View {
                 Text("creatorContent.centerReadOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
+        .cyDomainScreen(.topicEditor)
+        .cyHideTabBar(true)
         .appNavigationTitle("creatorContent.center")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
     }

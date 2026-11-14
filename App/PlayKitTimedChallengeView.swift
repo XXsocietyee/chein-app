@@ -51,9 +51,8 @@ import SwiftUI
         }
         .padding(CYSpacing.pageHorizontal)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .cyDomainPageBackground()
-        .themeDomain(.player)
-        .tint(CYDomainPalette(.player).brand)
+        .cyDomainScreen(.game)
+        .tint(CYColor.gameAccent)
         .onAppear { mounted = true; expectedRevision = currentRevisionIdentity?() ?? revisionIdentity }
         .task(id: ticker) {
             while mounted && active && running && !Task.isCancelled {

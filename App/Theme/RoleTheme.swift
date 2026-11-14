@@ -38,10 +38,19 @@ extension View {
     }
 
     /// Apply to the content of a `.sheet`, `.fullScreenCover` or popover presented from a role root.
-    /// The role environment is inherited from the presenter, and this re-asserts the forced
-    /// colour scheme on the presented hierarchy so the sheet never follows the device appearance.
+    /// Re-asserts the forced colour scheme, rounded sheet radius, and sheet glass background so the
+    /// sheet never follows the device appearance.
     func roleThemedPresentation() -> some View {
         modifier(RoleThemedPresentationModifier())
+    }
+
+    /// Apply player sheet glass (`rgba(44,44,46,.98)` + 24pt top corner radius) and dark player tokens
+    /// directly onto a presented sheet hierarchy.
+    func cyPlayerSheetGlass() -> some View {
+        self
+            .themeDomain(.player)
+            .presentationCornerRadius(CYRadius.sheet)
+            .presentationBackground(CYDomainPalette(.player).sheetGlass)
     }
 }
 
@@ -49,7 +58,10 @@ private struct RoleThemedPresentationModifier: ViewModifier {
     @Environment(\.roleTheme) private var role
 
     func body(content: Content) -> some View {
-        content.themeDomain(role.domain)
+        content
+            .themeDomain(role.domain)
+            .presentationCornerRadius(CYRadius.sheet)
+            .presentationBackground(CYDomainPalette(role.domain).sheetGlass)
     }
 }
 
