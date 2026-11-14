@@ -38,17 +38,27 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 } else {
                     List {
                         Section {
-                            if let name = identity.merchantName, !name.isEmpty { Text(name).font(.headline) }
-                            Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
-                                .accessibilityIdentifier("merchant.access.inactive")
+                            let named = identity.merchantName?.isEmpty == false
+                            Group {
+                                if let name = identity.merchantName, !name.isEmpty {
+                                    Text(name).font(.headline)
+                                }
+                                Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
+                                    .accessibilityIdentifier("merchant.access.inactive")
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(named ? [.isHeader, .isStaticText] : .isStaticText)
                         }
                         if let openApplication {
                             CYPillButton("merchant.onboarding.openApplication", action: openApplication)
+                                .pageTemplateControl(label: Text("merchant.onboarding.openApplication"), traits: .isButton)
                                 .accessibilityIdentifier("merchant.onboarding.entry")
                             CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await reload() } }
+                                .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
                                 .accessibilityIdentifier("merchant.access.refresh")
                         } else {
                             CYPillButton("merchant.refreshAccess") { Task { await reload() } }
+                                .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
                                 .accessibilityIdentifier("merchant.access.refresh")
                         }
                     }.refreshable { await reload() }

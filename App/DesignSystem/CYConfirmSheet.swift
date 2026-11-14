@@ -60,14 +60,17 @@ public struct CYConfirmSheet: View {
 
     private var cancelButton: some View {
         Button("action.cancel") { dismiss() }.buttonStyle(.cySecondary(fullWidth: true))
+            .pageTemplateControl(label: Text("action.cancel"), traits: .isButton)
             .cyOptionalAccessibilityIdentifier(cancelIdentifier)
     }
 
     @ViewBuilder private func styled(_ label: some View) -> some View {
         if isDestructive {
             label.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
         } else {
             label.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+                .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
         }
     }
 
@@ -102,6 +105,8 @@ public struct CYConfirmSheet: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(CYSpacing.md)
                 .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isStaticText)
                 .accessibilityIdentifier("confirm.consequences")
             }
         }
@@ -113,16 +118,25 @@ public struct CYConfirmSheet: View {
         .safeAreaInset(edge: .bottom) {
             Group {
                 if consequences.isEmpty {
+                    // Visual order is top to bottom: confirm, then cancel.
                     VStack(spacing: CYSpacing.sm) {
-                        confirmButton
+                        confirmButton.pageTemplateReadingOrder(2)
                         Button("action.cancel") { dismiss() }
                             .buttonStyle(.cySecondary(fullWidth: true))
+                            .pageTemplateControl(label: Text("action.cancel"), traits: .isButton)
+                            .pageTemplateReadingOrder(1)
                     }
                 } else {
-                    // Cancel left, destructive right (mini-program dialog); stacks when the type is large.
+                    // Cancel left, confirm right. The stacked fallback keeps confirm above cancel.
                     ViewThatFits(in: .horizontal) {
-                        HStack(spacing: CYSpacing.sm) { cancelButton; confirmButton }
-                        VStack(spacing: CYSpacing.sm) { confirmButton; cancelButton }
+                        HStack(spacing: CYSpacing.sm) {
+                            cancelButton.pageTemplateReadingOrder(2)
+                            confirmButton.pageTemplateReadingOrder(1)
+                        }
+                        VStack(spacing: CYSpacing.sm) {
+                            confirmButton.pageTemplateReadingOrder(2)
+                            cancelButton.pageTemplateReadingOrder(1)
+                        }
                     }
                 }
             }

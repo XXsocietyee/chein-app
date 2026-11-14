@@ -21,6 +21,7 @@ import SwiftUI
     @State private var level: Int?
     @State private var streakDays: Int?
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.locale) private var locale
 
     var body: some View {
         Section {
@@ -31,6 +32,7 @@ import SwiftUI
                     name.font(.system(.title2, design: .rounded).weight(.heavy)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
                     HStack(spacing: 6) {
                         Text(verbatim: levelText).monospacedDigit()
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(levelText, locale: locale))
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
                     .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
@@ -40,12 +42,13 @@ import SwiftUI
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
                     (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
-                        Label { city } icon: { Image(systemName: "location") }
+                        Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
                             HStack(spacing: 2) {
                                 Image(systemName: "flame.fill")
                                     .foregroundStyle(CYNight.lantern)
+                                    .accessibilityHidden(true)
                                     .symbolEffect(.pulse, options: .nonRepeating, value: reduceMotion ? 0 : streakDays)
                                 Text("member.card.streak", tableName: "MemberProfile")
                                 Text(verbatim: "\(streakDays)").monospacedDigit()
@@ -72,6 +75,7 @@ import SwiftUI
                         .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }
                 .buttonStyle(CYPressScaleStyle())
+                .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
             // Balance preview (read-only, em dash when unknown). The mini-program shows it under 我的资产.
@@ -79,6 +83,7 @@ import SwiftUI
                 tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
                     Text(verbatim: snapshot?.balancePreviewText ?? "—")
                         .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .accessibilityLabel(PageTemplateVoiceOver.spoken(snapshot?.balancePreviewText ?? "—", locale: locale))
                         .accessibilityIdentifier("member.card.balanceValue")
                 }
                 .accessibilityElement(children: .combine)
@@ -152,7 +157,8 @@ import SwiftUI
         if nickname.isEmpty { Text("member.card.defaultName", tableName: "MemberProfile") } else { Text(verbatim: nickname) }
     }
     @ViewBuilder private var city: some View {
-        if let value = snapshot?.city, !value.isEmpty { Text(verbatim: value) } else { Text(verbatim: "—") }
+        if let value = snapshot?.city, !value.isEmpty { Text(verbatim: value) }
+        else { Text(verbatim: "—").accessibilityLabel(Text("curA11y.unknown", tableName: "CurA11y")) }
     }
     /// Remote avatar comes only from the already-loaded user-info `avatar` URL (https only);
     /// anything else, or a load failure, keeps the lettermark.
@@ -187,6 +193,7 @@ import SwiftUI
     private func stat(_ value: String?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
             Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                .accessibilityLabel(PageTemplateVoiceOver.spoken(value ?? MemberHomePageModel.unknownDisplay, locale: locale))
             label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, minHeight: 64)
@@ -197,7 +204,7 @@ import SwiftUI
     }
     private func tile<Title: View, Value: View>(symbol: String, @ViewBuilder title: () -> Title, @ViewBuilder value: () -> Value) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Image(systemName: symbol).font(.title3).foregroundStyle(CYColor.textPrimary)
+            Image(systemName: symbol).font(.title3).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
             title().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             value().foregroundStyle(CYColor.textPrimary)
         }

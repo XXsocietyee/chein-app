@@ -38,7 +38,8 @@ struct CYGlassButton: View {
     var body: some View {
         Button(action: action) { CYGlassLabel(systemImage: systemImage) }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text(label))
+        .accessibilityElement(children: .ignore)
+        .pageTemplateControl(label: Text(label), traits: .isButton)
     }
 }
 
@@ -95,7 +96,8 @@ struct CYGoButton: View {
     var body: some View {
         Button(action: action) { CYGoLabel(title) }
             .buttonStyle(CYGoPressStyle())
-            .accessibilityLabel(Text(title))
+            .accessibilityElement(children: .ignore)
+            .pageTemplateControl(label: Text(title), traits: .isButton)
             .accessibilitySortPriority(10)   // the one primary map action is reached before the list panel
     }
 }

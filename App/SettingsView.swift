@@ -42,9 +42,11 @@ struct SettingsView: View {
                     Text(LocalizedStringKey(homeFacts.copyKey), tableName: "MemberProfile")
                 } icon: {
                     Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
+                        .accessibilityHidden(true)
                 }
                 .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .padding(.horizontal, CYSpacing.lg)
+                .accessibilityAddTraits(homeFacts.phase == .loading ? .updatesFrequently : .isStaticText)
                 .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
             case .empty, .ready:
                 EmptyView()
@@ -208,6 +210,7 @@ struct SettingsAccountCard: View {
     let nickname: String
     let level: Int
     let tappable: Bool
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(spacing: CYSpacing.lg) {
             Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
@@ -217,7 +220,7 @@ struct SettingsAccountCard: View {
                 .overlay(Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1.5))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
+                Text(PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale)).font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
                     .lineLimit(2)
                 Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(.white.opacity(0.85))
             }
@@ -232,6 +235,7 @@ struct SettingsAccountCard: View {
         }
         .cyPressTracking()
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(tappable ? .isButton : .isStaticText)
     }
 }
 

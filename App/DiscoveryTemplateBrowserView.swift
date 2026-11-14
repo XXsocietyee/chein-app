@@ -50,18 +50,22 @@ struct DiscoveryTemplateBrowserView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                         GameplayPresetSection(canDraft: !templateTabScope.isStaffReadOnly)
+                            .pageTemplateReadingOrder(10)
                         if templateTabScope == .merchant(canManageProjects: false) {
                             Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
                                 .foregroundStyle(palette.textSecondary)
                                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                                .accessibilityAddTraits(.isStaticText)
+                                .pageTemplateReadingOrder(40)
                                 .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
                         }
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)
                             Text("discovery.games").tag(Shelf.games)
                         }.pickerStyle(.segmented).accessibilityIdentifier("discovery.shelf")
-                        if tab == .topics { topicShelf }
-                        else { gameShelf }
+                            .pageTemplateReadingOrder(30)
+                        if tab == .topics { topicShelf.pageTemplateReadingOrder(20) }
+                        else { gameShelf.pageTemplateReadingOrder(20) }
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.vertical, CYSpacing.lg)
@@ -74,7 +78,8 @@ struct DiscoveryTemplateBrowserView: View {
                 if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {
                     NavigationLink { publishDestination() } label: {
                         Label("discovery.templateTab.publish", systemImage: "plus")
-                    }.accessibilityIdentifier("discovery.templateTab.publish")
+                    }.pageTemplateControl(label: Text("discovery.templateTab.publish"), traits: .isButton)
+                        .accessibilityIdentifier("discovery.templateTab.publish")
                 }
             }
         }
@@ -135,9 +140,11 @@ struct DiscoveryTemplateBrowserView: View {
             TextField(prompt, text: text)
                 .submitLabel(.search)
                 .onSubmit(submit)
+                .accessibilityLabel(Text(prompt))
                 .accessibilityIdentifier(field)
             Button("discovery.searchAction", action: submit)
                 .font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                .pageTemplateControl(label: Text("discovery.searchAction"), traits: .isButton)
                 .accessibilityIdentifier(submitID ?? "\(field).submit")
         }
         .padding(.horizontal, CYSpacing.lg)
@@ -155,7 +162,7 @@ struct DiscoveryTemplateBrowserView: View {
                 .overlay { Capsule(style: .continuous).strokeBorder(selected ? Color.clear : palette.borderStrong, lineWidth: 1) }
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        .pageTemplateControl(label: title, traits: selected ? [.isButton, .isSelected] : .isButton)
     }
 
     @ViewBuilder private var topicShelf: some View {
@@ -288,6 +295,7 @@ struct DiscoveryTemplateBrowserView: View {
                             }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         }
                     }.buttonStyle(.plain).allowsHitTesting(topics.canOpen(reader: reader))
+                        .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
                         .accessibilityIdentifier("discovery.topic.\(item.id)")
                 }
             }
@@ -307,11 +315,28 @@ struct DiscoveryTemplateBrowserView: View {
                             DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         }
                     }.buttonStyle(.plain)
+                    .pageTemplateGroupedCard(label: gameCardLabel(item), traits: .isButton)
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }
             }
         }
     }
+    private func topicCardLabel(_ item: DiscoveryTopicTemplate) -> Text {
+        let name = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: name)
+        let subtitle = item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if subtitle.isEmpty { return title }
+        return title + Text(verbatim: ", ") + Text(verbatim: subtitle)
+    }
+
+    private func gameCardLabel(_ item: DiscoveryPlayTemplate) -> Text {
+        let name = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = name.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: name)
+        let detail = item.description?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if detail.isEmpty { return title }
+        return title + Text(verbatim: ", ") + Text(verbatim: detail)
+    }
+
     private func applyTopicSearch() {
         appliedTopicSearch = DiscoveryTopicTemplateNameSearch(topicKeyword)
         topicSearchFocused = false

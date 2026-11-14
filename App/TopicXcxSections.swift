@@ -153,18 +153,25 @@ struct TopicXcxActionBar: View {
                     case .locked(let lifecycle):
                         if TopicXcxFacts.opensPricing(topic), let openPricing {
                             Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .pageTemplateControl(label: Text("topicXcx.cta.confirmPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.pricing")
                         } else {
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                         }
                     case .selfPlay(let price):
-                        Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
+                        Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }
+                            .buttonStyle(.bordered).frame(minHeight: 44)
+                            .pageTemplateControl(label: Text("topicXcx.cta.sessions"), traits: .isButton)
+                            .pageTemplateReadingOrder(2)
                         Button(action: openSelfPlay) {
                             if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                             else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
                         }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                            .accessibilityAddTraits(.isButton)
+                            .pageTemplateReadingOrder(1)
                     case .signUp:
                         Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                            .pageTemplateControl(label: Text("topicXcx.cta.signUp"), traits: .isButton)
                             .disabled(topic.merchantClosed)
                     }
                 }

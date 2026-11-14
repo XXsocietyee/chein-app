@@ -453,6 +453,7 @@ import SwiftUI
                         Image(systemName: "timer").accessibilityHidden(true)
                         Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
                             .font(CYTypography.dataXL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
+                            .accessibilityAddTraits(.updatesFrequently)
                             .accessibilityIdentifier("playx.run.clock")
                     }.foregroundStyle(.white)
                 }
@@ -479,12 +480,14 @@ import SwiftUI
                         Label("playx.run.pause", systemImage: "pause.fill").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.cyPrimary).disabled(!model.canManageRun)
+                    .pageTemplateControl(label: Text("playx.run.pause"), traits: .isButton)
                     .accessibilityIdentifier("playx.run.pause")
                 } else if model.clock.phase != .ended {
                     Button { model.startRun(now: ProcessInfo.processInfo.systemUptime) } label: {
                         Label(seconds == 0 ? "playx.run.start" : "playx.run.resume", systemImage: "play.fill").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.cyPrimary).disabled(!model.canManageRun)
+                    .pageTemplateControl(label: Text(seconds == 0 ? "playx.run.start" : "playx.run.resume"), traits: .isButton)
                     .accessibilityIdentifier("playx.run.resume")
                 }
             }

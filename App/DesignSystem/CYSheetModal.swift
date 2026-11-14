@@ -54,6 +54,7 @@ public struct CYSheetContainer<Content: View>: View {
                             .font(CYTypography.sheetTitle)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityAddTraits(.isHeader)
+                            .pageTemplateReadingOrder(2)
                     }
                     Spacer(minLength: CYSpacing.sm)
                     if let onClose {
@@ -67,7 +68,8 @@ public struct CYSheetContainer<Content: View>: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text("action.close"))
+                        .pageTemplateControl(label: Text("action.close"), traits: .isButton)
+                        .pageTemplateReadingOrder(1)
                     }
                 }
                 .padding(.horizontal, CYSpacing.lg)
@@ -184,6 +186,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundStyle(item.isDanger ? palette.danger : palette.textPrimary)
                                     .frame(width: 24)
+                                    .accessibilityHidden(true)
                             }
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: item.title)
@@ -200,6 +203,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundStyle(palette.textPrimary)
+                                    .accessibilityHidden(true)
                             }
                         }
                         .padding(.horizontal, CYSpacing.lg)
@@ -207,6 +211,10 @@ public struct CYOptionSheet<ID: Hashable>: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(CYListRowButtonStyle())
+                    .pageTemplateControl(
+                        label: item.subtitle.map { Text(verbatim: item.title) + Text(verbatim: ", ") + Text(verbatim: $0) } ?? Text(verbatim: item.title),
+                        traits: isSelected ? [.isButton, .isSelected] : .isButton
+                    )
 
                     if index < items.count - 1 {
                         Rectangle()
@@ -287,6 +295,7 @@ public struct CYModal: View {
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
+                .pageTemplateReadingOrder(2)
                 Spacer(minLength: CYSpacing.sm)
                 Button(action: onCancel) {
                     Image(systemName: "xmark")
@@ -299,7 +308,8 @@ public struct CYModal: View {
                 }
                 .buttonStyle(.plain)
                 .offset(x: 8, y: -8)
-                .accessibilityLabel(Text("action.close"))
+                .pageTemplateControl(label: Text("action.close"), traits: .isButton)
+                .pageTemplateReadingOrder(1)
             }
 
             Text(verbatim: message)
@@ -326,6 +336,8 @@ public struct CYModal: View {
                 .padding(CYSpacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.sheetCard))
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isStaticText)
             }
 
             if let lighterAlternativeTitle, let onLighterAlternative {
@@ -343,17 +355,23 @@ public struct CYModal: View {
                     Text(verbatim: cancelTitle)
                 }
                 .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                .pageTemplateControl(label: Text(verbatim: cancelTitle), traits: .isButton)
+                .pageTemplateReadingOrder(2)
 
                 if isDestructive {
                     Button(role: .destructive, action: onConfirm) {
                         Text(verbatim: confirmTitle)
                     }
                     .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+                    .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
+                    .pageTemplateReadingOrder(1)
                 } else {
                     Button(action: onConfirm) {
                         Text(verbatim: confirmTitle)
                     }
                     .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+                    .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
+                    .pageTemplateReadingOrder(1)
                 }
             }
         }

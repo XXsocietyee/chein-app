@@ -93,6 +93,7 @@ import SwiftUI
                             .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }
                     .buttonStyle(.plain).fixedSize()
+                    .pageTemplateControl(label: Text("searchMap.filters"), traits: .isButton)
                     .accessibilityIdentifier("searchMap.filters")
                 }
                 .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
@@ -316,6 +317,7 @@ import SwiftUI
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
+            .pageTemplateControl(label: Text("searchMap.citySearch"), traits: .isButton)
             .accessibilityIdentifier("searchMap.citySearch")
             Menu {
                 Button { mapRoute = .nearby } label: { Label("searchMap.nearby", systemImage: "location") }
@@ -335,6 +337,10 @@ import SwiftUI
                 .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
+            .pageTemplateControl(
+                label: Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find")),
+                traits: .isButton
+            )
             .accessibilityIdentifier("searchMap.more")
         }
         .listRowBackground(Color.clear)

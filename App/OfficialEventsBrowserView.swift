@@ -38,7 +38,10 @@ import SwiftUI
                                     .background(selected ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
                             }
                             .buttonStyle(.cyPressable)
-                            .accessibilityAddTraits(selected ? .isSelected : [])
+                            .pageTemplateControl(
+                                label: Text(LocalizedStringKey(value.tabTitleKey)),
+                                traits: selected ? [.isButton, .isSelected] : .isButton
+                            )
                         }
                         Spacer(minLength: 0)
                     }
@@ -115,6 +118,8 @@ import SwiftUI
             ForEach(visible) { event in
                 NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin, topicLinks: topicLinks) } label: { OfficialEventCard(event: event) }
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isButton)
                     .accessibilityIdentifier("official.event.\(event.id)")
             }
             Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }

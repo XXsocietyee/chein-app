@@ -142,10 +142,12 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
                             if index == 0 {
                                 CoopCloudCoverBanner(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(row.topicName, fallback: "invite-\(row.id)"))
+                                    .accessibilityHidden(true)
                             }
                             HStack(alignment: .top, spacing: CYSpacing.md) {
                                 if index != 0 {
                                     CoopCloudCoverThumb(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(row.topicName, fallback: "invite-\(row.id)"))
+                                        .accessibilityHidden(true)
                                 }
                                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                     HStack(alignment: .center, spacing: CYSpacing.sm) {
@@ -176,6 +178,8 @@ import SwiftUI
                             }
                         }.padding(.vertical, CYSpacing.xs)
                         .opacity((row.status ?? 0) >= 3 ? 0.6 : 1)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isButton)
                     }.accessibilityIdentifier("cooperation.invite.\(direction.rawValue).\(row.id).\(index)")
                 }
             }
@@ -205,6 +209,8 @@ import SwiftUI
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isStaticText)
                         CooperationField(key: direction == .received ? "cooperation.fromClub" : "cooperation.toMerchant", value: direction == .received ? row.clubName : row.merchantNick)
                         CooperationTopicReference(id: row.topicId)
                         CooperationTimeField(key: "cooperation.start", value: row.startDate)
@@ -245,6 +251,8 @@ import SwiftUI
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isStaticText)
                         if let member = row.memberId { CooperationField(key: "cooperation.merchant", value: "#\(member)") }
                         CooperationField(key: "cooperation.topic", value: row.topicName)
                         CooperationField(key: "cooperation.location", value: row.addressName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? row.addressName : row.address)
