@@ -23,6 +23,7 @@ import SwiftUI
     @State private var latitude = ""
     @State private var longitude = ""
     @State private var radius = 3000
+    @State private var showingRange = false
     @State private var tab = 0
     @State private var viewMode = NearbyTeamViewMode.map
     @State private var focusedTeamID: NearbyTeamID?
@@ -121,7 +122,15 @@ import SwiftUI
             }
             .sheet(item: model.review) { review in
                 NearbyTeamReviewView(model: model, snapshot: review)
-                    .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.hidden)
+                    .presentationBackground(.clear)
+            }
+            .sheet(isPresented: $showingRange) {
+                PlayAreaNearbyRangeSheet(radii: NearbyQueryContext.radii, selected: radius, onSelect: { picked in
+                    radius = picked
+                    showingRange = false
+                }, onClose: { showingRange = false })
             }
             .task {
                 coordinator.resume()
@@ -227,8 +236,13 @@ import SwiftUI
                 TextField("nearby.longitude", text: $longitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.longitude")
             }
             HStack {
-                Picker("nearby.radius", selection: $radius) { ForEach(NearbyQueryContext.radii, id: \.self) { radius in Text(verbatim: "\(radius / 1000) km").tag(radius) } }
-                    .accessibilityIdentifier("nearby.radius")
+                Button { showingRange = true } label: {
+                    Text(verbatim: "\(radius / 1000) km")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                }
+                .accessibilityIdentifier("nearby.radius")
+                .accessibilityLabel(Text(verbatim: PlayAreaPopupCopy.text("范围", "Range", locale: locale)))
                 Spacer(minLength: 8)
                 CYPillButton("nearby.search", style: .secondary, systemImage: "magnifyingglass", fullWidth: false) { Task { await refresh() } }
                     .disabled(model.running).accessibilityIdentifier("nearby.search")
@@ -437,21 +451,12 @@ import SwiftUI
     @ObservedObject var model: NearbyTeamScreenModel
     let snapshot: NearbyTeamReview
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    CYHeroHeader(LocalizedStringKey(snapshot.action.key))
-                    Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    if let applicant = snapshot.applicant, !applicant.name.isEmpty {
-                        Label { Text(verbatim: applicant.name) } icon: { Image(systemName: "person.crop.circle") }
-                    }
-                    Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence")
-                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                    CYPillButton(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") { Task { await model.run { await model.coordinator.confirm(snapshot) } } }
-                        .disabled(model.running || !model.coordinator.canSubmit).accessibilityIdentifier("nearby.confirm")
-                    CYPillButton("nearby.cancel", style: .tertiary) { model.cancel() }.accessibilityIdentifier("nearby.cancel")
-                }.padding()
-            }.cyHeroScreen()
-        }
+        PlayAreaTeamReviewModal(
+            action: snapshot.action,
+            name: snapshot.applicant?.name ?? snapshot.team?.title ?? "",
+            busy: model.running || !model.coordinator.canSubmit,
+            onConfirm: { Task { await model.run { await model.coordinator.confirm(snapshot) } } },
+            onCancel: { model.cancel() }
+        )
     }
 }

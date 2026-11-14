@@ -36,17 +36,17 @@ final class RegistrationWaitlistUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Waiting for an available place"].exists, app.debugDescription)
         capture("Waitlist waiting in native registration form – synthetic")
         cancel.tap()
-        let confirmation = app.alerts["Leave the waitlist?"]
+        let confirmation = app.staticTexts["Leave the waitlist?"]
         XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.staticTexts["Waitlist entry cancelled"].exists)
-        confirmation.buttons["Cancel"].tap()
+        app.buttons["Cancel"].tap()
         XCTAssertFalse(confirmation.exists)
         XCTAssertTrue(app.staticTexts["Waiting for an available place"].exists, app.debugDescription)
         XCTAssertFalse(app.staticTexts["Waitlist entry cancelled"].exists)
         XCTAssertFalse(app.buttons["registration.form.readStatus"].exists)
         cancel.tap()
         XCTAssertTrue(confirmation.waitForExistence(timeout: 5), app.debugDescription)
-        confirmation.buttons["Leave waitlist"].tap()
+        app.buttons["Leave waitlist"].tap()
         XCTAssertTrue(app.staticTexts["Waitlist entry cancelled"].waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.buttons["registration.form.readStatus"].exists)
         XCTAssertTrue(app.navigationBars["Activity registration"].exists)
@@ -59,8 +59,10 @@ final class RegistrationWaitlistUITests: XCTestCase {
         let control = consent.switches.firstMatch; (control.exists ? control : consent).tap()
         let review = app.buttons["registration.form.review"]; reveal(review)
         XCTAssertTrue(review.isEnabled); review.tap()
-        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
-        app.alerts.buttons["Cancel"].tap()
+        let confirmTitle = app.staticTexts["Confirm registration?"]
+        let demoTitle = app.staticTexts["Confirm demo registration?"]
+        XCTAssertTrue(confirmTitle.waitForExistence(timeout: 5) || demoTitle.waitForExistence(timeout: 1))
+        app.buttons["Cancel"].tap()
         XCTAssertFalse(app.buttons["registration.form.readStatus"].exists)
         capture("Waitlist offer review cancelled – synthetic")
         app.buttons["registration.form.close"].tap()

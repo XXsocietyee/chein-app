@@ -233,6 +233,8 @@ public struct CYModal: View {
     private let lighterAlternativeTitle: String?
     private let isDestructive: Bool
     private let isConfirmLoading: Bool
+    private let confirmIdentifier: String?
+    private let cancelIdentifier: String?
     private let onCancel: () -> Void
     private let onLighterAlternative: (() -> Void)?
     private let onConfirm: () -> Void
@@ -249,6 +251,8 @@ public struct CYModal: View {
         lighterAlternativeTitle: String? = nil,
         isDestructive: Bool = false,
         isConfirmLoading: Bool = false,
+        confirmIdentifier: String? = nil,
+        cancelIdentifier: String? = nil,
         onCancel: @escaping () -> Void,
         onLighterAlternative: (() -> Void)? = nil,
         onConfirm: @escaping () -> Void
@@ -261,6 +265,8 @@ public struct CYModal: View {
         self.lighterAlternativeTitle = lighterAlternativeTitle
         self.isDestructive = isDestructive
         self.isConfirmLoading = isConfirmLoading
+        self.confirmIdentifier = confirmIdentifier
+        self.cancelIdentifier = cancelIdentifier
         self.onCancel = onCancel
         self.onLighterAlternative = onLighterAlternative
         self.onConfirm = onConfirm
@@ -339,21 +345,27 @@ public struct CYModal: View {
             }
 
             HStack(spacing: CYSpacing.md) {
-                Button(action: onCancel) {
-                    Text(verbatim: cancelTitle)
+                identified(cancelIdentifier) {
+                    Button(action: onCancel) {
+                        Text(verbatim: cancelTitle)
+                    }
+                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
                 }
-                .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
 
                 if isDestructive {
-                    Button(role: .destructive, action: onConfirm) {
-                        Text(verbatim: confirmTitle)
+                    identified(confirmIdentifier) {
+                        Button(role: .destructive, action: onConfirm) {
+                            Text(verbatim: confirmTitle)
+                        }
+                        .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
                     }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
                 } else {
-                    Button(action: onConfirm) {
-                        Text(verbatim: confirmTitle)
+                    identified(confirmIdentifier) {
+                        Button(action: onConfirm) {
+                            Text(verbatim: confirmTitle)
+                        }
+                        .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
                     }
-                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
                 }
             }
         }
@@ -361,5 +373,9 @@ public struct CYModal: View {
         .frame(maxWidth: 320, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.modalPanel))
         .shadow(color: palette.floatShadowColor, radius: 20, x: 0, y: 10)
+    }
+
+    @ViewBuilder private func identified<V: View>(_ identifier: String?, @ViewBuilder content: () -> V) -> some View {
+        if let identifier { content().accessibilityIdentifier(identifier) } else { content() }
     }
 }

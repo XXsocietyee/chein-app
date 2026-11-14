@@ -103,8 +103,12 @@ import SwiftUI
             } header: {
                 Text(c.t("主办管理", "Host management"))
             } footer: {
-                Text(c.t("取消后将给所有未核销的已付款玩家原路全额退款，活动同时下架。",
-                         "Cancelling issues a full refund to all unredeemed paid attendees and unlists the event."))
+                if PlayAreaPopupCopy.paymentsOpen {
+                    Text(c.t("取消后将给所有未核销的已付款玩家原路全额退款，活动同时下架。",
+                             "Cancelling issues a full refund to all unredeemed paid attendees and unlists the event."))
+                } else {
+                    Text(verbatim: "—")
+                }
             }
             .sheet(isPresented: $showingSheet) {
                 ActivityHostCancelSheet(detail: detail, access: access) {
@@ -238,23 +242,12 @@ import SwiftUI
                 }
             }
             .task { await model.loadPreview() }
-            .confirmationDialog(
-                c.t("取消活动并退款", "Cancel event & refund"),
-                isPresented: $confirming,
-                titleVisibility: .visible
-            ) {
-                Button(c.t("确认取消并退款", "Confirm cancel & refund"), role: .destructive) {
-                    confirming = false
-                    // Success leaves the sheet open on the server notice (it may warn that verified tickets were
-                    // not refunded); "Done" / "Close" acknowledge it and then call onCompleted.
-                    Task { _ = await model.submit() }
-                }
-                Button(c.t("再想想", "Not now"), role: .cancel) { confirming = false }
-            } message: {
-                if let count = model.paidPlayers {
-                    Text(c.tr("将给 \(count) 位已付款玩家全额退款,不可撤销。活动同时下架。"))
-                } else {
-                    Text(verbatim: "—")
+            .overlay {
+                if confirming, PlayAreaPopupCopy.paymentsOpen {
+                    PlayAreaHostCancelModal(paidCount: model.paidPlayers, onConfirm: {
+                        confirming = false
+                        Task { _ = await model.submit() }
+                    }, onCancel: { confirming = false })
                 }
             }
         }
@@ -269,22 +262,29 @@ import SwiftUI
                     .font(CYTypography.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(c.tr("将给 \(paidCount) 位已付款玩家全额退款,不可撤销。活动同时下架。"))
+                Text(verbatim: PlayAreaPopupCopy.paymentsOpen
+                    ? c.tr("将给 \(paidCount) 位已付款玩家全额退款,不可撤销。活动同时下架。")
+                    : "—")
                     .font(CYTypography.body)
-                    .foregroundStyle(CYColor.dangerText)
+                    .foregroundStyle(PlayAreaPopupCopy.paymentsOpen ? CYColor.dangerText : CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.vertical, CYSpacing.xs)
             .accessibilityIdentifier("activity.hostCancel.summary")
 
-            CYListRow(verbatim: c.t("已报名玩家将收到取消通知", "Registered attendees will be notified of the cancellation"), trailing: .none) {
-                CYRowIcon(systemImage: "bell.badge")
-            }
-            CYListRow(verbatim: c.t("已支付订单将原路全额退回", "Paid orders will be refunded in full to the original payment method"), trailing: .none) {
-                CYRowIcon(systemImage: "arrow.uturn.backward.circle")
-            }
-            CYListRow(verbatim: c.t("活动下架后不可恢复", "The event will be unlisted and cannot be restored"), trailing: .none) {
-                CYRowIcon(systemImage: "xmark.bin")
+            if PlayAreaPopupCopy.paymentsOpen {
+                CYListRow(verbatim: c.t("已报名玩家将收到取消通知", "Registered attendees will be notified of the cancellation"), trailing: .none) {
+                    CYRowIcon(systemImage: "bell.badge")
+                }
+                CYListRow(verbatim: c.t("已支付订单将原路全额退回", "Paid orders will be refunded in full to the original payment method"), trailing: .none) {
+                    CYRowIcon(systemImage: "arrow.uturn.backward.circle")
+                }
+                CYListRow(verbatim: c.t("活动下架后不可恢复", "The event will be unlisted and cannot be restored"), trailing: .none) {
+                    CYRowIcon(systemImage: "xmark.bin")
+                }
+            } else {
+                CYListRow(verbatim: "—", trailing: .none) { CYRowIcon(systemImage: "minus") }
+                    .accessibilityIdentifier("activity.hostCancel.moneyClosed")
             }
         } header: {
             Text(verbatim: c.t("操作影响", "Consequences"))
@@ -336,6 +336,7 @@ import SwiftUI
 
         Section {
             Button(role: .destructive) {
+                guard PlayAreaPopupCopy.paymentsOpen else { return }
                 confirming = true
             } label: {
                 Text(verbatim: c.t("确认取消并退款", "Confirm cancel & refund"))
@@ -343,7 +344,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
             }
             .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
-            .disabled(!model.canSubmit)
+            .disabled(!model.canSubmit || !PlayAreaPopupCopy.paymentsOpen)
             .accessibilityIdentifier("activity.hostCancel.confirm")
             .accessibilityLabel(Text(verbatim: c.t("确认取消并退款", "Confirm cancel & refund")))
         }

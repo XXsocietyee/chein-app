@@ -521,11 +521,13 @@ struct JourneySeatsView: View {
         .background { MPNightGround() }
         .navigationTitle(Text("mp.seats.title"))
         .navigationBarTitleDisplayMode(.large)
-        .confirmationDialog(Text("mp.seats.cancel.title"), isPresented: Binding(get: { cancelTarget != nil }, set: { if !$0 { cancelTarget = nil } }), titleVisibility: .visible) {
-            Button("mp.seats.cancel", role: .destructive) { if let target = cancelTarget { onCancel(target.invitationID) } }
-            Button("action.cancel", role: .cancel) {}
-        } message: {
-            if let target = cancelTarget { Text("mp.seats.cancel.message \(target.no)") }
+        .overlay {
+            if let target = cancelTarget {
+                PlayAreaSeatCancelModal(seatNo: target.no, onConfirm: {
+                    onCancel(target.invitationID)
+                    cancelTarget = nil
+                }, onCancel: { cancelTarget = nil })
+            }
         }
     }
 

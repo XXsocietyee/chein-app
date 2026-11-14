@@ -296,10 +296,14 @@ import Combine
                 showingLocationPriming = false
             }, onSecondary: { showingLocationPriming = false })
         }
-        .confirmationDialog("roam.live.finishConfirm", isPresented: $confirmFinish, titleVisibility: .visible) {
-            Button("roam.live.finish") { Task { await owner.finish() } }.accessibilityIdentifier("roam.live.finish.confirm")
-            Button("action.cancel", role: .cancel) {}
-        } message: { Text("roam.live.finishHint") }
+        .overlay {
+            if confirmFinish {
+                PlayAreaRoamFinishModal(onConfirm: {
+                    confirmFinish = false
+                    Task { await owner.finish() }
+                }, onCancel: { confirmFinish = false })
+            }
+        }
         .sheet(isPresented: $showRules) {
             NavigationStack { RoamLiveRulesView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }

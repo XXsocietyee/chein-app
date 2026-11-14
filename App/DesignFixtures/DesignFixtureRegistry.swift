@@ -139,6 +139,7 @@ enum DesignFixtureRegistry {
             if let g = MainActor.assumeIsolated({ GParityFixtures.make(name) }) { return g }
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
             if name.hasPrefix("cur4-"), let cur4 = Cur4Fixtures.make(name) { return cur4 }
+            if name.hasPrefix("play-popup-"), let popup = PlayAreaPopupFixtures.make(name) { return popup }
             // Batch-7 screens whose view types compile on this base (CurFixtures3): cur3-<view>[-<state>][-zh]
             if let cur3 = MainActor.assumeIsolated({ CurFixtures3.make(name) }) { return cur3 }
             // parity-a, G6, mount-g45, be-gap and external-game screens (CurFixtures2): cur2-<view>[-<non-happy state>]
