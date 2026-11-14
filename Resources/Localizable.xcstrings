@@ -30425,13 +30425,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Marketing preferences"
+            "value": "Marketing and coupons"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "营销偏好"
+            "value": "营销消息与优惠券"
           }
         }
       }
@@ -30649,13 +30649,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roam location consent"
+            "value": "Roam location"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "漫游定位授权"
+            "value": "漫游定位"
           }
         }
       }
@@ -68111,13 +68111,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explore"
+            "value": "Home"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "探索"
+            "value": "首页"
           }
         }
       }
@@ -128463,13 +128463,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search event names or cities"
+            "value": "Search activity names or cities"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索活动名或城市"
+            "value": "搜索活动名称或城市"
           }
         }
       }
@@ -194886,7 +194886,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索路线、活动和俱乐部"
+            "value": "搜索主题、活动和俱乐部"
           }
         }
       }
@@ -196967,7 +196967,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本机登录态将清除，下次进入需要重新登录。已购通行证、订单和券都保留在账号里，不会丢。"
+            "value": "本机登录态清除，下次进入需要重新登录。已购通行证、订单和券都保留在账号里，不会丢。"
           }
         }
       }
@@ -224746,13 +224746,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Untitled ticket"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未命名票券"
+            "value": "—"
           }
         }
       }

@@ -822,13 +822,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View my media"
+            "value": "View"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看我的媒体"
+            "value": "查看"
           }
         }
       }
@@ -870,13 +870,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn off nearby location sharing"
+            "value": "Turn off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "关闭附近的人位置分享"
+            "value": "关闭"
           }
         }
       }
@@ -950,13 +950,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw Roam location consent"
+            "value": "Withdraw"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤回漫游定位同意"
+            "value": "撤回"
           }
         }
       }
