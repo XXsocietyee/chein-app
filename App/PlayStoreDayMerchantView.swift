@@ -209,7 +209,7 @@ import SwiftUI
     private static func number(_ value: Double) -> String { value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value) }
     private func stat(_ value: String, _ label: String, id: String) -> some View {
         VStack(spacing: CYSpacing.xs) {
-            Text(verbatim: value).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.6).lineLimit(1)
+            Text(verbatim: value).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
             Text(verbatim: label).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)

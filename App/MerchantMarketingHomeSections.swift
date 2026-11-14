@@ -90,7 +90,7 @@ import SwiftUI
     private func mineTile(_ key: String, _ count: Int) -> some View {
         VStack(spacing: CYSpacing.xs) {
             Text(verbatim: String(count)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                .minimumScaleFactor(0.6).lineLimit(1)
+                .cyWrapText(alignment: .center)
             Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                 .multilineTextAlignment(.center)
         }
@@ -110,7 +110,7 @@ import SwiftUI
                     .font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: heroDisplay)
                     .font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
-                    .minimumScaleFactor(0.6).lineLimit(1)
+                    .cyWrapText(alignment: .center)
                     .accessibilityIdentifier("merchantOps.marketing.hero.value")
                 Group {
                     if home.analytics == nil {

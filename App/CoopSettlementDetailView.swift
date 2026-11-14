@@ -118,7 +118,7 @@ import SwiftUI
                 }
                 Text("cooperation.settlement.line.income").font(CYTypography.label).foregroundStyle(CYColor.textSecondary).padding(.top, CYSpacing.md)
                 Text(verbatim: detail.amount.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—").font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                    .minimumScaleFactor(0.6).lineLimit(1)
+                    .cyWrapText()
                     .accessibilityLabel(detail.amount.map { Text(verbatim: "¥" + CoopFinanceProfit.plainText($0)) } ?? Text("coopflow.amount.unknown"))
                     .accessibilityIdentifier("cooperation.settlement.amount")
             }.padding(.vertical, CYSpacing.xs)

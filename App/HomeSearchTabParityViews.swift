@@ -40,8 +40,7 @@ struct HomeHeroHeaderSectionView: View {
                                 Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
                                     .font(CYTypography.bodyCompact)
                                     .foregroundStyle(CYColor.textSecondary)
-                                    .lineLimit(1) // one line at every size; truncates instead of wrapping
-                                    .truncationMode(.tail)
+                                    .cyWrapText()
                                 Spacer(minLength: 0)
                             }
                             .padding(.leading, CYSpacing.md)
@@ -136,7 +135,7 @@ struct HomeHeroHeaderSectionView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
-                            .lineLimit(1).minimumScaleFactor(0.7)
+                            .cyWrapText()
                         Image(systemName: "chevron.down").font(.caption2.weight(.bold))
                     }
                     .font(CYTypography.label)

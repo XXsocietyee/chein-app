@@ -35,10 +35,10 @@ class FPA2HomeSearchAndPublish(unittest.TestCase):
 
     def test_search_entry_has_search_trait_and_wraps(self):
         s = src('App/HomeSearchTabParityViews.swift')
-        # Restyle: the player-first placeholder is one deliberate line that truncates; the search trait stays.
+        # Dynamic Type: the player-first placeholder wraps instead of truncating; the search trait stays.
         entry = s[s.index('searchMap.placeholder.player'):s.index('"homeIndex.hero.searchEntry"')]
-        self.assertIn('.lineLimit(1)', entry)
-        self.assertIn('.truncationMode(.tail)', entry)
+        self.assertIn('.cyWrapText()', entry)
+        self.assertNotIn('.lineLimit(1)', entry)
         self.assertIn('.accessibilityAddTraits(.isSearchField)', entry)
 
 
@@ -65,7 +65,7 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
         top = s[s.index('private var channelTopBar'):s.index('"club.channel.muteButton"')]
         self.assertIn('Text(channel.name)', top)
         self.assertNotIn('.lineLimit(1)\n                            .truncationMode(.tail)', top)
-        self.assertIn('.fixedSize(horizontal: false, vertical: true)', top)
+        self.assertIn('.cyWrapText()', top)
 
 
 class FPA4ActivityDetail(unittest.TestCase):

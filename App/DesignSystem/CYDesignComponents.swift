@@ -143,47 +143,66 @@ public struct CYSectionHeader: View {
         self.action = action
     }
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     public var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Group {
-                    if let verbatimTitle {
-                        Text(verbatim: verbatimTitle)
-                    } else {
-                        Text(title)
-                    }
-                }
-                .font(CYTypography.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                titles
+                actionButton
+            }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                titles
+                Spacer(minLength: CYSpacing.sm)
+                actionButton
+            }
+        }
+    }
 
-                if let verbatimSubtitle {
-                    Text(verbatim: verbatimSubtitle)
-                        .font(CYTypography.meta)
-                        .foregroundStyle(CYColor.textTertiary)
-                } else if let subtitle {
-                    Text(subtitle)
-                        .font(CYTypography.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+    private var titles: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Group {
+                if let verbatimTitle {
+                    Text(verbatim: verbatimTitle)
+                } else {
+                    Text(title)
                 }
             }
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .cyWrapText()
+            .accessibilityAddTraits(.isHeader)
 
-            Spacer(minLength: CYSpacing.sm)
-
-            if let actionTitle, let action {
-                Button(action: action) {
-                    HStack(spacing: CYSpacing.xs) {
-                        Text(actionTitle)
-                            .font(CYTypography.label)
-                        Image(systemName: "chevron.right")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .foregroundStyle(CYColor.brand)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+            if let verbatimSubtitle {
+                Text(verbatim: verbatimSubtitle)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textTertiary)
+                    .cyWrapText()
+            } else if let subtitle {
+                Text(subtitle)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textTertiary)
+                    .cyWrapText()
             }
+        }
+    }
+
+    @ViewBuilder private var actionButton: some View {
+        if let actionTitle, let action {
+            Button(action: action) {
+                HStack(spacing: CYSpacing.xs) {
+                    Text(actionTitle)
+                        .font(CYTypography.label)
+                        .cyWrapText()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                }
+                .foregroundStyle(CYColor.brand)
+                .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
     }
 }
@@ -291,6 +310,7 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
             }
         }
         .font(size.font)
+        .cyWrapText(alignment: .center)
         .foregroundStyle(fg)
         .padding(.horizontal, size.horizontalPadding)
         .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
@@ -338,6 +358,7 @@ public struct CYSecondaryButtonStyle: ButtonStyle {
             }
         }
         .font(size.font)
+        .cyWrapText(alignment: .center)
         .foregroundStyle(fg)
         .padding(.horizontal, size.horizontalPadding)
         .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
@@ -385,6 +406,7 @@ public struct CYGhostButtonStyle: ButtonStyle {
             }
         }
         .font(size.font)
+        .cyWrapText(alignment: .center)
         .foregroundStyle(fg)
         .padding(.horizontal, size.horizontalPadding)
         .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)
@@ -426,6 +448,7 @@ public struct CYDestructiveButtonStyle: ButtonStyle {
             }
         }
         .font(size.font)
+        .cyWrapText(alignment: .center)
         .foregroundStyle(fg)
         .padding(.horizontal, size.horizontalPadding)
         .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: size.visualHeight)

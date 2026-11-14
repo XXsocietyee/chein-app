@@ -203,7 +203,7 @@ private struct ProfileOrderRow: View {
                 Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
                     .font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                    .lineLimit(1).minimumScaleFactor(0.6)
+                    .cyWrapText()
             }
             if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             // Visual label only: the whole card is the NavigationLink, so there is a single control.

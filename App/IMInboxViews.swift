@@ -116,7 +116,7 @@ struct IMInboxRow: View {
                 } else {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         MessagingConversationName(conversation: conversation)
-                            .font(.body.weight(.semibold)).lineLimit(1)
+                            .font(.body.weight(.semibold)).cyWrapText()
                         officialChip.fixedSize()
                         muteMark
                         Spacer(minLength: 4)

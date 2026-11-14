@@ -218,7 +218,7 @@ struct SettingsAccountCard: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
-                    .lineLimit(2)
+                    .cyWrapText()
                 Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(.white.opacity(0.85))
             }
             Spacer(minLength: 0)

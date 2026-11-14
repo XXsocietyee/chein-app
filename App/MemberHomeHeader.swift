@@ -187,7 +187,7 @@ import SwiftUI
     private func stat(_ value: String?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
             Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
+            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 64)
         .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))

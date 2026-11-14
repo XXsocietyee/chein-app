@@ -21,7 +21,7 @@ struct RoamHistoryParityStrip: View {
     private func column(_ value: Text, _ label: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             value.font(.system(.title3, design: .rounded).weight(.heavy).italic()).monospacedDigit()
-                .foregroundStyle(CYColor.textPrimary).lineLimit(1).minimumScaleFactor(0.7)
+                .foregroundStyle(CYColor.textPrimary).cyWrapText()
             Text(label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
@@ -107,7 +107,7 @@ struct RoamRunCardParityMeta: View {
     private func stat(_ value: String, _ label: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: value).font(.system(.headline, design: .rounded).weight(.bold).monospacedDigit())
-                .lineLimit(1).minimumScaleFactor(0.7)
+                .cyWrapText()
             Text(label).font(.caption2).foregroundStyle(CYColor.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }

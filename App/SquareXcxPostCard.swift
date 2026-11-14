@@ -28,7 +28,7 @@ struct SquareXcxPostCard: View {
             }
             if !facts.strip.isEmpty {
                 if showsMedia { NativeMediaGalleryEntry(sources: facts.strip, scope: mediaScope, titleKey: "media.destination.squareImages", compact: true) }
-                if facts.showsCountPill { Text("square.xcx.countPill \(facts.strip.count)").font(.caption2).accessibilityIdentifier("square.card.count") }
+                if facts.showsCountPill { Text("square.xcx.countPill \(facts.strip.count)").font(.caption2.monospacedDigit()).accessibilityIdentifier("square.card.count") }
             }
             counters
         }.padding(.vertical, 4)
@@ -40,8 +40,8 @@ struct SquareXcxPostCard: View {
             Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).font(.headline).lineLimit(1) }
-                    else { Text("square.xcx.defaultName").font(.headline).lineLimit(1) }
+                    if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).font(.headline).cyWrapText() }
+                    else { Text("square.xcx.defaultName").font(.headline).cyWrapText() }
                     if post.verified { Image(systemName: "checkmark.seal.fill").foregroundStyle(.tint).accessibilityLabel(Text("square.verified")) }
                     Spacer(minLength: 4)
                     SquareXcxRelativeTime(createTime: post.createTime, now: now).font(.caption).foregroundStyle(.secondary).lineLimit(1).fixedSize()
@@ -150,7 +150,7 @@ struct SquareXcxRelativeTime: View {
                 case .soon: Text("square.xcx.upcoming.soon").font(.caption)
                 }
             }
-            Text(verbatim: item.title).font(.headline).lineLimit(1)
+            Text(verbatim: item.title).font(.headline).cyWrapText()
             if let subtitle = item.subtitle { Text(verbatim: subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
             HStack(spacing: 4) {
                 ForEach(Array(item.avatars.enumerated()), id: \.offset) { _, _ in Image(systemName: "person.circle.fill").accessibilityHidden(true) }

@@ -126,7 +126,7 @@ struct TopicXcxLineup: View {
                 ForEach(Array(members.enumerated()), id: \.offset) { _, member in
                     VStack(spacing: CYSpacing.xs) {
                         CYAvatarView(name: member.name, size: .lg)
-                        Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                        Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
                         Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
                     }.frame(width: 88).accessibilityElement(children: .combine)
                 }
@@ -248,7 +248,7 @@ struct TopicXcxTemplatesSection: View {
                     HStack(alignment: .top, spacing: 12) {
                         ForEach(templates, id: \.id) { template in
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(verbatim: template.title).font(.subheadline.bold()).lineLimit(1)
+                                Text(verbatim: template.title).font(.subheadline.bold()).cyWrapText()
                                 if let players = template.players { Text(verbatim: players).font(.caption) }
                                 Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))").font(.caption).foregroundStyle(.secondary)
                             }.frame(width: 140, alignment: .leading).padding(Theme.Space.s3)

@@ -329,6 +329,7 @@ struct CYDomainPrimaryButtonStyle: ButtonStyle {
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
             .font(Theme.Font.button.weight(.bold))
+            .cyWrapText(alignment: .center)
             .foregroundStyle(isEnabled ? palette.actionPrimaryFg : palette.textPlaceholder)
             .padding(.horizontal, 20)   // --cy-btn-pad-x 40rpx
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)   // --cy-btn-h 88rpx
@@ -349,6 +350,7 @@ struct CYDomainSecondaryButtonStyle: ButtonStyle {
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
             .font(Theme.Font.button.weight(.bold))
+            .cyWrapText(alignment: .center)
             .foregroundStyle(isEnabled ? palette.textSecondary : palette.textPlaceholder)
             .padding(.horizontal, 20)
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)
@@ -369,6 +371,7 @@ struct CYDomainDestructiveButtonStyle: ButtonStyle {
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
             .font(Theme.Font.button.weight(.bold))
+            .cyWrapText(alignment: .center)
             .foregroundStyle(isEnabled ? palette.actionDangerFg : palette.textPlaceholder)
             .padding(.horizontal, 20)
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)

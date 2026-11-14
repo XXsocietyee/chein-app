@@ -8,6 +8,7 @@ import SwiftUI
     let block: String?
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private static let fieldOwned: Set<String> = ["name", "addressName", "startDate", "endDate", "categoryIds",
         "description", "imgUrl", "templateId", "collaborators", "ticket"]
     private static let ticketPrefixes = ["ticketName", "ticketPrice", "ticketStock", "ticketStart", "ticketEnd"]
@@ -19,26 +20,13 @@ import SwiftUI
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                ForEach(ActivityPublishingWizard.progress(current)) { item in
-                    VStack(spacing: 6) {
-                        Capsule()
-                            .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
-                            .frame(height: 4)
-                        Text(Self.titleKey(item.key))
-                            .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
-                            .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
-                            .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("publishModes.activity.wizard.progress." + item.key)
-                    .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) { wizardSteps(current) }
+                } else {
+                    HStack(spacing: 8) { wizardSteps(current) }
                 }
             }
-            // Three step columns cannot hold accessibility-size words: cap the labels (the heading below still scales).
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
                     .font(CYTypography.meta)
@@ -54,6 +42,23 @@ import SwiftUI
         }
         .padding(.vertical, 4)
         .accessibilityIdentifier("publishModes.activity.wizard.step." + String(current))
+    }
+    @ViewBuilder private func wizardSteps(_ current: Int) -> some View {
+        ForEach(ActivityPublishingWizard.progress(current)) { item in
+            VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center, spacing: 6) {
+                Capsule()
+                    .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
+                    .frame(height: 4)
+                Text(Self.titleKey(item.key))
+                    .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
+                    .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
+                    .cyWrapText(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+            }
+            .frame(maxWidth: .infinity, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("publishModes.activity.wizard.progress." + item.key)
+            .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
+        }
     }
     private static func titleKey(_ key: String) -> LocalizedStringKey {
         switch key {
@@ -74,11 +79,17 @@ import SwiftUI
     let onBack: () -> Void
     let onNext: () -> Void
     let onReview: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        // Pinned bar chrome: one compact row at every size (type capped), the form above keeps scrolling.
-        HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        // At the largest sizes the two actions stack so neither label clips.
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: CYSpacing.md) { secondary(current); primary(current) }
+            } else {
+                HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
+            }
+        }
     }
     @ViewBuilder private func secondary(_ current: Int) -> some View {
         if current == 0 {

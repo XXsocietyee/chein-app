@@ -219,7 +219,7 @@ import SwiftUI
                     ForEach(history, id: \.self) { keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                                .lineLimit(1).minimumScaleFactor(0.85)
+                                .cyWrapText(alignment: .center)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
                                 .contentShape(Capsule())
@@ -245,7 +245,7 @@ import SwiftUI
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                                .lineLimit(1).minimumScaleFactor(0.85)
+                                .cyWrapText(alignment: .center)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
                                 .contentShape(Capsule())
@@ -439,7 +439,7 @@ import SwiftUI
     private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind
         return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
-            title.font(CYTypography.bodyMedium).lineLimit(1)
+            title.font(CYTypography.bodyMedium).cyWrapText(alignment: .center).monospacedDigit()
                 .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .searchNightPill(selected: selected)

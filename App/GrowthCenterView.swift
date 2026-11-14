@@ -81,15 +81,16 @@ extension EnvironmentValues {
     @ViewBuilder private func scoreRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
             if let board = overview.rank.value {
-                HStack(spacing: CYSpacing.md) {
-                    GrowthProfileDisc(name: board.me.nickname)
-                    if let name = GrowthCenterFormatting.nonempty(board.me.nickname) {
-                        Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(1)
-                    }
-                    Spacer(minLength: CYSpacing.sm)
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                CurA11yPair(
+                    leading: HStack(spacing: CYSpacing.md) {
+                        GrowthProfileDisc(name: board.me.nickname)
+                        if let name = GrowthCenterFormatting.nonempty(board.me.nickname) {
+                            Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                        }
+                    },
+                    trailing: HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                         GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
-                            .lineLimit(1).minimumScaleFactor(0.5)
+                            .cyWrapText()
                         Group { if board.metric == .exp { Text("u10.growth.unit.exp") } else { Text("growth.unit.point") } }
                             .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     }
@@ -97,7 +98,7 @@ extension EnvironmentValues {
                     .accessibilityLabel(Text("growth.currentPoints"))
                     .accessibilityValue(pointsValue(board.me.score))
                     .accessibilityIdentifier("growth.points")
-                }
+                )
                 .padding(.vertical, CYSpacing.xs)
                 leaderboardRow(rank: board.me.rank)
                 if let percentage = GrowthCenterFormatting.nonempty(board.me.rankPercentage) { Text(verbatim: percentage).font(.caption) }

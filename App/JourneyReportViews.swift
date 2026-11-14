@@ -296,7 +296,7 @@ struct JourneyRankBoardView: View {
                         .foregroundStyle((entry.rank ?? 99) <= 3 ? CYNight.lantern : CYColor.textSecondary)
                         .frame(width: 32)
                     MPAvatar(url: entry.avatarURL, initial: String((entry.name ?? "").prefix(1)), size: 32)
-                    (entry.name.map { Text(verbatim: $0) } ?? Text("mp.rank.player")).font(CYTypography.bodyMedium).lineLimit(1)
+                    (entry.name.map { Text(verbatim: $0) } ?? Text("mp.rank.player")).font(CYTypography.bodyMedium).cyWrapText()
                     Spacer()
                     Text(verbatim: entry.scoreText).font(CYTypography.bodyMedium).monospacedDigit()
                 }
@@ -560,7 +560,7 @@ struct JourneyReportView: View {
     private func stat(_ value: Text, _ label: LocalizedStringKey, muted: Bool) -> some View {
         VStack(spacing: CYSpacing.xxs) {
             value.font(CYTypography.dataXL).monospacedDigit().foregroundStyle(muted ? CYColor.textTertiary : CYColor.textPrimary)
-                .lineLimit(1).minimumScaleFactor(0.6)
+                .cyWrapText(alignment: .center)
             Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }
         .frame(maxWidth: .infinity)

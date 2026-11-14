@@ -39,7 +39,7 @@ public struct CYMoneyRow: View {
         Text(signedAmount)
             .font(CYTypography.numericBody)
             .foregroundStyle(incoming ? CYColor.successText : CYColor.dangerText)
-            .lineLimit(1)
+            .cyWrapText(alignment: .trailing)
     }
 
     public var body: some View {

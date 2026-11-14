@@ -60,7 +60,7 @@ struct SearchMapCard: View {
                     // Mini-program result card: tags are small filled chips, at most three on one line.
                     HStack(spacing: CYSpacing.xs) {
                         ForEach(Array(row.tags.prefix(3).enumerated()), id: \.offset) { _, tag in
-                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).cyWrapText()
                                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
                                 .background(Capsule(style: .continuous).fill(CYNight.glassFill))
                         }

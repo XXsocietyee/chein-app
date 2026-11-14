@@ -613,7 +613,7 @@ struct RoamLiveStatTile: View {
     var body: some View {
         VStack(spacing: 2) {
             Text(verbatim: value).font(.title2.weight(.bold)).monospacedDigit()
-                .lineLimit(1).minimumScaleFactor(0.6)
+                .cyWrapText(alignment: .center)
             Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)

@@ -16,7 +16,7 @@ struct ClubOpsSettlementSummaryCard: View {
                     }
                 }
                 .foregroundStyle(CYColor.textPrimary)
-                .minimumScaleFactor(0.6).lineLimit(1)
+                .cyWrapText()
                 .accessibilityIdentifier("club.gov.fact.settledAmountStatus")
                 if summary.unverifiedSettledCount > 0 {
                     CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "ClubOpsCustomer", locale: locale)),

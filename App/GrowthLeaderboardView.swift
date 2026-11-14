@@ -242,7 +242,7 @@ private struct GrowthLeaderboardPodiumView: View {
             }
             .padding(.bottom, 12)
             GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").font(CYTypography.label.weight(.semibold))
-                .foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                .foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
             HStack(spacing: 4) {
                 Circle().fill(tint).frame(width: 10, height: 10).accessibilityHidden(true)
                 GrowthCenterInteger(value: entry.score).font(.subheadline.weight(.bold)).monospacedDigit()

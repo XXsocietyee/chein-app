@@ -262,7 +262,7 @@ import SwiftUI
     private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
             Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
+            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 56)
         .accessibilityElement(children: .combine)

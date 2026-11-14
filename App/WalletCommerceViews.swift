@@ -215,7 +215,7 @@ enum WalletPayoutCapability { static let isOn = false }
                             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
-                                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
                                     if let day = WalletIncomeDay.make(row.createTime) {
                                         WalletIncomeDayText(day: day).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                                     }
@@ -280,7 +280,7 @@ enum WalletPayoutCapability { static let isOn = false }
             Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: value ?? WalletIncomeDetailPageModel.unknownMoney).font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
-                .lineLimit(1).minimumScaleFactor(0.7).privacySensitive()
+                .cyWrapText().privacySensitive()
         }.padding(.vertical, CYSpacing.sm).frame(minHeight: CYSpacing.minTouchTarget)
     }
     /// 更多: the navigation rows that are not quick actions (destinations and gates unchanged).
@@ -523,7 +523,7 @@ enum WalletPayoutCapability { static let isOn = false }
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
                         .font(CYTypography.data2XL).monospacedDigit()
-                        .minimumScaleFactor(0.5).lineLimit(1)
+                        .cyWrapText()
                         .foregroundStyle(CYColor.textPrimary)
                     if value != nil { Text(verbatim: unit).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textSecondary) }
                 }
@@ -997,7 +997,7 @@ private struct WalletQuickAction: View {
                 .foregroundStyle(isPrimary ? CYColor.textOnAccent : CYColor.textPrimary)
                 .frame(width: 56, height: 56)
                 .background(isPrimary ? CYColor.actionPrimaryBg : CYColor.bgElevated, in: Circle()).accessibilityHidden(true)
-            Text(title).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
+            Text(title).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
                 .multilineTextAlignment(.center)
         }.frame(maxWidth: .infinity)
     }
@@ -1034,7 +1034,7 @@ private struct WalletEarningsHero: View {
     @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 56
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
-            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 if let symbol {
                     Text(symbol).font(.system(size: size * 0.7, weight: .bold, design: .rounded))
@@ -1044,7 +1044,7 @@ private struct WalletEarningsHero: View {
                 }
                 Text(number).font(.system(size: size, weight: .bold, design: .rounded)).monospacedDigit()
             }
-            .foregroundStyle(CYColor.textPrimary).lineLimit(1).minimumScaleFactor(0.5)
+            .foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
         }
         .padding(.vertical, CYSpacing.lg)
         .frame(maxWidth: .infinity)

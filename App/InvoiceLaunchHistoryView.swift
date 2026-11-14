@@ -75,14 +75,14 @@ import SwiftUI
     private func historyRow(_ row: InvoiceLaunchApplication) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                Text(verbatim: row.titleName).font(CYTypography.cardTitle).lineLimit(2)
+                Text(verbatim: row.titleName).font(CYTypography.cardTitle).cyWrapText()
                 Spacer(minLength: CYSpacing.sm)
                 Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).font(CYTypography.numericBody).monospacedDigit()
             }
             HStack(spacing: CYSpacing.sm) {
                 CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
                 Text(verbatim: invoiceTime(row.createTime, locale: locale)).font(CYTypography.meta)
-                    .foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                    .foregroundStyle(CYColor.textSecondary).cyWrapText().monospacedDigit()
             }
             if let tax = row.taxNoMasked, !tax.isEmpty {
                 Text(verbatim: tax).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
