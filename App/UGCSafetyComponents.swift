@@ -265,10 +265,14 @@ struct UGCBlockedNoticeBanner: View {
                         .font(CYTypography.caption)
                 }
                 .disabled(busy)
+                .accessibilityLabel(Text("ugc.safety.action.unblock", tableName: "UGCSafety"))
+                .accessibilityIdentifier("ugc.safety.unblockButton")
             }
         }
         .padding(CYSpacing.md)
         .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("ugc.safety.blockedBanner")
     }
 }
 
@@ -337,6 +341,7 @@ struct UGCReportSheet: View {
                         .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(Text("ugc.safety.action.contactSupport", tableName: "UGCSafety"))
                     .accessibilityIdentifier("ugc.safety.contactSupportLink")
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -350,6 +355,8 @@ struct UGCReportSheet: View {
                     } label: {
                         Text("ugc.safety.close", tableName: "UGCSafety")
                     }
+                    .accessibilityLabel(Text("ugc.safety.close", tableName: "UGCSafety"))
+                    .accessibilityIdentifier("ugc.safety.close")
                 }
             }
             .task {
@@ -438,6 +445,7 @@ struct UGCReportSheet: View {
                         .foregroundStyle(CYColor.textPrimary)
                 }
                 .tint(CYColor.accent)
+                .accessibilityIdentifier("ugc.safety.alsoBlock")
             }
 
             if let serverErrorMessage, !serverErrorMessage.isEmpty {
@@ -459,11 +467,13 @@ struct UGCReportSheet: View {
                 Task { await submit() }
             }
             .disabled(submitting || selectedReason == nil)
+            .accessibilityLabel(Text("ugc.safety.submit", tableName: "UGCSafety"))
             .accessibilityIdentifier("ugc.safety.submitReportButton")
 
             Text("ugc.safety.moderation.footer", tableName: "UGCSafety")
                 .font(CYTypography.caption)
                 .foregroundStyle(CYColor.textTertiary)
+                .accessibilityIdentifier("ugc.safety.moderation.notice")
         }
     }
 
@@ -500,6 +510,8 @@ struct UGCReportSheet: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: reason.label))
+        .accessibilityIdentifier("ugc.safety.reason.\(reason.code)")
     }
 
     private func reloadCapabilities() async {
@@ -596,6 +608,7 @@ struct UGCSafetyMenuButton: View {
                     Image(systemName: "flag")
                 }
             }
+            .accessibilityLabel(Text("ugc.safety.action.report", tableName: "UGCSafety"))
             .accessibilityIdentifier("ugc.safety.menu.report")
 
             if canBlockAuthor {
@@ -609,6 +622,7 @@ struct UGCSafetyMenuButton: View {
                             Image(systemName: "hand.raised.slash")
                         }
                     }
+                    .accessibilityLabel(Text("ugc.safety.action.unblock", tableName: "UGCSafety"))
                     .accessibilityIdentifier("ugc.safety.menu.unblock")
                 } else {
                     Button(role: .destructive) {
@@ -620,6 +634,7 @@ struct UGCSafetyMenuButton: View {
                             Image(systemName: "hand.raised")
                         }
                     }
+                    .accessibilityLabel(Text("ugc.safety.action.block", tableName: "UGCSafety"))
                     .accessibilityIdentifier("ugc.safety.menu.block")
                 }
             }
@@ -635,6 +650,7 @@ struct UGCSafetyMenuButton: View {
                     Image(systemName: "headphones")
                 }
             }
+            .accessibilityLabel(Text("ugc.safety.action.contactSupport", tableName: "UGCSafety"))
             .accessibilityIdentifier("ugc.safety.menu.contactSupport")
         } label: {
             if compactLabel {
@@ -663,11 +679,15 @@ struct UGCSafetyMenuButton: View {
             Button(role: .cancel) { } label: {
                 Text("ugc.safety.block.cancel", tableName: "UGCSafety")
             }
+            .accessibilityLabel(Text("ugc.safety.block.cancel", tableName: "UGCSafety"))
+            .accessibilityIdentifier("ugc.safety.block.cancel")
             Button(role: .destructive) {
                 Task { await toggleBlock(unblock: false) }
             } label: {
                 Text("ugc.safety.block.confirmButton", tableName: "UGCSafety")
             }
+            .accessibilityLabel(Text("ugc.safety.block.confirmButton", tableName: "UGCSafety"))
+            .accessibilityIdentifier("ugc.safety.block.confirm")
         } message: {
             Text("ugc.safety.block.confirmMessage", tableName: "UGCSafety")
         }
@@ -771,6 +791,8 @@ struct UGCReviewSafetyFooter: View {
                 .foregroundStyle(CYColor.textSecondary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text("ugc.safety.action.report", tableName: "UGCSafety"))
+            .accessibilityIdentifier("ugc.safety.footer.report")
 
             if canBlock {
                 Button(role: .destructive) {
@@ -785,6 +807,8 @@ struct UGCReviewSafetyFooter: View {
                     .foregroundStyle(CYColor.dangerText)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(Text("ugc.safety.action.block", tableName: "UGCSafety"))
+                .accessibilityIdentifier("ugc.safety.footer.block")
             }
         }
         .sheet(item: $reportPresented) { item in
@@ -794,6 +818,8 @@ struct UGCReviewSafetyFooter: View {
             Button(role: .cancel) { } label: {
                 Text("ugc.safety.block.cancel", tableName: "UGCSafety")
             }
+            .accessibilityLabel(Text("ugc.safety.block.cancel", tableName: "UGCSafety"))
+            .accessibilityIdentifier("ugc.safety.block.cancel")
             Button(role: .destructive) {
                 Task {
                     try? await safety?.blockUser(memberID: authorMemberID, authorName: authorName, clubID: clubID)
@@ -801,6 +827,8 @@ struct UGCReviewSafetyFooter: View {
             } label: {
                 Text("ugc.safety.block.confirmButton", tableName: "UGCSafety")
             }
+            .accessibilityLabel(Text("ugc.safety.block.confirmButton", tableName: "UGCSafety"))
+            .accessibilityIdentifier("ugc.safety.block.confirm")
         } message: {
             Text("ugc.safety.block.confirmMessage", tableName: "UGCSafety")
         }
@@ -866,6 +894,7 @@ struct UGCProfileSafetyActionsSection: View {
                         authorName: displayName
                     )
                 }
+                .accessibilityLabel(Text("ugc.safety.action.reportUser", tableName: "UGCSafety"))
                 .accessibilityIdentifier("ugc.profile.reportButton")
 
                 CYPillButton(
@@ -882,6 +911,7 @@ struct UGCProfileSafetyActionsSection: View {
                         confirmBlock = true
                     }
                 }
+                .accessibilityLabel(Text(isBlocked ? "ugc.safety.action.unblock" : "ugc.safety.action.block", tableName: "UGCSafety"))
                 .accessibilityIdentifier("ugc.profile.blockButton")
             }
 
@@ -898,11 +928,15 @@ struct UGCProfileSafetyActionsSection: View {
             Button(role: .cancel) { } label: {
                 Text("ugc.safety.block.cancel", tableName: "UGCSafety")
             }
+            .accessibilityLabel(Text("ugc.safety.block.cancel", tableName: "UGCSafety"))
+            .accessibilityIdentifier("ugc.safety.block.cancel")
             Button(role: .destructive) {
                 Task { await blockNow() }
             } label: {
                 Text("ugc.safety.block.confirmButton", tableName: "UGCSafety")
             }
+            .accessibilityLabel(Text("ugc.safety.block.confirmButton", tableName: "UGCSafety"))
+            .accessibilityIdentifier("ugc.safety.block.confirm")
         } message: {
             Text("ugc.safety.block.confirmMessage", tableName: "UGCSafety")
         }

@@ -268,6 +268,7 @@ private struct MessagingConversationListView: View {
                 if case .outcomeUnknown = owner.visibleState { safety = .init(owner: owner); return }
                 if owner.review(.hide(conversationID: conversation.id)) { safety = .init(owner: owner) }
             } label: { Label("im.safety.hide.rowAction", systemImage: "trash") }
+            .accessibilityLabel(Text("im.safety.hide.rowAction"))
             .accessibilityIdentifier("im.row.\(conversation.id).delete")
         }
     }

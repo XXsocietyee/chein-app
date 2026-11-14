@@ -306,17 +306,20 @@ import SwiftUI
                     if post.generation == .legacySquare { editor = .init(purpose: .report, target: .post(post.id), text: "") }
                     else if let target = try? SquareReportTarget(post: post) { reportTarget = .init(target: target) }
                 }
+                .accessibilityLabel(Text("square.report"))
                 .accessibilityIdentifier("squareReport.postEntry")
             }
             if SquareAuthorSafety.showsBlockEntry(authorMemberID: post.memberID, viewerMemberID: actions.identity.accountID) {
                 Button("square.block", systemImage: "hand.raised") {
                     blockTarget = .init(memberID: post.memberID, authorName: post.nickname)
                 }
+                    .accessibilityLabel(Text("square.block"))
                     .accessibilityIdentifier("square.block.postEntry")
             }
         } label: {
             Label("social.actions", systemImage: "ellipsis.circle").labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
         }
+        .accessibilityLabel(Text("social.actions"))
         .accessibilityIdentifier("social.post.actions")
     }
     @ViewBuilder private func commentRow(_ comment: SquareComment) -> some View {
@@ -355,6 +358,7 @@ import SwiftUI
                         Button { reportComment(comment) } label: { Text("square.report").font(.caption).foregroundStyle(.secondary) }
                             .buttonStyle(.borderless)
                             .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityLabel(Text("square.report"))
                             .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
                     }
                     Spacer(minLength: 0)
