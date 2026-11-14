@@ -43,9 +43,11 @@ import SwiftUI
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
-                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket")
+                            CYEmptyState(systemImage: "ticket", "accountCollection.coupons.empty", kind: .orders, messageIdentifier: "accountCollection.coupons.empty")
+                                .listRowBackground(Color.clear)
                         } else {
-                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle")
+                            CYEmptyState(systemImage: "line.3.horizontal.decrease.circle", "accountCollection.coupons.filteredEmpty", kind: .search, messageIdentifier: "accountCollection.coupons.filteredEmpty")
+                                .listRowBackground(Color.clear)
                         }
                     }
                     let selections = model.selections(for: offeredRequest, filter: filter)
@@ -64,6 +66,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
+        .cyDomainScreen(.player)
         .appNavigationTitle("accountCollection.coupons.title")
         .cyHideTabBar()
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
@@ -138,7 +141,8 @@ struct AccountCollectionCouponRow: View {
             if coupon.shopName != nil || coupon.shopAddress != nil {
                 AccountCollectionCouponShopLine(coupon: coupon)
             }
-        }.orderCardSurface()
+        }
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
     }
 }
 

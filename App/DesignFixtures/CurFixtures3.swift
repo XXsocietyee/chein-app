@@ -20,6 +20,7 @@ enum CurFixtures3 {
         case "cur3-video-bounty-zh": return frame("Video bounty", zh: true) { Cur3VideoBountyHost(zh: true, failed: false) }
         case "cur3-video-bounty-failed": return frame("Video bounty · read failed", zh: false) { Cur3VideoBountyHost(zh: false, failed: true) }
         case "cur3-video-bounty-failed-zh": return frame("Video bounty · read failed", zh: true) { Cur3VideoBountyHost(zh: true, failed: true) }
+        case "cur3-video-bounty-empty": return frame("Video bounty · empty", zh: false) { Cur3VideoBountyHost(zh: false, failed: false, empty: true) }
         default: return nil
         }
     }
@@ -126,10 +127,11 @@ private enum Cur3 {
 @MainActor private struct Cur3VideoBountyHost: View {
     let zh: Bool
     let failed: Bool
+    var empty = false
     var body: some View {
         NavigationStack {
             VideoBountyView(
-                state: failed ? Cur3.failedBounty : Cur3.readyBounty,
+                state: failed ? Cur3.failedBounty : (empty ? Cur3.emptyBounty : Cur3.readyBounty),
                 campaign: nil,
                 onLoad: {},
                 onSubmit: { _, _, _, _, _ in },
@@ -161,6 +163,13 @@ private extension Cur3 {
         state.accruals = .ready([
             VideoBountyAccrualRow(id: "acc-1", amountText: nil, views: nil, groupViews: nil)
         ])
+        return state
+    }
+
+    static var emptyBounty: VideoBountyState {
+        var state = VideoBountyState()
+        state.submissions = .ready([])
+        state.accruals = .ready([])
         return state
     }
 

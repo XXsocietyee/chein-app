@@ -104,10 +104,8 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                         .accessibilityIdentifier("playerJourney.refreshing")
                 }
                 if visible.isEmpty {
-                    ContentUnavailableView {
-                        Label(LocalizedStringKey(filter.emptyTitleKey), systemImage: "ticket")
-                    } description: { Text(LocalizedStringKey(filter.emptyDetailKey)) }
-                        .accessibilityIdentifier("playerJourney.empty")
+                    CYEmptyState(systemImage: "ticket", LocalizedStringKey(filter.emptyTitleKey), detail: LocalizedStringKey(filter.emptyDetailKey), messageIdentifier: "playerJourney.empty", kind: .orders)
+                        .listRowBackground(Color.clear)
                 }
                 ForEach(visible) { row in
                     Button { returnFocusID = row.id; selected = Selection(record: row, scope: reader.scope) } label: { ParticipationRow(record: row) }
@@ -116,6 +114,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                 }
             } else if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
         }.cyGroupedSurface()
+        .cyDomainScreen(.player)
         .navigationTitle("playerJourney.participations")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: reader.scope) { resetPresentation(); rows = nil; await load() }

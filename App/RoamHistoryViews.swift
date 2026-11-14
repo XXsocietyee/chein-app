@@ -55,7 +55,7 @@ import SwiftUI
                 } else {
                     let summary = RoamHistorySummary(records)
                     // Mini-program order: total (big km, then trips and shops), tools, then run cards.
-                    RoamNightCard { VStack(alignment: .leading, spacing: 12) {
+                    RoamExperienceCard { VStack(alignment: .leading, spacing: 12) {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Group {
                                 if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
@@ -78,13 +78,13 @@ import SwiftUI
                         }
                         // Mini-program RunCard: route sketch on top, then route icon + title with dateCard, three stats, badges.
                         NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero) } label: {
-                            RoamNightCard {
+                            RoamExperienceCard {
                                 VStack(alignment: .leading, spacing: 12) {
                                     RoamRouteSketchView(record: record)
                                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                                         Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
                                             .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
-                                        RoamRunCardTitle(record: record, font: .headline).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                                        RoamRunCardTitle(record: record, font: .headline).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                                         Spacer(minLength: 8)
                                         RoamRunCardDateText(record: record)
                                     }
@@ -286,7 +286,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     // Mini-program scene-roam-session: date · time under 本次漫游, the 本次路线 replay card,
                     // the 总距离 / 时长 / 探店 / 探索度 rows, then 解锁奖励 and 点亮地点, each with its own empty line.
                     RoamSessionParityHeader(record: record)
-                    RoamNightCard {
+                    RoamExperienceCard {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack(alignment: .firstTextBaseline) {
                                 Text("roamSub.w208.session.routeEyebrow").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)

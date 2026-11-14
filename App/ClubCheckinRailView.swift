@@ -98,12 +98,12 @@ struct ClubCheckinDetailRows: View {
     var body: some View {
         Section {
             if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: CYSpacing.md) { identityBlock; statusBlock }
+                VStack(alignment: .leading, spacing: CYSpacing.md) { statusBlock; identityBlock }
             } else {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
-                    identityBlock
-                    Spacer(minLength: CYSpacing.sm)
                     statusBlock
+                    Spacer(minLength: CYSpacing.sm)
+                    identityBlock
                 }
             }
         }

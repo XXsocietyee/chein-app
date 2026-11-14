@@ -35,7 +35,9 @@ import SwiftUI
             }
             ForEach(facts.rows, id: \.id) { title in
                 Section {
-                    LabeledContent { invoiceText(title.typeKey == InvoiceLaunchTitlesPage.unknownDisplay ? "unknown" : title.typeKey) } label: { Text(verbatim: title.titleName) }
+                    LabeledContent { invoiceText(title.typeKey == InvoiceLaunchTitlesPage.unknownDisplay ? "unknown" : title.typeKey) } label: {
+                        Text(verbatim: title.titleName.isEmpty ? "—" : title.titleName).fixedSize(horizontal: false, vertical: true)
+                    }
                     if let tax = title.taxText { Text(verbatim: tax) }
                     if title.showsDefault { invoiceText("defaultTitle") }
                     if title.canEdit, let source = model.overview?.titles.first(where: { $0.id == title.id }) {

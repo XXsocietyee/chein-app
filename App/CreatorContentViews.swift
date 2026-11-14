@@ -170,13 +170,10 @@ private struct CreatorContentIssueView: View {
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    HStack(alignment: .firstTextBaseline) {
-                        if let type = project.projectTypeText { Text(verbatim: type).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                        Spacer(minLength: CYSpacing.sm)
-                        if let state = project.stateText { Text(verbatim: state).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                    }
-                    if title.isEmpty { Text("creatorContent.untitled").font(CYTypography.cardTitle) }
-                    else { Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2) }
+                    if let state = project.stateText { CYStatusChip(verbatim: state, tone: .neutral) }
+                    if let type = project.projectTypeText { Text(verbatim: type).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                    if title.isEmpty { Text("creatorContent.untitled").font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                    else { Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                     MyProjectCardMeta(project: project, chinese: locale.language.languageCode?.identifier == "zh")
                 }
             }
@@ -194,8 +191,7 @@ private struct CreatorContentIssueView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
-        .padding(CYSpacing.lg)
-        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
     private func refresh() async {

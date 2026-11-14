@@ -96,6 +96,13 @@ struct ClubOpsCustomerRowView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                    if row.hasRemark {
+                        CYStatusChip(
+                            verbatim: String(localized: LocalizedStringResource("clubOps.customers.remarkBadge", table: "ClubOpsCustomer", locale: locale)),
+                            tone: .neutral,
+                            systemImage: "note.text"
+                        )
+                    }
                     if let name = row.displayName {
                         Text(verbatim: name)
                             .font(CYTypography.cardTitle)
@@ -107,13 +114,6 @@ struct ClubOpsCustomerRowView: View {
                             .font(CYTypography.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
-                    }
-                    if row.hasRemark {
-                        CYStatusChip(
-                            verbatim: String(localized: LocalizedStringResource("clubOps.customers.remarkBadge", table: "ClubOpsCustomer", locale: locale)),
-                            tone: .neutral,
-                            systemImage: "note.text"
-                        )
                     }
                 }
                 meta
@@ -300,9 +300,7 @@ struct ClubOpsCustomerMetricTile: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .padding(CYSpacing.lg)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
 }
