@@ -188,6 +188,16 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: "club", userType: nil), .consumer)
     }
 
+    func testInitialRequestedModeDoesNotOpenMerchantTabs() {
+        let requested = RootTabBarParity.initialRequestedMode(role: "merchant", userType: 2)
+        XCTAssertEqual(requested, .merchant)
+        let idle = RootTabBarParity.TabBarState()
+        XCTAssertEqual(idle.mode, .consumer)
+        XCTAssertEqual(idle.tabs.map(\.primaryTitle), RootTabBarParity.tabs(for: .consumer).map(\.primaryTitle))
+        XCTAssertNotEqual(idle.tabs.map(\.primaryTitle), RootTabBarParity.tabs(for: requested).map(\.primaryTitle))
+        XCTAssertEqual(idle.activeContainerRoute, .consumerHome)
+    }
+
     // MARK: - PublishTabFloatingSheetParity
 
     func testPublishTabFloatingSheetCapabilityPresentation() {

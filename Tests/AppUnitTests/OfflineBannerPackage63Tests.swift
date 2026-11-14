@@ -141,4 +141,94 @@ final class OfflineBannerPackage63Tests: XCTestCase {
         model.dismissSynced(for: ["/api/pay/create", "/api/play/feedback/submit"])
         XCTAssertEqual(model.status(for: ["/api/pay/create"], isOnline: false), .none)
     }
+
+    func testPerformWriteOptInQueuesOnlyTheNamedRoute() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cur-offline-optin-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        final class TokenVault: AppTokenStorage {
+            var value: String?
+            func read() throws -> String? { value }
+            func write(_ token: String) throws { value = token }
+            func clear() throws { value = nil }
+        }
+        final class StubTransport: HTTPTransport, @unchecked Sendable {
+            private let lock = NSLock()
+            private var storedHosts: [String] = []
+            func send(_ request: URLRequest) async throws -> (Data, Int) {
+                let host = request.url?.host ?? ""
+                lock.lock()
+                storedHosts.append(host)
+                lock.unlock()
+                let path = request.url?.path ?? ""
+                if path.hasSuffix("/api/login/phone") {
+                    return (Data(#"{"code":200,"token":"tok-63b","data":{"id":77,"role":"player"}}"#.utf8), 200)
+                }
+                if path.hasSuffix("/api/userInfo") {
+                    return (Data(#"{"code":200,"appUser":{"id":77,"role":"player"}}"#.utf8), 200)
+                }
+                throw URLError(.notConnectedToInternet)
+            }
+            var hosts: [String] {
+                lock.lock()
+                let copy = storedHosts
+                lock.unlock()
+                return copy
+            }
+        }
+
+        let suite = "cur-offline-optin-" + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+
+        let deployment = try ReviewedAppDeployment(
+            market: .china,
+            baseURL: "https://8120.example.test",
+            approvedBaseURLs: [.china: ["https://8120.example.test"]],
+            verifiedCapabilities: [.domesticChinaPhone],
+            bundleIdentifier: "test.questify.curoffline",
+            realm: "cur-offline-test"
+        )
+        let stub = StubTransport()
+        let root = AppCompositionRoot(
+            deployment: .reviewed(deployment),
+            storage: .init(defaults: defaults, tokenStore: { _ in TokenVault() }),
+            makeTransport: { ChinaReviewedProductionTransport(underlying: stub) }
+        )
+        let session = root.makeSession()
+        await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+        XCTAssertNotNil(session.account)
+
+        let model = SessionOfflineSyncModel(directory: dir)
+        model.bind(session: session)
+
+        let feedback = try Self.writeRequest(path: "/api/play/feedback/submit", body: #"{"runId":12,"content":"gate offline","requestId":"fb63b000001"}"#)
+        _ = try? await session.runtimeHTTPTransport.send(feedback)
+        XCTAssertEqual(model.queuedCount, 0)
+        XCTAssertEqual(model.status(for: ["/api/play/feedback/submit"], isOnline: false), .none)
+
+        let other = try Self.writeRequest(path: "/api/capsules/create", body: #"{"text":"skip","requestId":"capskip00001"}"#)
+        let payment = try Self.writeRequest(path: "/api/pay/create", body: #"{"requestId":"payblocked01"}"#)
+        await model.performWriteOptIn(session: session, routes: ["/api/play/feedback/submit"]) {
+            _ = try? await session.runtimeHTTPTransport.send(feedback)
+            _ = try? await session.runtimeHTTPTransport.send(other)
+            _ = try? await session.runtimeHTTPTransport.send(payment)
+        }
+
+        XCTAssertEqual(model.queuedCount, 1)
+        XCTAssertEqual(model.status(for: ["/api/play/feedback/submit"], isOnline: false), .queued(count: 1))
+        XCTAssertEqual(model.status(for: ["/api/capsules/create"], isOnline: false), .none)
+        XCTAssertEqual(model.status(for: ["/api/pay/create"], isOnline: false), .moneyExcluded)
+        XCTAssertFalse(stub.hosts.contains("www.chengyinhub.com"))
+        XCTAssertTrue(stub.hosts.allSatisfy { $0 == "8120.example.test" })
+    }
+
+    private static func writeRequest(path: String, body: String) throws -> URLRequest {
+        let url = try XCTUnwrap(URL(string: "https://8120.example.test\(path)"))
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = Data(body.utf8)
+        return request
+    }
 }
