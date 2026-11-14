@@ -142,6 +142,8 @@ enum DesignFixtureRegistry {
             if let cur3 = MainActor.assumeIsolated({ CurFixtures3.make(name) }) { return cur3 }
             // parity-a, G6, mount-g45, be-gap and external-game screens (CurFixtures2): cur2-<view>[-<non-happy state>]
             if let cur2 = MainActor.assumeIsolated({ CurFixtures2.make(name) }) { return cur2 }
+            // Workshop v2, WP-07, WP-08, and the other screens whose types compile on this base (CurFixtures5).
+            if let cur5 = MainActor.assumeIsolated({ CurFixtures5.make(name) }) { return cur5 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
