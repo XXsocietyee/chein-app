@@ -71,26 +71,59 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         .sheet(isPresented: $showHours) {
             if let hoursEditor {
                 MerchantOnboardingHoursEditor(editor: hoursEditor) { hoursEditor.cancel(); showHours = false }
-                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
             }
         }
         .onChange(of: showHours) { _, shown in if !shown { hoursEditor?.cancel(); hoursEditor = nil } }
-        .confirmationDialog("merchant.onboarding.uploadConfirm.title", isPresented: $showUploadConfirmation, titleVisibility: .visible) {
-            Button("merchant.onboarding.uploadConfirm.action") { Task { await model.uploadSelected() } }
-            Button("action.cancel", role: .cancel) { }
-        } message: { Text("merchant.onboarding.uploadConfirm.message") }
-        .confirmationDialog("merchant.onboardingLicenseRemoval.title", isPresented: $showLicenseRemoval,
-                            titleVisibility: .visible, presenting: licenseRemoval) { request in
-            Button("merchant.onboardingLicenseRemoval.action", role: .destructive) { model.removeLicense(request) }
-            Button("action.cancel", role: .cancel) { model.cancelLicenseRemoval(request) }
-        } message: { _ in Text("merchant.onboardingLicenseRemoval.message") }
+        .cyModalConfirm(
+            isPresented: showUploadConfirmation,
+            title: appLocalized("merchant.onboarding.uploadConfirm.title", locale: locale),
+            message: appLocalized("merchant.onboarding.uploadConfirm.message", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.onboarding.uploadConfirm.action", locale: locale),
+            onCancel: { showUploadConfirmation = false },
+            onConfirm: {
+                showUploadConfirmation = false
+                Task { await model.uploadSelected() }
+            }
+        )
+        .cyModalConfirm(
+            isPresented: showLicenseRemoval && licenseRemoval != nil,
+            title: appLocalized("merchant.onboardingLicenseRemoval.title", locale: locale),
+            message: appLocalized("merchant.onboardingLicenseRemoval.message", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.onboardingLicenseRemoval.action", locale: locale),
+            isDestructive: true,
+            onCancel: {
+                showLicenseRemoval = false
+                if let request = licenseRemoval { model.cancelLicenseRemoval(request) }
+                licenseRemoval = nil
+            },
+            onConfirm: {
+                showLicenseRemoval = false
+                if let request = licenseRemoval { model.removeLicense(request) }
+                licenseRemoval = nil
+            }
+        )
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.cancelLicenseRemoval(); showLicenseRemoval = false; licenseRemoval = nil }
         }
-        .alert("merchant.onboarding.submitConfirm.title", isPresented: $showSubmitConfirmation) {
-            Button("merchant.onboarding.submitConfirm.action") { model.submitConfirmed() }
-            Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
-        } message: { Text("merchant.onboarding.submitConfirm.message") }
+        .cyModalConfirm(
+            isPresented: showSubmitConfirmation,
+            title: appLocalized("merchant.onboarding.submitConfirm.title", locale: locale),
+            message: appLocalized("merchant.onboarding.submitConfirm.message", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.onboarding.submitConfirm.action", locale: locale),
+            onCancel: {
+                showSubmitConfirmation = false
+                model.cancelConfirmation()
+            },
+            onConfirm: {
+                showSubmitConfirmation = false
+                model.submitConfirmed()
+            }
+        )
         .onChange(of: showSubmitConfirmation) { _, shown in
             if !shown, model.confirmation != nil, !model.isBusy { model.cancelConfirmation() }
         }

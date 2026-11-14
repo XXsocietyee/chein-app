@@ -104,28 +104,43 @@ struct MerchantCityNodeInlineError: View {
         .onChange(of: c.snapshot) { _, _ in retirePoster() }
         .onChange(of: c.isCurrent) { _, current in if !current { retirePoster() } }
         .onChange(of: canVerify) { _, allowed in if !allowed { retirePoster() } }
-        .overlay(alignment: .bottom) { toastView }
-        .task(id: toast) { if toast != nil { try? await Task.sleep(nanoseconds: 4_000_000_000); toast = nil } }
-        .alert(MerchantCityNodeCopy.string("merchantCityNode.info.title"), isPresented: $showsInfo) {
-            Button(MerchantCityNodeCopy.string("merchantCityNode.action.ok"), role: .cancel) { }
-        } message: { MerchantCityNodeCopy.text("merchantCityNode.info.body") }
-        .confirmationDialog(dialogTitle(c.review?.command), isPresented: Binding(get: { c.isCurrent && c.review != nil && !showsClaim },
-            set: { if !$0 && !confirming { model.cancel() } }), titleVisibility: .visible) {
-            if let review = c.review {
-                Button(confirmLabel(review.command), role: isDestructive(review.command) ? .destructive : nil) {
-                    confirming = true; Task { await confirm(review) }
-                }.accessibilityIdentifier("cityNodeHub.confirm")
-                Button(MerchantCityNodeCopy.string("merchantCityNode.action.cancel"), role: .cancel) { model.cancel() }
+        .cyToast(verbatimMessage: $toast, tone: .info, duration: 4.0)
+        .cyModalConfirm(
+            isPresented: showsInfo,
+            title: MerchantCityNodeCopy.string("merchantCityNode.info.title"),
+            message: MerchantCityNodeCopy.string("merchantCityNode.info.body"),
+            confirmTitle: MerchantCityNodeCopy.string("merchantCityNode.action.ok"),
+            showCancel: false,
+            onCancel: { showsInfo = false },
+            onConfirm: { showsInfo = false }
+        )
+        .cyModalConfirm(
+            isPresented: c.isCurrent && c.review != nil && !showsClaim,
+            title: dialogTitle(c.review?.command),
+            message: dialogMessageText(c.review?.command),
+            cancelTitle: MerchantCityNodeCopy.string("merchantCityNode.action.cancel"),
+            confirmTitle: confirmLabel(c.review?.command),
+            isDestructive: isDestructive(c.review?.command),
+            isConfirmLoading: confirming,
+            confirmIdentifier: "cityNodeHub.confirm",
+            onCancel: { if !confirming { model.cancel() } },
+            onConfirm: {
+                if let review = c.review {
+                    confirming = true
+                    Task { await confirm(review) }
+                }
             }
-        } message: { dialogMessage(c.review?.command) }
+        )
         .sheet(isPresented: $showsClaim, onDismiss: { claimModel.cancel() }) {
             claimSheet
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
         }
         .sheet(item: $poster, onDismiss: { posterReads.retire() }) { shown in
             if posterReadAllowed(poiID: shown.poiID) {
                 posterSheet(shown)
-                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
             }
         }
         .navigationDestination(isPresented: $showsCreate) {
@@ -306,13 +321,6 @@ struct MerchantCityNodeInlineError: View {
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.node.\(row.id)")
     }
 
-    @ViewBuilder private var toastView: some View {
-        if let toast {
-            Text(verbatim: toast).font(.subheadline).padding(.horizontal, 16).padding(.vertical, 10)
-                .background(.thinMaterial, in: Capsule()).padding(.bottom, 24).accessibilityIdentifier("cityNodeHub.toast")
-        }
-    }
-
     // MARK: Actions
 
     private func reload() async {
@@ -374,15 +382,22 @@ struct MerchantCityNodeInlineError: View {
                     Button { showsClaim = false } label: { MerchantCityNodeCopy.text("merchantCityNode.action.close") }.accessibilityIdentifier("cityNodeHub.claim.close")
                 } }
                 .task { if claimModel.coordinator.snapshot == nil && !claimModel.coordinator.busy { await claimModel.load() } }
-                .confirmationDialog(dialogTitle(claimModel.coordinator.review?.command), isPresented: Binding(
-                    get: { claimModel.coordinator.isCurrent && claimModel.coordinator.review != nil },
-                    set: { if !$0 && !confirming { claimModel.cancel() } }), titleVisibility: .visible) {
-                    if let review = claimModel.coordinator.review {
-                        Button(confirmLabel(review.command)) { confirming = true; Task { await confirmClaim(review) } }
-                            .accessibilityIdentifier("cityNodeHub.claim.confirm")
-                        Button(MerchantCityNodeCopy.string("merchantCityNode.action.cancel"), role: .cancel) { claimModel.cancel() }
+                .cyModalConfirm(
+                    isPresented: claimModel.coordinator.isCurrent && claimModel.coordinator.review != nil,
+                    title: dialogTitle(claimModel.coordinator.review?.command),
+                    message: dialogMessageText(claimModel.coordinator.review?.command),
+                    cancelTitle: MerchantCityNodeCopy.string("merchantCityNode.action.cancel"),
+                    confirmTitle: confirmLabel(claimModel.coordinator.review?.command),
+                    isConfirmLoading: confirming,
+                    confirmIdentifier: "cityNodeHub.claim.confirm",
+                    onCancel: { if !confirming { claimModel.cancel() } },
+                    onConfirm: {
+                        if let review = claimModel.coordinator.review {
+                            confirming = true
+                            Task { await confirmClaim(review) }
+                        }
                     }
-                } message: { dialogMessage(claimModel.coordinator.review?.command) }
+                )
         }
     }
     @ViewBuilder private var claimContent: some View {
@@ -520,12 +535,12 @@ struct MerchantCityNodeInlineError: View {
         default: return ""
         }
     }
-    private func dialogMessage(_ command: MerchantContentCommand?) -> Text {
+    private func dialogMessageText(_ command: MerchantContentCommand?) -> String {
         switch command {
-        case .claim?: return MerchantCityNodeCopy.text("merchantCityNode.confirm.claimBody")
-        case .cancelClaim?: return MerchantCityNodeCopy.text("merchantCityNode.confirm.withdrawBody")
-        case .cityStatus(_, let online)?: return MerchantCityNodeCopy.text(online ? "merchantCityNode.confirm.onlineBody" : "merchantCityNode.confirm.offlineBody")
-        default: return Text(verbatim: "")
+        case .claim?: return MerchantCityNodeCopy.string("merchantCityNode.confirm.claimBody")
+        case .cancelClaim?: return MerchantCityNodeCopy.string("merchantCityNode.confirm.withdrawBody")
+        case .cityStatus(_, let online)?: return MerchantCityNodeCopy.string(online ? "merchantCityNode.confirm.onlineBody" : "merchantCityNode.confirm.offlineBody")
+        default: return ""
         }
     }
     private func confirmLabel(_ command: MerchantContentCommand) -> String {

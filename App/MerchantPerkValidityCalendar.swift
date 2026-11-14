@@ -103,6 +103,7 @@ struct MerchantPerkValidityContext: Equatable {
     @ObservedObject var session: MerchantPerkValiditySession
     let close: () -> Void
     let apply: () -> Void
+    @Environment(\.locale) private var locale
     @State private var now = Date()
     var body: some View {
         NavigationStack {
@@ -134,10 +135,15 @@ struct MerchantPerkValidityContext: Equatable {
         .environment(\.timeZone, MerchantPerkValidityDraft.timeZone)
         .environment(\.calendar, MerchantPerkValidityDraft.calendar)
         .interactiveDismissDisabled(session.draft.isDirty)
-        .confirmationDialog("merchant.perkCalendar.discardTitle", isPresented: Binding(get: { session.asksDiscard }, set: { if !$0 { session.keepEditing() } }), titleVisibility: .visible) {
-            Button("merchant.perkCalendar.discard", role: .destructive) { session.cancel(); close() }
-            Button("merchant.perkCalendar.keep", role: .cancel) { session.keepEditing() }
-        }
+        .cyModalConfirm(
+            isPresented: session.asksDiscard,
+            title: appLocalized("merchant.perkCalendar.discardTitle", locale: locale),
+            cancelTitle: appLocalized("merchant.perkCalendar.keep", locale: locale),
+            confirmTitle: appLocalized("merchant.perkCalendar.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { session.keepEditing() },
+            onConfirm: { session.cancel(); close() }
+        )
         .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { now = $0 }
         .accessibilityIdentifier("merchant.perkCalendar.sheet")
     }

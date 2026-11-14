@@ -172,7 +172,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     }
                 } else { ContentUnavailableView("merchant.projectWorkspace.changed", systemImage: "lock") }
             }
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
             #if DEBUG
             .onAppear { recordSummaryFixture("sheet appeared") }
             #endif

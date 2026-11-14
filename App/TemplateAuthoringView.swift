@@ -300,20 +300,23 @@ import Combine
         .modifier(TemplateMediaReviewPresentation(controller: media))
         .sheet(isPresented: $preview) {
             TemplateConfiguredRehearsalPreview(model: model) { TemplateAuthoringPreviewView(draft: model.draft) }
+                .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
         }
         .sheet(item: $model.review, onDismiss: { model.cancel() }) { value in
             NavigationStack { TemplateAuthoringReviewView(review: value, canSimulate: model.coordinator.canSimulate, canSubmit: model.coordinator.canSubmit, confirm: { Task { await model.confirm(value) } }, cancel: { model.cancel() }) }
+                .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
         }
-        .confirmationDialog("templateAuthor.discardQuestion", isPresented: $discard, titleVisibility: .visible) {
-            Button("templateAuthor.discard", role: .destructive) { model.discard() }
-            Button("templateAuthor.cancel", role: .cancel) {}
-        }
+        .cyModalConfirm(
+            isPresented: $discard,
+            title: appLocalized("templateAuthor.discardQuestion", locale: locale),
+            cancelTitle: appLocalized("templateAuthor.cancel", locale: locale),
+            confirmTitle: appLocalized("templateAuthor.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { discard = false },
+            onConfirm: { discard = false; model.discard() }
+        )
     }
     @ViewBuilder private var restoreSection: some View {
         if model.coordinator.restore != .missing {

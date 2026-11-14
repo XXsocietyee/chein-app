@@ -64,7 +64,7 @@ import SwiftUI
     private func handle(_ action: CoopFlowHandle, label: String, emphasis: Bool = false) -> some View {
         NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: {
             Text(LocalizedStringKey(label)).font(emphasis ? CYTypography.bodyMedium : CYTypography.body)
-                .foregroundStyle(CYColor.textPrimary)
+                .foregroundStyle(emphasis ? CYColor.infoText : CYColor.textPrimary)
         }
             .accessibilityIdentifier("cooperation.detail.handle.\(action.rawValue)")
     }
@@ -76,17 +76,82 @@ import SwiftUI
     let memberID: Int
     let topicID: Int
     let partnerName: String?
+    @Environment(\.locale) private var locale
     @State private var rating: Int?
     @State private var loadedSession: CoopFlowSession?
+    @State private var showsRatingSheet = false
+    @State private var selectedScoreID: String?
+    @State private var showsCommentPrompt = false
+    @State private var commentText = ""
+    @State private var showsPreview = false
+
+    private var selectedRating: Int {
+        Int(selectedScoreID ?? "5") ?? 5
+    }
+
     var body: some View {
         Group {
             if let rating, loadedSession == reader.session {
                 LabeledContent { Text(verbatim: String(repeating: "★", count: rating)) } label: { Text("cooperation.detail.reviewed") }
                     .accessibilityIdentifier("cooperation.detail.reviewed")
             } else {
-                NavigationLink { CoopFlowReviewEditor(topicID: topicID, memberID: memberID, partnerName: partnerName ?? "") } label: { Text("cooperation.detail.review") }
-                    .accessibilityIdentifier("cooperation.detail.review")
+                Button {
+                    selectedScoreID = nil
+                    commentText = ""
+                    showsRatingSheet = true
+                } label: {
+                    HStack {
+                        Text("cooperation.detail.review")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(CYTypography.caption.weight(.semibold))
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityHidden(true)
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("cooperation.detail.review")
             }
+        }
+        .sheet(isPresented: $showsRatingSheet) {
+            MerchantChoiceOptionSheet(
+                title: MerchantAreaCopy.text("这次合作打几分", "Rate this cooperation", locale),
+                options: CoopReviewScore.allCases.map { $0.option(locale: locale) },
+                domain: .merchant,
+                selectedID: $selectedScoreID,
+                onSelect: { option in
+                    selectedScoreID = option.id
+                    showsRatingSheet = false
+                    showsCommentPrompt = true
+                },
+                onClose: { showsRatingSheet = false }
+            )
+        }
+        .cyPromptModalOverlay(
+            isPresented: showsCommentPrompt,
+            title: MerchantAreaCopy.text("评语(选填)", "Comment (optional)", locale),
+            message: partnerName.flatMap { $0.isEmpty ? nil : $0 },
+            text: $commentText,
+            placeholder: MerchantAreaCopy.text("说说这次合作…", "Share how this cooperation went…", locale),
+            cancelTitle: MerchantAreaCopy.cancel(locale),
+            confirmTitle: MerchantAreaCopy.text("提交", "Submit", locale),
+            onCancel: { showsCommentPrompt = false },
+            onConfirm: {
+                showsCommentPrompt = false
+                showsPreview = true
+            }
+        )
+        .navigationDestination(isPresented: $showsPreview) {
+            CoopFlowRequestPreview(
+                operation: .review(
+                    topicID: topicID,
+                    memberID: memberID,
+                    rating: selectedRating,
+                    comment: commentText
+                )
+            )
         }
         .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(memberID):\(topicID)") {
             rating = nil; loadedSession = nil

@@ -191,10 +191,15 @@ extension EnvironmentValues {
             }
         }
         .interactiveDismissDisabled(dirty)
-        .confirmationDialog("chapterStory.discardQuestion", isPresented: $confirmLeave, titleVisibility: .visible) {
-            Button("chapterStory.discard", role: .destructive) { dismiss() }
-            Button("chapterStory.keepEditing", role: .cancel) {}
-        }
+        .cyModalConfirm(
+            isPresented: $confirmLeave,
+            title: appLocalized("chapterStory.discardQuestion", locale: locale),
+            cancelTitle: appLocalized("chapterStory.keepEditing", locale: locale),
+            confirmTitle: appLocalized("chapterStory.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { confirmLeave = false },
+            onConfirm: { confirmLeave = false; dismiss() }
+        )
         .task { await load() }
         .cyDomainScreen(.topicEditor)
     }

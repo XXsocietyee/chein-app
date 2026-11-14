@@ -315,9 +315,8 @@ extension MerchantPredictionReading {
                     CYEmptyState(systemImage: "arrow.clockwise", "merchant.predict.stale")
                 }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.close(id: selected.id) } } }
             .onAppear { model.didPresent(id: selected.id) }
             .onDisappear { model.close(id: selected.id); model.didDismiss(id: selected.id) }

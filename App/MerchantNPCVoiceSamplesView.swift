@@ -11,6 +11,7 @@ import SwiftUI
     @State private var consent = false
     @State private var resetVisible = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     init(coordinator: MerchantNPCVoiceSamplesCoordinator) { _model = StateObject(wrappedValue: .init(coordinator)) }
     var body: some View {
         let reset = model.coordinator.resetReview
@@ -63,19 +64,26 @@ import SwiftUI
             if model.coordinator.unresolved { Text("merchantVoice.unknown").accessibilityIdentifier("merchantVoice.unknown") }
             MerchantNPCIssue(failure: model.coordinator.failure)
         }
-        .confirmationDialog("merchantVoice.reset.title", isPresented: Binding(
+        .sheet(isPresented: Binding(
             get: { resetVisible && scenePhase == .active && reset != nil && model.coordinator.resetReview?.id == reset?.id },
-            set: { showing in if !showing, let reset { model.coordinator.cancelLocalReset(reset.id) } }),
-            titleVisibility: .visible, presenting: reset) { captured in
-                Button("merchantVoice.reset.confirm", role: .destructive) {
+            set: { showing in if !showing, let reset { model.coordinator.cancelLocalReset(reset.id) } }
+        )) {
+            if let captured = reset {
+                CYConfirmSheet(
+                    title: appLocalized("merchantVoice.reset.title", locale: locale),
+                    message: appLocalized("merchantVoice.reset.message", locale: locale),
+                    confirmTitle: appLocalized("merchantVoice.reset.confirm", locale: locale),
+                    isDestructive: true,
+                    confirmIdentifier: "merchantVoice.reset.confirm",
+                    cancelIdentifier: "merchantVoice.reset.cancel"
+                ) {
                     guard resetVisible, scenePhase == .active else { return }
                     _ = model.coordinator.confirmLocalReset(captured.id)
-                }.accessibilityIdentifier("merchantVoice.reset.confirm")
-                Button("action.cancel", role: .cancel) { model.coordinator.cancelLocalReset(captured.id) }
-                    .accessibilityIdentifier("merchantVoice.reset.cancel")
-            } message: { _ in
-                Text("merchantVoice.reset.message")
+                }
+                .cyDomainSheet(detents: [.half])
+                .themeDomain(.merchant)
             }
+        }
         .onChange(of: ownsVoice) { _, _ in model.coordinator.attest(ownsVoice: ownsVoice, consent: consent) }
         .onChange(of: consent) { _, _ in model.coordinator.attest(ownsVoice: ownsVoice, consent: consent) }
         .onAppear { resetVisible = true }

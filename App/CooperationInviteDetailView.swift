@@ -21,6 +21,8 @@ import UIKit
     @StateObject private var phoneCopy: CooperationPhoneCopyOwner
     @State private var openedTopic: Int?
     @State private var topicReturn: UInt64 = 0
+    @State private var phoneToastKey: LocalizedStringKey?
+    @State private var phoneToastTone: CYToastTone = .success
     init(key: CooperationInviteKey, reader: any CooperationReading, peerReader: (any CoopFlowReading)? = nil) {
         self.key = key; self.reader = reader; self.peerReader = peerReader
         _phoneCopy = StateObject(wrappedValue: CooperationPhoneCopyOwner(reader: reader, key: key))
@@ -167,7 +169,13 @@ import UIKit
         .onChange(of: reader.scope) { _, _ in phoneCopy.retire(); openedTopic = nil }
         .onChange(of: ObjectIdentifier(reader)) { _, _ in phoneCopy.retire(); openedTopic = nil }
         .onChange(of: reader.isAuthenticated) { _, _ in openedTopic = nil }
-        .onChange(of: key) { _, _ in phoneCopy.retire(); openedTopic = nil }
+        .onChange(of: key) { _, _ in phoneCopy.retire(); openedTopic = nil; phoneToastKey = nil }
+        .onChange(of: phoneCopy.resultKey) { _, resultKey in
+            guard let resultKey else { return }
+            phoneToastTone = resultKey.contains("failed") ? .warning : .success
+            phoneToastKey = LocalizedStringKey(resultKey)
+        }
+        .cyToast(message: $phoneToastKey, tone: phoneToastTone)
         .onChange(of: openedTopic) { previous, next in
             guard previous != nil, next == nil else { return }
             topicReturn &+= 1

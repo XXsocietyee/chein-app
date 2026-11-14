@@ -91,8 +91,8 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                     }
                 }
             }
-            .presentationDetents([.medium, .large])
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
         }
         .sheet(item: $selection) { selected in
             NavigationStack {
@@ -101,7 +101,8 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("merchant.done") { selection = nil } } }
                 } else { ContentUnavailableView("merchant.signIn", systemImage: "lock") }
             }
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
         }
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
         .onChange(of: reader.sessionRevision) { _, _ in selection = nil; showFilters = false }

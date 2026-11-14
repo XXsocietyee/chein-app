@@ -11,6 +11,7 @@ struct MerchantBusinessEditorContext: Identifiable {
 @MainActor struct MerchantBusinessEditor: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @Environment(\.merchantAftercareEvidenceDependencies) private var evidenceDependencies
     let context: MerchantBusinessEditorContext
     let snapshot: MerchantBusinessSnapshot?
@@ -144,17 +145,39 @@ struct MerchantBusinessEditorContext: Identifiable {
         editorForm
             .navigationTitle("merchant.business.localActions")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
-            .confirmationDialog("merchant.noteCorrection.cancelTitle", isPresented: $confirmCancelCorrection, titleVisibility: .visible) {
-                Button("merchant.noteCorrection.confirmCancel", role: .destructive) {
+            .cyModalConfirm(
+                isPresented: confirmCancelCorrection,
+                title: appLocalized("merchant.noteCorrection.cancelTitle", locale: locale),
+                message: appLocalized("merchant.noteCorrection.cancelBody", locale: locale),
+                cancelTitle: appLocalized("merchant.noteCorrection.keep", locale: locale),
+                confirmTitle: appLocalized("merchant.noteCorrection.confirmCancel", locale: locale),
+                isDestructive: true,
+                confirmIdentifier: "merchant.noteCorrection.confirmCancel",
+                onCancel: { confirmCancelCorrection = false },
+                onConfirm: {
+                    confirmCancelCorrection = false
                     noteCorrectionCancelled = true; content = ""; issue = nil
-                }.accessibilityIdentifier("merchant.noteCorrection.confirmCancel")
-                Button("merchant.noteCorrection.keep", role: .cancel) { }
-            } message: { Text("merchant.noteCorrection.cancelBody") }
-            .confirmationDialog("merchant.aftercareDecision.changeTitle", isPresented: $confirmAftercareDecision, titleVisibility: .visible, presenting: pendingAftercareDecision) { change in
-                Button("merchant.aftercareDecision.discard", role: .destructive) { applyAftercareDecision(change) }
-                    .accessibilityIdentifier("merchant.aftercareDecision.discard")
-                Button("merchant.aftercareDecision.keep", role: .cancel) { retireAftercareDecision() }
-            } message: { _ in Text("merchant.aftercareDecision.changeBody") }
+                }
+            )
+            .cyModalConfirm(
+                isPresented: confirmAftercareDecision && pendingAftercareDecision != nil,
+                title: appLocalized("merchant.aftercareDecision.changeTitle", locale: locale),
+                message: appLocalized("merchant.aftercareDecision.changeBody", locale: locale),
+                cancelTitle: appLocalized("merchant.aftercareDecision.keep", locale: locale),
+                confirmTitle: appLocalized("merchant.aftercareDecision.discard", locale: locale),
+                isDestructive: true,
+                confirmIdentifier: "merchant.aftercareDecision.discard",
+                onCancel: {
+                    confirmAftercareDecision = false
+                    retireAftercareDecision()
+                },
+                onConfirm: {
+                    confirmAftercareDecision = false
+                    if let change = pendingAftercareDecision {
+                        applyAftercareDecision(change)
+                    }
+                }
+            )
     }
 
     private var editorDecisionLifecycle: some View {
@@ -172,6 +195,8 @@ struct MerchantBusinessEditorContext: Identifiable {
         editorDecisionLifecycle
             .sheet(item: $evidenceFlow, onDismiss: { retireEvidenceFlow() }) { flow in
                 MerchantAftercareEvidenceSheet(model: flow)
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
             }
             .onChange(of: context.id) { _, _ in retireEvidenceFlow() }
             .onChange(of: snapshot) { _, _ in retireEvidenceFlow() }
@@ -181,14 +206,21 @@ struct MerchantBusinessEditorContext: Identifiable {
 
     private var editorDraftLifecycle: some View {
         editorEvidencePresentation
-            .confirmationDialog("merchant.noteDraft.clearTitle", isPresented: $confirmClearNote, titleVisibility: .visible) {
-                Button("merchant.noteDraft.clear", role: .destructive) {
+            .cyModalConfirm(
+                isPresented: confirmClearNote,
+                title: appLocalized("merchant.noteDraft.clearTitle", locale: locale),
+                message: appLocalized("merchant.noteDraft.clearBody", locale: locale),
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                confirmTitle: appLocalized("merchant.noteDraft.clear", locale: locale),
+                isDestructive: true,
+                onCancel: { confirmClearNote = false },
+                onConfirm: {
+                    confirmClearNote = false
                     guard noteDrafts?.value(for: context.id) != nil else { return }
                     content = ""; issue = nil
                     saveNoteDraft()
                 }
-                Button("action.cancel", role: .cancel) { }
-            } message: { Text("merchant.noteDraft.clearBody") }
+            )
             .onChange(of: content) { _, _ in saveNoteDraft() }
             .onChange(of: noteCorrectionCancelled) { _, _ in saveNoteDraft() }
             .onDisappear { saveNoteDraft(); noteDrafts?.close(editorID: context.id) }

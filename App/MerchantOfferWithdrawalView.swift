@@ -48,6 +48,7 @@ import SwiftUI
     @State private var reason = ""
     @State private var showingConfirmation = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
 
     init(subject: MerchantOfferWithdrawalSubject,
          coordinator: MerchantOfferWithdrawalCoordinator,
@@ -89,16 +90,21 @@ import SwiftUI
             actionSection
         }
         .appNavigationTitle("merchant.offerWithdrawal.title")
-        .confirmationDialog("merchant.offerWithdrawal.confirm.title", isPresented: $showingConfirmation) {
-            Button("merchant.offerWithdrawal.confirm.action", role: .destructive) {
+        .cyModalConfirm(
+            isPresented: showingConfirmation,
+            title: appLocalized("merchant.offerWithdrawal.confirm.title", locale: locale),
+            message: appLocalized("merchant.offerWithdrawal.confirm.message", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.offerWithdrawal.confirm.action", locale: locale),
+            isDestructive: true,
+            onCancel: { showingConfirmation = false },
+            onConfirm: {
+                showingConfirmation = false
                 if let review = model.coordinator.review ?? model.prepare(subject: subject, rawReason: reason) {
                     Task { await model.confirm(review); handleConfirmed() }
                 }
             }
-            Button("action.cancel", role: .cancel) {}
-        } message: {
-            Text("merchant.offerWithdrawal.confirm.message")
-        }
+        )
         .cyDomainScreen(.merchant)
     }
 

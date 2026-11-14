@@ -56,6 +56,7 @@ import SwiftUI
 @MainActor private struct MerchantNPCFieldSheet: View {
     @ObservedObject var session: MerchantNPCFieldSession
     let close: () -> Void
+    @Environment(\.locale) private var locale
     private var text: Binding<String> { .init(get: { session.buffer.value }, set: { _ = session.update($0) }) }
     var body: some View {
         NavigationStack {
@@ -87,10 +88,18 @@ import SwiftUI
         }
         .privacySensitive()
         .interactiveDismissDisabled(session.buffer.isDirty || session.asksDiscard)
-        .alert("merchant.npcField.discardTitle", isPresented: Binding(get: { session.asksDiscard }, set: { _ in })) {
-            Button("merchant.npcField.discard", role: .destructive) { if session.discard() { close() } }.accessibilityIdentifier("merchant.npcField.discard")
-            Button("merchant.npcField.keepEditing", role: .cancel) { session.keepEditing() }.accessibilityIdentifier("merchant.npcField.keepEditing")
-        } message: { Text("merchant.npcField.discardBody") }
+        .cyModalConfirm(
+            isPresented: session.asksDiscard,
+            title: appLocalized("merchant.npcField.discardTitle", locale: locale),
+            message: appLocalized("merchant.npcField.discardBody", locale: locale),
+            cancelTitle: appLocalized("merchant.npcField.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.npcField.discard", locale: locale),
+            isDestructive: true,
+            cancelIdentifier: "merchant.npcField.keepEditing",
+            confirmIdentifier: "merchant.npcField.discard",
+            onCancel: { session.keepEditing() },
+            onConfirm: { if session.discard() { close() } }
+        )
         .onDisappear { session.cancel() }
     }
 }

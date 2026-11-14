@@ -121,6 +121,8 @@ extension EnvironmentValues {
                         }
                     }
                 }
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
             }
             // A sheet leaves the browser mounted; exiting the browser always retires it.
             .onDisappear { cancel() }

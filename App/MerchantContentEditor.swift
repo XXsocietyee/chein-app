@@ -9,6 +9,7 @@ import SwiftUI
     let query: MerchantContentQuery
     let kind: Kind
     let placeSearch: (any PublishingPlaceSearching)?
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var addressScenePhase
     @StateObject private var addressChoice = MerchantCityAddressChoice()
     @StateObject private var model: MerchantContentViewModel
@@ -131,11 +132,20 @@ import SwiftUI
         .navigationBarBackButtonHidden(dirty)
         .toolbar { if dirty { ToolbarItem(placement: .topBarLeading) { Button("action.cancel") { discard = true }.accessibilityIdentifier("merchant.content.close") } } }
         .interactiveDismissDisabled(dirty || c.busy)
-        .confirmationDialog("merchant.content.discardTitle", isPresented: $discard, titleVisibility: .visible) {
-            Button("merchant.content.discard", role: .destructive) { model.invalidate(); dismiss() }
-            Button("merchant.content.keepEditing", role: .cancel) { }
+        .cyModalConfirm(
+            isPresented: $discard,
+            title: appLocalized("merchant.content.discardTitle", locale: locale),
+            cancelTitle: appLocalized("merchant.content.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.content.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { discard = false },
+            onConfirm: { discard = false; model.invalidate(); dismiss() }
+        )
+        .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) {
+            MerchantContentReviewView(model: model, review: $0)
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
         }
-        .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
         .onChange(of: c.snapshot?.observedAt) { _, _ in
             if availabilityReplacement != nil, c.receipt != nil, let s = c.snapshot {
                 text = [:]; availabilityReplacement = nil; seed(s)

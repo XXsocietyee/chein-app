@@ -56,6 +56,7 @@ import SwiftUI
 @MainActor private struct MerchantStoreFieldSheet: View {
     @ObservedObject var session: MerchantStoreFieldSession
     let close: () -> Void
+    @Environment(\.locale) private var locale
     private var text: Binding<String> { .init(get: { session.buffer.value }, set: { _ = session.update($0) }) }
     var body: some View {
         NavigationStack {
@@ -86,10 +87,18 @@ import SwiftUI
         }
         .privacySensitive()
         .interactiveDismissDisabled(session.buffer.isDirty || session.asksDiscard)
-        .alert("merchant.storeField.discardTitle", isPresented: Binding(get: { session.asksDiscard }, set: { _ in })) {
-            Button("merchant.storeField.discard", role: .destructive) { if session.discard() { close() } }.accessibilityIdentifier("merchant.storeField.discard")
-            Button("merchant.storeField.keepEditing", role: .cancel) { session.keepEditing() }.accessibilityIdentifier("merchant.storeField.keepEditing")
-        } message: { Text("merchant.storeField.discardBody") }
+        .cyModalConfirm(
+            isPresented: session.asksDiscard,
+            title: appLocalized("merchant.storeField.discardTitle", locale: locale),
+            message: appLocalized("merchant.storeField.discardBody", locale: locale),
+            cancelTitle: appLocalized("merchant.storeField.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.storeField.discard", locale: locale),
+            isDestructive: true,
+            cancelIdentifier: "merchant.storeField.keepEditing",
+            confirmIdentifier: "merchant.storeField.discard",
+            onCancel: { session.keepEditing() },
+            onConfirm: { if session.discard() { close() } }
+        )
         .onDisappear { session.cancel() }
     }
 }

@@ -631,12 +631,21 @@ import SwiftUI
                 }
             }
         }
-        .confirmationDialog("merchant.noteDraft.discardTitle", isPresented: Binding(
-            get: { discardNoteDraftGeneration != nil }, set: { if !$0 { discardNoteDraftGeneration = nil } }),
-            titleVisibility: .visible, presenting: discardNoteDraftGeneration) { generation in
-                Button("merchant.noteDraft.discard", role: .destructive) { noteDrafts.discard(ifGeneration: generation) }
-                Button("action.cancel", role: .cancel) { }
-            } message: { _ in Text("merchant.noteDraft.discardBody") }
+        .cyModalConfirm(
+            isPresented: discardNoteDraftGeneration != nil,
+            title: appLocalized("merchant.noteDraft.discardTitle", locale: locale),
+            message: appLocalized("merchant.noteDraft.discardBody", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.noteDraft.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { discardNoteDraftGeneration = nil },
+            onConfirm: {
+                if let generation = discardNoteDraftGeneration {
+                    noteDrafts.discard(ifGeneration: generation)
+                }
+                discardNoteDraftGeneration = nil
+            }
+        )
     }
     var body: some View {
         let capturedCustomerRoute = customerQueryRoute

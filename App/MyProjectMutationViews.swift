@@ -24,6 +24,7 @@ import QuestifyCore
 /// This is a status strip on the host list, not its own screen, so it does not set a navigation title.
 @MainActor struct MyProjectMutationStatusView: View {
     @ObservedObject var model: MyProjectMutationModel
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -65,21 +66,20 @@ import QuestifyCore
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .confirmationDialog(
-            confirmationText,
+        .sheet(
             isPresented: Binding(
                 get: { if case .awaitingConfirmation = model.state { return true } else { return false } },
-                set: { if !$0 { model.dismiss() } }),
-            titleVisibility: .visible
+                set: { if !$0 { model.dismiss() } }
+            )
         ) {
-            Button(W8Text.t("确认", "Confirm"), role: .destructive) { Task { await model.confirm() } }
-                .accessibilityLabel(Text(verbatim: W8Text.t("确认", "Confirm")))
-                .accessibilityValue(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
-                .accessibilityHint(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
-            Button(W8Text.t("取消", "Cancel"), role: .cancel) { model.dismiss() }
-                .accessibilityLabel(Text(verbatim: W8Text.t("取消", "Cancel")))
-                .accessibilityValue(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
-                .accessibilityHint(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
+            CYConfirmSheet(
+                title: confirmationText,
+                confirmTitle: MerchantAreaCopy.text("确认", "Confirm", locale),
+                isDestructive: true,
+                onConfirm: { Task { await model.confirm() } }
+            )
+            .cyDomainSheet(detents: [.half])
+            .themeDomain(.topicEditor)
         }
     }
 

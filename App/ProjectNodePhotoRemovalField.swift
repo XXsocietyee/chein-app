@@ -59,6 +59,7 @@ import SwiftUI
 @MainActor struct ProjectNodePhotoRemovalField: View {
     @ObservedObject private var model: ProjectEditModel
     @StateObject private var controller: ProjectNodePhotoRemovalController
+    @Environment(\.locale) private var locale
     init(model: ProjectEditModel, chapterID: String, nodeID: String) {
         self.model = model; _controller = StateObject(wrappedValue: .init(model: model, chapterID: chapterID, nodeID: nodeID))
     }
@@ -84,16 +85,20 @@ import SwiftUI
                 }
             }
         } header: { Text("projectNodePhotos.title", tableName: "ProjectNodePhotoRemoval") }
-        .confirmationDialog(Text("projectNodePhotos.confirmTitle", tableName: "ProjectNodePhotoRemoval"),
-            isPresented: controller.binding(original), titleVisibility: .visible) {
-                if let original {
-                    Button(role: .destructive) { controller.apply(original) } label: { Text("projectNodePhotos.confirm", tableName: "ProjectNodePhotoRemoval") }
-                    Button("action.cancel", role: .cancel) { controller.close(original) }
-                }
-            } message: {
-                if let original { Text(verbatim: "#" + String(original.photo.id + 1) + " · " + original.photo.reference) }
-                Text("projectNodePhotos.scope", tableName: "ProjectNodePhotoRemoval")
+        .sheet(isPresented: controller.binding(original)) {
+            if let original {
+                CYConfirmSheet(
+                    title: String(localized: LocalizedStringResource("projectNodePhotos.confirmTitle", table: "ProjectNodePhotoRemoval", locale: locale)),
+                    message: "#\(original.photo.id + 1) · \(original.photo.reference)\n"
+                        + String(localized: LocalizedStringResource("projectNodePhotos.scope", table: "ProjectNodePhotoRemoval", locale: locale)),
+                    confirmTitle: String(localized: LocalizedStringResource("projectNodePhotos.confirm", table: "ProjectNodePhotoRemoval", locale: locale)),
+                    isDestructive: true,
+                    onConfirm: { controller.apply(original) }
+                )
+                .cyDomainSheet(detents: [.half])
+                .themeDomain(.topicEditor)
             }
+        }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }

@@ -236,9 +236,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         }
         .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) {
             pickerSheet
+                .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
         }
         .sheet(isPresented: $localReview) {
             let snapshot = review
@@ -273,10 +272,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     }
                 }
             }
+            .cyDomainSheet(detents: [.half, .full])
             .themeDomain(.topicEditor)
-            .presentationCornerRadius(CYRadius.sheet)
-            .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
-            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
     private func publishingForm(templateSelectionAction: UUID, templateReadID: UUID) -> some View {

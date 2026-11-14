@@ -79,7 +79,8 @@ class MerchantNPCRecoveryContracts(unittest.TestCase):
         warning = strings['merchantNPCRecovery.abandonConsequences']['localizations']['en']['stringUnit']['value']
         for token in ['does not cancel server processing', 'delete chat records', 'typed draft stays', 'new request', 'another charge']:
             self.assertIn(token, warning)
-        self.assertIn('Button("action.cancel", role: .cancel) { presentation.cancel() }', self.app)
+        self.assertIn('.sheet(isPresented: $showsConfirmation, onDismiss: { presentation.cancel() })', self.app)
+        self.assertIn('CYConfirmSheet(', self.app)
 
     def test_no_new_network_media_grants_or_publication(self):
         for forbidden in ['URLSession', 'api/', 'microphone', 'pasteboard', 'audioUrl', 'publish(', 'save(', 'grants =']:
