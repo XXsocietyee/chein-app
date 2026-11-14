@@ -260,7 +260,8 @@ struct ClubCommunityFeedView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                CYHeroHeader("club.community.posts")
+                // Discover feed already has the page title and the 帖文 tab. A club-scoped list keeps the header.
+                if clubID != nil { CYHeroHeader("club.community.posts") }
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
                 if let notice = model.notice { communityNotice(notice, identifier: "club.community.notice") }
                 if let pending = model.pendingRecord, let clubID { pendingLock(pending, clubID: clubID, identifierPrefix: "club.community") }

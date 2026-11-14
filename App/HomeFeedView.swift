@@ -116,16 +116,11 @@ import UIKit
                         .cySectionReveal(order: 6, gate: reveal)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        sectionHeader(Text("homeFeed.explore"))
+                        // Source pages/index feed tabs are 主题 / 活动 with no section title and no category picker.
                         Picker("homeFeed.content", selection: $kind) {
                             Text("homeFeed.topics").tag(HomeFeedKind.topics)
                             Text("homeFeed.activities").tag(HomeFeedKind.activities)
                         }.pickerStyle(.segmented).accessibilityIdentifier("homeFeed.kind")
-                        Picker("homeFeed.category", selection: $categoryID) {
-                            Text("homeFeed.allCategories").tag(Int?.none)
-                            ForEach(model.categories) { category in Text(verbatim: category.name).tag(Optional(category.id)) }
-                        }.accessibilityIdentifier("homeFeed.category")
-                        if model.categoryFailed { retry(Text("homeFeed.categoriesError"), id: "categories") { model.schedule(.categories, reader: reader, permit: permit) } }
                         ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
                             row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger)
                         }
@@ -140,7 +135,10 @@ import UIKit
                             } else { ProgressView("homeFeed.loading") }
                         }
                         else if !model.pageFailed && model.pagination.items.isEmpty && !streamSkeleton {
-                            CYEmptyStateView(systemImage: "magnifyingglass", title: "homeFeed.empty", description: "homeFeed.emptyHint")
+                            // Source empty titles: 暂时没有主题 / 暂时没有活动. The keyword hint stays only after a search.
+                            CYEmptyStateView(systemImage: "magnifyingglass",
+                                             title: kind == .topics ? "homeFeed.topicsEmpty" : "homeFeed.activitiesEmpty",
+                                             description: submittedKeyword.isEmpty ? nil : "homeFeed.emptyHint")
                                 .accessibilityIdentifier("homeFeed.empty")
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
@@ -458,13 +456,61 @@ struct HomeFeedCard: View {
     private var typeSymbol: String {
         switch item { case .activity: return "figure.walk"; case .topic: return "map" }
     }
-    /// Mini-program `v2-fcard` + `v2-status`: cover and title, one date · place line, then the starting price.
+    /// Mini-program `v2-fcard` + `v2-status`: cover and title, then 价格 / 时间 / 地点.
+    /// A missing price or place is an em dash. A missing time is the source fallback 长期开放.
     var body: some View {
-        QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
-                                minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
-            QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone), place: item.place),
-                                price: QuestifyCardText.amount(item.amount, locale: locale), onArtwork: true)
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
+                                    minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
+                EmptyView()
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                priceRow
+                timeRow
+                placeRow
+            }
+            .accessibilityIdentifier("homeFeed.stream.status")
         }
+    }
+    private var priceRow: some View {
+        statusRow("homeFeed.status.price") {
+            if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
+                Text("playx.finishRoute.priceFrom \(amount)")
+            } else {
+                Text(verbatim: HomeFeedSurfaceState.unknownText)
+            }
+        }
+    }
+    private var timeRow: some View {
+        statusRow("homeFeed.status.time") {
+            if let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone) {
+                Text(verbatim: date)
+            } else {
+                Text("homeFeed.openEnded")
+            }
+        }
+    }
+    private var placeRow: some View {
+        statusRow("homeFeed.place") {
+            if let place = item.place?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty {
+                Text(verbatim: place)
+            } else {
+                Text(verbatim: HomeFeedSurfaceState.unknownText)
+            }
+        }
+    }
+    private func statusRow<Value: View>(_ label: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+            Text(label)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+            Spacer(minLength: CYSpacing.sm)
+            value()
+                .font(CYTypography.bodyCompact)
+                .foregroundStyle(CYColor.textPrimary)
+                .multilineTextAlignment(.trailing)
+        }
+        .accessibilityElement(children: .combine)
     }
     /// Only a safe https cover reaches the card; anything else shows the clean placeholder.
     private var safeImageSource: String? {

@@ -28949,13 +28949,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You haven't joined a club yet"
+            "value": "No clubs yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你还没有加入俱乐部"
+            "value": "还没有俱乐部"
           }
         }
       }
@@ -29187,13 +29187,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clubs"
+            "value": "Discover"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部"
+            "value": "发现"
           }
         }
       }
@@ -68127,13 +68127,81 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "Themes"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线"
+            "value": "主题"
+          }
+        }
+      }
+    },
+    "homeFeed.topicsEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No themes right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时没有主题"
+          }
+        }
+      }
+    },
+    "homeFeed.openEnded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-ended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "长期开放"
+          }
+        }
+      }
+    },
+    "homeFeed.status.price": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "价格"
+          }
+        }
+      }
+    },
+    "homeFeed.status.time": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间"
           }
         }
       }
