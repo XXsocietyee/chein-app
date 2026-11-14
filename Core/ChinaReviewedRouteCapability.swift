@@ -71,6 +71,7 @@ public enum ChinaReviewedRouteCapability {
             return ReleaseMoneyWriteSwitch.kind(for: key) == nil
         }
         if wp06PartialPagesOwnerGrant.contains(key) { return true }
+        if ownerDecisionGuardGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -494,6 +495,16 @@ public enum ChinaReviewedRouteCapability {
         "/api/workshop/owned",
         "/api/workshop/purchased/professional-targets",
         "/api/workshop/purchased/professional-operations"
+    ]
+
+    /// WP-10. Status and the merchant payout-account read are granted.
+    /// Unbind and `payout-account/save` are listed here and still fail first: `ReleaseMoneyWriteSwitch`
+    /// blocks them while payout is off. Bind is not in this set.
+    public static let ownerDecisionGuardGrant: Set<String> = [
+        "/api/club/personal-receiver/status",
+        "/api/club/personal-receiver/unbind",
+        "/api/merchant/payout-account",
+        "/api/merchant/payout-account/save"
     ]
 
     /// Owner correction 2026-11-13. Merchant-gap reads and the writes that stay behind
@@ -2539,7 +2550,9 @@ public enum ReleaseMoneyWriteSwitch {
             "/api/merchant/commerce/order", "/api/merchant/commerce/order/status",
             "/api/marketing/group-checkout/create", "/api/marketing/product/activate":
             return .payment
-        case "/api/club/settlement/withdraw":
+        case "/api/club/settlement/withdraw",
+             "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind",
+             "/api/merchant/payout-account/save":
             return .payout
         case "/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw":
             return .withdrawal

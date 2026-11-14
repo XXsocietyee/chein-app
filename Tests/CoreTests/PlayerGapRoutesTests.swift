@@ -26,9 +26,11 @@ import XCTest
         for path in PlayerGapService.paths {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
         }
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/personal-receiver/status"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/payout-account"))
         for money in ["/api/registration/payment-readiness", "/api/club/personal-receiver/bind", "/api/club/personal-receiver/unbind",
-                      "/api/club/personal-receiver/status", "/api/club/settlement/mine", "/api/registration/pay", "/api/pay/create",
-                      "/api/wallet/withdraw", "/api/club/settlement/withdraw"] {
+                      "/api/club/settlement/mine", "/api/registration/pay", "/api/pay/create",
+                      "/api/wallet/withdraw", "/api/club/settlement/withdraw", "/api/merchant/payout-account/save"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
         }
     }

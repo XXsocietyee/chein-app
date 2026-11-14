@@ -282,10 +282,12 @@ private final class WalletRecordingTransport: HTTPTransport {
         do { _ = try await adapter.execute(review, token: "fake"); XCTFail() } catch {}
         XCTAssertThrowsError(try adapter.review(.delete(cartID: 1)))
     }
-    func testSyntheticSourceTasksExcludeSpendRules() async throws {
+    func testSyntheticSourceTasksListEarnAndSpendAndDropDeleted() async throws {
         let service = WalletCommerceService(configuration: try config(), transport: WalletCommerceSyntheticTransport())
         let tasks = try await service.pointsTasks(token: "fake")
-        XCTAssertEqual(tasks.map(\.id), [50])
+        XCTAssertEqual(tasks.map(\.id), [50, 51])
+        XCTAssertTrue(tasks[0].isEarnTask)
+        XCTAssertTrue(tasks[1].isSpendRule)
     }
     func testLedgerDeniedAndUnauthorizedAreNotRetryableEmptySuccess() async throws {
         let active = scope()
