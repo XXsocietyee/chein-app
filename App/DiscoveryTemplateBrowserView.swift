@@ -230,6 +230,13 @@ struct DiscoveryTemplateBrowserView: View {
         }
     }
 
+    /// Every tag group of the current shelf, for the 全部分类 sheet (same source as the chip row).
+    private var allTagGroups: [DiscoveryShelfTagGroup] {
+        tab == .topics
+            ? SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag).groups
+            : SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).groups
+    }
+
     @ViewBuilder private var gameShelf: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             searchPill("discovery.search", text: $keyword, field: "discovery.search", submitID: "discovery.search.submit", submit: applySearch)

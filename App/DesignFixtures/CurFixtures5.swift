@@ -59,13 +59,6 @@ enum CurFixtures5 {
         case "cur5-pay-return-unknown": return AnyView(OrderPaymentReturnSection(loading: false, payment: nil, registration: nil, channels: nil))
         case "cur5-refund-zero": return AnyView(Cur5RefundHost())
         case "cur5-accrual-unknown": return AnyView(CreatorAccrualSection(projection: .unknown(reason: nil)))
-        case "cur5-receiver": return AnyView(NavigationStack { ClubPayoutReceiverView(clubID: 9003, fixture: Cur5.readyReceiver) })
-        case "cur5-receiver-empty": return AnyView(NavigationStack { ClubPayoutReceiverView(clubID: nil, fixture: .init(phase: .empty)) })
-        case "cur5-receiver-error": return AnyView(NavigationStack { ClubPayoutReceiverView(clubID: 9003, fixture: .init(phase: .error)) })
-        case "cur5-merchant-account": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: Cur5.readyAccount) })
-        case "cur5-merchant-account-empty": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .empty, account: OwnerDecisionMerchantAccount.shape(["available": true, "state": "NONE"]))) })
-        case "cur5-merchant-account-denied": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [], fixture: .init(phase: .ready, denied: true)) })
-        case "cur5-merchant-account-unavailable": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .ready, account: OwnerDecisionMerchantAccount.shape(["available": false]))) })
         default: return nil
         }
     }
@@ -115,13 +108,6 @@ enum CurFixtures5 {
         case "cur5-pay-return-unknown": return "Payment return · unknown"
         case "cur5-refund-zero": return "Partial refund · pending 0"
         case "cur5-accrual-unknown": return "Creator accrual · unknown"
-        case "cur5-receiver": return "Club receiver · payout off"
-        case "cur5-receiver-empty": return "Club receiver · no club"
-        case "cur5-receiver-error": return "Club receiver · failed"
-        case "cur5-merchant-account": return "Merchant payout account · unsigned"
-        case "cur5-merchant-account-empty": return "Merchant payout account · not set up"
-        case "cur5-merchant-account-denied": return "Merchant payout account · denied"
-        case "cur5-merchant-account-unavailable": return "Merchant payout account · unknown"
         default: return id
         }
     }
@@ -190,19 +176,6 @@ private enum Cur5 {
         ])
         state.attribution = .ready(.unknown)
         return state
-    }
-
-    static var readyReceiver: OwnerDecisionScreenFixture {
-        .init(phase: .ready, status: OwnerDecisionReceiverStatus.shape([
-            "available": true, "receiverState": "VERIFIED", "paused": false, "payoutEnabled": false, "canUnbind": false
-        ]))
-    }
-
-    static var readyAccount: OwnerDecisionScreenFixture {
-        .init(phase: .ready, account: OwnerDecisionMerchantAccount.shape([
-            "available": true, "state": "NEED_SIGN", "stateDesc": "等待本人签约",
-            "signUrl": "https://fixture.example/sign"
-        ]))
     }
 
     static func decode<T: Decodable>(_ type: T.Type, _ json: String) -> T? {
@@ -343,6 +316,7 @@ private struct Cur5Down: HTTPTransport {
 @MainActor private final class Cur5CoopReader: CoopFlowReading {
     enum Mode { case signedOut, failed, unknown }
     let mode: Mode
+    init(mode: Mode) { self.mode = mode }
     var session: CoopFlowSession? {
         guard mode != .signedOut else { return nil }
         return try? CoopFlowSession(accountID: 7, epoch: 1, token: Cur5.token)
