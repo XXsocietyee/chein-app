@@ -22,7 +22,11 @@ class PaidInstallLifecycleSourceContracts(unittest.TestCase):
         self.assertIn('static let productionAPIHost = "www.chengyinhub.com"', switch)
         self.assertIn('static func moneyPayments(host: String?) -> Bool { open(host: host) }', switch)
         opener = switch.split('static func open(host: String?) -> Bool {', 1)[1].split('\n    }', 1)[0]
-        self.assertIn('normalizedHost != productionHost else { return false }', opener)
+        self.assertIn('!isProduction(normalizedHost) else { return false }', opener)
+        production = switch.split('private static func isProduction(_ host: String) -> Bool {', 1)[1].split('\n    }', 1)[0]
+        # The only exception is a DEBUG `--e2e-test-host` run, whose requests are rewritten to the TEST host.
+        self.assertIn('#if DEBUG\n        if E2ETestHostOverride.active { return false }\n        #endif', production)
+        self.assertIn('return host == productionAPIHost', production)
         self.assertIn('#if DEBUG\n        return true', opener)
         self.assertIn('ProcessInfo.processInfo.environment["QUESTIFY_TEST_AREA_SWITCHES"] == "1"', opener)
 
