@@ -89,4 +89,10 @@ The paid-install `notConfigured` line is shown after the button. Both install na
 - Workshop settlement and income as their own confirmed-money screens. No separate view was found that can show a settled amount without opening payments. Wallet income already has the `e4-wallet-income` fixtures. `CASH_CLOSED` is the rewards notice, not a workshop screen.
 - `TemplateProjectActions(.template)` market-submit. It is not mounted. Own-shelf screens do not dispatch market-submit.
 
-`swiftc` did not run. Scaffold, design lint, and the design-fixture release exclusion gate passed on this tree. `docs/release/contract-failing-baseline.txt` was not changed.
+`swiftc` did not run on this VM. A later Mac parse of `9f3afe08` rejected `CurFixtures2.swift`. The follow-up only changes that file:
+
+- `Cur2.down` is a function. The seven call sites that passed the function instead of a transport now call `Cur2.down()`.
+- `page` and `roam` store the view builder in `Cur2Page.content`, so both closures are `@escaping`.
+- `gameStore()` is `@MainActor`, matching `ExternalGameStore.init`.
+
+Scaffold, design lint, and the design-fixture release exclusion gate passed on the first tree. `docs/release/contract-failing-baseline.txt` was not changed. This note is not a typecheck.

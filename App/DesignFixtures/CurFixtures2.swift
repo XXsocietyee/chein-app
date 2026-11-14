@@ -35,13 +35,13 @@ enum CurFixtures2 {
         case "cur2-safety-summary": return page("Safety summary") { MerchantSafetySummaryRow(merchantID: 12, client: Cur2.player(Cur2.body(Cur2.safetyOK))) }
         case "cur2-safety-summary-hidden": return page("Safety summary · insufficient") { MerchantSafetySummaryRow(merchantID: 12, client: Cur2.player(Cur2.body(Cur2.safetyLow))) }
         case "cur2-correction": return frame("Merchant correction", MerchantCorrectionSheet(merchantID: 12, client: Cur2.player(Cur2.body(Cur2.issues))))
-        case "cur2-correction-failed": return frame("Merchant correction · unread", MerchantCorrectionSheet(merchantID: 12, client: Cur2.player(Cur2.down)))
+        case "cur2-correction-failed": return frame("Merchant correction · unread", MerchantCorrectionSheet(merchantID: 12, client: Cur2.player(Cur2.down())))
         case "cur2-safety-rating": return frame("Safety rating", MerchantSafetyRatingSheet(merchantID: 12, client: Cur2.player(Cur2.body(Cur2.levels))))
-        case "cur2-safety-rating-failed": return frame("Safety rating · unread", MerchantSafetyRatingSheet(merchantID: 12, client: Cur2.player(Cur2.down)))
+        case "cur2-safety-rating-failed": return frame("Safety rating · unread", MerchantSafetyRatingSheet(merchantID: 12, client: Cur2.player(Cur2.down())))
         case "cur2-appeal": return page("Report appeal") { ReportAppealSection(reportID: 4, client: Cur2.player(Cur2.body(Cur2.emptyOK)), stageLabel: { _ in nil }, readBack: {}) }
-        case "cur2-appeal-unconfirmed": return page("Report appeal · lost") { ReportAppealSection(reportID: 4, client: Cur2.player(Cur2.down), stageLabel: { _ in nil }, readBack: {}) }
+        case "cur2-appeal-unconfirmed": return page("Report appeal · lost") { ReportAppealSection(reportID: 4, client: Cur2.player(Cur2.down()), stageLabel: { _ in nil }, readBack: {}) }
         case "cur2-geocode": return page("Geocode") { GeocodedAddressButton(name: "断桥", address: "白堤", city: "杭州", client: Cur2.player(Cur2.body(Cur2.geo))) }
-        case "cur2-geocode-empty": return page("Geocode · no address") { GeocodedAddressButton(name: "断桥", address: "", city: "杭州", client: Cur2.player(Cur2.down)) }
+        case "cur2-geocode-empty": return page("Geocode · no address") { GeocodedAddressButton(name: "断桥", address: "", city: "杭州", client: Cur2.player(Cur2.down())) }
         case "cur2-visitors": return page("Shop visitors") { RoamShopVisitorsStack(source: .init(sourceType: 1, sourceID: 9), visitors: Cur2.visitors) }
         case "cur2-visitors-none": return page("Shop visitors · none") { RoamShopVisitorsStack(source: .init(sourceType: 1, sourceID: 9), visitors: nil) }
         case "cur2-weather": return frame("Map weather", MapWeatherOverlay(weather: .init(kind: "rain", intensity: 0.6)).frame(height: 240))
@@ -49,11 +49,11 @@ enum CurFixtures2 {
         case "cur2-share-revoke": return page("Share revoke") { Cur2RevokeHost(ok: true) }
         case "cur2-share-revoke-failed": return page("Share revoke · kept pending") { Cur2RevokeHost(ok: false) }
         case "cur2-template-adopt": return page("Adopt template") { TemplateAdoptButton(sourceTemplateID: 12, accountID: 990001, scope: "", client: Cur2.player(Cur2.body(Cur2.source))) }
-        case "cur2-template-adopt-refused": return page("Adopt template · unconfirmed") { TemplateAdoptButton(sourceTemplateID: 12, accountID: 990001, scope: "", client: Cur2.player(Cur2.down)) }
+        case "cur2-template-adopt-refused": return page("Adopt template · unconfirmed") { TemplateAdoptButton(sourceTemplateID: 12, accountID: 990001, scope: "", client: Cur2.player(Cur2.down())) }
         case "cur2-location-todos": return page("Location todos") { Cur2TodosHost(body: Cur2.todos) }
         case "cur2-location-todos-unread": return page("Location todos · unread") { Cur2TodosHost(body: nil) }
         case "cur2-save-as-template": return page("Save as template") { TemplateProjectActions(id: 7, title: "夜航", kind: .topic, scope: "", client: Cur2.player(Cur2.body(Cur2.emptyOK))) }
-        case "cur2-save-as-template-refused": return page("Save as template · refused") { TemplateProjectActions(id: 7, title: "夜航", kind: .topic, scope: "", client: Cur2.player(Cur2.down)) }
+        case "cur2-save-as-template-refused": return page("Save as template · refused") { TemplateProjectActions(id: 7, title: "夜航", kind: .topic, scope: "", client: Cur2.player(Cur2.down())) }
         case "cur2-unified-search": return frame("Unified search", UnifiedSearchResultsView(keyword: "西湖", cityCode: "330100", includePosts: false, client: Cur2.player(Cur2.body(Cur2.search))))
         case "cur2-unified-search-unavailable": return frame("Unified search · not open", UnifiedSearchResultsView(keyword: "西湖", cityCode: "330100", includePosts: false, client: Cur2.player(Cur2.status(503))))
         case "cur2-place-search": return roam("Place search", Cur2.body(Cur2.places)) { Cur2PlacesHost() }
@@ -63,7 +63,7 @@ enum CurFixtures2 {
         case "cur2-im": return frame("IM desk", Cur2IMHost(clubID: 4))
         case "cur2-im-missing": return frame("IM desk · missing id", Cur2IMHost(clubID: 0))
         case "cur2-club": return frame("Club gap", ClubGapBoardView(client: ClubGapClient(baseURL: Cur2.base, transport: Cur2.body(Cur2.emptyOK)), token: Cur2.token, apiHost: Cur2.productionHost, chinese: true))
-        case "cur2-club-withheld": return frame("Club gap · withheld", ClubGapBoardView(client: ClubGapClient(baseURL: Cur2.base, transport: Cur2.down), token: nil, apiHost: Cur2.productionHost, chinese: true))
+        case "cur2-club-withheld": return frame("Club gap · withheld", ClubGapBoardView(client: ClubGapClient(baseURL: Cur2.base, transport: Cur2.down()), token: nil, apiHost: Cur2.productionHost, chinese: true))
         case "cur2-rewards": return frame("Reward pledges", Cur2RewardsHost(open: true, fail: false))
         case "cur2-rewards-failed": return frame("Reward pledges · failed", Cur2RewardsHost(open: true, fail: true))
         case "cur2-rewards-closed": return frame("Reward pledges · not open", Cur2RewardsHost(open: false, fail: false))
@@ -87,7 +87,7 @@ enum CurFixtures2 {
         }
     }
 
-    @MainActor private static func page<V: View>(_ title: String, @ViewBuilder _ view: () -> V) -> AnyView {
+    @MainActor private static func page<V: View>(_ title: String, @ViewBuilder _ view: @escaping () -> V) -> AnyView {
         AnyView(Cur2Page(title: title, content: view))
     }
     @MainActor private static func frame<V: View>(_ title: String, _ view: V) -> AnyView {
@@ -110,7 +110,7 @@ enum CurFixtures2 {
     @MainActor private static func square<V: View>(_ title: String, _ view: V) -> AnyView {
         AnyView(Cur2Frame(title: title) { view })
     }
-    @MainActor private static func roam<V: View>(_ title: String, _ transport: Cur2Transport, @ViewBuilder _ view: () -> V) -> AnyView {
+    @MainActor private static func roam<V: View>(_ title: String, _ transport: Cur2Transport, @ViewBuilder _ view: @escaping () -> V) -> AnyView {
         AnyView(Cur2Page(title: title, content: view).environment(\.socialRoamCapabilities, Cur2.roam(transport)))
     }
 }
@@ -186,7 +186,7 @@ private enum Cur2 {
     static func manifest() -> ExternalGameManifest {
         ExternalGameManifest(id: "harbor", name: "夜航", version: "1.0.0", entry: "index.html", sha256: hash, signature: "fixture-signature")
     }
-    static func gameStore() -> ExternalGameStore {
+    @MainActor static func gameStore() -> ExternalGameStore {
         ExternalGameStore(rootDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("cur2-ext", isDirectory: true))
     }
 }
