@@ -84,9 +84,8 @@ final class WP07CommerceClientTests: XCTestCase {
         let closed = WP07CommerceClient(
             configuration: try APIConfiguration(baseURL: URL(string: "https://www.chengyinhub.com")!),
             transport: transport, token: "synthetic-token", apiHost: "www.chengyinhub.com")
+        // Default gate is closed; the App injects MPCommerceGate + ReviewedAreaSwitch (both closed on www.chengyinhub.com).
         XCTAssertFalse(closed.commerceWritesOpen)
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(host: "www.chengyinhub.com"))
-        XCTAssertFalse(MPCommerceGate.purchasesEnabled)
         XCTAssertThrowsError(try closed.create(productID: 1)) { error in
             XCTAssertEqual(error as? WP07CommerceRefusal, .closed)
         }

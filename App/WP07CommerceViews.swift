@@ -121,7 +121,9 @@ enum WP07CommerceSession {
               let configuration = try? APIConfiguration(baseURL: context.baseURL),
               let token = session.passReadToken(), AuthRequestBuilder.isValidToken(token) else { return nil }
         let transport = ChinaReviewedProductionTransport(underlying: session.composition.makeTransport())
-        return WP07CommerceClient(configuration: configuration, transport: transport, token: token, apiHost: context.baseURL.host)
+        let host = context.baseURL.host
+        return WP07CommerceClient(configuration: configuration, transport: transport, token: token, apiHost: host,
+                                  writesOpen: { MPCommerceGate.purchasesEnabled && ReviewedAreaSwitch.moneyPayments(host: host) })
     }
 }
 

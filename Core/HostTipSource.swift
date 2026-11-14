@@ -122,7 +122,7 @@ public struct HostTipSource {
     }
 
     public func cancel(intentID: String, token: String) async throws -> HostTipEnvelope {
-        guard Self.isID(intentID) else { throw HostTipRefusal.invalidRequest }
+        guard ContentLandingSource.isID(intentID) else { throw HostTipRefusal.invalidRequest }
         return try await send(method: "POST", path: "/api/host-tip/intent/" + intentID + "/cancel", body: nil, token: token)
     }
 

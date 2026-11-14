@@ -19,12 +19,16 @@ public struct WP07CommerceClient {
     private let transport: any HTTPTransport
     private let token: String
     private let apiHost: String?
+    /// The App's purchase gate (`MPCommerceGate` and `ReviewedAreaSwitch.moneyPayments(host:)`); Core cannot see those types.
+    private let writesOpen: @Sendable () -> Bool
 
-    public init(configuration: APIConfiguration, transport: any HTTPTransport, token: String, apiHost: String?) {
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, token: String, apiHost: String?,
+                writesOpen: @escaping @Sendable () -> Bool = { false }) {
         self.configuration = configuration
         self.transport = transport
         self.token = token
         self.apiHost = apiHost
+        self.writesOpen = writesOpen
     }
 
     /// POST `/api/marketing/group-checkout/quote`. The body is product id and quantity. No amount.
@@ -58,7 +62,7 @@ public struct WP07CommerceClient {
 
     /// True only when purchases are on and this host is not www.chengyinhub.com. Still not a card charge.
     public var commerceWritesOpen: Bool {
-        MPCommerceGate.purchasesEnabled && ReviewedAreaSwitch.moneyPayments(host: apiHost)
+        writesOpen()
     }
 
     private func post(_ path: String, body: Data?, contentType: String?) async throws -> Data {
