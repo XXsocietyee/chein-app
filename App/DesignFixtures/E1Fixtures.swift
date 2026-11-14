@@ -8,7 +8,7 @@ import SwiftUI
 /// Scenario launch arguments of the underlying hosts (for example `--uitesting-topic-scenario empty`) pass through.
 struct E1Fixture: View {
     enum Screen {
-        case topics, topicDetail, activities, activityDetail, activityPeople
+        case topics, topicDetail, activities, activityDetail, activityDetailError, activityPeople
         case official, officialDetail, officialInbox
         case registration(RegistrationFixtureScenario)
         case participants(ParticipantFixtureScenario)
@@ -28,6 +28,7 @@ struct E1Fixture: View {
         case .topicDetail: NavigationStack { TopicDetailView(id: 7, reader: TopicFixtureReader(scenario: .reviews)) }
         case .activities: ActivityBrowserView(reader: ActivityFixtureReader(scenario: .pagination))
         case .activityDetail: NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .reviews), registrationEnabled: true) }
+        case .activityDetailError: NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .retry), registrationEnabled: true) }
         case .activityPeople: NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .people)) }
         case .official, .officialDetail, .officialInbox: OfficialFixtureHostView()
         case .registration(let s): RegistrationFixtureHostView(scenario: s)
@@ -60,7 +61,8 @@ struct E1Fixture: View {
         case "e1-topics": return AnyView(E1Fixture(screen: .topics))
         case "e1-topic-detail": return AnyView(E1Fixture(screen: .topicDetail))
         case "e1-activities": return AnyView(E1Fixture(screen: .activities))
-        case "e1-activity-detail": return AnyView(E1Fixture(screen: .activityDetail))
+        case "e1-activity-detail", "rep3-activity-detail": return AnyView(E1Fixture(screen: .activityDetail))
+        case "rep3-activity-detail-error": return AnyView(E1Fixture(screen: .activityDetailError))
         case "e1-official": return AnyView(E1Fixture(screen: .official))
         case "e1-registration": return AnyView(E1Fixture(screen: .registration(.standard)))
         case "e1-registration-soldout": return AnyView(E1Fixture(screen: .registration(.soldOut)))

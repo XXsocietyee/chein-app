@@ -77,8 +77,30 @@ struct TopicDetailView: View {
                         }
                     }.accessibilityElement(children: .combine)
                 } else {
-                    NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
-                    Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                    ZStack(alignment: .bottomLeading) {
+                        NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0.35),
+                                .init(color: CYColor.scrimBottom.opacity(0.88), location: 1)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .allowsHitTesting(false)
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
+                                .font(CYTypography.label.weight(.semibold))
+                                .foregroundStyle(CYColor.onCoverDim)
+                            Text(verbatim: value.name)
+                                .font(CYTypography.pageTitle)
+                                .foregroundStyle(CYColor.onCoverFg)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(CYSpacing.lg)
+                        .allowsHitTesting(false)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
                 }
                 TopicXcxHero(topic: value)
                 // P0-14 生成式 AI 内容显式标识 (`utils/aigc-label.js`): only for `publishMode == ai_simple`.

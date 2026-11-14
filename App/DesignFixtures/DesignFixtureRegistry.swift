@@ -111,6 +111,10 @@ enum DesignFixtureRegistry {
         case "e2-city": return AnyView(D2Fixture(screen: .city))
         case "e2-npc": return AnyView(D2Fixture(screen: .npc))
         // D7 creator / publish (PublishDesignFixtures)
+        case "rep3-activity-detail", "rep3-activity-detail-error":
+            return E1Fixture.make(name) ?? AnyView(EmptyView())
+        case "rep3-task-play", "rep3-task-play-offline":
+            return E2FixtureKind(rawValue: name).map { AnyView(E2Fixture(kind: $0)) } ?? AnyView(EmptyView())
         case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
         case let n where n.hasPrefix("e1-") && E1Fixture.make(n) != nil: return E1Fixture.make(n)!
         // W1-5 pass card lab: ui-pass-card[-pending|-used|-expired|-empty|-error] (cases live in E1Fixtures.swift)

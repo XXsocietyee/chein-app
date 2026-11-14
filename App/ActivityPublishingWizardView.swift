@@ -1,11 +1,31 @@
 import SwiftUI
 
-/// Step dots from the mini-program activity page (基本信息 · 活动内容 · 票务与合作).
-/// The step table in `ActivityPublishingWizard` stays the source; titles are localized keys here.
-/// Field errors are shown under their field by the form; this only shows a reason no field owns.
+/// Builds missing-item diagnostics for `CYPublishStatusBar` directly from `ActivityPublishingWizard.blockingField`.
+enum ActivityPublishingStatusHelper {
+    static func issues(for draft: ActivityPublishDraft, locale: Locale) -> [CYPublishValidationIssue] {
+        let copy = ActivityPublishingWizardValidationPresentation(locale: locale)
+        return (0..<ActivityPublishingWizard.steps.count).compactMap { stepIndex in
+            guard let field = ActivityPublishingWizard.blockingField(stepIndex, draft) else { return nil }
+            return CYPublishValidationIssue(
+                id: "step-\(stepIndex)-\(field)",
+                stepIndex: stepIndex,
+                message: copy.message(for: field)
+            )
+        }
+    }
+}
+
+/// Template 10/11/12 Merchant Light header combining `CYPublishStatusBar` (what is configured, what is missing,
+/// whether it is saved, jump-to-step) with step dots from `pages/publish/activity`.
 @MainActor struct ActivityPublishingWizardChrome: View {
     let step: Int
     let block: String?
+    var issues: [CYPublishValidationIssue] = []
+    var saveState: CYPublishSaveState = .unsavedChanges
+    var isSubmittingReview: Bool = false
+    var onSelectStep: ((Int) -> Void)? = nil
+    var onSubmitReview: (() -> Void)? = nil
+
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     private static let fieldOwned: Set<String> = ["name", "addressName", "startDate", "endDate", "categoryIds",
@@ -16,12 +36,27 @@ import SwiftUI
               !Self.ticketPrefixes.contains(where: { block.hasPrefix($0) }) else { return nil }
         return block
     }
+    private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYPublishStatusBar(
+                stepTitles: [
+                    copy.t("基本信息", "Basics"),
+                    copy.t("活动内容", "Content"),
+                    copy.t("票务合作", "Tickets")
+                ],
+                currentStep: current,
+                saveState: saveState,
+                issues: issues,
+                isSubmittingReview: isSubmittingReview,
+                onSelectStep: { index in onSelectStep?(index) },
+                onSubmitReview: { onSubmitReview?() }
+            )
+            HStack(spacing: CYSpacing.sm) {
                 ForEach(ActivityPublishingWizard.progress(current)) { item in
-                    VStack(spacing: 6) {
+                    VStack(spacing: CYSpacing.xs) {
                         Capsule()
                             .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
                             .frame(height: 4)
@@ -47,12 +82,12 @@ import SwiftUI
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
             Text(verbatim: CoreLoopCopy(locale: locale).wizardHeading(for: current))
-                .font(CYTypography.cardTitle)
+                .font(CYTypography.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.heading")
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, CYSpacing.xs)
         .accessibilityIdentifier("publishModes.activity.wizard.step." + String(current))
     }
     private static func titleKey(_ key: String) -> LocalizedStringKey {
@@ -116,17 +151,17 @@ import SwiftUI
         self.merchantHost = merchantHost
     }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: summary.heading)
-                .font(.headline)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(palette.textPrimary)
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.heading")
 
             if merchantHost {
-                Text(verbatim: copy.merchantFreeTicketOnlyNotice)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                CYStatusChip(verbatim: copy.merchantFreeTicketOnlyNotice, tone: .info, systemImage: "info.circle")
                     .accessibilityIdentifier("publishModes.activity.reviewSummary.merchantFreeNotice")
             }
 
@@ -139,12 +174,13 @@ import SwiftUI
             }
 
             Text(verbatim: summary.visibilityNotice)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.visibility")
         }
-        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
         .accessibilityIdentifier("publishModes.activity.reviewSummary")
     }
 
@@ -152,17 +188,20 @@ import SwiftUI
     private func summaryRow(label: String, value: String, id: String) -> some View {
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
-                Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+                Text(verbatim: value).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         } else {
             LabeledContent {
                 Text(verbatim: value)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             } label: {
                 Text(verbatim: label)
-                    .foregroundStyle(.secondary)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         }
