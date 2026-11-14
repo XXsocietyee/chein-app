@@ -3,33 +3,84 @@
   "strings": {
     "wp06.publish.loading": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Loading the quick publish page…" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在加载快速发布…" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the quick publish page…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载快速发布…"
+          }
+        }
       }
     },
     "wp06.publish.empty": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Add a route name and the stops to confirm." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "填写路线名称，并确认各个站点。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a route name and the stops to confirm."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写路线名称，并确认各个站点。"
+          }
+        }
       }
     },
     "wp06.publish.error": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "The quick publish page could not be loaded." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "快速发布页加载失败。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The quick publish page could not be loaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速发布页加载失败。"
+          }
+        }
       }
     },
     "wp06.publish.unknown": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "AI quota is unknown." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "AI 额度未知。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI quota is unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 额度未知。"
+          }
+        }
       }
     },
     "wp06.publish.quotaRemaining": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "AI drafts remaining" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "剩余 AI 草稿次数" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI drafts remaining"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余 AI 草稿次数"
+          }
+        }
       }
     }
-  }
+  },
+  "version": "1.0"
 }
