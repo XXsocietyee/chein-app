@@ -113,6 +113,7 @@ import SwiftUI
             appearance.end(model: model)
             if viewPresentation === appearance { viewPresentation = OwnedCouponReadViewPresentation() }
         }
+        .cyDomainScreen(.player)
     }
 }
 

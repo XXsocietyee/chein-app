@@ -90,6 +90,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
             sent = false
             if !next.solved { wrong = true; text = ""; typed = [:]; word = "" }
         }
+        .cyDomainScreen(.game)
     }
 
     private var wrongLine: some View {
@@ -248,6 +249,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
         .overlay { if confirmOpen, let suspect = suspect { confirmPanel(suspect) } }
         .overlay { if let openClue, projection.clues.indices.contains(openClue) { cluePanel(projection.clues[openClue]) } }
         .onChange(of: projection.suspects.count) { _, count in current = min(current, max(0, count - 1)) }
+        .cyDomainScreen(.game)
     }
 
     private var suspect: PlayKitAccusationProjection.Suspect? {

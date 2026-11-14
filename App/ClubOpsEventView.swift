@@ -70,6 +70,7 @@ import SwiftUI
         .accessibilityIdentifier("clubOpsEvent.root")
         .task(id: key) { await load() }
         .refreshable { await load() }
+        .cyDomainScreen(.player)
     }
     private var denied: some View {
         VStack(spacing: CYSpacing.sm) {

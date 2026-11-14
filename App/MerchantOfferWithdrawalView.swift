@@ -99,6 +99,7 @@ import SwiftUI
         } message: {
             Text("merchant.offerWithdrawal.confirm.message")
         }
+        .cyDomainScreen(.merchant)
     }
 
     private func handleConfirmed() {

@@ -44,6 +44,7 @@ import QuestifyCore
         .task { topics = await loadTopics() }
         .task(id: query) { await load() }
         .refreshable { await load() }
+        .cyDomainScreen(.topicEditor)
     }
 
     /// The creator's topics named where known; ids the report scoped but the content list did not return stay selectable.

@@ -75,6 +75,7 @@ import SwiftUI
             .onChange(of: scenePhase) { _, phase in if phase == .background { invalidateScan() } }
             .onChange(of: cameraEnabled) { _, enabled in if !enabled { invalidateScan() } }
             .onChange(of: coordinator?.available) { _, available in if available == false { invalidateScan() } }
+        .cyDomainScreen(.player)
     }
     private var isBusy: Bool {
         guard let phase = coordinator?.phase else { return false }

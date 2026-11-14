@@ -64,6 +64,7 @@ import Observation
             // Foreground recovery is explicit: no implicit feedback or bind retry.
         }
         .onDisappear { retire() }
+        .cyDomainScreen(.player)
     }
     private func reload() {
         guard !retired, phase == .active, let owner, owner.isCurrent else { return }

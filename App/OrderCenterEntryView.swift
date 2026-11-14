@@ -91,5 +91,6 @@ import QuestifyCore
             number = initialOutTradeNo
             await model.load(initialOutTradeNo)
         }
+        .cyDomainScreen(.player)
     }
 }

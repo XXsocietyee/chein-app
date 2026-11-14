@@ -498,5 +498,6 @@ struct CoopFlowSupplyManagementView: View {
             Text("coopflow.offer.rules")
             CoopFlowSafetyNotice()
         }.navigationTitle("coopflow.supply")
+        .cyDomainScreen(.merchant)
     }
 }

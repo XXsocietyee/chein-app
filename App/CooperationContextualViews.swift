@@ -397,6 +397,7 @@ import SwiftUI
             .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") { await load() }
             .onChange(of: reader.session) { _, _ in generation += 1; credit = nil; summary = nil; busy = false }
             .onDisappear { generation += 1; busy = false }
+        .cyDomainScreen(.merchant)
     }
     private func load() async {
         generation += 1; let request = generation, session = reader.session

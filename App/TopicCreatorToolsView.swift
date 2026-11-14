@@ -192,6 +192,7 @@ import QuestifyCore
             }
             Button(role: .cancel) { renaming = nil } label: { Text("creatorEditor.cancel", tableName: "CreatorEditorUI") }
         }
+        .cyDomainScreen(.topicEditor)
     }
 
     @ViewBuilder private var draftSection: some View {

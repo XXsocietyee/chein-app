@@ -81,5 +81,6 @@ struct ParticipantManagementDetailView: View {
         }
         .task(id: model.reader.identity) { await model.load() }
         .onDisappear { model.disappear() }
+        .cyDomainScreen(.player)
     }
 }

@@ -527,6 +527,7 @@ struct JourneySeatsView: View {
         } message: {
             if let target = cancelTarget { Text("mp.seats.cancel.message \(target.no)") }
         }
+        .cyDomainScreen(.player)
     }
 
     private func ready(_ content: JourneySeatsContent) -> some View {
@@ -778,6 +779,7 @@ struct JourneyPromoView: View {
         .background { MPNightGround() }
         .navigationTitle(Text("mp.promo.title"))
         .navigationBarTitleDisplayMode(.large)
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private func ready(_ content: JourneyPromoContent) -> some View {

@@ -71,6 +71,7 @@ import SwiftUI
             if phase != .active { model.invalidate() }
             else { Task { await model.refresh() } }
         }
+        .cyDomainScreen(.player)
     }
     private func historyRow(_ row: InvoiceLaunchApplication) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {

@@ -102,6 +102,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.invalidate() } }
         .onChange(of: reader.scope) { _, _ in model.invalidate() }
         .onChange(of: reader.authorizationGeneration) { _, _ in model.invalidate() }
+        .cyDomainScreen(.merchant)
     }
 }
 

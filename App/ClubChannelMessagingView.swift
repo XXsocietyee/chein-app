@@ -1333,6 +1333,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
         .task(id: reloadRevision) {
             await loadChannelContext()
         }
+        .cyDomainScreen(.player)
     }
 
     private func loadChannelContext() async {

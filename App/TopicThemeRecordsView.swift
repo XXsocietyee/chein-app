@@ -45,6 +45,7 @@ import SwiftUI
         .appNavigationTitle("topicXcx.records.title")
         .task(id: reader.scope) { await load(reset: true) }
         .accessibilityIdentifier("topic.records")
+        .cyDomainScreen(.player)
     }
     private func load(reset: Bool) async {
         guard !loading, reader.isConfigured else { return }
@@ -103,6 +104,7 @@ import SwiftUI
         }
         .task(id: reader.scope) { await load() }
         .accessibilityIdentifier("topic.records.card")
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func quantitySection(_ rows: [TopicThemeCard.Quantity], title: LocalizedStringKey) -> some View {
         if !rows.isEmpty {

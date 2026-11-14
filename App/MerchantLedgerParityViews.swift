@@ -280,6 +280,7 @@ struct MerchantSettlementStatementCard: View {
         }
         .onChange(of: reader.scope) { _, _ in generation += 1; snapshot = nil; Task { await load() } }
         .onChange(of: reader.authorizationGeneration) { _, _ in generation += 1; snapshot = nil; Task { await load() } }
+        .cyDomainScreen(.merchant)
     }
 
     @ViewBuilder private func detailSection(_ document: MerchantBusinessDocument, id: String,

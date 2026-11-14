@@ -133,6 +133,7 @@ struct CoopFlowSafetyNotice: View {
             NavigationStack { CoopFlowInviteEditor(reader: reader, context: context) }
         }
         .onChange(of: reader.session) { _, _ in inviteContext = nil; refresh = UUID() }
+        .cyDomainScreen(.merchant)
     }
     private func load() async {
         let stamp = UUID(); generation = stamp; value = nil; issue = nil; loadedSession = nil

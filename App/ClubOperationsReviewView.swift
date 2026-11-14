@@ -66,6 +66,7 @@ struct ClubOperationsReviewView: View {
                     .accessibilityIdentifier("club.ops.cancelReview")
             }
         }
+        .cyDomainScreen(.player)
     }
     private static let gutterInsets = EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
     @ViewBuilder private var details: some View {

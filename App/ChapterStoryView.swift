@@ -183,6 +183,7 @@ import UIKit
         .onChange(of: model.identity) { _, _ in advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; resumeTried = false; readingSegmentID = nil }
         .onChange(of: scenePhase) { _, phase in if phase != .active { audioURL = nil } }
         .onDisappear { audioURL = nil; advancedVariables = [:]; dirtyNodes = [] }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {

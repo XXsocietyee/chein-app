@@ -86,6 +86,7 @@ import SwiftUI
                 }.navigationTitle("square.gov.review")
             }.interactiveDismissDisabled(loading)
         }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func preferenceSection(_ snapshot: SquareGovernanceSnapshot) -> some View {
         Section("square.gov.preferences") {

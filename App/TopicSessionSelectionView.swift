@@ -87,6 +87,7 @@ struct TopicSessionSelectionView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase != .active, flow.isPresented { flow.backgrounded(); dismiss() }
         }
+        .cyDomainScreen(.player)
     }
 
     private func activityRow(_ activity: TopicActivitySummary) -> some View {

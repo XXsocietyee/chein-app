@@ -68,6 +68,7 @@ import SwiftUI
             if lock.phase != .sending && lock.phase != .unknown { releaseReview() }
         }
         .accessibilityIdentifier("square.cloud.composer")
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private var root: some View {

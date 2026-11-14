@@ -69,6 +69,7 @@ import SwiftUI
                 Button("已阅，只清本机原请求身份"){do{try flow.acknowledgeKnown();clearLocal()}catch{localIssue="未确认匹配原结果，未清除。"}}
                 Button("保留",role:.cancel){}
             }message:{Text("不删除原供给/服务端回执，不恢复申请、供给或批准；UNKNOWN 不可清除。")}
+        .cyDomainScreen(.merchant)
     }
     private func clearLocal(){reason="";localIssue=nil;acknowledge=false}
     private func time(_ epoch:Int64?)->String{guard let epoch else{return "未提供"};return Date(timeIntervalSince1970:Double(epoch)/1000).formatted(date:.abbreviated,time:.shortened)}

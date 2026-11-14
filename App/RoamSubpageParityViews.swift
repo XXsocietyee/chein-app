@@ -248,6 +248,7 @@ struct RoamShareLinkDormantNotice: View {
             }.padding()
         }.navigationTitle(Text("roamSub.w208.session.title"))
             .task(id: token) { await load() }
+        .cyDomainScreen(.player)
     }
     private func snapshotCard(_ snapshot: RoamShareSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -404,6 +405,7 @@ struct RoamPOIMissingView: View {
         }.navigationTitle(Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))))
             .navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("roamSub.w208.stamp.flow")
+        .cyDomainScreen(.player)
     }
     private var writeStep: some View {
         VStack(alignment: .leading, spacing: 14) {

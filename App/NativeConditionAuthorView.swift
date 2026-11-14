@@ -110,6 +110,7 @@ import SwiftUI
             projectVisit?.onRetire { [weak owner] in owner?.retire() }
         }
         .accessibilityIdentifier("nativeCondition.author")
+        .cyDomainScreen(.topicEditor)
     }
     private func finishClose() { model.retire(); close?() }
     @ViewBuilder private func branches(_ key: String, fallback: Bool) -> some View {

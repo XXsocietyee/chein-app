@@ -409,6 +409,7 @@ enum WalletPayoutCapability { static let isOn = false }
             }
             .onDisappear { funds.cancel() }.refreshable { await load() }
             .appSwitcherPrivacyShield()
+            .cyDomainScreen(.player)
     }
     private func load() async { await funds.load(reader) { try await $0.stages(token: $1) } }
 }
@@ -777,6 +778,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 pendingLoad?.cancel()
                 await load()
             }
+        .cyDomainScreen(.player)
     }
     private func submitSearch() {
         submittedKeyword = keyword
@@ -828,6 +830,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 Text("wallet.dormant").accessibilityIdentifier("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
         }.appNavigationTitle("wallet.product").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.product(id: productID, token: $1) } }
 }
@@ -862,6 +865,7 @@ private struct WalletIncomeListCard: ViewModifier {
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
         }.appNavigationTitle("wallet.cart").cyHideTabBar().task(id: reader.scope) { selected = []; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { selected = []; await load() }
+        .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.cart(token: $1) } }
 }
@@ -891,6 +895,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 Text("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
         }.appNavigationTitle("wallet.preview").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.checkout(cartIDs: cartIDs, token: $1) } }
 }
@@ -935,6 +940,7 @@ private struct WalletIncomeListCard: ViewModifier {
             // does not supply a contact or authorize support configuration/copying.
             .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
             .appSwitcherPrivacyShield()
+            .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.withdrawals(token: $1) } }
 }
@@ -976,6 +982,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
         }.appNavigationTitle("wallet.tasks").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }
     @ViewBuilder private func pointsRuleRow(_ item: WalletPointsTask) -> some View {

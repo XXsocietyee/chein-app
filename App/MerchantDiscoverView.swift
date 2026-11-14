@@ -86,6 +86,7 @@ import SwiftUI
             .onAppear { presentation.didAppear(expectedID: selected.id) }
         }
         .alert("merchant.discover.unavailable", isPresented: $unavailable) { Button("action.close", role: .cancel) {} }
+        .cyDomainScreen(.merchant)
     }
     private func card(_ row: MerchantDiscoveryRow) -> some View {
         HStack(alignment: .top) {

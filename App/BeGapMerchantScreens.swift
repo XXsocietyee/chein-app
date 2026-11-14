@@ -12,6 +12,7 @@ struct BeGapMerchantHubView: View {
         }
         .navigationTitle(Text("beGap.hub.title", tableName: "BeGapMerchant"))
         .accessibilityIdentifier("beGap.hub")
+        .cyDomainScreen(.merchant)
     }
 }
 

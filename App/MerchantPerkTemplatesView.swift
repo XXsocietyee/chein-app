@@ -37,6 +37,7 @@ import SwiftUI
                 }
                 Button("action.cancel", role: .cancel) { pendingDelete = nil }
             } message: { Text("merchant.perks.delete.message") }
+        .cyDomainScreen(.merchant)
     }
 
     private var deleteDialogPresented: Binding<Bool> {

@@ -108,6 +108,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in if phase != .active { close() } }
         .onDisappear { flow.close(); coordinator.cancelReview() }
         .accessibilityIdentifier("club.activityReport.flow")
+        .cyDomainScreen(.player)
     }
     private var changedScreen: some View {
         ScrollView {

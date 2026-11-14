@@ -73,6 +73,7 @@ import UIKit
             .cyHaptic(.impactLight, trigger: shareTick)
         }
         .cyPlayerSheetGlass()
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private var actionsSection: some View {

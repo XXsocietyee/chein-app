@@ -187,6 +187,7 @@ import SwiftUI
         .onChange(of: access.welcomeNoteRevision) { _, _ in retire(); dismiss() }
         .onChange(of: access.welcomeNote.map(ObjectIdentifier.init)) { _, _ in retire(); dismiss() }
         .onChange(of: phase) { _, value in if value != .active { retire(); dismiss() } }
+        .cyDomainScreen(.player)
     }
     private func retire() { visit.retire(); active = false; generation = UUID(); rows = []; loadedIdentity = nil; message = nil; busy = false }
     private func load() async {

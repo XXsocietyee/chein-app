@@ -50,6 +50,7 @@ struct ProfileBadgesView: View {
             }
         }
         .appNavigationTitle("profile.badges.title")
+        .cyDomainScreen(.player)
     }
     private func badgeLink(_ badge: ProfileBadgeSelection, identifier: String) -> some View {
         NavigationLink { ProfileBadgeDetailView(badge: badge) } label: {
@@ -132,6 +133,7 @@ struct ProfileBadgeDetailView: View {
         }
         .appNavigationTitle("profile.badges.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .cyDomainScreen(.player)
     }
 }
 

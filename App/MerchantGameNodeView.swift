@@ -60,6 +60,7 @@ enum MerchantGameNodeCopy {
         .onChange(of: model.revision) { _, _ in submissionImport.invalidate() }
         .onDisappear { submissionImport.invalidate() }
         .overlay(alignment: .bottom) { toastView }
+        .cyDomainScreen(.merchant)
     }
     private func openSubmissionImport() {
         let revision = model.revision, scope = c.service.scope

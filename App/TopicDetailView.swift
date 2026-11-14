@@ -402,6 +402,7 @@ struct TopicChapterView: View {
                 }
             }
         }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline).cyHideTabBar()
+        .cyDomainScreen(.player)
     }
 }
 

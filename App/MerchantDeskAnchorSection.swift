@@ -153,5 +153,6 @@ extension EnvironmentValues {
             flow = session.makeMerchantDeskAnchorFlow(access: access)
         }
         .onDisappear { flow?.suspend() }
+        .cyDomainScreen(.merchant)
     }
 }

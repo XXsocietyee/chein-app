@@ -83,6 +83,7 @@ struct RoamFinishReport: Equatable {
             trackedRouteStory = true
             MiniProgramAnalytics.track(analytics, "roam_route_story_shown", bizType: "roam", pagePath: "/pages/roam/index")
         }
+        .cyDomainScreen(.player)
     }
 
     private var head: some View {

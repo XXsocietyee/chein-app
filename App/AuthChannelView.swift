@@ -63,6 +63,7 @@ struct AuthChannelView: View {
             .onChange(of: sessionSnapshot) { _, _ in model.clear(); dismiss() }
             .onDisappear { model.clear() }
         }
+        .cyDomainScreen(.player)
     }
 }
 

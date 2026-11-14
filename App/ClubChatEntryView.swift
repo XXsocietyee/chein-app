@@ -56,6 +56,7 @@ import SwiftUI
                     sender: session.messageSender(for: conversation.id), mediaReader: session.socialMessageMediaReader, expanded: session.imExpandedNavigation).id(session.messagingViewIdentity)
             }
         }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var enterButton: some View {
         if model.phase == .unknown {
@@ -104,5 +105,6 @@ import SwiftUI
             .padding(.vertical, CYSpacing.lg)
         }
         .cyDomainPageBackground()
+        .cyDomainScreen(.player)
     }
 }

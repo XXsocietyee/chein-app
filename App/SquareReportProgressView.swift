@@ -92,6 +92,7 @@ struct MemberReportProgressTimeView: View {
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberReportProgressIdentity) { _, _ in selection = nil; retire(); start() }
         .refreshable { guard let (original, intent) = rendered else { return }; await original.loadHistory(intent: intent) }
+        .cyDomainScreen(.player)
     }
     private func start() {
         guard visible, scene == .active else { return }; retire()

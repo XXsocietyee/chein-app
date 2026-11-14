@@ -68,6 +68,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                 }
                 Button(role: .cancel) { c.cancelMapPoint() } label: { t("storeCharacter.action.cancel") }
             } message: { t("storeCharacter.mapPoint.confirmBody") }
+        .cyDomainScreen(.merchant)
     }
 
     private var deniedKey: Bool { if case .denied = c.phase { return true }; return false }

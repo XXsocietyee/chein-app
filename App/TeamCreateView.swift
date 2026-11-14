@@ -47,6 +47,7 @@ import SwiftUI
             .task { await model.run { await model.coordinator.loadCreation(ownerID: activityID) } }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
             .onDisappear { model.leave() }
+        .cyDomainScreen(.player)
     }
 
     private func reviewButton(_ context: TeamCreationContext) -> some View {

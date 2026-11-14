@@ -219,6 +219,7 @@ func imShownName(_ name: String) -> String {
         .onChange(of: permitsReply) { _, allowed in if !allowed { clearDrafts(); model.invalidateQueued() } }
         .onChange(of: isConversationCurrent()) { _, current in if !current { clearDrafts(); model.invalidateQueued() } }
         .onDisappear { clearDrafts(); model.retire() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var controlsSections: some View {
             Section { IMScreenTitle(title: "im.full.title") }
@@ -493,6 +494,7 @@ struct IMMutationSummary: View {
         .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
         .onChange(of: identity) { _, _ in target = ""; model.state = model.owner.visibleState }
         .onDisappear { target = ""; model.owner.cancelReview() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var startSections: some View {
             Section { IMScreenTitle(title: "d7.newChat.title") }
@@ -585,6 +587,7 @@ struct IMUploadSubmission: Equatable {
         .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
         .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
         .onDisappear { model.retire() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var photoSections: some View {
             Section { IMScreenTitle(title: "d7.imPhoto.title") }
@@ -661,6 +664,7 @@ private extension IMOutgoingPayload {
          .onAppear { if available { model.observe() } }
          .onDisappear { stopOperation();model.retire();clear() }
          .onChange(of:available) { _,valid in if !valid { stopOperation();model.retire();clear() } else if model.appearance == nil { model.observe() } }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var locationSections: some View {
             Section { IMScreenTitle(title: "d7.imLocation.title") }
@@ -767,6 +771,7 @@ private extension IMOutgoingPayload {
         .onAppear { if available { model.observe() } }
         .onDisappear { stopOperation();model.retire();selected=nil;picking=false }
         .onChange(of:available) { _,value in if !value { stopOperation();model.retire();selected=nil;picking=false } else if model.appearance == nil { model.observe() } }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var routeSections: some View {
             Section { IMScreenTitle(title: "d7.imRoute.title") }

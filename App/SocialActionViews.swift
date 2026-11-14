@@ -133,6 +133,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             }
         }
         .accessibilityIdentifier("social.editor")
+        .cyDomainScreen(.player)
     }
     private func command() -> SocialActionCommand {
         switch purpose {
@@ -234,6 +235,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             .interactiveDismissDisabled(busy)
             .onChange(of: coordinator.identity) { _, _ in coordinator.synchronizeSession(); revision += 1 }
             .privacySensitive().accessibilityIdentifier("social.review")
+        .cyDomainScreen(.player)
     }
 }
 #if DEBUG
