@@ -62,6 +62,7 @@ import FoundationNetworking
         XCTAssertTrue(listFailed)
         XCTAssertTrue(detailFailed)
         XCTAssertEqual(wire.requests.count, 2)
+        guard wire.requests.count == 2 else { return }  // fail, don't trap the runner
         XCTAssertEqual(wire.requests[0].url?.host, "8120.example.test")
         XCTAssertTrue(wire.requests[0].url?.path.hasSuffix("/api/workshop/v2/purchased/list") == true)
         XCTAssertTrue(wire.requests[1].url?.path.hasSuffix("/api/workshop/v2/purchased/detail") == true)
