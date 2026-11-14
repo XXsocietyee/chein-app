@@ -19,6 +19,7 @@ public enum CYSheetDetent: Sendable, Hashable {
 /// 24pt top radius, 36×4pt handle (`sheetHandle`), player glass `rgba(44,44,46,.98)`, sheet card `#3A3A3C` / `#F8F9FA`.
 public struct CYSheetContainer<Content: View>: View {
     private let title: String?
+    private let closeIdentifier: String?
     private let onClose: (() -> Void)?
     private let content: Content
 
@@ -27,10 +28,12 @@ public struct CYSheetContainer<Content: View>: View {
 
     public init(
         title: String? = nil,
+        closeIdentifier: String? = nil,
         onClose: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
+        self.closeIdentifier = closeIdentifier
         self.onClose = onClose
         self.content = content()
     }
@@ -68,6 +71,7 @@ public struct CYSheetContainer<Content: View>: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text("action.close"))
+                        .modifier(CYOptionalAccessibilityIdentifier(identifier: closeIdentifier))
                     }
                 }
                 .padding(.horizontal, CYSpacing.lg)
@@ -123,6 +127,9 @@ private struct CYDomainSheetDetentsModifier: ViewModifier {
     }
 }
 
+/// Returns a raw accessibility identifier without altering its value.
+public func cyAccessibilityID(id: String) -> String { id }
+
 /// Option row item for `CYOptionSheet` (`56pt` tall row, 0.5pt divider, radio/check/danger).
 public struct CYOptionSheetItem<ID: Hashable>: Identifiable {
     public let id: ID
@@ -130,19 +137,22 @@ public struct CYOptionSheetItem<ID: Hashable>: Identifiable {
     public let subtitle: String?
     public let systemImage: String?
     public let isDanger: Bool
+    public let identifier: String?
 
     public init(
         id: ID,
         title: String,
         subtitle: String? = nil,
         systemImage: String? = nil,
-        isDanger: Bool = false
+        isDanger: Bool = false,
+        identifier: String? = nil
     ) {
         self.id = id
         self.title = title
         self.subtitle = subtitle
         self.systemImage = systemImage
         self.isDanger = isDanger
+        self.identifier = identifier
     }
 }
 
@@ -153,6 +163,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
     private let selectedID: ID?
     private let onSelect: (ID) -> Void
     private let onClose: () -> Void
+    private let closeIdentifier: String?
 
     @Environment(\.cyPalette) private var palette
 
@@ -160,18 +171,20 @@ public struct CYOptionSheet<ID: Hashable>: View {
         title: String,
         items: [CYOptionSheetItem<ID>],
         selectedID: ID? = nil,
+        closeIdentifier: String? = nil,
         onSelect: @escaping (ID) -> Void,
         onClose: @escaping () -> Void
     ) {
         self.title = title
         self.items = items
         self.selectedID = selectedID
+        self.closeIdentifier = closeIdentifier
         self.onSelect = onSelect
         self.onClose = onClose
     }
 
     public var body: some View {
-        CYSheetContainer(title: title, onClose: onClose) {
+        CYSheetContainer(title: title, closeIdentifier: closeIdentifier, onClose: onClose) {
             VStack(spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     let isSelected = item.id == selectedID
@@ -189,10 +202,12 @@ public struct CYOptionSheet<ID: Hashable>: View {
                                 Text(verbatim: item.title)
                                     .font(CYTypography.cardTitle)
                                     .foregroundStyle(item.isDanger ? palette.danger : palette.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
                                 if let subtitle = item.subtitle {
                                     Text(verbatim: subtitle)
                                         .font(CYTypography.meta)
                                         .foregroundStyle(palette.textTertiary)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
                             Spacer(minLength: CYSpacing.sm)
@@ -207,6 +222,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(CYListRowButtonStyle())
+                    .cyOptionalAccessibilityIdentifier(item.identifier)
 
                     if index < items.count - 1 {
                         Rectangle()
@@ -228,27 +244,36 @@ public struct CYModal: View {
     private let title: String
     private let message: String
     private let consequences: [CYConfirmConsequence]
-    private let cancelTitle: String
+    private let cancelTitle: String?
     private let confirmTitle: String
     private let lighterAlternativeTitle: String?
     private let isDestructive: Bool
     private let isConfirmLoading: Bool
+    private let titleIdentifier: String?
+    private let cancelIdentifier: String?
+    private let confirmIdentifier: String?
+    private let lighterAlternativeIdentifier: String?
     private let onCancel: () -> Void
     private let onLighterAlternative: (() -> Void)?
     private let onConfirm: () -> Void
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(
         title: String,
         message: String,
         consequences: [CYConfirmConsequence] = [],
-        cancelTitle: String = "取消",
+        cancelTitle: String? = "取消",
         confirmTitle: String = "确认",
         lighterAlternativeTitle: String? = nil,
         isDestructive: Bool = false,
         isConfirmLoading: Bool = false,
+        titleIdentifier: String? = nil,
+        cancelIdentifier: String? = nil,
+        confirmIdentifier: String? = nil,
+        lighterAlternativeIdentifier: String? = nil,
         onCancel: @escaping () -> Void,
         onLighterAlternative: (() -> Void)? = nil,
         onConfirm: @escaping () -> Void
@@ -261,6 +286,10 @@ public struct CYModal: View {
         self.lighterAlternativeTitle = lighterAlternativeTitle
         self.isDestructive = isDestructive
         self.isConfirmLoading = isConfirmLoading
+        self.titleIdentifier = titleIdentifier
+        self.cancelIdentifier = cancelIdentifier
+        self.confirmIdentifier = confirmIdentifier
+        self.lighterAlternativeIdentifier = lighterAlternativeIdentifier
         self.onCancel = onCancel
         self.onLighterAlternative = onLighterAlternative
         self.onConfirm = onConfirm
@@ -287,6 +316,7 @@ public struct CYModal: View {
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
+                    .cyOptionalAccessibilityIdentifier(titleIdentifier)
                 Spacer(minLength: CYSpacing.sm)
                 Button(action: onCancel) {
                     Image(systemName: "xmark")
@@ -334,26 +364,25 @@ public struct CYModal: View {
                         .font(CYTypography.label.weight(.semibold))
                         .foregroundStyle(palette.info)
                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .buttonStyle(CYGhostButtonStyle(isFullWidth: true, size: .sm))
+                .cyOptionalAccessibilityIdentifier(lighterAlternativeIdentifier)
             }
 
-            HStack(spacing: CYSpacing.md) {
-                Button(action: onCancel) {
-                    Text(verbatim: cancelTitle)
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: CYSpacing.sm) {
+                    modalConfirmButton
+                    if let cancelTitle {
+                        modalCancelButton(cancelTitle)
+                    }
                 }
-                .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
-
-                if isDestructive {
-                    Button(role: .destructive, action: onConfirm) {
-                        Text(verbatim: confirmTitle)
+            } else {
+                HStack(spacing: CYSpacing.md) {
+                    if let cancelTitle {
+                        modalCancelButton(cancelTitle)
                     }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
-                } else {
-                    Button(action: onConfirm) {
-                        Text(verbatim: confirmTitle)
-                    }
-                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+                    modalConfirmButton
                 }
             }
         }
@@ -361,5 +390,32 @@ public struct CYModal: View {
         .frame(maxWidth: 320, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.modalPanel))
         .shadow(color: palette.floatShadowColor, radius: 20, x: 0, y: 10)
+    }
+
+    private func modalCancelButton(_ title: String) -> some View {
+        Button(action: onCancel) {
+            Text(verbatim: title)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+        .cyOptionalAccessibilityIdentifier(cancelIdentifier)
+    }
+
+    @ViewBuilder private var modalConfirmButton: some View {
+        if isDestructive {
+            Button(role: .destructive, action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        } else {
+            Button(action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        }
     }
 }

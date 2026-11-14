@@ -326,13 +326,28 @@ import SwiftUI
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
         .navigationTitle(ClubOpsEventFormCopy.title(route))
-        .alert(Text("clubOpsEvent.cancel.confirmTitle", tableName: "ClubOpsEvent"), isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
-            Button(role: .destructive) {
-                guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
-                cancelConfirmReview = nil; Task { await confirm(pending) }
-            } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
-            Button(role: .cancel) { cancelConfirmReview = nil } label: { Text("clubOpsEvent.cancel.keep", tableName: "ClubOpsEvent") }
-        } message: { Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent") }
+        .sheet(isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
+            if let pending = cancelConfirmReview {
+                CYConfirmSheet(
+                    title: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmTitle", table: "ClubOpsEvent", locale: locale)),
+                    message: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmBody", table: "ClubOpsEvent", locale: locale)),
+                    confirmTitle: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmAction", table: "ClubOpsEvent", locale: locale)),
+                    cancelTitle: String(localized: LocalizedStringResource("clubOpsEvent.cancel.keep", table: "ClubOpsEvent", locale: locale)),
+                    isDestructive: true,
+                    consequences: [
+                        CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: String(localized: LocalizedStringResource("clubOpsEvent.cancel.consequence1", table: "ClubOpsEvent", locale: locale))),
+                        CYConfirmConsequence(systemImage: "person.2.slash", text: String(localized: LocalizedStringResource("clubOpsEvent.cancel.consequence2", table: "ClubOpsEvent", locale: locale)))
+                    ],
+                    onCancel: { cancelConfirmReview = nil },
+                    onConfirm: {
+                        guard pending.id == review?.id else { cancelConfirmReview = nil; return }
+                        cancelConfirmReview = nil
+                        Task { await confirm(pending) }
+                    }
+                )
+                .cyDomainSheet(detents: [.half, .full])
+            }
+        }
         .toolbar { ToolbarItem(placement: .cancellationAction) {
             Button {
                 if route.operation == .hostApply, applyStep > 0, !busy, !locked {

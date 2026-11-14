@@ -9,6 +9,7 @@ import SwiftUI
     // Actual parent NavigationLink/path membership; true while a child is pushed.
     let routeIsPresented: Binding<Bool>
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var flow: NativeChannelMessageHostFlow?
     @State private var notificationFlow: NativeChannelNotificationCoordinator?
     @State private var mentionsPresented = false
@@ -87,7 +88,18 @@ import SwiftUI
                 }
             }
         }
-        .alert(Text("message.unavailable", tableName: "NativeChannelMessage"), isPresented: $unavailable) { Button("d7.channelChat.ok", role: .cancel) {} }
+        .overlay {
+            if unavailable {
+                CYModal(
+                    title: String(localized: LocalizedStringResource("message.unavailable", table: "NativeChannelMessage", locale: locale)),
+                    message: "",
+                    cancelTitle: nil,
+                    confirmTitle: appLocalized("d7.channelChat.ok", locale: locale),
+                    onCancel: { unavailable = false },
+                    onConfirm: { unavailable = false }
+                )
+            }
+        }
         .privacySensitive()
     }
     private func close() {

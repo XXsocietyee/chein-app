@@ -81,6 +81,7 @@ struct MessageComposerSubmission: Equatable {
     /// The view's existing poll entry, shown as the leading `+` when the history offers it.
     let createPoll:(() -> Void)?
     @Environment(\.themeDomain) private var domain
+    @Environment(\.locale) private var locale
     @State private var confirmsRetry=false
     @FocusState private var typing:Bool
     init(coordinator:MessageActionCoordinator,identity:MessagingReadIdentity?,conversationReady:Bool,
@@ -165,13 +166,17 @@ struct MessageComposerSubmission: Equatable {
         .onChange(of:identity) { _,_ in let visible = model.appearance != nil; model.retire(); model.draft="";confirmsRetry=false; if visible { model.observe() } }
         .onChange(of:canReply()) { _, allowed in if !allowed { model.invalidateQueued(); confirmsRetry=false } }
         .onDisappear { model.retire(); confirmsRetry=false; typing=false }
-        .alert("message.send.retryTitle",isPresented:$confirmsRetry) {
-            Button("message.send.retry") {
+        .sheet(isPresented: $confirmsRetry) {
+            CYConfirmSheet(
+                title: appLocalized("message.send.retryTitle", locale: locale),
+                message: appLocalized("message.send.retryHint", locale: locale),
+                confirmTitle: appLocalized("message.send.retry", locale: locale)
+            ) {
                 guard let clientID = model.coordinator.pendingClientMessageID,
                       let token = model.prepare(.retry(clientID), identity: identity, canReply: ready) else { return }
                 Task { await model.perform(token, canReply: { ready }) }
             }
-            Button("action.cancel",role:.cancel) {}
-        } message: { Text("message.send.retryHint") }
+            .cyDomainSheet(detents: [.peek, .half])
+        }
     }
 }

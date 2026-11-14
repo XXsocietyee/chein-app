@@ -436,22 +436,91 @@ import SwiftUI
 @MainActor private struct NearbyTeamReviewView: View {
     @ObservedObject var model: NearbyTeamScreenModel
     let snapshot: NearbyTeamReview
+    @Environment(\.locale) private var locale
+
+    private var isDestructiveAction: Bool {
+        switch snapshot.action {
+        case .withdrawApplication, .reject: return true
+        default: return false
+        }
+    }
+
+    private var consequenceKeys: [String] {
+        switch snapshot.action {
+        case .reject:
+            return ["nearby.consequence.reject.1", "nearby.consequence.reject.2"]
+        default:
+            return []
+        }
+    }
+
     var body: some View {
-        NavigationStack {
+        CYSheetContainer(
+            title: appLocalized(String.LocalizationValue(stringLiteral: snapshot.action.key), locale: locale),
+            onClose: model.running ? nil : { model.cancel() }
+        ) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    CYHeroHeader(LocalizedStringKey(snapshot.action.key))
-                    Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "")
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let applicant = snapshot.applicant, !applicant.name.isEmpty {
-                        Label { Text(verbatim: applicant.name) } icon: { Image(systemName: "person.crop.circle") }
+                        Label {
+                            Text(verbatim: applicant.name)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: "person.crop.circle")
+                        }
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
                     }
                     Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence")
-                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                    CYPillButton(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") { Task { await model.run { await model.coordinator.confirm(snapshot) } } }
-                        .disabled(model.running || !model.coordinator.canSubmit).accessibilityIdentifier("nearby.confirm")
-                    CYPillButton("nearby.cancel", style: .tertiary) { model.cancel() }.accessibilityIdentifier("nearby.cancel")
-                }.padding()
-            }.cyHeroScreen()
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if !consequenceKeys.isEmpty {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
+                                HStack(alignment: .top, spacing: CYSpacing.sm) {
+                                    Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
+                                        .accessibilityHidden(true)
+                                    Text(LocalizedStringKey(key))
+                                        .font(CYTypography.bodyCompact)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(CYSpacing.md)
+                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    }
+                    confirmActionButton
+                    Button("nearby.cancel") { model.cancel() }
+                        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                        .disabled(model.running)
+                        .accessibilityIdentifier("nearby.cancel")
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .interactiveDismissDisabled(model.running)
+        .cyDomainSheet(detents: [.half, .full])
+    }
+
+    @ViewBuilder private var confirmActionButton: some View {
+        let button = Button(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") {
+            Task { await model.run { await model.coordinator.confirm(snapshot) } }
+        }
+        .disabled(model.running || !model.coordinator.canSubmit)
+        .accessibilityIdentifier("nearby.confirm")
+        if isDestructiveAction {
+            button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+        } else {
+            button.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
         }
     }
 }

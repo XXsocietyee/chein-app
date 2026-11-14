@@ -512,6 +512,70 @@
           }
         }
       }
+    },
+    "confirmGrantDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The member will receive this club badge immediately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "颁发后对方会拿到这枚俱乐部勋章。"
+          }
+        }
+      }
+    },
+    "confirmGrantConsequence1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This badge is written into the member's badge record."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这枚勋章会写入对方的勋章记录"
+          }
+        }
+      }
+    },
+    "confirmGrantConsequence2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awarding the same badge again checks whether they already hold it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次颁发同一枚勋章时，平台会提示对方是否已经拥有"
+          }
+        }
+      }
+    },
+    "confirmGrantConsequence3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; badges cannot be revoked later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，目前没有收回勋章的入口"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -262,14 +262,12 @@ import SwiftUI
         }
         .sheet(isPresented: Binding(get: { flow.actionReview != nil }, set: { if !$0 { flow.cancelReview() } })) {
             if let review = flow.actionReview {
-                NavigationStack {
-                    Form {
-                        Section {
-                            CYHeroHeader(verbatim: localized("friend.confirm." + review.command.action.rawValue))
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets())
-                        }
-                        Section {
+                CYSheetContainer(
+                    title: localized("friend.confirm." + review.command.action.rawValue),
+                    onClose: { flow.cancelReview() }
+                ) {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             if review.displayName.isEmpty {
                                 CYListRow(verbatim: localized("friend.peer"), trailing: .value(String(review.command.peerID)))
                                     .accessibilityIdentifier("friend.confirmPeer")
@@ -283,30 +281,34 @@ import SwiftUI
                             if !review.message.isEmpty {
                                 Text(verbatim: review.message)
                                     .font(CYTypography.body)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("friend.confirmMessage")
                             }
-                            CYPillButton(verbatim: localized("friend.confirmContinue"), systemImage: "checkmark.circle") {
-                                Task { await flow.confirmReview(expected: review) }
-                            }
-                            .disabled(!flow.canWrite)
-                            .accessibilityIdentifier("friend.confirmContinue")
                         }
-                    }
-                    .formStyle(.grouped)
-                    .font(CYTypography.body)
-                    .cyGroupedSurface()
-                    .cyHeroScreen()
-                    .accessibilityIdentifier("friend.confirmation")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button { flow.cancelReview() } label: { text("friend.confirmCancel") }
-                                .accessibilityIdentifier("friend.confirmCancel")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(CYSpacing.md)
+                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+
+                        Button {
+                            Task { await flow.confirmReview(expected: review) }
+                        } label: {
+                            Label(localized("friend.confirmContinue"), systemImage: "checkmark.circle")
+                                .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+                        .disabled(!flow.canWrite)
+                        .accessibilityIdentifier("friend.confirmContinue")
+
+                        Button { flow.cancelReview() } label: {
+                            text("friend.confirmCancel")
+                        }
+                        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                        .accessibilityIdentifier("friend.confirmCancel")
                     }
                 }
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
+                .accessibilityIdentifier("friend.confirmation")
+                .cyDomainSheet(detents: [.half, .full])
             }
         }
         .toolbar {

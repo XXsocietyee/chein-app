@@ -13,6 +13,7 @@ import SwiftUI
     @Environment(\.squareDeletion) private var deletion
     @Environment(\.squareShareLink) private var shareLink
     @Environment(\.squareAuthorFollowState) private var followState
+    @Environment(\.locale) private var locale
     @State private var shareRoute: ShareRoute?
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
@@ -140,9 +141,18 @@ import SwiftUI
             }
         }
         .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false }
-        .alert(Text("square.block.title"), isPresented: $blockNotice) {
-            Button("square.block.ok", role: .cancel) { }
-        } message: { Text("square.block.notAvailable") }
+        .overlay {
+            if blockNotice {
+                CYModal(
+                    title: appLocalized("square.block.title", locale: locale),
+                    message: appLocalized("square.block.notAvailable", locale: locale),
+                    cancelTitle: nil,
+                    confirmTitle: appLocalized("square.block.ok", locale: locale),
+                    onCancel: { blockNotice = false },
+                    onConfirm: { blockNotice = false }
+                )
+            }
+        }
         .sheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
                 .presentationDetents([.large])
@@ -151,7 +161,9 @@ import SwiftUI
             if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane: contentGeneration == .communityV1 ? .communityV1 : .legacy) }.id(workspace.session) }
         }
         .sheet(item: deletionBinding) { item in
-            if let deletion { NavigationStack { SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion) }.presentationDetents([.medium]) }
+            if let deletion {
+                SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion)
+            }
         }
         .onChange(of: deletion?.phase) { _, phase in
             // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.

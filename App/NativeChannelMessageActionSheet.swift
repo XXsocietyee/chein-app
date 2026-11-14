@@ -17,6 +17,7 @@ import SwiftUI
     @State private var pinSelection: NativeChannelMessagePinSelection?
     @Environment(\.scenePhase) private var phase
     @Environment(\.themeDomain) private var domain
+    @Environment(\.locale) private var locale
     private var current: Bool { coordinator.canDisplay(snapshot) && currentSnapshot() == snapshot && snapshot.status == 0 }
     private var canEdit: Bool {
         current && snapshot.kind == .text && snapshot.senderType == 1
@@ -98,11 +99,22 @@ import SwiftUI
             NavigationStack { NativeChannelMessageRevisionView(client: coordinator.client, messageID: snapshot.id) }
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
-        .confirmationDialog("d7.channelMessage.pinTitle", isPresented: Binding(
-            get: { pinSelection != nil }, set: { if !$0 { pinSelection = nil } }), titleVisibility: .visible, presenting: pinSelection) { selection in
-            Button { confirmPin(selection) } label: { Text(selection.command.operation == .pin ? "pins.add" : "pins.remove", tableName: "NativeChannelMessage") }
-                .disabled(!current || !coordinator.canStart || phase != .active || !selection.isCurrent(coordinator.client))
-            Button("action.cancel", role: .cancel) { pinSelection = nil }
+        .sheet(item: $pinSelection) { selection in
+            let actionTitle = String(localized: LocalizedStringResource(
+                stringLiteral: selection.command.operation == .pin ? "pins.add" : "pins.remove",
+                table: "NativeChannelMessage",
+                locale: locale
+            ))
+            CYConfirmSheet(
+                title: appLocalized("d7.channelMessage.pinTitle", locale: locale),
+                message: "",
+                confirmTitle: actionTitle,
+                confirmDisabled: !current || !coordinator.canStart || phase != .active || !selection.isCurrent(coordinator.client),
+                onCancel: { pinSelection = nil }
+            ) {
+                confirmPin(selection)
+            }
+            .cyDomainSheet(detents: [.peek, .half])
         }
         .onChange(of: current) { _, valid in if !valid { pinSelection = nil } }
         .onChange(of: phase) { _, value in if value != .active { pinSelection = nil } }
@@ -112,7 +124,18 @@ import SwiftUI
         .onChange(of: coordinator.client.allows(.receipt)) { _, valid in if !valid { pinSelection = nil; closeEditRecall() } }
         .onChange(of: phase) { _, value in if value != .active { closeEditRecall() } }
         .onDisappear { closeEditRecall() }
-        .alert(Text("message.changed", tableName: "NativeChannelMessage"), isPresented: $localIssue) { Button("d7.channelChat.ok", role: .cancel) {} }
+        .overlay {
+            if localIssue {
+                CYModal(
+                    title: String(localized: LocalizedStringResource("message.changed", table: "NativeChannelMessage", locale: locale)),
+                    message: "",
+                    cancelTitle: nil,
+                    confirmTitle: appLocalized("d7.channelChat.ok", locale: locale),
+                    onCancel: { localIssue = false },
+                    onConfirm: { localIssue = false }
+                )
+            }
+        }
     }
     private func preparePin() {
         guard phase == .active, current, coordinator.canStart else { return }

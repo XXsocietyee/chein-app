@@ -170,13 +170,22 @@ struct OfficialOrganizerConsoleView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { await model.load() }
         .refreshable { await model.load() }
-        .confirmationDialog(confirmTitle, isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } }),
-                            titleVisibility: .visible, presenting: confirming) { action in
-            Button(confirmButton(action), role: action == .schedule ? .destructive : nil) {
-                confirming = nil; Task { await model.start(action) }
-            }
-            Button(c.t("取消", "Cancel"), role: .cancel) { confirming = nil }
-        } message: { action in Text(confirmMessage(action)) }
+        .sheet(item: $confirming) { action in
+            CYConfirmSheet(
+                title: confirmTitle(for: action),
+                message: confirmMessage(action),
+                confirmTitle: confirmButton(action),
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                isDestructive: action == .schedule || action == .pause,
+                consequences: confirmConsequences(for: action),
+                onCancel: { confirming = nil },
+                onConfirm: {
+                    confirming = nil
+                    Task { await model.start(action) }
+                }
+            )
+            .cyDomainSheet(detents: [.half, .full])
+        }
     }
 
     private var content: some View {
@@ -373,13 +382,33 @@ struct OfficialOrganizerConsoleView: View {
         case .resume: return c.t("活动已恢复", "Event resumed")
         }
     }
-    private var confirmTitle: String {
+    private func confirmTitle(for action: OfficialOrganizerAction) -> String {
         let name = model.state?.title.isEmpty == false ? model.state!.title : c.t("这场活动", "this event")
-        switch confirming {
-        case .schedule?: return c.t("发布「\(name)」?", "Publish “\(name)”?")
-        case .pause?: return c.t("暂停「\(name)」?", "Pause “\(name)”?")
-        case .resume?: return c.t("恢复「\(name)」?", "Resume “\(name)”?")
-        case nil: return ""
+        switch action {
+        case .schedule: return c.t("发布「\(name)」?", "Publish “\(name)”?")
+        case .pause: return c.t("暂停「\(name)」?", "Pause “\(name)”?")
+        case .resume: return c.t("恢复「\(name)」?", "Resume “\(name)”?")
+        }
+    }
+    private func confirmConsequences(for action: OfficialOrganizerAction) -> [CYConfirmConsequence] {
+        switch action {
+        case .schedule:
+            return [
+                CYConfirmConsequence(systemImage: "calendar.badge.clock", text: appLocalized("official.organizer.schedule.c1", locale: locale)),
+                CYConfirmConsequence(systemImage: "arrow.uturn.backward.circle", text: appLocalized("official.organizer.schedule.c2", locale: locale)),
+                CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: appLocalized("official.organizer.schedule.c3", locale: locale))
+            ]
+        case .pause:
+            return [
+                CYConfirmConsequence(systemImage: "person.crop.circle.badge.xmark", text: appLocalized("official.organizer.pause.c1", locale: locale)),
+                CYConfirmConsequence(systemImage: "megaphone", text: appLocalized("official.organizer.pause.c2", locale: locale)),
+                CYConfirmConsequence(systemImage: "clock", text: appLocalized("official.organizer.pause.c3", locale: locale))
+            ]
+        case .resume:
+            return [
+                CYConfirmConsequence(systemImage: "checkmark.shield", text: appLocalized("official.organizer.resume.c1", locale: locale)),
+                CYConfirmConsequence(systemImage: "hourglass", text: appLocalized("official.organizer.resume.c2", locale: locale))
+            ]
         }
     }
     private func confirmButton(_ a: OfficialOrganizerAction) -> String { actionName(a) }

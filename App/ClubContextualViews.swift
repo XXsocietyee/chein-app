@@ -52,6 +52,7 @@ struct ClubOperatingRulesView: View {
 
 @MainActor struct ClubOpsTimeView: View {
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     let activityID: Int
     let original: String
     let owner: ClubOpsTimeCoordinator?
@@ -128,10 +129,23 @@ struct ClubOperatingRulesView: View {
             .padding(.vertical, CYSpacing.lg)
         }
         .cyDomainPageBackground()
-        .confirmationDialog("context.ops.confirm", isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
-            Button("context.ops.save") { Task { await save() } }.disabled(owner?.canSave != true)
-            Button("action.cancel", role: .cancel) { review = nil; captured = nil }
-        } message: { if let review { Text(verbatim: review.startDate) } }
+        .sheet(isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
+            if let review {
+                CYConfirmSheet(
+                    title: appLocalized("context.ops.confirm", locale: locale),
+                    message: review.startDate,
+                    confirmTitle: appLocalized("context.ops.save", locale: locale),
+                    cancelTitle: appLocalized("action.cancel", locale: locale),
+                    confirmDisabled: owner?.canSave != true,
+                    onCancel: {
+                        self.review = nil
+                        captured = nil
+                    },
+                    onConfirm: { Task { await save() } }
+                )
+                .cyDomainSheet(detents: [.peek, .half])
+            }
+        }
         .onChange(of: owner?.service.session) { _, _ in review = nil; captured = nil; serverDate = nil; revision += 1 }
         .cyHaptic(.success, trigger: state) { _, new in new == .acknowledged }
         .cyHaptic(.warning, trigger: state) { _, new in new == .rejected }

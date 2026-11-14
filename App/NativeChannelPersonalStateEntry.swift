@@ -55,9 +55,16 @@ import SwiftUI
                     }
                 }
                 .refreshable { await flow.refresh() }
-                .confirmationDialog("d7.channelPersonal.retryConfirm",isPresented:$retryConfirmation,titleVisibility:.visible) {
-                    Button("d7.channelPersonal.retry") { Task { await flow.retryOriginal() } }
-                    Button("d7.channelPersonal.cancel",role:.cancel) {}
+                .sheet(isPresented: $retryConfirmation) {
+                    CYConfirmSheet(
+                        title: appLocalized("d7.channelPersonal.retryConfirm", locale: locale),
+                        message: "",
+                        confirmTitle: appLocalized("d7.channelPersonal.retry", locale: locale),
+                        cancelTitle: appLocalized("d7.channelPersonal.cancel", locale: locale)
+                    ) {
+                        Task { await flow.retryOriginal() }
+                    }
+                    .cyDomainSheet(detents: [.peek, .half])
                 }
             } else if attempted {
                 ContentUnavailableView {

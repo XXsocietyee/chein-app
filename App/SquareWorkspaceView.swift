@@ -14,6 +14,8 @@ import UniformTypeIdentifiers
     @State private var acceptsGuideline = false
     @State private var localMedia = SquarePostLocalMediaPresentation()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    @State private var toastMessage: LocalizedStringKey?
     @State private var referenceType = "ACTIVITY"
     @State private var options: [SquareWorkspaceOption] = []
     @State private var locationReview: SquareWorkspacePost?
@@ -147,7 +149,12 @@ import UniformTypeIdentifiers
                             Button("squareWorkspace.resume") { run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() } }
                                 .buttonStyle(.borderless).frame(minHeight: 44)
                                 .accessibilityIdentifier("squareWorkspace.resume.\(entry.id)")
-                            Button("squareWorkspace.discard", role: .destructive) { run { try coordinator.discard(entry) } }
+                            Button("squareWorkspace.discard", role: .destructive) {
+                                run {
+                                    try coordinator.discard(entry)
+                                    toastMessage = "square.workspace.draftDeleted.toast"
+                                }
+                            }
                                 .buttonStyle(.borderless).frame(minHeight: 44).disabled(entry.pending)
                                 .accessibilityIdentifier("squareWorkspace.discard.\(entry.id)")
                         }
@@ -219,11 +226,34 @@ import UniformTypeIdentifiers
         }
         .onChange(of: draft) { _, _ in coordinator.cancelReview() }
         .onChange(of: lane) { _, _ in coordinator.cancelReview(); options = []; localMedia.invalidate(); coordinator.clearRevisions() }
-        .alert("squareWorkspace.issue", isPresented: $issue) { Button("squareWorkspace.close", role: .cancel) {} } message: { Text("squareWorkspace.issueDetail") }
-        .confirmationDialog("squareWorkspace.withdrawConfirm", isPresented: Binding(get: { locationReview != nil }, set: { if !$0 { locationReview = nil } })) {
-            Button("squareWorkspace.withdrawLocation", role: .destructive) {
-                guard let post = locationReview else { return }; locationReview = nil
-                run { try await coordinator.withdrawLocation(reviewed: post, explicitIntent: true) }
+        .cyToast($toastMessage, tone: .info)
+        .overlay {
+            if issue {
+                CYModal(
+                    title: appLocalized("squareWorkspace.issue", locale: locale),
+                    message: appLocalized("squareWorkspace.issueDetail", locale: locale),
+                    cancelTitle: nil,
+                    confirmTitle: appLocalized("squareWorkspace.close", locale: locale),
+                    onCancel: { issue = false },
+                    onConfirm: { issue = false }
+                )
+            }
+        }
+        .sheet(isPresented: Binding(get: { locationReview != nil }, set: { if !$0 { locationReview = nil } })) {
+            if let post = locationReview {
+                CYConfirmSheet(
+                    title: appLocalized("squareWorkspace.withdrawConfirm", locale: locale),
+                    message: "",
+                    confirmTitle: appLocalized("squareWorkspace.withdrawLocation", locale: locale),
+                    cancelTitle: appLocalized("action.cancel", locale: locale),
+                    isDestructive: true,
+                    onCancel: { locationReview = nil },
+                    onConfirm: {
+                        locationReview = nil
+                        run { try await coordinator.withdrawLocation(reviewed: post, explicitIntent: true) }
+                    }
+                )
+                .cyDomainSheet(detents: [.peek, .half])
             }
         }
         .sheet(isPresented: $showsReview, onDismiss: { coordinator.cancelReview() }) {

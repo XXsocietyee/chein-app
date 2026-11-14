@@ -39,11 +39,11 @@ struct IMSafetyCopy {
             confirmKey = "im.safety.block.confirm"; doneKey = "im.safety.block.done"; doneDetailKey = "im.safety.block.doneDetail"
             failureKey = "im.safety.block.failed"
         case .unblock:
-            titleKey = "im.safety.unblock.title"; contentKey = nil; consequenceKeys = []
+            titleKey = "im.safety.unblock.title"; contentKey = nil; consequenceKeys = ["im.safety.unblock.c1", "im.safety.unblock.c2"]
             confirmKey = "im.safety.unblock.confirm"; doneKey = "im.safety.unblock.done"; doneDetailKey = nil
             failureKey = "im.safety.unblock.failed"
         case .report, .reportWithReason:
-            titleKey = "im.safety.report.title"; contentKey = "im.safety.report.content"; consequenceKeys = []
+            titleKey = "im.safety.report.title"; contentKey = "im.safety.report.content"; consequenceKeys = ["im.safety.report.c1"]
             confirmKey = "im.safety.report.confirm"; doneKey = "im.safety.report.done"; doneDetailKey = nil
             failureKey = "im.safety.report.failed"
         }
@@ -54,37 +54,65 @@ struct IMSafetyCopy {
     @StateObject private var model: IMSafetyModel
     let onSettled: (IMSafetyAction) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var task: Task<Void, Never>?
     init(owner: IMSafetyCoordinator, onSettled: @escaping (IMSafetyAction) -> Void) {
         _model = StateObject(wrappedValue: IMSafetyModel(owner: owner)); self.onSettled = onSettled
     }
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    CYHeroHeader("im.safety.title")
-                    content
+        Group {
+            if case .reviewing(let action) = model.state {
+                let copy = IMSafetyCopy(action)
+                let isDestructive = {
+                    switch action { case .block, .hide, .report, .reportWithReason: return true; case .unblock: return false }
+                }()
+                let consequences = Array(copy.consequenceKeys.enumerated()).map { index, key in
+                    CYConfirmConsequence(
+                        systemImage: (isDestructive && index == copy.consequenceKeys.count - 1) ? "exclamationmark.triangle" : "info.circle",
+                        text: appLocalized(String.LocalizationValue(key), locale: locale)
+                    )
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .cyDomainPageBackground()
-            .cyHeroScreen()
-            .cyAnimation(value: model.state)
-            .cyHaptic(.success, trigger: model.state) { _, new in
-                if case .acknowledged = new { return true }
-                return false
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { close() }.disabled(isInFlight).accessibilityIdentifier("im.safety.close")
+                CYConfirmSheet(
+                    title: appLocalized(String.LocalizationValue(copy.titleKey), locale: locale),
+                    message: copy.contentKey.map { appLocalized(String.LocalizationValue($0), locale: locale) } ?? "",
+                    confirmTitle: appLocalized(String.LocalizationValue(copy.confirmKey), locale: locale),
+                    isDestructive: isDestructive,
+                    confirmIdentifier: "im.safety.confirm",
+                    cancelIdentifier: cyAccessibilityID(id: "im.safety.cancel"),
+                    titleIdentifier: cyAccessibilityID(id: "im.safety.reviewTitle"),
+                    consequences: consequences,
+                    onCancel: { close() }
+                ) {
+                    run { await model.owner.confirm() }
+                }
+            } else {
+                NavigationStack {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                            CYHeroHeader("im.safety.title")
+                            content
+                        }
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .padding(.vertical, CYSpacing.lg)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .cyDomainPageBackground()
+                    .cyHeroScreen()
+                    .cyAnimation(value: model.state)
+                    .cyHaptic(.success, trigger: model.state) { _, new in
+                        if case .acknowledged = new { return true }
+                        return false
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") { close() }.disabled(isInFlight).accessibilityIdentifier("im.safety.close")
+                        }
+                    }
                 }
             }
         }
         .accessibilityIdentifier("im.safety.sheet")
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .cyDomainSheet(detents: [.half, .full])
         .interactiveDismissDisabled(isInFlight)
         // A dispatched request is never cancelled by dismissal; its owner keeps the
         // unknown/acknowledged state. Only an acknowledged action refreshes the host.

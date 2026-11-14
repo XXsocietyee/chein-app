@@ -124,6 +124,8 @@ enum DesignFixtureRegistry {
         case let n where n.hasPrefix("clubcards-") && ClubCardFixtures.make(n) != nil: return ClubCardFixtures.make(n)!
         // HERO roam (RoamFixtures): roam-go, roam-walking, roam-reveal, roam-sheet-half, roam-paused
         case let n where n.hasPrefix("roam-") && RoamFixtures.make(n) != nil: return RoamFixtures.make(n)!
+        // Pop-up parity fixtures (PopupsSocialFixtures): popups-*
+        case let n where n.hasPrefix("popups-") && PopupsSocialFixtures.make(n) != nil: return PopupsSocialFixtures.make(n)!
         default:
             if let gap = MainActor.assumeIsolated({ CoreGapPageFixtures.make(name) }) { return gap }
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }

@@ -190,19 +190,59 @@ struct ClubOperationsWorkspaceView: View {
             }
         }
         .interactiveDismissDisabled(dirty || state.locksForm)
-        .confirmationDialog("club.ops.discardTitle", isPresented: $showDiscard, titleVisibility: .visible) {
+        .sheet(isPresented: $showDiscard) {
             if !profileDraftEnabled {
-                Button("club.ops.discard", role: .destructive) { dismiss() }
+                CYConfirmSheet(
+                    title: appLocalized("club.ops.discardTitle", locale: locale),
+                    message: appLocalized("club.ops.discardMessage", locale: locale),
+                    confirmTitle: appLocalized("club.ops.discard", locale: locale),
+                    cancelTitle: appLocalized("club.ops.keepEditing", locale: locale),
+                    isDestructive: true,
+                    onCancel: { showDiscard = false },
+                    onConfirm: {
+                        showDiscard = false
+                        dismiss()
+                    }
+                )
+                .cyDomainSheet(detents: [.peek, .half])
             } else {
-                Button { if !draftVisit.matches(target: target, identity: identity, access: access) || preserveDraftBeforeLeaving() { dismiss() } } label: { Text("localDraft.keepAndClose", tableName: "ClubProfileLocalDraft") }
-                if profileDraft.canDiscard && !originalBusy {
-                    Button(role: .destructive) { if profileDraft.discard() { dismiss() } } label: { Text("localDraft.discardAndClose", tableName: "ClubProfileLocalDraft") }
+                CYSheetContainer(
+                    title: appLocalized("club.ops.discardTitle", locale: locale),
+                    onClose: { showDiscard = false }
+                ) {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        Text(String(localized: LocalizedStringResource("localDraft.closeMessage", table: "ClubProfileLocalDraft", locale: locale)))
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        VStack(spacing: CYSpacing.sm) {
+                            Button {
+                                showDiscard = false
+                                if !draftVisit.matches(target: target, identity: identity, access: access) || preserveDraftBeforeLeaving() {
+                                    dismiss()
+                                }
+                            } label: {
+                                Text("localDraft.keepAndClose", tableName: "ClubProfileLocalDraft")
+                            }
+                            .buttonStyle(CYSecondaryButtonStyle())
+
+                            if profileDraft.canDiscard && !originalBusy {
+                                Button {
+                                    showDiscard = false
+                                    if profileDraft.discard() { dismiss() }
+                                } label: {
+                                    Text("localDraft.discardAndClose", tableName: "ClubProfileLocalDraft")
+                                }
+                                .buttonStyle(CYDestructiveButtonStyle())
+                            }
+
+                            Button("club.ops.keepEditing") { showDiscard = false }
+                                .buttonStyle(CYGhostButtonStyle())
+                        }
+                    }
                 }
+                .cyDomainSheet(detents: [.peek, .half])
             }
-            Button("club.ops.keepEditing", role: .cancel) {}
-        } message: {
-            if !profileDraftEnabled { Text("club.ops.discardMessage") }
-            else { Text("localDraft.closeMessage", tableName: "ClubProfileLocalDraft") }
         }
         .sheet(item: $review, onDismiss: cancelReview) { pending in
             NavigationStack {

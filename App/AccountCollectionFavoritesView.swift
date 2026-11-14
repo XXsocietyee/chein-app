@@ -68,6 +68,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     var retryGate: (() async -> Void)? = nil
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
     @Environment(\.topicUnlikeController) private var unlike
+    @Environment(\.locale) private var locale
     @State private var unliked: Set<Int> = []
     @State private var showRecommendNote = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
@@ -141,10 +142,17 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
         .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
-        .alert(Text("member.favorites.recommendNote.title", tableName: "MemberProfile"), isPresented: $showRecommendNote) {
-            Button(role: .cancel) {} label: { Text("member.favorites.recommendNote.dismiss", tableName: "MemberProfile") }
-        } message: {
-            Text("member.favorites.recommendNote.body", tableName: "MemberProfile")
+        .overlay {
+            if showRecommendNote {
+                CYModal(
+                    title: String(localized: LocalizedStringResource("member.favorites.recommendNote.title", table: "MemberProfile", locale: locale)),
+                    message: String(localized: LocalizedStringResource("member.favorites.recommendNote.body", table: "MemberProfile", locale: locale)),
+                    cancelTitle: nil,
+                    confirmTitle: String(localized: LocalizedStringResource("member.favorites.recommendNote.dismiss", table: "MemberProfile", locale: locale)),
+                    onCancel: { showRecommendNote = false },
+                    onConfirm: { showRecommendNote = false }
+                )
+            }
         }
     }
     private func refresh() async {

@@ -250,6 +250,7 @@ struct ClubCommunityFeedView: View {
     @State private var discussion = ClubPostDiscussionState()
     @State private var discussionItemID: String?
     @State private var sourceDestination: ClubCommunityFeedSource?
+    @State private var toastMessage: LocalizedStringKey?
     @Environment(\.clubCustomerTopics) private var topics
     @Environment(\.clubPostPlayHost) private var discussionHost
     init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil) {
@@ -358,8 +359,11 @@ struct ClubCommunityFeedView: View {
         .sheet(isPresented: $composing, onDismiss: { Task { await model.reviewPendingDraft() } }) {
             if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: nil) }
         }
+        .cyToast($toastMessage, tone: .info)
         .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
-            ClubCommunityReviewView(review: review, model: model, refresh: operation)
+            ClubCommunityReviewView(review: review, model: model, refresh: operation) { settled in
+                toastMessage = ClubCommunityToast.message(for: settled)
+            }
         }
     }
     private func communityNotice(_ key: String, identifier: String) -> some View {
@@ -564,6 +568,7 @@ struct ClubCommunityPostDetailView: View {
     let post: ClubCommunityPost
     @StateObject private var model: ClubCommunityViewModel
     @State private var showingHistory = false
+    @State private var toastMessage: LocalizedStringKey?
 
     init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int?, post: ClubCommunityPost) {
         self.identity = identity
@@ -655,8 +660,11 @@ struct ClubCommunityPostDetailView: View {
             }
         }
         .onDisappear { model.suspend() }
+        .cyToast($toastMessage, tone: .info)
         .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
-            ClubCommunityReviewView(review: review, model: model, refresh: commentsOperation)
+            ClubCommunityReviewView(review: review, model: model, refresh: commentsOperation) { settled in
+                toastMessage = ClubCommunityToast.message(for: settled)
+            }
         }
     }
 }
@@ -752,61 +760,147 @@ struct ClubCommunityComposer: View {
     }
 }
 
+private enum ClubCommunityToast {
+    static func message(for operation: ClubCommunityOperation) -> LocalizedStringKey? {
+        switch operation {
+        case .pin(true, _): return "club.community.pin.toast"
+        case .pin(false, _): return "club.community.unpin.toast"
+        case .delete, .deleteComment: return "club.community.delete.toast"
+        default: return nil
+        }
+    }
+}
+
 @MainActor
 struct ClubCommunityReviewView: View {
     let review: ClubCommunityReview
     @ObservedObject var model: ClubCommunityViewModel
     let refresh: ClubCommunityRead
+    var onSettled: ((ClubCommunityOperation) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
+
+    private var isDestructiveOperation: Bool {
+        switch review.operation {
+        case .delete, .deleteComment, .report, .reportComment: return true
+        default: return false
+        }
+    }
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    CYHeroHeader("club.community.review")
-                    Text(LocalizedStringKey("club.community." + review.operation.labelKey))
-                        .font(CYTypography.cardTitle)
+        CYSheetContainer(
+            title: appLocalized("club.community.review", locale: locale),
+            onClose: model.busy ? nil : { model.cancelReview(); dismiss() }
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Text(LocalizedStringKey("club.community." + review.operation.labelKey))
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                CYCard {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        factRow("club.community.clubID", String(review.evidence.clubID))
+                        if let post = review.evidence.post {
+                            factRow("club.community.postID", String(post.id))
+                        }
+                        if let comment = review.evidence.comment {
+                            factRow("club.community.commentID", String(comment.id))
+                        }
+                    }
+                }
+
+                switch review.operation {
+                case let .create(content, images), let .update(content, images, _):
+                    Text(verbatim: content)
+                        .font(CYTypography.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                    LabeledContent("club.community.clubID") { Text(verbatim: String(review.evidence.clubID)).monospacedDigit() }
-                    if let post = review.evidence.post {
-                        LabeledContent("club.community.postID") { Text(verbatim: String(post.id)).monospacedDigit() }
+                    ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                        ClubCommunityReferenceCover(reference: image, index: index)
                     }
-                    if let comment = review.evidence.comment {
-                        LabeledContent("club.community.commentID") { Text(verbatim: String(comment.id)).monospacedDigit() }
-                    }
-                    switch review.operation {
-                    case let .create(content, images), let .update(content, images, _):
-                        Text(verbatim: content).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
-                        ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-                            ClubCommunityReferenceCover(reference: image, index: index)
-                        }
-                    case let .comment(content):
-                        Text(verbatim: content.isEmpty ? "—" : content).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
-                    case .report, .reportComment: Text("club.community.queuedExplanation").fixedSize(horizontal: false, vertical: true)
-                    case .toggleLike: Text("club.community.toggleWarning").fixedSize(horizontal: false, vertical: true)
-                    case let .pin(pinned, _): Text(pinned ? "club.community.pin" : "club.community.unpin")
-                    default: Text("club.community.deleteWarning").fixedSize(horizontal: false, vertical: true)
-                    }
-                    // E2E R13: the note follows the same grant that admits the write; a granted Confirm never says "unavailable".
-                    if model.context.coordinator?.permitsInjectedWrites != true {
-                        Text("club.community.offline")
-                            .font(CYTypography.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    CYPillButton("club.community.confirm") {
-                        Task { if await model.confirm(expected: review, refresh: refresh) { dismiss() } }
-                    }
-                    .disabled(model.busy)
-                    .accessibilityIdentifier("club.community.confirm")
-                    Button("club.community.cancel", role: .cancel) { model.cancelReview(); dismiss() }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                case let .comment(content):
+                    Text(verbatim: content.isEmpty ? "—" : content)
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                case .report, .reportComment:
+                    Text("club.community.queuedExplanation")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                case .toggleLike:
+                    Text("club.community.toggleWarning")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                case let .pin(pinned, _):
+                    Text(pinned ? "club.community.pin" : "club.community.unpin")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                default:
+                    Text("club.community.deleteWarning")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.dangerText)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
+
+                // E2E R13: the note follows the same grant that admits the write; a granted Confirm never says "unavailable".
+                if model.context.coordinator?.permitsInjectedWrites != true {
+                    CYNoteBanner(text: Text("club.community.offline"), symbol: "wifi.slash", tone: .warning)
+                }
+
+                VStack(spacing: CYSpacing.sm) {
+                    if isDestructiveOperation {
+                        Button("club.community.confirm") {
+                            Task {
+                                if await model.confirm(expected: review, refresh: refresh) {
+                                    onSettled?(review.operation)
+                                    dismiss()
+                                }
+                            }
+                        }
+                        .buttonStyle(CYDestructiveButtonStyle())
+                        .disabled(model.busy)
+                        .accessibilityIdentifier("club.community.confirm")
+                    } else {
+                        Button("club.community.confirm") {
+                            Task {
+                                if await model.confirm(expected: review, refresh: refresh) {
+                                    onSettled?(review.operation)
+                                    dismiss()
+                                }
+                            }
+                        }
+                        .buttonStyle(CYPrimaryButtonStyle())
+                        .disabled(model.busy)
+                        .accessibilityIdentifier("club.community.confirm")
+                    }
+
+                    Button("club.community.cancel") {
+                        model.cancelReview()
+                        dismiss()
+                    }
+                    .buttonStyle(CYSecondaryButtonStyle())
+                    .disabled(model.busy)
+                }
             }
-            .cyDomainPageBackground()
-        }.interactiveDismissDisabled(model.busy)
+        }
+        .cyDomainSheet(detents: [.half, .full])
+        .interactiveDismissDisabled(model.busy)
+    }
+
+    private func factRow(_ title: LocalizedStringKey, _ value: String) -> some View {
+        HStack {
+            Text(title)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+            Spacer(minLength: CYSpacing.sm)
+            Text(verbatim: value)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .monospacedDigit()
+        }
     }
 }
 
