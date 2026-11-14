@@ -26,6 +26,7 @@ enum ModuleFixture: String {
     case miniCrop = "mini-crop"
     case ticketWallet, square, cooperation, accountCollections, creatorContent, growthCenter, officialEvents, projectEdit
     case discovery, profile, messaging, roam, participants, play, composer, topic, localization
+    case appsecChein
     static var selected: Self? {
         let args=ProcessInfo.processInfo.arguments
         guard let i=args.firstIndex(of:"--uitesting-module"),args.indices.contains(i+1) else { return nil }
@@ -105,6 +106,7 @@ struct ModuleFixtureRootView: View {
             case .composer: MessageActionFixtureHost()
             case .topic: TopicFixtureHostView()
             case .localization: ComputedLocalizationFixtureView()
+            case .appsecChein: AppSecCheinLinkFixtureHost()
             }
         }
         .modifier(AccessibilityFixtureOptions())
