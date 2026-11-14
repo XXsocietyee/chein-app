@@ -114,7 +114,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
                 let submitted = await SessionOfflineSyncModel.shared.performWriteOptIn(
                     environmentSession: offlineWriteSession.session,
                     routes: ["/api/play/advanced/action"],
-                    explicitKey: item.key
+                    explicitKey: item.id.uuidString
                 ) {
                     await model.submit(item)
                 }
