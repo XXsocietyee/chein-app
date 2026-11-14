@@ -6,13 +6,12 @@ import FoundationNetworking
 
 final class ChinaReviewedRouteCapabilityTests: XCTestCase {
     func testEveryCallSiteHasOneMark() {
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 986)
-        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 974)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 993)
+        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount, 981)
         XCTAssertEqual(ChinaReviewedRouteCapability.newBackendOnlyCount, 0)
         // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
         XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)  // 2026-11-13 backend-final-gaps: only the 12 backend-closed workshop stubs stay missing (each row says why)
-        XCTAssertEqual(
-            ChinaReviewedRouteCapability.liveInProductionCount
+        XCTAssertEqual(ChinaReviewedRouteCapability.liveInProductionCount
                 + ChinaReviewedRouteCapability.newBackendOnlyCount
                 + ChinaReviewedRouteCapability.missingCount,
             ChinaReviewedRouteCapability.callSiteCount
@@ -27,6 +26,38 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
             ChinaReviewedRouteCapability.publicSnapshotCommit,
             "147754ba8740abf208bda75cf86ed5901cac4c02"
         )
+    }
+
+    func testTemplatedAndConcreteRoutesRejectBarePrefixes() {
+        for bare in [
+            "/api/channels/member-state-requests",
+            "/api/friend/channel-invite",
+            "/api/friend/team-invite",
+            "/api/reward-pledge/versions",
+            "/api/rewards/noncash/subjects",
+            "/api/rewards/noncash/versions",
+            "/api/merchant/payout-account/save"
+        ] {
+            XCTAssertNil(ChinaReviewedRouteCapability.mark(for: bare), bare)
+        }
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsRewardPledge("/api/rewards/noncash/subjects"))
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsRewardPledge("/api/rewards/noncash/versions"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsRewardPledge("/api/rewards/noncash/subjects/42"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsRewardPledge("/api/rewards/noncash/versions/ver1"))
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/channels/member-state-requests/{}"), .liveInProduction)
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/reward-pledge/versions/{}/hold"), .liveInProduction)
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/reward-pledge/versions/{}/withdraw"), .liveInProduction)
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/rewards/noncash/subjects/{}"), .liveInProduction)
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/rewards/noncash/versions/{}"), .liveInProduction)
+        for p in [
+            "/api/friend/channel-invite/picker", "/api/friend/channel-invite/command",
+            "/api/friend/channel-invite/batch", "/api/friend/channel-invite/notice",
+            "/api/friend/channel-invite/landing", "/api/friend/channel-invite/mine",
+            "/api/friend/channel-invite/receipt", "/api/friend/team-invite/picker",
+            "/api/friend/team-invite/landing", "/api/friend/team-invite/mine"
+        ] {
+            XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: p), .liveInProduction, p)
+        }
     }
 
     func testPasswordBankAndVirtualGoodsStayHiddenByCapability() {

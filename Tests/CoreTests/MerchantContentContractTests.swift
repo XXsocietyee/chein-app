@@ -487,4 +487,34 @@ extension MerchantContentServiceTests {
         let s = try service(t, box: box); await failure(.denied) { try await s.load(.recruiting) }
         XCTAssertEqual(t.requests.count, 1)
     }
+    func testAuditApplicationSendsApplicationIdApprovedAuditRemarkTo8120Stub() async throws {
+        let cmd = MerchantContentCommand.auditApplication(id: 42, approve: false, reason: "缺少说明")
+        let reqSpec = try cmd.request()
+        XCTAssertEqual(reqSpec.path, "api/merchant/chapter-application/audit")
+        XCTAssertEqual(reqSpec.body, .json(["applicationId": .integer(42), "approved": .bool(false), "auditRemark": .string("缺少说明")]))
+
+        let t = ContentScriptTransport(), box = SessionBox()
+        t.append(MerchantContentFixtureData.access)
+        t.append(#"[{"id":42,"status":0,"chapterId":70}]"#)
+        t.append(MerchantContentFixtureData.access)
+        t.append(#"{"applicationId":42,"approved":false}"#)
+        let service = MerchantContentService(
+            configuration: try APIConfiguration(baseURL: URL(string: "https://8120.example.test/")!),
+            transport: t,
+            currentSession: { box.value },
+            journal: MerchantContentMemoryPendingStorage(),
+            execution: .injectedOfflineHarness,
+            onUnauthorized: { _ in }
+        )
+        let baseline = try await service.load(.ownerApplications(topicID: 70))
+        _ = try await service.perform(cmd, baseline: baseline)
+        let auditRequest = try XCTUnwrap(t.requests.first { $0.url?.path == "/api/merchant/chapter-application/audit" })
+        XCTAssertEqual(auditRequest.httpMethod, "POST")
+        XCTAssertEqual(auditRequest.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let jsonObject = try XCTUnwrap(try JSONSerialization.jsonObject(with: try XCTUnwrap(auditRequest.httpBody)) as? [String: Any])
+        XCTAssertEqual(Set(jsonObject.keys), ["applicationId", "approved", "auditRemark"])
+        XCTAssertEqual(jsonObject["applicationId"] as? Int, 42)
+        XCTAssertEqual(jsonObject["approved"] as? Bool, false)
+        XCTAssertEqual(jsonObject["auditRemark"] as? String, "缺少说明")
+    }
 }

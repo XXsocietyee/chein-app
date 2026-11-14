@@ -229,3 +229,22 @@ import FoundationNetworking
         return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200)
     }
 }
+
+extension NativeFriendTeamInviteRecoveryTests {
+    func testConcreteTeamInvitePathsRejectBarePrefixOn8120Stub() async throws {
+        XCTAssertFalse(NativeFriendTeamInviteApproval.paths.contains("api/friend/team-invite"))
+        XCTAssertEqual(NativeFriendTeamInviteApproval.pickerPath, "api/friend/team-invite/picker")
+        XCTAssertEqual(NativeFriendTeamInviteApproval.landingPath, "api/friend/team-invite/landing")
+        XCTAssertEqual(NativeFriendTeamInviteApproval.minePath, "api/friend/team-invite/mine")
+
+        let wire = InviteRecoveryWire()
+        let baseURL = URL(string: "https://8120.example.test/")!
+        let context = RuntimeDependencyContext(market: .china, baseURL: baseURL, role: "player",
+            session: try .init(accountID: 2, epoch: 1, namespace: "fixture", token: "fixture-token", role: "player"))
+        let approval = try NativeFriendTeamInviteApproval(endpoint: .init(baseURL: baseURL, namespace: "fixture", accountID: 2,
+            paths: NativeFriendTeamInviteApproval.paths), mode: .mine, allowWrites: true, expiresAt: Date().addingTimeInterval(600))
+        let svc = try NativeFriendTeamInviteService(context: context, approval: approval, transport: wire, current: { true }, unauthorized: {})
+        _ = try await svc.mine()
+        XCTAssertEqual(wire.requests.last?.url?.path, "/api/friend/team-invite/mine")
+    }
+}
