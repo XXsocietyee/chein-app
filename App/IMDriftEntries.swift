@@ -5,9 +5,7 @@ import SwiftUI
 /// Mini-program `subpackageB/pages/im/chat` (type 2, 城瘾小助手): a 「我的举报」 row above the
 /// transcript with the unread count of 举报进度 notices (`/api/v1/community/notifications`, action REPORT_*).
 /// The destination is the existing my-reports page. Host injects it with
-/// `.environment(\.imReportProgressDestination, …)`; nil ⇒ the row is hidden.
-/// BINDING STUB for Cursor: `imReportProgressUnread` (unread REPORT_* notices; read-on-open) is not wired;
-/// nil hides the badge only.
+/// `.environment(\.imReportProgressDestination, …)` and `.environment(\.imReportProgressUnread, …)`; nil hides the row/badge.
 private struct IMReportProgressDestinationKey: EnvironmentKey { static let defaultValue: (@MainActor () -> AnyView)? = nil }
 private struct IMReportProgressUnreadKey: EnvironmentKey { static let defaultValue: Int? = nil }
 extension EnvironmentValues {

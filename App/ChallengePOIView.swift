@@ -6,8 +6,8 @@ import QuestifyCore
 // MARK: - POI Challenge View (Ported from pages/play/poi-challenge/index.wxml & index.js)
 
 /// Challenge screen: header, step checklist, photo + quiz inputs and a submit area.
-/// The challenge write has no approved contract in this build, so the submit area always carries the
-/// "not available yet" banner and `readyButBlocked` explains that a valid attempt was not sent.
+/// When a live writer is not installed, the submit area carries the "not available yet" banner
+/// and `readyButBlocked` explains that a valid attempt was not sent.
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIView: View {
     @Bindable var coordinator: ChallengePOICoordinator
@@ -167,7 +167,9 @@ import QuestifyCore
 
     private var submitArea: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            PlayWriteUnavailableBanner(surface: .challengeSubmit)
+            if !ChallengePOIWriterFactory.isLive {
+                PlayWriteUnavailableBanner(surface: .challengeSubmit)
+            }
 
             if let submitFeedback, !submitFeedback.isEmpty {
                 note(readable(submitFeedback), symbol: "exclamationmark.triangle.fill", tone: .danger)
@@ -255,11 +257,12 @@ import QuestifyCore
 }
 
 /// Mini-program `subpackageRoam/nearby` opens `pages/play/poi-challenge` from a nearby place.
-/// DESIGNED host: built from the already-read roam node; the challenge write has no approved path in this build,
-/// so a validated submission goes through the injected writer (gated by default) and never claims it was sent.
+/// Built from the already-read roam node; submissions run through `ChallengePOIWriterFactory.makeWriter()`
+/// using foreground WGS-84 coordinates projected to GCJ-02 when authorized.
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIHostView: View {
     let node: RoamNodeDetail
+    @Environment(\.playEmergencyLocationProvider) private var locationProvider
     @State private var coordinator: ChallengePOICoordinator?
     @State private var feedback: String?
     @State private var readyButBlocked = false
@@ -278,8 +281,8 @@ import QuestifyCore
                             load(coordinator)
                         },
                         onSubmit: {
-                            // Validate locally, then send through the injected writer (gated by default: nothing is sent).
-                            await submitModel.submit(coordinator: coordinator, userLat: nil, userLon: nil)
+                            let coords = await currentGCJ02Coordinate()
+                            await submitModel.submit(coordinator: coordinator, userLat: coords?.latitude, userLon: coords?.longitude)
                             switch submitModel.state {
                             case .unavailable: feedback = nil; readyButBlocked = true
                             case .invalid(let message), .rejected(let message), .unconfirmed(let message):
@@ -316,7 +319,18 @@ import QuestifyCore
         model.applyLoadedNode(ChallengePOINode(
             id: node.poiId, name: node.name, title: node.name, description: node.description ?? "",
             latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude,
-            radiusM: Double(node.radiusM ?? 100), photoRequired: true, completed: node.completed))
+            radiusM: Double(node.radiusM ?? 100), photoRequired: node.validationMethod == 2, completed: node.completed))
+    }
+
+    private func currentGCJ02Coordinate() async -> (latitude: Double, longitude: Double)? {
+        guard let raw = await locationProvider?.currentCoordinate(),
+              let roam = RoamCoordinate(latitude: raw.latitude, longitude: raw.longitude) else {
+            return nil
+        }
+        if let gcj = try? RuntimeLocationProjection.gcj02MapCenter(MapCenter(coordinate: roam, datum: .wgs84)) {
+            return (gcj.coordinate.latitude, gcj.coordinate.longitude)
+        }
+        return raw
     }
 }
 

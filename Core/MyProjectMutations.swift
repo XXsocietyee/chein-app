@@ -83,6 +83,83 @@ public struct GatedMyProjectMutator: MyProjectMutating {
     public func perform(_ request: MyProjectMutationRequest) async -> MyProjectMutationOutcome { .unavailable }
 }
 
+/// Live HTTP mutator for my-project list actions (`subpackageA/pages/myproject/index.js`).
+/// Canceling an activity triggers automatic refunds on the backend and is gated behind `allowsCancelActivity`.
+public struct MyProjectHTTPMutator: MyProjectMutating {
+    private let configuration: @Sendable () -> APIConfiguration?
+    private let transport: any HTTPTransport
+    private let tokenProvider: @Sendable () -> String?
+    private let allowsCancelActivity: @Sendable () -> Bool
+
+    public init(
+        configuration: @escaping @Sendable () -> APIConfiguration?,
+        transport: any HTTPTransport,
+        tokenProvider: @escaping @Sendable () -> String?,
+        allowsCancelActivity: @escaping @Sendable () -> Bool = { true }
+    ) {
+        self.configuration = configuration
+        self.transport = transport
+        self.tokenProvider = tokenProvider
+        self.allowsCancelActivity = allowsCancelActivity
+    }
+
+    public func perform(_ request: MyProjectMutationRequest) async -> MyProjectMutationOutcome {
+        let relativePath = request.path.hasPrefix("/") ? String(request.path.dropFirst()) : request.path
+        if relativePath == "api/activity/cancel", !allowsCancelActivity() {
+            return .unavailable
+        }
+        guard let config = configuration(), let rawToken = tokenProvider() else {
+            return .unavailable
+        }
+        let token = rawToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !token.isEmpty else { return .unavailable }
+
+        var fields: [String: String] = [:]
+        for (key, value) in request.body {
+            // Backend ApiTemplateController#updateLibraryStatus expects `status` (`1` = publish, `3` = unpublish).
+            if relativePath == "api/template/updateLibraryStatus", key == "publish_status",
+               let statusInt = value.tolerantInteger {
+                fields["status"] = statusInt == 1 ? "1" : "3"
+                continue
+            }
+            if let text = value.text {
+                fields[key] = text
+            } else if let integer = value.tolerantInteger {
+                fields[key] = String(integer)
+            } else if let bool = value.bool {
+                fields[key] = bool ? "true" : "false"
+            }
+        }
+
+        let urlRequest: URLRequest
+        do {
+            urlRequest = try AuthRequestBuilder.makeFormRequest(
+                url: config.baseURL.appendingPathComponent(relativePath),
+                fields: fields,
+                token: token
+            )
+        } catch {
+            return .unavailable
+        }
+
+        do {
+            let (data, httpStatus) = try await transport.send(urlRequest)
+            guard let root = try? JSONDecoder().decode(PlayWireValue.self, from: data) else {
+                return .failed(message: W8Text.t("操作失败，请稍后重试", "Action failed. Please try again."))
+            }
+            let code = root["code"].tolerantInteger
+            let msg = root["msg"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if (200...299).contains(httpStatus), code == 200 {
+                return .done
+            }
+            let cleanMsg = msg?.isEmpty == false ? msg! : nil
+            return .failed(message: cleanMsg ?? W8Text.t("操作失败，请稍后重试", "Action failed. Please try again."))
+        } catch {
+            return .failed(message: W8Text.t("网络异常，请重试", "Network error. Please retry."))
+        }
+    }
+}
+
 public enum MyProjectMutationState: Equatable {
     case idle
     case awaitingConfirmation(MyProjectMutation)

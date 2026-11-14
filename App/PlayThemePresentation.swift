@@ -1,8 +1,7 @@
 import SwiftUI
 
 /// Theme-level facts the mini-program reads from `/api/play/nodes` (`topicAiGenerated`, `topicCover`,
-/// `productType`) and `cms_topic.look_json`. `PlayNodesResult` does not decode them yet.
-/// BINDING STUB for Cursor: a host injects a reader via `.environment(\.playThemePresentationReader, …)`.
+/// `productType`) and `cms_topic.look_json`, injected via `.environment(\.playThemePresentationReader, …)`.
 /// Absent reader / absent fact ⇒ the native screen behaves as before (no look, no AI label, pack shown).
 struct PlayThemePresentationFacts: Equatable {
     /// `look_json` → `CYThemeLook(style:palette:neon:)`; nil = legacy look.
