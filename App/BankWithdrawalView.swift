@@ -74,6 +74,7 @@ import SwiftUI
         .cyHaptic(.impactMedium, trigger: receipt?.applicationID) { old, new in old == nil && new != nil }
         .onDisappear { clear() }
         .themeDomain(.player)
+        .appSwitcherPrivacyShield()
     }
 
     private var notice: some View {

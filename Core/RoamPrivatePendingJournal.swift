@@ -96,7 +96,11 @@ public enum RoamPrivatePendingJournalError: Error, Equatable {
         let url = try fileURL(key)
         do {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            #if os(iOS)
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            #else
             try data.write(to: url, options: [.atomic])
+            #endif
         } catch { throw RoamPrivatePendingJournalError.saveFailed }
     }
     public func remove(key: String) throws {

@@ -21,7 +21,11 @@ import CryptoKit
         do {
             try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true)
             // Exclusive creation also treats any partial/corrupt existing file as locked.
+            #if os(iOS)
+            try Data("pending".utf8).write(to: path, options: [.withoutOverwriting, .completeFileProtection])
+            #else
             try Data("pending".utf8).write(to: path, options: [.withoutOverwriting])
+            #endif
         } catch { throw ClubOwnerRefundFailure.storage }
     }
 

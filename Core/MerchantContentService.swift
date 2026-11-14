@@ -53,7 +53,11 @@ public struct MerchantContentPendingRecord: Codable, Equatable {
     private func save(_ rows: [MerchantContentPendingRecord]) throws {
         do {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            #if os(iOS)
+            try JSONEncoder().encode(rows).write(to: url, options: [.atomic, .completeFileProtection])
+            #else
             try JSONEncoder().encode(rows).write(to: url, options: .atomic)
+            #endif
             try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
         } catch { throw MerchantContentFailure.storage }
     }

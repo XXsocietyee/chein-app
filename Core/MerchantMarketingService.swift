@@ -39,7 +39,11 @@ public struct MerchantPredictionLock: Codable, Equatable {
         do {
             try FileManager.default.createDirectory(at: file(record).deletingLastPathComponent(), withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
             // Exclusive creation prevents two coordinators from claiming the same round.
+            #if os(iOS)
+            try JSONEncoder().encode(record).write(to: file(record), options: [.withoutOverwriting, .completeFileProtection])
+            #else
             try JSONEncoder().encode(record).write(to: file(record), options: .withoutOverwriting)
+            #endif
             try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file(record).path)
         } catch { throw MerchantMarketingFailure.storage }
     }

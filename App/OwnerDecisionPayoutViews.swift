@@ -78,6 +78,7 @@ struct OwnerDecisionClubPayoutReceiverView: View {
             Text(verbatim: t(OwnerDecisionReceiverCopy.unbindConsequence, "New club income pauses until you bind again."))
         }
         .task { await load() }
+        .appSwitcherPrivacyShield()
     }
 
     private var shown: OwnerDecisionScreenPhase { fixture?.phase ?? phase }
@@ -218,6 +219,7 @@ struct OwnerDecisionMerchantPayoutAccountView: View {
         .navigationTitle(Text(verbatim: t("收款账户", "Payout account")))
         .accessibilityIdentifier("merchant.payoutAccount.screen")
         .task { await load() }
+        .appSwitcherPrivacyShield()
     }
 
     private var shown: OwnerDecisionScreenPhase { fixture?.phase ?? phase }

@@ -249,10 +249,24 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
             return AuditReport(decision: .rejected(.untrustedHost(rawHost)))
         }
 
+        let rawString = url.absoluteString
+        guard rawString.utf8.count <= 4096,
+              !rawString.contains("\\"),
+              !rawString.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }),
+              !rawString.lowercased().contains("%00"),
+              !rawString.lowercased().contains("%252e") else {
+            return AuditReport(decision: .rejected(.malformedURL))
+        }
+
         let pathSegments = components.percentEncodedPath
             .split(separator: "/", omittingEmptySubsequences: true)
             .map(String.init)
-        if pathSegments.contains("..") || pathSegments.contains(".") {
+        let decodedSegments = components.path
+            .split(separator: "/", omittingEmptySubsequences: true)
+            .map(String.init)
+        if pathSegments.contains("..") || pathSegments.contains(".")
+            || decodedSegments.contains("..") || decodedSegments.contains(".")
+            || components.percentEncodedPath.lowercased().contains("%2e") {
             return AuditReport(decision: .rejected(.malformedURL))
         }
 
@@ -316,8 +330,7 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
         // 2. Public Topic Detail route
         if normalizedPath == "/topic" || normalizedPath == "/pages/topic/index" {
             guard let rawTopicID = queryValue(in: sanitizedItems, names: ["topicId", "id"]),
-                  let topicID = Int(rawTopicID),
-                  topicID > 0 else {
+                  let topicID = positiveCanonicalID(rawTopicID) else {
                 return AuditReport(
                     decision: .rejected(.unsupportedRoute(normalizedPath)),
                     sanitizedQueryItems: sanitizedItems,
@@ -351,8 +364,7 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
         // 4. Public Merchant Home route
         if normalizedPath == "/merchant/public-home" {
             guard let rawMerchantID = queryValue(in: sanitizedItems, names: ["merchantId", "id"]),
-                  let merchantID = Int(rawMerchantID),
-                  merchantID > 0 else {
+                  let merchantID = positiveCanonicalID(rawMerchantID) else {
                 return AuditReport(
                     decision: .rejected(.unsupportedRoute(normalizedPath)),
                     sanitizedQueryItems: sanitizedItems,
@@ -379,16 +391,14 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
             }
         case "/club/workspace", "/pages/club/detail/index":
             if let rawClubID = queryValue(in: sanitizedItems, names: ["clubId", "id"]),
-               let clubID = Int(rawClubID),
-               clubID > 0 {
+               let clubID = positiveCanonicalID(rawClubID) {
                 protectedDestination = .clubWorkspace(clubID: clubID)
             } else {
                 protectedDestination = nil
             }
         case "/merchant/workbench", "/pages/merchant/index":
             if let rawMerchantID = queryValue(in: sanitizedItems, names: ["merchantId", "id"]),
-               let merchantID = Int(rawMerchantID),
-               merchantID > 0 {
+               let merchantID = positiveCanonicalID(rawMerchantID) {
                 protectedDestination = .merchantWorkbench(merchantID: merchantID)
             } else {
                 protectedDestination = nil
@@ -431,6 +441,17 @@ public enum DeepLinkAndUniversalLinkSafetyAudit {
         default:
             return false
         }
+    }
+
+    private static func positiveCanonicalID(_ raw: String) -> Int? {
+        guard raw.utf8.count <= 18,
+              raw.utf8.allSatisfy({ (48...57).contains($0) }),
+              let value = Int(raw),
+              value > 0,
+              String(value) == raw else {
+            return nil
+        }
+        return value
     }
 
     private static func queryValue(in items: [URLQueryItem], names: [String]) -> String? {

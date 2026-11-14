@@ -60,7 +60,11 @@ import Foundation
         let context = try scope(memberId: memberId, read: read), url = file(context)
         let bytes = try JSONEncoder().encode(Record(scope: context, intent: intent))
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        #if os(iOS)
+        try bytes.write(to: url, options: [.atomic, .completeFileProtection])
+        #else
         try bytes.write(to: url, options: .atomic)
+        #endif
         guard try Data(contentsOf: url) == bytes else { throw CityActionIssue.invalid }
     }
     public func clear(_ intent: CityActionIntent, memberId: String, read: CityReadSnapshot) throws {

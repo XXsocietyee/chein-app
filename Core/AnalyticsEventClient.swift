@@ -79,12 +79,12 @@ public final class AnalyticsDefaultsQueueStore: AnalyticsQueueStoring {
     public init(accountID: Int, store: any AnalyticsQueueStoring, isCurrent: @escaping () -> Bool,
                 now: @escaping () -> Date = Date.init, post: @escaping ([AnalyticsQueuedEvent]) async -> Bool) {
         self.accountID = accountID; self.store = store; self.isCurrent = isCurrent; self.now = now; self.post = post
-        sessionID = "s_\(Int64(now().timeIntervalSince1970 * 1000))_\(Int.random(in: 0..<100_000))"
+        sessionID = "s_" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
     }
 
-    /// `sanitizeProperties`: drop sensitive keys, nulls, long or contact-like strings.
+    /// `sanitizeProperties`: drop sensitive keys, nulls, long or contact-like strings, and credential/secret patterns.
     public static func sanitize(_ properties: [String: PlayWireValue]) -> [String: PlayWireValue] {
-        let sensitive = "(phone|mobile|bank|card|identity|idcard|realname|name|email|address|location|latitude|longitude|openid|unionid|session|token|keyword|content|comment|message|reply|input|output|text|title|description)"
+        let sensitive = "(phone|mobile|bank|card|identity|idcard|realname|name|email|address|location|latitude|longitude|openid|unionid|session|token|secret|password|passwd|authorization|bearer|cookie|credential|private_?key|api_?key|access_?key|passcode|otp|keyword|content|comment|message|reply|input|output|text|title|description)"
         var result: [String: PlayWireValue] = [:]
         for (key, value) in properties where key.range(of: sensitive, options: [.regularExpression, .caseInsensitive]) == nil {
             switch value {
@@ -94,7 +94,8 @@ public final class AnalyticsDefaultsQueueStore: AnalyticsQueueStoring {
                 let mobile = s.range(of: "^1[3-9][0-9]{9}$", options: .regularExpression) != nil
                 let email = s.range(of: #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#, options: .regularExpression) != nil
                 let longDigits = s.range(of: "^[0-9]{15,19}$", options: .regularExpression) != nil
-                if !mobile && !email && !longDigits { result[key] = value }
+                let bearer = s.range(of: "^(Bearer|Basic)\\s+", options: [.regularExpression, .caseInsensitive]) != nil
+                if !mobile && !email && !longDigits && !bearer { result[key] = value }
             default: break
             }
         }
@@ -109,13 +110,12 @@ public final class AnalyticsDefaultsQueueStore: AnalyticsQueueStoring {
               queue.count < Self.maxQueue else { return false }
         sequence += 1
         let date = now()
-        let millis = Int64(date.timeIntervalSince1970 * 1000)
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         let json = (try? encoder.encode(PlayWireValue.object(Self.sanitize(properties)))).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         let formatter = ISO8601DateFormatter(); formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let event = AnalyticsQueuedEvent(eventName: eventName, anonymousId: "", actorScope: "member:\(accountID)", sessionId: sessionID,
             source: Self.source, pagePath: pagePath, bizType: bizType, bizId: bizID, cityCode: "", propertiesJson: json,
-            idempotencyKey: idempotencyKey ?? "\(eventName)_\(millis)_\(sequence)_\(Int.random(in: 0..<10_000))",
+            idempotencyKey: idempotencyKey ?? "\(eventName)_\(UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased())",
             occurredAt: formatter.string(from: date))
         if queue.contains(where: { $0.eventName == event.eventName && $0.idempotencyKey == event.idempotencyKey }) {
             Task { await flush() }; return false
@@ -165,8 +165,8 @@ public struct FinishRouteAnalyticsSource: Equatable {
 
     /// `impressionSource`: one id ties a click to its impression.
     public init(activityID: Int?, topicID: Int?, runID: Int?, now: Date = Date()) {
-        let millis = Int64(now.timeIntervalSince1970 * 1000)
-        impressionID = "frr-" + String(millis, radix: 36) + "-" + String(Int.random(in: 0..<100_000_000), radix: 36)
+        _ = now
+        impressionID = "frr-" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         sourceActivityID = activityID.map(String.init); sourceTopicID = topicID.map(String.init); sourceRunID = runID.map(String.init)
     }
 

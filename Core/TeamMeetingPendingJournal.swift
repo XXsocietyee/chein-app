@@ -58,7 +58,11 @@ public struct TeamMeetingIntentRecord: Equatable, Sendable {
         let url = try file(key)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         if let values = try? url.resourceValues(forKeys: [.isSymbolicLinkKey]), values.isSymbolicLink == true { throw TeamMeetingJournalIssue.saveFailed }
+        #if os(iOS)
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
+        #else
         try data.write(to: url, options: .atomic)
+        #endif
         let readBack = try Data(contentsOf: url)
         guard readBack == data else {
             try? FileManager.default.removeItem(at: url)

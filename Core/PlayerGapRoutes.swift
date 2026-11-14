@@ -574,7 +574,7 @@ public enum ObjectCardRenameResult: Equatable { case renamed(String), failed(mes
 public enum PlayerCode {
     static func read(_ raw: PlayWireValue) -> URL? {
         guard let qr = raw["qr"].text?.trimmingCharacters(in: .whitespacesAndNewlines),
-              qr.hasPrefix("https://") || qr.hasPrefix("http://") else { return nil }
+              qr.hasPrefix("https://") else { return nil }
         return URL(string: qr)
     }
 }

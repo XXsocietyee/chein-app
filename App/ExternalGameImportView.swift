@@ -426,6 +426,74 @@ import WebKit
 }
 
 #if canImport(WebKit)
+@MainActor
+final class ExternalGameWebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+    let packageRoot: URL
+    let manifest: ExternalGameManifest
+    let onBridgeMessage: (Data) -> ExternalGameBridgeResponse
+
+    init(packageRoot: URL, manifest: ExternalGameManifest, onBridgeMessage: @escaping (Data) -> ExternalGameBridgeResponse) {
+        self.packageRoot = packageRoot
+        self.manifest = manifest
+        self.onBridgeMessage = onBridgeMessage
+    }
+
+    func makeConfiguration() -> WKWebViewConfiguration {
+        let config = WKWebViewConfiguration()
+        config.websiteDataStore = .nonPersistent()
+        config.preferences.javaScriptCanOpenWindowsAutomatically = false
+        config.preferences.setValue(false, forKey: "allowFileAccessFromFileURLs")
+        config.setValue(false, forKey: "allowUniversalAccessFromFileURLs")
+        let controller = WKUserContentController()
+        controller.add(self, name: ExternalGameSandboxPolicy.bridgeName)
+        config.userContentController = controller
+        return config
+    }
+
+    func webView(
+        _ webView: WKWebView,
+        createWebViewWith configuration: WKWebViewConfiguration,
+        for navigationAction: WKNavigationAction,
+        windowFeatures: WKWindowFeatures
+    ) -> WKWebView? {
+        // Never allow window.open() or target="_blank" to spawn un-sandboxed windows.
+        nil
+    }
+
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
+        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+    ) {
+        guard navigationAction.targetFrame != nil,
+              let url = navigationAction.request.url,
+              ExternalGameSandboxPolicy.allowsNavigation(to: url, packageRoot: packageRoot, manifest: manifest) else {
+            decisionHandler(.cancel)
+            return
+        }
+        decisionHandler(.allow)
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == ExternalGameSandboxPolicy.bridgeName,
+              message.frameInfo.isMainFrame else { return }
+        if let frameURL = message.frameInfo.request.url,
+           !ExternalGameSandboxPolicy.allowsNavigation(to: frameURL, packageRoot: packageRoot, manifest: manifest) {
+            return
+        }
+        let rawData: Data
+        if let str = message.body as? String {
+            rawData = Data(str.utf8)
+        } else if let dict = message.body as? [String: Any],
+                  let serialized = try? JSONSerialization.data(withJSONObject: dict) {
+            rawData = serialized
+        } else {
+            return
+        }
+        _ = onBridgeMessage(rawData)
+    }
+}
+
 #if os(iOS)
 @available(iOS 17.0, *)
 struct ExternalGameSandboxedWebView: UIViewRepresentable {
@@ -434,14 +502,15 @@ struct ExternalGameSandboxedWebView: UIViewRepresentable {
     let manifest: ExternalGameManifest
     let onBridgeMessage: (Data) -> ExternalGameBridgeResponse
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(packageRoot: packageRoot, manifest: manifest, onBridgeMessage: onBridgeMessage)
+    func makeCoordinator() -> ExternalGameWebViewCoordinator {
+        ExternalGameWebViewCoordinator(packageRoot: packageRoot, manifest: manifest, onBridgeMessage: onBridgeMessage)
     }
 
     func makeUIView(context: Context) -> WKWebView {
         let config = context.coordinator.makeConfiguration()
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = false
         webView.loadFileURL(entryURL, allowingReadAccessTo: packageRoot)
         return webView
@@ -449,58 +518,9 @@ struct ExternalGameSandboxedWebView: UIViewRepresentable {
 
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 
-    static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+    static func dismantleUIView(_ uiView: WKWebView, coordinator: ExternalGameWebViewCoordinator) {
         uiView.configuration.userContentController.removeScriptMessageHandler(forName: ExternalGameSandboxPolicy.bridgeName)
         uiView.stopLoading()
-    }
-
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-        let packageRoot: URL
-        let manifest: ExternalGameManifest
-        let onBridgeMessage: (Data) -> ExternalGameBridgeResponse
-
-        init(packageRoot: URL, manifest: ExternalGameManifest, onBridgeMessage: @escaping (Data) -> ExternalGameBridgeResponse) {
-            self.packageRoot = packageRoot
-            self.manifest = manifest
-            self.onBridgeMessage = onBridgeMessage
-        }
-
-        func makeConfiguration() -> WKWebViewConfiguration {
-            let config = WKWebViewConfiguration()
-            config.websiteDataStore = .nonPersistent()
-            config.preferences.javaScriptCanOpenWindowsAutomatically = false
-            let controller = WKUserContentController()
-            controller.add(self, name: ExternalGameSandboxPolicy.bridgeName)
-            config.userContentController = controller
-            return config
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            decidePolicyFor navigationAction: WKNavigationAction,
-            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
-        ) {
-            guard let url = navigationAction.request.url,
-                  ExternalGameSandboxPolicy.allowsNavigation(to: url, packageRoot: packageRoot, manifest: manifest) else {
-                decisionHandler(.cancel)
-                return
-            }
-            decisionHandler(.allow)
-        }
-
-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard message.name == ExternalGameSandboxPolicy.bridgeName else { return }
-            let rawData: Data
-            if let str = message.body as? String {
-                rawData = Data(str.utf8)
-            } else if let dict = message.body as? [String: Any],
-                      let serialized = try? JSONSerialization.data(withJSONObject: dict) {
-                rawData = serialized
-            } else {
-                return
-            }
-            _ = onBridgeMessage(rawData)
-        }
     }
 }
 #elseif os(macOS)
@@ -511,14 +531,15 @@ struct ExternalGameSandboxedWebView: NSViewRepresentable {
     let manifest: ExternalGameManifest
     let onBridgeMessage: (Data) -> ExternalGameBridgeResponse
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(packageRoot: packageRoot, manifest: manifest, onBridgeMessage: onBridgeMessage)
+    func makeCoordinator() -> ExternalGameWebViewCoordinator {
+        ExternalGameWebViewCoordinator(packageRoot: packageRoot, manifest: manifest, onBridgeMessage: onBridgeMessage)
     }
 
     func makeNSView(context: Context) -> WKWebView {
         let config = context.coordinator.makeConfiguration()
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = false
         webView.loadFileURL(entryURL, allowingReadAccessTo: packageRoot)
         return webView
@@ -526,58 +547,9 @@ struct ExternalGameSandboxedWebView: NSViewRepresentable {
 
     func updateNSView(_ nsView: WKWebView, context: Context) {}
 
-    static func dismantleNSView(_ nsView: WKWebView, coordinator: Coordinator) {
+    static func dismantleNSView(_ nsView: WKWebView, coordinator: ExternalGameWebViewCoordinator) {
         nsView.configuration.userContentController.removeScriptMessageHandler(forName: ExternalGameSandboxPolicy.bridgeName)
         nsView.stopLoading()
-    }
-
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-        let packageRoot: URL
-        let manifest: ExternalGameManifest
-        let onBridgeMessage: (Data) -> ExternalGameBridgeResponse
-
-        init(packageRoot: URL, manifest: ExternalGameManifest, onBridgeMessage: @escaping (Data) -> ExternalGameBridgeResponse) {
-            self.packageRoot = packageRoot
-            self.manifest = manifest
-            self.onBridgeMessage = onBridgeMessage
-        }
-
-        func makeConfiguration() -> WKWebViewConfiguration {
-            let config = WKWebViewConfiguration()
-            config.websiteDataStore = .nonPersistent()
-            config.preferences.javaScriptCanOpenWindowsAutomatically = false
-            let controller = WKUserContentController()
-            controller.add(self, name: ExternalGameSandboxPolicy.bridgeName)
-            config.userContentController = controller
-            return config
-        }
-
-        func webView(
-            _ webView: WKWebView,
-            decidePolicyFor navigationAction: WKNavigationAction,
-            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
-        ) {
-            guard let url = navigationAction.request.url,
-                  ExternalGameSandboxPolicy.allowsNavigation(to: url, packageRoot: packageRoot, manifest: manifest) else {
-                decisionHandler(.cancel)
-                return
-            }
-            decisionHandler(.allow)
-        }
-
-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard message.name == ExternalGameSandboxPolicy.bridgeName else { return }
-            let rawData: Data
-            if let str = message.body as? String {
-                rawData = Data(str.utf8)
-            } else if let dict = message.body as? [String: Any],
-                      let serialized = try? JSONSerialization.data(withJSONObject: dict) {
-                rawData = serialized
-            } else {
-                return
-            }
-            _ = onBridgeMessage(rawData)
-        }
     }
 }
 #endif

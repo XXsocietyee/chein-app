@@ -218,5 +218,20 @@ import XCTest
         XCTAssertTrue(client.track("roam_start", pagePath: "/pages/roam/index"))
         await client.flush()
         XCTAssertEqual(memory.queue.count, 1)
+
+        // Secrets/tokens are stripped from queued properties and generated idempotencyKeys use random UUIDs.
+        XCTAssertTrue(client.track("content_view", pagePath: "/pages/topic/index", properties: [
+            "secret": .string("s3cr3t"),
+            "password": .string("hunter2"),
+            "authorization": .string("Bearer abc"),
+            "misc": .string("Bearer secret-value"),
+            "safeFlag": .string("ok")
+        ]))
+        let queued = try XCTUnwrap(memory.queue.last)
+        XCTAssertFalse(queued.propertiesJson.contains("s3cr3t"))
+        XCTAssertFalse(queued.propertiesJson.contains("hunter2"))
+        XCTAssertFalse(queued.propertiesJson.contains("Bearer"))
+        XCTAssertTrue(queued.propertiesJson.contains("safeFlag"))
+        XCTAssertEqual(queued.idempotencyKey.count, "content_view_".count + 32)
     }
 }

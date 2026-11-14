@@ -17,13 +17,21 @@ struct KeychainTokenStore {
     func read() throws -> String? {
         guard scope != nil else { return nil }
         var request=try query()
+        request[kSecReturnAttributes as String]=true
         request[kSecReturnData as String]=true
         request[kSecMatchLimit as String]=kSecMatchLimitOne
         var result: CFTypeRef?
         let status=SecItemCopyMatching(request as CFDictionary,&result)
         if status == errSecItemNotFound { return nil }
         guard status == errSecSuccess else { throw StoreError.status(status) }
-        guard let data=result as? Data, let value=String(data:data,encoding:.utf8), !value.isEmpty else { throw StoreError.invalidToken }
+        guard let attributes=result as? [String:Any],
+              (attributes[kSecAttrAccessible as String] as? String) == (kSecAttrAccessibleWhenUnlockedThisDeviceOnly as String),
+              (attributes[kSecAttrSynchronizable as String] as? NSNumber)?.boolValue == false else {
+            try? clear()
+            throw StoreError.invalidToken
+        }
+        guard let data=attributes[kSecValueData as String] as? Data,
+              let value=String(data:data,encoding:.utf8), !value.isEmpty else { throw StoreError.invalidToken }
         return value
     }
     func write(_ token:String) throws {

@@ -24,6 +24,7 @@ import UIKit
         .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver"))
         .refreshable { await load() }
         .task { await load() }
+        .appSwitcherPrivacyShield()
     }
 
     @ViewBuilder private var content: some View {
@@ -75,7 +76,8 @@ import UIKit
         if let link = account.signURL, let key = account.copyKey {
             Section {
                 CYPillButton(LocalizedStringKey(key), style: .primary, tableName: "PayoutReceiver") {
-                    UIPasteboard.general.string = link.absoluteString
+                    UIPasteboard.general.setItems([["public.utf8-plain-text": link.absoluteString]],
+                                                  options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
                     copied = true
                 }
                 .accessibilityIdentifier("payoutAccount.copyLink")

@@ -31,5 +31,19 @@ import XCTest
     func testRevealFromALinkCarriesNoPaidFacts() {
         let reveal = MiniProgramPageLink(path: "subpackagePass/reveal/index", query: [:])!
         XCTAssertEqual(MPParityRoute(link: reveal), .reveal(paid: nil))
+        XCTAssertEqual(
+            MPParityRoute(miniProgramPath: "subpackagePass/reveal/index", query: ["mode": "paid", "count": "9", "until": "2099"]),
+            .reveal(paid: nil)
+        )
+    }
+
+    func testRejectsTraversalAndNonCanonicalParameters() {
+        XCTAssertNil(MPParityRoute(miniProgramPath: "subpackageMember/market/pass/index", query: ["id": "../etc/passwd"]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "subpackageMember/market/gift/index", query: [:]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "subpackageMember/market/gift/index", query: ["token": ""]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "subpackageJourney/pages/seats/index", query: ["registrationId": "007"]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "pages/club/payout-receiver/index", query: ["clubId": "+7001"]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "pages/club/settlement/index", query: ["clubId": "007"]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "subpackageA/pages/video-bounty/index", query: ["topicId": "abc"]))
     }
 }

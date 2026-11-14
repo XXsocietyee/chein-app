@@ -57,7 +57,11 @@ extension CouponManagementLocking {
     public func acquire(_ pending: CouponManagementPending) throws {
         // Exclusive creation, unlike check-then-replace atomic writes. If interrupted while writing,
         // the leftover partial file is a hard lock, not permission to dispatch again.
+        #if os(iOS)
+        try JSONEncoder().encode(pending).write(to: url(pending.ownerKey, pending.resource), options: [.withoutOverwriting, .completeFileProtection])
+        #else
         try JSONEncoder().encode(pending).write(to: url(pending.ownerKey, pending.resource), options: [.withoutOverwriting])
+        #endif
     }
     public func release(_ pending: CouponManagementPending) throws {
         guard try self.pending(ownerKey: pending.ownerKey, resource: pending.resource) == pending else { throw CouponManagementError.storage }

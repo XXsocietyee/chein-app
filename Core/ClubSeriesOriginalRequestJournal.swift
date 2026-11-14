@@ -51,7 +51,11 @@ public struct ClubSeriesOriginalRequest: Codable, Equatable {
         let data = try JSONEncoder().encode(request)
         guard data.count <= 65_536 else { throw ClubGovernanceFailure.outcomeLocked }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        #if os(iOS)
+        try data.write(to: url(request.lockKey), options: [.withoutOverwriting, .completeFileProtection])
+        #else
         try data.write(to: url(request.lockKey), options: [.withoutOverwriting])
+        #endif
         guard try read(lockKey: request.lockKey, realm: request.realm, accountID: request.accountID) == request else {
             throw ClubGovernanceFailure.outcomeLocked
         }

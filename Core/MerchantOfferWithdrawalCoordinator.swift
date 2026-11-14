@@ -49,7 +49,11 @@ public enum MerchantOfferWithdrawalLockKey {
     private func write(_ keys: Set<String>) throws {
         do {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            #if os(iOS)
+            try JSONEncoder().encode(keys.sorted()).write(to: url, options: [.atomic, .completeFileProtection])
+            #else
             try JSONEncoder().encode(keys.sorted()).write(to: url, options: [.atomic])
+            #endif
             try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
         } catch { throw MerchantOfferWithdrawalFailure.storage }
     }

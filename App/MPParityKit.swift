@@ -115,52 +115,76 @@ enum MPParityRoute: Hashable, Identifiable {
 
     var id: Self { self }
 
-    /// `subpackageMember/market/passes/index?tab=orders` style input. Unknown pages return nil.
+    /// `subpackageMember/market/passes/index?tab=orders` style input. Unknown or malformed pages/parameters return nil.
     init?(miniProgramPath path: String, query: [String: String]) {
+        guard !path.contains("\\"), !path.contains(".."), !path.contains("://"),
+              !path.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }) else { return nil }
         let page = path.hasPrefix("/") ? String(path.dropFirst()) : path
-        func nonEmpty(_ key: String) -> String? { query[key].flatMap { $0.isEmpty ? nil : $0 } }
+        func nonEmpty(_ key: String) -> String? {
+            guard let v = query[key], !v.isEmpty, v.utf16.count <= 512,
+                  v.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
+            return v
+        }
+        func positiveID(_ key: String) -> Int? {
+            guard let raw = nonEmpty(key), raw.utf8.count <= 18,
+                  raw.utf8.allSatisfy({ (48...57).contains($0) }),
+                  let value = Int(raw), value > 0, String(value) == raw else { return nil }
+            return value
+        }
+        func positiveIDString(_ key: String) -> String? { positiveID(key).map(String.init) }
+        func safeIdentifier(_ key: String) -> String? {
+            guard let v = nonEmpty(key),
+                  v.range(of: "\\A[A-Za-z0-9._-]{1,64}\\z", options: .regularExpression) != nil else { return nil }
+            return v
+        }
         switch page {
         case "subpackageA/pages/video-bounty/index":
-            self = .videoBounty(campaignKey: nonEmpty("campaignKey"), topicID: nonEmpty("topicId"))
+            if query["topicId"]?.isEmpty == false && positiveIDString("topicId") == nil { return nil }
+            if query["campaignKey"]?.isEmpty == false && safeIdentifier("campaignKey") == nil { return nil }
+            self = .videoBounty(campaignKey: safeIdentifier("campaignKey"), topicID: positiveIDString("topicId"))
         case "subpackageMember/market/passes/index":
             self = .passes(tab: query["tab"].flatMap(PassMarketTab.init(rawValue:)) ?? .shop)
         case "subpackageMember/market/pass/index":
-            guard let id = nonEmpty("id") else { return nil }
+            guard let id = safeIdentifier("id") else { return nil }
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
-            self = .gift(token: query["token"] ?? "")
+            guard let token = nonEmpty("token"), !token.contains(".."), !token.contains("://") else { return nil }
+            self = .gift(token: token)
         case "subpackageMember/market/membership/index":
             self = .membership
         case "subpackageMember/market/library/index":
             self = .library(kind: query["kind"].flatMap(PassLibraryKind.init(rawValue:)) ?? .all)
         case "subpackagePass/reveal/index":
-            if query["mode"] == "paid" {
-                self = .reveal(paid: PassRevealPaidFacts(count: query["count"].flatMap(Int.init), untilText: nonEmpty("until")))
-            } else {
-                self = .reveal(paid: nil)
-            }
+            // Paid reveal facts come only from verified in-app purchase flow, never from URL query params.
+            self = .reveal(paid: nil)
         case "subpackageJourney/pages/landing/index":
             guard let link = JourneyLandingLink(query: query) else { return nil }
             self = .journeyLanding(link)
         case "subpackageJourney/pages/seats/index":
-            guard let id = nonEmpty("registrationId") else { return nil }
+            guard let id = positiveIDString("registrationId") else { return nil }
             self = .journeySeats(registrationID: id)
         case "subpackageJourney/pages/promo/index":
             self = .journeyPromo
         case "subpackageJourney/pages/report/index", "subpackageJourney/pages/settle/index":
-            let scope = JourneyRunScope(activityID: nonEmpty("activityId"), topicID: nonEmpty("topicId"), runID: nonEmpty("runId"),
-                                        topicName: nonEmpty("topicName"), registrationID: nonEmpty("registrationId"),
-                                        teamID: nonEmpty("teamId"))
+            for numericKey in ["activityId", "topicId", "runId", "registrationId", "teamId"] {
+                if query[numericKey]?.isEmpty == false && positiveIDString(numericKey) == nil { return nil }
+            }
+            if let topicName = nonEmpty("topicName"), topicName.count > 128 { return nil }
+            let scope = JourneyRunScope(activityID: positiveIDString("activityId"), topicID: positiveIDString("topicId"),
+                                        runID: positiveIDString("runId"), topicName: nonEmpty("topicName"),
+                                        registrationID: positiveIDString("registrationId"), teamID: positiveIDString("teamId"))
             self = page.hasSuffix("report/index") ? .journeyReport(scope) : .journeySettle(scope)
         case "pages/club/payout-receiver/index":
-            let club = (nonEmpty("clubId") ?? nonEmpty("id")).flatMap(Int.init).flatMap { $0 > 0 ? $0 : nil }
+            let club = positiveID("clubId") ?? positiveID("id")
+            if (nonEmpty("clubId") ?? nonEmpty("id")) != nil && club == nil { return nil }
             let mine = query["mine"] == "1"
             guard club != nil || mine else { return nil }
             self = .clubPayoutReceiver(clubID: club, mine: mine)
         case "pages/merchant/payout-account/index":
             self = .merchantPayoutAccount
         case "pages/club/settlement/index":
-            let club = (nonEmpty("clubId") ?? nonEmpty("id")).flatMap(Int.init).flatMap { $0 > 0 ? $0 : nil }
+            let club = positiveID("clubId") ?? positiveID("id")
+            if (nonEmpty("clubId") ?? nonEmpty("id")) != nil && club == nil { return nil }
             let mine = query["mine"] == "1"
             guard club != nil || mine else { return nil }
             self = .clubSettlement(clubID: club, mine: mine, personal: query["personal"] == "1")

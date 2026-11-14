@@ -1,5 +1,30 @@
 import SwiftUI
 
+/// Masks sensitive financial/wallet/payout screens whenever the scene leaves `.active` (including `.inactive` app switcher snapshots).
+private struct AppSwitcherPrivacyShieldModifier: ViewModifier {
+    @Environment(\.scenePhase) private var scenePhase
+    func body(content: Content) -> some View {
+        content
+            .privacySensitive()
+            .redacted(reason: scenePhase == .active ? [] : .privacy)
+            .overlay {
+                if scenePhase != .active {
+                    ZStack {
+                        CYColor.bgPage.ignoresSafeArea()
+                        Image(systemName: "lock.fill")
+                            .font(.largeTitle)
+                            .foregroundStyle(CYColor.textTertiary)
+                    }
+                    .accessibilityHidden(true)
+                }
+            }
+    }
+}
+
+extension View {
+    func appSwitcherPrivacyShield() -> some View { modifier(AppSwitcherPrivacyShieldModifier()) }
+}
+
 /// A denied capability is unavailable; transient/business failures remain retryable.
 enum WalletReadFailurePresentation {
     static func isUnavailable(_ error: Error) -> Bool {
@@ -155,6 +180,7 @@ enum WalletPayoutCapability { static let isOn = false }
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
                 }
             }
+            .appSwitcherPrivacyShield()
     }
     /// Four circular quick actions: the first available one is the single white primary (withdraw), the last opens More.
     @ViewBuilder private var quickActions: some View {
@@ -382,6 +408,7 @@ enum WalletPayoutCapability { static let isOn = false }
                 }
             }
             .onDisappear { funds.cancel() }.refreshable { await load() }
+            .appSwitcherPrivacyShield()
     }
     private func load() async { await funds.load(reader) { try await $0.stages(token: $1) } }
 }
@@ -477,6 +504,7 @@ enum WalletPayoutCapability { static let isOn = false }
             .onChange(of: reader.scope) { _, _ in incomeDetail = nil }
             .onChange(of: direction) { _, _ in incomeDetail = nil }
             .onChange(of: scenePhase) { _, phase in if phase != .active { incomeDetail = nil } }
+            .appSwitcherPrivacyShield()
             .sheet(item: $incomeDetail) { selection in
                 NavigationStack {
                     List {
@@ -666,6 +694,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 debugStages.clear(); await loadDebugStages()
             }
             #endif
+            .appSwitcherPrivacyShield()
     }
     private var incomeBody: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -903,6 +932,7 @@ private struct WalletIncomeListCard: ViewModifier {
             // Uses the inherited, independently reviewed support reader. History access
             // does not supply a contact or authorize support configuration/copying.
             .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
+            .appSwitcherPrivacyShield()
     }
     private func load() async { await model.load(reader) { try await $0.withdrawals(token: $1) } }
 }

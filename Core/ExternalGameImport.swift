@@ -338,11 +338,15 @@ public enum ExternalGameValidator {
         }
     }
 
+    public static func isValidPackageID(_ id: String) -> Bool {
+        id.range(of: "^[a-z0-9][a-z0-9._-]{2,63}$", options: .regularExpression) != nil
+    }
+
     private static func validateCommon(_ archive: ExternalGamePackageArchive) throws {
         let manifest = archive.manifest
 
         // 1. Validate ID, Name, Version, Content Rating
-        guard manifest.id.range(of: "^[a-z0-9][a-z0-9._-]{2,63}$", options: .regularExpression) != nil else {
+        guard isValidPackageID(manifest.id) else {
             throw ExternalGameValidationError.invalidManifestID(manifest.id)
         }
         let trimmedName = manifest.name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -451,9 +455,23 @@ public enum ExternalGameSandboxPolicy {
             "connect-src \(connectSrc)",
             "frame-src 'none'",
             "object-src 'none'",
+            "worker-src 'none'",
+            "child-src 'none'",
             "base-uri 'none'",
             "form-action 'none'",
         ].joined(separator: "; ")
+    }
+
+    public static func injectedCSPMetaTag(for manifest: ExternalGameManifest) -> String {
+        let csp = contentSecurityPolicy(for: manifest)
+        return "<meta http-equiv=\"Content-Security-Policy\" content=\"\(csp)\">"
+    }
+
+    /// Strips any creator-supplied Content-Security-Policy meta tag (any case/quoting) and prepends the host's strict CSP.
+    public static func applyStrictCSP(to html: String, manifest: ExternalGameManifest) -> String {
+        let pattern = "<meta\\b[^>]*http-equiv\\s*=\\s*(['\"]?)content-security-policy\\1[^>]*>"
+        let stripped = html.replacingOccurrences(of: pattern, with: "", options: [.regularExpression, .caseInsensitive])
+        return injectedCSPMetaTag(for: manifest) + "\n" + stripped
     }
 
     /// Evaluates whether a navigation or resource URL is permitted inside the sandboxed WKWebView.
@@ -520,6 +538,17 @@ public struct ExternalGameBridgeResponse: Codable, Equatable, Sendable {
 
 public enum ExternalGameBridgeHandler {
     public static let maxPayloadBytes = 16 * 1024 // 16 KiB
+    public static let maxTotalProgressEntries = 64
+    public static let maxTotalProgressBytes = 64 * 1024 // 64 KiB
+    public static let allowedHapticStyles: Set<String> = ["light", "medium", "heavy", "selection", "success", "warning", "error"]
+
+    private static func isValidStorageKey(_ key: String) -> Bool {
+        key.range(of: "^[A-Za-z0-9._-]{1,64}$", options: .regularExpression) != nil
+    }
+
+    private static func isValidStorageValue(_ value: String) -> Bool {
+        value.utf8.count <= 2048 && !value.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 })
+    }
 
     public static func handle(
         rawJSON: Data,
@@ -537,6 +566,9 @@ public enum ExternalGameBridgeHandler {
 
         switch req.action {
         case "getMetadata":
+            guard (req.payload ?? [:]).isEmpty else {
+                return ExternalGameBridgeResponse(ok: false, error: "INVALID_ARGUMENTS")
+            }
             return ExternalGameBridgeResponse(
                 ok: true,
                 data: [
@@ -547,6 +579,9 @@ public enum ExternalGameBridgeHandler {
                 ]
             )
         case "loadProgress":
+            guard (req.payload ?? [:]).isEmpty else {
+                return ExternalGameBridgeResponse(ok: false, error: "INVALID_ARGUMENTS")
+            }
             guard granted.contains(ExternalGamePermission.storage.rawValue) else {
                 return ExternalGameBridgeResponse(ok: false, error: "PERMISSION_DENIED_STORAGE")
             }
@@ -557,16 +592,26 @@ public enum ExternalGameBridgeHandler {
             }
             let incoming = req.payload ?? [:]
             guard incoming.count <= 32,
-                  incoming.allSatisfy({ $0.key.utf8.count <= 64 && $0.value.utf8.count <= 2048 }) else {
+                  incoming.allSatisfy({ isValidStorageKey($0.key) && isValidStorageValue($0.value) }) else {
                 return ExternalGameBridgeResponse(ok: false, error: "STORAGE_QUOTA_EXCEEDED")
             }
-            for (k, v) in incoming {
-                progressStore[k] = v
+            var candidate = progressStore
+            for (k, v) in incoming { candidate[k] = v }
+            let totalBytes = candidate.reduce(0) { $0 + $1.key.utf8.count + $1.value.utf8.count }
+            guard candidate.count <= maxTotalProgressEntries, totalBytes <= maxTotalProgressBytes else {
+                return ExternalGameBridgeResponse(ok: false, error: "STORAGE_QUOTA_EXCEEDED")
             }
+            progressStore = candidate
             return ExternalGameBridgeResponse(ok: true, data: ["saved": "true"])
         case "haptic":
             guard granted.contains(ExternalGamePermission.haptics.rawValue) else {
                 return ExternalGameBridgeResponse(ok: false, error: "PERMISSION_DENIED_HAPTICS")
+            }
+            if let payload = req.payload, !payload.isEmpty {
+                guard Set(payload.keys) == ["style"],
+                      let style = payload["style"], allowedHapticStyles.contains(style) else {
+                    return ExternalGameBridgeResponse(ok: false, error: "INVALID_ARGUMENTS")
+                }
             }
             return ExternalGameBridgeResponse(ok: true, data: ["triggered": "true"])
         default:
@@ -707,13 +752,48 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
 
     public func entryFileURL(for game: InstalledExternalGame) -> URL? {
         guard !isBlocked(game.manifest) else { return nil }
-        guard ExternalGameValidator.verifyServerSignature(game.manifest, publicKeyRaw: verificationPublicKey) else { return nil }
+        guard verificationPublicKey.count == 32,
+              ExternalGameValidator.verifyServerSignature(game.manifest, publicKeyRaw: verificationPublicKey) else { return nil }
         let pkgRoot = packageDirectory(for: game.manifest.id)
         let target = pkgRoot.appendingPathComponent(game.manifest.entry, isDirectory: false)
         guard ExternalGameSandboxPolicy.allowsNavigation(to: target, packageRoot: pkgRoot, manifest: game.manifest) else {
             return nil
         }
+        guard verifyInstalledEntryIntegrity(target: target, manifest: game.manifest) else {
+            return nil
+        }
         return target
+    }
+
+    private func verifyInstalledEntryIntegrity(target: URL, manifest: ExternalGameManifest) -> Bool {
+        guard FileManager.default.fileExists(atPath: target.path),
+              let onDiskData = try? Data(contentsOf: target) else { return false }
+        let pkgRoot = packageDirectory(for: manifest.id).resolvingSymlinksInPath().standardizedFileURL
+        guard let enumerator = FileManager.default.enumerator(at: pkgRoot, includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey]) else {
+            return false
+        }
+        let prefix = ExternalGameSandboxPolicy.injectedCSPMetaTag(for: manifest) + "\n"
+        var reconstructed: [String: Data] = [:]
+        let rootPath = pkgRoot.path.hasSuffix("/") ? pkgRoot.path : (pkgRoot.path + "/")
+        for case let fileURL as URL in enumerator {
+            guard let values = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]),
+                  values.isSymbolicLink != true else { return false }
+            guard values.isRegularFile == true else { continue }
+            let resolved = fileURL.resolvingSymlinksInPath().standardizedFileURL.path
+            guard resolved.hasPrefix(rootPath) else { return false }
+            let relPath = String(resolved.dropFirst(rootPath.count))
+            guard ExternalGameValidator.isSafeRelativePath(relPath),
+                  let raw = try? Data(contentsOf: fileURL) else { return false }
+            if relPath == manifest.entry,
+               let html = String(data: raw, encoding: .utf8),
+               html.hasPrefix(prefix) {
+                reconstructed[relPath] = Data(html.dropFirst(prefix.count).utf8)
+            } else {
+                reconstructed[relPath] = raw
+            }
+        }
+        if reconstructed.isEmpty { _ = onDiskData; return false }
+        return ExternalGameValidator.computePackageSHA256(reconstructed) == manifest.sha256.lowercased()
     }
 
     /// Validates an imported archive from URL, QR code, or local file and prepares a permission + source confirmation sheet.
@@ -801,16 +881,16 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
                 throw ExternalGameValidationError.symlinkOrEscapeDetected(relPath)
             }
             var dataToWrite = content
-            // Inject CSP meta tag into HTML entry file if not already present
+            // Strip any creator-supplied CSP meta tags and prepend the host's strict CSP before writing.
             if relPath == manifest.entry,
-               let html = String(data: content, encoding: .utf8),
-               !html.contains("http-equiv=\"Content-Security-Policy\"") {
-                let csp = ExternalGameSandboxPolicy.contentSecurityPolicy(for: manifest)
-                let meta = "<meta http-equiv=\"Content-Security-Policy\" content=\"\(csp)\">"
-                let injected = meta + "\n" + html
-                dataToWrite = Data(injected.utf8)
+               let html = String(data: content, encoding: .utf8) {
+                dataToWrite = Data(ExternalGameSandboxPolicy.applyStrictCSP(to: html, manifest: manifest).utf8)
             }
+            #if os(iOS)
+            try dataToWrite.write(to: fileURL, options: [.atomic, .completeFileProtection])
+            #else
             try dataToWrite.write(to: fileURL, options: [.atomic])
+            #endif
         }
 
         let now = Date()
@@ -957,6 +1037,14 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         !manifest.permissions.isEmpty && !permissionAccepted.contains(manifest.id + "@" + manifest.version)
     }
 
+    private func writeProtected(_ data: Data, to url: URL) throws {
+        #if os(iOS)
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
+        #else
+        try data.write(to: url, options: [.atomic])
+        #endif
+    }
+
     private var ageGateFileURL: URL { rootDirectory.appendingPathComponent("age-gate-v1.json", isDirectory: false) }
     private func loadAgeGate() {
         guard let data = try? Data(contentsOf: ageGateFileURL),
@@ -966,7 +1054,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
     private func saveAgeGate() {
         try? FileManager.default.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
         if let data = try? JSONEncoder().encode(ageGateAccepted) {
-            try? data.write(to: ageGateFileURL, options: [.atomic])
+            try? writeProtected(data, to: ageGateFileURL)
         }
     }
     private var permissionFileURL: URL { rootDirectory.appendingPathComponent("permissions-v1.json", isDirectory: false) }
@@ -978,7 +1066,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
     private func savePermissions() {
         try? FileManager.default.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
         if let data = try? JSONEncoder().encode(permissionAccepted) {
-            try? data.write(to: permissionFileURL, options: [.atomic])
+            try? writeProtected(data, to: permissionFileURL)
         }
     }
 
@@ -992,7 +1080,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
     private func saveBlocklistToDisk() {
         try? FileManager.default.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
         if let data = try? JSONEncoder().encode(Blocklist(packages: blockedPackageIDs, creators: blockedCreators)) {
-            try? data.write(to: blocklistFileURL, options: [.atomic])
+            try? writeProtected(data, to: blocklistFileURL)
         }
     }
 
@@ -1000,7 +1088,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         let fm = FileManager.default
         try? fm.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
         if let data = try? JSONEncoder().encode(installedGames) {
-            try? data.write(to: registryFileURL, options: [.atomic])
+            try? writeProtected(data, to: registryFileURL)
         }
     }
 
@@ -1008,7 +1096,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         let url = progressFileURL(for: gameID)
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         if let data = try? JSONEncoder().encode(progress) {
-            try? data.write(to: url, options: [.atomic])
+            try? writeProtected(data, to: url)
         }
     }
 }

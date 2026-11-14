@@ -140,6 +140,7 @@ import SwiftUI
                 }
             }
         .accessibilityIdentifier("ticketWallet.detail")
+        .appSwitcherPrivacyShield()
         .modifier(CYOptionalHeroDestination(id: heroID ?? id, namespace: heroNamespace))
         .fullScreenCover(isPresented: $presenting) {
             if let ticket = model.value(owner: key), ticket.id == id {

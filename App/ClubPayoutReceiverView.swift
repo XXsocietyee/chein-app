@@ -48,6 +48,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             Button(role: .destructive) { Task { await unbind() } } label: { Text("payoutReceiver.unbind", tableName: "PayoutReceiver") }
                 .accessibilityIdentifier("payoutReceiver.unbind.confirm")
         } message: { Text("payoutReceiver.unbind.detail", tableName: "PayoutReceiver") }
+        .appSwitcherPrivacyShield()
     }
 
     @ViewBuilder private var content: some View {
