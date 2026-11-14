@@ -90,7 +90,10 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         question = try c.decodeIfPresent(String.self, forKey: .question)
         questionImage = try c.decodeIfPresent(String.self, forKey: .questionImg)
         questionAudio = try c.decodeIfPresent(String.self, forKey: .questionAudio)
-        options = try c.decodeIfPresent([String: String].self, forKey: .options)
+        // E2E-20261113b: the server sends a null text for an unused option ({"C": null}); drop it, and treat an
+        // all-null map as no options, instead of failing the whole journey read.
+        let rawOptions = try c.decodeIfPresent([String: String?].self, forKey: .options)?.compactMapValues { $0 }
+        options = rawOptions?.isEmpty == false ? rawOptions : nil
         description = try c.decodeIfPresent(String.self, forKey: .description)
         hookText = try c.decodeIfPresent(String.self, forKey: .hookText)
         storyText = try c.decodeIfPresent(String.self, forKey: .storyText)

@@ -148,4 +148,13 @@ final class PlayContractTests: XCTestCase {
         XCTAssertEqual(PlayNode.formatQueueCount(-1), "—")
         XCTAssertEqual(PlayNode.formatQueueCount(100_001), "—")
     }
+
+    /// E2E-20261113b: TEST r2 sends `{"A": null, …}` for unused choice options. A null option is dropped; an all-null
+    /// map is no options; neither fails the journey read.
+    func testNullChoiceOptionsAreDroppedNotFatal() throws {
+        let some = try decodeResult(#"{"nodes":[{"nodeId":7,"options":{"A":"东门","B":null}}]}"#)
+        XCTAssertEqual(some.nodes.first?.options, ["A": "东门"])
+        let none = try decodeResult(#"{"nodes":[{"nodeId":7,"options":{"A":null,"B":null}}]}"#)
+        XCTAssertNil(none.nodes.first?.options)
+    }
 }
