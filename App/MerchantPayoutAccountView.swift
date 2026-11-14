@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Merchant payout account. Read-only, and only when access/me grants finance read.
-/// There is no edit and no withdraw. A signing link, when the server sends one, can be copied.
+/// There is no edit and no cash-out action. A signing link, when the server sends one, can be copied.
 struct MerchantPayoutAccountView: View {
     @Environment(\.locale) private var locale
     var session: AppSession?

@@ -144,7 +144,7 @@ final class OwnerDecisionGuardTests: XCTestCase {
         ])
         XCTAssertEqual(ready?.phase, .ready)
         XCTAssertEqual(ready?.signURL, "https://www.chengyinhub.com/sign/example")
-        XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": true, "state": "NONE"])?.phase, .none)
+        XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": true, "state": "NONE"])?.phase, OwnerDecisionMerchantAccount.Phase.none)
         XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": false])?.phase, .unavailable)
         XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": false])?.stateText, "—")
         let screen = try source("App/MerchantPayoutAccountView.swift")
