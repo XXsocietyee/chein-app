@@ -16,7 +16,7 @@ struct NearbyTeamCountLine: View {
                 if loaded { Text("nearby.w208.header \(count)") } else { Text("nearby.w208.header.loading") }
             }.accessibilityIdentifier("nearby.w208.header")
         } icon: {
-            Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.tint)
+            Image(systemName: "circle.fill").font(.caption2).foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
         }
         .font(Theme.Font.sectionTitle)
@@ -116,13 +116,18 @@ struct NearbyTeamListRow: View {
     let team: NearbyTeam
     let expanded: Bool
     let toggle: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Button(action: toggle) {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                    else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                    HStack(spacing: 8) { NearbyTeamSubLine(team: team); NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode)) }
+                    if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                    else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                    if typeSize >= .xxLarge {
+                        VStack(alignment: .leading, spacing: 8) { NearbyTeamSubLine(team: team); NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode)) }
+                    } else {
+                        HStack(spacing: 8) { NearbyTeamSubLine(team: team); NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode)) }
+                    }
                 }
                 Spacer(minLength: 8)
                 Text(verbatim: "\(team.joinedCount)/\(team.maxMembers)").font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)

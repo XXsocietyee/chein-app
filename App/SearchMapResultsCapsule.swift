@@ -10,7 +10,7 @@ struct SearchMapResultsCapsuleView: View {
             if state.opensSheet { open() } else if state == .failed { retry() }
         } label: {
             HStack(spacing: 8) {
-                if state == .loading { ProgressView().accessibilityHidden(true) }
+                if state == .loading { ProgressView().tint(CYColor.resultSpinner).accessibilityHidden(true) }
                 switch state {
                 case .results(let total, let listOnly) where listOnly == total:
                     // Mini-program: nothing mappable here, the rows still open in the list.
@@ -24,7 +24,7 @@ struct SearchMapResultsCapsuleView: View {
                 }
             }.font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 16).padding(.vertical, 10).frame(minHeight: 44)
-                .background(.regularMaterial, in: Capsule())
+                .background(CYColor.bgGlass, in: Capsule())
         }.buttonStyle(.plain).disabled(state == .loading || state == .empty)
             .accessibilityIdentifier("searchMap.w208.capsule")
     }

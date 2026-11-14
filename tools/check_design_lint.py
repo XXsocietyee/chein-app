@@ -24,7 +24,6 @@ KINDS = (RAW_HEX, FIXED_FONT, VIOLET)
 ALLOWLIST = {
     'App/AccountComplianceViews.swift': {FIXED_FONT: 1},
     'App/AuthChannelView.swift': {FIXED_FONT: 1},
-    'App/ChatMessageBubble.swift': {VIOLET: 1},
     'App/CityArrivalEvidenceView.swift': {FIXED_FONT: 1},
     'App/ClubComponents.swift': {RAW_HEX: 1, FIXED_FONT: 1},
     'App/ClubPostDiscussion.swift': {FIXED_FONT: 1},
@@ -32,7 +31,6 @@ ALLOWLIST = {
     'App/DesignFixtures/E3Fixtures.swift': {VIOLET: 1},
     'App/DiceD20View.swift': {FIXED_FONT: 1},
     'App/HomeSearchTabParityViews.swift': {FIXED_FONT: 1},
-    'App/IMInboxViews.swift': {FIXED_FONT: 1},
     'App/MerchantBusinessEditor.swift': {RAW_HEX: 1},
     'App/ObjectBadgeViews.swift': {FIXED_FONT: 1},
     'App/PlayJourneyContentViews.swift': {FIXED_FONT: 1},

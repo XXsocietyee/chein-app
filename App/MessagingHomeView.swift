@@ -59,7 +59,6 @@ private struct MessagingConversationListView: View {
                     .labelsHidden()
                     .padding(.horizontal, CYSpacing.sm)
                     .padding(.vertical, CYSpacing.xs)
-                    .background(Capsule().fill(CYNight.glassFill).overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1)))
                     .accessibilityIdentifier("messaging.list.scope")
                 }
                 .listRowInsets(EdgeInsets())

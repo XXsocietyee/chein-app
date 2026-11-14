@@ -262,7 +262,8 @@ struct MessagingHistoryView: View {
                 if conversation != nil {
                     MessagingConversationName(conversation: conversation)
                         .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                        .lineLimit(2).padding(.bottom, CYSpacing.xs)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.bottom, CYSpacing.xs)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("messaging.history.hero")
                 }

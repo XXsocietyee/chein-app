@@ -888,6 +888,7 @@ private struct ChannelBurstGroupCard: View {
                     Text(group.senderName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let badge = group.senderRoleBadge, !badge.isEmpty {
                         Text(badge)
                             .font(.caption2.weight(.semibold))
@@ -929,6 +930,7 @@ private struct ChannelBurstGroupCard: View {
                             Text(item.displayBody)
                                 .font(.body)
                                 .foregroundStyle(item.message.isPayloadVisible ? palette.textPrimary : palette.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             ForEach(Array(item.attachments.enumerated()), id: \.offset) { _, attachment in
                                 HStack(spacing: 6) {
