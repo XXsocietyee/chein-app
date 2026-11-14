@@ -346,7 +346,7 @@ import QuestifyCore
               let roam = RoamCoordinate(latitude: raw.latitude, longitude: raw.longitude) else {
             return nil
         }
-        if let gcj = try? RuntimeLocationProjection.gcj02MapCenter(MapCenter(coordinate: roam, datum: .wgs84)) {
+        if let gcj = try? RuntimeLocationProjection.gcj02MapCenter(RuntimeLocationProjection.MapCenter(coordinate: roam, datum: .wgs84)) {
             return (gcj.coordinate.latitude, gcj.coordinate.longitude)
         }
         return raw
