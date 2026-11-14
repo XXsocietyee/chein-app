@@ -86,9 +86,25 @@ import SwiftUI
                         }
                     }
                     ForEach(pagination.items) { post in
-                        NavigationLink(value: post.id) { SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false) }
-                            .accessibilityIdentifier("square.row.\(post.id)")
-                        NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages", compact: true)
+                        UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
+                            VStack(alignment: .leading, spacing: 0) {
+                                NavigationLink(value: post.id) { SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false) }
+                                    .accessibilityIdentifier("square.row.\(post.id)")
+                                    .contextMenu {
+                                        if actions?.identity.accountID != post.memberID, post.memberID > 0 {
+                                            UGCReviewSafetyFooter(
+                                                target: post.generation == .communityV1
+                                                    ? .community(targetType: .content, targetID: post.id)
+                                                    : .creativeSquarePost(id: post.id),
+                                                subjectTitle: post.contents,
+                                                authorMemberID: post.memberID,
+                                                authorName: post.nickname
+                                            )
+                                        }
+                                    }
+                                NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages", compact: true)
+                            }
+                        }
                     }
                     if pagination.continuationInvalid { Text("square.invalidCursor").accessibilityIdentifier("square.invalidCursor") }
                     if loading { CYSkeleton() }

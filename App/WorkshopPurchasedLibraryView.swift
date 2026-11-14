@@ -133,6 +133,19 @@ struct WorkshopPurchasedAccountLink: View {
             }
         }
         .modifier(PurchasedTitle("detail"))
+        .toolbar {
+            if let detail = browser.detail, detail.item.id == licenseId {
+                ToolbarItem(placement: .topBarTrailing) {
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .mod(modID: max(1, Int(detail.item.moduleId) ?? 1)),
+                            subjectTitle: detail.item.moduleId
+                        )
+                    )
+                    .accessibilityIdentifier("workshopPurchased.safetyMenu")
+                }
+            }
+        }
         .privacySensitive()
         .onAppear { if paymentsOpen { navigation.scheduleDetail(navigation.detailViewAppeared(displayed, licenseId: licenseId), licenseId: licenseId) } }
         .onDisappear { navigation.detailViewDisappeared(displayed) }

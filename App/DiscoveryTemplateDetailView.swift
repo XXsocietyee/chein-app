@@ -134,6 +134,17 @@ struct DiscoveryTemplateDetailView: View {
         }
         .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                UGCSafetyMenuButton(
+                    presentation: UGCReportPresentationTarget(
+                        target: .template(id: id, personal: false),
+                        subjectTitle: detail.value?.template.title
+                    )
+                )
+                .accessibilityIdentifier("discovery.template.safetyMenu")
+            }
+        }
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
@@ -313,6 +324,19 @@ struct DiscoveryTopicTemplatePreview: View {
             } else { ProgressView("discovery.loading") }
         }
         .appNavigationTitle("discovery.topicPreview")
+        .toolbar {
+            if let item = detail.value {
+                ToolbarItem(placement: .topBarTrailing) {
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .template(id: item.id, personal: true),
+                            subjectTitle: item.name
+                        )
+                    )
+                    .accessibilityIdentifier("discovery.topicTemplate.safetyMenu")
+                }
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .task { await detail.load() }
         .onDisappear { detail.clear() }

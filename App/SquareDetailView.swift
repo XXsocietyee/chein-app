@@ -13,6 +13,7 @@ import SwiftUI
     @Environment(\.squareDeletion) private var deletion
     @Environment(\.squareShareLink) private var shareLink
     @Environment(\.squareAuthorFollowState) private var followState
+    @Environment(\.ugcSafetyContext) private var ugcSafety
     @State private var shareRoute: ShareRoute?
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
@@ -20,7 +21,8 @@ import SwiftUI
     @State private var reportTarget: ReportRoute?
     private struct ReportRoute: Identifiable { let id = UUID(); let target: SquareReportTarget }
     @State private var showsWorkspaceEdit = false
-    @State private var blockNotice = false
+    @State private var blockTarget: BlockTarget?
+    private struct BlockTarget: Identifiable { let id = UUID(); let memberID: Int; let authorName: String? }
     private struct EditorRoute: Identifiable { let id = UUID(); let purpose: SocialEditorPurpose; let target: SocialActionTarget; let text: String; var enabled = true }
     @State private var editor: EditorRoute?
     @State private var followWriteMember: Int?
@@ -47,33 +49,45 @@ import SwiftUI
                 if detailLoading { CYSkeleton() }
                 if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
                 if let post {
-                    Section {
-                        SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
-                                          avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) }).accessibilityIdentifier("square.detailPost")
-                        if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
-                        SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
-                        // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
-                        if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
-                        if let actions, actions.identity.accountID != nil {
-                            postActions(post, actions: actions)
-                        }
-                        if post.memberID == 0 {
-                            Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("square.author.unknown")
-                        } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
-                            CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
-                        }
-                        if let accountReader, post.memberID > 0 {
-                            NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
-                                .accessibilityIdentifier("social.viewAuthor")
-                        }
-                    }.cyMiniCardRow()
+                    UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
+                        Section {
+                            SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
+                                              avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) }).accessibilityIdentifier("square.detailPost")
+                            if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
+                            SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
+                            // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
+                            if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
+                            if let actions, actions.identity.accountID != nil {
+                                postActions(post, actions: actions)
+                            }
+                            if post.memberID == 0 {
+                                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("square.author.unknown")
+                            } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
+                                CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
+                            }
+                            if let accountReader, post.memberID > 0 {
+                                NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
+                                    .accessibilityIdentifier("social.viewAuthor")
+                            }
+                        }.cyMiniCardRow()
+                    } blockedPlaceholder: {
+                        Section {
+                            UGCBlockedNoticeBanner(
+                                messageKey: "ugc.safety.blockedBanner.hidden",
+                                memberID: post.memberID,
+                                authorName: post.nickname
+                            )
+                        }.cyMiniCardRow()
+                    }
                 }
                 // Detail failure never renders orphan comments without their post context.
-                if post != nil {
+                if let post, !(ugcSafety?.isBlocked(memberID: post.memberID, authorName: post.nickname) ?? false) {
                     Section("square.comments") {
                         if let commentIssue { SquareIssueView(error: commentIssue) { Task { await loadComments(operation: generation, captured: key) } } }
                         ForEach(SquareComment.threaded(comments.items)) { comment in
-                            commentRow(comment).accessibilityIdentifier("square.comment.\(comment.id)")
+                            UGCBlockedFilterContainer(memberID: comment.memberID, authorName: comment.nickname) {
+                                commentRow(comment).accessibilityIdentifier("square.comment.\(comment.id)")
+                            }
                         }
                         if commentsLoading { CYSkeleton() }
                         else if comments.items.isEmpty && commentIssue == nil {
@@ -134,10 +148,27 @@ import SwiftUI
                 SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions)
             }
         }
-        .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false }
-        .alert(Text("square.block.title"), isPresented: $blockNotice) {
-            Button("square.block.ok", role: .cancel) { }
-        } message: { Text("square.block.notAvailable") }
+        .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false; blockTarget = nil }
+        .alert(
+            Text("ugc.safety.block.confirmTitle", tableName: "UGCSafety"),
+            isPresented: Binding(get: { blockTarget != nil }, set: { if !$0 { blockTarget = nil } }),
+            presenting: blockTarget
+        ) { target in
+            Button(role: .cancel) { blockTarget = nil } label: {
+                Text("ugc.safety.block.cancel", tableName: "UGCSafety")
+            }
+            Button(role: .destructive) {
+                let targetToBlock = target
+                blockTarget = nil
+                Task {
+                    try? await ugcSafety?.blockUser(memberID: targetToBlock.memberID, authorName: targetToBlock.authorName)
+                }
+            } label: {
+                Text("ugc.safety.block.confirmButton", tableName: "UGCSafety")
+            }
+        } message: { _ in
+            Text("ugc.safety.block.confirmMessage", tableName: "UGCSafety")
+        }
         .sheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
                 .presentationDetents([.large])
@@ -278,7 +309,9 @@ import SwiftUI
                 .accessibilityIdentifier("squareReport.postEntry")
             }
             if SquareAuthorSafety.showsBlockEntry(authorMemberID: post.memberID, viewerMemberID: actions.identity.accountID) {
-                Button("square.block", systemImage: "hand.raised") { blockNotice = true }
+                Button("square.block", systemImage: "hand.raised") {
+                    blockTarget = .init(memberID: post.memberID, authorName: post.nickname)
+                }
                     .accessibilityIdentifier("square.block.postEntry")
             }
         } label: {
@@ -332,7 +365,9 @@ import SwiftUI
                             }
                             Button(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike"), systemImage: comment.isLiked == 0 ? "heart" : "heart.slash") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
                             if SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
-                                Button("square.block", systemImage: "hand.raised") { blockNotice = true }
+                                Button("square.block", systemImage: "hand.raised") {
+                                    blockTarget = .init(memberID: comment.memberID, authorName: comment.nickname)
+                                }
                                     .accessibilityIdentifier("square.block.commentEntry.\(comment.id)")
                             }
                             if comment.memberID == actions.identity.accountID, let post,

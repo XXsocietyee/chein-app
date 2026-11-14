@@ -713,10 +713,13 @@ enum ReviewedPlayerReadRoute {
     static let likePaths: Set<String> = ["api/topic/like", "api/comment/like", "api/creativesquare/like"]
     static let reportPaths: Set<String> = [
         "api/v1/community/reports", "api/v1/community/appeals", "api/comment/report", "api/topic/report",
-        "api/template/report", "api/creativesquare/report", "api/im/report", "api/club/post/report",
-        "api/club/post/comment/report", "api/club/governance/cases/report", "api/club/governance/cases/appeal",
-        "api/orient/scoring/appeal", "api/orient/scoring/dispute",
-        "api/external-game/reports"
+        "api/template/report", "api/template/personal-report", "api/creativesquare/report", "api/im/report",
+        "api/club/post/report", "api/club/post/comment/report", "api/club/governance/cases/report",
+        "api/club/governance/cases/appeal", "api/orient/scoring/appeal", "api/orient/scoring/dispute",
+        "api/external-game/reports", "api/merchant/reviews/report", "api/team/report",
+        "api/community-trust/reports/taxonomy", "api/community-trust/reports/mine",
+        "api/native/blacklist/list",
+        "api/ai/safety/precheck"
     ]
     /// Space admission (contract §6.10). Approve/reject/pause/revoke are owner/admin writes the backend checks.
     static let admissionPaths: Set<String> = [

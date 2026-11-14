@@ -127,11 +127,19 @@ private final class MemberIdentityAvatarLifecycle: @unchecked Sendable {
 
 @MainActor struct MemberIdentityAvatarView: View {
     @State private var model: MemberIdentityAvatarModel
+    var reportMemberID: Int?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cyPalette) private var palette
+    @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     @ScaledMetric(relativeTo: .title3) private var diameter: CGFloat = 56
-    init(observation: MemberIdentityAvatarObservation, owner: MemberIdentityCardReadOwner, access: MemberIdentityAvatarAccess?) {
+    init(observation: MemberIdentityAvatarObservation, owner: MemberIdentityCardReadOwner, access: MemberIdentityAvatarAccess?, reportMemberID: Int? = nil) {
         _model = State(initialValue: .init(observation: observation, owner: owner, access: access))
+        self.reportMemberID = reportMemberID
+    }
+    private var resolvedReportMemberID: Int? {
+        if let reportMemberID, reportMemberID > 0 { return reportMemberID }
+        if let safetySubjectID, safetySubjectID > 0 { return safetySubjectID }
+        return nil
     }
     var body: some View {
         ZStack {
@@ -156,6 +164,14 @@ private final class MemberIdentityAvatarLifecycle: @unchecked Sendable {
         .onDisappear { model.disappear() }
         .onChange(of: scenePhase) { _, value in model.scene(active: value == .active) }
         .onChange(of: model.available) { _, value in if !value { model.stop() } }
+        .contextMenu {
+            if let memberID = resolvedReportMemberID {
+                UGCReviewSafetyFooter(
+                    target: .member(memberID: memberID),
+                    authorMemberID: memberID
+                )
+            }
+        }
     }
 }
 @MainActor private struct MemberIdentityAvatarSurfaceView: UIViewRepresentable {

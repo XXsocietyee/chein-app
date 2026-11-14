@@ -12,18 +12,24 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 COVERED = {
     'App/SquareDetailView.swift': 'posts and comments',
+    'App/SquareBrowserView.swift': 'square feed cards and blocked-author filtering',
     'App/ClubChannelMessagingView.swift': 'club channel messages and members',
     'App/ClubCommunityViews.swift': 'club posts and comments',
     'App/PublicMerchantReviewsView.swift': 'merchant reviews',
     'Core/IMConversationSafety.swift': 'IM conversations',
-}
-GAPS = {
-    'App/TopicDetailView.swift': 'topic detail (api/topic/report contract exists, no UI)',
-    'App/TopicXcxSections.swift': 'topic reviews and sections',
+    'App/TopicDetailView.swift': 'topic detail (api/topic/report)',
+    'App/TopicXcxSections.swift': 'topic lineup and node templates',
+    'App/TopicReviewsContent.swift': 'topic review previews',
+    'App/ActivityDetailView.swift': 'activity detail (api/v1/community/reports ACTIVITY)',
     'App/ActivityReviewsSection.swift': 'activity reviews',
     'App/ClubPostDiscussion.swift': 'club post discussion comments',
     'App/MemberIdentityAvatarView.swift': 'member avatars',
+    'App/SocialPublicProfileView.swift': 'public profiles (MEMBER report and block)',
+    'App/DiscoveryTemplateDetailView.swift': 'creator and personal templates',
+    'App/ExternalGameReviewScreens.swift': 'external games',
+    'App/WorkshopPurchasedLibraryView.swift': 'workshop purchased mods',
 }
+GAPS = {}
 
 
 class UgcSurfaceReportEntries(unittest.TestCase):

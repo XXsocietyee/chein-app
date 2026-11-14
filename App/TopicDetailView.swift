@@ -37,6 +37,21 @@ struct TopicDetailView: View {
         }
         .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let value = detail {
+                ToolbarItem(placement: .topBarTrailing) {
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .topic(id: value.id),
+                            subjectTitle: value.name,
+                            authorName: value.clubName
+                        )
+                    )
+                    .accessibilityIdentifier("topic.safety.menu")
+                }
+            }
+        }
+        .environment(\.ugcSafetySubjectID, detail?.id ?? id)
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
@@ -214,6 +229,7 @@ struct TopicDetailView: View {
                 CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
             }
+            .environment(\.ugcSafetySubjectID, value.id)
             Section("topic.chapters") {
                 if value.chapters.isEmpty {
                     Text("topic.noChapters").foregroundStyle(.secondary)
