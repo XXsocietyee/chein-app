@@ -136,7 +136,12 @@ private actor JourneyTestTransport: HTTPTransport {
     var replies: [Data]
     var status: Int
     init(replies: [Data], status: Int = 200) { self.replies = replies; self.status = status }
-    func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return (replies.removeFirst(), status) }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        // An unexpected extra request fails the test instead of trapping the whole runner.
+        guard !replies.isEmpty else { throw APIError.httpStatus(599) }
+        return (replies.removeFirst(), status)
+    }
 }
 private actor JourneySuspendedTransport: HTTPTransport {
     private var continuation: CheckedContinuation<Data, Never>?
