@@ -9925,26 +9925,6 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "6D35C3827217183B51EB9DB4";
 		};
-		"5E2E81A1DE43CB40F4AA143E" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/OwnerDecisionFixtureHost.swift";
-			"sourceTree" = "<group>";
-		};
-		"A175A25E4F32D3BCAD3BA3FD" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "5E2E81A1DE43CB40F4AA143E";
-		};
-		"A89DA2B5BD0F7F108F352175" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/OwnerDecisionPayoutViews.swift";
-			"sourceTree" = "<group>";
-		};
-		"88111583537854E5B5209DB2" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "A89DA2B5BD0F7F108F352175";
-		};
 		"C9D92593EDC5D5B645CD1024" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -39555,8 +39535,6 @@
 				"1D43FBCF4BEF6A5AFDF1BA3E",
 				"1B364C2065956B7349729E2E",
 				"6D35C3827217183B51EB9DB4",
-				"5E2E81A1DE43CB40F4AA143E",
-				"A89DA2B5BD0F7F108F352175",
 				"C9D92593EDC5D5B645CD1024",
 				"F16C1AA18F6BE89C8CAC92D2",
 				"C089D53E677A33E78C680643",
@@ -44560,8 +44538,6 @@
 				"5DBE61D7390905444A9DFD50",
 				"DC9B884063022885DF874E8A",
 				"2C51CBE3E0CC13F416188529",
-				"A175A25E4F32D3BCAD3BA3FD",
-				"88111583537854E5B5209DB2",
 				"36B3A12E73EF02AFA28127C7",
 				"7751E5BC08AE1CE1B78B0514",
 				"C1D8C6C4B494BEDF6EBAEAB2",

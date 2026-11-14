@@ -126,12 +126,10 @@ final class OwnerDecisionGuardTests: XCTestCase {
         let client = try makeClient(transport, payout: false)
         XCTAssertEqual(client.bind(), .notSent)
         XCTAssertTrue(transport.requests.isEmpty)
-        let screen = try source("App/OwnerDecisionPayoutViews.swift")
-        XCTAssertTrue(screen.contains("club.receiver.unbind"))
-        XCTAssertFalse(screen.contains("api/club/personal-receiver/bind"))
-        XCTAssertTrue(screen.contains("club.receiver.loading"))
-        XCTAssertTrue(screen.contains("club.receiver.empty"))
-        XCTAssertTrue(screen.contains("club.receiver.error"))
+        // Owner 2026-11-14: one entry per surface. WP-01/05's ClubPayoutReceiverView is the club receiver screen; the WP-10 copy is gone.
+        let governance = try source("App/ClubGovernanceViews.swift")
+        XCTAssertTrue(governance.contains("ClubPayoutReceiverLink(clubID: clubID)"))
+        XCTAssertFalse(governance.contains("ClubPayoutReceiverEntry"))
     }
 
     func testOWND05bMerchantAccountIsReadOnlyBehindFinanceRead() throws {
@@ -147,11 +145,10 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": true, "state": "NONE"])?.phase, OwnerDecisionMerchantAccount.Phase.none)
         XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": false])?.phase, .unavailable)
         XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": false])?.stateText, "—")
-        let screen = try source("App/OwnerDecisionPayoutViews.swift")
-        XCTAssertTrue(screen.contains("merchant.payoutAccount.loading"))
-        XCTAssertTrue(screen.contains("merchant.payoutAccount.empty"))
-        XCTAssertTrue(screen.contains("merchant.payoutAccount.error"))
-        XCTAssertFalse(screen.contains("withdraw"))
+        // Owner 2026-11-14: the merchant home finance row opens WP-01/05's MerchantPayoutAccountView, the only payout-account screen.
+        let home = try source("App/MerchantHomeView.swift")
+        XCTAssertTrue(home.contains("NavigationLink { MerchantPayoutAccountView() }"))
+        XCTAssertFalse(home.contains("MerchantPayoutAccountEntry"))
     }
 
     func testOWND05cPayoutWritesSendNothingWhileClosedAndProductionRefusesThem() async throws {
