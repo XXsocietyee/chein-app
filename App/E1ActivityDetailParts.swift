@@ -130,6 +130,7 @@ struct E1ActivityStatsRow: View {
                             .monospacedDigit()
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(item.value, locale: locale))
                         if let sub = item.sub {
                             Text(verbatim: sub)
                                 .font(CYTypography.micro)
@@ -140,6 +141,7 @@ struct E1ActivityStatsRow: View {
                     .frame(minWidth: dynamicTypeSize.isAccessibilitySize ? 132 : 84, alignment: .leading)
                     .padding(.horizontal, CYSpacing.md)
                     .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("activity.detail.stat.\(item.id)")
                 }
             }
             .padding(.vertical, CYSpacing.sm)
@@ -230,9 +232,9 @@ struct E1ActivityInfoCard: View {
             divider
             row("mappin.and.ellipse", copy.t("集合点", "Where"), placeText(facts)).accessibilityIdentifier("activity.detail.meetingPoint")
             divider
-            row("calendar", copy.t("时间与时长", "When"), whenText ?? "—")
+            row("calendar", copy.t("时间与时长", "When"), whenText ?? "—").accessibilityIdentifier("activity.detail.when")
             divider
-            row("ticket", copy.t("费用", "Price"), priceSummaryText)
+            row("ticket", copy.t("费用", "Price"), priceSummaryText).accessibilityIdentifier("activity.detail.price")
             divider
             row("person.2", copy.t("适合与已报名", "Who & Joined"), facts.registrationCount.map { copy.t("\($0) 人已报名", "\($0) going") } ?? "—")
                 .accessibilityIdentifier("activity.detail.registeredCount")
@@ -253,7 +255,11 @@ struct E1ActivityInfoCard: View {
             CYRowIcon(systemImage: icon)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: label).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
-                Text(verbatim: value).font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: value)
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityLabel(PageTemplateVoiceOver.spoken(value, locale: locale))
             }
             Spacer(minLength: 0)
         }

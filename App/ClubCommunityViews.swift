@@ -854,10 +854,12 @@ struct ClubCommunityReviewView: View {
                         ClubCommunityReferenceCover(reference: image, index: index)
                     }
                 case let .comment(content):
-                    Text(verbatim: content.isEmpty ? "—" : content)
+                    let commentValue = content.isEmpty ? PageTemplateVoiceOver.dash : content
+                    Text(verbatim: commentValue)
                         .font(CYTypography.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityLabel(PageTemplateVoiceOver.spoken(commentValue, locale: locale))
                 case .report, .reportComment:
                     Text("club.community.queuedExplanation")
                         .font(CYTypography.body)
@@ -1053,6 +1055,7 @@ struct ClubCommunityCommentsView: View {
 struct ClubCommunityHistoryView: View {
     let identity: ClubReadIdentity, postID: Int
     @StateObject private var model: ClubCommunityViewModel
+    @Environment(\.locale) private var locale
     init(context: ClubCommunityContext, identity: ClubReadIdentity, postID: Int) {
         self.identity = identity; self.postID = postID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
@@ -1075,14 +1078,18 @@ struct ClubCommunityHistoryView: View {
                         LabeledContent("club.community.version") {
                             Text(verbatim: String(revision.snapshotVersion)).monospacedDigit()
                         }
-                        Text(verbatim: revision.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : revision.content)
+                        let contentValue = revision.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PageTemplateVoiceOver.dash : revision.content
+                        Text(verbatim: contentValue)
                             .font(CYTypography.body)
                             .fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: revision.createTime.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : revision.createTime)
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(contentValue, locale: locale))
+                        let timeValue = revision.createTime.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PageTemplateVoiceOver.dash : revision.createTime
+                        Text(verbatim: timeValue)
                             .font(CYTypography.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(timeValue, locale: locale))
                         ForEach(Array(revision.images.enumerated()), id: \.offset) { index, value in
                             ClubCommunityReferenceCover(reference: value, index: index)
                         }
@@ -1103,6 +1110,7 @@ struct ClubCommunityHistoryView: View {
 
 private struct ClubCommunityCommentRow: View {
     let comment: ClubCommunityComment
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             if comment.nickname.isEmpty {
@@ -1112,6 +1120,7 @@ private struct ClubCommunityCommentRow: View {
             }
             Text(verbatim: shown(comment.content))
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel(PageTemplateVoiceOver.spoken(shown(comment.content), locale: locale))
         }
         .font(CYTypography.body)
         .foregroundStyle(CYColor.textPrimary)
@@ -1119,7 +1128,7 @@ private struct ClubCommunityCommentRow: View {
         .accessibilityElement(children: .combine)
     }
     private func shown(_ value: String) -> String {
-        value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : value
+        value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PageTemplateVoiceOver.dash : value
     }
 }
 

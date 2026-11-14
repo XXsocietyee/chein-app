@@ -380,6 +380,7 @@
         "PlayTimedDisplayLocalizationTests",
         "PlayerTaskEvidenceReviewControllerTests",
         "PostGameProjectionTests",
+        "PremergeScreensViewModelTests",
         "PrivacyAndSecurityRedactionSectionViewTests",
         "PrivacyGuideSummaryLocalizationTests",
         "PrivateHomeAppTests",

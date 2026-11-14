@@ -369,6 +369,7 @@
         "PlayerJourneyProductionTests",
         "PlayerJourneyPromoTests",
         "PlayerTaskEvidenceReviewControllerTests",
+        "PremergeScreensViewModelTests",
         "PrivacyAndSecurityRedactionSectionViewTests",
         "PrivacyGuideSummaryLocalizationTests",
         "PrivateHomeCompositionTests",
