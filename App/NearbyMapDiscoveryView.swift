@@ -198,8 +198,6 @@ struct NearbyMapDiscoveryControls: View {
             } label: { Text("nearby.map.layers", tableName: "NearbyMapDiscovery") }
                 .pickerStyle(.segmented)
                 .padding(4)
-                .background(Capsule(style: .continuous).fill(CYNight.glassFill))
-                .overlay(Capsule(style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
                 .accessibilityIdentifier("nearby.discovery.layers")
             if filter.layer == .place || filter.layer == .shop {
                 let options = NearbyMapDiscoveryFilter.options(items: items, layer: filter.layer)

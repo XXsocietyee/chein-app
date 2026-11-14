@@ -68,7 +68,7 @@ import SwiftUI
                         .frame(minHeight: 44)
                     // Mini-program field: 搜索中 spinner while a search runs, clear (x) once there is text.
                     if loading {
-                        ProgressView().controlSize(.small).accessibilityLabel(Text("searchMap.loading"))
+                        ProgressView().controlSize(.small).tint(CYColor.resultSpinner).accessibilityLabel(Text("searchMap.loading"))
                     }
                     if !filter.keyword.isEmpty {
                         Button { setKeyword("") } label: {
@@ -219,7 +219,7 @@ import SwiftUI
                     ForEach(history, id: \.self) { keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                                .lineLimit(1).minimumScaleFactor(0.85)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
                                 .contentShape(Capsule())
@@ -245,7 +245,7 @@ import SwiftUI
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                                .lineLimit(1).minimumScaleFactor(0.85)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
                                 .contentShape(Capsule())
@@ -390,7 +390,7 @@ import SwiftUI
                         Button("searchMap.retryPage") { Task { await search() } }
                             .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
                     }
-                    .listRowBackground(CYNight.indigo)
+                    .listRowBackground(CYColor.bgElevated)
                     .accessibilityIdentifier("searchMap.partialFailure")
                 }
             }
@@ -439,7 +439,7 @@ import SwiftUI
     private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind
         return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
-            title.font(CYTypography.bodyMedium).lineLimit(1)
+            title.font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .searchNightPill(selected: selected)

@@ -282,7 +282,7 @@ import SwiftUI
     private func teamCard(_ team: NearbyTeam) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
+                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 Spacer(minLength: 8)
                 NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode))
             }
@@ -325,7 +325,7 @@ import SwiftUI
                     expiry(applicant.applyExpireTime)
                     if !applicant.message.isEmpty { Text(verbatim: "“\(applicant.message)”").fixedSize(horizontal: false, vertical: true) }
                     actionButton(.handle(team: teamID, applicant: applicant.id, approved: true))
-                    actionButton(.handle(team: teamID, applicant: applicant.id, approved: false))
+                    actionButton(.handle(team: teamID, applicant: applicant.id, approved: false), style: .secondary)
                 }.padding().accessibilityIdentifier("nearby.applicant.\(applicant.id.rawValue)")
             }
         }
@@ -419,9 +419,9 @@ import SwiftUI
         }
     }
     /// Hidden when this build cannot send team actions, instead of a button that leads nowhere.
-    @ViewBuilder private func actionButton(_ action: NearbyTeamAction) -> some View {
+    @ViewBuilder private func actionButton(_ action: NearbyTeamAction, style: CYPillStyle = .primary) -> some View {
         if coordinator.canSubmit {
-            CYPillButton(LocalizedStringKey(action.key)) { model.prepare(action) }
+            CYPillButton(LocalizedStringKey(action.key), style: style) { model.prepare(action) }
                 .disabled(model.running || !coordinator.allowed(action)).accessibilityIdentifier("nearby.\(action.operation).\(action.teamID.rawValue)")
         }
     }

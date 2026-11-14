@@ -18,10 +18,10 @@ struct SearchMapIssue: View {
                 .fixedSize(horizontal: false, vertical: true)
             if let retry {
                 Button(action: retry) { Text("searchMap.retry").frame(minHeight: 44) }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.cySecondary(fullWidth: false))
             }
         }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("searchMap.issue")
     }
     static func key(_ error: Error) -> String {
@@ -52,17 +52,20 @@ struct SearchMapCard: View {
                 Group {
                     if row.title.isEmpty { Text("searchMap.untitled") } else { Text(verbatim: row.title) }
                 }
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 if let detail = row.detail, !detail.isEmpty {
-                    Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                    Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 if !row.tags.isEmpty {
-                    // Mini-program result card: tags are small filled chips, at most three on one line.
+                    // Mini-program result card: tags are small filled chips, at most three, and they wrap.
                     HStack(spacing: CYSpacing.xs) {
                         ForEach(Array(row.tags.prefix(3).enumerated()), id: \.offset) { _, tag in
-                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
-                                .background(Capsule(style: .continuous).fill(CYNight.glassFill))
+                                .background(Capsule(style: .continuous).fill(CYColor.bgSurfaceSubtle))
                         }
                     }
                 }
@@ -71,17 +74,15 @@ struct SearchMapCard: View {
             Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
         }
         .padding(CYSpacing.md)
-        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1).allowsHitTesting(false))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
 
 extension View {
-    /// Night glass capsule. Selected pills use neutral primary fill (`CYColor.actionPrimaryBg`).
+    /// Borderless capsule. Selected pills use the neutral primary fill.
     func searchNightPill(selected: Bool = false) -> some View {
-        background(Capsule(style: .continuous).fill(selected ? CYColor.actionPrimaryBg : CYNight.glassFill))
-            .overlay(Capsule(style: .continuous).strokeBorder(selected ? Color.clear : CYNight.glassEdgeTop, lineWidth: 1))
+        background(Capsule(style: .continuous).fill(selected ? CYColor.actionPrimaryBg : CYColor.bgElevated))
     }
 }
 /// Match the source's local secure-storage history rather than writing queries to ordinary defaults.
