@@ -43,50 +43,140 @@ struct MerchantCorrectionSheet: View {
     @State private var stage: Stage = .loading
     @State private var message = ""
 
-    enum Stage: Equatable { case loading, loadFailed, form, busy, done, failed, unknown }
+    enum Stage: Equatable { case loading, loadFailed, pickType, form, busy, done, failed, unknown }
 
     private var service: CommunityTrustPlayerService { CommunityTrustPlayerService(client: client) }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                switch stage {
-                case .loading:
-                    ProgressView().frame(maxWidth: .infinity)
-                case .loadFailed:
-                    Text(verbatim: message).foregroundStyle(CYColor.textSecondary)
-                    Button(PlayerCapabilityCopy.text("重试", "Retry", locale)) { Task { await load() } }
-                case .done:
-                    Label { Text(verbatim: message) } icon: { Image(systemName: "checkmark.circle") }
-                        .accessibilityIdentifier("merchant.correction.receipt")
-                default:
-                    Section(PlayerCapabilityCopy.text("哪里不对", "What is wrong", locale)) {
-                        Picker(PlayerCapabilityCopy.text("问题类型", "Issue", locale), selection: Binding(
-                            get: { issue }, set: { value in if value != issue { key = "" }; issue = value })) {
-                            ForEach(issues) { item in Text(verbatim: item.label).tag(Optional(item.code)) }
-                        }
-                        .pickerStyle(.inline)
+        Group {
+            switch stage {
+            case .pickType:
+                VStack(spacing: CYSpacing.md) {
+                    CYOptionSheet(
+                        title: PlayerCapabilityCopy.text("哪里不对", "What is wrong", locale),
+                        items: issues.map { CYOptionSheetItem(id: $0.code, title: $0.label) },
+                        selectedID: issue,
+                        onSelect: { selected in
+                            if selected != issue { key = "" }
+                            issue = selected
+                        },
+                        onClose: { dismiss() }
+                    )
+                    CYPillButton(
+                        verbatim: PlayerCapabilityCopy.text("下一步", "Next", locale),
+                        style: .primary
+                    ) {
+                        stage = .form
                     }
-                    Section(PlayerCapabilityCopy.text("说明", "Details", locale)) {
-                        TextField(PlayerCapabilityCopy.text("请写一下哪里不对、正确的信息是什么", "What is wrong and what is correct", locale),
-                                  text: Binding(get: { text }, set: { value in if value != text { key = "" }; text = value }), axis: .vertical)
-                            .lineLimit(3...8)
-                        Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).count)/\(CommunityTrustPlayerService.descriptionMax)")
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    }
-                    if stage == .failed || stage == .unknown {
-                        Text(verbatim: message).foregroundStyle(stage == .failed ? CYColor.dangerText : CYColor.warningText)
-                    }
-                    Button(PlayerCapabilityCopy.text("提交纠错", "Submit", locale)) { Task { await submit() } }
-                        .disabled(stage == .busy || issue == nil || CommunityTrustPlayerService.checkedDescription(text) == nil)
-                        .accessibilityIdentifier("merchant.correction.submit")
+                    .disabled(issue == nil)
+                    .padding(.horizontal, CYSpacing.lg)
+                    .padding(.bottom, CYSpacing.md)
+                    .accessibilityIdentifier("merchant.correction.next")
                 }
-            }
-            .navigationTitle(PlayerCapabilityCopy.text("商家信息纠错", "Correct merchant info", locale))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(PlayerCapabilityCopy.text("关闭", "Close", locale)) { dismiss() }.disabled(stage == .busy)
+            default:
+                CYSheetContainer(
+                    title: PlayerCapabilityCopy.text("信息纠错", "Correct merchant info", locale),
+                    onClose: { if stage != .busy { dismiss() } }
+                ) {
+                    switch stage {
+                    case .loading:
+                        VStack(spacing: CYSpacing.md) {
+                            ProgressView()
+                            Text(verbatim: PlayerCapabilityCopy.text("正在读取纠错类型", "Loading issue types", locale))
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, CYSpacing.lg)
+                    case .loadFailed:
+                        VStack(spacing: CYSpacing.md) {
+                            CYEmptyState(
+                                systemImage: "exclamationmark.triangle",
+                                LocalizedStringKey(message.isEmpty ? PlayerCapabilityCopy.text("暂时无法纠错", "Unable to correct info right now", locale) : message),
+                                kind: .error
+                            )
+                            HStack(spacing: CYSpacing.sm) {
+                                CYPillButton(verbatim: PlayerCapabilityCopy.text("取消", "Cancel", locale), style: .secondary) { dismiss() }
+                                CYPillButton(verbatim: PlayerCapabilityCopy.text("重试", "Retry", locale), style: .primary) { Task { await load() } }
+                            }
+                        }
+                    case .done:
+                        VStack(spacing: CYSpacing.md) {
+                            CYEmptyState(
+                                systemImage: "checkmark.circle",
+                                LocalizedStringKey(PlayerCapabilityCopy.text("纠错已提交", "Correction submitted", locale)),
+                                kind: .empty
+                            )
+                            Text(verbatim: message)
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .accessibilityIdentifier("merchant.correction.receipt")
+                            CYPillButton(verbatim: PlayerCapabilityCopy.text("关闭", "Close", locale), style: .primary) { dismiss() }
+                        }
+                    default:
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                                if let selectedCode = issue,
+                                   let selectedLabel = issues.first(where: { $0.code == selectedCode })?.label {
+                                    HStack {
+                                        Text(verbatim: selectedLabel)
+                                            .font(CYTypography.cardTitle)
+                                            .foregroundStyle(CYColor.textPrimary)
+                                        Spacer()
+                                        Button(PlayerCapabilityCopy.text("重选类型", "Change", locale)) {
+                                            stage = .pickType
+                                        }
+                                        .font(CYTypography.meta)
+                                        .disabled(stage == .busy)
+                                    }
+                                    .padding(CYSpacing.sm)
+                                    .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.sheetCard))
+                                }
+
+                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                    Text(verbatim: PlayerCapabilityCopy.text("补充说明", "Details", locale))
+                                        .font(CYTypography.sectionTitle)
+                                        .foregroundStyle(CYColor.textSecondary)
+                                    TextField(
+                                        PlayerCapabilityCopy.text("请写一下哪里不对、正确的信息是什么", "What is wrong and what is correct", locale),
+                                        text: Binding(get: { text }, set: { value in if value != text { key = "" }; text = value }),
+                                        axis: .vertical
+                                    )
+                                    .lineLimit(3...6)
+                                    .textFieldStyle(.roundedBorder)
+                                    Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).count)/\(CommunityTrustPlayerService.descriptionMax)")
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(CYColor.textSecondary)
+                                }
+
+                                if stage == .failed || stage == .unknown {
+                                    Text(verbatim: message)
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(stage == .failed ? CYColor.dangerText : CYColor.warningText)
+                                }
+
+                                HStack(spacing: CYSpacing.sm) {
+                                    CYPillButton(verbatim: PlayerCapabilityCopy.text("取消", "Cancel", locale), style: .secondary) {
+                                        dismiss()
+                                    }
+                                    .disabled(stage == .busy)
+
+                                    CYPillButton(
+                                        verbatim: stage == .busy
+                                            ? PlayerCapabilityCopy.text("正在提交纠错", "Submitting correction", locale)
+                                            : stage == .failed
+                                                ? PlayerCapabilityCopy.text("重试", "Retry", locale)
+                                                : PlayerCapabilityCopy.text("提交", "Submit", locale),
+                                        style: .primary
+                                    ) {
+                                        Task { await submit() }
+                                    }
+                                    .disabled(stage == .busy || issue == nil || CommunityTrustPlayerService.checkedDescription(text) == nil)
+                                    .accessibilityIdentifier("merchant.correction.submit")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -97,7 +187,11 @@ struct MerchantCorrectionSheet: View {
     private func load() async {
         stage = .loading
         guard merchantID > 0 else { message = "商家信息不完整，暂时无法纠错"; stage = .loadFailed; return }
-        do { issues = try await service.contributionIssueTypes(); stage = .form }
+        do {
+            issues = try await service.contributionIssueTypes()
+            stage = issues.isEmpty ? .loadFailed : .pickType
+            if issues.isEmpty { message = "暂时无法纠错" }
+        }
         catch { message = "纠错类型没有读取成功，请稍后再试"; stage = .loadFailed }
     }
 

@@ -26,57 +26,88 @@ import SwiftUI
     @State private var destination: DoorDestination?
     @State private var failure: String?
     @State private var showsLogin = false
+    @StateObject private var dirtyTracker = DeepLinkDirtyTracker()
+    @State private var showsDiscardModal = false
     var body: some View {
-        NavigationStack {
-            Group {
-                switch entry.intent {
-                case .routeError(let failure):
-                    NativeRouteErrorView(failure: failure, goHome: { session.dismissNativeEntry(); goHome() })
-                case .badge(let parameters):
-                    ObjectBadgeRoutePreview(parameters: parameters, expectedScope: entry.id, currentScope: { session.nativeEntry?.id ?? UUID() })
-                case .teamInvitation(let route):
-                    if session.account == nil {
-                        CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "nativeNav.team.signInDetail",
-                                     actionTitle: "team.signIn", actionStyle: .primary) { showsLogin = true }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        SessionTeamDetailView(lookup: .invitation(route.code)).id(session.teamViewIdentity)
-                    }
-                case .publicMerchant(let target):
-                    PublicMerchantHomeView(target: target, context: session.publicMerchantHomeContext).id(session.sessionRevision)
-                case .content(let target):
-                    AuditedContentEntry(target: target, session: session, goHome: goHome)
-                case .publicCatalog(let link):
-                    PublicCatalogViews(link: link, host: PublicCatalogHostWiring.host,
-                                       scope: { PublicCatalogHostWiring.scope }, token: { PublicCatalogHostWiring.token },
-                                       session: session)
-                        .id(session.sessionRevision)
-                case .miniProgramPage(let link):
-                    MPParityPageEntry(link: link, session: session, goHome: goHome)
-                case .merchantInvitation(let route):
-                    MerchantOperatorInvitationLandingView(invitation: route.invitation,
-                        reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,
-                        exportRecovery: session.merchantExportRecovery, requestSignIn: { showsLogin = true })
-                        .id(session.sessionRevision)
-                case .door:
-                    doorDestination
-                        .task(id: session.doorReferralSession) {
-                            guard session.doorReferralSession.restored else { return }
-                            guard let model = session.doorEntryCoordinator else { destination = .home; failure = "door.disabled"; return }
-                            // AppSession received this intent once. Never re-capture/refire after account changes.
-                            await model.resolve()
-                            guard !Task.isCancelled else { return }
-                            destination = model.destination; failure = model.failure
+        ZStack {
+            NavigationStack {
+                Group {
+                    switch entry.intent {
+                    case .routeError(let failure):
+                        NativeRouteErrorView(failure: failure, goHome: { session.dismissNativeEntry(); goHome() })
+                    case .badge(let parameters):
+                        ObjectBadgeRoutePreview(parameters: parameters, expectedScope: entry.id, currentScope: { session.nativeEntry?.id ?? UUID() })
+                    case .teamInvitation(let route):
+                        if session.account == nil {
+                            CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "nativeNav.team.signInDetail",
+                                         actionTitle: "team.signIn", actionStyle: .primary) { showsLogin = true }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            SessionTeamDetailView(lookup: .invitation(route.code)).id(session.teamViewIdentity)
                         }
+                    case .publicMerchant(let target):
+                        PublicMerchantHomeView(target: target, context: session.publicMerchantHomeContext).id(session.sessionRevision)
+                    case .content(let target):
+                        AuditedContentEntry(target: target, session: session, goHome: goHome)
+                    case .publicCatalog(let link):
+                        PublicCatalogViews(link: link, host: PublicCatalogHostWiring.host,
+                                           scope: { PublicCatalogHostWiring.scope }, token: { PublicCatalogHostWiring.token },
+                                           session: session)
+                            .id(session.sessionRevision)
+                    case .miniProgramPage(let link):
+                        MPParityPageEntry(link: link, session: session, goHome: goHome)
+                    case .merchantInvitation(let route):
+                        MerchantOperatorInvitationLandingView(invitation: route.invitation,
+                            reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,
+                            exportRecovery: session.merchantExportRecovery, requestSignIn: { showsLogin = true })
+                            .id(session.sessionRevision)
+                    case .door:
+                        doorDestination
+                            .task(id: session.doorReferralSession) {
+                                guard session.doorReferralSession.restored else { return }
+                                guard let model = session.doorEntryCoordinator else { destination = .home; failure = "door.disabled"; return }
+                                // AppSession received this intent once. Never re-capture/refire after account changes.
+                                await model.resolve()
+                                guard !Task.isCancelled else { return }
+                                destination = model.destination; failure = model.failure
+                            }
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("door.close") {
+                            switch DeepLinkSceneExitPolicy.evaluate(isDirty: dirtyTracker.isDirty) {
+                            case .closeImmediately:
+                                session.dismissNativeEntry()
+                            case .confirmDiscard:
+                                showsDiscardModal = true
+                            }
+                        }
+                    }
+                }
+                .sheet(isPresented: $showsLogin) {
+                    if case .teamInvitation = entry.intent { LoginView(intent: .player) }
+                    else { LoginView(intent: .merchant) }
                 }
             }
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("door.close") { session.dismissNativeEntry() } } }
-            .sheet(isPresented: $showsLogin) {
-                if case .teamInvitation = entry.intent { LoginView(intent: .player) }
-                else { LoginView(intent: .merchant) }
+            if showsDiscardModal {
+                MemberDeepLinkDiscardModal(
+                    onCancel: { showsDiscardModal = false },
+                    onConfirm: {
+                        showsDiscardModal = false
+                        dirtyTracker.isDirty = false
+                        session.dismissNativeEntry()
+                    }
+                )
             }
         }
-        .onDisappear { session.doorEntryCoordinator?.cancel() }
+        .environment(\.deepLinkDirtyTracker, dirtyTracker)
+        .environment(\.memberPopupActions, session.memberPopupActions())
+        .interactiveDismissDisabled(dirtyTracker.isDirty)
+        .onDisappear {
+            dirtyTracker.isDirty = false
+            session.doorEntryCoordinator?.cancel()
+        }
     }
     @ViewBuilder private var doorDestination: some View {
         switch destination {

@@ -12,22 +12,93 @@ struct NPCChatDataReadPresentation: Identifiable {
     @ObservedObject var session: AppSession
     var consentProbe: (() -> NPCChatDataConsentProbe?)?
     @Environment(\.scenePhase) private var scene
+    @Environment(\.locale) private var locale
+    @Environment(\.memberPopupActions) private var popupActions
     @State private var presentation: NPCChatDataReadPresentation?
+    @State private var showsOptions = false
+    @State private var confirmsClear = false
+    @State private var pendingIdentity: AppSession.NPCChatDataReadIdentity?
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .info
+
     var body: some View {
         let renderedIdentity = session.npcChatDataReadIdentity
         Section {
-            // Mini-program settings row 「AI 对话记录」 (OFF-AI-DEL-01): view, export (copy) and delete.
+            // Mini-program settings row 「AI 对话记录」 (OFF-AI-DEL-01): option sheet -> view, export (copy) and delete.
             Button("mpd.aiChat.title") {
                 guard scene == .active, session.npcChatDataReadIdentity == renderedIdentity else { return }
-                retire()
-                presentation = .init(identity: renderedIdentity, coordinator: session.makeNPCChatDataReadCoordinator(), consent: consentProbe?())
+                pendingIdentity = renderedIdentity
+                showsOptions = true
             }.accessibilityIdentifier("npcData.open")
         }
+        .sheet(isPresented: $showsOptions) {
+            MemberAIChatRecordsOptionSheet(onSelect: { option in
+                showsOptions = false
+                let targetIdentity = pendingIdentity ?? session.npcChatDataReadIdentity
+                switch option {
+                case .view:
+                    guard scene == .active, session.npcChatDataReadIdentity == targetIdentity else { return }
+                    retire()
+                    presentation = .init(identity: targetIdentity, coordinator: session.makeNPCChatDataReadCoordinator(), consent: consentProbe?())
+                case .export:
+                    Task {
+                        if let text = await popupActions.exportNPCChatTranscript?(), !text.isEmpty {
+                            LocalPasteboard.copy(text)
+                            toastTone = .success
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "对话记录已复制",
+                                "Chat records copied",
+                                locale: locale))
+                        } else {
+                            toastTone = .info
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "暂无可导出的对话记录",
+                                "No chat records available to export",
+                                locale: locale))
+                        }
+                    }
+                case .clear:
+                    confirmsClear = true
+                }
+            }, onClose: {
+                showsOptions = false
+            })
+            .cyDomainSheet(detents: [.peek, .half])
+        }
+        .sheet(isPresented: $confirmsClear) {
+            MemberNPCLogDeleteConfirmSheet {
+                confirmsClear = false
+                Task {
+                    switch await popupActions.clearNPCChatLogs?() {
+                    case .deleted:
+                        toastTone = .success
+                        toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                            "已清除对话记录",
+                            "Chat records cleared",
+                            locale: locale))
+                    case .unknown:
+                        toastTone = .warning
+                        toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                            "清除结果待确认，请打开记录查看",
+                            "Clear outcome unknown; open records to verify",
+                            locale: locale))
+                    case nil:
+                        toastTone = .info
+                        toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                            "请在对话记录详情页发起删除",
+                            "Open chat records to review and clear logs",
+                            locale: locale))
+                    }
+                }
+            }
+            .cyDomainSheet(detents: [.half])
+        }
         .sheet(item: $presentation) { NPCChatDataReadVisit(presentation: $0, session: session) }
+        .cyToast(message: $toastMessage, tone: toastTone)
         .onChange(of: session.npcChatDataReadIdentity) { _, _ in retire() }
         .onDisappear { retire() }
     }
-    private func retire() { presentation?.coordinator.invalidate(); presentation = nil }
+    private func retire() { showsOptions = false; confirmsClear = false; presentation?.coordinator.invalidate(); presentation = nil }
 }
 /// The visible sheet independently observes identity; its hidden Settings parent is not the privacy fence.
 @MainActor struct NPCChatDataReadVisit: View {

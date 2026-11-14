@@ -18,6 +18,7 @@ import SwiftUI
 
 @MainActor struct PublicMerchantHomeView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.memberPopupActions) private var popupActions
     let target: PublicMerchantHomeTarget?
     var context = PublicMerchantHomeContext()
     @State private var home: PublicMerchantHome?
@@ -29,6 +30,10 @@ import SwiftUI
     @State private var featuredSelection: PublicMerchantFeaturedSelection?
     @State private var ownerSelection: PublicMerchantOwnerProfileSelection?
     @State private var gameFactsSelection: MerchantGameFactsSelection?
+    @State private var showsNPCChatSheet = false
+    @State private var showsCoopInviteSheet = false
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .info
     private var gameFactsBinding: Binding<MerchantGameFactsSelection?> {
         let captured = gameFactsSelection?.id
         return Binding(get: { gameFactsSelection }, set: { next in
@@ -81,9 +86,66 @@ import SwiftUI
             } else { Text("merchant.publicHome.unavailable") }
         }
         .onChange(of: key) { _, _ in featuredSelection = nil; ownerSelection = nil; gameFactsSelection = nil }
+        .onChange(of: key) { _, _ in showsNPCChatSheet = false; showsCoopInviteSheet = false }
         .onChange(of: context.featured?.scope) { _, _ in featuredSelection = nil }
         // Preserve the link backing a pushed reviews screen; key fencing still hides stale data.
         .onDisappear { generation += 1; loading = false }
+        .cyToast(message: $toastMessage, tone: toastTone)
+        .sheet(isPresented: $showsNPCChatSheet) {
+            if let home, let npc = home.npc,
+               let raw = home.id, let row = PublicMerchantRowID(raw),
+               let destination = context.npcDestination {
+                MemberMerchantNPCChatSheet(
+                    title: npc.name ?? MemberPopupCopy.text("店铺形象", "Merchant AI", locale: locale),
+                    onExport: popupActions.exportNPCChatTranscript.map { action in
+                        {
+                            if let transcript = await action(), !transcript.isEmpty {
+                                LocalPasteboard.copy(transcript)
+                                toastTone = .success
+                                toastMessage = LocalizedStringKey(MemberPopupCopy.text("对话记录已复制", "Chat records copied", locale: locale))
+                            } else {
+                                toastTone = .info
+                                toastMessage = LocalizedStringKey(MemberPopupCopy.text("暂无可导出的对话记录", "No chat records to export", locale: locale))
+                            }
+                        }
+                    },
+                    onClear: popupActions.clearNPCChatLogs.map { action in
+                        {
+                            switch await action() {
+                            case .deleted:
+                                toastTone = .success
+                                toastMessage = LocalizedStringKey(MemberPopupCopy.text("已清除对话记录", "Chat records cleared", locale: locale))
+                            case .unknown:
+                                toastTone = .warning
+                                toastMessage = LocalizedStringKey(MemberPopupCopy.text("清除结果待确认，请刷新查看", "Clear outcome unknown", locale: locale))
+                            case nil:
+                                toastTone = .info
+                                toastMessage = LocalizedStringKey(MemberPopupCopy.text("请在设置 -> AI 对话记录中清除", "Manage deletion in Settings -> AI Chat Records", locale: locale))
+                            }
+                        }
+                    },
+                    onClose: { showsNPCChatSheet = false }
+                ) {
+                    destination(row, npc)
+                }
+                .cyDomainSheet(detents: [.full])
+            }
+        }
+        .sheet(isPresented: $showsCoopInviteSheet) {
+            if let home,
+               let loadTopics = popupActions.loadCoopInviteTopics,
+               let loadChapters = popupActions.loadCoopInviteChapters {
+                MemberCoopInviteSheet(
+                    targetName: home.name ?? "",
+                    merchantMemberID: home.memberId,
+                    loadTopics: loadTopics,
+                    loadChapters: loadChapters,
+                    onOpenFullCoopFlow: nil,
+                    onClose: { showsCoopInviteSheet = false }
+                )
+                .cyDomainSheet(detents: [.half, .full])
+            }
+        }
     }
     @ViewBuilder private func issue(_ failure: PublicMerchantHomeFailure) -> some View {
         Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier(failure.localizationKey)
@@ -152,9 +214,11 @@ import SwiftUI
             Section("merchant.publicHome.npc") {
                 media(npc.avatar, label: "merchant.publicHome.npc")
                 field(npc.name); field(npc.greeting)
-                if value.canOfferNPCChat(shopNpcChat: context.shopNpcChat), let raw = value.id,
-                   let row = PublicMerchantRowID(raw), let destination = context.npcDestination {
-                    NavigationLink { destination(row, npc) } label: {
+                if value.canOfferNPCChat(shopNpcChat: context.shopNpcChat), value.id != nil,
+                   context.npcDestination != nil {
+                    Button {
+                        showsNPCChatSheet = true
+                    } label: {
                         CYListRow("merchant.publicHome.chat", card: true) { CYRowIcon(systemImage: "bubble.left") }
                     }
                     .buttonStyle(.plain)
@@ -183,6 +247,15 @@ import SwiftUI
                 labeled(value.availableTime, label: "merchant.publicHome.availableTime")
                 labeled(value.suitActivityTypes, label: "merchant.publicHome.activityTypes")
                 labeled(value.demand, label: "merchant.publicHome.demand")
+                if popupActions.loadCoopInviteTopics != nil {
+                    CYPillButton(
+                        verbatim: MemberPopupCopy.text("发送邀约", "Send Invitation", locale: locale),
+                        style: .secondary
+                    ) {
+                        showsCoopInviteSheet = true
+                    }
+                    .accessibilityIdentifier("merchant.publicHome.coopInvite")
+                }
             }.accessibilityIdentifier("merchant.publicHome.cooperation")
         }
     }
