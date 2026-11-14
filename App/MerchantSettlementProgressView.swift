@@ -94,6 +94,7 @@ import UIKit
                 CYPillButton("merchant.settlementProgress.copyVoucher", style: .secondary, systemImage: "doc.on.doc") {
                     Task { await copyModel.copy(progress, intent: displayedIntent, reader: reader, currentSnapshot: currentSnapshot, write: Self.writeLocally) }
                 }
+                .frame(minHeight: 44)
                 .disabled(copyModel.busy || scenePhase != .active)
                 .accessibilityIdentifier("merchant.settlementProgress.copyVoucher")
                 if copyModel.busy { ProgressView("merchant.settlementProgress.checking").font(CYTypography.meta) }

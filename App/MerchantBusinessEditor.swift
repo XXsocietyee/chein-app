@@ -339,7 +339,8 @@ struct MerchantAftercareDecisionChange: Identifiable {
                         .disabled(busy).accessibilityIdentifier("merchant.business.confirm")
                 } else { Text("merchant.business.disabled").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.dispatchDisabled") }
                 if let editDraft {
-                    CYPillButton("merchant.reviewDraftReturn.edit", style: .secondary, action: editDraft).disabled(busy)
+                    Button("merchant.reviewDraftReturn.edit", action: editDraft).disabled(busy)
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("merchant.reviewDraftReturn.edit")
                         .accessibilityHint(Text("merchant.reviewDraftReturn.hint"))

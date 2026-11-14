@@ -37,7 +37,8 @@ struct MerchantOperationsEditor: View {
             if let issue = coordinator.issue { Section { MerchantOperationsIssueView(issue: issue) } }
             if coordinator.isLocked { Section { Text("merchant.operations.unknownOutcome") } }
             Section {
-                CYPillButton("merchant.operations.reviewDraft", style: .primary) { model.prepare() }
+                Button("merchant.operations.reviewDraft") { model.prepare() }
+                    .buttonStyle(CYPillButtonStyle(style: .primary))
                     .disabled(!coordinator.canReview).accessibilityIdentifier("merchant.operations.review")
                 if coordinator.isBusy { CYSkeleton(variant: .row).accessibilityLabel(Text("merchant.loading")) }
             }

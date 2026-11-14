@@ -40,15 +40,15 @@ import SwiftUI
                     LabeledContent("merchant.business.field.paidAmount") {
                         switch paidCardState {
                         case .amount(let text):
-                            Text(verbatim: text).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: text).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                                .monospacedDigit()
                         case .unknown:
                             Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")
                                 .font(CYTypography.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         case .permissionHidden:
-                            Text("merchant.business.sensitiveUnavailable")
+                            Text("merchant.business.sensitiveUnavailable").foregroundStyle(CYColor.textTertiary)
                                 .font(CYTypography.meta)
-                                .foregroundStyle(CYColor.textSecondary)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
                     Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")
