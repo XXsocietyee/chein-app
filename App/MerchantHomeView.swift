@@ -38,34 +38,55 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 } else {
                     List {
                         Section {
-                            if let name = identity.merchantName, !name.isEmpty { Text(name).font(.headline) }
-                            Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
-                                .accessibilityIdentifier("merchant.access.inactive")
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                if let name = identity.merchantName, !name.isEmpty {
+                                    Text(name)
+                                        .font(CYTypography.cardTitle)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                }
+                                Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
+                                    .font(CYTypography.body)
+                                    .foregroundStyle(CYColor.textSecondary)
+                                    .accessibilityIdentifier("merchant.access.inactive")
+                            }
+                            .padding(.vertical, CYSpacing.xs)
                         }
-                        if let openApplication {
-                            CYPillButton("merchant.onboarding.openApplication", action: openApplication)
-                                .accessibilityIdentifier("merchant.onboarding.entry")
-                            CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await reload() } }
-                                .accessibilityIdentifier("merchant.access.refresh")
-                        } else {
-                            CYPillButton("merchant.refreshAccess") { Task { await reload() } }
-                                .accessibilityIdentifier("merchant.access.refresh")
+                        Section {
+                            if let openApplication {
+                                CYPillButton("merchant.onboarding.openApplication", action: openApplication)
+                                    .accessibilityIdentifier("merchant.onboarding.entry")
+                                CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await reload() } }
+                                    .accessibilityIdentifier("merchant.access.refresh")
+                            } else {
+                                CYPillButton("merchant.refreshAccess") { Task { await reload() } }
+                                    .accessibilityIdentifier("merchant.access.refresh")
+                            }
                         }
-                    }.refreshable { await reload() }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                    }
+                    .scrollContentBackground(.hidden)
+                    .refreshable { await reload() }
                 }
             } else if let error = access.errorKey {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     CYHeroHeader("merchant.title")
-                    Text(LocalizedStringKey(error)).accessibilityIdentifier("merchant.access.error")
-                    if error != "merchant.access.denied" && error != "auth.expired" {
-                        CYPillButton("action.retry") { Task { await reload() } }
-                            .accessibilityIdentifier("merchant.access.retry")
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        Text(LocalizedStringKey(error))
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("merchant.access.error")
+                        if error != "merchant.access.denied" && error != "auth.expired" {
+                            CYPillButton("action.retry") { Task { await reload() } }
+                                .accessibilityIdentifier("merchant.access.retry")
+                        }
                     }
+                    .cyDomainCard()
                 }
                 .padding(CYSpacing.pageHorizontal)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else {
-                CYSkeleton()
+                CYSkeleton(variant: .merchantMetric)
                     .padding(CYSpacing.pageHorizontal)
                     .accessibilityIdentifier("merchant.access.loading")
                     .accessibilityLabel(Text("merchant.checkingAccess"))
@@ -262,7 +283,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                     .foregroundStyle(CYColor.textSecondary)
                                 // Unknown revenue is an em dash (MerchantMoney.display), never a fake zero.
                                 Text(MerchantMoney.display(value.revenue))
-                                    .font(CYTypography.display)
+                                    .font(CYTypography.data2XL)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textPrimary)
                                     .lineLimit(1)
@@ -459,7 +480,16 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             if access.canReadDashboard, let value = dashboard.value, !value.revenue7d.isEmpty {
                 Section("merchant.revenue7d") {
                     ForEach(Array(value.revenue7d.enumerated()), id: \.offset) { _, point in
-                        LabeledContent(point.date, value: MerchantMoney.display(point.amount))
+                        LabeledContent {
+                            Text(MerchantMoney.display(point.amount))
+                                .font(CYTypography.body.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(CYColor.textPrimary)
+                        } label: {
+                            Text(point.date)
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textSecondary)
+                        }
                     }
                 }
             }
@@ -468,17 +498,25 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     MerchantSectionState(model: events, retry: { Task { await loadEvents() } }) { values in
                         if values.isEmpty { CYEmptyState(systemImage: "calendar", "merchant.events.empty") }
                         ForEach(Array(values.enumerated()), id: \.offset) { _, event in
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text(event.content)
-                                Text(event.time).font(.caption).foregroundStyle(.secondary)
+                                    .font(CYTypography.body)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                Text(event.time)
+                                    .font(CYTypography.caption)
+                                    .monospacedDigit()
+                                    .foregroundStyle(CYColor.textSecondary)
                             }
+                            .padding(.vertical, CYSpacing.xs)
                         }
                     }
                 }
             }
             Section {
-                Button("merchant.refreshAccess") { Task { await refreshAccess() } }
+                CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await refreshAccess() } }
             }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
@@ -620,10 +658,12 @@ struct MerchantCountRow: View {
     var body: some View {
         LabeledContent {
             Text(value, format: .number)
-                .font(.title3.weight(.semibold).monospacedDigit())
+                .font(CYTypography.sectionTitle.monospacedDigit())
                 .foregroundStyle(CYColor.textPrimary)
         } label: {
-            Text(title).foregroundStyle(CYColor.textSecondary)
+            Text(title)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
         }
     }
 }
@@ -645,19 +685,19 @@ struct MerchantSectionState<Value, Content: View>: View {
     }
     var body: some View {
         if let value = model.value {
-            if model.isLoading { ProgressView("merchant.refreshing") }
+            if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
             if let error = model.errorKey {
-                Text("merchant.stale").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.stale").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 MerchantInlineFailure(errorKey: error, retry: retry)
             }
             content(value)
         } else if let error = model.errorKey {
             MerchantInlineFailure(errorKey: error, retry: retry)
-        } else { CYSkeleton() }
+        } else { CYSkeleton(variant: .merchantMetric) }
     }
 }
 
-/// Source 4-up quick action: white circle, hairline border, short label beneath (pages/merchant/index).
+/// Source 4-up quick action: borderless circular fill, short label beneath (pages/merchant/index).
 private struct MerchantQuickCircleAction: View {
     let title: LocalizedStringKey
     let systemImage: String
@@ -673,8 +713,7 @@ private struct MerchantQuickCircleAction: View {
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(primary ? palette.actionPrimaryFg : palette.textPrimary)
                     .frame(width: diameter, height: diameter)
-                    .background(primary ? palette.actionPrimaryBg : palette.bgElevated, in: Circle())
-                    .overlay(Circle().strokeBorder(primary ? Color.clear : palette.borderSubtle, lineWidth: 0.5))
+                    .background(primary ? palette.actionPrimaryBg : palette.bgSurface, in: Circle())
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
                     .font(CYTypography.caption)
@@ -693,12 +732,15 @@ struct MerchantInlineFailure: View {
     let errorKey: String
     let retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey(errorKey)).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(LocalizedStringKey(errorKey))
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                Button("action.retry", action: retry)
+                CYPillButton("action.retry", style: .secondary, action: retry)
             }
         }
+        .padding(.vertical, CYSpacing.xs)
     }
 }
 
@@ -707,14 +749,24 @@ struct MerchantFailureView: View {
     let identifier: String
     let retry: () -> Void
     var body: some View {
-        ContentUnavailableView {
-            Label { Text(LocalizedStringKey(errorKey)).accessibilityIdentifier(identifier + ".error") }
-                icon: { Image(systemName: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle") }
-        } actions: {
+        VStack(spacing: CYSpacing.md) {
+            Image(systemName: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
+                .font(CYTypography.display)
+                .foregroundStyle(CYColor.textSecondary)
+            Text(LocalizedStringKey(errorKey))
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier(identifier + ".error")
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                Button("action.retry", action: retry).accessibilityIdentifier(identifier + ".retry")
+                CYPillButton("action.retry", style: .primary, action: retry)
+                    .accessibilityIdentifier(identifier + ".retry")
             }
         }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity)
+        .cyDomainCard()
+        .padding(CYSpacing.pageHorizontal)
     }
 }
 

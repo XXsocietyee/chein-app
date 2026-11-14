@@ -93,7 +93,11 @@ import SwiftUI
         }
     }
     @ViewBuilder private func profile(_ value: PublicMerchantHome) -> some View {
-        if context.reader.isOfflineExample { Text("merchant.publicHome.synthetic").font(.footnote) }
+        if context.reader.isOfflineExample {
+            Text("merchant.publicHome.synthetic")
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textSecondary)
+        }
         Section {
             media(value.coverImage, label: "merchant.publicHome.cover")
             media(value.logo, label: "merchant.publicHome.logo")
@@ -227,7 +231,7 @@ import SwiftUI
     @ViewBuilder private func media(_ value: String?, label: LocalizedStringKey) -> some View {
         if let value, !value.isEmpty {
             if let image = context.image { image(value).accessibilityLabel(Text(label)) }
-            else { Label(label, systemImage: "photo").foregroundStyle(.secondary) }
+            else { Label(label, systemImage: "photo").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
     }
     private func load() async {

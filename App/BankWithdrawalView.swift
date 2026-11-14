@@ -105,7 +105,7 @@ import SwiftUI
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: CYSpacing.sm)
                         Image(systemName: "arrow.up.right")
-                            .font(.footnote.weight(.semibold))
+                            .font(CYTypography.footnote.weight(.semibold))
                             .foregroundStyle(palette.textTertiary)
                             .accessibilityHidden(true)
                     }
@@ -117,11 +117,6 @@ import SwiftUI
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                .allowsHitTesting(false)
-        }
     }
 
     private var destinationFields: some View {
@@ -238,11 +233,6 @@ import SwiftUI
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                .allowsHitTesting(false)
-        }
     }
 
     private var reviewSheet: some View {

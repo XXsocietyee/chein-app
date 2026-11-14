@@ -80,9 +80,8 @@ import SwiftUI
             if let subscriptions = model.subscriptions { entitlementSections(subscriptions) }
             if let rounds = model.rounds { predictionSections(rounds) }
         }
-        .cyDomainPageBackground()
-        .themeDomain(.merchant)
-        .tint(CYDomainPalette(.merchant).brand)
+        .scrollContentBackground(.hidden)
+        .cyDomainScreen(.merchant)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } } label: {

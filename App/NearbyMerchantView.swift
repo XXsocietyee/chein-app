@@ -40,7 +40,7 @@ extension EnvironmentValues {
                     .disabled(!purposeAccepted || !model.available || model.isBusy)
                     .accessibilityIdentifier("nearbyMerchant.search")
                 if !model.available { Text("coopflow.nearby.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                if model.isBusy { ProgressView("cooperation.loading").frame(maxWidth: .infinity, minHeight: 88) }
+                if model.isBusy { CYSkeleton(variant: .card) }
                 if model.phase == .locationFailed { Text("nearbyMerchant.locationFailed").font(CYTypography.meta).foregroundStyle(CYColor.warningText) }
                 if model.phase == .failed {
                     // Mini `cy-error` fill state: title, reason, one retry action (below).
@@ -51,15 +51,17 @@ extension EnvironmentValues {
                 }
                 if model.phase == .locationFailed || model.phase == .failed {
                     // Source `cy-error` retry: re-run the same explicit, consented search.
-                    Button("nearbyMerchant.retry") { operation = Task { await model.search(purposeAccepted: purposeAccepted) } }
-                        .disabled(!purposeAccepted || !model.available || model.isBusy)
-                        .frame(minHeight: 44).accessibilityIdentifier("nearbyMerchant.retry")
+                    CYPillButton("nearbyMerchant.retry", style: .secondary) {
+                        operation = Task { await model.search(purposeAccepted: purposeAccepted) }
+                    }
+                    .disabled(!purposeAccepted || !model.available || model.isBusy)
+                    .accessibilityIdentifier("nearbyMerchant.retry")
                 }
                 if model.phase == .locationDenied {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text("nearbyMerchant.locationDenied.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                         Text("nearbyMerchant.locationDenied.detail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        Button("nearbyMerchant.openSettings") {
+                        CYPillButton("nearbyMerchant.openSettings", style: .secondary) {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }.frame(minHeight: 44).accessibilityIdentifier("nearbyMerchant.openSettings")
                             .accessibilityLabel(Text("nearbyMerchant.openSettings"))

@@ -46,35 +46,46 @@ import SwiftUI
     @ViewBuilder private var content: some View {
         switch model.phase {
         case .idle, .loading:
-            ProgressView("merchant.perks.loading").frame(maxWidth: .infinity, maxHeight: .infinity)
+            CYSkeleton(variant: .row)
+                .padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .cyDomainPageBackground()
+                .themeDomain(.merchant)
                 .accessibilityIdentifier("merchant.perks.loading")
         case .signedOut:
-            ContentUnavailableView("merchant.perks.signedOut", systemImage: "person.crop.circle.badge.exclamationmark")
+            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "merchant.perks.signedOut")
+                .cyDomainPageBackground()
+                .themeDomain(.merchant)
         case .permissionDenied:
-            ContentUnavailableView {
-                Label("merchant.perks.permission.title", systemImage: "lock")
-            } description: { Text("merchant.perks.permission.detail") } actions: {
-                Button("merchant.perks.retry") { Task { await model.load() } }.frame(minHeight: 44)
-            }.accessibilityIdentifier("merchant.perks.permission")
+            CYErrorState(kind: .permission, message: "merchant.perks.permission.detail") {
+                Task { await model.load() }
+            }
+            .cyDomainPageBackground()
+            .themeDomain(.merchant)
+            .accessibilityIdentifier("merchant.perks.permission")
         case .failed:
-            ContentUnavailableView {
-                Label("merchant.perks.failed.title", systemImage: "exclamationmark.triangle")
-            } description: { Text("merchant.perks.failed.detail") } actions: {
-                Button("merchant.perks.retry") { Task { await model.load() } }.frame(minHeight: 44)
-                    .accessibilityIdentifier("merchant.perks.retry")
-            }.accessibilityIdentifier("merchant.perks.failed")
+            CYErrorState(kind: .server, message: "merchant.perks.failed.detail") {
+                Task { await model.load() }
+            }
+            .cyDomainPageBackground()
+            .themeDomain(.merchant)
+            .accessibilityIdentifier("merchant.perks.failed")
         case .ready:
             List {
                 if model.action != .idle { Section { actionBanner } }
-                if model.refreshing { Section { ProgressView("merchant.perks.refreshing") } }
+                if model.refreshing { Section { ProgressView("merchant.perks.refreshing").font(CYTypography.meta) } }
                 if model.rows.isEmpty {
                     Section {
                         CYEmptyStateView(systemImage: "gift", title: "merchant.perks.empty")
                             .accessibilityIdentifier("merchant.perks.empty")
                     }
+                    .listRowBackground(Color.clear)
                 }
                 ForEach(model.rows) { row in rowView(row) }
-            }.accessibilityIdentifier("merchant.perks.list")
+            }
+            .scrollContentBackground(.hidden)
+            .cyDomainScreen(.merchant)
+            .accessibilityIdentifier("merchant.perks.list")
         }
     }
 

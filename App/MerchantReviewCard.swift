@@ -5,10 +5,13 @@ import SwiftUI
 struct MerchantReviewCard: View {
     let presentation: MerchantReviewCardPresentation
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+            HStack(spacing: CYSpacing.sm) {
                 if let rating = presentation.rating {
-                    Text(verbatim: "★ \(rating)/5").font(.subheadline.bold())
+                    Text(verbatim: "★ \(rating)/5")
+                        .font(CYTypography.meta.weight(.bold))
+                        .monospacedDigit()
+                        .foregroundStyle(CYColor.warningText)
                 }
                 if presentation.verifiedRedemption {
                     Label {
@@ -16,7 +19,8 @@ struct MerchantReviewCard: View {
                     } icon: {
                         Image(systemName: "checkmark.seal")
                     }
-                    .font(.footnote)
+                    .font(CYTypography.caption)
+                    .foregroundStyle(CYColor.successText)
                 }
                 if presentation.photoCount > 0 {
                     Label {
@@ -27,22 +31,27 @@ struct MerchantReviewCard: View {
                     } icon: {
                         Image(systemName: "photo")
                     }
-                    .font(.footnote)
+                    .font(CYTypography.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(CYColor.textSecondary)
                 }
             }
-            HStack(spacing: 8) {
-                Text(
-                    LocalizedStringKey(presentation.visibilityTitleKey),
-                    tableName: "MerchantReviewAndCustomerDetail"
+            HStack(spacing: CYSpacing.sm) {
+                CYStatusChip(
+                    verbatim: NSLocalizedString(
+                        presentation.visibilityTitleKey,
+                        tableName: "MerchantReviewAndCustomerDetail",
+                        comment: ""
+                    ),
+                    tone: .neutral
                 )
-                .font(.footnote).padding(.horizontal, 8).padding(.vertical, 2)
-                .background(.quaternary, in: Capsule())
                 .accessibilityIdentifier("merchant.business.review.visibility")
                 Text(
                     LocalizedStringKey(presentation.replyTitleKey),
                     tableName: "MerchantReviewAndCustomerDetail"
                 )
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchant.business.review.replyState")
             }
         }.accessibilityElement(children: .combine)

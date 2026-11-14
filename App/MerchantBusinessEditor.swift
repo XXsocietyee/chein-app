@@ -46,22 +46,22 @@ struct MerchantBusinessEditorContext: Identifiable {
 
     private var editorForm: some View {
             Form {
-                Text("merchant.business.localDraft").foregroundStyle(.secondary)
+                Text("merchant.business.localDraft").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 switch context.kind {
                 case .note(let customer, _):
                     Text(noteCorrectionID == nil ? "merchant.business.addNote" : "merchant.business.correctNote")
-                        .font(.headline).accessibilityIdentifier("merchant.noteCorrection.mode")
+                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("merchant.noteCorrection.mode")
                     LabeledContent("merchant.business.target", value: "customer:\(customer.rawValue)")
                     if let note = noteCorrectionID {
                         LabeledContent("merchant.business.field.correctsNoteId", value: String(note))
                         MerchantNoteCorrectionTargetSummary(customer: customer, noteID: note, snapshot: snapshot)
-                        Text("merchant.noteCorrection.append").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.noteCorrection.append").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                         Button("merchant.noteCorrection.cancel") { confirmCancelCorrection = true }
                             .accessibilityIdentifier("merchant.noteCorrection.cancel")
                     }
                     TextField("merchant.business.noteContent", text: $content, axis: .vertical).lineLimit(3...8).accessibilityIdentifier("merchant.business.editor.content")
                     if noteDrafts != nil {
-                        Text("merchant.noteDraft.localBoundary").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.noteDraft.localBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                         Button("merchant.noteDraft.clear") { confirmClearNote = true }
                             .disabled(content.isEmpty).accessibilityIdentifier("merchant.noteDraft.clear")
                     }
@@ -78,7 +78,7 @@ struct MerchantBusinessEditorContext: Identifiable {
                     }
                     TextField("merchant.business.responseContent", text: $content, axis: .vertical).lineLimit(3...8)
                     TextField("merchant.business.evidenceKey", text: $evidence).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    Text("merchant.business.evidenceHint").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchant.business.evidenceHint").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                     if !evidence.isEmpty {
                         let removalDraft = aftercareEvidenceDraft
                         let removalOwner = aftercareEvidenceOwner?()
@@ -93,12 +93,12 @@ struct MerchantBusinessEditorContext: Identifiable {
                         }
                         .disabled(evidenceFlow != nil || pendingAftercareDecision != nil || removalOwner?.isCurrent != true)
                         .accessibilityIdentifier("merchant.aftercareRemoveEvidence.remove")
-                        Text("merchant.aftercareRemoveEvidence.localOnly").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.aftercareRemoveEvidence.localOnly").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                     }
                     Button("merchant.aftercareEvidence.open") { openAftercareEvidence(row) }
                         .disabled(evidenceDependencies == nil || pendingAftercareDecision != nil)
                         .accessibilityIdentifier("merchant.aftercareEvidence.open")
-                    Text("merchant.business.opinionOnly").font(.footnote)
+                    Text("merchant.business.opinionOnly").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 case .review(_, let action):
                     if action == .delete { Text("merchant.business.deleteReplyWarning") }
                     else { TextField(action == .report ? "merchant.business.reportReason" : "merchant.business.replyContent", text: $content, axis: .vertical).lineLimit(3...8) }
@@ -110,7 +110,7 @@ struct MerchantBusinessEditorContext: Identifiable {
                     if let selected = snapshot?.roles?.rows.first(where: { $0.id == role }) {
                         MerchantOperatorRolePermissionSection(role: selected)
                     }
-                    Text("merchant.business.rolesBoundary").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchant.business.rolesBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 case .removeOperator, .revokeInvite:
                     TextField("merchant.business.reason", text: $content, axis: .vertical).lineLimit(3...8)
                 }
@@ -319,10 +319,10 @@ struct MerchantAftercareDecisionChange: Identifiable {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey(review.mutation.titleKey)).font(.headline)
+                    Text(LocalizedStringKey(review.mutation.titleKey)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                     if case .addNote(let customer, _, let correction) = review.mutation, let note = correction {
                         MerchantNoteCorrectionTargetSummary(customer: customer, noteID: note, snapshot: review.baseline)
-                        Text("merchant.noteCorrection.append").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.noteCorrection.append").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                     }
                     if case .json(let fields) = review.request.body {
                         ForEach(fields.keys.sorted().filter { $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, id: \.self) { key in
@@ -331,22 +331,26 @@ struct MerchantAftercareDecisionChange: Identifiable {
                         }
                     }
                 }
-                if let issue { Text(LocalizedStringKey(issue)) }
+                if let issue { Text(LocalizedStringKey(issue)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
                 if canExecute {
-                    if isSynthetic { Text("merchant.business.synthetic") }
-                    Button(isSynthetic ? "merchant.business.confirmSynthetic" : "merchant.business.confirmProduction", action: confirm)
-                        .buttonStyle(.questifyPrimary)
-                        .frame(maxWidth: .infinity)
+                    if isSynthetic { Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                    CYPillButton(isSynthetic ? "merchant.business.confirmSynthetic" : "merchant.business.confirmProduction", style: .primary, action: confirm)
                         .listRowBackground(Color.clear)
                         .disabled(busy).accessibilityIdentifier("merchant.business.confirm")
-                } else { Text("merchant.business.disabled").accessibilityIdentifier("merchant.business.dispatchDisabled") }
+                } else { Text("merchant.business.disabled").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.dispatchDisabled") }
                 if let editDraft {
                     Button("merchant.reviewDraftReturn.edit", action: editDraft).disabled(busy)
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .listRowBackground(Color.clear)
                         .accessibilityIdentifier("merchant.reviewDraftReturn.edit")
                         .accessibilityHint(Text("merchant.reviewDraftReturn.hint"))
                 }
                 Button("action.cancel", action: cancel).disabled(busy).accessibilityIdentifier("merchant.business.cancelReview")
-            }.navigationBarTitleDisplayMode(.inline).interactiveDismissDisabled(busy)
+            }
+            .scrollContentBackground(.hidden)
+            .cyDomainScreen(.merchant)
+            .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(busy)
         }
     }
 }

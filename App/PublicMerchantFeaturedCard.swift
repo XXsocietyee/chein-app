@@ -17,21 +17,29 @@ import SwiftUI
     let featured: PublicMerchantFeatured
     let image: ((String) -> AnyView)?
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if let url = featured.imageURL {
                 Group {
                     if let image { image(url) }
-                    else { Label("merchant.publicHome.featured.image", systemImage: "photo").foregroundStyle(.secondary) }
+                    else { Label("merchant.publicHome.featured.image", systemImage: "photo").foregroundStyle(CYColor.textSecondary) }
                 }
-                .aspectRatio(16.0 / 9.0, contentMode: .fit).frame(maxWidth: .infinity).clipped()
+                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 .accessibilityLabel(Text("merchant.publicHome.featured.image"))
             }
             Label(LocalizedStringKey(featured.kind == .activity ? "merchant.publicHome.featured.activity" : "merchant.publicHome.featured.coupon"),
                   systemImage: featured.kind == .activity ? "calendar" : "ticket")
-                .font(.caption).foregroundStyle(.secondary)
-            if let name = featured.name { Text(verbatim: name).font(.headline) }
-            else { Text("merchant.publicHome.featured.untitled").font(.headline) }
-            if let description = featured.description { Text(verbatim: description).font(.subheadline).textSelection(.enabled) }
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textSecondary)
+            if let name = featured.name {
+                Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            } else {
+                Text("merchant.publicHome.featured.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            }
+            if let description = featured.description {
+                Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+            }
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier("merchant.publicHome.featured.card")

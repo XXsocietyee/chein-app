@@ -60,7 +60,8 @@ enum WalletFundsStagePhase: Equatable {
         VStack(alignment: .leading, spacing: 8) {
             switch phase {
             case .loading:
-                ProgressView { Text("wallet.earnings.stages.loading", tableName: "WalletEarningsOverview") }
+                CYSkeleton(variant: .row)
+                    .accessibilityLabel(Text("wallet.earnings.stages.loading", tableName: "WalletEarningsOverview"))
                     .accessibilityIdentifier("wallet.earnings.stages.loading")
             case .signedOut:
                 Text("wallet.earnings.stages.signedOut", tableName: "WalletEarningsOverview")
@@ -72,8 +73,7 @@ enum WalletFundsStagePhase: Equatable {
                 Text("wallet.earnings.stages.failed", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.failed")
                 Button(action: retry) { Text("wallet.earnings.stages.retry", tableName: "WalletEarningsOverview") }
-                    .buttonStyle(.borderless)
-                    .frame(minHeight: 44)
+                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
                     .accessibilityIdentifier("wallet.earnings.stages.retry")
             case .unknown:
                 Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview")
@@ -165,7 +165,7 @@ private struct WalletContentListStyle: ViewModifier {
         content.listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
-            .font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
+            .font(CYTypography.body)
     }
 }
 extension View {
@@ -205,7 +205,7 @@ struct WalletStatusMessage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("wallet.earnings.finance.separate", tableName: "WalletEarningsOverview")
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("wallet.earnings.finance.separate")
             if WalletOrganizerFinanceAdmission.showReader(allowsRead: access.allowsRead(), hasSession: access.reader.session != nil, mounted: mounted) {

@@ -10,24 +10,24 @@ struct MerchantAftercareRowLabel: View {
     }
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
         let metadataLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s1))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Theme.Space.s1))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.xs))
         layout {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: row.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 metadataLayout {
-                    if let time = row.timeText { Text(verbatim: time + " ·").foregroundStyle(CYColor.textTertiary) }
+                    if let time = row.timeText { Text(verbatim: time + " ·").monospacedDigit().foregroundStyle(CYColor.textSecondary) }
                     Text(verbatim: MerchantOpsCopy.text(row.statusKey)).foregroundStyle(toneColor)
-                    if row.isTakenOver { Text(verbatim: "· " + MerchantOpsCopy.text("merchantOps.aftercare.takenOver")).foregroundStyle(CYColor.textTertiary) }
+                    if row.isTakenOver { Text(verbatim: "· " + MerchantOpsCopy.text("merchantOps.aftercare.takenOver")).foregroundStyle(CYColor.textSecondary) }
                 }.font(CYTypography.meta)
-                if let activity = row.activityTitle { Text(verbatim: activity).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+                if let activity = row.activityTitle { Text(verbatim: activity).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
             }
-            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
+            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             if let amount = row.amountDisplay { Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
-            else { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.amountPending")).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+            else { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.amountPending")).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
@@ -41,13 +41,13 @@ struct MerchantAftercareDayHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s1))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
         layout {
             Text(verbatim: Self.label(group.label)).font(CYTypography.label)
-            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: Theme.Space.s2) }
+            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             if let total = group.total { Text(verbatim: total).font(CYTypography.numericBody).monospacedDigit() }
-        }.foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchantOps.aftercare.day.\(group.id)")
+        }.foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchantOps.aftercare.day.\(group.id)")
     }
     static func label(_ label: MerchantAftercareParity.DayLabel) -> String {
         switch label {

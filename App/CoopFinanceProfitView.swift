@@ -42,7 +42,6 @@ extension EnvironmentValues {
         .cyGroupedSurface()
         .cyHeroScreen()
         .themeDomain(.merchant)
-        .tint(CYDomainPalette(.merchant).brand)
         .cyHideTabBar(true)
         .modifier(CoopOperationListPresentation())
         .labeledContentStyle(CoopFinancialRowStyle())

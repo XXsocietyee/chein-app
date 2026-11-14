@@ -30,22 +30,21 @@ import SwiftUI
             else if model.unavailable { text("unavailable") }
             else if model.failed {
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
-                    .font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                    .font(CYTypography.section).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
                     .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
             } else if let slice = model.displayedResult(for: reader) {
                 content(slice)
-            } else { ProgressView { text("loading") } }
+            } else { CYSkeleton(variant: .detail) }
         }
         .listStyle(.insetGrouped)
-        .font(Theme.Font.body)
+        .font(CYTypography.body)
         .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
         .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .themeDomain(domain)
-        .tint(Theme.Color.accent(in: domain))
         .privacySensitive()
         .task(id: WalletIncomeAnalysisReadIdentity(reader)) { visible = true; await load() }
         .refreshable { await load() }
@@ -69,7 +68,7 @@ import SwiftUI
                     .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
-                readText("budget").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                readText("budget").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             if dynamicTypeSize.isAccessibilitySize { modePicker.pickerStyle(.menu) }
             else { modePicker.pickerStyle(.segmented) }
@@ -84,7 +83,7 @@ import SwiftUI
         }
         if model.pageModel.phase == .unknown || model.pageModel.phase == .empty {
             Text(verbatim: model.pageModel.moneyText)
-                .font(Theme.Font.sectionTitle).monospacedDigit()
+                .font(CYTypography.section).monospacedDigit()
                 .accessibilityIdentifier("wallet.analysis.page")
         }
         if slice.rows.isEmpty {
@@ -97,19 +96,19 @@ import SwiftUI
         else if let currency {
             Section {
                 if let current = summary.months.last {
-                    VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                        Text(verbatim: current.id).font(Theme.Font.label).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: current.id).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                         if summary.unknownCount > 0, current.count == 0 {
                             monthAmount(current, summary: summary, currency: currency)
-                                .font(.system(.largeTitle, weight: .semibold)).monospacedDigit()
+                                .font(CYTypography.dataXL).monospacedDigit()
                                 .fixedSize(horizontal: false, vertical: true)
                         } else {
                             // Headline amount rolls when the month figure changes (reload, currency switch).
                             CYStatNumber(text: WalletIncomeAnalysisPresentation.text(current.amount, currency: currency, locale: locale),
-                                         font: .system(.largeTitle, weight: .semibold))
+                                         font: CYTypography.dataXL)
                         }
-                        if summary.unknownCount > 0 { text("knownSubtotal").font(Theme.Font.label).foregroundStyle(.secondary) }
-                    }.padding(.vertical, Theme.Space.s3)
+                        if summary.unknownCount > 0 { text("knownSubtotal").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                    }.padding(.vertical, CYSpacing.sm)
                 }
                 if !dynamicTypeSize.isAccessibilitySize {
                     monthChart(summary)

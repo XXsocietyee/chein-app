@@ -64,7 +64,7 @@ import SwiftUI
     private func handle(_ action: CoopFlowHandle, label: String, emphasis: Bool = false) -> some View {
         NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: {
             Text(LocalizedStringKey(label)).font(emphasis ? CYTypography.bodyMedium : CYTypography.body)
-                .foregroundStyle(emphasis ? CYColor.brand : CYColor.textPrimary)
+                .foregroundStyle(CYColor.textPrimary)
         }
             .accessibilityIdentifier("cooperation.detail.handle.\(action.rawValue)")
     }

@@ -27,7 +27,7 @@ import UIKit
     @ViewBuilder private var content: some View {
         switch state {
         case .loading:
-            Section { CYLoadingStateView(rows: 2) }.accessibilityIdentifier("payoutAccount.loading")
+            Section { CYSkeleton(variant: .formSection) }.accessibilityIdentifier("payoutAccount.loading")
         case .empty:
             Section { CYEmptyState(systemImage: "building.columns", "payoutAccount.none", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.none") }
         case .failed(let issue):
@@ -57,18 +57,23 @@ import UIKit
             if let key = account.stateKey {
                 LabeledContent {
                     CYStatusChip(verbatim: payoutText(key, locale), tone: tone(account.tone))
-                } label: { Text("payoutAccount.row.state", tableName: "PayoutReceiver") }
+                } label: { Text("payoutAccount.row.state", tableName: "PayoutReceiver").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
                     .accessibilityIdentifier("payoutAccount.state." + (account.state ?? ""))
             }
             if let masked = account.maskedSubMerchantID {
-                LabeledContent { Text(verbatim: masked).monospacedDigit() } label: { Text("payoutAccount.row.subMchid", tableName: "PayoutReceiver") }
+                LabeledContent { Text(verbatim: masked).font(CYTypography.body).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
+                    label: { Text("payoutAccount.row.subMchid", tableName: "PayoutReceiver").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
             }
             if let checked = account.checkedAt {
-                LabeledContent { Text(checked, format: .dateTime.month().day().hour().minute()).foregroundStyle(CYColor.textTertiary) }
-                    label: { Text("payoutAccount.row.checkedAt", tableName: "PayoutReceiver") }
+                LabeledContent { Text(checked, format: .dateTime.month().day().hour().minute()).font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
+                    label: { Text("payoutAccount.row.checkedAt", tableName: "PayoutReceiver").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
             }
         } footer: {
-            if let description = account.stateDescription { Text(verbatim: description) }
+            if let description = account.stateDescription {
+                Text(verbatim: description)
+                    .font(CYTypography.caption)
+                    .foregroundStyle(CYColor.textSecondary)
+            }
         }
         if let link = account.signURL, let key = account.copyKey {
             Section {

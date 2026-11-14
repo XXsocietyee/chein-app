@@ -65,15 +65,23 @@ struct MerchantOperationsHomeView: View {
                         }
                     }
                 }
-                if !access.identity.active { Text("merchant.access.inactive").foregroundStyle(CYColor.textTertiary) }
+                if !access.identity.active { Text("merchant.access.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             } else if let issue, loadedScope == reader.scope {
-                ContentUnavailableView {
-                    Label { MerchantOperationsIssueView(issue: issue) } icon: { Image(systemName: "exclamationmark.triangle") }
-                } actions: {
-                    Button("action.retry") { Task { await load(readPermit) } }.accessibilityIdentifier("merchant.operations.retry")
+                VStack(spacing: CYSpacing.md) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(CYTypography.display)
+                        .foregroundStyle(CYColor.textSecondary)
+                    MerchantOperationsIssueView(issue: issue)
+                    CYPillButton("action.retry", style: .primary) { Task { await load(readPermit) } }
+                        .accessibilityIdentifier("merchant.operations.retry")
                 }
-            } else { ProgressView("merchant.loading").frame(maxWidth: .infinity) }
+                .padding(CYSpacing.lg)
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
+            } else { CYSkeleton(variant: .formSection).listRowBackground(Color.clear) }
         }
+        .scrollContentBackground(.hidden)
+        .cyDomainScreen(.merchant)
         .appNavigationTitle("merchant.operations.title")
         .refreshable { await load(readPermit) }
         .task(id: readPermit) { await load(readPermit) }
@@ -245,12 +253,21 @@ struct MerchantOperationsDocumentView: View {
                 case .assets(let resources): MerchantOperationsAssetsView(resources: resources)
                 }
             } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
-                VStack(spacing: 20) {
+                VStack(spacing: CYSpacing.md) {
                     MerchantOperationsIssueView(issue: issue)
-                    Button("action.retry") { Task { await model.load() } }.accessibilityIdentifier("merchant.operations.retry")
-                }.padding()
-            } else { ProgressView("merchant.loading") }
+                    CYPillButton("action.retry", style: .primary) { Task { await model.load() } }
+                        .accessibilityIdentifier("merchant.operations.retry")
+                }
+                .padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                CYSkeleton(variant: .formSection)
+                    .padding(CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
         }
+        .cyDomainPageBackground()
+        .themeDomain(.merchant)
         .appNavigationTitle(key: destination.titleKey)
         .safeAreaInset(edge: .bottom) {
             if let templateReturn { MerchantCityTemplateReturnFooter(coordinator: coordinator, action: templateReturn) }

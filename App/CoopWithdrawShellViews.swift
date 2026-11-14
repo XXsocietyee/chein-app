@@ -21,6 +21,7 @@ import SwiftUI
         .cyGroupedSurface()
         .cyMiniListScreen()
         .cyHeroScreen()
+        .themeDomain(.merchant)
         .questifyBottomAction {
             if isSignedIn {
                 // Opens support. It does not submit a withdrawal.
@@ -58,6 +59,7 @@ import SwiftUI
                 }
                 .cyGroupedSurface()
                 .cyMiniListScreen()
+                .themeDomain(.merchant)
             }
         }
         .id(attempt)

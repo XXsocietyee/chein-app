@@ -580,7 +580,9 @@ struct RoamPrivatePageScope: Hashable {
                     .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(identifier: "roam.private.issue")]) }
                     .accessibilityIdentifier("roam.goals.screen")
             }
-        }.appNavigationTitle("roam.goals.title")
+        }
+        .themeDomain(.player)
+        .appNavigationTitle("roam.goals.title")
     }
 }
 
@@ -661,15 +663,14 @@ extension RoamGoalState {
                 if model.isBusy && model.rows.isEmpty { CYSkeleton().accessibilityLabel(Text("roam.private.loading")) }
                 ForEach(model.rows) { row in
                     Button { page.read { await model.open(row.id) } } label: {
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack {
-                                (Text(verbatim: "\(row.progress) / ") + amountText(row.metric, row.target)).font(.headline).monospacedDigit()
+                                (Text(verbatim: "\(row.progress) / ") + amountText(row.metric, row.target)).font(CYTypography.cardTitle).monospacedDigit()
                                 Spacer()
-                                Text(row.state.titleKey).font(.caption.bold()).padding(.horizontal, 8).padding(.vertical, 2)
-                                    .background(row.state == .achieved ? CYColor.successSoft : CYColor.borderSubtle, in: Capsule())
+                                CYStatusChip(row.state.titleKey, tone: row.state == .achieved ? .success : .neutral)
                             }
                             ProgressView(value: Double(row.percent), total: 100)
-                            (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).font(.caption).foregroundStyle(.secondary)
+                            (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                         }.accessibilityElement(children: .combine)
                     }.buttonStyle(.plain).accessibilityIdentifier("roam.goals.row")
                 }

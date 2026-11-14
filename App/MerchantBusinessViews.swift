@@ -308,14 +308,14 @@ import SwiftUI
         let queuedRequest = accessModel.request
         List {
             MerchantOpsWp03Panel(page: .team)
-            if reader.isOfflineExample { Text("merchant.business.synthetic").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.synthetic") }
+            if reader.isOfflineExample { Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.synthetic") }
             // Entry does not grant report access; the destination rechecks original APP permissions.
             NavigationLink { SessionCityMerchantValueView() } label: { CityMerchantValueCopy.text("merchantTitle") }
                 .accessibilityIdentifier("cityValue.merchant.entry")
             if let access = accessModel.access(for: reader) {
                 Section {
-                    Text(access.name ?? "#\(access.merchantID)").font(.title3.bold())
-                    Text(LocalizedStringKey("merchant.business.role." + String(access.role)))
+                    Text(access.name ?? "#\(access.merchantID)").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(LocalizedStringKey("merchant.business.role." + String(access.role))).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 if MerchantOperatorSelfRoleCard.isShown(for: access) {
                     MerchantOperatorSelfRoleCard(access: access)
@@ -344,11 +344,12 @@ import SwiftUI
                         }.accessibilityIdentifier("merchant.cityRedeem.entry")
                     }
                 }
-            } else if accessModel.isLoading(for: reader) { ProgressView("merchant.checkingAccess") }
-            if let issue = accessModel.issue(for: reader) { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
-            Button("merchant.refreshAccess") {
+            } else if accessModel.isLoading(for: reader) { CYSkeleton(variant: .card) }
+            if let issue = accessModel.issue(for: reader) { Text(LocalizedStringKey(issue)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            CYPillButton("merchant.refreshAccess", style: .secondary) {
                 accessModel.refresh(reader: reader, appearance: visibleAppearance, context: renderedKey)
             }.disabled(accessModel.isLoading(for: reader))
+            .listRowBackground(Color.clear)
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
@@ -457,13 +458,14 @@ import SwiftUI
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
-            if reader.isOfflineExample { Text("merchant.business.synthetic").font(.footnote).foregroundStyle(.secondary) }
+            if reader.isOfflineExample { Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
             filters
-            if state.isBusy { ProgressView("merchant.loading").accessibilityIdentifier("merchant.business.loading") }
+            if state.isBusy { CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading") }
             if let key = model.aftercareLoadFailureKey ?? state.failureKey {
-                Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("merchant.business.error")
-                    if case .rejected(_, let message) = state.failure, let message { Text(message).foregroundStyle(.secondary) }
-                    if !state.isBusy, !state.isLocked { Button("action.retry") { Task { await reload() } } }
+                Section {
+                    Text(LocalizedStringKey(key)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("merchant.business.error")
+                    if case .rejected(_, let message) = state.failure, let message { Text(message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if !state.isBusy, !state.isLocked { CYPillButton("action.retry", style: .secondary) { Task { await reload() } } }
                 }
             }
             if case .reviews = query, MerchantReviewsPageState.isDenied(failureKey: model.aftercareLoadFailureKey ?? state.failureKey) {
@@ -529,12 +531,18 @@ import SwiftUI
                     }
                 } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     if case .aftercare(let bucket, _) = query {
-                        Text(verbatim: MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
+                        CYEmptyState(systemImage: "arrow.uturn.backward.circle", verbatimTitle: MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue)))
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("merchant.business.empty")
                     } else {
-                    Text(isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.empty")
+                        CYEmptyState(systemImage: "tray", isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty", messageIdentifier: "merchant.business.empty")
+                            .listRowBackground(Color.clear)
                     }
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
-                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
+                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches"))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("merchant.business.list.noMatches")
                 }
                 if query == .operators {
                     MerchantOpsWp03Panel(page: .team)
@@ -953,8 +961,8 @@ import SwiftUI
                                                    : MerchantLedgerParity.redemption(row.fields, canReadFinance: access.allows("merchant:finance:read")),
                                                identifier: "merchantOps.ledger.row.\(row.id)")
                     } else {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(row.title).font(.headline)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                         MerchantBusinessRecordFields(row: row, access: access, compact: true)
                     }
                     }
@@ -963,7 +971,7 @@ import SwiftUI
             MerchantCustomerContactEntry(owner: model, record: row, flow: $customerContactFlow)
             }
         } else {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
                 if row.kind == .entry, case .entries = query {
                     MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchantOps.ledger.entry.\(row.id)")
                 } else if row.kind == .redemption, case .redemption = query {
@@ -971,7 +979,7 @@ import SwiftUI
                 } else if row.kind == .batch, case .batch = query {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(row.fields))
                 } else {
-                Text(row.title).font(.headline)
+                Text(row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
                 if let card = MerchantReviewCardPresentation(row: row) { MerchantReviewCard(presentation: card) }
                 MerchantBusinessRecordFields(row: row, access: access, compact: false,

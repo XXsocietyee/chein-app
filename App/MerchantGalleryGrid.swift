@@ -51,7 +51,8 @@ struct MerchantGalleryGrid: View {
             .aspectRatio(MerchantGalleryGridLayout.cellAspectRatio, contentMode: .fit)
             .accessibilityIdentifier("merchant.operations.gallery.slot." + String(index))
         case .empty(let index):
-            RoundedRectangle(cornerRadius: 8).strokeBorder(.secondary.opacity(0.4))
+            RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+                .fill(CYColor.bgSurfaceSubtle)
                 .frame(maxWidth: .infinity, minHeight: 96)
                 .aspectRatio(MerchantGalleryGridLayout.cellAspectRatio, contentMode: .fit)
                 .accessibilityHidden(true)

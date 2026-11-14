@@ -363,10 +363,10 @@ struct CoopFlowReviewEditor: View {
                 }
             } else if model.failed {
                 Text("coopflow.read.failed")
-                Button("cooperation.retry") { Task { await model.load(permit: permit) } }
+                CYPillButton("cooperation.retry", style: .secondary, fullWidth: false) { Task { await model.load(permit: permit) } }
                     .accessibilityIdentifier("coopflow.perks.retry")
             } else if reader.session == nil { Text("cooperation.login") }
-            else { ProgressView("cooperation.loading") }
+            else { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
             CoopFlowSafetyNotice()
         }.navigationTitle("coopflow.attach")
             .navigationDestination(item: model.previewBinding()) { preview in

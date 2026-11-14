@@ -41,8 +41,8 @@ struct ClubOpsNotifyContentFields: View {
             Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
             Spacer()
             Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count)/\(limit)")
-                .font(.caption).monospacedDigit().foregroundStyle(.secondary)
-        }.font(.subheadline)
+                .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+        }.font(CYTypography.subhead)
     }
 }
 

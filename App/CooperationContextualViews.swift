@@ -376,7 +376,7 @@ import SwiftUI
     @State private var generation = 0
     var body: some View {
         List {
-            if busy { ProgressView("cooperation.loading") }
+            if busy { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
             Section("coopflow.credit") {
                 if creditFailed { Text("coopflow.read.failed"); Button("action.retry") { Task { await load() } } }
                 else if let credit {
