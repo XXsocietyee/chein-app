@@ -380,7 +380,7 @@ public struct VideoBountySource {
         let reason = object.flatMap { $0["reasonCode"] as? String }
         let message = object?["msg"] as? String
         return VideoBountyEnvelope(httpStatus: status, code: code ?? String(status), reasonCode: reason,
-                                   message: message, dataJSON: jsonData(object?["data"] as Any?),
+                                   message: message, dataJSON: Self.jsonData(object?["data"] as Any?),
                                    netFail: false, receiptReread: receiptReread)
     }
 

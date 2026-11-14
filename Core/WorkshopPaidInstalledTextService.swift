@@ -75,7 +75,7 @@ public struct WorkshopPaidInstalledTextApproval {
             let code = (200..<300).contains(status) ? try decode(Code.self, data).code : status
             if status == 401 || code == 401 { try check(lifetime); onUnauthorized(lease.context); throw WorkshopPaidInstalledTextIssue.unauthorized }
             guard (200..<300).contains(status), code == 200 else { throw WorkshopPaidInstalledTextIssue.unavailable }
-            guard let value = try memberText(data, reference: reference), value.matches(reference) else { throw WorkshopPaidInstalledTextIssue.malformed }
+            let value = try memberText(data, reference: reference); guard value.matches(reference) else { throw WorkshopPaidInstalledTextIssue.malformed }
             try check(lifetime); return value
         } catch {
             try check(lifetime); throw (error as? WorkshopPaidInstalledTextIssue) ?? .unavailable

@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import Questify
+@testable import QuestifyCore
 
 final class WP07CommerceClientTests: XCTestCase {
     private final class Transport: HTTPTransport, @unchecked Sendable {

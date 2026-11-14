@@ -247,7 +247,7 @@ public struct HostTipSource {
         let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
         let code = object.flatMap { codeString($0["code"]) } ?? (object == nil ? String(status) : nil)
         return HostTipEnvelope(httpStatus: status, code: code ?? String(status), reasonCode: object?["reasonCode"] as? String,
-                               message: object?["msg"] as? String, dataJSON: jsonData(object?["data"] as Any?), netFail: false)
+                               message: object?["msg"] as? String, dataJSON: Self.jsonData(object?["data"] as Any?), netFail: false)
     }
 
     private static func config(_ row: [String: Any]) -> HostTipConfigFact? {
