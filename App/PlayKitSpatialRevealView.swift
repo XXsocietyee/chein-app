@@ -30,6 +30,9 @@ import simd
             if issue == .permissionDenied {
                 Button(action: openCameraSettings) { Text("scanner.openSettings") }
                     .accessibilityIdentifier("playkit.spatial.openSettings")
+                    .accessibilityLabel(Text("scanner.openSettings"))
+                    .accessibilityValue(Text("playkitSpatial.error.permissionDenied"))
+                    .accessibilityHint(Text("playkitSpatial.purposeDetail"))
             }
             if working { CYSkeleton().accessibilityLabel(Text("playkitSpatial.loading")) }
         }

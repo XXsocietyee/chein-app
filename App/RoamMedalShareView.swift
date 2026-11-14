@@ -147,6 +147,9 @@ import UIKit
             CYPillButton("roam.share.openPhotoSettings", style: .secondary) {
                 if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
             }.accessibilityIdentifier("roam.medalShare.openPhotoSettings")
+                .accessibilityLabel(Text("roam.share.openPhotoSettings"))
+                .accessibilityValue(Text("roam.share.photoPermissionDenied"))
+                .accessibilityHint(Text("roam.share.openPhotoSettings"))
         }
     }
     private var saveButtonKey: String {

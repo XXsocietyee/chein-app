@@ -148,9 +148,15 @@ struct DiscoveryTemplateBrowserView: View {
                 .submitLabel(.search)
                 .onSubmit(submit)
                 .accessibilityIdentifier(field)
+                .accessibilityLabel(Text(prompt))
+                .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
+                .accessibilityHint(Text("discovery.searchAction"))
             Button("discovery.searchAction", action: submit)
                 .font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
                 .accessibilityIdentifier(submitID ?? "\(field).submit")
+                .accessibilityLabel(Text("discovery.searchAction"))
+                .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
+                .accessibilityHint(Text(prompt))
         }
         .padding(.horizontal, CYSpacing.lg)
         .frame(minHeight: CYSpacing.minTouchTarget)
@@ -167,6 +173,9 @@ struct DiscoveryTemplateBrowserView: View {
                 .overlay { Capsule(style: .continuous).strokeBorder(selected ? Color.clear : palette.borderStrong, lineWidth: 1) }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(title)
+        .accessibilityHint(title)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
@@ -184,6 +193,9 @@ struct DiscoveryTemplateBrowserView: View {
                         topicSearchFocused = false
                     }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("discovery.topicNameSearch.clear")
+                        .accessibilityLabel(Text("discovery.clearTopicNameSearch"))
+                        .accessibilityValue(Text(verbatim: appliedTopicSearch.keyword.isEmpty ? "—" : appliedTopicSearch.keyword))
+                        .accessibilityHint(Text("discovery.topicNameSearch"))
                 }
             }
         }
@@ -226,6 +238,9 @@ struct DiscoveryTemplateBrowserView: View {
                 Button("discovery.clearFilters") {
                     keyword = ""; appliedKeyword = ""; gameTag = nil
                 }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                    .accessibilityLabel(Text("discovery.clearFilters"))
+                    .accessibilityValue(Text(verbatim: clearFilterSpoken))
+                    .accessibilityHint(Text("discovery.clearFilters"))
             }
         }
         if let error = shelfGames.error, shelfGames.value == nil {
@@ -337,6 +352,15 @@ struct DiscoveryTemplateBrowserView: View {
     private func loadTopics() async {
         await topics.load(reader: reader, visit: topics.visit)
     }
+    /// A typed keyword stays as typed, including 0. No keyword and no chosen tag is unknown.
+    private var clearFilterSpoken: String {
+        if !appliedKeyword.isEmpty { return appliedKeyword }
+        guard let gameTag else { return "—" }
+        let tags = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag)
+        if let tag = shelfTag(tags, key: gameTag) { return locale.pick(tag.zh, tag.en) }
+        return "—"
+    }
+
     private func shelfTag(_ tags: DiscoveryShelfTagSet, key: String) -> DiscoveryShelfTag? {
         tags.row.first { $0.key == key } ?? tags.groups.flatMap(\.tags).first { $0.key == key }
     }
@@ -407,6 +431,9 @@ struct DiscoveryTemplateBrowserView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("discovery.allCategories.all")
+                    .accessibilityLabel(Text(verbatim: locale.pick("全部", "All")))
+                    .accessibilityValue(Text(verbatim: locale.pick("全部", "All")))
+                    .accessibilityHint(Text(verbatim: locale.pick("全部分类", "All categories")))
                     ForEach(groups) { group in
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Text(verbatim: locale.pick(group.zh, group.en))
@@ -419,6 +446,9 @@ struct DiscoveryTemplateBrowserView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .accessibilityIdentifier("discovery.allCategories.\(tag.key)")
+                                .accessibilityLabel(Text(verbatim: locale.pick(tag.zh, tag.en)))
+                                .accessibilityValue(Text(verbatim: locale.pick(tag.zh, tag.en)))
+                                .accessibilityHint(Text(verbatim: locale.pick(group.zh, group.en)))
                             }
                         }
                     }
@@ -433,6 +463,9 @@ struct DiscoveryTemplateBrowserView: View {
                         Image(systemName: "xmark")
                     }
                     .accessibilityIdentifier("discovery.allCategories.close")
+                    .accessibilityLabel(Text("action.close"))
+                    .accessibilityValue(Text(verbatim: locale.pick("全部分类", "All categories")))
+                    .accessibilityHint(Text(verbatim: locale.pick("全部分类", "All categories")))
                 }
             }
         }

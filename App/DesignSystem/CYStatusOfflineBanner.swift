@@ -70,6 +70,9 @@ public struct CYStatusOfflineBanner: View {
                     .disabled(isRetrying)
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("cy.offlineBanner.retry")
+                    .accessibilityLabel(Text(LocalizedStringKey(actionTitleKey)))
+                    .accessibilityValue(spokenCache)
+                    .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "cy.state.offline.banner.stillOffline" : messageKey)))
                 }
             }
             if let cachedAt {
@@ -106,6 +109,16 @@ public struct CYStatusOfflineBanner: View {
         )
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(LocalizedStringKey("cy.state.offline.accessibility.label")))
+        .accessibilityValue(spokenCache)
+        .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "cy.state.offline.banner.stillOffline" : messageKey)))
         .accessibilityIdentifier("cy.offlineBanner")
+    }
+
+    /// A missing cache time is unknown. A shown clock stays the time already on the banner.
+    private var spokenCache: Text {
+        if let cachedAt {
+            return Text(cachedAt, format: .dateTime.hour().minute())
+        }
+        return Text(verbatim: "—")
     }
 }

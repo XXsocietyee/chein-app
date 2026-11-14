@@ -111,6 +111,8 @@ import QuestifyCore
                 ProgressView(value: ChallengePOIChecklist.progress(items))
                     .tint(palette.textPrimary)
                     .accessibilityLabel(Text(verbatim: W8Text.t("挑战进度", "Challenge progress")))
+                    .accessibilityValue(Text(verbatim: ChallengePOIChecklist.progress(items) == 0 ? "0" : "\(ChallengePOIChecklist.progress(items))"))
+                    .accessibilityHint(Text(verbatim: W8Text.t("挑战进度", "Challenge progress")))
                 ChallengePOIChecklistView(items: items)
             }
             .cyDomainCard()
@@ -131,10 +133,15 @@ import QuestifyCore
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .cyField()
+                .accessibilityLabel(Text("playx.poi.photoUrlPlaceholder"))
+                .accessibilityValue(Text(verbatim: coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.uploadedPhotoUrl))
+                .accessibilityHint(Text("playx.poi.photoStep"))
             CYPillButton("playx.poi.confirmPhoto", style: .secondary, systemImage: "camera") {
                 coordinator.confirmPhotoUploaded(coordinator.uploadedPhotoUrl)
             }
             .accessibilityLabel(Text("playx.poi.confirmPhoto"))
+            .accessibilityValue(Text(verbatim: coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.uploadedPhotoUrl))
+            .accessibilityHint(Text("playx.poi.photoStep"))
         }
         .cyDomainCard()
     }
@@ -154,11 +161,17 @@ import QuestifyCore
                         CYChoiceRow(label: readable(option), selected: coordinator.selectedOptionIndex == idx) {
                             coordinator.selectedOptionIndex = idx
                         }
+                        .accessibilityLabel(Text(verbatim: readable(option)))
+                        .accessibilityValue(Text(verbatim: readable(option)))
+                        .accessibilityHint(Text(verbatim: node.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : readable(node.question)))
                     }
                 } else {
                     TextField(LocalizedStringKey("playx.poi.answerPlaceholder"), text: $coordinator.textAnswer)
                         .font(CYTypography.body)
                         .cyField()
+                        .accessibilityLabel(Text("playx.poi.answerPlaceholder"))
+                        .accessibilityValue(Text(verbatim: coordinator.textAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.textAnswer))
+                        .accessibilityHint(Text(verbatim: node.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : readable(node.question)))
                 }
             }
             .cyDomainCard()
@@ -185,12 +198,16 @@ import QuestifyCore
                     Task { await onRefresh() }
                 }
                 .accessibilityLabel(Text("playx.poi.verifyReceipt"))
+                .accessibilityValue(Text(verbatim: "—"))
+                .accessibilityHint(Text("playx.poi.verifyReceipt"))
                 CYPillButton("playx.poi.submit", style: .secondary, systemImage: "paperplane.fill") {
                     Task { await onSubmit() }
                 }
                 .disabled(true)
                 .accessibilityIdentifier("playx.poi.submit")
                 .accessibilityLabel(Text("playx.poi.submit"))
+                .accessibilityValue(Text(verbatim: "—"))
+                .accessibilityHint(Text("playx.poi.submit"))
             } else {
                 CYPillButton("playx.poi.submit", systemImage: "paperplane.fill") {
                     Task { await onSubmit() }
@@ -198,6 +215,8 @@ import QuestifyCore
                 .disabled(coordinator.submitting)
                 .accessibilityIdentifier("playx.poi.submit")
                 .accessibilityLabel(Text("playx.poi.submit"))
+                .accessibilityValue(Text(coordinator.submitting ? "playx.poi.loading" : "playx.poi.submit"))
+                .accessibilityHint(Text("playx.poi.submit"))
             }
         }
     }

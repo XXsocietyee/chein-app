@@ -218,8 +218,14 @@ struct CYPermissionPrimer: View {
             VStack(spacing: CYSpacing.xs) {
                 CYPillButton(verbatim: content.primaryTitle, style: .primary, fullWidth: true, action: onPrimary)
                     .accessibilityIdentifier("cy.permission.\(identifierKind).primary")
+                    .accessibilityLabel(Text(verbatim: content.primaryTitle))
+                    .accessibilityValue(Text(verbatim: content.title))
+                    .accessibilityHint(Text(verbatim: content.body))
                 CYPillButton(verbatim: content.secondaryTitle, style: .tertiary, fullWidth: true, action: onSecondary)
                     .accessibilityIdentifier("cy.permission.\(identifierKind).secondary")
+                    .accessibilityLabel(Text(verbatim: content.secondaryTitle))
+                    .accessibilityValue(Text(verbatim: content.title))
+                    .accessibilityHint(Text(verbatim: content.body))
             }
             .padding(.top, CYSpacing.sm)
         }

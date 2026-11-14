@@ -107,6 +107,9 @@ extension EnvironmentValues {
                     Button(action: openNotificationSettings) { Text("d7.notifyPermission.settings") }
                         .font(CYTypography.caption)
                         .accessibilityIdentifier("im.coopStrip.inviteReminder.settings")
+                        .accessibilityLabel(Text("d7.notifyPermission.settings"))
+                        .accessibilityValue(Text(LocalizedStringKey(presentation == .unknown ? "mpd.im.inviteReminder.unknownLabel" : "mpd.im.inviteReminder.denied")))
+                        .accessibilityHint(Text("d7.notifyPermission.settings"))
                 }
             }
             .task {
@@ -116,17 +119,26 @@ extension EnvironmentValues {
         }
     }
     @ViewBuilder private func inviteSwitch(_ binding: any IMInviteReminderBinding) -> some View {
-        let toggle = Toggle(isOn: Binding(get: { presentation == .on }, set: { value in Task { await change(value, binding) } })) {
-            Text("mpd.im.inviteReminder").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        Group {
+            Toggle(isOn: Binding(get: { presentation == .on }, set: { value in Task { await change(value, binding) } })) {
+                Text("mpd.im.inviteReminder").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            .toggleStyle(.switch)
         }
-        .toggleStyle(.switch).controlSize(.mini).fixedSize()
+        .controlSize(.mini)
+        .fixedSize()
         .disabled(busy)
         .accessibilityIdentifier("im.coopStrip.inviteReminder")
-        if ready && presentation == .unknown {
-            toggle.accessibilityValue(Text("mpd.im.inviteReminder.unknownLabel"))
-        } else {
-            toggle
-        }
+        .accessibilityLabel(Text("mpd.im.inviteReminder"))
+        .accessibilityValue(inviteSpokenValue)
+        .accessibilityHint(Text("mpd.im.inviteReminder"))
+    }
+
+    private var inviteSpokenValue: Text {
+        if !ready || presentation == .unknown { return Text("mpd.im.inviteReminder.unknownLabel") }
+        if presentation == .on { return Text("mpd.im.inviteReminder.on") }
+        if offersSettings { return Text("mpd.im.inviteReminder.denied") }
+        return Text("mpd.im.inviteReminder")
     }
     private func reload(_ binding: any IMInviteReminderBinding) async {
         await binding.reload()

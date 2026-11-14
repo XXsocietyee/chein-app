@@ -63,11 +63,17 @@ struct DeregistrationExecuteAfterRow: View {
                 .multilineTextAlignment(typeSize.isAccessibilitySize ? .leading : .trailing)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("authEntry.deregister.executeAfter")
+                .accessibilityLabel(Text(executeAfterTitle, tableName: "AuthEntry"))
+                .accessibilityValue(Text(verbatim: display.phone + (display.phoneZoneAbbreviation.map { " (" + $0 + ")" } ?? "")))
+                .accessibilityHint(Text("authEntry.deregister.serverDecides", tableName: "AuthEntry"))
         } else {
             Text(verbatim: "—")
                 .font(CYTypography.numericBody)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("authEntry.deregister.timePending")
+                .accessibilityLabel(Text(executeAfterTitle, tableName: "AuthEntry"))
+                .accessibilityValue(Text(verbatim: "—"))
+                .accessibilityHint(Text("authEntry.deregister.serverDecides", tableName: "AuthEntry"))
         }
     }
 }

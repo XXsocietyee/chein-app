@@ -1493,8 +1493,12 @@ private struct PledgeNoticeText: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        Text(verbatim: BackendErrorCatalog.playerFacing(code: raw, language: Self.catalogLanguage(locale)))
+        let sentence = BackendErrorCatalog.playerFacing(code: raw, language: Self.catalogLanguage(locale))
+        Text(verbatim: sentence)
             .accessibilityIdentifier("rewards.pledge.notice")
+            .accessibilityLabel(Text(verbatim: sentence))
+            .accessibilityValue(Text(verbatim: sentence))
+            .accessibilityHint(Text(verbatim: sentence))
     }
 
     private static func catalogLanguage(_ locale: Locale) -> BackendErrorLanguage {

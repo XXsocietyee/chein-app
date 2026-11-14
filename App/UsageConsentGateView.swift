@@ -85,10 +85,16 @@ struct UsageConsentGateView: View {
                         .buttonStyle(.cyPrimary)
                         .cyHaptic(.success, trigger: agreeTaps)
                         .accessibilityIdentifier("authEntry.gate.agree")
+                        .accessibilityLabel(Text("authEntry.gate.agree", tableName: "AuthEntry"))
+                        .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
+                        .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
                     Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
                         .font(CYTypography.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("authEntry.gate.decline")
+                        .accessibilityLabel(Text("authEntry.gate.decline", tableName: "AuthEntry"))
+                        .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
+                        .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
                 }
                 .padding(.horizontal, CYSpacing.xxl)
                 .padding(.top, CYSpacing.md)
@@ -103,7 +109,12 @@ struct UsageConsentGateView: View {
             .sheet(item: $document) { sheet in
                 NavigationStack {
                     SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
-                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { document = nil } } }
+                        .toolbar { ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") { document = nil }
+                                .accessibilityLabel(Text("action.close"))
+                                .accessibilityValue(Text("authEntry.gate.title", tableName: "AuthEntry"))
+                                .accessibilityHint(Text("action.close"))
+                        } }
                 }
             }
         }
@@ -126,6 +137,9 @@ struct UsageConsentGateView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(id)
+        .accessibilityLabel(Text(title, tableName: "AuthEntry"))
+        .accessibilityValue(Text(title, tableName: "AuthEntry"))
+        .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
     }
 }
 
@@ -176,6 +190,9 @@ struct UsageConsentSignInRequirement: View {
                 .accessibilityIdentifier("authEntry.gate.requiredForSignIn")
             Button { presented = true } label: { Text("authEntry.gate.review", tableName: "AuthEntry") }
                 .accessibilityIdentifier("authEntry.gate.review")
+                .accessibilityLabel(Text("authEntry.gate.review", tableName: "AuthEntry"))
+                .accessibilityValue(Text("authEntry.gate.requiredForSignIn", tableName: "AuthEntry"))
+                .accessibilityHint(Text("authEntry.gate.lead", tableName: "AuthEntry"))
         }
         .sheet(isPresented: $presented) {
             UsageConsentGateView(market: market, onAgree: {

@@ -207,9 +207,18 @@ struct OwnMediaRow: View {
         }
         .disabled(busy)
         .accessibilityIdentifier("member.privacy.homeCity.on")
+        .accessibilityLabel(Text("member.privacy.homeCity.on", tableName: "MemberProfile"))
+        .accessibilityValue(homeCitySpokenValue)
+        .accessibilityHint(Text("member.privacy.sheetBody", tableName: "MemberProfile"))
         .confirmationDialog(Text("homeCityConsent.title"), isPresented: $confirmEnable, titleVisibility: .visible) {
             Button("homeCityConsent.agree") { Task { await write(enabled: true) } }
+                .accessibilityLabel(Text("homeCityConsent.agree"))
+                .accessibilityValue(Text("member.privacy.homeCity.on", tableName: "MemberProfile"))
+                .accessibilityHint(Text("homeCityConsent.body"))
             Button("homeCityConsent.decline", role: .cancel) {}
+                .accessibilityLabel(Text("homeCityConsent.decline"))
+                .accessibilityValue(Text("member.privacy.homeCity.off", tableName: "MemberProfile"))
+                .accessibilityHint(Text("homeCityConsent.body"))
         } message: {
             Text("homeCityConsent.body")
         }
@@ -218,12 +227,23 @@ struct OwnMediaRow: View {
         }
         .disabled(busy)
         .accessibilityIdentifier("member.privacy.homeCity.off")
+        .accessibilityLabel(Text("member.privacy.homeCity.off", tableName: "MemberProfile"))
+        .accessibilityValue(homeCitySpokenValue)
+        .accessibilityHint(Text("member.privacy.sheetBody", tableName: "MemberProfile"))
         if let shown = messageKey {
             Text(LocalizedStringKey(shown), tableName: "MemberProfile")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("member.privacy.homeCity.status")
         }
+    }
+
+    /// No saved setting yet is unknown, spoken as an em dash. A later status sentence is the copy already on the row.
+    private var homeCitySpokenValue: Text {
+        if let messageKey {
+            return Text(LocalizedStringKey(messageKey), tableName: "MemberProfile")
+        }
+        return Text(verbatim: "—")
     }
 
     private func write(enabled: Bool) async {

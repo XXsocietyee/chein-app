@@ -49,6 +49,9 @@ import QuestifyCore
                 }
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("characterSheet.diceRoller")
+                .accessibilityLabel(Text("characterCard.dice"))
+                .accessibilityValue(Text(verbatim: card.statusText.isEmpty ? "—" : card.statusText))
+                .accessibilityHint(Text("characterCard.dice"))
             }
         }
         .sheet(isPresented: $showingDice) { DiceRollerSheet() }
@@ -68,6 +71,9 @@ import QuestifyCore
                     Text(card.statusText)
                         .font(CYTypography.caption)
                         .foregroundStyle(card.running ? CYColor.successText : CYColor.textSecondary)
+                        .accessibilityLabel(Text(verbatim: card.heading))
+                        .accessibilityValue(Text(verbatim: card.statusText.isEmpty ? "—" : card.statusText))
+                        .accessibilityHint(Text(verbatim: card.definitionNote(for: definitionSource)))
                         .padding(.horizontal, CYSpacing.sm)
                         .padding(.vertical, CYSpacing.xs)
                         .background(card.running ? CYColor.successSoft : CYColor.bgRaised, in: Capsule())
@@ -113,7 +119,10 @@ import QuestifyCore
                 .tint(tint)
                 .accessibilityHidden(true)
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
+        .accessibilityValue(Text(verbatim: valueText.isEmpty ? "—" : valueText))
+        .accessibilityHint(label)
     }
 
     private func traitRow(_ trait: CharacterRpgTrait) -> some View {
@@ -134,7 +143,10 @@ import QuestifyCore
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: trait.label.isEmpty ? "—" : trait.label))
+        .accessibilityValue(Text(verbatim: trait.tag.isEmpty ? "—" : trait.tag))
+        .accessibilityHint(Text(verbatim: trait.desc.isEmpty ? "—" : trait.desc))
     }
 }
 
@@ -207,6 +219,7 @@ import QuestifyCore
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(attribute.label)
         .accessibilityValue("\(attribute.value) / \(attribute.max)" + (levelText.isEmpty ? "" : ", \(levelText)"))
+        .accessibilityHint(Text(verbatim: levelText.isEmpty ? "—" : levelText))
     }
 }
 

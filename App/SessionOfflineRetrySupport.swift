@@ -199,11 +199,18 @@ struct SessionOfflineBannerModifier: ViewModifier {
                 .buttonStyle(.bordered)
                 .disabled(syncModel.isSyncing)
                 .accessibilityIdentifier("cy.offlineQueue.syncNow")
+                .accessibilityLabel(Text(LocalizedStringKey(syncModel.isSyncing ? "cy.state.offline.queue.syncing" : "cy.state.offline.queue.syncNow")))
+                .accessibilityValue(Text("cy.state.offline.queue.pending \(syncModel.queuedCount)"))
+                .accessibilityHint(Text(LocalizedStringKey(syncModel.isSyncing ? "cy.state.offline.queue.syncing" : "cy.state.offline.queue.syncNow")))
             }
         }
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.xs)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("cy.state.offline.queue.pending \(syncModel.queuedCount)"))
+        .accessibilityValue(Text(verbatim: "\(syncModel.queuedCount)"))
+        .accessibilityHint(Text(LocalizedStringKey(reachability.isOffline ? "cy.state.offline.banner.title" : (syncModel.isSyncing ? "cy.state.offline.queue.syncing" : "cy.state.offline.queue.syncNow"))))
         .accessibilityIdentifier("cy.offlineQueue.banner")
     }
 }

@@ -20,11 +20,10 @@ class TopicTemplateNameSearchContracts(unittest.TestCase):
     def test_name_filter_precedes_category_priority_and_game_state_stays_independent(self):
         view = (ROOT / 'App/DiscoveryTemplateBrowserView.swift').read_text()
         shelf = view.split('@ViewBuilder private var topicShelf:', 1)[1].split('@ViewBuilder private var gameShelf:', 1)[0]
-        self.assertIn('let filtered = appliedTopicSearch.filter(rows)', shelf)
-        self.assertIn('let matching = filtered.filter { $0.matchesCategory(categoryID) }', shelf)
-        self.assertIn('let other = filtered.filter { !$0.matchesCategory(categoryID) }', shelf)
+        self.assertIn('let named = appliedTopicSearch.filter(catalog)', shelf)
+        self.assertIn('let shown = SearchDiscoveryFilterParity.topics(named, matching: tags.selection)', shelf)
         self.assertIn('if rows.isEmpty', shelf)
-        self.assertIn('if filtered.isEmpty', shelf)
+        self.assertIn('if named.isEmpty || shown.isEmpty', shelf)
         self.assertNotIn('appliedKeyword =', shelf)
         self.assertNotIn('pack =', shelf)
         apply = view.split('private func applyTopicSearch()', 1)[1].split('private func applySearch()', 1)[0]
