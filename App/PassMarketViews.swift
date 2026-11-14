@@ -211,7 +211,7 @@ struct PassMarketView: View {
         }
         .cyAnimation(value: tab)
         .refreshable { onReload(true) }
-        .background { MPNightGround() }
+        .cyDomainScreen(.player)
         .navigationTitle(Text("mp.pass.title"))
         .navigationBarTitleDisplayMode(.large)
         .onAppear { if !didSetTab { tab = initialTab; didSetTab = true } }
@@ -231,8 +231,7 @@ struct PassMarketView: View {
                     .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
             }
         }
-        .padding(CYSpacing.lg)
-        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("passMarket.points")
         if let pointsDestination {
@@ -293,7 +292,7 @@ struct PassMarketView: View {
             Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
         }
         .padding(CYSpacing.lg)
-        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 
@@ -363,23 +362,33 @@ struct PassProductCardView: View {
             Text(verbatim: product.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 .multilineTextAlignment(.leading)
             if let validity = product.validity { validity.text.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            HStack(alignment: .firstTextBaseline) {
-                if product.coverCount > 0 {
-                    if let seats = product.seats {
-                        Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
-                    } else {
-                        Text("mp.pass.cover \(product.coverCount)")
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    if product.coverCount > 0 {
+                        if let seats = product.seats {
+                            Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
+                        } else {
+                            Text("mp.pass.cover \(product.coverCount)")
+                        }
                     }
+                    Spacer()
+                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(CYTypography.cardTitle)
                 }
-                Spacer()
-                PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(CYTypography.cardTitle)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    if product.coverCount > 0 {
+                        if let seats = product.seats {
+                            Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
+                        } else {
+                            Text("mp.pass.cover \(product.coverCount)")
+                        }
+                    }
+                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(CYTypography.cardTitle)
+                }
             }
             .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }
-        .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
 }
@@ -513,7 +522,7 @@ struct PassDetailView: View {
                 content(product)
             }
         }
-        .background { MPNightGround(glow: state.product.value != nil) }
+        .cyPushedChrome(domain: .player)
         .navigationTitle(state.product.value.map { Text(verbatim: $0.name) } ?? Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
@@ -524,6 +533,7 @@ struct PassDetailView: View {
         }
         .sheet(item: Binding(get: { state.giftShare }, set: { if $0 == nil { onResultDone(true) } })) { share in
             PassGiftReadySheet(share: share, productName: state.product.value?.name ?? "")
+                .cyPlayerSheetGlass()
         }
     }
 
@@ -556,7 +566,10 @@ struct PassDetailView: View {
                         .padding(.horizontal, -CYSpacing.pageHorizontal)
                 }
                 if let groupQuote = state.groupQuote {
-                    GroupCheckoutPanel(phase: groupQuote, onRetry: onRetry)
+                    MPCard {
+                        GroupCheckoutPanel(phase: groupQuote, onRetry: onRetry)
+                            .padding(CYSpacing.lg)
+                    }
                 } else if !state.checkout.isEmpty {
                     MPSectionHeader(title: "mp.pass.detail.checkout")
                     MPCard {
@@ -567,7 +580,10 @@ struct PassDetailView: View {
                         }
                     }
                 }
-                PassActivatePanel(topicID: state.activateTopicID)
+                MPCard {
+                    PassActivatePanel(topicID: state.activateTopicID)
+                        .padding(CYSpacing.lg)
+                }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.bottom, CYSpacing.jumbo)
@@ -610,11 +626,20 @@ struct PassDetailView: View {
                     Text(verbatim: cashReason).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 // Gate OFF: the pay modes are shown as facts, not buttons.
-                HStack(spacing: CYSpacing.sm) {
-                    ForEach(modes) { mode in
-                        Text(verbatim: mode.amountText).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
-                            .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
-                            .background(CYNight.ink2, in: Capsule())
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.sm) {
+                        ForEach(modes) { mode in
+                            Text(verbatim: mode.amountText).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                                .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
+                                .background(CYColor.bgElevated, in: Capsule())
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        ForEach(modes) { mode in
+                            Text(verbatim: mode.amountText).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                                .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
+                                .background(CYColor.bgElevated, in: Capsule())
+                        }
                     }
                 }
                 MPGatedNote(text: Text("mp.gate.purchase"), identifier: "passDetail.purchaseOff")
@@ -634,7 +659,7 @@ struct PassUnlockStepsView: View {
     var body: some View {
         let step = steps[min(index, steps.count - 1)]
         ZStack {
-            CYNight.ink0.opacity(0.94).ignoresSafeArea()
+            CYColor.bgPage.opacity(0.96).ignoresSafeArea()
             VStack(spacing: CYSpacing.xl) {
                 PassTicketHero(face: face)
                 VStack(spacing: CYSpacing.sm) {
@@ -799,7 +824,7 @@ struct PassGiftClaimView: View {
                         .opacity(glowing ? 0 : 0.8)
                         .animation(reduceMotion ? nil : .easeOut(duration: 2.4).repeatForever(autoreverses: false), value: glowing)
                 }
-                Circle().fill(failedReason == nil ? CYNight.glow(radius: 60) : RadialGradient(colors: [CYNight.ink2], center: .center, startRadius: 0, endRadius: 1))
+                Circle().fill(failedReason == nil ? CYNight.glow(radius: 60) : RadialGradient(colors: [CYColor.bgElevated], center: .center, startRadius: 0, endRadius: 1))
                     .frame(width: 120, height: 120)
                 Image(systemName: claimed ? "checkmark" : "gift.fill")
                     .font(CYTypography.display)
@@ -833,7 +858,7 @@ struct PassGiftClaimView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .background { MPNightGround(glow: failedReason == nil) }
+        .cyPushedChrome(domain: .player)
         .navigationTitle(Text("mp.gift.nav"))
         .navigationBarTitleDisplayMode(.inline)
         .cyHaptic(.success, trigger: claimed)

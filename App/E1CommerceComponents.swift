@@ -58,16 +58,20 @@ struct E1CoverArt: View {
                            center: .bottomLeading, startRadius: 2, endRadius: 150)
             GeometryReader { g in
                 if let symbolPoint {
-                Image(systemName: symbol)
-                    .font(.system(size: min(g.size.width, g.size.height) * 0.3, weight: .light))
-                    .foregroundStyle(.white.opacity(0.4))
-                    .position(x: g.size.width * symbolPoint.x, y: g.size.height * symbolPoint.y)
+                    let glyphSize = max(16, min(g.size.width, g.size.height) * 0.3)
+                    Image(systemName: symbol)
+                        .resizable()
+                        .scaledToFit()
+                        .fontWeight(.light)
+                        .foregroundStyle(.white.opacity(0.4))
+                        .frame(width: glyphSize, height: glyphSize)
+                        .position(x: g.size.width * symbolPoint.x, y: g.size.height * symbolPoint.y)
                 }
             }
         }
         .overlay(alignment: .topTrailing) {
             if debugLabel {
-                Text(verbatim: "DEBUG ART").font(.system(size: 8, weight: .semibold)).foregroundStyle(.white.opacity(0.5)).padding(6)
+                Text(verbatim: "DEBUG ART").font(CYTypography.micro.weight(.semibold)).foregroundStyle(.white.opacity(0.5)).padding(6)
             }
         }
     }

@@ -71,7 +71,7 @@ struct ProfileOrdersView: View {
             }
         }
         .appNavigationTitle("profile.orders.title")
-        .cyHideTabBar()
+        .cyPushedChrome(domain: .player)
         .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in
             filterSelection.retire(); orderEntry = nil; lookedUpOrderID = nil
@@ -205,7 +205,7 @@ private struct ProfileOrderRow: View {
                 Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
                     .font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                    .lineLimit(1).minimumScaleFactor(0.6)
+                    .lineLimit(typeSize.isAccessibilitySize ? 2 : 1).minimumScaleFactor(0.6)
             }
             if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             // Visual label only: the whole card is the NavigationLink, so there is a single control.
@@ -348,9 +348,10 @@ struct ProfileOrderDetailView: View {
             }
             }
         }
+        .scrollContentBackground(.hidden)
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
-        .cyHideTabBar()
+        .cyPushedChrome(domain: .player)
         .background {
             if orderLocator != nil {
                 Color.clear.frame(width: 0, height: 0)
@@ -406,7 +407,7 @@ struct ProfileOrderDetailView: View {
             .frame(minHeight: 44).disabled(target == nil || !ticketEntryVisible)
             .accessibilityIdentifier("orderTicketEntry.open")
         Text(target == nil ? "orderTicketEntry.unavailable" : "orderTicketEntry.freshRead")
-            .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            .font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
     }
     private func retireTicketEntry() { ticketTarget = nil; ticketPresentationID = UUID() }
 }
@@ -423,7 +424,7 @@ struct ProfileOrderTicketScheduleRows: View {
             ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end)
         } else {
             if schedule.start != .absent || schedule.end != .absent {
-                Text("profileTicketSchedule.ownerTimes").font(.caption).foregroundStyle(.secondary)
+                Text("profileTicketSchedule.ownerTimes").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("profile.order.ownerSchedule")
             }
             if schedule.start != .absent { ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start) }
@@ -458,7 +459,7 @@ struct ProfileOrderTicketTimeRow: View {
             } else if case .source(let raw) = value {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(verbatim: raw).textSelection(.enabled)
-                    Text("profileTicketSchedule.unparsed").font(.caption).foregroundStyle(.secondary)
+                    Text("profileTicketSchedule.unparsed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }.fixedSize(horizontal: false, vertical: true)
             } else { Text("profile.orders.unknown") }
         }
@@ -513,7 +514,7 @@ private struct ProfileOrderStateNoticeSection: View {
                             .background(Capsule().fill(CYColor.bgSurfaceSubtle))
                             .accessibilityIdentifier("profile.order.detail.stateTag")
                     }
-                    if let hint = notice.hint { Text(verbatim: hint).font(.subheadline).foregroundStyle(.secondary) }
+                    if let hint = notice.hint { Text(verbatim: hint).font(CYTypography.subheadline).foregroundStyle(CYColor.textSecondary) }
                 }.padding(.vertical, 4).accessibilityElement(children: .contain)
             }
         }
@@ -537,6 +538,6 @@ private struct ProfileOrderAmountLabel: View {
     var body: some View {
         if let amount {
             RevolutAmountView(figure: OwnedOrderMoneyText.string(amount), label: appLocalized("activity.currencyUnconfirmed", locale: locale))
-        } else { Text("activity.priceUnknown").foregroundStyle(.secondary) }
+        } else { Text("activity.priceUnknown").foregroundStyle(CYColor.textSecondary) }
     }
 }
