@@ -263,6 +263,10 @@ public enum ExternalGameValidator {
         }
     }
 
+    public static func computeDataSHA256(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
     public static func computePackageSHA256(_ files: [String: Data]) -> String {
         var hasher = SHA256()
         for path in files.keys.sorted() {
@@ -416,8 +420,11 @@ public enum ExternalGameValidator {
             }
         }
 
-        guard archive.files[manifest.entry] != nil else {
+        guard let entryData = archive.files[manifest.entry] else {
             throw ExternalGameValidationError.missingEntryFile(manifest.entry)
+        }
+        guard String(data: entryData, encoding: .utf8) != nil else {
+            throw ExternalGameValidationError.malformedArchive
         }
 
         let trimmedHash = manifest.sha256.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -469,8 +476,13 @@ public enum ExternalGameSandboxPolicy {
 
     /// Strips any creator-supplied Content-Security-Policy meta tag (any case/quoting) and prepends the host's strict CSP.
     public static func applyStrictCSP(to html: String, manifest: ExternalGameManifest) -> String {
-        let pattern = "<meta\\b[^>]*http-equiv\\s*=\\s*(['\"]?)content-security-policy\\1[^>]*>"
-        let stripped = html.replacingOccurrences(of: pattern, with: "", options: [.regularExpression, .caseInsensitive])
+        let pattern = "<meta\\b[^>]*http-equiv\\s*=\\s*(['\"]?)\\s*content-security-policy\\s*\\1[^>]*>"
+        var stripped = html
+        while true {
+            let next = stripped.replacingOccurrences(of: pattern, with: "", options: [.regularExpression, .caseInsensitive])
+            if next == stripped { break }
+            stripped = next
+        }
         return injectedCSPMetaTag(for: manifest) + "\n" + stripped
     }
 
@@ -629,6 +641,26 @@ public struct InstalledExternalGame: Codable, Equatable, Identifiable, Sendable 
     public let installedAt: Date
     public var updatedAt: Date
     public let totalBytes: Int
+    public let hardenedEntrySHA256: String?
+    public let hardenedPackageSHA256: String?
+
+    public init(
+        manifest: ExternalGameManifest,
+        source: ExternalGameImportSource,
+        installedAt: Date,
+        updatedAt: Date,
+        totalBytes: Int,
+        hardenedEntrySHA256: String? = nil,
+        hardenedPackageSHA256: String? = nil
+    ) {
+        self.manifest = manifest
+        self.source = source
+        self.installedAt = installedAt
+        self.updatedAt = updatedAt
+        self.totalBytes = totalBytes
+        self.hardenedEntrySHA256 = hardenedEntrySHA256
+        self.hardenedPackageSHA256 = hardenedPackageSHA256
+    }
 }
 
 public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable {
@@ -759,21 +791,40 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         guard ExternalGameSandboxPolicy.allowsNavigation(to: target, packageRoot: pkgRoot, manifest: game.manifest) else {
             return nil
         }
-        guard verifyInstalledEntryIntegrity(target: target, manifest: game.manifest) else {
+        guard verifyInstalledEntryIntegrity(target: target, game: game) else {
             return nil
         }
         return target
     }
 
-    private func verifyInstalledEntryIntegrity(target: URL, manifest: ExternalGameManifest) -> Bool {
+    private func verifyInstalledEntryIntegrity(target: URL, game: InstalledExternalGame) -> Bool {
+        let manifest = game.manifest
+        guard let expectedEntryHash = game.hardenedEntrySHA256?.lowercased(),
+              expectedEntryHash.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil,
+              let expectedPackageHash = game.hardenedPackageSHA256?.lowercased(),
+              expectedPackageHash.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil else {
+            return false
+        }
         guard FileManager.default.fileExists(atPath: target.path),
-              let onDiskData = try? Data(contentsOf: target) else { return false }
+              let onDiskEntryData = try? Data(contentsOf: target),
+              ExternalGameValidator.computeDataSHA256(onDiskEntryData) == expectedEntryHash else {
+            return false
+        }
+        let expectedPrefix = ExternalGameSandboxPolicy.injectedCSPMetaTag(for: manifest) + "\n"
+        guard let onDiskHTML = String(data: onDiskEntryData, encoding: .utf8),
+              onDiskHTML.hasPrefix(expectedPrefix) else {
+            return false
+        }
+        let bodyAfterPrefix = String(onDiskHTML.dropFirst(expectedPrefix.count))
+        guard ExternalGameSandboxPolicy.applyStrictCSP(to: bodyAfterPrefix, manifest: manifest) == onDiskHTML else {
+            return false
+        }
+
         let pkgRoot = packageDirectory(for: manifest.id).resolvingSymlinksInPath().standardizedFileURL
         guard let enumerator = FileManager.default.enumerator(at: pkgRoot, includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey]) else {
             return false
         }
-        let prefix = ExternalGameSandboxPolicy.injectedCSPMetaTag(for: manifest) + "\n"
-        var reconstructed: [String: Data] = [:]
+        var onDiskFiles: [String: Data] = [:]
         let rootPath = pkgRoot.path.hasSuffix("/") ? pkgRoot.path : (pkgRoot.path + "/")
         for case let fileURL as URL in enumerator {
             guard let values = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]),
@@ -784,16 +835,10 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
             let relPath = String(resolved.dropFirst(rootPath.count))
             guard ExternalGameValidator.isSafeRelativePath(relPath),
                   let raw = try? Data(contentsOf: fileURL) else { return false }
-            if relPath == manifest.entry,
-               let html = String(data: raw, encoding: .utf8),
-               html.hasPrefix(prefix) {
-                reconstructed[relPath] = Data(html.dropFirst(prefix.count).utf8)
-            } else {
-                reconstructed[relPath] = raw
-            }
+            onDiskFiles[relPath] = raw
         }
-        if reconstructed.isEmpty { _ = onDiskData; return false }
-        return ExternalGameValidator.computePackageSHA256(reconstructed) == manifest.sha256.lowercased()
+        guard onDiskFiles[manifest.entry] == onDiskEntryData else { return false }
+        return ExternalGameValidator.computePackageSHA256(onDiskFiles) == expectedPackageHash
     }
 
     /// Validates an imported archive from URL, QR code, or local file and prepares a permission + source confirmation sheet.
@@ -869,6 +914,9 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         let resolvedPkgRoot = pkgDir.resolvingSymlinksInPath().standardizedFileURL.path
         let rootPrefix = resolvedPkgRoot.hasSuffix("/") ? resolvedPkgRoot : (resolvedPkgRoot + "/")
 
+        var hardenedFiles: [String: Data] = [:]
+        var hardenedEntrySHA256: String?
+
         for (relPath, content) in confirmation.archive.files {
             guard ExternalGameValidator.isSafeRelativePath(relPath) else {
                 throw ExternalGameValidationError.pathTraversalDetected(relPath)
@@ -882,16 +930,26 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
             }
             var dataToWrite = content
             // Strip any creator-supplied CSP meta tags and prepend the host's strict CSP before writing.
-            if relPath == manifest.entry,
-               let html = String(data: content, encoding: .utf8) {
-                dataToWrite = Data(ExternalGameSandboxPolicy.applyStrictCSP(to: html, manifest: manifest).utf8)
+            if relPath == manifest.entry {
+                guard let html = String(data: content, encoding: .utf8) else {
+                    throw ExternalGameValidationError.malformedArchive
+                }
+                let hardenedHTML = ExternalGameSandboxPolicy.applyStrictCSP(to: html, manifest: manifest)
+                dataToWrite = Data(hardenedHTML.utf8)
+                hardenedEntrySHA256 = ExternalGameValidator.computeDataSHA256(dataToWrite)
             }
+            hardenedFiles[relPath] = dataToWrite
             #if os(iOS)
             try dataToWrite.write(to: fileURL, options: [.atomic, .completeFileProtection])
             #else
             try dataToWrite.write(to: fileURL, options: [.atomic])
             #endif
         }
+
+        guard let hardenedEntrySHA256 else {
+            throw ExternalGameValidationError.missingEntryFile(manifest.entry)
+        }
+        let hardenedPackageSHA256 = ExternalGameValidator.computePackageSHA256(hardenedFiles)
 
         let now = Date()
         let installed: InstalledExternalGame
@@ -902,7 +960,9 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
                 source: confirmation.source,
                 installedAt: prev.installedAt,
                 updatedAt: now,
-                totalBytes: confirmation.totalBytes
+                totalBytes: confirmation.totalBytes,
+                hardenedEntrySHA256: hardenedEntrySHA256,
+                hardenedPackageSHA256: hardenedPackageSHA256
             )
             installedGames[idx] = installed
         } else {
@@ -911,7 +971,9 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
                 source: confirmation.source,
                 installedAt: now,
                 updatedAt: now,
-                totalBytes: confirmation.totalBytes
+                totalBytes: confirmation.totalBytes,
+                hardenedEntrySHA256: hardenedEntrySHA256,
+                hardenedPackageSHA256: hardenedPackageSHA256
             )
             installedGames.append(installed)
         }

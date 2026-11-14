@@ -118,6 +118,7 @@ class AppSecReviewContractTests(unittest.TestCase):
         self.assertIn("maxTotalProgressEntries", core)
         self.assertIn("maxTotalProgressBytes", core)
         self.assertIn("verifyInstalledEntryIntegrity(", core)
+        self.assertIn("hardenedEntrySHA256", core)
         self.assertIn("ExternalGameValidator.verifyServerSignature(game.manifest, publicKeyRaw: verificationPublicKey)",
                       core.split("public func entryFileURL(", 1)[1].split("private func verifyInstalledEntryIntegrity", 1)[0])
 
