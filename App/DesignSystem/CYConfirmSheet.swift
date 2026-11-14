@@ -64,18 +64,10 @@ public struct CYConfirmSheet: View {
     }
 
     @ViewBuilder private func styled(_ label: some View) -> some View {
-        if isDestructive && !consequences.isEmpty {
-            // Solid red, matching the mini-program quit dialog.
-            label.buttonStyle(.plain)
-                .font(CYTypography.label)
-                .foregroundStyle(Color.white)
-                .padding(.vertical, CYSpacing.sm)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                .background(CYColor.dangerSolid, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-        } else if isDestructive {
-            label.buttonStyle(.cyDestructive)
+        if isDestructive {
+            label.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
         } else {
-            label.buttonStyle(.cyPrimary)
+            label.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
         }
     }
 
@@ -109,7 +101,7 @@ public struct CYConfirmSheet: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(CYSpacing.md)
-                .background(CYColor.bgPage, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 .accessibilityIdentifier("confirm.consequences")
             }
         }
@@ -117,7 +109,7 @@ public struct CYConfirmSheet: View {
         .padding(CYSpacing.lg)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .background(CYColor.bgElevated.ignoresSafeArea())
+        .background(CYColor.sheetGlass.ignoresSafeArea())
         .safeAreaInset(edge: .bottom) {
             Group {
                 if consequences.isEmpty {
@@ -135,9 +127,11 @@ public struct CYConfirmSheet: View {
                 }
             }
             .padding(CYSpacing.lg)
-            .background(CYColor.bgElevated)
+            .background(CYColor.sheetGlass)
         }
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : (consequences.isEmpty ? [.fraction(0.36), .large] : [.medium, .large]))
+        .presentationCornerRadius(CYRadius.sheet)
+        .presentationBackground(CYColor.sheetGlass)
         .presentationDragIndicator(.visible)
         .overlay { if rewarding { joinReward } }
     }
@@ -154,14 +148,14 @@ public struct CYConfirmSheet: View {
     private var joinReward: some View {
         ZStack {
             Circle()
-                .fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(colors: [CYColor.brand, CYColor.brandStrong], startPoint: .top, endPoint: .bottom))
                 .frame(width: 72, height: 72)
-                .shadow(color: CYNight.lantern.opacity(0.45), radius: 16)
+                .shadow(color: CYColor.brand.opacity(0.45), radius: 16)
                 .overlay {
-                    Circle().strokeBorder(CYNight.ink0.opacity(0.7), lineWidth: 3).padding(12)
+                    Circle().strokeBorder(CYColor.textOnAccent.opacity(0.7), lineWidth: 3).padding(12)
                     Image(systemName: "checkmark")
                         .font(.system(.title2, design: .rounded).weight(.heavy))
-                        .foregroundStyle(CYNight.ink0)
+                        .foregroundStyle(CYColor.textOnAccent)
                 }
                 .transition(reduceMotion ? .opacity : .scale(scale: 0.55).combined(with: .opacity))
             CYBurst(origin: .center, count: 32, duration: 0.9, style: .dust, reach: 140)

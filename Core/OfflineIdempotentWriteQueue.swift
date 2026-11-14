@@ -508,6 +508,9 @@ public final class OfflineIdempotentWriteQueue {
                 jsonObject = parsed
             }
             if let existing = jsonObject[field] as? String, HTTPRequestRetrySupport.isValidRequestID(existing) {
+                if request.value(forHTTPHeaderField: "Content-Type") == nil {
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                }
                 return existing
             }
             let key = try mintKey(subject: scope.storageKey, path: spec.path, body: request.httpBody ?? Data(), explicitKey: explicitKey)

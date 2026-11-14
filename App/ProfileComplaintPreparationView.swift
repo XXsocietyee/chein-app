@@ -122,7 +122,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 if model.contextMatches { ProfileComplaintProgressSection(model: progress) }
             }
         }
-        .themeDomain(.player)
+        .cyPushedChrome(domain: .player)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

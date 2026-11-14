@@ -88,7 +88,7 @@ import SwiftUI
                         HStack {
                             Text(LocalizedStringKey(Self.reasonKeys[index]), tableName: "MpFresh").foregroundStyle(CYColor.textPrimary)
                             Spacer()
-                            if selected == index { Image(systemName: "checkmark").foregroundStyle(CYColor.accent).transition(.scale.combined(with: .opacity)) }
+                            if selected == index { Image(systemName: "checkmark").foregroundStyle(CYColor.brand).transition(.scale.combined(with: .opacity)) }
                         }
                         .contentShape(Rectangle())
                     }

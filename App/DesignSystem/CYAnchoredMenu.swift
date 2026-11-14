@@ -20,7 +20,7 @@ private struct CYAnchoredMenuModifier: ViewModifier {
         content.popover(isPresented: $isPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                    if index > 0 { Divider().overlay(CYNight.glassEdgeBottom) }
+                    if index > 0 { Divider().overlay(CYColor.borderSubtle) }
                     Button {
                         isPresented = false
                         onPick(item.id)
@@ -40,9 +40,9 @@ private struct CYAnchoredMenuModifier: ViewModifier {
             }
             .padding(.vertical, CYSpacing.xs)
             .fixedSize()
-            .background(CYNight.ink2)
+            .background(CYDomainPalette(.player).sheetGlass)
             .presentationCompactAdaptation(.popover)
-            .presentationBackground(CYNight.ink2)
+            .cyPlayerSheetGlass()
         }
     }
 }

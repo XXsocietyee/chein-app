@@ -375,18 +375,142 @@ import CryptoKit
 
         _ = try store.prepareImport(archive: ExternalGamePackageArchive(manifest: manifest, files: files), source: .file(URL(fileURLWithPath: "/tmp/csp.json")))
         let installed = try store.confirmInstall()
+        XCTAssertEqual(installed.hardenedEntrySHA256?.count, 64)
+        XCTAssertEqual(installed.hardenedPackageSHA256?.count, 64)
+
         let entryURL = try XCTUnwrap(store.entryFileURL(for: installed))
         let writtenHTML = try String(contentsOf: entryURL, encoding: .utf8)
         XCTAssertFalse(writtenHTML.contains("unsafe-inline' *"))
         XCTAssertTrue(writtenHTML.hasPrefix("<meta http-equiv=\"Content-Security-Policy\" content=\""))
+        XCTAssertEqual(writtenHTML, ExternalGameSandboxPolicy.applyStrictCSP(to: htmlWithPermissiveCSP, manifest: manifest))
 
-        // Tampering with the installed HTML must fail closed before load
-        try Data("<script>evil()</script>".utf8).write(to: entryURL)
-        XCTAssertNil(store.entryFileURL(for: installed))
+        // Relaunched store with pinned key must also open the hardened entry
+        let relaunched = ExternalGameStore(rootDirectory: tempDir, verificationPublicKey: signer.publicKey)
+        let relaunchedGame = try XCTUnwrap(relaunched.installedGames.first)
+        XCTAssertNotNil(relaunched.entryFileURL(for: relaunchedGame))
 
         // Unpinned empty key must fail closed even on unmodified store
         let unpinnedStore = ExternalGameStore(rootDirectory: tempDir, verificationPublicKey: Data())
         XCTAssertNil(unpinnedStore.entryFileURL(for: installed))
+
+        // Tampering with the installed HTML must fail closed before load
+        try Data("<script>evil()</script>".utf8).write(to: entryURL)
+        XCTAssertNil(store.entryFileURL(for: installed))
+        XCTAssertNil(relaunched.entryFileURL(for: relaunchedGame))
+    }
+
+    func testEntryWithOwnCSPMetaAndCompanionFilesInstallsOpensAndDetectsTampering() throws {
+        let creatorHTML = """
+        <!doctype html>
+        <html>
+        <head>
+          <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'">
+          <me<meta http-equiv="content-security-policy" content="x">ta http-equiv="content-security-policy" content="script-src 'unsafe-eval'">
+        </head>
+        <body><script src="game.js"></script></body>
+        </html>
+        """
+        let files: [String: Data] = [
+            "index.html": Data(creatorHTML.utf8),
+            "game.js": Data("console.log('ok');".utf8),
+        ]
+        let sha = ExternalGameValidator.computePackageSHA256(files)
+        let unsigned = ExternalGameManifest(
+            id: "rpg.csp.companion",
+            name: "CSP Companion",
+            version: "1.0.0",
+            entry: "index.html",
+            sha256: sha,
+            signature: ""
+        )
+        let sig = signer.signPayload(ExternalGameValidator.canonicalSigningPayload(for: unsigned))
+        let manifest = ExternalGameManifest(
+            id: unsigned.id, name: unsigned.name, version: unsigned.version,
+            entry: unsigned.entry, sha256: sha, signature: sig
+        )
+        let expectedHardened = ExternalGameSandboxPolicy.applyStrictCSP(to: creatorHTML, manifest: manifest)
+        XCTAssertEqual(
+            expectedHardened,
+            ExternalGameSandboxPolicy.applyStrictCSP(to: creatorHTML, manifest: manifest),
+            "Strict CSP application must be deterministic"
+        )
+        XCTAssertFalse(expectedHardened.contains("unsafe-eval"))
+        XCTAssertFalse(expectedHardened.contains("default-src *"))
+
+        let (store, tempDir) = makeTempStore()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        _ = try store.prepareImport(
+            archive: ExternalGamePackageArchive(manifest: manifest, files: files),
+            source: .file(URL(fileURLWithPath: "/tmp/csp-companion.json"))
+        )
+        let installed = try store.confirmInstall()
+        let entryURL = try XCTUnwrap(store.entryFileURL(for: installed))
+        XCTAssertEqual(try String(contentsOf: entryURL, encoding: .utf8), expectedHardened)
+
+        // Tampering with companion JS file on disk must also be refused
+        let jsURL = store.packageDirectory(for: manifest.id).appendingPathComponent("game.js")
+        try Data("console.log('tampered');".utf8).write(to: jsURL)
+        XCTAssertNil(store.entryFileURL(for: installed))
+
+        // Legacy or unhashed installed game records without hardenedEntrySHA256 must fail closed
+        let legacyRecord = InstalledExternalGame(
+            manifest: manifest,
+            source: installed.source,
+            installedAt: installed.installedAt,
+            updatedAt: installed.updatedAt,
+            totalBytes: installed.totalBytes
+        )
+        XCTAssertNil(store.entryFileURL(for: legacyRecord))
+    }
+
+    func testTamperedPackageIsRefusedAtInstall() throws {
+        let (store, tempDir) = makeTempStore()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let valid = sample(id: "rpg.tamper.install")
+        var modifiedFiles = valid.files
+        modifiedFiles["index.html"] = Data("<html><body>tampered</body></html>".utf8)
+
+        // 1. Tampered package bytes with original signed manifest -> hashMismatch
+        let tamperedBytesArchive = ExternalGamePackageArchive(manifest: valid.manifest, files: modifiedFiles)
+        XCTAssertThrowsError(try store.prepareImport(
+            archive: tamperedBytesArchive,
+            source: .file(URL(fileURLWithPath: "/tmp/tampered-bytes.json"))
+        )) { error in
+            guard case ExternalGameValidationError.hashMismatch = error else {
+                XCTFail("Expected hashMismatch, got \(error)")
+                return
+            }
+        }
+        XCTAssertNil(store.pendingConfirmation)
+        XCTAssertTrue(store.installedGames.isEmpty)
+
+        // 2. Tampered package bytes + updated sha256 without valid server Ed25519 signature -> invalidSignature
+        let updatedSHA = ExternalGameValidator.computePackageSHA256(modifiedFiles)
+        let forgedManifest = ExternalGameManifest(
+            id: valid.manifest.id,
+            name: valid.manifest.name,
+            version: valid.manifest.version,
+            entry: valid.manifest.entry,
+            permissions: valid.manifest.permissions,
+            contentRating: valid.manifest.contentRating,
+            allowedDomains: valid.manifest.allowedDomains,
+            sha256: updatedSHA,
+            signature: valid.manifest.signature,
+            author: valid.manifest.author,
+            summary: valid.manifest.summary
+        )
+        let tamperedData = try JSONEncoder().encode(ExternalGamePackageArchive(manifest: forgedManifest, files: modifiedFiles))
+        XCTAssertThrowsError(try store.prepareImport(
+            archiveData: tamperedData,
+            source: .file(URL(fileURLWithPath: "/tmp/tampered-sig.json"))
+        )) { error in
+            XCTAssertEqual(error as? ExternalGameValidationError, .invalidSignature)
+        }
+        XCTAssertNil(store.pendingConfirmation)
+        XCTAssertTrue(store.installedGames.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.packageDirectory(for: valid.manifest.id).path))
     }
 
     func testBridgeRejectsUnexpectedArgsBadStorageKeysBadHapticAndTotalQuota() throws {

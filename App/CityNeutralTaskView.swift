@@ -56,7 +56,10 @@ import SwiftUI
                     Button { controller.cancelConfirmation() } label: { Text("cityNeutral.cancel", tableName: table) }
                 }.cyGroupedSurface().navigationTitle(Text("cityNeutral.confirmTitle", tableName: table))
             }
+            .cyPlayerSheetGlass()
         }
+        .cyDomainScreen(.game)
+        .cyHideTabBar(true)
     }
     private func row(_ key: String, _ value: String) -> some View { LabeledContent { Text(verbatim: value).textSelection(.enabled) } label: { Text(LocalizedStringKey(key), tableName: table) } }
 }

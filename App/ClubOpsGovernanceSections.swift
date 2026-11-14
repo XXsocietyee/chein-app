@@ -33,7 +33,7 @@ enum ClubOpsGovernanceCopy {
 
 private struct ClubOpsTag: View {
     let label: Text
-    var tint: Color = CYColor.accentText
+    var tint: Color = CYColor.brand
     var body: some View {
         label.font(.caption.weight(.semibold)).foregroundStyle(tint)
             .padding(.horizontal, 8).padding(.vertical, 3)

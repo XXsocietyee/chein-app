@@ -112,12 +112,13 @@ import UIKit
             }
         }
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .navigationTitle(Text("merchant.business.overview"))
         .navigationDestination(item: cover) { item in
             MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner,
                 onDenied: { model.batchDenied(item) }, onReturn: { model.childPopped(item) })
                 .id(item.id)
+                .cyPushedChrome(domain: .merchant)
         }
         .background(MerchantLedgerSettlementLeaveAnchor(coveringChild: model.state.cover != nil, leave: { model.leave() }).frame(width: 0, height: 0))
         .onAppear { model.appear() }

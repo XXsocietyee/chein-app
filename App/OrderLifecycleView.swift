@@ -66,8 +66,9 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
-        .safeAreaInset(edge: .bottom) { pinnedPrimary }
+        .cyDomainScreen(.player)
+        .cyHideTabBar(true)
+        .safeAreaInset(edge: .bottom, spacing: 0) { pinnedPrimary }
         .listRowBackground(CYColor.bgElevated)
         .appNavigationTitle("orderLifecycle.title")
         .navigationBarTitleDisplayMode(.inline)
@@ -97,9 +98,11 @@ import SwiftUI
         .sheet(item: Binding(get: { coordinator.review }, set: { if $0 == nil { model.dismiss() } })) { review in
             OrderLifecycleReviewView(review: review, canSimulate: coordinator.canSimulate, canDispatch: coordinator.canDispatch,
                 confirm: { Task { await model.confirm(review.id) } }, close: model.dismiss)
+                .cyPlayerSheetGlass()
         }
         .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in
             PaymentProviderReturnSheet(flow: flow) { _ in model.closePayment() }
+                .cyPlayerSheetGlass()
         }
         .accessibilityIdentifier("orderLifecycle.detail")
     }
@@ -107,12 +110,12 @@ import SwiftUI
     @ViewBuilder private var pinnedPrimary: some View {
         if let detail = coordinator.detail, detail.id == id,
            let action = OrderLifecycleAction.allCases.first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: detail) }) {
-            Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
-                .buttonStyle(CYOrderActionButtonStyle(primary: true))
-                .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
-                .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
-                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
-                .background(CYColor.bgPage)
+            CYFooterBar {
+                Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
+                    .buttonStyle(CYOrderActionButtonStyle(primary: true))
+                    .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
+                    .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
+            }
         }
     }
     /// The accepted order detail, split out so the list body type-checks in reasonable time.
@@ -374,14 +377,14 @@ private struct CYOrderActionPrimaryLabel: ViewModifier {
     func body(content: Content) -> some View {
         content.font(CYTypography.label).foregroundStyle(CYColor.textOnAccent)
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(CYColor.accent, in: Capsule(style: .continuous))
+            .background(CYColor.actionPrimaryBg, in: Capsule(style: .continuous))
     }
 }
 private struct CYOrderActionSecondaryLabel: ViewModifier {
     func body(content: Content) -> some View {
-        content.font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+        content.font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-            .overlay(Capsule(style: .continuous).strokeBorder(CYColor.borderStrong, lineWidth: 1))
+            .background(CYColor.actionSecondary, in: Capsule(style: .continuous))
             .contentShape(Capsule(style: .continuous))
     }
 }

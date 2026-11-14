@@ -64,6 +64,23 @@ import FoundationNetworking
         XCTAssertTrue(wire.requests.allSatisfy { $0.httpMethod == "GET" })
         current.deactivate(); XCTAssertNil(current.issue)
     }
+
+    func testConcreteChannelInvitePathsRejectBarePrefixOn8120Stub() async throws {
+        XCTAssertFalse(NativeFriendChannelInviteApproval.reads.contains("api/friend/channel-invite"))
+        XCTAssertFalse(NativeFriendChannelInviteApproval.writes.contains("api/friend/channel-invite"))
+        XCTAssertEqual(NativeFriendChannelInviteApproval.pickerPath, "api/friend/channel-invite/picker")
+        XCTAssertEqual(NativeFriendChannelInviteApproval.commandPath, "api/friend/channel-invite/command")
+
+        let wire = ChannelRecoveryWire(), storage = ChannelRecoveryStorage()
+        let baseURL = URL(string: "https://8120.example.test/")!
+        let context = RuntimeDependencyContext(market: .china, baseURL: baseURL, role: "player",
+            session: try .init(accountID: 2, epoch: 1, namespace: "fixture", token: "fixture-token", role: "player"))
+        let approval = try NativeFriendChannelInviteApproval(endpoint: .init(baseURL: baseURL, namespace: "fixture", accountID: 2,
+            paths: NativeFriendChannelInviteApproval.reads.union(NativeFriendChannelInviteApproval.writes)), mode: .mine, expiresAt: Date().addingTimeInterval(600))
+        let service = try NativeFriendChannelInviteService(context: context, approval: approval, transport: wire, current: { true }, unauthorized: {})
+        _ = try await service.mine()
+        XCTAssertEqual(wire.requests.last?.url?.path, "/api/friend/channel-invite/mine")
+    }
 }
 
 @MainActor private final class ChannelRecoveryStorage: ProjectEditDataStorage {

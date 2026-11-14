@@ -98,7 +98,7 @@ struct PublicCatalogView: View {
             HStack {
                 if let name { Text(verbatim: name) } else { Text("publicCatalog.allCities") }
                 Spacer()
-                if code == activeCityCode { Image(systemName: "checkmark").foregroundStyle(CYColor.accent) }
+                if code == activeCityCode { Image(systemName: "checkmark").foregroundStyle(CYColor.brand) }
             }
             .frame(minHeight: CYSpacing.minTouchTarget)
         }

@@ -16,11 +16,13 @@ import SwiftUI
                 Text("teamPool.title").font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
-                if let pool = model.pool, let score = pool.teamScore {
-                    Text(verbatim: c.t("团队总分 \(score)", "Team score \(score)"))
+                if let pool = model.pool {
+                    Text(verbatim: c.t("团队总分 \(Self.scoreText(pool))", "Team score \(Self.scoreText(pool))"))
                         .font(CYTypography.meta).monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("teamPool.score")
+                        .accessibilityLabel(Text(verbatim: c.t("团队总分", "Team total score")))
+                        .accessibilityValue(Text(verbatim: Self.scoreText(pool)))
                 }
             }
             if let pool = model.pool {
@@ -61,9 +63,14 @@ import SwiftUI
                     Button { Task { await model.requestHint() } } label: { Text("teamPool.useHint") }
                         .disabled(!model.canRequestHint)
                         .accessibilityIdentifier("teamPool.useHint")
+                        .accessibilityLabel(Text("teamPool.useHint"))
+                        .accessibilityHint(hintCountHint)
                     Button { confirmingSkip = true } label: { Text(verbatim: c.t("全队跳过", "Team skip")) }
                         .disabled(!model.canRequestSkip)
                         .accessibilityIdentifier("teamPool.useSkip")
+                        .accessibilityLabel(Text(verbatim: c.t("全队跳过", "Team skip")))
+                        .accessibilityHint(Text(verbatim: c.t("将消耗全队共享跳过额度，并同步给全队成员。",
+                                                            "This spends one shared team skip and syncs progress across the team.")))
                 }
             }
 
@@ -83,6 +90,9 @@ import SwiftUI
         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("teamPool.section")
+        .accessibilityLabel(Text("teamPool.title"))
+        .accessibilityHint(Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
+                                              "First solve advances the team · Shared hints, skips, timer & single team score")))
         .confirmationDialog(
             c.t("使用全队共享跳过", "Use team shared skip"),
             isPresented: $confirmingSkip,
@@ -106,19 +116,38 @@ import SwiftUI
                     Text("teamPool.timerExpired")
                         .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("teamPool.timerExpired")
+                        .accessibilityLabel(Text("teamPool.timerExpired"))
                 } else if let remaining = pool.remainingTimerSeconds(at: context.date) {
-                    Text(verbatim: c.t("全队计时剩余 \(Self.formatDuration(remaining))", "Team timer \(Self.formatDuration(remaining))"))
+                    let line = c.t("全队计时剩余 \(Self.formatDuration(remaining))", "Team timer \(Self.formatDuration(remaining))")
+                    Text(verbatim: line)
                         .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("teamPool.timerRemaining")
+                        .accessibilityLabel(Text(verbatim: line))
+                        .accessibilityValue(Text(verbatim: Self.formatDuration(remaining)))
                 } else if model.canStartTimer {
+                    let line = c.t("开始全队计时 (\(Self.formatDuration(limit)))", "Start team timer (\(Self.formatDuration(limit)))")
                     Button { Task { await model.startTimer() } } label: {
-                        Text(verbatim: c.t("开始全队计时 (\(Self.formatDuration(limit)))", "Start team timer (\(Self.formatDuration(limit)))"))
+                        Text(verbatim: line)
                     }
                     .font(CYTypography.meta)
                     .accessibilityIdentifier("teamPool.timerStart")
+                    .accessibilityLabel(Text(verbatim: line))
+                    .accessibilityHint(Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
+                                                        "First solve advances the team · Shared hints, skips, timer & single team score")))
                 }
             }
         }
+    }
+
+    static func scoreText(_ pool: TeamPoolSnapshot) -> String {
+        pool.teamScore.map(String.init) ?? "—"
+    }
+
+    private var hintCountHint: Text {
+        if let left = model.pool?.hintsLeft, let total = model.pool?.hintsTotal {
+            return Text("teamPool.hintsLeft \(left) \(total)")
+        }
+        return Text("teamPool.unknown")
     }
 
     static func formatDuration(_ seconds: Int) -> String {
@@ -169,10 +198,12 @@ import SwiftUI
                         Image(systemName: "person.3.fill")
                     }
                     Spacer()
-                    Text(verbatim: pool.teamScore.map(String.init) ?? "—")
+                    Text(verbatim: TeamPoolHintSection.scoreText(pool))
                         .font(CYTypography.cardTitle).monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("teamPool.run.score")
+                        .accessibilityLabel(Text(verbatim: c.t("团队总分", "Team total score")))
+                        .accessibilityValue(Text(verbatim: TeamPoolHintSection.scoreText(pool)))
                 }
                 HStack(spacing: CYSpacing.md) {
                     if let left = pool.hintsLeft, let total = pool.hintsTotal {
@@ -213,6 +244,10 @@ import SwiftUI
                 Text("teamPool.title")
             }
             .accessibilityIdentifier("teamPool.run.section")
+            .accessibilityLabel(Text("teamPool.title"))
+            .accessibilityValue(Text(verbatim: TeamPoolHintSection.scoreText(pool)))
+            .accessibilityHint(Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
+                                                  "First solve advances the team · Shared hints, skips, timer & single team score")))
         }
     }
 }

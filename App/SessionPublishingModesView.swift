@@ -60,5 +60,6 @@ import SwiftUI
             .onChange(of: session.publishingSession) { _, _ in
                 session.publishingService?.invalidateReviews(); seed = nil; showEditor = false; resource = nil
             }
+            .cyPushedChrome(domain: .topicEditor)
     }
 }

@@ -122,9 +122,9 @@ import SwiftUI
                 Spacer()
                 if row.usable {
                     Text(typeKey(row.typeIndex)).font(CYTypography.caption)
-                        .foregroundStyle(CYColor.accentText)
+                        .foregroundStyle(CYColor.brand)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                        .background(CYColor.accentSoft, in: Capsule())
+                        .background(CYColor.brandSoft, in: Capsule())
                 } else {
                     Text("merchant.perks.expired").font(CYTypography.caption)
                         .foregroundStyle(CYColor.warningText)

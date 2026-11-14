@@ -44,7 +44,7 @@ final class CB93RouteAdaptationTests: XCTestCase {
         XCTAssertNil(ChinaReviewedRouteAdaptation.productionPath(forMissing: "/api/growth/leaderboard/anonymous"))
         XCTAssertNil(ReviewedMarketLaunch.approvedBaseURLs[.unitedStates])
         // H2 marks /api/topic/publish-status missing on production (996 -> 997, 374 -> 375).
-        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 986)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 993)
         // Channels contract 8.1: the five /api/native/blacklist/* routes are live (375 -> 370).
         XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)  // 2026-11-13 backend-final-gaps: only the 12 backend-closed workshop stubs stay missing (each row says why)
     }

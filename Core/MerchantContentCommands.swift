@@ -85,7 +85,7 @@ public enum MerchantContentCommand: Codable, Equatable {
             try positive(id); try positive(chapter); try positive(topic)
             return json("api/merchant/chapter-application/invite/respond", ["applicationId": .integer(id), "accepted": .bool(accepted)])
         case .auditApplication(let id, let approve, let reason):
-            try positive(id); guard approve || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw MerchantContentFailure.invalid }; return json("api/merchant/chapter-application/audit", ["id": .integer(id), "approve": .bool(approve), "reason": .string(reason)])
+            try positive(id); guard approve || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw MerchantContentFailure.invalid }; return json("api/merchant/chapter-application/audit", ["applicationId": .integer(id), "approved": .bool(approve), "auditRemark": .string(reason)])
         case .submitNode(let chapter, let draft): return json("api/merchant/chapter-node/submit", try draft.fields(chapterID: chapter))
         case .auditNode(let node, let approve, let reason):
             try positive(node); guard approve || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw MerchantContentFailure.invalid }; var f = ["nodeId": String(node), "approve": approve ? "true" : "false"]
@@ -96,11 +96,11 @@ public enum MerchantContentCommand: Codable, Equatable {
         case .place(let draft): return form("api/merchant/city-node/save", try draft.fields())
         case .saveNPC(let id, let name, let avatar, let greeting):
             try positive(id); guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !avatar.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw MerchantContentFailure.invalid }
-            return form("api/merchant/chapter-node/npc/save", ["nodeId": String(id), "name": name, "avatar": avatar, "greeting": greeting])
+            return json("api/merchant/chapter-node/npc/save", ["nodeId": .integer(id), "name": .string(name), "avatar": .string(avatar), "greeting": .string(greeting)])
         case .enrollVoice(let id, let sample):
             try positive(id); guard !sample.isEmpty else { throw MerchantContentFailure.invalid }
-            return form("api/merchant/chapter-node/npc/voice/enroll", ["nodeId": String(id), "voiceSample": sample])
-        case .resetVoice(let id): try positive(id); return form("api/merchant/chapter-node/npc/voice/reset", ["nodeId": String(id)])
+            return json("api/merchant/chapter-node/npc/voice/enroll", ["nodeId": .integer(id), "voiceSample": .string(sample)])
+        case .resetVoice(let id): try positive(id); return json("api/merchant/chapter-node/npc/voice/reset", ["nodeId": .integer(id)])
         case .station(let c): return json("api/game/session/command", try c.fields())
         }
     }

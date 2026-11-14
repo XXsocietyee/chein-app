@@ -10,6 +10,7 @@ struct CYNightTabBar: View {
     var isHidden: Bool = false
 
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.cyTabBarHidden) private var isTabBarHidden
     @QuestifyReduceMotion private var rm
     @Namespace private var pillNS
     @State private var landed: RootTab?
@@ -31,28 +32,30 @@ struct CYNightTabBar: View {
     var body: some View {
         // The outer reader keeps the real bottom safe area; the inner one ignores it to span the screen. Reading the inset from
         // the ignoring reader gives 0 and drops the pill below the floating bar (outside it, under the icons).
-        GeometryReader { outer in
-            if !isHidden {
-                let bottomInset = outer.safeAreaInsets.bottom
-                pillLayer(bottomInset: bottomInset).ignoresSafeArea()
-            }
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-        .onChange(of: selection) { old, new in
-            guard !rm else { landed = new; return }
-            let right = (tabs.firstIndex(of: new) ?? 0) >= (tabs.firstIndex(of: old) ?? 0)
-            task?.cancel()
-            task = Task { @MainActor in
-                anchor = right ? .leading : .trailing
-                withAnimation(.easeOut(duration: CYMotion.Duration.instant)) { stretch = 1.35 }
-                try? await Task.sleep(for: .milliseconds(120))
-                if Task.isCancelled { return }
-                withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) { landed = new }
-                try? await Task.sleep(for: .milliseconds(70))
-                if Task.isCancelled { return }
-                anchor = right ? .trailing : .leading
-                withAnimation(.spring(response: 0.34, dampingFraction: 0.62)) { stretch = 1 }
+        if !isHidden {
+            if !isTabBarHidden {
+                GeometryReader { outer in
+                    let bottomInset = outer.safeAreaInsets.bottom
+                    pillLayer(bottomInset: bottomInset).ignoresSafeArea()
+                }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+                .onChange(of: selection) { old, new in
+                    guard !rm else { landed = new; return }
+                    let right = (tabs.firstIndex(of: new) ?? 0) >= (tabs.firstIndex(of: old) ?? 0)
+                    task?.cancel()
+                    task = Task { @MainActor in
+                        anchor = right ? .leading : .trailing
+                        withAnimation(.easeOut(duration: CYMotion.Duration.instant)) { stretch = 1.35 }
+                        try? await Task.sleep(for: .milliseconds(120))
+                        if Task.isCancelled { return }
+                        withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) { landed = new }
+                        try? await Task.sleep(for: .milliseconds(70))
+                        if Task.isCancelled { return }
+                        anchor = right ? .trailing : .leading
+                        withAnimation(.spring(response: 0.34, dampingFraction: 0.62)) { stretch = 1 }
+                    }
+                }
             }
         }
     }
@@ -91,9 +94,9 @@ struct CYNightTabBar: View {
 
     private func pill(width: CGFloat) -> some View {
         Capsule(style: .continuous)
-            .fill(CYNight.violet.opacity(0.22))
-            .overlay(Capsule(style: .continuous).strokeBorder(CYNight.violet.opacity(0.55), lineWidth: 1))
-            .shadow(color: CYNight.violet.opacity(0.35), radius: 10)
+            .fill(CYColor.tabSelected.opacity(0.22))
+            .overlay(Capsule(style: .continuous).strokeBorder(CYColor.tabSelected.opacity(0.55), lineWidth: 1))
+            .shadow(color: CYColor.tabSelected.opacity(0.35), radius: 10)
             .frame(width: max(width, 40), height: pillHeight)
     }
 }
@@ -131,30 +134,14 @@ extension View {
     func cyFloatingTabBarClearance() -> some View {
         modifier(CYFloatingTabBarClearance())
     }
-
-    /// Hides both the system tab bar and the floating pill overlay while a secondary screen is active.
-    func cyHideTabBar() -> some View {
-        modifier(CYHideTabBarModifier())
-    }
-}
-
-private struct CYHideTabBarModifier: ViewModifier {
-    @Environment(\.cyTabBarVisibility) private var visibility
-    @State private var token = UUID()
-
-    func body(content: Content) -> some View {
-        content
-            .toolbar(.hidden, for: .tabBar)
-            .onAppear { visibility?.hide(token) }
-            .onDisappear { visibility?.show(token) }
-    }
 }
 
 private struct CYFloatingTabBarClearance: ViewModifier {
     @Environment(\.cyTabBarVisibility) private var visibility
-
+    @Environment(\.cyTabBarHidden) private var isTabBarHidden
     func body(content: Content) -> some View {
-        let clearance = (visibility?.isHidden == true) ? 0 : CYFloatingTabBarClearanceKey.height
+        let baseClearance = isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height
+        let clearance = (visibility?.isHidden == true) ? 0 : baseClearance
         if #available(iOS 26, *) {
             content.safeAreaPadding(.bottom, clearance).environment(\.cyTabBarClearance, clearance)
         } else { content }

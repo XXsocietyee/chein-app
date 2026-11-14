@@ -3345,6 +3345,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "EDB0FC7F28FCA2B7E501BF4C";
 		};
+		"A346A4671EAE5DE715530591" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/Cur3UITestFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"9F74ECD8760FA1185B1E6ACE" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A346A4671EAE5DE715530591";
+		};
 		"0CA0C490B2EC100B9A737D02" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3364,6 +3374,16 @@
 		"FE795673329993CA216C7C7F" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "3F7E058FB85AC70E7C84B3E9";
+		};
+		"0DA2B6CAFE68C999416653F2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/Cur9Fixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"CED3A1470342D77A4FDE4F30" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0DA2B6CAFE68C999416653F2";
 		};
 		"CD721D8154571FF3C5F4CB89" = {
 			"isa" = "PBXFileReference";
@@ -3404,6 +3424,16 @@
 		"A9C28227E660CB316C1E6681" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "49ABAA5ADC9080D18BCC8D4B";
+		};
+		"4B5D283D381A0181B6AA91E1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/CurFixtures8.swift";
+			"sourceTree" = "<group>";
+		};
+		"136C6A818387ACEB9338E08F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4B5D283D381A0181B6AA91E1";
 		};
 		"983E4F4A515049BFC1647968" = {
 			"isa" = "PBXFileReference";
@@ -3454,6 +3484,16 @@
 		"7921968AF207DEC8B2BB1D49" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "157BE3732C00EE23BAE4C233";
+		};
+		"5AE4A8FE033A0EBBABD7634D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/DesignKitFixture.swift";
+			"sourceTree" = "<group>";
+		};
+		"A686225AE1FB9C346A6487D3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5AE4A8FE033A0EBBABD7634D";
 		};
 		"D5B6BD987ADCEA15F903B05E" = {
 			"isa" = "PBXFileReference";
@@ -3775,6 +3815,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "705CDC7A190EED465C20BD58";
 		};
+		"17A6D92AC4B378168A51BE6C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYBusinessComponents.swift";
+			"sourceTree" = "<group>";
+		};
+		"9DF8468C0916739F6CC0CAA7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "17A6D92AC4B378168A51BE6C";
+		};
 		"9B56A1A0795B82ACDA884752" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3834,6 +3884,16 @@
 		"2DBDFD5E41E761189D9C1BF7" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "17703DBD5D2C0CA79F864D35";
+		};
+		"E4818312F9A0819D1D7FAFBB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYChromeBars.swift";
+			"sourceTree" = "<group>";
+		};
+		"182FBDDA987E27D1A5B603D7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E4818312F9A0819D1D7FAFBB";
 		};
 		"95F147172D55CEFB7CB54FC9" = {
 			"isa" = "PBXFileReference";
@@ -3974,6 +4034,16 @@
 		"EBCD26A98B2F3D8F7D222A03" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "F23D0E57D3DCC8921B9BC5F9";
+		};
+		"9821CB6642DAB9C1174C6678" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYField.swift";
+			"sourceTree" = "<group>";
+		};
+		"820878B1A67097147AF4EA0F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9821CB6642DAB9C1174C6678";
 		};
 		"3DD655C23771C2651F4C4634" = {
 			"isa" = "PBXFileReference";
@@ -4335,6 +4405,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "A110470F5821A6FFBE4C12EE";
 		};
+		"EF92D077EB0DA2A55D14CC37" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYSheetModal.swift";
+			"sourceTree" = "<group>";
+		};
+		"B576CA91D891C232BC8C5B0C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "EF92D077EB0DA2A55D14CC37";
+		};
 		"F15D3EFDA5DFCD92C7235905" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -4474,6 +4554,16 @@
 		"484CBC83F4D82ED59066887B" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "7F5DA4E1234F761F0B1694B6";
+		};
+		"69E77291C3080374897186F7" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYTabs.swift";
+			"sourceTree" = "<group>";
+		};
+		"27E7096601990BC41E0A11E0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "69E77291C3080374897186F7";
 		};
 		"69DE3E5BF16F43A96FB1ED27" = {
 			"isa" = "PBXFileReference";
@@ -39127,17 +39217,21 @@
 				"77908F76E30A9F106924A2C1",
 				"48EA87AD994B1F148ACCA1CA",
 				"EDB0FC7F28FCA2B7E501BF4C",
+				"A346A4671EAE5DE715530591",
 				"0CA0C490B2EC100B9A737D02",
 				"3F7E058FB85AC70E7C84B3E9",
+				"0DA2B6CAFE68C999416653F2",
 				"CD721D8154571FF3C5F4CB89",
 				"3CBADC4C6912357253C81115",
 				"755FB62192C4451A26C98A02",
 				"49ABAA5ADC9080D18BCC8D4B",
+				"4B5D283D381A0181B6AA91E1",
 				"983E4F4A515049BFC1647968",
 				"CF2B676C2317254407CF074F",
 				"4F15BFB92BB62A4B85C8A85B",
 				"3A68B2FEE73CEF7C32E4B061",
 				"157BE3732C00EE23BAE4C233",
+				"5AE4A8FE033A0EBBABD7634D",
 				"D5B6BD987ADCEA15F903B05E",
 				"DCCDC54EA0B2D688B267E692",
 				"A42FE37BA92DB11BAF84DFAC",
@@ -39170,12 +39264,14 @@
 				"5BE648762A2A3EE60E0B6E26",
 				"CD7AEA418FB522FA3F0C8475",
 				"705CDC7A190EED465C20BD58",
+				"17A6D92AC4B378168A51BE6C",
 				"9B56A1A0795B82ACDA884752",
 				"7E7C196ECB304648B0ACABD0",
 				"49DE61045CDF10D4F46B4E13",
 				"8A5508A1E30C6B8C9715112E",
 				"3C39484488DE2C39EBD333D2",
 				"17703DBD5D2C0CA79F864D35",
+				"E4818312F9A0819D1D7FAFBB",
 				"95F147172D55CEFB7CB54FC9",
 				"1106D0FD9D8A7C541388FE49",
 				"7F019142D112FE03C8ABA54D",
@@ -39190,6 +39286,7 @@
 				"AFA05AFECAFB914FD41C259B",
 				"136685E0C741EBFC70E1D292",
 				"F23D0E57D3DCC8921B9BC5F9",
+				"9821CB6642DAB9C1174C6678",
 				"3DD655C23771C2651F4C4634",
 				"542C408EC299FB899E6FE372",
 				"948151614F64B25B9B60E4B3",
@@ -39226,6 +39323,7 @@
 				"663DD60AC11345E5071031BD",
 				"5D1280D5C55B155C41A17C58",
 				"A110470F5821A6FFBE4C12EE",
+				"EF92D077EB0DA2A55D14CC37",
 				"F15D3EFDA5DFCD92C7235905",
 				"D09DAACE1FC32ED328497F96",
 				"F40D9867139187A72125B90C",
@@ -39240,6 +39338,7 @@
 				"6BEB12C7C283D6F8F1563CF8",
 				"2FAA663B4078640434196980",
 				"7F5DA4E1234F761F0B1694B6",
+				"69E77291C3080374897186F7",
 				"69DE3E5BF16F43A96FB1ED27",
 				"7A687442BAF6573B38D568CA",
 				"B79F202B805F2836091F4731",
@@ -42718,6 +42817,10 @@
 				"8F8C4744DE9B4409380B8566",
 				"0DD06FC2B8C2EAAD3131CD5F",
 				"B6EAAC044EE74AA25BB164C5",
+				"E35C02999B18821E0D35F919",
+				"88AAB429950DF48C79BE36CC",
+				"A01A1A7892E6CCA8049CF5B8",
+				"94430D07741A6F5C46004835",
 				"898B4CA8ABB5C99A021239EA",
 				"966D2C93A8CF638AE9207040",
 				"C92754FDA1F6D9402B4CB19D",
@@ -44161,17 +44264,21 @@
 				"F596030E7C378BD2837E2258",
 				"689AB97547688F230C9D0548",
 				"FF81A391BDE760E702E5958A",
+				"9F74ECD8760FA1185B1E6ACE",
 				"02240838A37D3159E6F7594D",
 				"FE795673329993CA216C7C7F",
+				"CED3A1470342D77A4FDE4F30",
 				"99EFFF64DB9EEF6A0F76B22C",
 				"10E2729AAF9E23054DE46D96",
 				"829340C075C1ECAB311E609F",
 				"A9C28227E660CB316C1E6681",
+				"136C6A818387ACEB9338E08F",
 				"263851C408F43819D3F4AAA5",
 				"843640297630A42AB861E5DE",
 				"1D87710A1E02F0228AAE2A52",
 				"52CDE783C7584FC43E837EA5",
 				"7921968AF207DEC8B2BB1D49",
+				"A686225AE1FB9C346A6487D3",
 				"C185AAC650678F2E61882320",
 				"B7B1DE3919417E86151D4F40",
 				"64F67A14E1E2266540588B76",
@@ -44204,12 +44311,14 @@
 				"96A2CCC38899D1F6E6DEE230",
 				"7E2AE4533B66B175E2C81F7D",
 				"A2B12C9F71D902A4919075BA",
+				"9DF8468C0916739F6CC0CAA7",
 				"798F7EB3CF7792CA1BB108B2",
 				"5DA0A56236058E970F001844",
 				"E24866D7F1C7EFA1FB88A5C7",
 				"C224F8C667501841E900174D",
 				"A282420EC81ED47305DF2F74",
 				"2DBDFD5E41E761189D9C1BF7",
+				"182FBDDA987E27D1A5B603D7",
 				"90943420590C3DD4AB5E98BD",
 				"60624A60021C67A716806B0F",
 				"FDC249AB70D8C4FDF7406E9E",
@@ -44224,6 +44333,7 @@
 				"2211F6D19FA1ADE62EE2DBC9",
 				"C93DCD7780A3458AB2688330",
 				"EBCD26A98B2F3D8F7D222A03",
+				"820878B1A67097147AF4EA0F",
 				"34CC836EEA07D1BB326D0D33",
 				"82E403B1109B2B82E93A3160",
 				"B23E8165E669DC0AC9A1E46B",
@@ -44260,6 +44370,7 @@
 				"4A9461EB113796FEDACCA801",
 				"8FE9C754E3AE3FEBD7054540",
 				"94394392C552E39B1F204A9D",
+				"B576CA91D891C232BC8C5B0C",
 				"60905ADA8EB58E69DDA1D64C",
 				"F606E4A2B0D8DFB7A662C48F",
 				"A99D96E194A098510DA695AD",
@@ -44274,6 +44385,7 @@
 				"24F6C459A2CE0DDDA05B214F",
 				"0F84E8455E3AE9C5B52C097E",
 				"484CBC83F4D82ED59066887B",
+				"27E7096601990BC41E0A11E0",
 				"74BA074B92B93AD275359D71",
 				"0DA5F90BA80BFBE3BAEBE467",
 				"DADDBFFC23D588FBA15D587F",
@@ -47812,7 +47924,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift AppStoreScreenshotHarness.swift CarouselFixtures.swift ClubCardFixtures.swift Cur4Fixtures.swift Cur7Fixtures.swift CurFixtures2.swift CurFixtures3.swift CurFixtures5.swift CurFixtures6.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift UGCSafetyFixtures.swift WaveFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift AppStoreScreenshotHarness.swift CarouselFixtures.swift ClubCardFixtures.swift Cur3UITestFixtures.swift Cur4Fixtures.swift Cur7Fixtures.swift Cur9Fixtures.swift CurFixtures2.swift CurFixtures3.swift CurFixtures5.swift CurFixtures6.swift CurFixtures8.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift DesignKitFixture.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift UGCSafetyFixtures.swift WaveFixtures.swift";
 			};
 			"baseConfigurationReference" = "2DE2C287CCE985622F66EC30";
 		};
@@ -48314,6 +48426,46 @@
 		"207C9424C99319903EBD84F6" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B6EAAC044EE74AA25BB164C5";
+		};
+		"E35C02999B18821E0D35F919" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/Cur3OfflineUITests.swift";
+			"sourceTree" = "<group>";
+		};
+		"0D41F3A30FE3591368080D50" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E35C02999B18821E0D35F919";
+		};
+		"88AAB429950DF48C79BE36CC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/Cur9OfflineFixtureTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"8A3A60E336697BA8026DBF54" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "88AAB429950DF48C79BE36CC";
+		};
+		"A01A1A7892E6CCA8049CF5B8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/Cur9SweepFixtureTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"2D4BD1F2640079301C0D8105" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A01A1A7892E6CCA8049CF5B8";
+		};
+		"94430D07741A6F5C46004835" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUITests/Cur9VisualBugsFixtureTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"98AD62416EF6A62D94A780CB" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "94430D07741A6F5C46004835";
 		};
 		"898B4CA8ABB5C99A021239EA" = {
 			"isa" = "PBXFileReference";
@@ -51306,6 +51458,10 @@
 				"48A69D299EA4DDCD07654701",
 				"47FF0FF9FD28098A84983681",
 				"207C9424C99319903EBD84F6",
+				"0D41F3A30FE3591368080D50",
+				"8A3A60E336697BA8026DBF54",
+				"2D4BD1F2640079301C0D8105",
+				"98AD62416EF6A62D94A780CB",
 				"6355F41F897CF8B9FFCBAEC2",
 				"A0D37CFDB74370E33EC5F4F6",
 				"6777FB7D26EF9038E71478D1",

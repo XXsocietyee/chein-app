@@ -22,7 +22,9 @@ PARTITIONS = {'QuestifyCoreTests': 'core', 'QuestifyAppUnitTests': 'app-unit', '
 FAMILIES = ('Club', 'Merchant', 'Profile', 'Ticket', 'Roam', 'Template', 'Project', 'Play', 'Search', 'Account', 'Activity', 'Map', 'Growth', 'Coupon')
 SHARD_LIMIT = 1500
 METHOD_LIMIT = 900
-LIMIT = 10 * 1024 * 1024
+# Raised from 10 MiB to 16 MiB after 1,732 added tests (and 1,621 new tracked files since rc/20261108)
+# pushed the compact manifest past 10 MiB (~10.23 MiB). Keep capped at 16 MiB.
+LIMIT = 16 * 1024 * 1024
 
 # These eight declarations are absent from simulator binaries by their existing
 # outer compile guard. Keep their identities in the complete ledger and report
@@ -476,7 +478,7 @@ def refresh(root, base, required_since=None):
             'source_dependencies':deps, 'ui_costs':current_ui_costs(root,current)}
     data['additional_base_test_reviews'] = existing.get('additional_base_test_reviews', {})
     additional_base_test_reviews(root, data)
-    raw=encode(data)+b'\n'; require(len(raw)<=LIMIT,'Current manifest exceeds unchanged10MiB limit'); (Path(root)/MANIFEST).write_bytes(raw)
+    raw=encode(data)+b'\n'; require(len(raw)<=LIMIT,'Current manifest exceeds 16MiB limit'); (Path(root)/MANIFEST).write_bytes(raw)
     return data
 
 

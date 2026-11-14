@@ -77,7 +77,7 @@ import SwiftUI
             Button { onRoute(.topicCooperation) } label: {
                 LabeledContent {
                     if home.recruiting.count > 0 {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count)).font(CYTypography.numericBody).foregroundStyle(CYColor.accentText)
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count)).font(CYTypography.numericBody).foregroundStyle(CYColor.brand)
                     }
                 } label: {
                     Text("merchant.marketing.enterCoop").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)

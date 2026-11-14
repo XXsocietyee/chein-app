@@ -72,6 +72,7 @@ struct ActivityDetailView: View {
             }
         }
         .appNavigationTitle("activity.details")
+        .cyPushedChrome(domain: .player)
         .cyDomainPageBackground()
         .cyHideTabBar()
     }
@@ -89,6 +90,7 @@ struct ActivityDetailView: View {
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var startsWithMoreInfoOpen = false
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
     /// Collapsed by default: the 12 secondary sections live behind one disclosure row.
     @State private var showsMoreInfo = false
@@ -181,7 +183,10 @@ struct ActivityDetailView: View {
         }
         .environment(\.ugcSafetySubjectID, id)
         .sheet(isPresented: $showsShare) {
-            if let access, case .allowed(let detail) = access { CatalogShareCardView(content: shareContent(detail), tint: .sunset) }
+            if let access, case .allowed(let detail) = access {
+                CatalogShareCardView(content: shareContent(detail), tint: .sunset)
+                    .cyPlayerSheetGlass()
+            }
         }
         .cyDomainPageBackground()
         .task(id:id) { await loads.run { await load() } }
@@ -222,6 +227,7 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
+                .cyPlayerSheetGlass()
         }
         .sheet(isPresented:$showsRegistration) {
             Group {
@@ -229,6 +235,7 @@ struct ActivityDetailView: View {
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+            .cyPlayerSheetGlass()
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
@@ -246,6 +253,7 @@ struct ActivityDetailView: View {
                     .id(session.ticketWalletReader.scope)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
+                    .cyPlayerSheetGlass()
             }
         }
     }
@@ -345,15 +353,21 @@ struct ActivityDetailView: View {
     /// First fold: hero, three action tiles, info card, map, people, tickets, reviews, one "More info" row.
     /// Everything else (topic, about, plays, journeys) sits behind the disclosure; host cancel stays its own section.
     private func detailContent(_ detail:ActivityDetail) -> some View {
+        ScrollViewReader { proxy in
         List {
             Section {
                 E1ActivityHero(summary:detail.summary)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                E1ActivityStatsRow(detail: detail)
+                    .questifyCardListRow()
+                E1ActivitySectionTabs(proxy: proxy)
+                    .listRowInsets(EdgeInsets()).listRowBackground(palette.bgPage).listRowSeparator(.hidden)
                 ActivityActionTiles(onDirections: directionsAction(detail),
                                     onReview: canReview(detail) ? { showsReview = true } : nil)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
                 E1ActivityInfoCard(detail:detail)
                     .questifyCardListRow()
+                    .id(E1ActivityAnchor.overview.rawValue)
             }
             if detail.isCancelled {
                 Section {
@@ -404,8 +418,10 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("票种", "Tickets")) }
+            .id(E1ActivityAnchor.tickets.rawValue)
             // Mini-program order: reviews (count, 写评价, 还没有评价) follow the tickets on the first fold.
             ActivityReviewsSection(reviews: detail.reviews)
+                .id(E1ActivityAnchor.details.rawValue)
             Section {
                 if canReview(detail) {
                     Button { showsReview = true } label: {
@@ -453,11 +469,13 @@ struct ActivityDetailView: View {
                 }
             }
         }
+        }
         .listStyle(.insetGrouped)
         .listSectionSpacing(CYSpacing.xl)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .accessibilityIdentifier("activity.detail.content")
+        .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.activity")
         // E2E-20261113b N3: the List did not inset for the pinned action, so the last section ("More info", which holds
         // the play row) ended under it. Reserve the pinned action's height below the content.
         .contentMargins(.bottom, registrationEnabled ? 112 : 0, for: .scrollContent)
@@ -570,8 +588,7 @@ struct ActivityDetailView: View {
         for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }
         return line
     }
-    private func registrationAction(_ detail: ActivityDetail) -> some View {
-        // Same placement as `.questifyBottomAction`: one primary action pinned above the home indicator.
+    private func registrationAction(_ detail: ActivityDetail) -> some View { CYFooterBar {
         VStack(spacing: CYSpacing.xs) {
             if let summary = pinnedSummary(detail) {
                 summary
@@ -596,10 +613,7 @@ struct ActivityDetailView: View {
                 .accessibilityLabel(Text(LocalizedStringKey(action.titleKey)))
             }
         }
-        .padding(.horizontal, CYSpacing.pageHorizontal)
-        .padding(.vertical, CYSpacing.md)
-        .background(CYColor.bgElevated)
-    }
+    } }
     @MainActor private func load() async {
         generation += 1
         let operation=generation

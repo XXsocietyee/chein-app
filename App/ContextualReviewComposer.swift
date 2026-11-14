@@ -66,7 +66,9 @@ import SwiftUI
                 }.navigationTitle("context.review.preview")
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { review = nil; captured = nil }.disabled(busy) } }
             }.interactiveDismissDisabled(busy)
+            .cyPlayerSheetGlass()
         }
+        .cyDomainScreen(.player)
         .onChange(of: owner?.writer.session) { _, _ in draft = .init(); review = nil; captured = nil; busy = false; revision += 1 }
     }
     private func submit(_ value: ContextualReviewDraft) async {

@@ -168,7 +168,8 @@ public extension BusinessRuntimeFeature {
             return Int(route.path.dropFirst(prefix.count).dropLast(suffix.count)).map { $0 > 0 } == true
         }
         if self == .imChannelPersonalStateReceipt {
-            let prefix = "api/channels/member-state-requests/"
+            let template = "api/channels/member-state-requests/{requestId}"
+            let prefix = template.replacingOccurrences(of: "{requestId}", with: "")
             return route.method == "GET" && route.path.hasPrefix(prefix) && UUID(uuidString: String(route.path.dropFirst(prefix.count))) != nil
         }
         if self == .imChannelPersonalStateRead || self == .imChannelPersonalStateWrite {

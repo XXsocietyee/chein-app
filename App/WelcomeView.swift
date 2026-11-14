@@ -160,7 +160,7 @@ private struct RoleButtonStyle: ButtonStyle {
             .font(CYTypography.label)
             .foregroundStyle(primary ? CYColor.textOnAccent : CYColor.textPrimary)
             .frame(maxWidth: .infinity, minHeight: 56)
-            .background(primary ? AnyShapeStyle(configuration.isPressed ? CYColor.accentPressed : CYColor.accent) : AnyShapeStyle(Color.clear), in: shape)
+            .background(primary ? AnyShapeStyle(configuration.isPressed ? CYColor.brandStrong : CYColor.actionPrimaryBg) : AnyShapeStyle(Color.clear), in: shape)
             .overlay(shape.strokeBorder(primary ? Color.clear : CYColor.borderStrong, lineWidth: 1.5))
             .shadow(color: .black.opacity(primary ? 0.3 : 0), radius: 10, y: 4)
             .contentShape(shape)

@@ -497,7 +497,7 @@ public struct ClubChannelMessagingView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(isSelected ? palette.infoSoft : Color.clear, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+            .background(isSelected ? palette.infoSoft : Color.clear, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 6)

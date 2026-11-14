@@ -172,7 +172,7 @@ struct MerchantGamePlayerView: View {
         case "reward_rule_ref": return copy("Existing reward rule reference", "现有奖励规则引用")
         case "product_facts": return copy("Product source facts", "商品来源事实")
         case "product_id": return copy("Product ID", "商品 ID")
-        case "sku_id": return copy("SKU ID", "SKU ID")
+        case "sku_id": return copy("SKU ID", "规格编号")
         default: return copy("Field label unavailable", "字段标签不可用")
         }
     }

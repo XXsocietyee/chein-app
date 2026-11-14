@@ -300,8 +300,8 @@ public struct MerchantContentWriteApproval: Equatable {
             let rows = templates.array ?? templates["rows"].array
             guard catalog.object != nil, profile.object != nil, let rows else { throw MerchantContentFailure.malformed }
             return .object(["catalog": catalog, "profile": profile, "templates": .array(rows)])
-        case .npc(let id): value = try await read("api/merchant/chapter-node/npc/detail", .form(["nodeId": String(id)]), session: s)
-        case .voice(let id): value = try await read("api/merchant/chapter-node/npc/voice/status", .form(["nodeId": String(id)]), session: s)
+        case .npc(let id): value = try await read("api/merchant/chapter-node/npc/detail", .json(["nodeId": .integer(id)]), session: s)
+        case .voice(let id): value = try await read("api/merchant/chapter-node/npc/voice/status", .json(["nodeId": .integer(id)]), session: s)
         case .poster(let id):
             let nodes = try await read("api/merchant/chapter-node/mine", .form([:]), session: s)
             guard let rows = nodes.array, rows.contains(where: { $0["id"].integer == id && $0["nodeAuditStatus"].integer == 1 }) else { throw MerchantContentFailure.denied }

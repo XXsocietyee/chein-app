@@ -92,7 +92,7 @@ struct DiscoveryTemplateDetailView: View {
                                 ForEach(Array(parity.ruleSteps.enumerated()), id: \.offset) { index, step in
                                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                                         Text(verbatim: String(index + 1)).font(CYTypography.label.monospacedDigit())
-                                            .frame(width: 28, height: 28).background(CYNight.ink0, in: Circle())
+                                            .frame(width: 28, height: 28).background(CYColor.bgSurfaceStrong, in: Circle())
                                         Text(verbatim: step).font(CYTypography.body).foregroundStyle(palette.textSecondary)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -145,11 +145,13 @@ struct DiscoveryTemplateDetailView: View {
                 .accessibilityIdentifier("discovery.template.safetyMenu")
             }
         }
+        .cyPushedChrome(domain: .player)
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
         .sheet(item: $capabilityPreview) { state in
             TemplateNodePreviewSheet(state: state) { capabilityPreview = nil }
+                .cyPlayerSheetGlass()
         }
         .navigationDestination(item: $adoption) { selected in
             if let authoringFactory {
@@ -158,6 +160,7 @@ struct DiscoveryTemplateDetailView: View {
                     isCurrent: { adoption?.id == selected.id && loadedKey == selected.key &&
                         requestKey == selected.key && reader.isConfigured })
                     .id(selected.id)
+                    .cyPushedChrome(domain: .topicEditor)
             }
         }
     }

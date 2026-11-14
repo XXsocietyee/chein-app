@@ -43,7 +43,7 @@ struct CYSquareShareSheet: View {
                 Button { dismiss() } label: {
                     Image(systemName: "xmark").font(CYTypography.label.weight(.semibold))
                         .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
-                        .background(Circle().fill(CYNight.glassFill))
+                        .background(Circle().fill(CYColor.bgSurfaceSubtle))
                 }
                 .buttonStyle(.cyPressable)
                 .accessibilityLabel(Text("share.close", tableName: "SocialParity"))
@@ -59,7 +59,7 @@ struct CYSquareShareSheet: View {
                     .font(CYTypography.bodyMedium.weight(.semibold))
                     .foregroundStyle(CYColor.textOnAccent)
                     .frame(maxWidth: .infinity, minHeight: 52)
-                    .background(Capsule().fill(CYColor.accent))
+                    .background(Capsule().fill(CYColor.actionPrimaryBg))
             }
             .buttonStyle(.cyPressable)
             .accessibilityIdentifier("square.share.send")
@@ -78,7 +78,7 @@ struct CYSquareShareSheet: View {
         }
         .padding(CYSpacing.lg)
         .presentationDetents([.medium])
-        .presentationBackground(CYNight.ink2)
+        .cyPlayerSheetGlass()
         .accessibilityIdentifier("square.share.sheet")
     }
 
@@ -89,10 +89,10 @@ struct CYSquareShareSheet: View {
             Group {
                 if let image = payload.imageURL {
                     AsyncImage(url: image) { phase in
-                        if let loaded = phase.image { loaded.resizable().scaledToFill() } else { CYNight.indigo }
+                        if let loaded = phase.image { loaded.resizable().scaledToFill() } else { CYColor.bgSurfaceSubtle }
                     }
                 } else {
-                    ZStack { CYNight.indigo; Image(systemName: "sparkles").foregroundStyle(CYColor.textSecondary) }
+                    ZStack { CYColor.bgSurfaceSubtle; Image(systemName: "sparkles").foregroundStyle(CYColor.textSecondary) }
                 }
             }
             .frame(width: 72, height: 72)
@@ -105,8 +105,8 @@ struct CYSquareShareSheet: View {
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.md)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink1))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.sheetCard))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("square.share.card")
     }

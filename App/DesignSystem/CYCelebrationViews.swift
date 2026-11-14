@@ -655,7 +655,6 @@ struct CYRoamSummaryView: View {
             .padding(.vertical, CYSpacing.lg)
             .frame(maxWidth: .infinity)
             .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
     }
 }
 
@@ -688,7 +687,6 @@ struct CYRoamRouteCard: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
         .frame(minHeight: 160)
         .accessibilityIdentifier(payload.route.isEmpty ? "cy.celebration.roam.noroute" : "cy.celebration.roam.routecard")
     }

@@ -159,9 +159,8 @@ import UIKit
         }
         .appNavigationTitle("cooperation.detail.title")
         .navigationBarTitleDisplayMode(.inline)
-        .cyDomainPageBackground()
-        .themeDomain(.player)
-        .tint(CYDomainPalette(.player).brand)
+        .cyDomainScreen(.merchant)
+        .cyHideTabBar(true)
         .onAppear { phoneCopy.appear(active: scenePhase == .active) }
         .onDisappear { phoneCopy.disappear() }
         .onChange(of: scenePhase) { _, phase in phoneCopy.sceneChanged(active: phase == .active) }

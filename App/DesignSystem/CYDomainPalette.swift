@@ -21,9 +21,11 @@ struct CYDomainPalette {
     init(_ domain: ThemeDomain) { self.domain = domain }
 
     private var isDark: Bool { domain.colorScheme == .dark }
+    /// Play runtime overlays `.theme-game` tokens onto the player dark stage rather than light gray merchant chrome.
+    private var surfaceDomain: ThemeDomain { domain == .game ? .player : domain }
 
     private func token(_ name: String, dark: CYRGB, light: CYRGB) -> Color {
-        if let value = Theme.Generated.color(name, in: domain) { return value }
+        if let value = Theme.Generated.color(name, in: surfaceDomain) { return value }
         return (isDark ? dark : light).swiftUIColor
     }
 
@@ -51,6 +53,37 @@ struct CYDomainPalette {
     var bgStrong: Color { token("--cy-color-bg-surface-strong", dark: CYRGB(hex: 0x3B3B3D), light: CYRGB(hex: 0xE4E4E4)) }
     /// `--cy-color-bg-interactive` (round action buttons, unselected chips): `#4D4D4D` / `#FFFFFF`.
     var bgInteractive: Color { token("--cy-color-bg-interactive", dark: CYRGB(hex: 0x4D4D4D), light: CYRGB(hex: 0xFFFFFF)) }
+    /// Player sheet glass (`rgba(44,44,46,.98)`) / merchant sheet (`#FFFFFF`).
+    var sheetGlass: Color {
+        isDark
+            ? token("--cy-comp-sheet-player-glass", dark: CYRGB(hex: 0x2C2C2E, alpha: 0.98), light: CYRGB(hex: 0xFFFFFF))
+            : token("--cy-comp-sheet-merchant-glass", dark: CYRGB(hex: 0x2C2C2E, alpha: 0.98), light: CYRGB(hex: 0xFFFFFF))
+    }
+    /// Nested card inside a sheet (`#3A3A3C` player / `#F8F9FA` merchant).
+    var sheetCard: Color {
+        isDark
+            ? token("--cy-comp-sheet-player-card", dark: CYRGB(hex: 0x3A3A3C), light: CYRGB(hex: 0xF8F9FA))
+            : CYRGB(hex: 0xF8F9FA).swiftUIColor
+    }
+    /// Centered modal panel (`--cy-comp-modal-panel`: `#4D4D4D` / `#FFFFFF`).
+    var modalPanel: Color { token("--cy-comp-modal-panel", dark: CYRGB(hex: 0x4D4D4D), light: CYRGB(hex: 0xFFFFFF)) }
+    /// Sheet drag grabber (`--cy-color-sheet-handle`): `#8E8E93` / `#DBDBDB`.
+    var sheetHandle: Color { token("--cy-color-sheet-handle", dark: CYRGB(hex: 0x8E8E93), light: CYRGB(hex: 0xDBDBDB)) }
+    /// Field idle background (`--cy-comp-field-idle-bg`): `#1C1C1E` / `#FFFFFF`.
+    var inputIdleBg: Color { token("--cy-comp-field-idle-bg", dark: CYRGB(hex: 0x1C1C1E), light: CYRGB(hex: 0xFFFFFF)) }
+    /// Field filled background (`--cy-comp-field-filled-bg`): `#3B3B3D` / `#EFEFEF`.
+    var inputFilledBg: Color { token("--cy-comp-field-filled-bg", dark: CYRGB(hex: 0x3B3B3D), light: CYRGB(hex: 0xEFEFEF)) }
+    /// Field disabled background (`--cy-comp-field-disabled-bg`): `#141416` / `#F5F5F5`.
+    var inputDisabledBg: Color { token("--cy-comp-field-disabled-bg", dark: CYRGB(hex: 0x141416), light: CYRGB(hex: 0xF5F5F5)) }
+    /// Cover fallback fill when artwork is missing (`#30383D` dark / `bgRaised` light).
+    var coverFallback: Color { isDark ? CYRGB(hex: 0x30383D).swiftUIColor : bgRaised }
+    /// Foreground / muted / glass / CTA tokens on top of dark photo/hero scrims.
+    var onCoverFg: Color { token("--cy-comp-oncover-fg", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.96), light: CYRGB(hex: 0xFFFFFF, alpha: 0.96)) }
+    var onCoverFgDim: Color { token("--cy-comp-oncover-fg-dim", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.72), light: CYRGB(hex: 0xFFFFFF, alpha: 0.72)) }
+    var photoCardFg: Color { token("--cy-comp-photo-card-fg", dark: CYRGB(hex: 0xFFFFFF), light: CYRGB(hex: 0xFFFFFF)) }
+    var photoCardMuted: Color { token("--cy-comp-photo-card-muted", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.82), light: CYRGB(hex: 0xFFFFFF, alpha: 0.82)) }
+    var photoCardGlass: Color { token("--cy-comp-photo-card-glass", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0xFFFFFF, alpha: 0.14)) }
+    var photoCardAction: Color { token("--cy-comp-photo-card-action", dark: CYRGB(hex: 0x060606, alpha: 0.94), light: CYRGB(hex: 0x060606, alpha: 0.94)) }
 
     /// Card fill, `--cy-comp-card-bg`.
     var cardFill: Color { bgElevated }
@@ -63,19 +96,21 @@ struct CYDomainPalette {
     var borderStrong: Color { token("--cy-color-border-strong", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.16), light: CYRGB(hex: 0xDBDBDB)) }
     /// Dark cards rise with a 0.5pt top-edge highlight (`--cy-comp-card-highlight`); light cards use a shadow instead.
     var cardHighlight: Color { token("--cy-comp-card-highlight", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0x000000, alpha: 0)) }
-    /// Light-domain card shadow (`--cy-comp-card-shadow-day: 0 2rpx 8rpx rgba(15,23,43,.48)`); none in dark.
-    var cardShadowColor: Color { isDark ? .clear : CYRGB(hex: 0x0F172B, alpha: 0.48).swiftUIColor }
+    /// Neutral light-domain card shadow (`rgba(0,0,0,.05)` per unified shadow spec, no slate-blue); clear in dark.
+    var cardShadowColor: Color { isDark ? .clear : CYRGB(hex: 0x000000, alpha: 0.05).swiftUIColor }
+    /// Elevated float shadow (toasts, floating controls, modals).
+    var floatShadowColor: Color { isDark ? CYRGB(hex: 0x000000, alpha: 0.28).swiftUIColor : CYRGB(hex: 0x000000, alpha: 0.10).swiftUIColor }
 
     // MARK: Text
 
     /// `#F8F8F8` / `#000000`.
     var textPrimary: Color { token("--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
-    /// `#B7B7B7` / `#404040`.
-    var textSecondary: Color { token("--cy-color-text-secondary", dark: CYRGB(hex: 0xB7B7B7), light: CYRGB(hex: 0x404040)) }
-    /// `#919191` / `#6B6B6B`.
-    var textTertiary: Color { token("--cy-color-text-tertiary", dark: CYRGB(hex: 0x919191), light: CYRGB(hex: 0x6B6B6B)) }
-    /// `#868686` / `#6F6F6F`.
-    var textPlaceholder: Color { legible("--cy-color-text-placeholder", darkText: 0x929292, dark: CYRGB(hex: 0x868686), light: CYRGB(hex: 0x6F6F6F)) }
+    /// `#C7C7C7` / `#404040`.
+    var textSecondary: Color { token("--cy-color-text-secondary", dark: CYRGB(hex: 0xC7C7C7), light: CYRGB(hex: 0x404040)) }
+    /// `#A8A8A8` / `#6B6B6B`.
+    var textTertiary: Color { token("--cy-color-text-tertiary", dark: CYRGB(hex: 0xA8A8A8), light: CYRGB(hex: 0x6B6B6B)) }
+    /// `#9E9E9E` / `#6F6F6F`.
+    var textPlaceholder: Color { token("--cy-color-text-placeholder", dark: CYRGB(hex: 0x9E9E9E), light: CYRGB(hex: 0x6F6F6F)) }
     /// `rgba(255,255,255,.40)` / `#737373`.
     var textDisabled: Color { token("--cy-color-text-disabled", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.40), light: CYRGB(hex: 0x737373)) }
     /// `#0A0A0A` / `#FFFFFF` (text on a primary fill).
@@ -126,12 +161,83 @@ struct CYDomainPalette {
     /// `--cy-color-overlay`: `rgba(0,0,0,.56)` in both domains.
     var overlay: Color { token("--cy-color-overlay", dark: CYRGB(hex: 0x000000, alpha: 0.56), light: CYRGB(hex: 0x000000, alpha: 0.56)) }
 
-    // MARK: Tab bar (components/tabBar/index.wxss)
+    // MARK: Rare, Medals, Playkit & Game Runtime
 
-    /// Selected tab icon/label tint: the only violet (`--cy-ref-violet-500` `#7A5CFF`).
+    /// `--cy-color-rare` (`#F59F00`).
+    var rare: Color { token("--cy-color-rare", dark: CYRGB(hex: 0xF59F00), light: CYRGB(hex: 0xF59F00)) }
+    /// `--cy-color-rare-fg` (`#F59F00` dark / `#96610A` light).
+    var rareFg: Color { token("--cy-color-rare-fg", dark: CYRGB(hex: 0xF59F00), light: CYRGB(hex: 0x96610A)) }
+    /// `--cy-color-rare-soft` (`rgba(245,159,0,.14)` dark / `rgba(245,159,0,.12)` light).
+    var rareSoft: Color { token("--cy-color-rare-soft", dark: CYRGB(hex: 0xF59F00, alpha: 0.14), light: CYRGB(hex: 0xF59F00, alpha: 0.12)) }
+
+    /// `--cy-color-medal-gold` (`#FFCB3C` / `#D27D08`).
+    var medalGold: Color { token("--cy-color-medal-gold", dark: CYRGB(hex: 0xFFCB3C), light: CYRGB(hex: 0xD27D08)) }
+    /// `--cy-color-medal-silver` (`#D6D6D6` / `#717171`).
+    var medalSilver: Color { token("--cy-color-medal-silver", dark: CYRGB(hex: 0xD6D6D6), light: CYRGB(hex: 0x717171)) }
+    /// `--cy-color-medal-bronze` (`#F58C41` / `#D6600B`).
+    var medalBronze: Color { token("--cy-color-medal-bronze", dark: CYRGB(hex: 0xF58C41), light: CYRGB(hex: 0xD6600B)) }
+
+    // Playkit category accents (`--cy-color-playkit-*`)
+    var playkitAI: Color { token("--cy-color-playkit-ai", dark: CYRGB(hex: 0xB06CFF), light: CYRGB(hex: 0xB06CFF)) }
+    var playkitCarbon: Color { token("--cy-color-playkit-carbon", dark: CYRGB(hex: 0xA3C644), light: CYRGB(hex: 0xA3C644)) }
+    var playkitCraft: Color { token("--cy-color-playkit-craft", dark: CYRGB(hex: 0x2EC4B6), light: CYRGB(hex: 0x2EC4B6)) }
+    var playkitMerit: Color { token("--cy-color-playkit-merit", dark: CYRGB(hex: 0xE8B44A), light: CYRGB(hex: 0xE8B44A)) }
+    var playkitMusic: Color { token("--cy-color-playkit-music", dark: CYRGB(hex: 0x8C5CFF), light: CYRGB(hex: 0x8C5CFF)) }
+    var playkitNight: Color { token("--cy-color-playkit-night", dark: CYRGB(hex: 0x5B8DEF), light: CYRGB(hex: 0x5B8DEF)) }
+    var playkitSign: Color { token("--cy-color-playkit-sign", dark: CYRGB(hex: 0xE5484D), light: CYRGB(hex: 0xE5484D)) }
+    var playkitSilent: Color { token("--cy-color-playkit-silent", dark: CYRGB(hex: 0xFF6B35), light: CYRGB(hex: 0xFF6B35)) }
+    var playkitSlow: Color { token("--cy-color-playkit-slow", dark: CYRGB(hex: 0x7E8CE0), light: CYRGB(hex: 0x7E8CE0)) }
+    var playkitSticker: Color { token("--cy-color-playkit-sticker", dark: CYRGB(hex: 0xF06292), light: CYRGB(hex: 0xF06292)) }
+    var playkitTaste: Color { token("--cy-color-playkit-taste", dark: CYRGB(hex: 0x33C773), light: CYRGB(hex: 0x33C773)) }
+
+    // Play-story tokens (`--cy-color-play-story-*`)
+    var playStoryAccent: Color { token("--cy-color-play-story-accent", dark: CYRGB(hex: 0x4B46F5), light: CYRGB(hex: 0x4B46F5)) }
+    var playStoryAccentSoft: Color { token("--cy-color-play-story-accent-soft", dark: CYRGB(hex: 0x4B46F5, alpha: 0.14), light: CYRGB(hex: 0x4B46F5, alpha: 0.14)) }
+    var playStoryAccentFade: Color { token("--cy-color-play-story-accent-fade", dark: CYRGB(hex: 0x8C91A0), light: CYRGB(hex: 0x8C91A0)) }
+    var playStoryCtaFg: Color { token("--cy-color-play-story-cta-fg", dark: CYRGB(hex: 0xFFFFFF), light: CYRGB(hex: 0xFFFFFF)) }
+    var playStoryPage: Color { token("--cy-color-play-story-page", dark: CYRGB(hex: 0xFFFFFF), light: CYRGB(hex: 0xFFFFFF)) }
+    var playStorySurface: Color { token("--cy-color-play-story-surface", dark: CYRGB(hex: 0xF6F7FA), light: CYRGB(hex: 0xF6F7FA)) }
+    var playStoryText: Color { token("--cy-color-play-story-text", dark: CYRGB(hex: 0x111111), light: CYRGB(hex: 0x111111)) }
+    var playStoryMuted: Color { token("--cy-color-play-story-muted", dark: CYRGB(hex: 0x5E6470), light: CYRGB(hex: 0x5E6470)) }
+    var playStoryLine: Color { token("--cy-color-play-story-line", dark: CYRGB(hex: 0x8B8F99), light: CYRGB(hex: 0x8B8F99)) }
+
+    // Game runtime set (`.theme-game`)
+    private func gameToken(_ name: String, fallback: CYRGB) -> Color {
+        Theme.Generated.color(name, in: .game) ?? fallback.swiftUIColor
+    }
+    var gameAccent: Color { gameToken("--cy-game-accent", fallback: CYRGB(hex: 0xD0323B)) }
+    var gameAccentFg: Color { gameToken("--cy-game-accent-fg", fallback: CYRGB(hex: 0xFFFFFF)) }
+    var gameAccentSoft: Color { gameToken("--cy-game-accent-soft", fallback: CYRGB(hex: 0xD0323B, alpha: 0.10)) }
+    var gameMarker: Color { gameToken("--cy-game-marker", fallback: CYRGB(hex: 0xF59F00)) }
+    var gameWin: Color { gameToken("--cy-game-win", fallback: CYRGB(hex: 0x0B7A57)) }
+    var gameFloodWin: Color { gameToken("--cy-game-flood-win", fallback: CYRGB(hex: 0x0B7A57, alpha: 0.14)) }
+    var gameFloodOk: Color { gameToken("--cy-game-flood-ok", fallback: CYRGB(hex: 0xF59F00, alpha: 0.16)) }
+    var gameFloodMiss: Color { gameToken("--cy-game-flood-miss", fallback: CYRGB(hex: 0xD0323B, alpha: 0.12)) }
+    var gameHeroSize: CGFloat { Theme.Generated.length("--cy-game-type-hero", in: .game) ?? 66 }
+    var gameReadoutSize: CGFloat { Theme.Generated.length("--cy-game-type-readout", in: .game) ?? 32 }
+
+    // MARK: Reserved `#7A5CFF` Roles (tabSelected, avatarRing, resultSpinner ONLY)
+
+    /// Selected tab icon/label tint (`--cy-ref-violet-500` `#7A5CFF`).
     var tabSelectedTint: Color {
         token(
             "--cy-ref-violet-500",
+            dark: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex),
+            light: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex)
+        )
+    }
+    /// Profile hero avatar ring (`--cy-comp-profile-avatar-ring` `#7A5CFF`).
+    var avatarRing: Color {
+        token(
+            "--cy-comp-profile-avatar-ring",
+            dark: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex),
+            light: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex)
+        )
+    }
+    /// Result overlay spinner tint (`--cy-comp-result-spinner` `#7A5CFF`).
+    var resultSpinner: Color {
+        token(
+            "--cy-comp-result-spinner",
             dark: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex),
             light: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex)
         )
@@ -161,22 +267,30 @@ struct CYDomainCardModifier: ViewModifier {
     var padding: CGFloat = 16               // --cy-comp-card-pad 32rpx
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let shadowRadius: CGFloat = colorScheme == .light ? 6 : 0
+        let shadowY: CGFloat = colorScheme == .light ? 2 : 0
         content
             .padding(padding)
-            .background(shape.fill(palette.cardFill).shadow(color: palette.cardShadowColor, radius: 2, x: 0, y: 1))
-            .overlay(
-                shape.strokeBorder(
-                    LinearGradient(
-                        colors: [palette.cardHighlight, .clear],
-                        startPoint: .top,
-                        endPoint: .center
-                    ),
-                    lineWidth: 0.5
-                )
+            .background(
+                shape.fill(palette.cardFill)
+                    .shadow(color: palette.cardShadowColor, radius: shadowRadius, x: 0, y: shadowY)
             )
+            .overlay {
+                if colorScheme == .dark {
+                    VStack(spacing: 0) {
+                        Rectangle()
+                            .fill(palette.cardHighlight)
+                            .frame(height: 0.5)
+                        Spacer(minLength: 0)
+                    }
+                    .clipShape(shape)
+                    .allowsHitTesting(false)
+                }
+            }
     }
 }
 

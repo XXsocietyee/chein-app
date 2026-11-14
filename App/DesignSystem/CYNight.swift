@@ -8,10 +8,12 @@ public enum CYNight {
     public static let ink1 = CYRGB(hex: 0x0E0E16).swiftUIColor      // card ground
     public static let ink2 = CYRGB(hex: 0x171726).swiftUIColor      // raised card / sheet
     public static let indigo = CYRGB(hex: 0x1B1E4A).swiftUIColor    // map ground, fog, hero backdrops
-    public static let violet = CYRGB(hex: 0x7A5CFF).swiftUIColor    // selection only
-    /// Selected mark for player controls. Screens call this so the hue name stays in this file.
-    public static var selection: Color { violet }
-    // Muted group hues for Settings tiles (quiet chrome: no lantern, no selection violet).
+    /// Reserved tab-selected tint reference (`CYColor.tabSelected`, `--cy-ref-violet-500` `#7A5CFF`).
+    @available(*, deprecated, renamed: "CYColor.tabSelected")
+    public static var violet: Color { CYColor.tabSelected }
+    /// Selected mark for player controls (neutral `--cy-color-selection`; no violet).
+    public static var selection: Color { CYColor.selection }
+    // Muted group hues for Settings tiles (quiet chrome: no lantern, no violet).
     public static let tileBlue = CYRGB(hex: 0x3A4A8A).swiftUIColor
     public static let tileGreen = CYRGB(hex: 0x1E6B4A).swiftUIColor
     public static let tileOrange = CYRGB(hex: 0x8A5A32).swiftUIColor
@@ -22,7 +24,7 @@ public enum CYNight {
     public static let lanternHot = CYRGB(hex: 0xFFE3A6).swiftUIColor // light core
     public static let ember = CYRGB(hex: 0xFF7A3D).swiftUIColor     // gradient tail of lantern, never alone
     public static let verify = CYRGB(hex: 0x3DDC84).swiftUIColor    // success edge glow / morphed button only
-    public static let foilA = CYRGB(hex: 0x7A5CFF).swiftUIColor
+    public static let foilA = CYRGB(hex: 0xF59F00).swiftUIColor
     public static let foilB = CYRGB(hex: 0xFFB84D).swiftUIColor
     public static let foilC = CYRGB(hex: 0x3DD6FF).swiftUIColor
     public static let glassFill = Color.white.opacity(0.06)

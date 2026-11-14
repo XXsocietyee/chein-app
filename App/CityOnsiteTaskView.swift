@@ -66,7 +66,10 @@ import SwiftUI
                     Button { controller.cancelConfirmation() } label: { Text("cityOnsite.cancel", tableName: table) }
                 }.cyGroupedSurface().navigationTitle(Text("cityOnsite.confirmTitle", tableName: table))
             }
+            .cyPlayerSheetGlass()
         }
+        .cyDomainScreen(.game)
+        .cyHideTabBar(true)
     }
     private func recoverOriginal() {
         guard interactive else { return }; let activity = controller.activityID

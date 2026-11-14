@@ -34,6 +34,7 @@ import SwiftUI
         .cyToast(message: $cityConsent.toast)
         .sheet(isPresented:$showsTodayTickets) {
             TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTodayTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope)
+                .cyPlayerSheetGlass()
         }
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }
         .onChange(of:session.officialEventReader.scope) { _,_ in showsOfficialEvents=false }
@@ -48,6 +49,7 @@ import SwiftUI
                         }
                     }
             }.id(session.searchMapReader.scope)
+            .cyPlayerSheetGlass()
         }
         .sheet(isPresented:$showsProjectEditor) {
             NavigationStack {
@@ -58,14 +60,17 @@ import SwiftUI
                     }
                 }
             }.id(session.sessionRevision)
+            .themeDomain(.topicEditor)
+            .presentationCornerRadius(CYRadius.sheet)
         }
         .sheet(isPresented:$showsOfficialEvents) {
             OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onClose:{ showsOfficialEvents=false },onLogin:{
                 showsOfficialEvents=false
                 onSignIn?()
             },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) })).id(session.officialEventReader.scope)
+            .cyPlayerSheetGlass()
         }
-        .sheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope) }
+        .sheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }
         .sheet(isPresented:$showsCreate) {
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
@@ -78,6 +83,7 @@ import SwiftUI
                     }
             }
             .id(session.templateAuthoringViewIdentity)
+            .cyPlayerSheetGlass()
         }
         .sheet(isPresented:$showsTemplates) {
             NavigationStack {
@@ -89,6 +95,7 @@ import SwiftUI
                         }
                     }
             }
+            .cyPlayerSheetGlass()
         }
     }
     private var navigationRoot: some View {
@@ -150,22 +157,26 @@ import SwiftUI
                     }
                 }
                 .navigationDestination(for:AppRoute.self) { route in
-                    switch route.homeFeedDestination {
-                    case .activity(let id): ActivityDetailView(id:id,reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true)
-                            .cyHeroDestinationWithFallback(HomeFeedDestination.activity(id), in: hero)
-                    case .topic(let id): SessionTopicDetailView(id: id, session: session)
-                            .cyHeroDestinationWithFallback(HomeFeedDestination.topic(id), in: hero)
-                    case nil: EmptyView()
+                    Group {
+                        switch route.homeFeedDestination {
+                        case .activity(let id): ActivityDetailView(id:id,reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true)
+                                .cyHeroDestinationWithFallback(HomeFeedDestination.activity(id), in: hero)
+                        case .topic(let id): SessionTopicDetailView(id: id, session: session)
+                                .cyHeroDestinationWithFallback(HomeFeedDestination.topic(id), in: hero)
+                        case nil: EmptyView()
+                        }
                     }
+                    .cyPushedChrome()
                 }
                 .navigationDestination(item:$activeContinuationScope) { scope in
                     continuationDestination(scope)
+                        .cyPushedChrome()
                 }
         }
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
-        .sheet(isPresented:$showsClubApplication) { clubApplicationSheet }
-        .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet }
+        .sheet(isPresented:$showsClubApplication) { clubApplicationSheet.cyPlayerSheetGlass() }
+        .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).presentationCornerRadius(CYRadius.sheet) }
         .sheet(isPresented: $showsMiniGames) {
             NavigationStack {
                 ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
@@ -178,6 +189,7 @@ import SwiftUI
                     }
             }
             .accessibilityIdentifier("homeIndex.miniGames")
+            .cyPlayerSheetGlass()
         }
     }
     @ViewBuilder private func continuationDestination(_ scope: PlaySessionScope) -> some View {

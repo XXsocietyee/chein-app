@@ -1,4 +1,7 @@
 import XCTest
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import QuestifyCore
 
 private final class StubRetryHTTPTransport: HTTPMetadataTransport, @unchecked Sendable {
@@ -475,5 +478,248 @@ private final class DelayRecorder: @unchecked Sendable {
 
         XCTAssertEqual(captured.requests.count, 1)
         XCTAssertEqual(captured.requests.first?.url?.path, "/api/play/feedback/submit")
+    }
+
+    // MARK: - ui/cur-offline-tests: existing queue behavior only
+
+    func testUnreachableWriteIsQueuedOnlyWhenTheCaptureContextOptsIn() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cur-offline-optin-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let scope = try OfflineWriteQueueScope(accountID: 63, realm: "cn-e2e-test", baseURL: "https://8120.example.test")
+        let queue = try OfflineIdempotentWriteQueue(fileURL: url)
+        let captured = OfflineRequestCapture()
+        let stub = StubRetryHTTPTransport([
+            .failure(URLError(.notConnectedToInternet)),
+            .failure(URLError(.notConnectedToInternet)),
+            .failure(URLError(.notConnectedToInternet))
+        ])
+        let transport = OfflineWriteCaptureTransport(underlying: stub)
+        let opted = try Self.fixtureRequest(
+            path: "/api/play/feedback/submit",
+            body: #"{"runId":1,"content":"offline","requestId":"optin0000001"}"#
+        )
+
+        do {
+            _ = try await transport.send(opted)
+            XCTFail("unreachable write must fail")
+        } catch {
+            XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(error))
+        }
+        XCTAssertTrue(captured.requests.isEmpty)
+        XCTAssertTrue(queue.pendingItems(for: scope).isEmpty)
+
+        let box = OfflinePreSendCaptureBox { request, _ in
+            captured.append(request)
+        }
+        try await OfflineWriteCaptureContext.$current.withValue(box) {
+            do {
+                _ = try await transport.send(opted)
+                XCTFail("opted-in unreachable write must fail")
+            } catch {
+                XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(error))
+            }
+            let plain = try Self.fixtureRequest(
+                path: "/api/play/action",
+                body: #"{"requestId":"nooptin00001"}"#
+            )
+            do {
+                _ = try await transport.send(plain)
+                XCTFail("non-catalog unreachable write must fail")
+            } catch {
+                XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(error))
+            }
+        }
+
+        XCTAssertEqual(captured.requests.count, 2)
+        let queued = try queue.enqueueOfflineWrite(captured.requests[0], scope: scope)
+        XCTAssertEqual(queued.path, "/api/play/feedback/submit")
+        XCTAssertEqual(queued.idempotencyKey, "optin0000001")
+        XCTAssertThrowsError(try queue.enqueueOfflineWrite(captured.requests[1], scope: scope)) { error in
+            XCTAssertEqual(error as? OfflineWriteQueueError, .routeNotIdempotent)
+        }
+        XCTAssertEqual(queue.queuedItems(for: scope).map(\.path), ["/api/play/feedback/submit"])
+        for request in stub.recordedRequests {
+            XCTAssertEqual(request.url?.host, "8120.example.test")
+        }
+    }
+
+    func testFlushRetryReusesTheStoredIdempotencyKey() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cur-offline-retry-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let scope = try OfflineWriteQueueScope(accountID: 64, realm: "cn-e2e-test", baseURL: "https://8120.example.test")
+        let queue = try OfflineIdempotentWriteQueue(fileURL: url)
+        let request = try Self.fixtureRequest(
+            path: "/api/capsules/create",
+            body: #"{"text":"note","requestId":"capsulekey01"}"#
+        )
+        let item = try queue.enqueueOfflineWrite(request, scope: scope)
+        XCTAssertEqual(item.idempotencyKey, "capsulekey01")
+
+        let stub = StubRetryHTTPTransport([
+            .failure(URLError(.notConnectedToInternet)),
+            .response(Data(#"{"code":200}"#.utf8), 200)
+        ])
+        let api = try APIConfiguration(baseURL: try XCTUnwrap(URL(string: "https://8120.example.test")))
+        let first = try await queue.flushPending(
+            scope: scope,
+            configuration: api,
+            token: "Bearer tok-retry",
+            currentScope: { scope },
+            isOnline: { true },
+            transport: stub
+        )
+        XCTAssertEqual(first.succeededCount, 0)
+        XCTAssertEqual(first.remainingQueuedCount, 1)
+        XCTAssertEqual(queue.queuedItems(for: scope).map(\.idempotencyKey), ["capsulekey01"])
+
+        let second = try await queue.flushPending(
+            scope: scope,
+            configuration: api,
+            token: "Bearer tok-retry",
+            currentScope: { scope },
+            isOnline: { true },
+            transport: stub
+        )
+        XCTAssertEqual(second.succeededCount, 1)
+        XCTAssertEqual(second.remainingQueuedCount, 0)
+        XCTAssertEqual(stub.recordedRequests.count, 2)
+        XCTAssertEqual(stub.recordedRequests[0].value(forHTTPHeaderField: "X-Request-Id"), "capsulekey01")
+        XCTAssertEqual(stub.recordedRequests[1].value(forHTTPHeaderField: "X-Request-Id"), "capsulekey01")
+        XCTAssertEqual(stub.recordedRequests[0].httpBody, stub.recordedRequests[1].httpBody)
+        let body = String(decoding: stub.recordedRequests[0].httpBody ?? Data(), as: UTF8.self)
+        XCTAssertTrue(body.contains("capsulekey01"))
+        XCTAssertEqual(stub.recordedRequests[0].url?.host, "8120.example.test")
+    }
+
+    func testMoneyAndPayoutWritesAreNotQueuedAndProductionHostIsRefused() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cur-offline-money-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let scope = try OfflineWriteQueueScope(accountID: 65, realm: "cn-e2e-test", baseURL: "https://8120.example.test")
+        let queue = try OfflineIdempotentWriteQueue(fileURL: url)
+        let blocked = ["/api/pay/create", "/api/merchant/payout-account/save", "/api/withdrawal/create"]
+        for path in blocked {
+            let request = try Self.fixtureRequest(path: path, body: #"{"requestId":"moneykey0001"}"#)
+            XCTAssertThrowsError(try queue.enqueueOfflineWrite(request, scope: scope), path) { error in
+                XCTAssertEqual(error as? OfflineWriteQueueError, .moneyWriteNeverAutoReplayed)
+            }
+        }
+        XCTAssertTrue(queue.pendingItems(for: scope).isEmpty)
+
+        let productionBase = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        var production = URLRequest(url: productionBase.appendingPathComponent("api/pay/create"))
+        production.httpMethod = "POST"
+        production.httpBody = Data(#"{"requestId":"payprod00001"}"#.utf8)
+        XCTAssertEqual(production.url?.host, "www.chengyinhub.com")
+        let wire = StubRetryHTTPTransport([])
+        let transport = ChinaReviewedProductionTransport(underlying: wire)
+        do {
+            _ = try await transport.send(production)
+            XCTFail("www.chengyinhub.com must refuse /api/pay/create")
+        } catch {
+            XCTAssertEqual(error as? APIError, .notConfigured)
+        }
+        XCTAssertEqual(wire.recordedRequests.count, 0)
+        XCTAssertThrowsError(try queue.enqueueOfflineWrite(production, scope: scope)) { error in
+            XCTAssertEqual(error as? OfflineWriteQueueError, .moneyWriteNeverAutoReplayed)
+        }
+        XCTAssertTrue(queue.pendingItems(for: scope).isEmpty)
+    }
+
+    func testRegistrationGuardQueuesFreeAndRefusesPaidAmounts() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cur-offline-reg-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let scope = try OfflineWriteQueueScope(accountID: 66, realm: "cn-e2e-test", baseURL: "https://8120.example.test")
+        let queue = try OfflineIdempotentWriteQueue(fileURL: url)
+
+        let paidAmount = try Self.fixtureRequest(
+            path: "/api/registration/create",
+            body: #"{"activityId":10,"payAmount":1,"requestId":"regpayamt01"}"#
+        )
+        let paidTotal = try Self.fixtureRequest(
+            path: "/api/registration/create",
+            body: #"{"activityId":10,"totalAmount":2,"requestId":"regtotal001"}"#
+        )
+        for request in [paidAmount, paidTotal] {
+            XCTAssertTrue(BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(request))
+            XCTAssertThrowsError(try queue.enqueueOfflineWrite(request, scope: scope)) { error in
+                XCTAssertEqual(error as? OfflineWriteQueueError, .moneyWriteNeverAutoReplayed)
+            }
+        }
+
+        let free = try Self.fixtureRequest(
+            path: "/api/registration/create",
+            body: #"{"activityId":10,"requestId":"regfreebody1"}"#
+        )
+        XCTAssertFalse(BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(free))
+        let item = try queue.enqueueOfflineWrite(free, scope: scope)
+        XCTAssertEqual(item.path, "/api/registration/create")
+        XCTAssertEqual(item.idempotencyKey, "regfreebody1")
+        XCTAssertEqual(queue.queuedItems(for: scope).map(\.path), ["/api/registration/create"])
+    }
+
+    func testQueuedWritesReplayInEnqueueOrder() async throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cur-offline-order-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let scope = try OfflineWriteQueueScope(accountID: 67, realm: "cn-e2e-test", baseURL: "https://8120.example.test")
+        let queue = try OfflineIdempotentWriteQueue(fileURL: url)
+        let paths = ["/api/play/feedback/submit", "/api/capsules/create", "/api/exploration-goals/create"]
+        for (offset, path) in paths.enumerated() {
+            let key = "orderkey000\(offset)"
+            let request = try Self.fixtureRequest(path: path, body: #"{"requestId":"\#(key)"}"#)
+            let item = try queue.enqueueOfflineWrite(request, scope: scope)
+            XCTAssertEqual(item.path, path)
+            XCTAssertEqual(item.idempotencyKey, key)
+        }
+        XCTAssertEqual(queue.queuedItems(for: scope).map(\.path), paths)
+
+        let stub = StubRetryHTTPTransport([
+            .response(Data(#"{"code":200}"#.utf8), 200),
+            .response(Data(#"{"code":200}"#.utf8), 200),
+            .response(Data(#"{"code":200}"#.utf8), 200)
+        ])
+        let api = try APIConfiguration(baseURL: try XCTUnwrap(URL(string: "https://8120.example.test")))
+        let report = try await queue.flushPending(
+            scope: scope,
+            configuration: api,
+            token: "Bearer tok-order",
+            currentScope: { scope },
+            isOnline: { true },
+            transport: stub
+        )
+        XCTAssertEqual(report.succeededCount, 3)
+        XCTAssertEqual(report.succeededPaths, paths)
+        XCTAssertEqual(report.remainingQueuedCount, 0)
+        let replayed = stub.recordedRequests.map { ChinaReviewedRouteCapability.normalized($0.url?.path ?? "") }
+        XCTAssertEqual(replayed, paths)
+        XCTAssertEqual(stub.recordedRequests.map { $0.value(forHTTPHeaderField: "X-Request-Id") }, ["orderkey0000", "orderkey0001", "orderkey0002"])
+        for request in stub.recordedRequests {
+            XCTAssertEqual(request.url?.host, "8120.example.test")
+        }
+    }
+
+    private static func fixtureRequest(path: String, body: String) throws -> URLRequest {
+        let url = try XCTUnwrap(URL(string: "https://8120.example.test\(path)"))
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = Data(body.utf8)
+        return request
+    }
+}
+
+private final class OfflineRequestCapture: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: [URLRequest] = []
+
+    func append(_ request: URLRequest) {
+        lock.lock()
+        stored.append(request)
+        lock.unlock()
+    }
+
+    var requests: [URLRequest] {
+        lock.lock()
+        let copy = stored
+        lock.unlock()
+        return copy
     }
 }

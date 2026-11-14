@@ -93,11 +93,11 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             if let momentum = rpg.momentum {
                 meterRow(label: Text("characterCard.momentum"), valueText: "\(momentum.value)/\(momentum.max)",
-                         percent: momentum.percent, tint: CYColor.accentWarm)
+                         percent: momentum.percent, tint: CYColor.rare)
             }
             ForEach(rpg.clocks) { clock in
                 meterRow(label: Text(clock.label), valueText: "\(clock.value)/\(clock.segments)",
-                         percent: clock.percent, tint: CYColor.accent)
+                         percent: clock.percent, tint: CYColor.brand)
             }
             ForEach(rpg.facets) { traitRow($0) }
             ForEach(rpg.aspects) { traitRow($0) }
@@ -183,10 +183,10 @@ import QuestifyCore
                 if !levelText.isEmpty {
                     Text(levelText)
                         .font(CYTypography.caption)
-                        .foregroundStyle(CYColor.accentText)
+                        .foregroundStyle(CYColor.brand)
                         .padding(.horizontal, CYSpacing.sm)
                         .padding(.vertical, CYSpacing.xxs)
-                        .background(CYColor.accentSoft, in: Capsule())
+                        .background(CYColor.brandSoft, in: Capsule())
                 }
                 Text(String(attribute.value))
                     .font(CYTypography.numericBody)
@@ -195,7 +195,7 @@ import QuestifyCore
 
             if attribute.displayType == "bar" {
                 ProgressView(value: percent, total: 100)
-                    .tint(CYColor.accent)
+                    .tint(CYColor.brand)
                     .accessibilityHidden(true)
             } else if showsStars {
                 HStack(spacing: CYSpacing.xs) {

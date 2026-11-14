@@ -9,8 +9,7 @@ enum OwnerDecisionGuardLease {
     static let paths: Set<String> = [
         "api/club/personal-receiver/status",
         "api/club/personal-receiver/unbind",
-        "api/merchant/payout-account",
-        "api/merchant/payout-account/save"
+        "api/merchant/payout-account"
     ]
 
     static func admits(relative: String, method: String, body: Data?, host: String?) -> Bool {
@@ -43,6 +42,8 @@ extension ReviewedProductionFormMutationRoute {
         if method != "GET", url.query != nil { return false }
         guard !relative.isEmpty, !ReleaseMoneyWriteSwitch.blocks("/" + relative),
               ChinaReviewedRouteCapability.forcedOff("/" + relative) == nil else { return false }
+        if relative == "api/workshop/purchased" || relative == "api/reward-pledge/versions"
+            || relative == "api/friend/channel-invite" || relative == "api/friend/team-invite" { return false }
         if ReviewedProductionGateLeases.wp07CommercePaths.contains(relative) {
             return wp07CommerceAllows(request, relative: relative, method: method, baseURL: baseURL, grant: grant)
         }
@@ -275,6 +276,8 @@ extension ReviewedProductionFormMutationRoute {
     static func admitsRewardPledgeWrite(_ relative: String) -> Bool {
         if relative == "api/coupon" { return true }
         if relative.hasPrefix("api/coupon/") { return false }
+        if relative == "api/reward-pledge/versions" { return false }
+        if relative == "api/rewards/noncash/subjects" || relative == "api/rewards/noncash/versions" { return false }
         if ReviewedProductionGateLeases.rewardPledgePaths.contains(relative) { return true }
         return ReviewedProductionGateLeases.rewardPledgePaths.contains { root in
             root != "api/coupon" && relative.hasPrefix(root + "/")
@@ -794,9 +797,9 @@ enum ReviewedPlayerReadRoute {
         "api/reward-pledge/fulfilment/awards", "api/reward-pledge/fulfilment/expire",
         "api/reward-pledge/fulfilment/preview", "api/reward-pledge/fulfilment/redeem",
         "api/reward-pledge/fulfilment/resolve", "api/reward-pledge/ops", "api/reward-pledge/pledges",
-        "api/reward-pledge/review", "api/reward-pledge/versions",
+        "api/reward-pledge/review",
         "api/rewards/noncash", "api/rewards/noncash/cases", "api/rewards/noncash/claims",
-        "api/rewards/noncash/claims/recover", "api/rewards/noncash/subjects", "api/rewards/noncash/versions",
+        "api/rewards/noncash/claims/recover",
         "api/coupon"
     ]
     // player-write-paths-end
@@ -1467,7 +1470,8 @@ enum WorkshopModRouteGrant {
         "api/workshop/purchased/professional-operations"
     ]
     static let moneyPaths: Set<String> = [
-        "api/workshop/purchased",
+        "api/workshop/v2/purchased/list",
+        "api/workshop/v2/purchased/detail",
         "api/workshop/purchased/install",
         "api/mod-settlement/mine",
         "api/mod-settlement/mine/income"

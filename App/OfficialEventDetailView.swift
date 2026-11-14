@@ -181,7 +181,7 @@ enum OfficialDetailID {
                                 Text(verbatim: "\(collective.current.map(String.init) ?? "—") / \(collective.threshold.map(String.init) ?? "—")").monospacedDigit()
                             }
                             if let fraction = collective.displayFraction {
-                                ProgressView(value: fraction).tint(CYColor.accent).accessibilityHidden(true)
+                                ProgressView(value: fraction).tint(CYColor.brand).accessibilityHidden(true)
                             }
                             Text(LocalizedStringKey(presentation.collectiveTipKey)).font(.footnote).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
@@ -250,7 +250,8 @@ enum OfficialDetailID {
             }
             }
         }
-        .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline).cyHideTabBar()
+        .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
+        .cyPushedChrome(domain: .player)
         .onAppear { visible = true }
         .onDisappear { visible = false; visit = UUID() }
         .onChange(of: id) { _, _ in visit = UUID() }

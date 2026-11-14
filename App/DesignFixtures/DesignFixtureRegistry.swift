@@ -8,6 +8,7 @@ import AuthenticationServices
 enum DesignFixtureRegistry {
     @MainActor static func make(_ name: String) -> AnyView {
         switch name {
+        case "design-kit": return AnyView(DesignKitFixture())
         case "kit": return AnyView(KitGalleryFixture(domain: .player))
         case "kit-2": return AnyView(KitGalleryFixture(domain: .player, lower: true))
         case "kit-merchant-2": return AnyView(KitGalleryFixture(domain: .merchant, lower: true))
@@ -110,6 +111,10 @@ enum DesignFixtureRegistry {
         case "e2-city": return AnyView(D2Fixture(screen: .city))
         case "e2-npc": return AnyView(D2Fixture(screen: .npc))
         // D7 creator / publish (PublishDesignFixtures)
+        case "rep3-activity-detail", "rep3-activity-detail-error":
+            return E1Fixture.make(name) ?? AnyView(EmptyView())
+        case "rep3-task-play", "rep3-task-play-offline":
+            return E2FixtureKind(rawValue: name).map { AnyView(E2Fixture(kind: $0)) } ?? AnyView(EmptyView())
         case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
         case let n where n.hasPrefix("e1-") && E1Fixture.make(n) != nil: return E1Fixture.make(n)!
         // W1-5 pass card lab: ui-pass-card[-pending|-used|-expired|-empty|-error] (cases live in E1Fixtures.swift)
@@ -139,14 +144,17 @@ enum DesignFixtureRegistry {
             // Handovers 59–62: error sentences, permission primers, compliance pages, search filters.
             if let cur6 = MainActor.assumeIsolated({ CurFixtures6.make(name) }) { return cur6 }
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
+            if name.hasPrefix("cur9-"), let cur9 = Cur9Fixtures.make(name) { return cur9 }
             if name.hasPrefix("cur4-"), let cur4 = Cur4Fixtures.make(name) { return cur4 }
             // Batch-7 screens whose view types compile on this base (CurFixtures3): cur3-<view>[-<state>][-zh]
             if let cur3 = MainActor.assumeIsolated({ CurFixtures3.make(name) }) { return cur3 }
+            if name.hasPrefix("cur3-"), let cur3 = Cur3Fixtures.make(name) { return cur3 }
             // parity-a, G6, mount-g45, be-gap and external-game screens (CurFixtures2): cur2-<view>[-<non-happy state>]
             if let cur2 = MainActor.assumeIsolated({ CurFixtures2.make(name) }) { return cur2 }
             // Workshop v2, WP-07, WP-08, and the other screens whose types compile on this base (CurFixtures5).
             if let cur5 = MainActor.assumeIsolated({ CurFixtures5.make(name) }) { return cur5 }
             if name.hasPrefix("cur7-"), let cur7 = Cur7Fixtures.make(name) { return cur7 }
+            if name.hasPrefix("cur8-"), let cur8 = CurFixtures8.make(name) { return cur8 }
             if name.hasPrefix("ugc-"), let ugc = UGCSafetyFixtures.make(name) { return ugc }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }

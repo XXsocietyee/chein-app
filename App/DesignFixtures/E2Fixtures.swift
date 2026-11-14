@@ -10,6 +10,7 @@ enum E2FixtureKind: String {
     case cityRules = "city-rules", cityParticipation = "city-participation", cityParticipationConfirm = "city-participation-confirm", cityParticipationJoin = "city-participation-join"
     case cityNeutral = "city-neutral", cityOnsite = "city-onsite", cityArrival = "city-arrival", cityMap = "city-map", bundle, journalDiagnostic = "journal-diagnostic", passportAnniversary = "passport-anniversary", passportRecap = "passport-recap"
     case playkitQA = "playkit-qa", playkitProfile = "playkit-profile", playkitNote = "playkit-note", playkitPhoto = "playkit-photo"
+    case rep3TaskPlay = "rep3-task-play", rep3TaskPlayOffline = "rep3-task-play-offline"
 }
 
 struct E2Fixture: View {
@@ -76,6 +77,10 @@ struct E2Fixture: View {
                     PlayTimedResultCard(outcome: nil, value: "9.71 s", target: nil, delta: nil)
                 }.padding(CYSpacing.pageHorizontal)
             }
+        case .rep3TaskPlay:
+            Rep3PlayFixtureHost(offlineFailure: false)
+        case .rep3TaskPlayOffline:
+            Rep3PlayFixtureHost(offlineFailure: true)
         }
     }
 }
@@ -124,6 +129,48 @@ private struct E2BadgeDetailHost: View {
             else if let medal = wall.medals?.first(where: { !$0.isAchievement }) ?? wall.medals?.first { badge = .medal(medal) }
             else if let identity = wall.identities.first { badge = .identity(identity) }
         }
+    }
+}
+
+/// Template 6 Play Runtime fixture (synthetic data, debug only): normal active run + offline/retryable failure.
+@MainActor private struct Rep3PlayFixtureHost: View {
+    let offlineFailure: Bool
+    @State private var model: PlayExperienceCoordinator
+
+    init(offlineFailure: Bool) {
+        self.offlineFailure = offlineFailure
+        let config = try! APIConfiguration(baseURL: URL(string: "https://fixture.example/native/")!)
+        let session = try? PlayExperienceSession(accountID: 9001, epoch: 1, namespace: "synthetic-play-cn", token: "synthetic-token")
+        let service = PlayExperienceService(configuration: config, transport: Rep3PlayFixtureTransport(offlineFailure: offlineFailure), enabled: [.reads, .writes])
+        _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: service, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { session }))
+    }
+
+    var body: some View {
+        NavigationStack {
+            PlayExperienceView(model: model)
+        }
+        .cyDomainScreen(.game)
+        .task { await model.load() }
+    }
+}
+
+private final class Rep3PlayFixtureTransport: HTTPTransport, @unchecked Sendable {
+    let offlineFailure: Bool
+    init(offlineFailure: Bool) { self.offlineFailure = offlineFailure }
+
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let path = request.url?.path ?? ""
+        if offlineFailure, path.hasSuffix("api/play/nodes") {
+            throw URLError(.notConnectedToInternet)
+        }
+        if path.hasSuffix("api/play/nodes") {
+            let payload = #"{"topicId":71,"topicName":"古城夜游线（离线示例）","mode":1,"registered":true,"playable":true,"total":3,"doneCount":1,"nodes":[{"nodeId":701,"name":"鼓楼驿站","address":"鼓楼东大街 12 号","done":true,"arrived":true,"validationMethod":1},{"nodeId":702,"name":"灯笼石门","address":"景山前街 18 号","done":false,"arrived":true,"needGps":true,"validationMethod":3,"question":"石拱门上方悬挂的灯笼是什么颜色？","options":{"A":"朱红灯笼","B":"青石宫灯","C":"素白纸灯"}},{"nodeId":703,"name":"白塔茶室","address":"阜成门内大街 5 号","done":false,"locked":true,"lockReason":"完成「灯笼石门」后解锁","unlockAfterNodeId":702,"validationMethod":2}]}"#
+            return (PlayExperienceSyntheticFixtures.envelope(payload), 200)
+        }
+        if path.hasSuffix("api/play/route-state") {
+            return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.route), 200)
+        }
+        throw URLError(.notConnectedToInternet)
     }
 }
 #endif

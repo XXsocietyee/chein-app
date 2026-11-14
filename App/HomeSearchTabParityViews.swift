@@ -82,7 +82,7 @@ struct HomeHeroHeaderSectionView: View {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
                                 Label(isMerchantViewer ? "account.role.merchant" : "homeFeed.player",
                                       systemImage: isMerchantViewer ? "storefront.fill" : "checkmark.seal.fill")
-                                    .foregroundStyle(QuestifyPalette.accent)
+                                    .foregroundStyle(CYColor.brand)
                             }
                             if hasCity {
                                 if let onSelectCity {
@@ -396,7 +396,7 @@ struct MerchantRootModeSwitchBannerView: View {
                         .padding(.vertical, 6)
                 }
                 .buttonStyle(.bordered)
-                .tint(state.mode == .consumer ? QuestifyPalette.accent : .secondary)
+                .tint(state.mode == .consumer ? CYColor.brand : .secondary)
                 .accessibilityIdentifier("rootTabBar.mode.consumer")
 
                 if canSwitchToMerchant || state.mode == .merchant {
@@ -409,7 +409,7 @@ struct MerchantRootModeSwitchBannerView: View {
                             .padding(.vertical, 6)
                     }
                     .buttonStyle(.bordered)
-                    .tint(state.mode == .merchant ? QuestifyPalette.accent : .secondary)
+                    .tint(state.mode == .merchant ? CYColor.brand : .secondary)
                     .accessibilityIdentifier("rootTabBar.mode.merchant")
                 }
                 Spacer()
@@ -431,7 +431,7 @@ struct MerchantRootModeSwitchBannerView: View {
                         .padding(.vertical, 6)
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(isSelected ? QuestifyPalette.accent : .secondary)
+                    .foregroundStyle(isSelected ? CYColor.brand : .secondary)
                     .accessibilityIdentifier("rootTabBar.tab.\(state.mode.rawValue).\(descriptor.index)")
                 }
             }
@@ -1225,15 +1225,18 @@ struct SessionMerchantRootContainerView: View {
                             onSuggestion: { route in selectedMarketingSuggestion = route }
                         )
                         .navigationDestination(item: $selectedMarketingSuggestion) { route in
-                            if case .recommendation(let target) = route, target.origin != recommendationOrigin {
-                                AnyView(Text("merchantMarketing.stale"))
-                            } else if case .cooperationSettings(let origin) = route, origin != recommendationOrigin {
-                                AnyView(Text("merchantMarketing.stale"))
-                            } else if case .cooperationCenter(let origin) = route, origin != recommendationOrigin {
-                                AnyView(Text("merchantMarketing.stale"))
-                            } else {
-                                AnyView(SessionMerchantMarketingDestination(session: session, destination: route))
+                            Group {
+                                if case .recommendation(let target) = route, target.origin != recommendationOrigin {
+                                    AnyView(Text("merchantMarketing.stale"))
+                                } else if case .cooperationSettings(let origin) = route, origin != recommendationOrigin {
+                                    AnyView(Text("merchantMarketing.stale"))
+                                } else if case .cooperationCenter(let origin) = route, origin != recommendationOrigin {
+                                    AnyView(Text("merchantMarketing.stale"))
+                                } else {
+                                    AnyView(SessionMerchantMarketingDestination(session: session, destination: route))
+                                }
                             }
+                            .cyPushedChrome(domain: .merchant)
                         }
                     } else {
                         MerchantFailureView(
@@ -1355,6 +1358,7 @@ struct PublishTabFloatingButton: View {
     var title: String = PublishTabFloatingSheetParity.fabButtonTitle
     var action: () -> Void
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         Button(action: action) {
@@ -1367,7 +1371,7 @@ struct PublishTabFloatingButton: View {
             }
             .padding(.horizontal, 16)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(QuestifyPalette.accent, in: Capsule())
+            .background(palette.actionPrimaryBg, in: Capsule())
             .foregroundStyle(CYColor.textOnAccent)
             .shadow(radius: 4, y: 2)
             .contentShape(Capsule())
@@ -1444,6 +1448,7 @@ struct PublishTabFloatingSheetView: View {
                 }
             }
         }
+        .cyPlayerSheetGlass()
     }
 }
 

@@ -179,5 +179,8 @@ public struct TestFlightInternalAndExternalSmokeSectionView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("testFlightSmokeMatrix.section")
+        .accessibilityLabel(Text(verbatim: "TestFlight Internal & External Smoke Matrix (Day 5)"))
+        .accessibilityValue(Text(verbatim: statusBadgeText))
+        .accessibilityHint(Text(verbatim: deviceCoverageBannerText))
     }
 }

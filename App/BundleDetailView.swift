@@ -190,10 +190,8 @@ import SwiftUI
         )
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [compactDetent, .large], selection: $summaryDetent)
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(CYRadius.sheet)
-        .presentationBackground(palette.bgElevated)
         .cyHaptic(.impactLight, trigger: summaryDetent)
-        .themeDomain(.player)
+        .cyPlayerSheetGlass()
     }
 }
 

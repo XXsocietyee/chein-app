@@ -65,7 +65,10 @@ import SwiftUI
             Button("bank.withdrawal.discard", role: .destructive) { clear(); dismiss() }
             Button("action.cancel", role: .cancel) {}
         }
-        .sheet(isPresented: $showReview, onDismiss: { snapshot = nil; review = nil; proof = nil }) { reviewSheet }
+        .sheet(isPresented: $showReview, onDismiss: { snapshot = nil; review = nil; proof = nil }) {
+            reviewSheet
+                .cyPlayerSheetGlass()
+        }
         .onChange(of: reader.scope) { _, _ in clear() }
         .onChange(of: scenePhase) { _, phase in if phase == .background { clear() } }
         .onChange(of: showReview) { _, shown in if shown { commitPulse += 1 } }
@@ -74,7 +77,7 @@ import SwiftUI
         .cyHaptic(.warning, trigger: warnPulse)
         .cyHaptic(.impactMedium, trigger: receipt?.applicationID) { old, new in old == nil && new != nil }
         .onDisappear { clear() }
-        .themeDomain(.player)
+        .cyPushedChrome(domain: .player)
         .appSwitcherPrivacyShield()
     }
 

@@ -29,7 +29,7 @@ public struct CYBalanceHero: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .padding(.horizontal, CYSpacing.sm)
                     .padding(.vertical, CYSpacing.xs)
-                    .background(CYColor.accentSoft, in: Capsule(style: .continuous))
+                    .background(CYColor.brandSoft, in: Capsule(style: .continuous))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

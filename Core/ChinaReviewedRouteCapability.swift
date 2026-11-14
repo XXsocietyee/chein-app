@@ -36,6 +36,9 @@ public enum ChinaReviewedRouteCapability {
     /// Release switch is off, even if the path is later added to the wired catalog.
     public static func admitsChinaProductionCall(_ path: String) -> Bool {
         let key = normalized(path)
+        // Prefix literals are not routes. Concrete children stay on their own keys.
+        if key == "/api/workshop/purchased" || key == "/api/reward-pledge/versions"
+            || key == "/api/friend/channel-invite" || key == "/api/friend/team-invite" { return false }
         if ReleaseMoneyWriteSwitch.blocks(key) { return false }
         // A forced-off money route opens only while its own Release switch is on (DEBUG/TEST off the production host).
         if forcedOff(key) != nil, !ReleaseMoneyWriteSwitch.opens(key) { return false }
@@ -511,6 +514,8 @@ public enum ChinaReviewedRouteCapability {
     /// Opaque ids shorter than 32 characters and 64-hex award ids do not collapse, so the two trees match by prefix.
     public static func admitsRewardPledge(_ key: String) -> Bool {
         if key == "/api/coupon" { return true }
+        if key == "/api/reward-pledge/versions" { return false }
+        if key == "/api/rewards/noncash/subjects" || key == "/api/rewards/noncash/versions" { return false }
         if key == "/api/reward-pledge" || key.hasPrefix("/api/reward-pledge/") { return true }
         if key == "/api/rewards/noncash" || key.hasPrefix("/api/rewards/noncash/") { return true }
         return false
@@ -530,13 +535,12 @@ public enum ChinaReviewedRouteCapability {
     ]
 
     /// WP-10. Status and the merchant payout-account read are granted.
-    /// Unbind and `payout-account/save` are listed here and still fail first: `ReleaseMoneyWriteSwitch`
-    /// blocks them while payout is off. Bind is not in this set.
+    /// Unbind is listed here and still fails first: `ReleaseMoneyWriteSwitch`
+    /// blocks it while payout is off. Bind and `payout-account/save` are not in this set.
     public static let ownerDecisionGuardGrant: Set<String> = [
         "/api/club/personal-receiver/status",
         "/api/club/personal-receiver/unbind",
-        "/api/merchant/payout-account",
-        "/api/merchant/payout-account/save"
+        "/api/merchant/payout-account"
     ]
 
     /// Owner correction 2026-11-13. Merchant-gap reads and the writes that stay behind
@@ -800,7 +804,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/channel/{}/progress/overview": .liveInProduction,
         "/api/channel/{}/progress/privacy": .liveInProduction,
         "/api/channels/": .liveInProduction,
-        "/api/channels/member-state-requests/": .liveInProduction,
+        "/api/channels/member-state-requests/{}": .liveInProduction,
         "/api/channels/{}": .liveInProduction,
         "/api/channels/{}/archive": .liveInProduction,
         "/api/channels/{}/effective/{}": .liveInProduction,
@@ -1035,7 +1039,13 @@ public enum ChinaReviewedRouteCapability {
         "/api/friend/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
         "/api/friend/accept": .liveInProduction,
         "/api/friend/cancel": .liveInProduction,
-        "/api/friend/channel-invite/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
+        "/api/friend/channel-invite/batch": .liveInProduction,
+        "/api/friend/channel-invite/command": .liveInProduction,
+        "/api/friend/channel-invite/landing": .liveInProduction,
+        "/api/friend/channel-invite/mine": .liveInProduction,
+        "/api/friend/channel-invite/notice": .liveInProduction,
+        "/api/friend/channel-invite/picker": .liveInProduction,
+        "/api/friend/channel-invite/receipt": .liveInProduction,
         "/api/friend/directory": .liveInProduction,
         "/api/friend/directory/detail": .liveInProduction,
         "/api/friend/group/delete": .liveInProduction,
@@ -1055,7 +1065,9 @@ public enum ChinaReviewedRouteCapability {
         "/api/friend/remove": .liveInProduction,
         "/api/friend/request": .liveInProduction,
         "/api/friend/requests": .liveInProduction,
-        "/api/friend/team-invite/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
+        "/api/friend/team-invite/landing": .liveInProduction,
+        "/api/friend/team-invite/mine": .liveInProduction,
+        "/api/friend/team-invite/picker": .liveInProduction,
         "/api/fund/preflight/bank-withdrawal": .liveInProduction,
         "/api/fund/preflight/{}/": .liveInProduction,
         "/api/fund/preflight/{}/confirm": .liveInProduction,
@@ -1528,16 +1540,15 @@ public enum ChinaReviewedRouteCapability {
         "/api/reward-pledge/pledges": .liveInProduction,
         "/api/reward-pledge/review": .liveInProduction,
         "/api/reward-pledge/review/": .missing, // intentionally closed on the backend: `ApiAppGapsWorkshopController` OFF stub (`POLICY_CLOSED`), 1/1 routes; GET `/api/reward-pl
-        "/api/reward-pledge/versions": .liveInProduction,
-        "/api/reward-pledge/versions/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
+        "/api/reward-pledge/versions/{}/hold": .liveInProduction,
+        "/api/reward-pledge/versions/{}/withdraw": .liveInProduction,
         "/api/rewards/noncash": .liveInProduction,
-        "/api/rewards/noncash/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
+        "/api/rewards/noncash/{}": .liveInProduction,
         "/api/rewards/noncash/cases": .liveInProduction,
         "/api/rewards/noncash/claims": .liveInProduction,
         "/api/rewards/noncash/claims/recover": .liveInProduction,
-        "/api/rewards/noncash/subjects": .liveInProduction,
-        "/api/rewards/noncash/subjects/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
-        "/api/rewards/noncash/versions/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
+        "/api/rewards/noncash/subjects/{}": .liveInProduction,
+        "/api/rewards/noncash/versions/{}": .liveInProduction,
         "/api/roam/badge/shop-streak": .liveInProduction,
         "/api/roam/checkin": .liveInProduction,
         "/api/roam/entry/nearby": .liveInProduction,
@@ -1716,8 +1727,6 @@ public enum ChinaReviewedRouteCapability {
         "/api/workshop/owned/detail": .liveInProduction,
         "/api/workshop/owned/list": .liveInProduction,
         "/api/workshop/owned/package": .liveInProduction,
-        "/api/workshop/purchased": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
-        "/api/workshop/purchased/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
         "/api/workshop/purchased/detail": .liveInProduction,
         "/api/workshop/purchased/install": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
         "/api/workshop/purchased/install/": .liveInProduction, // prefix/action segment: children served on TEST r2 5c2017eef
@@ -1729,6 +1738,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/workshop/purchased/professional-operations/submit": .liveInProduction,
         "/api/workshop/purchased/professional-targets/detail": .liveInProduction,
         "/api/workshop/purchased/professional-targets/list": .liveInProduction,
+        "/api/workshop/v2/purchased/detail": .liveInProduction,
+        "/api/workshop/v2/purchased/list": .liveInProduction,
     ]
 
     private static let wiredPatterns: Set<String> = [
@@ -2589,8 +2600,7 @@ public enum ReleaseMoneyWriteSwitch {
             "/api/marketing/group-checkout/create", "/api/marketing/product/activate":
             return .payment
         case "/api/club/settlement/withdraw",
-             "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind",
-             "/api/merchant/payout-account/save":
+             "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind":
             return .payout
         case "/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw":
             return .withdrawal

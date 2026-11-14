@@ -185,7 +185,7 @@ struct PlayChapterPickRow: Identifiable, Equatable {
                 subtitle.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
             }
             Spacer(minLength: CYSpacing.sm)
-            if selected { Image(systemName: "checkmark").font(CYTypography.label).foregroundStyle(CYColor.accent).accessibilityHidden(true) }
+            if selected { Image(systemName: "checkmark").font(CYTypography.label).foregroundStyle(CYColor.brand).accessibilityHidden(true) }
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .contentShape(Rectangle())

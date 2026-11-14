@@ -47,7 +47,18 @@ public enum RewardPledgeRoutes {
     public static let plannedNonCashList = "api/rewards/noncash"
     public static let plannedClaim = "api/rewards/noncash/claims"
     public static let plannedIntentQuery = "api/rewards/noncash/claims/recover"
-    public static let offerPrefix = "api/rewards/noncash/versions/"
+    public static let offerTemplate = "api/rewards/noncash/versions/{versionId}"
+    public static let catalogTemplate = "api/rewards/noncash/subjects/{subjectId}"
+    public static let withdrawTemplate = "api/reward-pledge/versions/{versionId}/withdraw"
+    public static let holdTemplate = "api/reward-pledge/versions/{versionId}/hold"
+
+    static func renderTemplate(_ template: String, name: String, value: String) -> String {
+        template.replacingOccurrences(of: "{\(name)}", with: value)
+    }
+
+    private static func segmentsBeforePlaceholder(_ template: String) -> String {
+        String(template.prefix { $0 != "{" }).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    }
     public static let preview = "api/reward-pledge/fulfilment/preview"
     public static let redeem = "api/reward-pledge/fulfilment/redeem"
     public static let storeAwards = "api/reward-pledge/fulfilment/awards"
@@ -92,8 +103,8 @@ public enum RewardPledgeRoutes {
         if method == "GET", query.count == 2,
            query.contains(URLQueryItem(name: "branch", value: "THEME")),
            let subject = query.first(where: { $0.name == "subjectId" })?.value, id(subject),
-           one(offerPrefix.trimmingCharacters(in: CharacterSet(charactersIn: "/"))) != nil { return "offer" }
-        if method == "GET", query.isEmpty, one("api/rewards/noncash/subjects") != nil { return "catalog" }
+           one(segmentsBeforePlaceholder(offerTemplate)) != nil { return "offer" }
+        if method == "GET", query.isEmpty, one(segmentsBeforePlaceholder(catalogTemplate)) != nil { return "catalog" }
         if method == "GET", query.isEmpty, let award = one(plannedNonCashList),
            !["versions", "claims", "cases", "subjects"].contains(award) { return "detail" }
         if method == "GET", query.isEmpty, exact(storeAwards) { return "store" }
@@ -118,8 +129,8 @@ public enum RewardPledgeRoutes {
         if method == "GET", query.isEmpty, one("api/reward-pledge/review") != nil { return "review" }
         if method == "GET", query.isEmpty, let pledge = one("api/reward-pledge"),
            !["drafts", "fulfilment", "versions", "awards", "compensations", "pledges", "review"].contains(pledge) { return "readPledge" }
-        if method == "POST", query.isEmpty, action("api/reward-pledge/versions", "withdraw") { return "withdraw" }
-        if method == "POST", query.isEmpty, action("api/reward-pledge/versions", "hold") { return "hold" }
+        if method == "POST", query.isEmpty, action(segmentsBeforePlaceholder(withdrawTemplate), "withdraw") { return "withdraw" }
+        if method == "POST", query.isEmpty, action(segmentsBeforePlaceholder(holdTemplate), "hold") { return "hold" }
         if method == "POST", query.isEmpty, action("api/reward-pledge/awards", "return-to-pool") { return "return" }
         return nil
     }
@@ -275,7 +286,7 @@ public enum RewardPledgeRequests {
     /// One subject. No complete flag and no store or owner field.
     public static func catalog(subjectID: String, baseURL: URL, token: String) throws -> URLRequest {
         guard RewardPledgeRoutes.id(subjectID) else { throw RewardPledgeFailure.closed("subject") }
-        return try get("api/rewards/noncash/subjects/" + subjectID, baseURL, token)
+        return try get(RewardPledgeRoutes.renderTemplate(RewardPledgeRoutes.catalogTemplate, name: "subjectId", value: subjectID), baseURL, token)
     }
     public static func ownedPledges(baseURL: URL, token: String) throws -> URLRequest {
         return try get("api/reward-pledge/pledges", baseURL, token)
@@ -289,7 +300,7 @@ public enum RewardPledgeRequests {
     public static func offer(versionID: String, subjectID: String, baseURL: URL, token: String) throws -> URLRequest {
         guard segment(versionID), segment(subjectID), !versionID.contains("/"),
               AuthRequestBuilder.isValidToken(token),
-              var parts = URLComponents(url: baseURL.appendingPathComponent(RewardPledgeRoutes.offerPrefix + versionID), resolvingAgainstBaseURL: false)
+              var parts = URLComponents(url: baseURL.appendingPathComponent(RewardPledgeRoutes.renderTemplate(RewardPledgeRoutes.offerTemplate, name: "versionId", value: versionID)), resolvingAgainstBaseURL: false)
         else { throw RewardPledgeFailure.closed("versionId") }
         parts.queryItems = [URLQueryItem(name: "branch", value: "THEME"), URLQueryItem(name: "subjectId", value: subjectID)]
         guard let url = parts.url else { throw APIError.invalidRequest }
@@ -427,10 +438,10 @@ public enum RewardPledgeRequests {
         return try json("api/reward-pledge/" + (try pathID(pledgeID)) + "/freeze", ["ruleVersion": rule], baseURL, token)
     }
     public static func hold(versionID: String, baseURL: URL, token: String) throws -> URLRequest {
-        return try post("api/reward-pledge/versions/" + (try pathID(versionID)) + "/hold", baseURL, token)
+        return try post(RewardPledgeRoutes.renderTemplate(RewardPledgeRoutes.holdTemplate, name: "versionId", value: try pathID(versionID)), baseURL, token)
     }
     public static func withdraw(versionID: String, baseURL: URL, token: String) throws -> URLRequest {
-        return try post("api/reward-pledge/versions/" + (try pathID(versionID)) + "/withdraw", baseURL, token)
+        return try post(RewardPledgeRoutes.renderTemplate(RewardPledgeRoutes.withdrawTemplate, name: "versionId", value: try pathID(versionID)), baseURL, token)
     }
     public static func expire(awardID: String, baseURL: URL, token: String) throws -> URLRequest {
         return try json(RewardPledgeRoutes.expire, ["awardId": try pathID(awardID)], baseURL, token)

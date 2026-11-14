@@ -106,6 +106,7 @@ import SwiftUI
         }
         // Mini-program `.detail.theme-dark`: ink ground, elevated post card and comment card (radius 16, 12pt apart).
         .cyMiniListScreen()
+        .cyPushedChrome(domain: .player)
         .appNavigationTitle("square.detail")
         .cyHideTabBar()
         .toolbar {
@@ -114,24 +115,28 @@ import SwiftUI
                 ToolbarItem(placement: .topBarTrailing) { postMenu(post, actions: actions) }
             }
         }
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if let post, let actions, actions.identity.accountID != nil, loadedKey == key {
                 // Source sticky bar "留下你的评论"; opens the existing reviewed comment editor.
-                Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
-                    Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
-                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
-                        .padding(.horizontal, CYSpacing.lg)
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .background(Capsule().fill(CYNight.ink2))
-                        .overlay(Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
-                        .contentShape(Capsule())
-                }.buttonStyle(.plain).disabled(!post.viewerCanComment).opacity(post.viewerCanComment ? 1 : 0.5)
-                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
-                    .background(.bar).accessibilityIdentifier("square.commentBar")
+                CYFooterBar {
+                    Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
+                        Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
+                            .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                            .padding(.horizontal, CYSpacing.lg)
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .background(Capsule().fill(CYColor.bgSurfaceSubtle))
+                            .overlay(Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+                            .contentShape(Capsule())
+                    }.buttonStyle(.plain).disabled(!post.viewerCanComment).opacity(post.viewerCanComment ? 1 : 0.5)
+                        .accessibilityIdentifier("square.commentBar")
+                }
             }
         }
         .navigationDestination(item: $cloudProfile) { member in
-            if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions) }
+            if let accountReader {
+                SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions)
+                    .cyPushedChrome(domain: .player)
+            }
         }
         .navigationDestination(item: $relatedTopic) { selected in
             if let context = relatedTopicContext {

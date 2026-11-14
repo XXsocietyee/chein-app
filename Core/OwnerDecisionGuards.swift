@@ -221,10 +221,9 @@ public struct OwnerDecisionPayoutClient {
         return OwnerDecisionMerchantAccount.shape(object)
     }
 
-    public func saveAccount() async -> OwnerDecisionWriteResult {
-        guard payoutOpen, merchantWritesOpen else { return .notSent }
-        return await post("api/merchant/payout-account/save", body: ["mutate": true])
-    }
+    /// `/api/merchant/payout-account/save` does not exist on the backend (404); only `POST /api/merchant/payout-account` exists.
+    /// This returns `.notSent` and does not touch the transport.
+    public func saveAccount() async -> OwnerDecisionWriteResult { .notSent }
 
     private func post(_ path: String, body: [String: Any]) async -> OwnerDecisionWriteResult {
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent(path))
