@@ -29,11 +29,9 @@ enum PayoutPageState<Value: Equatable>: Equatable {
 
     var body: some View {
         List {
-            if !PayoutReceiverBridge.payoutOpen(session) {
-                PayoutAreaClosedNote()
-            } else {
-                content
-            }
+            // Owner 2026-11-14: the status is a read and always shows; bind and unbind need the payout area.
+            if !PayoutReceiverBridge.payoutOpen(session) { PayoutAreaClosedNote() }
+            content
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
@@ -83,7 +81,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         .accessibilityIdentifier("payoutReceiver.payoutPending")
                 }
             }
-            Section {
+            if PayoutReceiverBridge.payoutOpen(session) { Section {
                 if let key = status.bindKey {
                     CYPillButton(LocalizedStringKey(key), style: .primary, tableName: "PayoutReceiver") { if !busy { confirmingBind = true } }
                         .disabled(busy).accessibilityIdentifier("payoutReceiver.bind")
@@ -100,7 +98,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         .accessibilityIdentifier("payoutReceiver.notice")
                 }
             }
-            .listRowBackground(Color.clear)
+            .listRowBackground(Color.clear) }
         }
     }
 
@@ -109,7 +107,6 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     }
 
     private func load() async {
-        guard PayoutReceiverBridge.payoutOpen(session) else { return }
         generation += 1
         let mine = generation
         state = .loading

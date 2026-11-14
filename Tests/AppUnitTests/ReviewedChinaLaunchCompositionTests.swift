@@ -848,9 +848,10 @@ import XCTest
         }
         var status = URLRequest(url: base.appendingPathComponent("api/club/personal-receiver/status")); status.httpMethod = "GET"
         status.setValue(player.session.token, forHTTPHeaderField: "Authorization")
-        // WP-01/05: the receiver status read is a payout-area route, refused on the production host until the switch opens.
-        do { _ = try await transport.send(status); XCTFail("status must stay closed on production") } catch {}
-        XCTAssertEqual(recorder.paths.count, before)
+        // Owner 2026-11-14: the receiver status is a status read and is admitted on production.
+        _ = try await transport.send(status)
+        XCTAssertEqual(recorder.paths.last, "api/club/personal-receiver/status")
+        XCTAssertEqual(recorder.paths.count, before + 1)
     }
 
     /// Parity package P-B: organiser shared-run control, the lead ticket scan, editor alternatives, the circle host,

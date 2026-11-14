@@ -1487,12 +1487,12 @@ enum PayoutReceiverRouteGrant {
         "api/club/settlement/summary",
         "api/club/personal-receiver/status",
         "api/club-direct-merchant/club",
-        "api/club-direct-merchant/merchant"
+        "api/club-direct-merchant/merchant",
+        "api/merchant/payout-account"
     ]
     static let moneyPaths: Set<String> = [
         "api/club/personal-receiver/bind",
-        "api/club/personal-receiver/unbind",
-        "api/merchant/payout-account"
+        "api/club/personal-receiver/unbind"
     ]
     static let paymentReadPaths: Set<String> = ["api/registration/payment-readiness"]
 

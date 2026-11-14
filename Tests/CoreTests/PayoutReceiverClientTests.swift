@@ -82,8 +82,7 @@ final class PayoutReceiverClientTests: XCTestCase {
         let closed = try service(wire, payout: false)
         for call in [
             { try await closed.bind(clubID: 7001, jsCode: "code", token: self.token) },
-            { try await closed.unbind(clubID: 7001, token: self.token) },
-            { _ = try await closed.merchantPayoutAccount(token: self.token) }
+            { try await closed.unbind(clubID: 7001, token: self.token) }
         ] as [() async throws -> Void] {
             do { try await call(); XCTFail("sent a payout route") }
             catch { XCTAssertEqual(error as? PayoutReceiverIssue, .closed) }
@@ -95,8 +94,10 @@ final class PayoutReceiverClientTests: XCTestCase {
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
         let real = PayoutReceiverService(configuration: try APIConfiguration(baseURL: example), transport: PayoutReceiverTransport(underlying: wire))
         do { try await real.unbind(clubID: 7001, token: token); XCTFail() } catch { XCTAssertEqual(error as? PayoutReceiverIssue, .closed) }
-        do { _ = try await real.merchantPayoutAccount(token: token); XCTFail() } catch { XCTAssertEqual(error as? PayoutReceiverIssue, .closed) }
         XCTAssertTrue(wire.requests.isEmpty)
+        // Owner 2026-11-14: the payout-account read is a status read, not a payout write.
+        XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: "/api/merchant/payout-account"))
+        XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: "/api/club/personal-receiver/status"))
         for route in PayoutReceiverRoute.allCases where route.isPayout {
             XCTAssertTrue(ReleaseMoneyWriteSwitch.blocks("/" + route.rawValue), route.rawValue)
             XCTAssertEqual(ReleaseMoneyWriteSwitch.kind(for: "/" + route.rawValue), .payout)
@@ -123,7 +124,11 @@ final class PayoutReceiverClientTests: XCTestCase {
         ReleaseMoneyWriteSwitch.testDerivation = nil
         let wire = PayoutRecordingTransport()
         let transport = PayoutReceiverTransport(underlying: wire, payoutEnabled: { true })
-        for route in PayoutReceiverRoute.allCases where route != .settlementSummary {
+        // Owner 2026-11-14: receiver status and the payout-account read are admitted on production; the rest wait for the switch.
+        for route in [PayoutReceiverRoute.receiverStatus, .merchantPayoutAccount] {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + route.rawValue), route.rawValue)
+        }
+        for route in PayoutReceiverRoute.allCases where ![.settlementSummary, .receiverStatus, .merchantPayoutAccount].contains(route) {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + route.rawValue), route.rawValue)
             var request = URLRequest(url: china.appendingPathComponent(route.rawValue)); request.httpMethod = route.method
             do { _ = try await transport.send(request); XCTFail(route.rawValue) }
@@ -143,7 +148,7 @@ final class PayoutReceiverClientTests: XCTestCase {
         let money = ["/api/registration/pay", "/api/registration/pay/app", "/api/pay/create", "/api/asset/withdraw",
                      "/api/withdrawal/create", "/api/wallet/withdraw", "/api/fund/preflight/bank-withdrawal",
                      "/api/fund/preflight/123/confirm", "/api/fund/preflight/123/reject", "/api/club/settlement/withdraw",
-                     "/api/club/personal-receiver/bind", "/api/club/personal-receiver/unbind", "/api/merchant/payout-account",
+                     "/api/club/personal-receiver/bind", "/api/club/personal-receiver/unbind",
                      "/api/cart/add", "/api/cart/order/settlement", "/api/mod-commerce/orders"]
         for derivation in [nil, { (_: ReleaseMoneyWriteKind) in false }] as [(@Sendable (ReleaseMoneyWriteKind) -> Bool)?] {
             ReleaseMoneyWriteSwitch.testDerivation = derivation
@@ -157,7 +162,7 @@ final class PayoutReceiverClientTests: XCTestCase {
         ReleaseMoneyWriteSwitch.testDerivation = { $0 != .virtualGoods }
         for path in ["/api/registration/pay", "/api/registration/pay/app", "/api/pay/create", "/api/asset/withdraw",
                      "/api/withdrawal/create", "/api/fund/preflight/bank-withdrawal", "/api/fund/preflight/123/confirm",
-                     "/api/club/personal-receiver/bind", "/api/merchant/payout-account", "/api/registration/payment-readiness"] {
+                     "/api/club/personal-receiver/bind", "/api/registration/payment-readiness"] {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
         for path in ["/api/cart/add", "/api/cart/order/settlement", "/api/mod-commerce/orders", "/api/product/list", "/api/login",

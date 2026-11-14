@@ -69,6 +69,8 @@ def main() -> int:
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--rows", default="")
     args = parser.parse_args()
+    # Keep the file's own line endings (the matrix is CRLF); a rewrite must change only the rows it closes.
+    terminator = "\r\n" if b"\r\n" in CSV_PATH.read_bytes()[:4096] else "\n"
     with CSV_PATH.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         fields = reader.fieldnames
@@ -105,7 +107,7 @@ def main() -> int:
         if rid in md_index:
             md_lines[md_index[rid]] = md_row(row)
     with CSV_PATH.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator=terminator)
         writer.writeheader()
         writer.writerows(rows)
     MD_PATH.write_text("\n".join(md_lines), encoding="utf-8")

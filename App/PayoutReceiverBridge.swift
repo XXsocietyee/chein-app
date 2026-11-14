@@ -46,7 +46,8 @@ import SwiftUI
         let open: @MainActor () -> Bool
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             guard let route = PayoutReceiverRoute(request: request), PayoutReceiverRouteGrant.admits(route) else { throw APIError.notConfigured }
-            guard await open() else { throw APIError.notConfigured }
+            // Owner 2026-11-14: status reads pass; the bind/unbind writes need the payout area open.
+            if route.isPayout { guard await open() else { throw APIError.notConfigured } }
             return try await underlying.send(request)
         }
     }

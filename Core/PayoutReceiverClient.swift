@@ -7,8 +7,9 @@ import FoundationNetworking
 /// club settlement summary (personal view) and the club-direct merchant ledger.
 /// Ports mini-program `pages/club/payout-receiver`, `pages/merchant/payout-account`, `pages/club/settlement`
 /// and `components/cy/club-direct-ledger`. Every value shown is a server fact; nothing is inferred or zero-filled.
-/// Bind, unbind and the payout-account read are payout routes: `PayoutReceiverTransport` sends none of them while
+/// Bind and unbind are payout routes: `PayoutReceiverTransport` sends neither while
 /// `ReleaseMoneyWriteSwitch.payoutEnabled` is false, and the China production host refuses them as well.
+/// Owner 2026-11-14: the receiver status and payout-account reads are status reads and are always admitted.
 public enum PayoutReceiverRoute: String, CaseIterable, Sendable {
     case settlementMine = "api/club/settlement/mine"
     case settlementSummary = "api/club/settlement/summary"
@@ -27,7 +28,7 @@ public enum PayoutReceiverRoute: String, CaseIterable, Sendable {
     }
 
     /// Payout-kind routes in `ReleaseMoneyWriteSwitch`. The receivable ledgers and settlement reads move no money.
-    public var isPayout: Bool { self == .receiverBind || self == .receiverUnbind || self == .merchantPayoutAccount }
+    public var isPayout: Bool { self == .receiverBind || self == .receiverUnbind }
 
     /// Query keys a GET may carry. POST routes carry no query.
     var queryKeys: Set<String> {

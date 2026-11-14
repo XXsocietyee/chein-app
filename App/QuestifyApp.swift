@@ -57,8 +57,6 @@ struct QuestifyApp: App {
                     IMExpandedFixtureRoot(scenario: ProcessInfo.processInfo.arguments.last ?? "dormant")
                 } else if ProcessInfo.processInfo.arguments.contains("--ui-coupon-management") {
                     CouponManagementFixtureHost()
-                } else if ProcessInfo.processInfo.arguments.contains("--owner-decision-fixture") {
-                    OwnerDecisionFixtureHost(mode: fixtureArgument("--owner-decision-fixture") ?? "receiver")
                 } else if WalletCommerceFixtureHost.selected {
                     WalletCommerceFixtureHost()
                 } else if ProcessInfo.processInfo.arguments.contains("--ui-publishing-modes") {

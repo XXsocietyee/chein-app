@@ -121,9 +121,10 @@ public enum ChinaReviewedRouteCapability {
     /// Each path, read or write, is admitted only while the Release switch of its area is on: Release constants are false,
     /// and the DEBUG/TEST derivation is false on the production host. Marks stay as they were.
     public static let moneyAreaOwnerGrant: [String: ReleaseMoneyWriteKind] = [
-        "/api/club/settlement/mine": .payout, "/api/club/personal-receiver/status": .payout,
+        // Owner 2026-11-14: receiver status and the merchant payout-account read are status reads, admitted
+        // unconditionally through `ownerDecisionGuardGrant`; only the writes stay behind the payout switch.
+        "/api/club/settlement/mine": .payout,
         "/api/club/personal-receiver/bind": .payout, "/api/club/personal-receiver/unbind": .payout,
-        "/api/merchant/payout-account": .payout,
         "/api/club-direct-merchant/club": .payout, "/api/club-direct-merchant/merchant": .payout,
         "/api/registration/payment-readiness": .payment, "/api/registration/pay": .payment, "/api/registration/pay/app": .payment,
         "/api/fund/preflight/bank-withdrawal": .withdrawal, "/api/fund/preflight/{}/confirm": .withdrawal,
@@ -2589,8 +2590,7 @@ public enum ReleaseMoneyWriteSwitch {
             return .payment
         case "/api/club/settlement/withdraw",
              "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind",
-             "/api/merchant/payout-account/save", "/api/merchant/payout-account",
-             "/api/club/personal-receiver/status":
+             "/api/merchant/payout-account/save":
             return .payout
         case "/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw":
             return .withdrawal

@@ -26,9 +26,11 @@ import XCTest
         for path in PlayerGapService.paths {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
         }
-        // WP-01/05: the receiver status and payout-account reads are payout-area routes, closed on production until the switch opens.
+        // Owner 2026-11-14: receiver status and the payout-account read are status reads, admitted on production.
         ReleaseMoneyWriteSwitch.testDerivation = nil
-        for money in ["/api/club/personal-receiver/status", "/api/merchant/payout-account", "/api/registration/payment-readiness", "/api/club/personal-receiver/bind", "/api/club/personal-receiver/unbind",
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/personal-receiver/status"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/payout-account"))
+        for money in ["/api/registration/payment-readiness", "/api/club/personal-receiver/bind", "/api/club/personal-receiver/unbind",
                       "/api/club/settlement/mine", "/api/registration/pay", "/api/pay/create",
                       "/api/wallet/withdraw", "/api/club/settlement/withdraw", "/api/merchant/payout-account/save"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)

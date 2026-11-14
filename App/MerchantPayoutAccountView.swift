@@ -12,11 +12,8 @@ import UIKit
 
     var body: some View {
         List {
-            if !PayoutReceiverBridge.payoutOpen(session) {
-                PayoutAreaClosedNote()
-            } else {
-                content
-            }
+            // Owner 2026-11-14: the account state is a status read and always shows.
+            content
             ClubDirectLedgerSection(scope: .merchant(topicID: nil))
         }
         .scrollContentBackground(.hidden)
@@ -90,7 +87,6 @@ import UIKit
     }
 
     private func load() async {
-        guard PayoutReceiverBridge.payoutOpen(session) else { return }
         state = .loading
         do {
             let account = try await PayoutReceiverBridge.call(session) { try await $0.merchantPayoutAccount(token: $1) }

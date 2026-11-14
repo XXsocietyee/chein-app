@@ -326,7 +326,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             // Source "更多" sheet plus the remaining tools, as one native group. A section with no visible rows renders nothing.
             if access.allows(.finance) {
                 Section {
-                    NavigationLink { MerchantPayoutAccountEntry(permissions: access.permissions.map(\.rawValue)) } label: {
+                    NavigationLink { MerchantPayoutAccountView() } label: {
                         Label {
                             Text(verbatim: ChannelCopy.text("收款账户", "Payout account", locale: Locale.current))
                         } icon: { Image(systemName: "building.columns") }
