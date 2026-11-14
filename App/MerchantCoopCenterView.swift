@@ -186,7 +186,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                       id: "merchantCoopCenter.plaza.error") { model.loadRoutes() }
         } else {
             if model.routesLoading {
-                Text(mcc("merchantCoopCenter.plaza.refreshing", locale)).font(.footnote).foregroundStyle(.secondary)
+                Text(mcc("merchantCoopCenter.plaza.refreshing", locale)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("merchantCoopCenter.plaza.refreshing")
             }
             ForEach(Array(model.routes.enumerated()), id: \.offset) { _, route in
@@ -195,7 +195,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
             }
             if let scope = model.routeScope {
                 Text(String(format: mcc("merchantCoopCenter.plaza.scope", locale), scope.openCount, scope.shownCount))
-                    .font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+                    .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
                     .accessibilityIdentifier("merchantCoopCenter.plaza.scope")
             }
             if model.routes.isEmpty {
@@ -213,7 +213,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                       id: "merchantCoopCenter.official.error") { model.loadEvents() }
         } else {
             if model.eventsLoading {
-                Text(mcc("merchantCoopCenter.official.refreshing", locale)).font(.footnote).foregroundStyle(.secondary)
+                Text(mcc("merchantCoopCenter.official.refreshing", locale)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("merchantCoopCenter.official.refreshing")
             }
             ForEach(model.events) { event in
@@ -231,38 +231,38 @@ func mcc(_ key: String, _ locale: Locale) -> String {
     }
 
     private func emptyView(_ title: String, id: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "tray").font(.largeTitle).foregroundStyle(.secondary)
-            Text(title).font(.headline)
-            Button(mcc("merchantCoopCenter.refresh", locale)) { model.loadAll() }
-                .buttonStyle(.questifyPrimary).accessibilityIdentifier("merchantCoopCenter.refresh")
+        VStack(spacing: CYSpacing.md) {
+            Image(systemName: "tray").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
+            Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            CYPillButton(verbatim: mcc("merchantCoopCenter.refresh", locale), style: .primary) { model.loadAll() }
+                .accessibilityIdentifier("merchantCoopCenter.refresh")
         }
-        .frame(maxWidth: .infinity).padding(.vertical, 48)
+        .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.jumbo)
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
 
     /// The source veils load failures; native keeps a visible reason and an explicit retry.
     @ViewBuilder private func issueView(_ issue: MerchantCoopCenterModel.Issue, title: String, fallback: String, id: String,
                                         retry: @escaping () -> Void) -> some View {
-        VStack(spacing: 10) {
+        VStack(spacing: CYSpacing.s2_5) {
             switch issue {
             case .signIn:
-                Image(systemName: "person.crop.circle.badge.exclamationmark").font(.largeTitle).foregroundStyle(.secondary)
-                Text(mcc("merchantCoopCenter.signIn.title", locale)).font(.headline)
-                Text(mcc("merchantCoopCenter.signIn.reason", locale)).font(.subheadline).foregroundStyle(.secondary)
+                Image(systemName: "person.crop.circle.badge.exclamationmark").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
+                Text(mcc("merchantCoopCenter.signIn.title", locale)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(mcc("merchantCoopCenter.signIn.reason", locale)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             case .denied:
-                Image(systemName: "lock").font(.largeTitle).foregroundStyle(.secondary)
-                Text(mcc("merchantCoopCenter.denied.title", locale)).font(.headline)
-                Text(mcc("merchantCoopCenter.denied.reason", locale)).font(.subheadline).foregroundStyle(.secondary)
+                Image(systemName: "lock").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
+                Text(mcc("merchantCoopCenter.denied.title", locale)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(mcc("merchantCoopCenter.denied.reason", locale)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             case .failed(let message):
-                Image(systemName: "exclamationmark.triangle").font(.largeTitle).foregroundStyle(.secondary)
-                Text(title).font(.headline)
-                Text(message ?? fallback).font(.subheadline).foregroundStyle(.secondary)
-                Button(mcc("merchantCoopCenter.retry", locale), action: retry)
-                    .buttonStyle(.bordered).accessibilityIdentifier("merchantCoopCenter.retry")
+                Image(systemName: "exclamationmark.triangle").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
+                Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(message ?? fallback).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                CYPillButton(verbatim: mcc("merchantCoopCenter.retry", locale), style: .secondary, action: retry)
+                    .accessibilityIdentifier("merchantCoopCenter.retry")
             }
         }
-        .multilineTextAlignment(.center).frame(maxWidth: .infinity).padding(.vertical, 48)
+        .multilineTextAlignment(.center).frame(maxWidth: .infinity).padding(.vertical, CYSpacing.jumbo)
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
 }
@@ -405,26 +405,28 @@ struct MerchantCoopCenterEventCard: View {
     let event: OfficialEvent
     @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(cityText).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            Text(event.title).font(.headline).fixedSize(horizontal: false, vertical: true)
-            if let subtitle = event.subtitle, !subtitle.isEmpty { Text(subtitle).font(.subheadline).foregroundStyle(.secondary) }
+        VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+            Text(cityText).font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+            Text(event.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            if let subtitle = event.subtitle, !subtitle.isEmpty {
+                Text(subtitle).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 2) {
-                    Label(mcc("merchantCoopCenter.official.gap", locale), systemImage: "exclamationmark.triangle").font(.subheadline.weight(.semibold))
-                    Text(event.recruitmentWarningReason ?? mcc("merchantCoopCenter.official.gapFallback", locale)).font(.caption)
+                    Label(mcc("merchantCoopCenter.official.gap", locale), systemImage: "exclamationmark.triangle").font(CYTypography.meta.weight(.semibold))
+                    Text(event.recruitmentWarningReason ?? mcc("merchantCoopCenter.official.gapFallback", locale)).font(CYTypography.caption)
                 }
-                .foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(CYColor.warningText).fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("merchantCoopCenter.event.gap." + String(event.id))
             }
-            HStack(spacing: 4) {
+            HStack(spacing: CYSpacing.xs) {
                 Text(mcc("merchantCoopCenter.official.open", locale))
                 Image(systemName: "chevron.forward").accessibilityHidden(true)
-            }.font(.subheadline.weight(.semibold)).foregroundStyle(Color.accentColor)
+            }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
         }
-        .padding().frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cyDomainCard()
     }
     private var cityText: String {
         if let city = event.city, !city.isEmpty { return city }

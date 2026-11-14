@@ -18,24 +18,22 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
     var body: some View {
         ZStack {
             if !reader.isConfigured {
-                ContentUnavailableView("merchant.orders", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYEmptyState(systemImage: "network.slash", "merchant.orders", subtitle: "auth.notConfigured")
             } else if !reader.isSignedIn {
-                ContentUnavailableView("merchant.orders", systemImage: "lock", description: Text("merchant.signIn"))
+                CYEmptyState(systemImage: "lock", "merchant.orders", subtitle: "merchant.signIn")
             } else if model.loadedRevision == reader.sessionRevision, let rows = model.value {
                 List {
                     Section {
                         if filter.status != nil || filter.aftersaleStatus != nil { filterSummary }
-                        if model.isLoading { ProgressView("merchant.refreshing") }
+                        if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
                         if let error = model.errorKey {
-                            Text("merchant.stale").font(.footnote).foregroundStyle(.secondary)
+                            Text("merchant.stale").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                             MerchantInlineFailure(errorKey: error, retry: { Task { await reload() } })
                         }
                     }
                     if rows.isEmpty {
-                        ContentUnavailableView {
-                            Label { Text("merchant.orders.empty").accessibilityIdentifier("merchant.orders.empty") } icon: { Image(systemName: "receipt") }
-                        }
-                        .listRowBackground(Color.clear)
+                        CYEmptyState(systemImage: "receipt", "merchant.orders.empty", messageIdentifier: "merchant.orders.empty")
+                            .listRowBackground(Color.clear)
                     } else {
                         ForEach(Array(rows.enumerated()), id: \.offset) { index, order in
                             Button {
@@ -48,7 +46,11 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                 }.refreshable { await reload() }
             } else if let error = model.errorKey {
                 MerchantFailureView(errorKey: error, identifier: "merchant.orders", retry: { Task { await reload() } })
-            } else { ProgressView("merchant.loading") }
+            } else {
+                CYSkeleton(variant: .row)
+                    .padding(CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
@@ -125,29 +127,40 @@ private struct MerchantOrderRow: View {
     @Environment(\.locale) private var locale
     let order: MerchantOrder
     private var orderNumber: some View {
-        Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale)).font(.headline)
+        Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale))
+            .font(CYTypography.cardTitle)
+            .foregroundStyle(CYColor.textPrimary)
     }
-    private var amount: some View { Text(MerchantMoney.display(order.payAmount)).font(.headline).monospacedDigit() }
+    private var amount: some View {
+        Text(MerchantMoney.display(order.payAmount))
+            .font(CYTypography.cardTitle.monospacedDigit())
+            .foregroundStyle(CYColor.textPrimary)
+    }
     @ViewBuilder private var orderTime: some View {
-        if let time = order.createTime, !time.isEmpty { Text(time).font(.caption) }
+        if let time = order.createTime, !time.isEmpty {
+            Text(time)
+                .font(CYTypography.caption)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textSecondary)
+        }
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s1_5) {
+        VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
             // At accessibility sizes the pairs stack instead of squeezing the order number and the time.
             ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) { orderNumber; Spacer(minLength: 0); amount }
-                VStack(alignment: .leading, spacing: Theme.Space.s1) { orderNumber; amount }
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) { orderNumber; Spacer(minLength: 0); amount }
+                VStack(alignment: .leading, spacing: CYSpacing.xs) { orderNumber; amount }
             }
             ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) { MerchantOrderStatusLabel(value: order.status); Spacer(minLength: 0); orderTime }
-                VStack(alignment: .leading, spacing: Theme.Space.s1) { MerchantOrderStatusLabel(value: order.status); orderTime }
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) { MerchantOrderStatusLabel(value: order.status); Spacer(minLength: 0); orderTime }
+                VStack(alignment: .leading, spacing: CYSpacing.xs) { MerchantOrderStatusLabel(value: order.status); orderTime }
             }
-            .font(.subheadline).foregroundStyle(.secondary)
+            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             if let raw = order.aftersaleStatus, raw >= 2 {
-                MerchantAftersaleLabel(value: raw).font(.subheadline).foregroundStyle(CYColor.warningText)
+                MerchantAftersaleLabel(value: raw).font(CYTypography.meta).foregroundStyle(CYColor.warningText)
             }
         }
-        .padding(.vertical, Theme.Space.s1)
+        .padding(.vertical, CYSpacing.xs)
         .contentShape(Rectangle())
     }
 }
@@ -157,8 +170,11 @@ private struct MerchantOrderSummary: View {
     var body: some View {
         Form {
             Section {
-                QuestifyHeroValue(value: Text(MerchantMoney.display(order.payAmount)).monospacedDigit(), caption: Text("merchant.order.amount"))
-                    .listRowBackground(Color.clear)
+                CYBalanceHero(
+                    label: "merchant.order.amount",
+                    amount: MerchantMoney.display(order.payAmount)
+                )
+                .listRowBackground(Color.clear)
             }
             Section {
                 if let value = order.orderSn, !value.isEmpty { LabeledContent("merchant.order.number", value: value).textSelection(.enabled) }
@@ -169,7 +185,10 @@ private struct MerchantOrderSummary: View {
                 }
                 if let value = order.createTime, !value.isEmpty { LabeledContent("merchant.order.created", value: value) }
             }
-        }.scrollContentBackground(.hidden).background(CYColor.bgPage).appNavigationTitle("merchant.order.summary")
+        }
+        .scrollContentBackground(.hidden)
+        .cyDomainScreen(.merchant)
+        .appNavigationTitle("merchant.order.summary")
     }
 }
 
@@ -178,7 +197,7 @@ private struct MerchantOrderStatusLabel: View {
     var body: some View {
         if let value, let known = MerchantOrderStatus(rawValue: value) { Text(LocalizedStringKey(known.titleKey)) }
         else if let value { HStack { Text("merchant.status.unknown"); Text(String(value)) } }
-        else { Text("merchant.status.missing").foregroundStyle(.secondary) }
+        else { Text("merchant.status.missing").foregroundStyle(CYColor.textSecondary) }
     }
 }
 private struct MerchantAftersaleLabel: View {

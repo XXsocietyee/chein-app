@@ -9,11 +9,15 @@ struct MerchantOperatorSelfRoleCard: View {
     static func isShown(for access: MerchantBusinessAccess) -> Bool { !access.canManageOperators }
     var body: some View {
         Section("merchant.operatorSelf.title") {
-            Text(LocalizedStringKey("merchant.business.role." + access.role)).font(.headline)
+            Text(LocalizedStringKey("merchant.business.role." + access.role))
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
                 .accessibilityIdentifier("merchant.operatorSelf.role")
-            Text("merchant.operatorSelf.copy").font(.footnote).foregroundStyle(.secondary)
+            Text("merchant.operatorSelf.copy")
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Button("merchant.operatorSelf.openWorkbench") { dismiss() }
+            CYPillButton("merchant.operatorSelf.openWorkbench", style: .primary) { dismiss() }
                 .accessibilityIdentifier("merchant.operatorSelf.openWorkbench")
         }
         .accessibilityIdentifier("merchant.operatorSelf.card")

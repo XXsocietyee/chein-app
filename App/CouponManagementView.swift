@@ -27,8 +27,8 @@ import SwiftUI
     }
     var body: some View {
         Group {
-            if !isSourceVisible { ContentUnavailableView("couponManagement.unavailable", systemImage: "ticket") }
-            else if sessionKey == nil { ContentUnavailableView("couponManagement.signIn", systemImage: "person.crop.circle") }
+            if !isSourceVisible { CYEmptyState(systemImage: "ticket", "couponManagement.unavailable") }
+            else if sessionKey == nil { CYEmptyState(systemImage: "person.crop.circle", "couponManagement.signIn") }
             else {
                 List {
                     MerchantOpsWp03Panel(page: .coupon)
@@ -37,28 +37,41 @@ import SwiftUI
                         Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }
                             .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
                     }
-                    Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
-                    if model.working || model.core.loading { ProgressView("couponManagement.loading") }
+                    Text("couponManagement.chinaTime").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    if model.working || model.core.loading { CYSkeleton(variant: .row) }
                     // A failed read is an error notice above, not an empty list.
                     else if model.core.rows.isEmpty, model.core.issue == nil {
-                        ContentUnavailableView("couponManagement.empty", systemImage: "ticket")
+                        CYEmptyState(systemImage: "ticket", "couponManagement.empty")
                             .listRowBackground(Color.clear)
                     }
                     ForEach(model.core.rows) { row in
                         NavigationLink {
                             CouponManagementDetailView(model: model, id: row.id)
                         } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.headline)
-                                Text(LocalizedStringKey(row.typeKey)).font(.subheadline)
+                            VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+                                Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale))
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                Text(LocalizedStringKey(row.typeKey))
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textSecondary)
                                 // Mini-program coupon list row: description (fallback copy) and remaining stock.
-                                if let text = row.description, !text.isEmpty { Text(verbatim: text).font(.caption) }
-                                else { Text("couponManagement.noDescription").font(.caption).foregroundStyle(.secondary) }
+                                if let text = row.description, !text.isEmpty {
+                                    Text(verbatim: text).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                                } else {
+                                    Text("couponManagement.noDescription").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                }
                                 // Unknown remaining stock is an em dash; a literal 0 stays 0.
-                                LabeledContent("couponManagement.remaining", value: CouponInfoCount.display(row.remaining)).font(.caption)
-                                if row.state != .active { Text(LocalizedStringKey(row.state.key)).font(.caption) }
-                                Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")").font(.caption).foregroundStyle(.secondary)
-                            }.padding(.vertical, 4)
+                                LabeledContent("couponManagement.remaining", value: CouponInfoCount.display(row.remaining))
+                                    .font(CYTypography.caption.monospacedDigit())
+                                if row.state != .active {
+                                    CYStatusChip(LocalizedStringKey(row.state.key), tone: .neutral)
+                                }
+                                Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")")
+                                    .font(CYTypography.caption)
+                                    .monospacedDigit()
+                                    .foregroundStyle(CYColor.textSecondary)
+                            }.padding(.vertical, CYSpacing.xs)
                         }.accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
                     }
                 }
@@ -149,7 +162,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     }
                 }
                 if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
-            } else if model.working { ProgressView("couponManagement.loading") }
+            } else if model.working { CYSkeleton(variant: .detail).accessibilityLabel(Text("couponManagement.loading")) }
             else { Text("couponManagement.unavailable") }
         }
         .merchantM02Page()
@@ -284,8 +297,8 @@ private struct CouponInfoSettingsStateSection: View {
     var body: some View {
         if let key = page.stateKey {
             Section {
-                if case .loading = page.phase { ProgressView(LocalizedStringKey(key)) }
-                else { Text(LocalizedStringKey(key)).foregroundStyle(.secondary) }
+                if case .loading = page.phase { CYSkeleton(variant: .row).accessibilityLabel(Text(LocalizedStringKey(key))) }
+                else { Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             }.accessibilityIdentifier("couponManagement.editor.state")
         }
     }
@@ -322,9 +335,8 @@ private struct CouponInfoSettingsReadOnlySection: View {
                 LabeledContent("couponManagement.quantity", value: draft.quantity)
                 if let start = draft.startTime { LabeledContent("couponManagement.start") { Text(CouponValidityTime.display(start)) } }
                 if let end = draft.endTime { LabeledContent("couponManagement.end") { Text(CouponValidityTime.display(end)) } }
-                Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.publishConfirm")) { model.run { await model.core.confirm(review) } }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(maxWidth: .infinity)
+                CYPillButton(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.publishConfirm"), style: .primary) { model.run { await model.core.confirm(review) } }
+                    .listRowBackground(Color.clear)
                     .listRowBackground(Color.clear)
                     .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             case .stop(let row):

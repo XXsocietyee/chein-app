@@ -6,18 +6,21 @@ struct MerchantCustomerRowLabel: View {
     let row: MerchantCustomerListParity.Row
     let identifier: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
-                Text(verbatim: row.name ?? MerchantOpsCopy.text("merchantOps.customer.unnamed")).font(.headline)
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            HStack(spacing: CYSpacing.s1_5) {
+                Text(verbatim: row.name ?? MerchantOpsCopy.text("merchantOps.customer.unnamed"))
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
                 if let tier = row.tierKey {
-                    Text(verbatim: MerchantOpsCopy.text(tier)).font(.caption.bold())
-                        .foregroundStyle(row.tierUrgent ? CYColor.warningText : CYColor.textSecondary)
+                    CYStatusChip(verbatim: MerchantOpsCopy.text(tier), tone: row.tierUrgent ? .warning : .neutral)
                 }
-                if row.latestNote != nil { Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.noteBadge")).font(.caption).foregroundStyle(.secondary) }
+                if row.latestNote != nil {
+                    CYStatusChip(verbatim: MerchantOpsCopy.text("merchantOps.customer.noteBadge"), tone: .neutral)
+                }
             }
             let action = [row.lastAction, row.relative.map(Self.relative)].compactMap { $0 }.joined(separator: " · ")
-            if !action.isEmpty { Text(verbatim: action).font(.subheadline).foregroundStyle(.secondary) }
-            if let note = row.latestNote { Text(verbatim: note).font(.footnote).lineLimit(2) }
+            if !action.isEmpty { Text(verbatim: action).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let note = row.latestNote { Text(verbatim: note).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).lineLimit(2) }
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(identifier)
@@ -43,14 +46,18 @@ struct MerchantCustomerListHero: View {
             case .total(let total): Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.summary.total %lld", total))
             case nil: Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.summary.unavailable"))
             }
-        }.font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.customer.summary")
+        }.font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchantOps.customer.summary")
     }
 }
 struct MerchantCustomerListFooter: View {
     let total: Int
     var body: some View {
-        Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.footer %lld", total)).font(.footnote).foregroundStyle(CYColor.textSecondary)
-            .frame(maxWidth: .infinity).accessibilityIdentifier("merchantOps.customer.footer")
+        Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.footer %lld", total))
+            .font(CYTypography.caption)
+            .monospacedDigit()
+            .foregroundStyle(CYColor.textSecondary)
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("merchantOps.customer.footer")
     }
 }
 
@@ -69,7 +76,7 @@ struct MerchantCustomerIdentityLine: View {
             if let day = MerchantCustomerListParity.identityDay(lastInteraction) {
                 Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.identity.recent %lld %lld", day.month, day.day))
             } else { Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.identity.none")) }
-        }.font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.customer.identity")
+        }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchantOps.customer.identity")
     }
 }
 
@@ -79,12 +86,12 @@ struct MerchantCustomerNoteEditorAccessory: View {
     var body: some View {
         HStack {
             Text("merchant.customer.noteVisibility")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textSecondary)
             Spacer()
             Text(verbatim: MerchantCustomerListParity.noteCounterText(text))
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+                .font(CYTypography.caption.monospacedDigit())
+                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchantOps.customer.noteCounter")
             if !text.isEmpty {
                 Button(action: onClear) {

@@ -7,11 +7,11 @@ import SwiftUI
     @Binding var waitlist: Bool
     var body: some View {
         if operation == .updateSeries {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").font(.footnote)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").font(CYTypography.footnote)
                     .accessibilityIdentifier("clubOpsEvent.edit.locked")
-                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
+                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
             }
         } else if operation == .createSeries {
             VStack(alignment: .leading, spacing: 6) {

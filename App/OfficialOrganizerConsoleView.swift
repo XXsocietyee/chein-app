@@ -150,8 +150,10 @@ struct OfficialOrganizerConsoleView: View {
         Group {
             switch model.phase {
             case .loading:
-                ProgressView(c.t("正在读取主办权限…", "Checking organizer access…"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                CYSkeleton(variant: .detail)
+                    .padding(CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text(c.t("正在读取主办权限…", "Checking organizer access…")))
                     .accessibilityIdentifier("official.organizer.loading")
             case .denied(let reason):
                 CYEmptyStateView(systemImage: "lock", title: LocalizedStringKey(c.t("无权管理这场活动", "You can't manage this event")),
@@ -165,6 +167,7 @@ struct OfficialOrganizerConsoleView: View {
             case .ready: content
             }
         }
+        .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .navigationTitle(c.t("主办控制台", "Organizer console"))
         .navigationBarTitleDisplayMode(.inline)
@@ -196,18 +199,18 @@ struct OfficialOrganizerConsoleView: View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: model.state?.title.isEmpty == false ? model.state!.title : c.t("未命名官方活动", "Untitled official event"))
-                    .font(.headline)
+                    .font(CYTypography.cardTitle)
                 HStack(spacing: CYSpacing.sm) {
                     Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(model.state?.status)))
                     Text(verbatim: "·")
                     Text(verbatim: controlText)
-                }.font(.subheadline).foregroundStyle(.secondary)
+                }.font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary)
                 if model.state?.control == .paused {
                     if let r = model.state?.pausedReason, !r.isEmpty {
-                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).font(.footnote)
+                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).font(CYTypography.footnote)
                     }
                     if let n = model.state?.resumeNote, !n.isEmpty {
-                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).font(.footnote)
+                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).font(CYTypography.footnote)
                     }
                 }
             }
@@ -322,7 +325,7 @@ struct OfficialOrganizerConsoleView: View {
         let presets = OfficialOrganizerRules.pausePresets[field] ?? []
         let binding = Binding(get: { model.pause[field] ?? OfficialOrganizerPauseEntry() }, set: { model.pause[field] = $0 })
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(fieldLabel(field)).font(.subheadline.weight(.semibold))
+            Text(fieldLabel(field)).font(CYTypography.subhead.weight(.semibold))
             Picker(fieldLabel(field), selection: binding.preset) {
                 Text(c.t("不选预设", "No preset")).tag("")
                 ForEach(Array(presets.enumerated()), id: \.offset) { i, zh in Text(presetLabel(field, i, zh)).tag(zh) }
@@ -348,12 +351,12 @@ struct OfficialOrganizerConsoleView: View {
     }
     @ViewBuilder private func hintText(_ action: OfficialOrganizerAction) -> some View {
         if let hint = model.availability[action]?.hint {
-            Text(hintCopy(hint)).font(.footnote).foregroundStyle(.secondary)
+            Text(hintCopy(hint)).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
         }
     }
     @ViewBuilder private func formErrorText(_ action: OfficialOrganizerAction) -> some View {
         if let (a, e) = model.formError, a == action {
-            Text(formErrorCopy(e)).font(.footnote).foregroundStyle(CYColor.dangerText)
+            Text(formErrorCopy(e)).font(CYTypography.footnote).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("official.organizer.formError")
         }
     }
@@ -482,13 +485,13 @@ struct OfficialOrganizerEntryRow: View {
                 } label: {
                     Label {
                         Text(LocalizedStringKey(cta.key))
-                            .font(.headline)
+                            .font(CYTypography.cardTitle)
                     } icon: {
                         Image(systemName: "map.fill")
                     }
                     .frame(maxWidth: .infinity, minHeight: 44)
                 }
-                .buttonStyle(.questifyPrimary)
+                .buttonStyle(CYPillButtonStyle(style: .primary))
                 .accessibilityIdentifier("official.detail.cta.roam")
             }
         }

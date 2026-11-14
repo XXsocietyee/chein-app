@@ -79,7 +79,7 @@ extension WalletScreen where Value == WithdrawalBalance {
         VStack(alignment: .leading, spacing: 12) {
             Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? "wallet.login" : reader.isConfigured && !unavailable ? "wallet.failed" : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
             if reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable {
-                Button("wallet.retry", action: retry).frame(minHeight: 44)
+                CYPillButton("wallet.retry", style: .secondary, fullWidth: false, action: retry)
             }
         }
     }
@@ -558,7 +558,7 @@ enum WalletPayoutCapability { static let isOn = false }
         return layout {
             if !stacked {
                 Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
-                    .font(.system(.subheadline, weight: .semibold))
+                    .font(CYTypography.subhead.weight(.semibold))
                     .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                     .frame(width: 36, height: 36)
                     .background(CYColor.bgRaised, in: Circle())
@@ -568,18 +568,19 @@ enum WalletPayoutCapability { static let isOn = false }
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
                         Text(verbatim: badge)
-                            .font(.caption2.bold())
-                            .padding(.horizontal, 5)
+                            .font(CYTypography.caption2.weight(.bold))
+                            .foregroundStyle(CYColor.textSecondary)
+                            .padding(.horizontal, CYSpacing.xxs + 1)
                             .padding(.vertical, 2)
-                            .background(Color.accentColor.opacity(0.15), in: Capsule())
+                            .background(CYColor.bgSurfaceElevated, in: Capsule())
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
                 }
-                if income { Text(LocalizedStringKey(row.incomeEventKey)).font(.subheadline).foregroundStyle(.secondary) }
-                if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.caption).foregroundStyle(.secondary) }
-                else if let date = row.createTime { Text(verbatim: date).font(.caption).foregroundStyle(.secondary) }
-                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(.caption).foregroundStyle(.secondary) }
+                if income { Text(LocalizedStringKey(row.incomeEventKey)).font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary) }
+                if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                else if let date = row.createTime { Text(verbatim: date).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
             }
             Spacer(minLength: 8)
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
@@ -588,10 +589,10 @@ enum WalletPayoutCapability { static let isOn = false }
                     if points, row.changePoints != nil { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                     else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
-                .font(.body.weight(.semibold).monospacedDigit())
+                .font(CYTypography.body.weight(.semibold)).monospacedDigit()
                 .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
-                    Text(verbatim: format.amount(balance, currency: row.currency)).font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: format.amount(balance, currency: row.currency)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit()
                 }
             }
         }

@@ -29,7 +29,6 @@ ALLOWLIST = {
     'App/CityArrivalEvidenceView.swift': {FIXED_FONT: 1},
     'App/ClubComponents.swift': {RAW_HEX: 1, FIXED_FONT: 1},
     'App/ClubPostDiscussion.swift': {FIXED_FONT: 1},
-    'App/CoopSettlementDetailView.swift': {FIXED_FONT: 1},
     'App/CreatorApplicationView.swift': {FIXED_FONT: 1, VIOLET: 1},
     'App/DesignFixtures/E3Fixtures.swift': {VIOLET: 1},
     'App/DiceD20View.swift': {FIXED_FONT: 1},

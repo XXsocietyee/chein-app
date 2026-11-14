@@ -57,22 +57,33 @@ import UIKit
 
     var body: some View {
         let displayedIntent = copyModel.intentID
-        VStack(alignment: .leading, spacing: 12) {
-            Text(LocalizedStringKey(progress.paymentKey)).font(CYTypography.cardTitle)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(LocalizedStringKey(progress.paymentKey)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 .accessibilityIdentifier("merchant.settlementProgress.status")
-            Text(LocalizedStringKey(progress.invoiceKey)).font(.subheadline)
-            if progress.amount.raw == nil { Text("merchant.settlementProgress.amountUnknown").foregroundStyle(CYColor.textTertiary) }
+            Text(LocalizedStringKey(progress.invoiceKey)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            if progress.amount.raw == nil {
+                Text("merchant.settlementProgress.amountUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
             if !progress.steps.isEmpty {
-                Text("merchant.settlementProgress.title").font(CYTypography.cardTitle)
+                Text("merchant.settlementProgress.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 ForEach(progress.steps) { step in
-                    HStack(alignment: .top, spacing: 10) {
+                    HStack(alignment: .top, spacing: CYSpacing.s2_5) {
                         Image(systemName: symbol(step.state))
-                            .foregroundStyle(step.state == .done ? Theme.Color.success(in: .merchant) : Theme.Color.textSecondary(in: .merchant))
+                            .foregroundStyle(step.state == .done ? CYColor.successText : CYColor.textSecondary)
                             .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text(LocalizedStringKey("merchant.settlementProgress.step." + step.id))
-                            Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue)).font(.caption).foregroundStyle(CYColor.textTertiary)
-                            if let time = step.timestamp { MerchantSettlementTimestampText(raw: time).font(.caption).foregroundStyle(CYColor.textTertiary) }
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                            Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue))
+                                .font(CYTypography.caption)
+                                .foregroundStyle(CYColor.textSecondary)
+                            if let time = step.timestamp {
+                                MerchantSettlementTimestampText(raw: time)
+                                    .font(CYTypography.caption)
+                                    .monospacedDigit()
+                                    .foregroundStyle(CYColor.textSecondary)
+                            }
                         }
                     }.fixedSize(horizontal: false, vertical: true)
                         .accessibilityElement(children: .combine)
@@ -80,15 +91,15 @@ import UIKit
                 }
             }
             if progress.voucherForCopy != nil {
-                Button {
+                CYPillButton("merchant.settlementProgress.copyVoucher", style: .secondary, systemImage: "doc.on.doc") {
                     Task { await copyModel.copy(progress, intent: displayedIntent, reader: reader, currentSnapshot: currentSnapshot, write: Self.writeLocally) }
-                } label: { Label("merchant.settlementProgress.copyVoucher", systemImage: "doc.on.doc").frame(minHeight: 44) }
+                }
                 .disabled(copyModel.busy || scenePhase != .active)
                 .accessibilityIdentifier("merchant.settlementProgress.copyVoucher")
-                if copyModel.busy { ProgressView("merchant.settlementProgress.checking") }
+                if copyModel.busy { ProgressView("merchant.settlementProgress.checking").font(CYTypography.meta) }
             }
             if let key = copyModel.messageKey {
-                Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(CYColor.textTertiary)
+                Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("merchant.settlementProgress.copyStatus")
             }
         }

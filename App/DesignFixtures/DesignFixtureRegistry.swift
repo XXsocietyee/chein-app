@@ -189,7 +189,7 @@ enum E4Fixtures {
         case "e4-wallet-bank": return wrap(WalletCommerceFixtureHost(designPage: "bank"))
         case "e4-wallet-withdrawals": return wrap(WalletCommerceFixtureHost(designPage: "withdrawals"))
         case "e4-wallet-tasks": return wrap(WalletCommerceFixtureHost(designPage: "tasks"))
-        default: return nil
+        default: return T12T13DesignFixtures.make(name)
         }
     }
 
@@ -355,5 +355,148 @@ enum CoreGapPageFixtures {
         _model = State(initialValue: NearbyMerchantCoordinator(reader: CoreGapNearbyFixtureReader(empty: empty), location: CoreGapNearbyFixtureLocation(), approved: { true }))
     }
     var body: some View { NavigationStack { NearbyMerchantView(model: model) } }
+}
+
+// MARK: T12 + T13 normal + non-happy design fixtures (kept in this file so no project file change is needed)
+
+enum T12T13DesignFixtures {
+    @MainActor static func make(_ name: String) -> AnyView? {
+        switch name {
+        case "merchant-orders-empty": return merchant(MerchantFixtureRootView(scenario: .empty))
+        case "merchant-projects-empty": return merchant(MerchantFixtureRootView(scenario: .inactive))
+        case "merchant-finance-empty": return merchant(MerchantFixtureRootView(scenario: .retry))
+        case "t12-aftercare":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .ready), journal: MerchantBusinessMemoryIntentStore(), query: .aftercare(.pending, page: 1)) })
+        case "t12-aftercare-denied":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .denied), journal: MerchantBusinessMemoryIntentStore(), query: .aftercare(.pending, page: 1)) })
+        case "t12-reviews":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .ready), journal: MerchantBusinessMemoryIntentStore(), query: .reviews(page: 1)) })
+        case "t12-reviews-denied":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .denied), journal: MerchantBusinessMemoryIntentStore(), query: .reviews(page: 1)) })
+        case "t12-ledger-batches":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .ready), journal: MerchantBusinessMemoryIntentStore(), query: .batches(page: 1)) })
+        case "t12-ledger-batches-denied":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .denied), journal: MerchantBusinessMemoryIntentStore(), query: .batches(page: 1)) })
+        case "t12-operators":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .ready), journal: MerchantBusinessMemoryIntentStore(), query: .operators) })
+        case "t12-operators-denied":
+            return merchant(NavigationStack { MerchantBusinessPage(reader: MerchantBusinessFixtureReader(scenario: .denied), journal: MerchantBusinessMemoryIntentStore(), query: .operators) })
+        case "t12-operations":
+            return merchant(NavigationStack { MerchantOperationsHomeView(reader: operationsReader(denied: false)) })
+        case "t12-operations-denied":
+            return merchant(NavigationStack { MerchantOperationsHomeView(reader: operationsReader(denied: true)) })
+        case "t12-marketing":
+            return merchant(MerchantMarketingFixtureHost(scenario: "normal"))
+        case "t12-marketing-empty":
+            return merchant(MerchantMarketingFixtureHost(scenario: "empty"))
+        case "t12-coop-center":
+            return merchant(MerchantCoopCenterFixtureHost(scenario: "normal"))
+        case "t12-coop-center-empty":
+            return merchant(MerchantCoopCenterFixtureHost(scenario: "empty"))
+        case "t12-coop-invites":
+            return merchant(NavigationStack { CooperationBrowserView(reader: CooperationFixtureReader(scenario: .content)) })
+        case "t12-coop-invites-empty":
+            return merchant(NavigationStack { CooperationBrowserView(reader: CooperationFixtureReader(scenario: .empty)) })
+        case "t12-public-store":
+            return merchant(NavigationStack { PublicMerchantHomeView(target: .ownerMemberID(101), context: .init(reader: CoopRelationFixtureReader(scenario: "mixed"))) })
+        case "t12-public-store-failed":
+            return merchant(NavigationStack { PublicMerchantHomeView(target: .ownerMemberID(101), context: .init(reader: CoopRelationFixtureReader(scenario: "retry"))) })
+        case "t13-coop-profit":
+            return merchant(NavigationStack { CoopFinanceProfitView(reader: T12T13CoopFlowReader(failed: false)) })
+        case "t13-coop-profit-failed":
+            return merchant(NavigationStack { CoopFinanceProfitView(reader: T12T13CoopFlowReader(failed: true)) })
+        case "t13-withdraw-support":
+            return player(NavigationStack { WithdrawalSupportLandingView(reader: walletReader(empty: false)) })
+        case "t13-withdraw-support-empty":
+            return player(NavigationStack { WithdrawalSupportLandingView(reader: walletReader(empty: true)) })
+        case "t13-withdraw-history":
+            return player(NavigationStack { WithdrawalHistoryView(reader: walletReader(empty: false)) })
+        case "t13-withdraw-history-empty":
+            return player(NavigationStack { WithdrawalHistoryView(reader: walletReader(empty: true)) })
+        case "t13-organizer":
+            return player(NavigationStack { OfficialOrganizerConsoleView(eventID: 88, access: T12T13OrganizerAccess(denied: false)) })
+        case "t13-organizer-denied":
+            return player(NavigationStack { OfficialOrganizerConsoleView(eventID: 88, access: T12T13OrganizerAccess(denied: true)) })
+        case "t13-goals":
+            return player(NavigationStack { RoamExplorationGoalsView(tools: RoamPrivateToolsFixture(scenario: .content)) })
+        case "t13-goals-empty":
+            return player(NavigationStack { RoamExplorationGoalsView(tools: RoamPrivateToolsFixture(scenario: .empty)) })
+        default:
+            return nil
+        }
+    }
+
+    @MainActor private static func merchant<V: View>(_ view: V) -> AnyView {
+        AnyView(view.themeDomain(.merchant).cyDomainPageBackground().themeDomain(.merchant).preferredColorScheme(.light))
+    }
+
+    @MainActor private static func player<V: View>(_ view: V) -> AnyView {
+        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player).preferredColorScheme(.dark))
+    }
+
+    @MainActor private static func operationsReader(denied: Bool) -> MerchantOperationsFixtureReader {
+        let reader = MerchantOperationsFixtureReader()
+        reader.denied = denied
+        return reader
+    }
+
+    @MainActor private static func walletReader(empty: Bool) -> WalletCommerceReader {
+        let scope = WalletCommerceScope(namespace: "t12t13-fixture", accountID: 9002, epoch: UUID())
+        let configuration = try! APIConfiguration(baseURL: URL(string: "https://example.com")!)
+        let service = WalletCommerceService(configuration: configuration, transport: T12T13WithdrawalTransport(empty: empty))
+        return WalletCommerceReader(service: service) { (scope: scope, token: "synthetic-token") }
+    }
+}
+
+@MainActor private final class T12T13CoopFlowReader: ObservableObject, CoopFlowReading {
+    @Published var session: CoopFlowSession? = try? CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic-t13")
+    let failed: Bool
+    init(failed: Bool) { self.failed = failed }
+    func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON {
+        if failed { throw CoopFlowFailure.unavailable }
+        return .object(["topics": .array([.object([
+            "topicId": .id(8), "topicName": .string("Synthetic organizer route"),
+            "myIncome": .number(128.50), "settled": .bool(true), "myIncomeArrived": .bool(true),
+            "totalSales": .number(480), "verifiedSales": .number(420), "platformAmount": .number(42), "merchantTotal": .number(249.5)
+        ])])])
+    }
+    func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {
+        throw CoopFlowFailure.unavailable
+    }
+}
+
+private struct T12T13WithdrawalTransport: HTTPTransport {
+    let empty: Bool
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        switch request.url?.path {
+        case "/api/withdrawal/list":
+            if empty { return (Data(#"{"code":200,"data":[]}"#.utf8), 200) }
+            return (Data(#"{"code":200,"data":[{"id":50,"status":1,"receivedAmount":128.50,"createTime":"2026-10-01 10:00:00"}]}"#.utf8), 200)
+        case "/api/user/info":
+            if empty { return (Data(#"{"code":500}"#.utf8), 200) }
+            return (Data(#"{"code":200,"data":{"balance":"128.50"}}"#.utf8), 200)
+        case "/api/wallet/stages":
+            if empty { return (Data(#"{"code":500}"#.utf8), 200) }
+            return (Data(#"{"code":200,"data":{"pendingSettlement":20,"disputed":0,"withdrawable":128.5,"complaintPeriod":[],"amountsKnown":true}}"#.utf8), 200)
+        default:
+            return (Data(#"{"code":404}"#.utf8), 404)
+        }
+    }
+}
+
+@MainActor private final class T12T13OrganizerAccess: OfficialOrganizerAccess {
+    let accountID: Int? = 808
+    let enabled = true
+    let denied: Bool
+    init(denied: Bool) { self.denied = denied }
+    func publishCheck(eventID: Int) async throws -> OfficialOrganizerCheckResult {
+        denied ? .denied(nil) : .allowed(.init(known: true, blockers: [], risks: [], risksKnown: true))
+    }
+    func eventState(eventID: Int) async throws -> OfficialOrganizerEventState? {
+        OfficialOrganizerEventState(status: OfficialOrganizerEventState.scheduled, control: .normal, title: "Synthetic official activity")
+    }
+    func command(_ command: OfficialOrganizerCommand, mode: OfficialOrganizerCommandMode) async throws -> OfficialOrganizerReceipt? {
+        OfficialOrganizerReceipt(requestId: command.requestId, state: .applied, message: "ok")
+    }
 }
 #endif

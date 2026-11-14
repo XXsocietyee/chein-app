@@ -31,19 +31,20 @@ struct MerchantOperationsEditor: View {
             else if !coordinator.reader.canSave { Section { MerchantContentBoundary() } }
             if let draft = coordinator.draft {
                 fields(draft)
-                if let blocker = draft.blocker { Section { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.blocker") } }
+                if let blocker = draft.blocker { Section { Text(LocalizedStringKey(blocker)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.operations.blocker") } }
             }
             if coordinator.exampleSaved { Section { Label("merchant.operations.exampleSaved", systemImage: "checkmark.circle").accessibilityIdentifier("merchant.operations.exampleSaved") } }
             if let issue = coordinator.issue { Section { MerchantOperationsIssueView(issue: issue) } }
             if coordinator.isLocked { Section { Text("merchant.operations.unknownOutcome") } }
             Section {
-                Button("merchant.operations.reviewDraft") { model.prepare() }
-                    .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
+                CYPillButton("merchant.operations.reviewDraft", style: .primary) { model.prepare() }
                     .disabled(!coordinator.canReview).accessibilityIdentifier("merchant.operations.review")
-                if coordinator.isBusy { ProgressView("merchant.loading") }
+                if coordinator.isBusy { CYSkeleton(variant: .row).accessibilityLabel(Text("merchant.loading")) }
             }
+            .listRowBackground(Color.clear)
         }
+        .scrollContentBackground(.hidden)
+        .cyDomainScreen(.merchant)
         // Scrolling from an edited field to review or the saved notice must
         // release the keyboard instead of leaving it over the form's last rows.
         .scrollDismissesKeyboard(.immediately)
@@ -430,8 +431,14 @@ struct MerchantOperationsConfirmationView: View {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey(confirmation.draft.destination.titleKey)).font(.headline)
-                    if confirmation.draft.localOnlyReview { Text("merchant.participation.localOnly") }
+                    Text(LocalizedStringKey(confirmation.draft.destination.titleKey))
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                    if confirmation.draft.localOnlyReview {
+                        Text("merchant.participation.localOnly")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                    }
                 }
                 if let change = MerchantStoreIndustryChange(baseline: model.coordinator.baseline, draft: confirmation.draft) {
                     MerchantStoreIndustryReview(change: change)
@@ -508,15 +515,16 @@ struct MerchantOperationsConfirmationView: View {
                     MerchantTemplateExitPlanReview(plan: plan)
                 }
                 Section {
-                    Button(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnlyAction" : (isExample ? "merchant.operations.confirmExample" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLive" : "merchant.operations.liveDisabled")))) {
+                    CYPillButton(LocalizedStringKey(confirmation.draft.localOnlyReview ? "merchant.participation.localOnlyAction" : (isExample ? "merchant.operations.confirmExample" : (model.coordinator.reader.canSave ? "merchant.operations.confirmLive" : "merchant.operations.liveDisabled"))), style: .primary) {
                         Task { await model.confirm(confirmation) }
                     }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
-                    .disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy).accessibilityIdentifier("merchant.operations.confirm")
+                    .disabled(confirmation.draft.localOnlyReview || !model.coordinator.reader.canSave || model.coordinator.isBusy)
+                    .accessibilityIdentifier("merchant.operations.confirm")
                 }
+                .listRowBackground(Color.clear)
             }
+            .scrollContentBackground(.hidden)
+            .cyDomainScreen(.merchant)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.cancel() }.accessibilityIdentifier("merchant.operations.confirm.cancel") } }
         }

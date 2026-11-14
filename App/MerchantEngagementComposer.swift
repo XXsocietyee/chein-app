@@ -115,8 +115,7 @@ struct MerchantCRMFilterSummary: View {
                 if enabled && (synthetic || (try? review.command.validateProductionProof(review.proof)) != nil) {
                     if synthetic { Text("merchant.engagement.synthetic") }
                     Button(LocalizedStringKey(synthetic ? "merchant.engagement.confirmSynthetic" : "merchant.engagement.confirmProduction"), action: confirm)
-                        .buttonStyle(.questifyPrimary)
-                        .frame(maxWidth: .infinity)
+                        .buttonStyle(CYPillButtonStyle(style: .primary))
                         .listRowBackground(Color.clear)
                         .disabled(busy).accessibilityIdentifier("merchant.engagement.confirm")
                 } else {

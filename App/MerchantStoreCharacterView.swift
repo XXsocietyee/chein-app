@@ -103,34 +103,76 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
     @ViewBuilder private var content: some View {
         switch c.phase {
         case .checking, .loading:
-            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).accessibilityIdentifier("aiNPC.loading")
+            CYSkeleton(variant: .detail)
+                .padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .accessibilityIdentifier("aiNPC.loading")
         case .login:
-            ContentUnavailableView {
-                t("storeCharacter.gate.loginTitle")
-            } description: { t("storeCharacter.gate.loginReason") }
+            CYEmptyState(
+                systemImage: "person.crop.circle.badge.exclamationmark",
+                "storeCharacter.gate.loginTitle",
+                tableName: "StoreCharacter",
+                subtitle: "storeCharacter.gate.loginReason"
+            )
             .accessibilityIdentifier("aiNPC.gate.login")
         case .denied(let reason):
-            ContentUnavailableView {
+            VStack(spacing: CYSpacing.sm) {
+                Image(systemName: "lock")
+                    .font(CYTypography.display)
+                    .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
-            } description: { denyText(reason) }
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                denyText(reason)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(CYSpacing.lg)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityIdentifier("aiNPC.gate.denied")
         case .currentReadDenied(let reason):
             // A current read refusal is not a network failure or a new initial-admission exit.
-            ContentUnavailableView {
+            VStack(spacing: CYSpacing.md) {
+                Image(systemName: "lock")
+                    .font(CYTypography.display)
+                    .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
-            } description: { denyText(reason) } actions: {
-                Button { Task { await c.load() } } label: { t("storeCharacter.action.retry") }
-                    .accessibilityIdentifier("aiNPC.currentReadDenied.retry")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                denyText(reason)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                CYPillButton("storeCharacter.action.retry", style: .primary, tableName: "StoreCharacter") {
+                    Task { await c.load() }
+                }
+                .accessibilityIdentifier("aiNPC.currentReadDenied.retry")
             }
+            .padding(CYSpacing.lg)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityIdentifier("aiNPC.currentReadDenied")
         case .failed(let message):
-            ContentUnavailableView {
+            VStack(spacing: CYSpacing.md) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(CYTypography.display)
+                    .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.load.failedTitle")
-            } description: {
-                if let message { Text(verbatim: message) } else { t("storeCharacter.error.network") }
-            } actions: {
-                Button { Task { await c.load() } } label: { t("storeCharacter.action.retry") }.accessibilityIdentifier("aiNPC.retry")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                Group {
+                    if let message { Text(verbatim: message) } else { t("storeCharacter.error.network") }
+                }
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .multilineTextAlignment(.center)
+                CYPillButton("storeCharacter.action.retry", style: .primary, tableName: "StoreCharacter") {
+                    Task { await c.load() }
+                }
+                .accessibilityIdentifier("aiNPC.retry")
             }
+            .padding(CYSpacing.lg)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityIdentifier("aiNPC.load.failed")
         case .ready:
             List {
@@ -139,6 +181,8 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                 if c.screen == .home { homeRows } else { avatarRows }
                 if c.showsReformScopes, let reform = model.reform { StoreCharacterReformSection(context: reform) }
             }
+            .scrollContentBackground(.hidden)
+            .cyDomainScreen(.merchant)
             .accessibilityIdentifier("aiNPC.list")
         }
     }
@@ -152,35 +196,46 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
     }
 
     private var hero: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: CYSpacing.s2_5) {
             StoreCharacterPreview(avatar: c.selection, side: c.screen == .home ? 128 : 192)
             if c.screen == .home {
-                if c.home.name.isEmpty { t("storeCharacter.hero.namePlaceholder").font(.title3.bold()).foregroundStyle(.secondary) }
-                else { Text(verbatim: c.home.name).font(.title3.bold()).accessibilityIdentifier("aiNPC.hero.name") }
+                if c.home.name.isEmpty {
+                    t("storeCharacter.hero.namePlaceholder")
+                        .font(CYTypography.sectionTitle)
+                        .foregroundStyle(CYColor.textSecondary)
+                } else {
+                    Text(verbatim: c.home.name)
+                        .font(CYTypography.sectionTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("aiNPC.hero.name")
+                }
                 if let badge = c.saved.badge {
-                    badgeText(badge).font(.footnote.bold()).padding(.horizontal, 10).padding(.vertical, 4)
-                        .background(badgeColor(badge).opacity(0.15), in: Capsule()).foregroundStyle(badgeColor(badge))
+                    CYStatusChip(LocalizedStringKey(badgeKey(badge)), tone: badgeTone(badge), tableName: "StoreCharacter")
                         .accessibilityIdentifier("aiNPC.hero.badge")
                     if let reason = c.saved.rejectionReason {
-                        (t("storeCharacter.hero.rejectReason") + Text(verbatim: reason)).font(.footnote).foregroundStyle(.secondary)
+                        (t("storeCharacter.hero.rejectReason") + Text(verbatim: reason))
+                            .font(CYTypography.caption)
+                            .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("aiNPC.hero.rejectReason")
                     }
                 }
             } else {
-                t("storeCharacter.avatar.previewCaption").font(.footnote).foregroundStyle(.secondary)
+                t("storeCharacter.avatar.previewCaption")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(CYColor.textSecondary)
             }
         }
-        .frame(maxWidth: .infinity).padding(.vertical, 8)
+        .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.sm)
     }
-    private func badgeText(_ badge: StoreCharacterBadge) -> Text {
+    private func badgeKey(_ badge: StoreCharacterBadge) -> String {
         switch badge {
-        case .online: return t("storeCharacter.badge.online")
-        case .rejected: return t("storeCharacter.badge.rejected")
-        case .reviewing: return t("storeCharacter.badge.reviewing")
+        case .online: return "storeCharacter.badge.online"
+        case .rejected: return "storeCharacter.badge.rejected"
+        case .reviewing: return "storeCharacter.badge.reviewing"
         }
     }
-    private func badgeColor(_ badge: StoreCharacterBadge) -> Color {
-        switch badge { case .online: return .green; case .rejected: return .orange; case .reviewing: return .secondary }
+    private func badgeTone(_ badge: StoreCharacterBadge) -> CYStatusTone {
+        switch badge { case .online: return .success; case .rejected: return .warning; case .reviewing: return .neutral }
     }
 
     @ViewBuilder private var homeRows: some View {
