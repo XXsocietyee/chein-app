@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 S = {
     # Settings: AI chat records (OFF-AI-DEL-01)
     'mpd.aiChat.title': ('AI chat records', 'AI 对话记录'),
-    'mpd.aiChat.export': ('Copy chat records', '导出对话记录'),
+    'mpd.aiChat.export': ('Export my chat records', '导出我的对话记录'),
     'mpd.aiChat.exportHint': ('Copies the loaded records as text.', '把已加载的对话记录复制为文字。'),
     'mpd.aiChat.exportTitle': ('Chengyin · My AI chat records', '城瘾 · 我的 AI 对话记录'),
     'mpd.aiChat.exportCount %lld': ('%lld in total', '共 %lld 条'),

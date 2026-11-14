@@ -35,7 +35,7 @@ struct PrivacyProtectionView: View {
 
     var body: some View {
         Form {
-            Section { CYHeroHeader("authEntry.privacy.title", subtitle: "authEntry.gate.body", tableName: "AuthEntry").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section { CYHeroHeader("authEntry.privacy.title", subtitle: "authEntry.gate.lead", tableName: "AuthEntry").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
