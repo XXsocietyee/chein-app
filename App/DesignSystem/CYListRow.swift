@@ -9,7 +9,31 @@ enum CYListRowTrailing {
     case valueChevron(String)
 }
 
+enum CYListRowTone: Sendable {
+    case standard
+    case danger
+}
+
+/// Button style for interactive `CYListRow` cells: applies `--cy-color-bg-surface-subtle` (`#141416` / `#EEEEEE`)
+/// on press with zero layout bounce.
+struct CYListRowButtonStyle: ButtonStyle {
+    var cornerRadius: CGFloat = 0
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        configuration.label
+            .background(
+                shape.fill(configuration.isPressed && isEnabled ? palette.bgSurfaceSubtle : Color.clear)
+            )
+            .contentShape(shape)
+    }
+}
+
 /// Row: leading icon or avatar, title, meta line, trailing value/chevron.
+/// Spec dimensions: 1-line minHeight 48pt, 2-line minHeight 64pt, 12pt horizontal item gap, 4pt title/meta gap.
+/// Supports `standard` / `danger` tone, `disabled`, pressed surface highlight, and optional 0.5pt bottom hairline.
 /// `card: true` wraps it in the 16pt-radius card surface; otherwise it is a plain row for use inside a List/card.
 struct CYListRow<Leading: View>: View {
     private let title: LocalizedStringKey
@@ -18,9 +42,15 @@ struct CYListRow<Leading: View>: View {
     private let verbatimMeta: String?
     private let trailing: CYListRowTrailing
     private let card: Bool
+    private var tone: CYListRowTone = .standard
+    private var isDisabledRow: Bool = false
+    private var isPressedState: Bool = false
+    private var showsDivider: Bool = false
+    private var horizontalPad: CGFloat? = nil
     private let leading: Leading
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.isEnabled) private var envIsEnabled
     @Environment(\.dynamicTypeSize) private var typeSize
 
     init(
@@ -47,43 +77,91 @@ struct CYListRow<Leading: View>: View {
         self.init(LocalizedStringKey(""), meta: nil, trailing: trailing, card: card, verbatimTitle: shown.isEmpty ? "—" : shown, verbatimMeta: meta, leading: leading)
     }
 
+    func danger(_ enabled: Bool = true) -> CYListRow {
+        var copy = self; copy.tone = enabled ? .danger : .standard; return copy
+    }
+
+    func rowDisabled(_ disabled: Bool = true) -> CYListRow {
+        var copy = self; copy.isDisabledRow = disabled; return copy
+    }
+
+    func rowPressed(_ pressed: Bool = true) -> CYListRow {
+        var copy = self; copy.isPressedState = pressed; return copy
+    }
+
+    func rowDivider(_ visible: Bool = true) -> CYListRow {
+        var copy = self; copy.showsDivider = visible; return copy
+    }
+
+    func rowPadding(_ horizontal: CGFloat = CYSpacing.lg) -> CYListRow {
+        var copy = self; copy.horizontalPad = horizontal; return copy
+    }
+
+    private var effectiveDisabled: Bool { isDisabledRow || !envIsEnabled }
+    private var hasMeta: Bool { verbatimMeta != nil || meta != nil }
+    private var rowMinHeight: CGFloat { hasMeta ? 64 : 48 }
+
     var body: some View {
         // cyPressTracking is gesture-free (it only reads a CYPressButtonStyle's pressed state), so a List NavigationLink row
         // keeps its tap; there the system row highlight is the feedback.
         if card {
-            row.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg).cyPressTracking()
+            row
+                .overlay(alignment: .bottom) { dividerLine }
+                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+                .cyPressTracking()
         } else {
-            row.cyPressTracking()
+            row
+                .padding(.horizontal, horizontalPad ?? 0)
+                .background(isPressedState && !effectiveDisabled ? palette.bgSurfaceSubtle : Color.clear)
+                .overlay(alignment: .bottom) { dividerLine }
+                .cyPressTracking()
         }
     }
 
     private var row: some View {
         HStack(spacing: CYSpacing.md) {
             leading
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                .opacity(effectiveDisabled ? 0.4 : 1.0)
+                .foregroundStyle(tone == .danger ? palette.danger : palette.textPrimary)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 titleText
                     .font(CYTypography.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
+                    .foregroundStyle(titleColor)
                 if let verbatimMeta {
                     Text(verbatim: verbatimMeta)
                         .font(CYTypography.meta)
-                        .foregroundStyle(palette.textTertiary)
+                        .foregroundStyle(effectiveDisabled ? palette.textDisabled : palette.textTertiary)
                 } else if let meta {
                     Text(meta)
                         .font(CYTypography.meta)
-                        .foregroundStyle(palette.textTertiary)
+                        .foregroundStyle(effectiveDisabled ? palette.textDisabled : palette.textTertiary)
                 }
                 // Accessibility sizes: the value moves under the text so the title keeps the full row width.
                 if typeSize.isAccessibilitySize, let value = trailingValue { valueText(value) }
             }
             .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
+            .layoutPriority(1)
             if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             trailingView
+                .frame(maxWidth: 160, alignment: .trailing)
         }
-        .frame(minHeight: CYSpacing.minTouchTarget)
+        .frame(minHeight: rowMinHeight)
         .contentShape(Rectangle())
         // One VoiceOver stop per row: "title, meta, value". Chevron and icon tile are decorative.
         .accessibilityElement(children: .combine)
+    }
+
+    private var titleColor: Color {
+        if effectiveDisabled { return palette.textDisabled }
+        return tone == .danger ? palette.danger : palette.textPrimary
+    }
+
+    @ViewBuilder private var dividerLine: some View {
+        if showsDivider {
+            Rectangle()
+                .fill(palette.borderSubtle)
+                .frame(height: 0.5)
+        }
     }
 
     private var trailingValue: String? {
@@ -109,12 +187,14 @@ struct CYListRow<Leading: View>: View {
     private func valueText(_ value: String) -> some View {
         Text(verbatim: value)
             .font(CYTypography.numericBody)
-            .foregroundStyle(palette.textSecondary)
+            .foregroundStyle(effectiveDisabled ? palette.textDisabled : palette.textSecondary)
+            .lineLimit(1)
+            .truncationMode(.tail)
     }
     private var chevron: some View {
         Image(systemName: "chevron.right")
             .font(.footnote.weight(.semibold))
-            .foregroundStyle(palette.textTertiary)
+            .foregroundStyle(effectiveDisabled ? palette.textDisabled : palette.textTertiary)
             .accessibilityHidden(true)
     }
 }

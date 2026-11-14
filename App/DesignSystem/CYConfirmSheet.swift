@@ -64,18 +64,10 @@ public struct CYConfirmSheet: View {
     }
 
     @ViewBuilder private func styled(_ label: some View) -> some View {
-        if isDestructive && !consequences.isEmpty {
-            // Solid red, matching the mini-program quit dialog.
-            label.buttonStyle(.plain)
-                .font(CYTypography.label)
-                .foregroundStyle(Color.white)
-                .padding(.vertical, CYSpacing.sm)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                .background(CYColor.dangerSolid, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-        } else if isDestructive {
-            label.buttonStyle(.cyDestructive)
+        if isDestructive {
+            label.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
         } else {
-            label.buttonStyle(.cyPrimary)
+            label.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
         }
     }
 
@@ -109,7 +101,7 @@ public struct CYConfirmSheet: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(CYSpacing.md)
-                .background(CYColor.bgPage, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 .accessibilityIdentifier("confirm.consequences")
             }
         }
@@ -117,7 +109,7 @@ public struct CYConfirmSheet: View {
         .padding(CYSpacing.lg)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .background(CYColor.bgElevated.ignoresSafeArea())
+        .background(CYColor.sheetGlass.ignoresSafeArea())
         .safeAreaInset(edge: .bottom) {
             Group {
                 if consequences.isEmpty {

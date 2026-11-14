@@ -8,6 +8,7 @@ import AuthenticationServices
 enum DesignFixtureRegistry {
     @MainActor static func make(_ name: String) -> AnyView {
         switch name {
+        case "design-kit": return AnyView(DesignKitFixture())
         case "kit": return AnyView(KitGalleryFixture(domain: .player))
         case "kit-2": return AnyView(KitGalleryFixture(domain: .player, lower: true))
         case "kit-merchant-2": return AnyView(KitGalleryFixture(domain: .merchant, lower: true))

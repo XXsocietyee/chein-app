@@ -150,6 +150,16 @@ public enum CYColor {
     public static let sheetCard = resolved { $0.sheetCard }
     /// Centered modal panel (`--cy-comp-modal-panel` `#4D4D4D` dark / `#FFFFFF` light).
     public static let modalPanel = resolved { $0.modalPanel }
+    public static let sheetHandle = resolved { $0.sheetHandle }
+    public static let inputIdleBg = resolved { $0.inputIdleBg }
+    public static let inputFilledBg = resolved { $0.inputFilledBg }
+    public static let inputDisabledBg = resolved { $0.inputDisabledBg }
+    public static let coverFallback = resolved { $0.coverFallback }
+    public static let skeletonBase = resolved { $0.skeletonBase }
+    public static let skeletonHighlight = resolved { $0.skeletonHighlight }
+    public static let cardHighlight = resolved { $0.cardHighlight }
+    public static let cardShadowColor = resolved { $0.cardShadowColor }
+    public static let floatShadowColor = resolved { $0.floatShadowColor }
 
     // MARK: 3. Text Hierarchy (delegated to CYDomainPalette / Theme.Generated)
 
@@ -178,6 +188,8 @@ public enum CYColor {
 
     public static let dangerText = resolved { $0.danger }
     /// Solid danger action fill (`--cy-color-action-danger-bg`, `#D0323B` in both roles).
+    public static let actionDangerBg = resolved { $0.actionDangerBg }
+    public static let actionDangerFg = resolved { $0.actionDangerFg }
     public static let dangerSolid = resolved { $0.actionDangerBg }
     public static let dangerSoft = resolved { $0.dangerSoft }
 

@@ -70,12 +70,12 @@ struct CYStepIndicator: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.xs) {
                 ForEach(titles.indices, id: \.self) { index in
-                    Capsule().fill(index <= current ? CYColor.textPrimary : CYColor.bgRaised).frame(height: 4)
+                    Capsule().fill(index <= current ? CYColor.textPrimary : CYColor.bgSurfaceStrong).frame(height: 4)
                 }
             }
             HStack {
                 Text(verbatim: ChannelCopy.text("第 \(current + 1) 步 / 共 \(titles.count) 步", "Step \(current + 1) of \(titles.count)", locale: locale))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 if titles.indices.contains(current) {
                     Text(verbatim: titles[current]).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)

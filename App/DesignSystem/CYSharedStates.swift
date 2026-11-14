@@ -21,7 +21,7 @@ public struct CYSkeletonBlock: View {
 
     public var body: some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(CYColor.bgRaised)
+            .fill(CYColor.skeletonBase)
             .frame(height: height)
             .opacity(isDimmed && !reduceMotion ? 0.55 : 1.0)
             .onAppear {
@@ -104,50 +104,224 @@ public struct CYOfflineBanner: View {
     }
 }
 
+/// Inline validation or recoverable section error banner (`dangerSoft` surface + `dangerText` icon + optional retry).
+public struct CYInlineError: View {
+    private let message: LocalizedStringKey?
+    private let verbatim: String?
+    private let retryTitle: LocalizedStringKey?
+    private let onRetry: (() -> Void)?
+
+    public init(
+        _ message: LocalizedStringKey,
+        retryTitle: LocalizedStringKey? = "cy.state.offline.retry",
+        onRetry: (() -> Void)? = nil
+    ) {
+        self.message = message
+        self.verbatim = nil
+        self.retryTitle = retryTitle
+        self.onRetry = onRetry
+    }
+
+    public init(
+        verbatim message: String,
+        retryTitle: LocalizedStringKey? = "cy.state.offline.retry",
+        onRetry: (() -> Void)? = nil
+    ) {
+        self.message = nil
+        self.verbatim = message
+        self.retryTitle = retryTitle
+        self.onRetry = onRetry
+    }
+
+    public var body: some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(CYTypography.label)
+                .foregroundStyle(CYColor.dangerText)
+                .accessibilityHidden(true)
+
+            Group {
+                if let verbatim {
+                    Text(verbatim: verbatim)
+                } else if let message {
+                    Text(message)
+                }
+            }
+            .font(CYTypography.bodyCompact)
+            .foregroundStyle(CYColor.dangerText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let retryTitle, let onRetry {
+                Button(action: onRetry) {
+                    Text(retryTitle)
+                        .font(CYTypography.label.weight(.semibold))
+                        .foregroundStyle(CYColor.dangerText)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg)
+        .padding(.vertical, CYSpacing.md)
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.dangerSoft))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 // MARK: 4. Toast
+
+public enum CYToastTone: Sendable, Hashable {
+    case info
+    case success
+    case warning
+    case undoable
+
+    var systemImage: String {
+        switch self {
+        case .info: return "info.circle.fill"
+        case .success: return "checkmark.circle.fill"
+        case .warning: return "exclamationmark.triangle.fill"
+        case .undoable: return "arrow.uturn.backward.circle.fill"
+        }
+    }
+
+    var iconColor: Color {
+        switch self {
+        case .info: return CYColor.textPrimary
+        case .success: return CYColor.successText
+        case .warning: return CYColor.warningText
+        case .undoable: return CYColor.infoText
+        }
+    }
+}
+
+/// Floating pill toast (`maxWidth: 300pt`, `10 × 16pt` padding, `modalPanel` fill + float shadow, zero outer border).
+public struct CYToastPill: View {
+    private let messageKey: LocalizedStringKey?
+    private let verbatim: String?
+    private let tone: CYToastTone
+    private let undoTitle: LocalizedStringKey?
+    private let onUndo: (() -> Void)?
+
+    public init(
+        _ message: LocalizedStringKey,
+        tone: CYToastTone = .info,
+        undoTitle: LocalizedStringKey? = nil,
+        onUndo: (() -> Void)? = nil
+    ) {
+        self.messageKey = message
+        self.verbatim = nil
+        self.tone = tone
+        self.undoTitle = undoTitle
+        self.onUndo = onUndo
+    }
+
+    public init(
+        verbatim message: String,
+        tone: CYToastTone = .info,
+        undoTitle: LocalizedStringKey? = nil,
+        onUndo: (() -> Void)? = nil
+    ) {
+        self.messageKey = nil
+        self.verbatim = message
+        self.tone = tone
+        self.undoTitle = undoTitle
+        self.onUndo = onUndo
+    }
+
+    public var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            Image(systemName: tone.systemImage)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(tone.iconColor)
+                .accessibilityHidden(true)
+
+            Group {
+                if let verbatim {
+                    Text(verbatim: verbatim)
+                } else if let messageKey {
+                    Text(messageKey)
+                }
+            }
+            .font(CYTypography.bodyCompact)
+            .foregroundStyle(CYColor.textPrimary)
+            .multilineTextAlignment(.leading)
+
+            if let undoTitle, let onUndo {
+                Button(action: onUndo) {
+                    Text(undoTitle)
+                        .font(CYTypography.label.weight(.bold))
+                        .foregroundStyle(CYColor.infoText)
+                        .padding(.horizontal, CYSpacing.xs)
+                        .frame(minHeight: 32)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg)
+        .padding(.vertical, CYSpacing.s2_5)
+        .frame(maxWidth: 300)
+        .background(Capsule(style: .continuous).fill(CYColor.modalPanel))
+        .shadow(color: CYColor.floatShadowColor, radius: 16, x: 0, y: 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.updatesFrequently)
+    }
+}
 
 private struct CYToastModifier: ViewModifier {
     @Binding var message: LocalizedStringKey?
+    let tone: CYToastTone
+    let undoTitle: LocalizedStringKey?
     let duration: Double
+    let onUndo: (() -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
         content.overlay(alignment: .bottom) {
             if let message {
-                Text(message)
-                    .font(CYTypography.bodyCompact)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, CYSpacing.lg)
-                    .padding(.vertical, CYSpacing.md)
-                    .background(
-                        Capsule(style: .continuous).fill(CYColor.bgElevated)
-                    )
-                    .overlay(
-                        Capsule(style: .continuous).strokeBorder(CYColor.borderStrong, lineWidth: 1)
-                    )
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.bottom, CYSpacing.xxl)
-                    .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
-                    .accessibilityAddTraits(.updatesFrequently)
-                    .task {
-                        try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
-                        guard !Task.isCancelled else { return }
-                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
-                            self.message = nil
-                        }
+                CYToastPill(message, tone: tone, undoTitle: undoTitle, onUndo: onUndo.map { action in
+                    {
+                        action()
+                        self.message = nil
                     }
+                })
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.bottom, CYSpacing.xxl)
+                .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                .task(id: messageKeyId(message)) {
+                    try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                        self.message = nil
+                    }
+                }
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: message != nil)
+    }
+
+    private func messageKeyId(_ key: LocalizedStringKey) -> String {
+        String(describing: key)
     }
 }
 
 public extension View {
     /// Shows a short bottom toast while `message` is non-nil, then clears it.
     func cyToast(message: Binding<LocalizedStringKey?>, duration: Double = 2.5) -> some View {
-        modifier(CYToastModifier(message: message, duration: duration))
+        modifier(CYToastModifier(message: message, tone: .info, undoTitle: nil, duration: duration, onUndo: nil))
+    }
+
+    /// Shows a toned floating pill toast with optional undo action.
+    func cyToast(
+        message: Binding<LocalizedStringKey?>,
+        tone: CYToastTone = .info,
+        undoTitle: LocalizedStringKey? = nil,
+        duration: Double = 2.5,
+        onUndo: (() -> Void)? = nil
+    ) -> some View {
+        modifier(CYToastModifier(message: message, tone: tone, undoTitle: undoTitle, duration: duration, onUndo: onUndo))
     }
 }
 

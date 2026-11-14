@@ -89,8 +89,7 @@ struct CYDomainTabBarStyle: ViewModifier {
 
     func body(content: Content) -> some View {
         if domain == .merchant {
-            // components/tabBar/index.wxss `.tabbar.merchant .list`: 0 -> .96 white vertical gradient, no blur,
-            // no top border, no shadow. Selected violet is `CYTabBarAppearance` / `CYScreenStyle`, not this tint.
+            // Merchant light tab bar: transparent -> solid page/white vertical fade, no top stroke.
             content
                 .toolbarBackground(
                     LinearGradient(
@@ -103,10 +102,21 @@ struct CYDomainTabBarStyle: ViewModifier {
                 .toolbarBackground(.visible, for: .tabBar)
                 .toolbarColorScheme(.light, for: .tabBar)
         } else {
-            // `.tabbar.dark .list`: rgba(28,28,30,.55) glass + blur(40rpx) + 0.5pt subtle top border.
-            // Content tint is `CYScreenStyle` (domain brand). Selected tab violet is the appearance proxy.
+            // Player dark tab bar: transparent -> bgPage dark top-fade gradient (solid fallback when Reduce Transparency).
+            let bottomColor = CYDomainPalette(.player).bgPage
             content
-                .toolbarBackground(reduceTransparency ? AnyShapeStyle(Color(white: 0.06)) : AnyShapeStyle(.ultraThinMaterial), for: .tabBar)
+                .toolbarBackground(
+                    reduceTransparency
+                        ? AnyShapeStyle(bottomColor)
+                        : AnyShapeStyle(
+                            LinearGradient(
+                                colors: [bottomColor.opacity(0), bottomColor.opacity(0.96), bottomColor],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        ),
+                    for: .tabBar
+                )
                 .toolbarBackground(.visible, for: .tabBar)
                 .toolbarColorScheme(.dark, for: .tabBar)
         }
@@ -120,20 +130,77 @@ extension View {
     }
 }
 
+/// Custom-rendered root tab bar bar/strip faithful to spec (`top-fade`, unselected 0.6, selected `#7A5CFF` icon)
+/// for root tab fixtures and Design Kit comparisons across Player (dark) and Merchant (light).
+struct CYRootTabBarStrip: View {
+    let tabs: [RootTab]?
+    @Binding var selection: RootTab
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.themeDomain) private var domain
+
+    init(tabs: [RootTab]? = nil, selection: Binding<RootTab>) {
+        self.tabs = tabs
+        self._selection = selection
+    }
+
+    private var activeTabs: [RootTab] {
+        tabs ?? (domain == .merchant ? RootTab.allCases : RootTab.playerTabs)
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(activeTabs, id: \.self) { tab in
+                let isSelected = tab == selection
+                let unselectedColor = palette.textPrimary.opacity(Theme.MiniProgramChrome.tabUnselectedOpacity)
+                let icon = CYDomainTabIcons.icon(for: tab, domain: domain)
+                Button {
+                    selection = tab
+                } label: {
+                    VStack(spacing: CYSpacing.xs) {
+                        Image(systemName: isSelected ? icon.selected : icon.idle)
+                            .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? palette.tabSelectedTint : unselectedColor)
+                        Text(LocalizedStringKey(CYDomainTabIcons.titleKey(for: tab, domain: domain)))
+                            .font(CYTypography.micro.weight(isSelected ? .semibold : .medium))
+                            .foregroundStyle(isSelected ? palette.tabSelectedTint : unselectedColor)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: Theme.MiniProgramChrome.minHit)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(.horizontal, CYSpacing.sm)
+        .padding(.top, CYSpacing.md)
+        .padding(.bottom, CYSpacing.sm)
+        .background(
+            LinearGradient(
+                colors: [palette.bgPage.opacity(0), palette.bgPage.opacity(0.96), palette.bgPage],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
 #if canImport(UIKit)
-/// UIKit appearance for the parts SwiftUI cannot style: unselected items at 45% label colour
-/// (`.tabbar__icon { opacity: .45 }`). Call once at launch (for example from the App initialiser).
+/// UIKit appearance for the parts SwiftUI cannot style: unselected items at 0.6 opacity
+/// (`Theme.MiniProgramChrome.tabUnselectedOpacity`), selected icon/label `#7A5CFF`.
 @MainActor
 enum CYTabBarAppearance {
     static func install() {
         let appearance = UITabBarAppearance()
-        appearance.configureWithDefaultBackground()
+        appearance.configureWithTransparentBackground()
 
+        let unselectedAlpha = Theme.MiniProgramChrome.tabUnselectedOpacity
         let unselected = UIColor { traits in
             traits.userInterfaceStyle == .dark
-                ? UIColor(white: 1, alpha: 0.45)
-                : UIColor(white: 0, alpha: 0.45)
+                ? UIColor(white: 1, alpha: unselectedAlpha)
+                : UIColor(white: 0, alpha: unselectedAlpha)
         }
+        let selectedViolet = UIColor(red: 122.0/255, green: 92.0/255, blue: 255.0/255, alpha: 1)
         let layouts: [UITabBarItemAppearance] = [
             appearance.stackedLayoutAppearance,
             appearance.inlineLayoutAppearance,
@@ -143,12 +210,10 @@ enum CYTabBarAppearance {
             layout.normal.iconColor = unselected
             layout.normal.titleTextAttributes = [.foregroundColor: unselected]
             // Violet appears only on the selected tab; everything else inherits the neutral tint.
-            let selectedViolet = UIColor(red: 122.0/255, green: 92.0/255, blue: 255.0/255, alpha: 1)
             layout.selected.iconColor = selectedViolet
             layout.selected.titleTextAttributes = [.foregroundColor: selectedViolet]
         }
 
-        let selectedViolet = UIColor(red: 122.0/255, green: 92.0/255, blue: 255.0/255, alpha: 1)
         UITabBar.appearance().tintColor = selectedViolet
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance

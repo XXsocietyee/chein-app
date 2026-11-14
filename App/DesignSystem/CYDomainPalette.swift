@@ -57,14 +57,31 @@ struct CYDomainPalette {
             ? token("--cy-comp-sheet-player-glass", dark: CYRGB(hex: 0x2C2C2E, alpha: 0.98), light: CYRGB(hex: 0xFFFFFF))
             : token("--cy-comp-sheet-merchant-glass", dark: CYRGB(hex: 0x2C2C2E, alpha: 0.98), light: CYRGB(hex: 0xFFFFFF))
     }
-    /// Nested card inside a sheet (`#3A3A3C` player / `#FFFFFF` merchant).
+    /// Nested card inside a sheet (`#3A3A3C` player / `#F8F9FA` merchant).
     var sheetCard: Color {
         isDark
-            ? token("--cy-comp-sheet-player-card", dark: CYRGB(hex: 0x3A3A3C), light: CYRGB(hex: 0xFFFFFF))
-            : token("--cy-comp-sheet-role-elevated", dark: CYRGB(hex: 0x3A3A3C), light: CYRGB(hex: 0xFFFFFF))
+            ? token("--cy-comp-sheet-player-card", dark: CYRGB(hex: 0x3A3A3C), light: CYRGB(hex: 0xF8F9FA))
+            : CYRGB(hex: 0xF8F9FA).swiftUIColor
     }
     /// Centered modal panel (`--cy-comp-modal-panel`: `#4D4D4D` / `#FFFFFF`).
     var modalPanel: Color { token("--cy-comp-modal-panel", dark: CYRGB(hex: 0x4D4D4D), light: CYRGB(hex: 0xFFFFFF)) }
+    /// Sheet drag grabber (`--cy-color-sheet-handle`): `#8E8E93` / `#DBDBDB`.
+    var sheetHandle: Color { token("--cy-color-sheet-handle", dark: CYRGB(hex: 0x8E8E93), light: CYRGB(hex: 0xDBDBDB)) }
+    /// Field idle background (`--cy-comp-field-idle-bg`): `#1C1C1E` / `#FFFFFF`.
+    var inputIdleBg: Color { token("--cy-comp-field-idle-bg", dark: CYRGB(hex: 0x1C1C1E), light: CYRGB(hex: 0xFFFFFF)) }
+    /// Field filled background (`--cy-comp-field-filled-bg`): `#3B3B3D` / `#EFEFEF`.
+    var inputFilledBg: Color { token("--cy-comp-field-filled-bg", dark: CYRGB(hex: 0x3B3B3D), light: CYRGB(hex: 0xEFEFEF)) }
+    /// Field disabled background (`--cy-comp-field-disabled-bg`): `#141416` / `#F5F5F5`.
+    var inputDisabledBg: Color { token("--cy-comp-field-disabled-bg", dark: CYRGB(hex: 0x141416), light: CYRGB(hex: 0xF5F5F5)) }
+    /// Cover fallback fill when artwork is missing (`#30383D` dark / `bgRaised` light).
+    var coverFallback: Color { isDark ? CYRGB(hex: 0x30383D).swiftUIColor : bgRaised }
+    /// Foreground / muted / glass / CTA tokens on top of dark photo/hero scrims.
+    var onCoverFg: Color { token("--cy-comp-oncover-fg", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.96), light: CYRGB(hex: 0xFFFFFF, alpha: 0.96)) }
+    var onCoverFgDim: Color { token("--cy-comp-oncover-fg-dim", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.72), light: CYRGB(hex: 0xFFFFFF, alpha: 0.72)) }
+    var photoCardFg: Color { token("--cy-comp-photo-card-fg", dark: CYRGB(hex: 0xFFFFFF), light: CYRGB(hex: 0xFFFFFF)) }
+    var photoCardMuted: Color { token("--cy-comp-photo-card-muted", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.82), light: CYRGB(hex: 0xFFFFFF, alpha: 0.82)) }
+    var photoCardGlass: Color { token("--cy-comp-photo-card-glass", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0xFFFFFF, alpha: 0.14)) }
+    var photoCardAction: Color { token("--cy-comp-photo-card-action", dark: CYRGB(hex: 0x060606, alpha: 0.94), light: CYRGB(hex: 0x060606, alpha: 0.94)) }
 
     /// Card fill, `--cy-comp-card-bg`.
     var cardFill: Color { bgElevated }
@@ -77,8 +94,10 @@ struct CYDomainPalette {
     var borderStrong: Color { token("--cy-color-border-strong", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.16), light: CYRGB(hex: 0xDBDBDB)) }
     /// Dark cards rise with a 0.5pt top-edge highlight (`--cy-comp-card-highlight`); light cards use a shadow instead.
     var cardHighlight: Color { token("--cy-comp-card-highlight", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0x000000, alpha: 0)) }
-    /// Light-domain card shadow (`--cy-comp-card-shadow-day: 0 2rpx 8rpx rgba(15,23,43,.48)`); none in dark.
-    var cardShadowColor: Color { isDark ? .clear : CYRGB(hex: 0x0F172B, alpha: 0.48).swiftUIColor }
+    /// Neutral light-domain card shadow (`rgba(0,0,0,.05)` per unified shadow spec); clear in dark.
+    var cardShadowColor: Color { isDark ? .clear : CYRGB(hex: 0x000000, alpha: 0.05).swiftUIColor }
+    /// Elevated float shadow (toasts, floating controls, modals).
+    var floatShadowColor: Color { isDark ? CYRGB(hex: 0x000000, alpha: 0.28).swiftUIColor : CYRGB(hex: 0x000000, alpha: 0.10).swiftUIColor }
 
     // MARK: Text
 
@@ -246,22 +265,30 @@ struct CYDomainCardModifier: ViewModifier {
     var padding: CGFloat = 16               // --cy-comp-card-pad 32rpx
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let shadowRadius: CGFloat = colorScheme == .light ? 6 : 0
+        let shadowY: CGFloat = colorScheme == .light ? 2 : 0
         content
             .padding(padding)
-            .background(shape.fill(palette.cardFill).shadow(color: palette.cardShadowColor, radius: 2, x: 0, y: 1))
-            .overlay(
-                shape.strokeBorder(
-                    LinearGradient(
-                        colors: [palette.cardHighlight, .clear],
-                        startPoint: .top,
-                        endPoint: .center
-                    ),
-                    lineWidth: 0.5
-                )
+            .background(
+                shape.fill(palette.cardFill)
+                    .shadow(color: palette.cardShadowColor, radius: shadowRadius, x: 0, y: shadowY)
             )
+            .overlay {
+                if colorScheme == .dark {
+                    VStack(spacing: 0) {
+                        Rectangle()
+                            .fill(palette.cardHighlight)
+                            .frame(height: 0.5)
+                        Spacer(minLength: 0)
+                    }
+                    .clipShape(shape)
+                    .allowsHitTesting(false)
+                }
+            }
     }
 }
 
