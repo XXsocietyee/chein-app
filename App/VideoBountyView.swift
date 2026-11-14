@@ -71,11 +71,14 @@ struct VideoBountyState: Equatable {
     var submitError: String? = nil
     /// Bumps after a successful submit so the view can clear the form and switch tabs.
     var submitRevision = 0
+    /// Nil until the reader asks. Counts inside a ready value are already em dashes when unconfirmed.
+    var attribution: MPLoad<VideoBountyAttributionFact>? = nil
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.submissions == rhs.submissions && lhs.accruals == rhs.accruals && lhs.submitting == rhs.submitting
             && lhs.fieldError?.field == rhs.fieldError?.field && lhs.fieldError?.text == rhs.fieldError?.text
             && lhs.submitError == rhs.submitError && lhs.submitRevision == rhs.submitRevision
+            && lhs.attribution == rhs.attribution
     }
 }
 
@@ -86,6 +89,8 @@ struct VideoBountyState: Equatable {
     func submit(campaignKey: String, topicID: String, platform: VideoBountyPlatform?, sourceURL: String, originGroupKey: String)
     func appeal(submissionID: String, note: String)
     func cancel(submissionID: String)
+    func loadSubmissionAttribution(id: String)
+    func loadCampaignAttribution(campaignID: String, topicID: String)
 }
 
 @MainActor struct VideoBountyHost: View {
@@ -100,7 +105,9 @@ struct VideoBountyState: Equatable {
             onLoad: { binding.load() },
             onSubmit: { binding.submit(campaignKey: $0, topicID: $1, platform: $2, sourceURL: $3, originGroupKey: $4) },
             onAppeal: { binding.appeal(submissionID: $0, note: $1) },
-            onCancel: { binding.cancel(submissionID: $0) }
+            onCancel: { binding.cancel(submissionID: $0) },
+            onSubmissionAttribution: { binding.loadSubmissionAttribution(id: $0) },
+            onCampaignAttribution: { binding.loadCampaignAttribution(campaignID: $0, topicID: $1) }
         )
         .task { binding.load() }
     }
@@ -114,8 +121,12 @@ struct VideoBountyView: View {
     let onSubmit: (String, String, VideoBountyPlatform?, String, String) -> Void
     let onAppeal: (String, String) -> Void
     let onCancel: (String) -> Void
+    let onSubmissionAttribution: (String) -> Void
+    let onCampaignAttribution: (String, String) -> Void
 
     @State private var tab: VideoBountyTab = .submissions
+    @State private var attributionID: String?
+    @State private var campaignID = ""
     @State private var platform: VideoBountyPlatform?
     @State private var sourceURL = ""
     @State private var groupKey = ""
@@ -137,6 +148,7 @@ struct VideoBountyView: View {
                     }
                 }
                 .transition(.opacity)
+                if tab == .submissions { campaignAttribution }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.lg)
@@ -148,6 +160,9 @@ struct VideoBountyView: View {
         .navigationBarTitleDisplayMode(.large)
         .onChange(of: state.submitRevision) { _, _ in
             platform = nil; sourceURL = ""; groupKey = ""; tab = .submissions
+        }
+        .sheet(isPresented: Binding(get: { attributionID != nil }, set: { if !$0 { attributionID = nil } })) {
+            VideoBountyAttributionSheet(load: state.attribution, onRetry: { retryAttribution() }, onClose: { attributionID = nil })
         }
         .sheet(item: $appealTarget) { target in
             VideoBountyAppealSheet(onSubmit: { note in onAppeal(target.id, note); appealTarget = nil }, onClose: { appealTarget = nil })
@@ -188,6 +203,31 @@ struct VideoBountyView: View {
         }
     }
 
+    private func retryAttribution() {
+        if attributionID == "campaign" {
+            onCampaignAttribution(campaignID.trimmingCharacters(in: .whitespacesAndNewlines), campaign?.1 ?? "")
+        } else if let attributionID {
+            onSubmissionAttribution(attributionID)
+        }
+    }
+
+    private var campaignAttribution: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text("mp.vb.attribution.campaign").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+            TextField("mp.vb.attribution.campaignId", text: $campaignID)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .accessibilityIdentifier("videoBounty.attribution.campaignId")
+            Button("mp.vb.attribution") {
+                let topic = campaign?.1 ?? ""
+                onCampaignAttribution(campaignID.trimmingCharacters(in: .whitespacesAndNewlines), topic)
+                attributionID = "campaign"
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .accessibilityIdentifier("videoBounty.attribution.campaign")
+        }
+    }
+
     // MARK: Submissions
 
     @ViewBuilder private var submissions: some View {
@@ -213,6 +253,12 @@ struct VideoBountyView: View {
             }
             if let end = row.windowEndText { Text("mp.vb.windowEnd \(end)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             if let note = row.reviewNote, !note.isEmpty { Text(verbatim: note).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            Button("mp.vb.attribution") {
+                attributionID = row.id
+                onSubmissionAttribution(row.id)
+            }
+            .font(CYTypography.label).frame(minHeight: CYSpacing.minTouchTarget)
+            .accessibilityIdentifier("videoBounty.attribution.\(row.id)")
             if row.canAppeal || row.canCancel {
                 HStack(spacing: CYSpacing.lg) {
                     if row.canAppeal {
@@ -251,6 +297,68 @@ struct VideoBountyView: View {
                 }
             }
         }
+    }
+}
+
+private struct VideoBountyAttributionSheet: View {
+    let load: MPLoad<VideoBountyAttributionFact>?
+    let onRetry: () -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let load {
+                    MPLoadSwitch(load: load, errorTitle: "mp.vb.attribution.error", identifier: "videoBounty.attribution", onRetry: onRetry) { fact in
+                        attributionBody(fact)
+                    }
+                } else {
+                    CYEmptyState(systemImage: "chart.bar", "mp.vb.attribution.empty", messageIdentifier: "videoBounty.attribution.empty")
+                }
+            }
+            .padding(CYSpacing.pageHorizontal)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background { MPNightGround() }
+            .navigationTitle(Text("mp.vb.attribution"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func attributionBody(_ fact: VideoBountyAttributionFact) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            switch fact.status {
+            case "UNBOUND":
+                Text("mp.vb.attribution.unbound")
+            case "OWNER_NOT_SET":
+                Text("mp.vb.attribution.ownerMissing")
+            case "UNKNOWN":
+                Text(verbatim: "UNKNOWN")
+            default:
+                Text(verbatim: fact.status)
+            }
+            .font(CYTypography.bodyMedium)
+            .accessibilityIdentifier("videoBounty.attribution.status")
+            count("mp.vb.attribution.orders", fact.attributedOrders, "attributed")
+            count("mp.vb.attribution.paid", fact.paidOrders, "paidOrders")
+            count("mp.vb.attribution.amount", fact.paidAmount, "paidAmount")
+            count("mp.vb.attribution.refunded", fact.refundedOrders, "refundedOrders")
+            count("mp.vb.attribution.refundAmount", fact.refundedAmount, "refundedAmount")
+            Text("mp.vb.attribution.currencyNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: fact.amountCurrency).font(CYTypography.meta).accessibilityIdentifier("videoBounty.attribution.currency")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func count(_ title: LocalizedStringKey, _ value: String, _ id: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(verbatim: value).accessibilityIdentifier("videoBounty.attribution." + id)
+        }
+        .font(CYTypography.body)
+        .frame(minHeight: CYSpacing.minTouchTarget)
     }
 }
 

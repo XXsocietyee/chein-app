@@ -61,6 +61,39 @@ public struct VideoBountySubmissionFact: Equatable, Sendable {
     public let canCancel: Bool
 }
 
+/// Attribution read. `showsCounts` is true only for a confirmed `BOUND` row.
+/// Every other status, including `UNKNOWN`, keeps counts as an em dash.
+public struct VideoBountyAttributionFact: Equatable, Sendable {
+    public static let unknownMark = "—"
+    public static let unknown = VideoBountyAttributionFact(
+        status: "UNKNOWN", confirmed: false, showsCounts: false,
+        attributedOrders: unknownMark, paidOrders: unknownMark, paidAmount: unknownMark,
+        refundedOrders: unknownMark, refundedAmount: unknownMark, amountCurrency: unknownMark)
+
+    public let status: String
+    public let confirmed: Bool
+    public let showsCounts: Bool
+    public let attributedOrders: String
+    public let paidOrders: String
+    public let paidAmount: String
+    public let refundedOrders: String
+    public let refundedAmount: String
+    public let amountCurrency: String
+
+    public init(status: String, confirmed: Bool, showsCounts: Bool, attributedOrders: String, paidOrders: String,
+                paidAmount: String, refundedOrders: String, refundedAmount: String, amountCurrency: String) {
+        self.status = status
+        self.confirmed = confirmed
+        self.showsCounts = showsCounts
+        self.attributedOrders = attributedOrders
+        self.paidOrders = paidOrders
+        self.paidAmount = paidAmount
+        self.refundedOrders = refundedOrders
+        self.refundedAmount = refundedAmount
+        self.amountCurrency = amountCurrency
+    }
+}
+
 /// Accrual display. `amountText` nil means the amount was missing. This is not a balance.
 public struct VideoBountyAccrualFact: Equatable, Sendable {
     public let id: String
@@ -71,7 +104,8 @@ public struct VideoBountyAccrualFact: Equatable, Sendable {
 
 /// Port of `subpackageA/pages/video-bounty` plus `GET /api/video-bounty/campaign/list`.
 /// Submit, appeal, and cancel keep one request id. An unconfirmed answer is re-posted as a receipt read.
-/// Payout, withdraw, redeem, wallet, and attribution are not methods on this type.
+/// Payout, withdraw, redeem, and wallet are not methods on this type.
+/// Attribution reads return counts only. A missing count is an em dash, never 0.
 public struct VideoBountySource {
     /// hengyin `ApiVideoBountyController` at the stub-ledger mini-program revision.
     public static let sourceRevision = "7fe779ceb"
@@ -82,10 +116,12 @@ public struct VideoBountySource {
         "/api/video-bounty/campaign/list",
         "/api/video-bounty/submission",
         "/api/video-bounty/submission/{}/appeal",
-        "/api/video-bounty/submission/{}/cancel"
+        "/api/video-bounty/submission/{}/cancel",
+        "/api/video-bounty/submission/{}/attribution",
+        "/api/video-bounty/campaign/{}/attribution"
     ]
 
-    private static let blocked = ["payout", "withdraw", "redeem", "wallet", "attribution"]
+    private static let blocked = ["payout", "withdraw", "redeem", "wallet"]
 
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
@@ -117,6 +153,18 @@ public struct VideoBountySource {
     /// Open campaigns only. An empty list stays empty. This does not create a campaign.
     public func campaigns(token: String) async throws -> VideoBountyEnvelope {
         try await get("/api/video-bounty/campaign/list", token: token)
+    }
+
+    /// Author-only read. Null counts stay an em dash. This does not pay or withdraw.
+    public func submissionAttribution(submissionID: String, token: String) async throws -> VideoBountyEnvelope {
+        try await get(try Self.actionPath(submissionID, action: "attribution"), token: token)
+    }
+
+    /// Campaign owner read. `topicId` is required and is not a sharer or a price.
+    public func campaignAttribution(campaignID: String, topicID: String, token: String) async throws -> VideoBountyEnvelope {
+        guard Self.isID(campaignID), Self.isID(topicID) else { throw VideoBountyRefusal.invalidRequest }
+        let item = URLQueryItem(name: "topicId", value: topicID)
+        return try await get("/api/video-bounty/campaign/" + campaignID + "/attribution", query: [item], token: token)
     }
 
     // MARK: Writes
@@ -180,6 +228,36 @@ public struct VideoBountySource {
     }
 
     /// Nil when `data` is not an array. A row without a string `campaignKey` is skipped.
+    /// Counts render only for `BOUND` with `confirmed == true`. Anything else, including a literal 0
+    /// on an unconfirmed read, is an em dash. A missing status is `UNKNOWN`.
+    public static func attribution(in envelope: VideoBountyEnvelope) -> VideoBountyAttributionFact? {
+        guard envelope.ok else { return nil }
+        guard let data = envelope.dataJSON else { return .unknown }
+        guard let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }
+        return attributionFact(object)
+    }
+
+    static func attributionFact(_ object: [String: Any]) -> VideoBountyAttributionFact {
+        let raw = (object["status"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let status = raw.isEmpty ? "UNKNOWN" : raw
+        let confirmed = object["confirmed"] as? Bool ?? false
+        let shows = status == "BOUND" && confirmed
+        let mark = VideoBountyAttributionFact.unknownMark
+        func count(_ key: String) -> String {
+            guard shows, let value = whole(object[key]) else { return mark }
+            return String(value)
+        }
+        func money(_ key: String) -> String {
+            guard shows, let decimal = decimal(object[key]), let digits = fixedTwo(decimal) else { return mark }
+            return digits
+        }
+        let currency = shows ? (nonEmpty(object["amountCurrency"] as? String) ?? mark) : mark
+        return VideoBountyAttributionFact(
+            status: status, confirmed: confirmed, showsCounts: shows,
+            attributedOrders: count("attributedOrders"), paidOrders: count("paidOrders"), paidAmount: money("paidAmount"),
+            refundedOrders: count("refundedOrders"), refundedAmount: money("refundedAmount"), amountCurrency: currency)
+    }
+
     public static func campaigns(in envelope: VideoBountyEnvelope) -> [VideoBountyCampaign]? {
         guard let rows = array(envelope.dataJSON) else { return nil }
         return rows.compactMap(campaign)
@@ -195,9 +273,9 @@ public struct VideoBountySource {
 
     // MARK: Private send
 
-    private func get(_ path: String, token: String) async throws -> VideoBountyEnvelope {
+    private func get(_ path: String, query: [URLQueryItem] = [], token: String) async throws -> VideoBountyEnvelope {
         guard AuthRequestBuilder.isValidToken(token) else { throw VideoBountyRefusal.invalidRequest }
-        let request = try make(method: "GET", path: path, token: token, body: nil)
+        let request = try make(method: "GET", path: path, query: query, token: token, body: nil)
         try admit(request)
         return await perform(request, receiptReread: false)
     }
@@ -258,9 +336,15 @@ public struct VideoBountySource {
         }
     }
 
-    private func make(method: String, path: String, token: String, body: Data?) throws -> URLRequest {
-        let url = path.split(separator: "/").reduce(configuration.baseURL) { partial, part in
+    private func make(method: String, path: String, query: [URLQueryItem] = [], token: String, body: Data?) throws -> URLRequest {
+        var url = path.split(separator: "/").reduce(configuration.baseURL) { partial, part in
             partial.appendingPathComponent(String(part))
+        }
+        if !query.isEmpty {
+            guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw VideoBountyRefusal.invalidRequest }
+            components.queryItems = query
+            guard let built = components.url else { throw VideoBountyRefusal.invalidRequest }
+            url = built
         }
         var request = URLRequest(url: url)
         request.httpMethod = method

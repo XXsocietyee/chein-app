@@ -5,8 +5,31 @@ import SwiftUI
 /// earnings in the mini-program). Each row needs its binding; with none injected the whole section is absent.
 @MainActor struct MPParityAccountLinks: View {
     @Environment(\.mpParity) private var bindings
+    @EnvironmentObject private var session: AppSession
+    @State private var showsRedeem = false
 
     var body: some View {
+        Section {
+            NavigationLink { HostTipConfigScreen(session: session) } label: {
+                CYListRow("hostTip.entry.config", trailing: .none) { CYRowIcon(systemImage: "heart") }
+            }
+            .accessibilityIdentifier("account.hostTip.config")
+            NavigationLink { HostTipPlayerScreen(session: session) } label: {
+                CYListRow("hostTip.entry.player", trailing: .none) { CYRowIcon(systemImage: "heart.text.square") }
+            }
+            .accessibilityIdentifier("account.hostTip.player")
+            Button { showsRedeem = true } label: {
+                CYListRow("channelRedeem.entry", trailing: .none) { CYRowIcon(systemImage: "ticket") }
+            }
+            .accessibilityIdentifier("account.channelRedeem")
+            NavigationLink { ContentLandingScreen(session: session) } label: {
+                CYListRow("contentLanding.entry", trailing: .none) { CYRowIcon(systemImage: "doc.text") }
+            }
+            .accessibilityIdentifier("account.contentLanding")
+        } header: {
+            Text("hostTip.section")
+        }
+        .sheet(isPresented: $showsRedeem) { ChannelRedeemSheet(session: session) }
         // 通行证与礼品 lives under 资产 (`MPPassAssetsLink`), as in the mini-program profile.
         if bindings.journeyPromo != nil || bindings.videoBounty != nil {
             Section {

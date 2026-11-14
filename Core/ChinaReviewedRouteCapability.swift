@@ -51,6 +51,7 @@ public enum ChinaReviewedRouteCapability {
         if socialRoamOwnerGrant.contains(key) { return true }
         if playRuntimeOwnerGrant.contains(key) { return true }
         if videoBountyOwnerGrant.contains(key) { return true }
+        if hostTipSurfaceGrant.contains(key) { return true }
         if playerParityBOwnerGrant.contains(key) { return true }
         if playerGapOwnerGrant.contains(key) { return true }
         if creatorStudioOwnerGrant.contains(key) { return true }
@@ -279,7 +280,8 @@ public enum ChinaReviewedRouteCapability {
     ]
 
     /// Handover 14, stub-ledger row 24. Author video-bounty reads and the three non-money writes.
-    /// Accrual amounts stay display-only. Payout, withdraw, redeem, wallet, and attribution stay out.
+    /// Accrual amounts stay display-only. Payout, withdraw, redeem, and wallet stay out.
+    /// Attribution reads are `hostTipSurfaceGrant` (WP-08). They are not payout.
     private static let videoBountyOwnerGrant: Set<String> = [
         "/api/video-bounty/submission/mine",
         "/api/video-bounty/accrual/mine",
@@ -287,6 +289,24 @@ public enum ChinaReviewedRouteCapability {
         "/api/video-bounty/submission",
         "/api/video-bounty/submission/{}/appeal",
         "/api/video-bounty/submission/{}/cancel"
+    ]
+
+    /// HANDOVER 37, WP-08. Host tip config and unpaid intents, video-bounty attribution reads,
+    /// the OTA channel-code redeem call, and author landing reads and writes.
+    /// Payment and payout stay on `ReviewedAreaSwitch` / `ReleaseMoneyWriteSwitch` and are not in this set.
+    /// `/api/host-tip/prepare` records an intent. A 501 `CHANNEL_NOT_ENABLED` is not a payment.
+    public static let hostTipSurfaceGrant: Set<String> = [
+        "/api/host-tip/config",
+        "/api/host-tip/config/mine",
+        "/api/host-tip/prepare",
+        "/api/host-tip/intent/mine",
+        "/api/host-tip/intent/{}/cancel",
+        "/api/video-bounty/submission/{}/attribution",
+        "/api/video-bounty/campaign/{}/attribution",
+        "/api/channel/redeem",
+        "/api/content-landing/info",
+        "/api/content-landing/save",
+        "/api/content-landing/translation/save"
     ]
 
     /// Capability gap G6 (owner approval). Roam/topic NPC reads, the two non-money V2 AI draft writes and their
