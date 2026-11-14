@@ -153,6 +153,30 @@ extension View {
     func cyTabBarAccessibilityIdentifiers(_ identifiers: [String]) -> some View {
         modifier(CYTabBarAccessibilityModifier(identifiers: identifiers))
     }
+
+    /// Hide both the system tab bar and the floating player pill overlay on pushed routes.
+    func cyHideTabBar(_ hidden: Bool = true) -> some View {
+        modifier(CYHideTabBarModifier(hidden: hidden))
+    }
+}
+
+private struct CYHideTabBarModifier: ViewModifier {
+    let hidden: Bool
+    @Environment(\.cyTabBarVisibility) private var visibility
+    @State private var token = UUID()
+
+    func body(content: Content) -> some View {
+        content
+            .toolbar(hidden ? .hidden : .visible, for: .tabBar)
+            .preference(key: CYTabBarHiddenPreferenceKey.self, value: hidden)
+            .environment(\.cyTabBarHidden, hidden)
+            .onAppear {
+                if hidden { visibility?.hide(token) } else { visibility?.show(token) }
+            }
+            .onDisappear {
+                if hidden { visibility?.show(token) }
+            }
+    }
 }
 
 /// Custom-rendered root tab bar bar/strip faithful to spec (`top-fade`, unselected 0.6, selected `#7A5CFF` icon)

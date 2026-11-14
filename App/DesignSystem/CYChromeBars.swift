@@ -129,56 +129,29 @@ public struct CYFooterAction {
     }
 }
 
-/// Pinned bottom footer bar (`bgPage`, `12 × 16pt` padding, 0.5pt top divider, pill CTAs).
-public struct CYFooterBar: View {
-    private let primary: CYFooterAction
-    private let secondary: CYFooterAction?
-    private let ignoresBottomSafeArea: Bool
+/// Action button row used by `CYFooterBar(primary:secondary:)`.
+struct CYFooterActionButtons: View {
+    let primary: CYFooterAction
+    let secondary: CYFooterAction?
 
-    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
 
-    public init(
-        primary: CYFooterAction,
-        secondary: CYFooterAction? = nil,
-        ignoresBottomSafeArea: Bool = false
-    ) {
-        self.primary = primary
-        self.secondary = secondary
-        self.ignoresBottomSafeArea = ignoresBottomSafeArea
-    }
-
-    public var body: some View {
-        VStack(spacing: 0) {
-            Rectangle()
-                .fill(palette.borderSubtle)
-                .frame(height: 0.5)
-
-            Group {
-                if let secondary {
-                    if typeSize.isAccessibilitySize {
-                        VStack(spacing: CYSpacing.md) {
-                            primaryButton(primary)
-                            secondaryButton(secondary)
-                        }
-                    } else {
-                        CYFooterDualRatioLayout(gap: CYSpacing.md) {
-                            secondaryButton(secondary)
-                            primaryButton(primary)
-                        }
+    var body: some View {
+        Group {
+            if let secondary {
+                if typeSize.isAccessibilitySize {
+                    VStack(spacing: CYSpacing.md) {
+                        primaryButton(primary)
+                        secondaryButton(secondary)
                     }
                 } else {
-                    primaryButton(primary)
+                    CYFooterDualRatioLayout(gap: CYSpacing.md) {
+                        secondaryButton(secondary)
+                        primaryButton(primary)
+                    }
                 }
-            }
-            .padding(.horizontal, CYSpacing.lg)
-            .padding(.vertical, CYSpacing.md)
-        }
-        .background {
-            if ignoresBottomSafeArea {
-                palette.bgPage.ignoresSafeArea(edges: .bottom)
             } else {
-                palette.bgPage
+                primaryButton(primary)
             }
         }
     }
@@ -197,6 +170,20 @@ public struct CYFooterBar: View {
         }
         .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .md, isLoading: spec.isLoading, isPill: true))
         .disabled(spec.isDisabled || spec.isLoading)
+    }
+}
+
+extension CYFooterBar where Actions == CYFooterActionButtons {
+    /// Pinned bottom footer bar (`bgPage`, `12 × 16pt` padding, 0.5pt top divider, pill CTAs).
+    init(
+        primary: CYFooterAction,
+        secondary: CYFooterAction? = nil,
+        ignoresBottomSafeArea: Bool = false
+    ) {
+        _ = ignoresBottomSafeArea
+        self.init(showsDivider: true) {
+            CYFooterActionButtons(primary: primary, secondary: secondary)
+        }
     }
 }
 
