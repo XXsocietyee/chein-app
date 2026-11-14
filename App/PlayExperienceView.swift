@@ -59,6 +59,10 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
     @Environment(\.externalGameSession) private var externalGameSession
+    private func chapterTitle(_ name: String?) -> String {
+        let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? "—" : trimmed
+    }
     private func journeyRunScope(_ topicID: Int?, _ topicName: String?) -> JourneyRunScope {
         var scope = JourneyRunScope(topicID: topicID.map(String.init), topicName: topicName)
         if case .activity(let id) = model.scope { scope.activityID = String(id) }
@@ -315,7 +319,7 @@ import SwiftUI
                     HStack {
                         Text("playx.nodes")
                         if let chapterFilter, let chapter = model.snapshot?.result.chapters.first(where: { $0.id == chapterFilter }) {
-                            Text(verbatim: "· " + (chapter.name ?? "")).lineLimit(1)
+                            Text(verbatim: "· " + chapterTitle(chapter.name)).lineLimit(1)
                             Spacer()
                             Button("mpd.chapters.all") { withAnimation(CYMotion.standard) { self.chapterFilter = nil } }
                                 .font(CYTypography.meta).textCase(nil)

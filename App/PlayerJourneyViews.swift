@@ -329,9 +329,14 @@ private struct ParticipationCoverPlaceholder: View {
                         VStack(alignment: .leading, spacing: 8) {
                             if let name = row.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.untitled") }
                             if let total = row.total, total > 0 {
-                                if row.completed == true || (row.doneCount ?? 0) >= total { Label("playerJourney.finished", systemImage: "checkmark.circle") }
-                                else if row.doneCount == 0 { Text("playerJourney.notStarted") }
-                                if let done = row.doneCount { Text(verbatim: "\(done) / \(total)").monospacedDigit() }
+                                let done = row.doneCount
+                                if row.completed == true || (done.map { $0 >= total } ?? false) { Label("playerJourney.finished", systemImage: "checkmark.circle") }
+                                else if done == 0 { Text("playerJourney.notStarted") }
+                                Text(verbatim: "\(done.map(String.init) ?? "—") / \(total)").monospacedDigit()
+                            } else if row.total == nil {
+                                Text(verbatim: "—").monospacedDigit().accessibilityIdentifier("playerJourney.completed.unknown")
+                            } else {
+                                Text(verbatim: "0").monospacedDigit()
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
                     }.buttonStyle(.plain).disabled(row.destination == nil)

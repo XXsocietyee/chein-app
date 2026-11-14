@@ -94,12 +94,10 @@ import SwiftUI
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 if let name = profile.nickname { Text(verbatim: name).font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
                                 else { Text("square.unknownAuthor").font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
-                                if let level = profile.level {
-                                    HStack(spacing: 6) {
-                                        Text(verbatim: "Lv.\(level)")
-                                        Text("member.card.levelTitle", tableName: "MemberProfile")
-                                    }.font(CYTypography.bodyCompact.monospacedDigit()).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
-                                }
+                                HStack(spacing: 6) {
+                                    Text(verbatim: profile.level.map { "Lv.\($0)" } ?? "—")
+                                    Text("member.card.levelTitle", tableName: "MemberProfile")
+                                }.font(CYTypography.bodyCompact.monospacedDigit()).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
                             }
                         }
                         if profile.id == memberID, reader.identity.accountID == memberID {

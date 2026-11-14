@@ -67,7 +67,10 @@ struct MemberReportProgressTimeView: View {
                         .accessibilityIdentifier("report.progress.end")
                 }
                 if flow.busy { CYSkeleton() }
-                if let failure = flow.failure { memberReportProgressText("report.error.\(failure)").accessibilityIdentifier("report.progress.error") }
+                if let failure = flow.failure {
+                    let message = LocalizedStringKey("report.error." + String(describing: failure))
+                    CYEmptyState(systemImage: "exclamationmark.triangle", message, tableName: "MemberReportProgress", messageIdentifier: "report.progress.error", actionTitle: "report.refresh", action: { load(rendered) })
+                }
             } else { memberReportProgressText("report.error.disabled") }
             CYPillButton("report.refresh", style: .secondary, tableName: "MemberReportProgress") { load(rendered) }
                 .listRowBackground(Color.clear).disabled(rendered == nil || flow?.busy == true)

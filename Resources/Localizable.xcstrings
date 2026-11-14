@@ -122251,6 +122251,40 @@
         }
       }
     },
+    "nearby.w208.mine.membersUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "— joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已组 — 人"
+          }
+        }
+      }
+    },
+    "nearby.w208.mine.membersUnknown %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—/%lld joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已组 —/%lld"
+          }
+        }
+      }
+    },
     "nearby.w208.mine.start %@": {
       "extractionState": "manual",
       "localizations": {
