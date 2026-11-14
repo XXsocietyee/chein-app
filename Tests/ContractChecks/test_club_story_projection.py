@@ -19,7 +19,8 @@ class ClubStoryProjectionContracts(unittest.TestCase):
         self.assertIn('case .topicOverview: return "api/topic/info-to-user"', CONTRACT)
         self.assertIn('case .topicOverview: fields = ["id": .string(String(scope.topicID ?? 0))]', CONTRACT)
         self.assertIn('case .topicSettings, .recruit, .nodeAnswer: return "club:content:manage"', CONTRACT)
-        self.assertIn('form: operation == .topicOverview', SERVICE)
+        self.assertIn('public var usesForm: Bool { self == .topicOverview }', CONTRACT)
+        self.assertIn('form: operation.usesForm', SERVICE)
 
     def test_projection_uses_only_verified_p057_fields(self):
         for field in ["chaptersList", "nodes", "cmsMemberTemplate", "name", "description", "totalTime", "businessTime",

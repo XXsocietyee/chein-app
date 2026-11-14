@@ -96,7 +96,7 @@ class ClubEditPageReadyContract(unittest.TestCase):
             self.assertIn("func " + name + "(", self.tests)
         self.assertIn('"/api/club/update-mine": .liveInProduction', self.routes)
         self.assertIn('"/api/club/dissolve": .liveInProduction', self.routes)
-        self.assertIn('"/api/club/update": .missing', self.routes)
+        self.assertIn('.init(missing: "/api/club/update", production: "/api/club/update-mine")', self.routes)
 
     def test_views_project_and_manifest_were_not_the_edit_surface(self):
         # Naming the mini-program page in a comment is not a new route.

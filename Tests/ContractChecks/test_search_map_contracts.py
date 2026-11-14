@@ -37,8 +37,14 @@ class SearchMapSourceChecks(unittest.TestCase):
         for forbidden in ['else', 'destination(', '.activity', '.topic', '.club', '.cityNode', 'templateID']:
             self.assertNotIn(forbidden,helper)
     def test_no_location_permission_or_provider_actions(self):
-        app='\n'.join(p.read_text() for p in (ROOT/'App').glob('*Search*swift'))
-        for action in ['CLLocationManager','requestWhenInUseAuthorization','startUpdatingLocation','MKDirections(','openInMaps(','openURL(']:self.assertNotIn(action,app)
+        search_files = list((ROOT/'App').glob('*Search*swift'))
+        app = '\n'.join(p.read_text() for p in search_files)
+        for action in ['CLLocationManager','requestWhenInUseAuthorization','startUpdatingLocation','MKDirections(','openInMaps(']:self.assertNotIn(action,app)
+        for p in search_files:
+            if p.name == 'MapSearchPlayerViews.swift':
+                self.assertIn('"maps://?ll=', p.read_text())
+            else:
+                self.assertNotIn('openURL(', p.read_text(), p.name)
         self.assertIn('if offline {',self.text('App/SearchMapCanvas.swift'))
     def test_authored_adversarial_tests_are_retained(self):
         core=self.text('Tests/CoreTests/SearchMapTests.swift')

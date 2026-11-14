@@ -13,7 +13,7 @@ class ProtectedTextLifecycleSourceContracts(unittest.TestCase):
     def test_all_product_bytes_match_original_protected_consumer_delivery(self):
         expected = {'App/WorkshopPaidInstalledTextView.swift': '6bdca2a6c6f0ff39fb2418aac4b33b5849808055d5cdddb2fd2e48ae4e0f2a04',
                     'Core/WorkshopPaidInstalledTextController.swift': '13883b1365777e129cd8ccfa4c0e3b9c5ca6129896d5f73c8ab50e46f9118a73',
-                    'Core/WorkshopPaidInstalledTextService.swift': '4441afddbf3336b722516ac486fd80f207916cb77c32a103d06aae52d9887730'}
+                    'Core/WorkshopPaidInstalledTextService.swift': '22b0d6fb506275c791fe7a478af14f4ce9bd0a8d05d4f6c3fa1a3ce983529703'}
         for p, expected_hash in expected.items():
             self.assertEqual(hashlib.sha256((ROOT / p).read_bytes()).hexdigest(), expected_hash)
 

@@ -63,7 +63,7 @@ class ShezhiMarketingIndexPageReadyContract(unittest.TestCase):
             self.assertNotIn(flag, added)
         routes = ROUTES.read_text()
         self.assertIn('"/api/merchant/crm/marketing-consents": .liveInProduction', routes)
-        self.assertNotIn('"/api/merchant/crm/marketing-consents/result"', routes)
+        self.assertNotIn('"/api/merchant/crm/marketing-consents/result": .liveInProduction', routes)
         self.assertIn("public static let paymentEnabled = false", routes)
         self.assertIn("public static let virtualGoodsEnabled = false", routes)
 

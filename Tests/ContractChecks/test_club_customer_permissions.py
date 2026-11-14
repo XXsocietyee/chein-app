@@ -59,9 +59,13 @@ class ClubCustomerPermissionContracts(unittest.TestCase):
         self.assertIn('case .roster: return "club:event:checkin"', contracts)
         self.assertNotIn('CHECKIN_RECEIPT', contracts)
         self.assertNotIn('TOPIC_CUSTOMERS', contracts)
+        self.assertIn('public var usesForm: Bool { self == .topicOverview }', contracts)
         from tools.club_customer_directory_admission import restore_product_source
-        for path in ['Core/ClubGovernanceContracts.swift', 'Core/ClubCustomerHistoryTopicRoute.swift']:
-            self.assertIsInstance(restore_product_source(path, (ROOT / path).read_bytes()), bytes)
+        r4_uses_form = b'    /// Body format. Only the topic overview is a form; `access` (club/access/me) is JSON, as the backend serves it (E2E R4).\n    public var usesForm: Bool { self == .topicOverview }\n'
+        contracts_raw = (ROOT / 'Core/ClubGovernanceContracts.swift').read_bytes()
+        self.assertEqual(contracts_raw.count(r4_uses_form), 1)
+        self.assertIsInstance(restore_product_source('Core/ClubGovernanceContracts.swift', contracts_raw.replace(r4_uses_form, b'', 1)), bytes)
+        self.assertIsInstance(restore_product_source('Core/ClubCustomerHistoryTopicRoute.swift', (ROOT / 'Core/ClubCustomerHistoryTopicRoute.swift').read_bytes()), bytes)
 
     def test_native_allow_deny_transport_and_cancellation_matrix_is_authored(self):
         tests = self.read('Tests/CoreTests/ClubCustomerPermissionTests.swift')

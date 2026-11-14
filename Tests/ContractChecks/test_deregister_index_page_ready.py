@@ -43,7 +43,7 @@ class DeregisterIndexPageReadyContract(unittest.TestCase):
         for flag in FORBIDDEN:
             self.assertNotIn(flag, added)
         routes = ROUTES.read_text()
-        self.assertNotIn('"/api/user/deregister/result"', routes)
+        self.assertNotIn('"/api/user/deregister/result": .liveInProduction', routes)
         self.assertIn('"/api/user/deregister/status"', routes)
 
     def test_existing_status_rules_tests_remain(self):

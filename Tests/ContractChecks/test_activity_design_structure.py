@@ -38,7 +38,9 @@ class ActivityDesignStructureTests(unittest.TestCase):
         # A registered or cancelled activity never reopens the registration sheet.
         self.assertIn("if action != .cancelled, walletAvailable { showsTicketWallet = true }", source)
         self.assertIn("if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }", source)
-        self.assertIn("creationPolicy:session.registrationCreationPolicy(activityID:activity.summary.id)", app("SessionRegistrationSheet.swift"))
+        sheet = app("SessionRegistrationSheet.swift")
+        self.assertIn("creationPolicy:Self.freeWhenUnapproved(session.registrationCreationPolicy(activityID:activity.summary.id))", sheet)
+        self.assertIn("if case .disabled = issued { return .free }", sheet)
         self.assertIn("registrationApproval: RegistrationProductionApproval? = nil", app("AppSession.swift"))
         self.assertIn('registrationStorefront: @escaping () -> String? = { nil }', app("AppSession.swift"))
         # The primary action must not be attached to an error/loading/club-gate root.

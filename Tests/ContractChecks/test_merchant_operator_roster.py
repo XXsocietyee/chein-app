@@ -43,7 +43,7 @@ class MerchantOperatorRosterContracts(unittest.TestCase):
         source = self.read('App/MerchantBusinessViews.swift')
         self.assertIn('if let snapshot = state.snapshot, state.isCurrent {', source)
         self.assertIn('if query != .operators, snapshot.document.sections.allSatisfy', source)
-        self.assertIn('if query == .operators {\n                    if let roster = try? MerchantOperatorRoster(document: snapshot.document)', source)
+        self.assertIn('if query == .operators {\n                    MerchantOpsWp03Panel(page: .team)\n                    if let roster = try? MerchantOperatorRoster(document: snapshot.document)', source)
         self.assertIn('MerchantOperatorRosterSections(roster: roster, access: snapshot.access,\n                            detailsExpanded: Binding(get: { teamAccessDetailsExpanded }, set: { expanded in\n                                guard scenePhase == .active, state.isCurrent, !state.isBusy, state.failureKey == nil,\n                                      query == .operators, state.snapshot == snapshot,\n                                      reader.scope == renderedTeamScope, reader.authorizationGeneration == renderedTeamAuthorization else { return }\n                                teamAccessDetailsExpanded = expanded\n                            })) { row in\n                            rowView(row, access: snapshot.access)', source)
         self.assertIn('else { Text("merchant.operatorRoster.unavailable")', source)
         self.assertIn('if access.canManageOperators {', source)

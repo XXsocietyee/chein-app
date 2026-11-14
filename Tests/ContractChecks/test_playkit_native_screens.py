@@ -89,13 +89,15 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
         self.assertEqual(set(catalog),set(docs))
         catalog.update(json.loads(self.read('Resources/PlayKitPricePairLocalizations.fragment.json'))['strings'])
         catalog.update(json.loads(self.read('Resources/PlayKitAuthoringLegacyLocalizations.fragment.json'))['strings'])
+        main_catalog = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         for path in (ROOT/'App').glob('PlayKit*.swift'):
             code=path.read_text()
             keys=re.findall(r'(?:Text|Button|Label|Section|LabeledContent|TextField|ProgressView|navigationTitle)\("(playkit\.[A-Za-z0-9_.-]+)"',code)
             for key in keys:
-                self.assertIn(key,catalog,(path.name,key))
+                entry = catalog.get(key) or main_catalog.get(key)
+                self.assertIsNotNone(entry,(path.name,key))
                 for language in ['en','zh-Hans']:
-                    self.assertTrue(catalog[key]['localizations'][language]['stringUnit']['value'])
+                    self.assertTrue(entry['localizations'][language]['stringUnit']['value'])
     def test_estimate_uses_public_bounded_wheel_and_existing_review(self):
         core = self.read('Core/PlayKitScreenContracts.swift')
         wheel = core.split('public struct PlayKitEstimateWheel:', 1)[1].split('/// The board', 1)[0]

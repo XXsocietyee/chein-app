@@ -61,7 +61,7 @@ class CreatorRootAuthoringChecks(unittest.TestCase):
         self.assertIn('TemplateRootRehearsalView(draft: draft.advanced)',review)
         self.assertIn('TemplateD20RehearsalView(draft: draft.advanced)',review)
     def test_root_serialization_preserves_root_only_configuration(self):
-        self.assertIn('|| hasRootAuthoringConfiguration else',self.draft)
+        self.assertIn('|| hasRootAuthoringConfiguration || hintLadderOn else',self.draft)
         self.assertIn('normalized.normalizeRootAuthoring()',self.draft)
         self.assertIn('rootCreatorIssues.map',self.draft)
     def test_no_raw_json_editor_or_live_calls(self):

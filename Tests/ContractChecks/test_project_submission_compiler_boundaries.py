@@ -41,7 +41,7 @@ class ProjectSubmissionCompilerBoundaries(unittest.TestCase):
     def test_result_preserves_render_and_navigation_guards(self):
         _, _, result = self.parts()
         for token in ['if model.submissionIsCurrent(receipt, incarnation: submissionIncarnation) {',
-                      'PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured)',
+                      'PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured,\n                                            statusLoader: statusLoader(receipt))',
                       'guard model.submissionIsCurrent(receipt, incarnation: submissionIncarnation), submission?.id == receipt.id else { return }',
                       # Navigation now carries a destination bound to the current session and visit, built only when a host exists.
                       'let destination = publisherHost == nil ? nil : model.submissionDestination(receipt, incarnation: submissionIncarnation)\n                submission = nil\n                submittedResource = destination']:
