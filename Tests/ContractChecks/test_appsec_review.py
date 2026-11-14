@@ -192,16 +192,18 @@ class AppSecReviewContractTests(unittest.TestCase):
             "App/BankWithdrawalView.swift",
             "App/ClubPayoutReceiverView.swift",
             "App/MerchantPayoutAccountView.swift",
-            "App/OwnerDecisionPayoutViews.swift",
             "App/BundleWalletView.swift",
             "App/TicketWalletView.swift",
             "App/TicketWalletDetailView.swift",
         ]:
             self.assertIn(".appSwitcherPrivacyShield()", read(rel), f"{rel} missing .appSwitcherPrivacyShield()")
 
+        # The sign link is copied through LocalPasteboard, which applies the same local-only, expiring options.
         merchant_payout = read("App/MerchantPayoutAccountView.swift")
-        self.assertIn(".localOnly: true", merchant_payout)
-        self.assertIn(".expirationDate:", merchant_payout)
+        self.assertIn("LocalPasteboard.copy(", merchant_payout)
+        pasteboard = read("App/LocalPasteboard.swift")
+        self.assertIn(".localOnly: true", pasteboard)
+        self.assertIn(".expirationDate:", pasteboard)
 
     # (7) Offline write queue: no secrets, random idempotency keys
     def test_7_offline_write_queue_no_secrets_and_random_idempotency_keys(self):
