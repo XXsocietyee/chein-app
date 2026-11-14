@@ -310,7 +310,7 @@ struct RoamPrivatePageScope: Hashable {
             if let opened = model.opened {
                 Section {
                     Text("roam.capsule.openedMeta \(opened.unlockDateText ?? "—") \(opened.createdDateText ?? "—")").font(.caption).foregroundStyle(.secondary)
-                    Text(verbatim: opened.body ?? "").font(.body).textSelection(.enabled).accessibilityIdentifier("roam.capsule.body")
+                    Text(verbatim: capsuleText(opened.body)).font(.body).textSelection(.enabled).accessibilityIdentifier("roam.capsule.body")
                     if let photo = opened.photoURL, let url = URL(string: photo), url.scheme == "https" {
                         AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: { CYSkeleton() }
                             .accessibilityLabel(Text("roam.capsule.photo"))
@@ -363,7 +363,7 @@ struct RoamPrivatePageScope: Hashable {
             Button("roam.capsule.seal") { page.settle(write: true, { await model.confirmCreate() }, refresh: { await model.load() }) { saved in if saved { composing = false; text = "" } } }
                 .accessibilityIdentifier("roam.capsule.confirmSeal")
             Button("roam.private.notNow", role: .cancel) { model.cancelReview() }
-        } message: { Text("roam.capsule.confirmMessage \(model.review?.unlockDate ?? "")") }
+        } message: { Text("roam.capsule.confirmMessage \(capsuleText(model.review?.unlockDate))") }
         .confirmationDialog("roam.capsule.deleteTitle", isPresented: Binding(get: { model.deleteReview != nil }, set: { if !$0 { model.cancelDelete() } }), titleVisibility: .visible) {
             Button("roam.capsule.delete", role: .destructive) { page.settle(write: true, { await model.confirmDelete() }, refresh: { await model.load() }) }
                 .accessibilityIdentifier("roam.capsule.confirmDelete")
@@ -454,6 +454,10 @@ struct RoamPrivatePageScope: Hashable {
     private func retire(leaving: Bool = false) {
         page.retire(leaving: leaving); model.suspend()
         text = ""; composing = false; lockedTip = false
+    }
+    private func capsuleText(_ value: String?) -> String {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? "—" : trimmed
     }
     private func startComposing() {
         guard page.acceptsInput, !page.settlementInFlight, !model.isBusy else { return }

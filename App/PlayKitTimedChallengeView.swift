@@ -21,7 +21,13 @@ import SwiftUI
         self.revisionIdentity = revisionIdentity; self.currentRevisionIdentity = currentRevisionIdentity
         _reaction = State(initialValue: PlayTimedReactionConfiguration.makeRun(segment: segment))
     }
-    private var seconds: Double { segment[kind == .stopwatch ? "targetSeconds" : "seconds"].double ?? 0 }
+    /// Absent or non-finite seconds stay nil. A literal 0 stays 0 and is never substituted for a missing value.
+    private var sourceSeconds: Double? {
+        let value = segment[kind == .stopwatch ? "targetSeconds" : "seconds"].double
+        guard let value, value.isFinite else { return nil }
+        return value
+    }
+    private var seconds: Double { sourceSeconds ?? 0 }
     private var running: Bool { timing.phase == .running || [.waiting, .signal].contains(reaction.phase) }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
@@ -73,23 +79,33 @@ import SwiftUI
         .onDisappear { mounted = false; interrupt() }
     }
     @ViewBuilder private var timedStage: some View {
-        if seconds > 0 { LabeledContent("playkit.challenge.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(seconds, locale: locale)).monospacedDigit() } }
-        if kind == .stopwatch, let tolerance = segment["toleranceMs"].integer { LabeledContent("playkit.stopwatch.tolerance") { Text(verbatim: PlayTimedDisplayLocalization.tolerance(tolerance, locale: locale)) } }
+        if let known = sourceSeconds, known >= 0 {
+            LabeledContent("playkit.challenge.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(known, locale: locale)).monospacedDigit() }
+        } else if sourceSeconds == nil {
+            LabeledContent("playkit.challenge.target") { Text(verbatim: "—").monospacedDigit() }
+        }
+        if kind == .stopwatch {
+            if let tolerance = segment["toleranceMs"].integer {
+                LabeledContent("playkit.stopwatch.tolerance") { Text(verbatim: PlayTimedDisplayLocalization.tolerance(tolerance, locale: locale)) }
+            } else {
+                LabeledContent("playkit.stopwatch.tolerance") { Text(verbatim: "—").monospacedDigit() }
+            }
+        }
         if kind == .typeIn {
-            Text(verbatim: segment["target"].text ?? "").font(.title2.monospaced().bold()).textSelection(.disabled)
+            Text(verbatim: typeInPrompt).font(.title2.monospaced().bold()).textSelection(.disabled)
                 .frame(maxWidth: .infinity).padding(CYSpacing.lg)
                 .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
-            if seconds > 0 {
-                Text("playkit.type.goalLine \(PlayTimedDisplayLocalization.seconds(seconds, locale: locale))")
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
-            }
+            Text("playkit.type.goalLine \(typeInGoal)")
+                .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
             Text(segment["caseSensitive"].bool == true ? "playkit.type.caseSensitive" : "playkit.type.caseInsensitive").font(.footnote)
             TextField("playkit.type.input", text: $input, axis: .vertical)
                 .textFieldStyle(.roundedBorder).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .focused($typingFocused).disabled(timing.phase != .running || !enabled)
                 .onChange(of: input) { _, value in if value.count > 4096 { input = String(value.prefix(4096)) }; onDirty() }
             if let attempts = segment["attempts"].integer, attempts >= 0 { LabeledContent("playkit.attempts") { Text(verbatim: PlayTimedDisplayLocalization.count(attempts, locale: locale)) } }
-            if let cap = segment["tries"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: PlayTimedDisplayLocalization.count(cap, locale: locale)) } }
+            else { LabeledContent("playkit.attempts") { Text(verbatim: "—").monospacedDigit() } }
+            if let cap = segment["tries"].integer, cap >= 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: PlayTimedDisplayLocalization.count(cap, locale: locale)) } }
+            else { LabeledContent("playkit.attemptLimit") { Text(verbatim: "—").monospacedDigit() } }
             if let result = PlayKitScreenProjection(kind: kind, segment: segment).typeInResultKey {
                 Text(LocalizedStringKey(result)).accessibilityIdentifier("playkit.type.result")
             }
@@ -139,10 +155,18 @@ import SwiftUI
             target: PlayTimedDisplayLocalization.seconds(seconds, locale: locale),
             delta: (diff >= 0 ? "+" : "−") + PlayTimedDisplayLocalization.seconds(Double(abs(diff)) / 1000, locale: locale))
     }
+    private var typeInPrompt: String {
+        let text = segment["target"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? "—" : text
+    }
+    private var typeInGoal: String {
+        sourceSeconds.map { PlayTimedDisplayLocalization.seconds($0, locale: locale) } ?? "—"
+    }
     private var validConfiguration: Bool {
         if kind == .reaction { return true }
-        if kind == .typeIn { return seconds.isFinite && seconds >= 0 && seconds <= 3600 && !(segment["target"].text ?? "").isEmpty }
-        return seconds.isFinite && seconds > 0 && seconds <= 3600
+        guard let seconds = sourceSeconds else { return false }
+        if kind == .typeIn { return seconds >= 0 && seconds <= 3600 && typeInPrompt != "—" }
+        return seconds > 0 && seconds <= 3600
     }
     /// Countdown ring drains; the other clocks show a full ring (no fake progress for an open-ended timer).
     private var clockProgress: CGFloat {
@@ -152,6 +176,7 @@ import SwiftUI
     private var clockLabel: String {
         if kind == .stopwatch && timing.phase == .running && elapsed >= 1000 { return "—.—" }
         if kind == .countdown || kind == .typeIn {
+            guard let seconds = sourceSeconds else { return "—" }
             if seconds <= 0 { return PlayTimedDisplayLocalization.seconds(Double(elapsed) / 1000, locale: locale) }
             return PlayTimedDisplayLocalization.seconds(max(0, seconds - Double(elapsed) / 1000), precision: .tenths, locale: locale)
         }

@@ -237,7 +237,7 @@ struct RoamAnniversaryReadIntent {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("roam.tools.anniversary.yearsAgo \(item.yearsAgo)").font(.headline).foregroundStyle(.tint)
-                        Text(verbatim: item.title ?? "").font(.title3.bold())
+                        Text(verbatim: anniversaryTitle(item.title)).font(.title3.bold())
                         Text("roam.tools.anniversary.completed \(item.completedMinuteText)").font(.subheadline).foregroundStyle(.secondary)
                     }.accessibilityElement(children: .combine)
                         .accessibilityIdentifier("roam.tools.anniversary.row")
@@ -391,6 +391,10 @@ struct RoamAnniversaryReadIntent {
     }
     private func readIntent(_ intent: RoamAnniversaryListState.Intent) -> RoamAnniversaryReadIntent {
         .init(intent: intent, reader: reader, state: state, navigation: navigation, visit: visit)
+    }
+    private func anniversaryTitle(_ title: String?) -> String {
+        let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? "—" : trimmed
     }
     private func enqueue(_ offered: RoamAnniversaryReadIntent) {
         Task { await load(offered) }
