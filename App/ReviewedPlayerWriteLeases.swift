@@ -93,6 +93,15 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/play/theme/state" {
             return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true)
         }
+        if relative == PlayerGapService.editionEmptyReasonPath {
+            // WP-02: the compensation editions empty reason. Money area: open only where `moneyPayments` opens (TEST/DEBUG
+            // hosts), never on the production host. JSON exactly `{"clubId": <positive>}`, as edition-empty-reason.js sends.
+            guard method == "POST", ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host),
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody,
+                  let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any],
+                  Set(object.keys) == ["clubId"], let id = object["clubId"] as? Int, id > 0 else { return false }
+            return true
+        }
         if relative == "api/club/chat" {
             // E2E R3: enter a club's group chat. ClubChatService sends JSON exactly {"id": <club id>}.
             guard method == "POST", covers(relative, grant.clubCommunity), request.value(forHTTPHeaderField: "Content-Type") == "application/json",
@@ -644,7 +653,11 @@ enum ReviewedPlayerReadRoute {
         "api/coop/supply-stations",
         "api/creativesquare/delete",
         // OWN-21.1 / OWN-21.2. Preset list and info are reads. Draft is a personal template id, not a payment.
-        "api/preset/gameplay/list", "api/preset/gameplay/info", "api/preset/gameplay/draft"
+        "api/preset/gameplay/list", "api/preset/gameplay/info", "api/preset/gameplay/draft",
+        // WP-02 (PlayerGapService.creatorTailPaths): the author's own audit timeline, content appeal and its receipt,
+        // and the original-run guard reference, appeal and receipt. Non-money; the server checks the author/run owner.
+        "api/audit/timeline", "api/audit/appeal", "api/audit/appeal/receipt",
+        "api/audit/guard/reference", "api/audit/guard/appeal", "api/audit/guard/appeal/receipt"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.

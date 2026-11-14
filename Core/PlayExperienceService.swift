@@ -160,7 +160,8 @@ public struct PlayExperienceService {
         return try PlayLeadProgress(await request("api/club/lead/team-progress", query: ["activityId": String(activityID)], capability: .reads, token: token))
     }
     public func lead(activityID: Int, action: PlayLeadAction, text: String?, token: String) async throws {
-        guard activityID > 0 else { throw APIError.invalidRequest }
+        // The chapter release needs its frozen command (`unlockChapter(_:token:)`); the bare form is refused by the server.
+        guard activityID > 0, action != .unlockChapter else { throw APIError.invalidRequest }
         var fields = ["activityId": String(activityID)]
         if action == .broadcast {
             guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidRequest }
@@ -172,6 +173,21 @@ public struct PlayExperienceService {
         } else {
             _ = try await request("api/club/lead/" + action.rawValue, form: fields, capability: .leader, token: token)
         }
+    }
+    /// WP-02 `leadUnlock`: POST `{activityId, commandId, expectedChapterId, targetChapterId}`.
+    public func unlockChapter(_ command: PlayLeadUnlockCommand, token: String) async throws -> PlayWireValue {
+        try await request("api/club/lead/unlock-chapter", form: command.fields, capability: .leader, token: token)
+    }
+    /// WP-02: GET `{activityId, commandId}`. Code 520 is still pending, never a rejection.
+    public func unlockChapterReceipt(_ command: PlayLeadUnlockCommand, token: String) async throws -> PlayWireValue {
+        try await request("api/club/lead/unlock-chapter-receipt", query: ["activityId": String(command.activityID), "commandId": command.commandID],
+                          capability: .leader, token: token)
+    }
+    /// WP-02 `leadReleaseStation`: POST `{activityId, memberId, nodeId}`. The member then skips the station with 0 points.
+    public func releaseStation(activityID: Int, memberID: Int, nodeID: Int, token: String) async throws {
+        guard activityID > 0, memberID > 0, nodeID > 0 else { throw APIError.invalidRequest }
+        _ = try await request("api/club/lead/release-station", form: ["activityId": String(activityID), "memberId": String(memberID), "nodeId": String(nodeID)],
+                              capability: .leader, token: token)
     }
     public func readPaused(scope: PlaySessionScope, token: String) async throws -> PlayPausedRead {
         try PlayPausedRead(await request("api/play/run-session", query: scopeFields(scope), capability: .reads, token: token))
@@ -304,7 +320,9 @@ public struct PlayExperienceService {
         guard let code else { throw PlayExperienceError.malformed }
         // U05-01 / UG-09: a basic command refusal that carries the B5 contract keeps its machine
         // fields. Older replies (code + msg only) stay the generic rejection.
-        if code != 200, basicCommand, let envelope, let refusal = PlayCommandRefusal(envelope: envelope), refusal.carriesContract { throw refusal }
+        // WP-02: a chapter release refused with `intentNotExecuted` keeps that proof for the leader.
+        let chapterCommand = configuration.baseURL.appendingPathComponent("api/club/lead/unlock-chapter") == route.url
+        if code != 200, basicCommand || chapterCommand, let envelope, let refusal = PlayCommandRefusal(envelope: envelope), refusal.carriesContract { throw refusal }
         guard code == 200 else { throw PlayExperienceError.rejected(code, envelope?["msg"].text) }
         return envelope?["data"] ?? .null
     }

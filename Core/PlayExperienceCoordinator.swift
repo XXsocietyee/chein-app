@@ -168,6 +168,11 @@ public struct PlayCompletionReview: Equatable {
     private var authorityOwner: PlayExperienceSession?
     private var authorityMode: PlayGameplayMode?
     private var unknownLeaderKeys: Set<String> = []
+    /// WP-02: the open chapter release per owner and session (`lead-chapter` intent). Kept until its outcome is known.
+    private var unlockCommands: [String: PlayLeadUnlockCommand] = [:]
+    public enum LeadNotice: Equatable { case server(String?), unlockApplied, unlockPending, unlockNotExecuted, noNextChapter, released, releaseNotSent }
+    public private(set) var leadNotice: LeadNotice?
+    public private(set) var leadToolBusy = false
     @ObservationIgnored private var issuedInteractionLifetime: PlayInteractionLifetime?
     private let interactionOwner = UUID()
     private var generation: UInt64 = 0
@@ -262,7 +267,7 @@ public struct PlayCompletionReview: Equatable {
         phase = .loading; issue = nil; snapshot = nil; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
-            reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false
+            reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; leadNotice = nil
             advancedReadyNodeIDs = []; submitRecovery = nil; arrivalFailure = nil
             hintUnknownNodes = Set((unknownHintRequests[PlayRunStorageKey.make(session: session, scope: scope)] ?? [:]).keys)
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
@@ -279,7 +284,7 @@ public struct PlayCompletionReview: Equatable {
             if let pending { guard pending.value.intent.owner.matches(session) else { throw PlayExperienceError.persistenceUnavailable } }
             // U05-03: after a restart (or a later visit) an unsettled journal is settled only by its
             // original receipt, read with the journaled action id. Never resubmitted from here.
-            var settledArrival: (nodeID: Int, refusal: PlayCommandRefusal)?
+            var settledArrival: (nodeID: Int, refusal: PlayCommandRefusal, actionID: String?)?
             if service.enabled.contains(.actionContextBinding), let captured = pending,
                captured.value.state == .unknown || (captured.value.state == .dispatching && captured.value.dispatchProcess != recovery.processID),
                let stored = captured.value.intent.advance?.actionID,
@@ -297,7 +302,7 @@ public struct PlayCompletionReview: Equatable {
                     try await recovery.clear(captured, key: key)
                     try check(session, request); pending = nil
                     submitRecovery = .failed(nodeID: nodeID, refusal: refusal)
-                    if case .location = captured.value.intent.evidence { settledArrival = (nodeID, refusal) }
+                    if case .location = captured.value.intent.evidence { settledArrival = (nodeID, refusal, actionID) }
                 default:
                     // No settled receipt (or no answer): still waiting, which is not a failure.
                     submitRecovery = .pending(nodeID: nodeID)
@@ -315,7 +320,7 @@ public struct PlayCompletionReview: Equatable {
                 if submitRecovery?.nodeID == captured.value.intent.nodeID { submitRecovery = nil }
             }
             if let settledArrival {
-                arrivalFailure = PlayArrivalFailure(nodeID: settledArrival.nodeID, refusal: settledArrival.refusal, snapshot: snapshot)
+                arrivalFailure = PlayArrivalFailure(nodeID: settledArrival.nodeID, refusal: settledArrival.refusal, snapshot: snapshot, arrivalRequestID: settledArrival.actionID)
             }
             cachedCompletion = pending; retryReadbackVerified = true
             var hintRequests = unknownHintRequests[key] ?? [:]
@@ -480,7 +485,7 @@ public struct PlayCompletionReview: Equatable {
         submitRecovery = .failed(nodeID: review.nodeID, refusal: refusal)
         var arrival = refusal.arrivalReason != nil
         if case .location = review.evidence { arrival = true }
-        if arrival { arrivalFailure = PlayArrivalFailure(nodeID: review.nodeID, refusal: refusal, snapshot: snapshot) }
+        if arrival { arrivalFailure = PlayArrivalFailure(nodeID: review.nodeID, refusal: refusal, snapshot: snapshot, arrivalRequestID: review.advance?.actionID) }
         if refusal.refreshRequired || refusal.code == 409 {
             submitRecovery = .conflict(nodeID: review.nodeID); phase = .needsReadback; await load()
         } else { phase = unresolved ? .unknown : .ready }
@@ -716,7 +721,7 @@ public struct PlayCompletionReview: Equatable {
         leadReadApplied = epoch; return true
     }
     public func performLead(_ action: PlayLeadAction, text: String? = nil, context: PlayInteractionContext? = nil) async {
-        guard accepts(context), service.enabled.contains(.leader), canWrite, !leaderOutcomeUnknown, let session = loadedSession, case .activity(let activity) = scope,
+        guard action != .unlockChapter, accepts(context), service.enabled.contains(.leader), canWrite, !leaderOutcomeUnknown, let session = loadedSession, case .activity(let activity) = scope,
               lead?.allows(action, accountID: session.accountID) == true else { return }
         let request = generation; phase = .submitting; leaderOutcomeUnknown = true
         let leaderKey = PlayRunStorageKey.make(session: session, scope: scope); unknownLeaderKeys.insert(leaderKey)
@@ -729,6 +734,78 @@ public struct PlayCompletionReview: Equatable {
             if case PlayExperienceError.disabled = error { leaderOutcomeUnknown = false; unknownLeaderKeys.remove(leaderKey) }
             fail(error, session: session, generation: request)
         }
+    }
+    /// WP-02: the chapter release this owner and session still has open. Its outcome is read back, never replaced.
+    public var pendingUnlock: PlayLeadUnlockCommand? {
+        guard let session = loadedSession else { return nil }
+        return unlockCommands[PlayRunStorageKey.make(session: session, scope: scope)]
+    }
+    /// `leadUnlock`: freeze `{commandId, expectedChapterId, targetChapterId}` from the current team read, send it once,
+    /// and on an unknown outcome only re-read `unlock-chapter-receipt` with the same command id.
+    public func unlockChapter(context: PlayInteractionContext? = nil) async {
+        guard accepts(context), service.enabled.contains(.leader), !leadToolBusy, phase == .ready || phase == .unknown,
+              let session = loadedSession, session == currentSession(), case .activity(let activity) = scope else { return }
+        let key = PlayRunStorageKey.make(session: session, scope: scope)
+        var command: PlayLeadUnlockCommand
+        if let open = unlockCommands[key] { command = open }
+        else {
+            guard let lead, lead.allows(.unlockChapter, accountID: session.accountID) else { return }
+            guard let fresh = PlayLeadUnlockCommand(activityID: activity, expectedChapterID: lead.currentChapterID, targetChapterID: lead.nextChapterID) else {
+                leadNotice = .noNextChapter; return
+            }
+            command = fresh; unlockCommands[key] = fresh
+        }
+        let request = generation
+        leadToolBusy = true; defer { leadToolBusy = false }
+        do {
+            let data = command.receiptOnly ? try await service.unlockChapterReceipt(command, token: session.token)
+                                           : try await service.unlockChapter(command, token: session.token)
+            try check(session, request)
+            guard command.confirms(data) else { throw PlayExperienceError.unknownResult }
+            unlockCommands[key] = nil; leaderOutcomeUnknown = false; unknownLeaderKeys.remove(key); leadNotice = .unlockApplied
+        } catch let refusal as PlayCommandRefusal where refusal.intentNotExecuted {
+            guard currentSession() == session, generation == request else { return }
+            leaderOutcomeUnknown = false; unknownLeaderKeys.remove(key); leadNotice = .unlockNotExecuted
+        } catch PlayExperienceError.rejected(let code, let message) where code != 520 && code != 401 {
+            guard currentSession() == session, generation == request else { return }
+            // A definite refusal of a new command ends it; 409 (command id bound to other input) and receipt reads keep it.
+            if code != 409 && !command.receiptOnly { unlockCommands[key] = nil }
+            leaderOutcomeUnknown = unlockCommands[key]?.receiptOnly == true
+            leadNotice = .server(message)
+        } catch {
+            guard currentSession() == session, generation == request else { return }
+            if (error as? PlayExperienceError) == .unauthorized { onUnauthorized(session); return }
+            if (error as? PlayExperienceError) == .disabled { return }
+            // Unknown: keep the original identity and only query its receipt from now on.
+            command.receiptOnly = true; unlockCommands[key] = command
+            leaderOutcomeUnknown = true; unknownLeaderKeys.insert(key); leadNotice = .unlockPending
+            return
+        }
+        await loadLead(context: interactionContext)
+    }
+    /// The server said the expected chapter moved, so the original intent did not run. The leader ends it explicitly.
+    public func endUnlockIntent() {
+        guard let session = loadedSession, leadNotice == .unlockNotExecuted else { return }
+        unlockCommands[PlayRunStorageKey.make(session: session, scope: scope)] = nil; leadNotice = nil
+    }
+    /// `leadReleaseStation`: the leader lets one stuck member skip one station (0 points). Rules are all server side.
+    public func releaseStation(_ request: PlayLeadProgress.SkipRequest, context: PlayInteractionContext? = nil) async {
+        guard accepts(context), service.enabled.contains(.leader), !leadToolBusy, let session = loadedSession, session == currentSession(),
+              case .activity(let activity) = scope, lead?.isLeader == true, lead?.skipRequests.contains(request) == true else { return }
+        let generationAtStart = generation
+        leadToolBusy = true; defer { leadToolBusy = false }
+        do {
+            try await service.releaseStation(activityID: activity, memberID: request.memberID, nodeID: request.nodeID, token: session.token)
+            try check(session, generationAtStart); leadNotice = .released
+        } catch PlayExperienceError.rejected(_, let message) {
+            guard currentSession() == session, generation == generationAtStart else { return }
+            leadNotice = .server(message)
+        } catch {
+            guard currentSession() == session, generation == generationAtStart else { return }
+            if (error as? PlayExperienceError) == .unauthorized { onUnauthorized(session); return }
+            leadNotice = .releaseNotSent
+        }
+        await loadLead(context: interactionContext)
     }
     public func restoreRun() async {
         #if DEBUG

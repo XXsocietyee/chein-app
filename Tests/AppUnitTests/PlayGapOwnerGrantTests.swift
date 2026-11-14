@@ -38,4 +38,16 @@ final class PlayGapOwnerGrantTests: XCTestCase {
         let payload = PlayWireValue.object(["data": .array([.object(["productId": .integer(4), "productName": .string("  ")])])])
         XCTAssertEqual(PlayGapProduct.parse(payload).first?.name, "—")
     }
+
+    /// WP-02: the audit and guard appeal routes are on the play grant in both lists; the money-area routes are not.
+    @MainActor func testCreatorTailRoutesAreGrantedInBothListsAndMoneyStaysOff() {
+        for path in PlayerGapService.creatorTailPaths {
+            XCTAssertTrue(ReviewedProductionGateLeases.playPaths.contains(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        for gated in [PlayerGapService.editionEmptyReasonPath, "api/club/lead/release-station", "api/club/lead/unlock-chapter-receipt"] {
+            XCTAssertFalse(ReviewedProductionGateLeases.playPaths.contains(gated), gated)
+        }
+        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: "www.chengyinhub.com"))
+    }
 }
