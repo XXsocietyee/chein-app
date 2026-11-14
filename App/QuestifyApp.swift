@@ -255,6 +255,16 @@ final class AppSessionContainer: ObservableObject {
     }
 }
 
+/// Identity of the signed-in account for the one-shot merchant-mode request. A refresh with the same values does not retry.
+private struct MerchantModeBoot: Equatable {
+    let accountID: Int?
+    let revision: UInt64
+    let role: String
+    let userType: Int?
+    let isSignedIn: Bool
+    let isConfigured: Bool
+}
+
 /// Only the normal root starts account restoration.
 @MainActor
 struct SessionRootView: View {
@@ -407,6 +417,24 @@ struct SessionRootView: View {
         }
         .onChange(of: session.sessionRevision) { _, revision in
             merchantRootCoordinator.handleSessionChange(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: revision)
+        }
+        .task(id: MerchantModeBoot(
+            accountID: session.account?.id,
+            revision: session.sessionRevision,
+            role: session.account?.role ?? "",
+            userType: session.account?.userType,
+            isSignedIn: session.isSignedIn,
+            isConfigured: session.isConfigured
+        )) {
+            await merchantRootCoordinator.adoptSignedInAccount(
+                reader: session,
+                accountID: session.account?.id,
+                role: session.account?.role ?? "",
+                userType: session.account?.userType,
+                isSignedIn: session.isSignedIn,
+                isConfigured: session.isConfigured,
+                revision: session.sessionRevision
+            )
         }
         .background {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
