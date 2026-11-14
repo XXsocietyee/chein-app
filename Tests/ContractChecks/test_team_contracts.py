@@ -96,11 +96,17 @@ class TeamSourceChecks(unittest.TestCase):
         self.assertEqual(app.count('LocalPasteboard.copy('), 1)
     def test_all_team_localizations_exist_in_both_languages(self):
         catalog = json.loads(self.text('Resources/TeamLocalizations.fragment.json'))['strings']
+        main_catalog = json.loads(self.text('Resources/Localizable.xcstrings'))['strings']
         used = set()
         for p in list((ROOT/'App').glob('*Team*.swift')) + list((ROOT/'Core').glob('*.swift')):
             used |= set(re.findall(r'"(team\.[a-zA-Z][a-zA-Z.]+)"', re.sub(r'\.accessibilityIdentifier\("[^"]*"\)', '', p.read_text())))
         excluded = {'team.invite.copyFeedback', 'team.mode.current', 'team.postJoin.openDetail', 'team.invitation.openDetail', 'team.review.confirm', 'team.review.cancel', 'team.review.leaveInstead', 'team.detail.card', 'team.invite.code', 'team.invite.close', 'team.create.size', 'team.create.inviteOnly', 'team.message'}
-        self.assertEqual(used - set(catalog) - excluded, set())
+        main_keys = {'team.create.leaseClosed'}
+        self.assertEqual(used - set(catalog) - main_keys - excluded, set())
+        for key in main_keys:
+            item = main_catalog[key]
+            self.assertEqual(set(item['localizations']), {'en','zh-Hans'}, key)
+            for value in item['localizations'].values(): self.assertTrue(value['stringUnit']['value'])
         for key, item in catalog.items():
             self.assertEqual(set(item['localizations']), {'en','zh-Hans'}, key)
             for value in item['localizations'].values(): self.assertTrue(value['stringUnit']['value'])

@@ -56,7 +56,7 @@ class SignedInContentDetailContracts(unittest.TestCase):
         self.assertIn("if session.account == nil", activity)
         self.assertIn(".id(session.contentDetailRevision)", activity)
         topic = (ROOT / "App/PlatformConsumerSessionOwner.swift").read_text()
-        self.assertIn("activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session)) }", topic)
+        self.assertIn("activityDestination: { AnyView(ActivityDetailView(id: $0, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)) }", topic)
         self.assertIn(".id(session.contentDetailRevision)", topic)
         view = (ROOT / "App/TopicDetailView.swift").read_text()
         self.assertIn("activityDestination(activity.id)", view)

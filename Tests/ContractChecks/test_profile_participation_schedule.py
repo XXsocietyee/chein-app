@@ -25,7 +25,7 @@ class ProfileParticipationScheduleSourceTests(unittest.TestCase):
  def test_18_gate_stays_off(self):
   s=(W/'Core/PlayerJourneyService.swift').read_text();self.assertIn('readsEnabled: Bool = false',s);self.assertIn('guard readsEnabled else { throw APIError.notConfigured }',s)
  def test_19_normal_factory_stays_off(self):
-  s=(W/'App/AppSession.swift').read_text();self.assertIn('PlayerJourneyService(configuration: $0, transport: runtimeHTTPTransport)',s)
+  s=(W/'App/AppSession.swift').read_text();self.assertIn('PlayerJourneyService(configuration: $0, transport: runtimeHTTPTransport, readsEnabled: composition.reviewed?.playerWritesEnabled == true && composition.reviewed?.regional.market == .china)',s)
  def test_20_owner_approval_unchanged_boundary(self):self.assertIn('until the backend null-principal guard is independently accepted and deployed',(W/'Core/OwnedOrderRead.swift').read_text())
  def test_21_native_inventory(self):
   for path,count in [('CoreTests/ProfileParticipationScheduleTests.swift',16),('AppUnitTests/ProfileParticipationScheduleAppTests.swift',6),('AppUITests/ProfileParticipationScheduleFlowTests.swift',6)]:self.assertEqual(len(re.findall(r'func test\w+\(', (W/'Tests'/path).read_text())),count)

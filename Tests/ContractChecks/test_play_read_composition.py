@@ -18,7 +18,7 @@ class PlayReadCompositionContracts(unittest.TestCase):
         self.assertNotIn('hasPrefix(', matcher)
         root = self.read('App/AppCompositionRoot.swift')
         # The query exception is the typed-route OR; play read is one closed matcher among them.
-        self.assertIn('url.query == nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil', root)
+        self.assertIn('url.query == nil || ProjectExactReadRoute(request: request, baseURL: api.baseURL) != nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil', root)
         self.assertIn('guard deployment?.playerWritesEnabled == true, deployment?.regional.market == .china', root)
         self.assertIn('return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/")', root)
         self.assertIn('PlayReadRoute(request: request, baseURL: api.baseURL)', root)
@@ -109,7 +109,8 @@ class PlayReadCompositionContracts(unittest.TestCase):
                      'guard gameplayMode == .cityOrientation, service.enabled.contains(.classicCompletion), phase == .unknown',
                      'guard accepts(context), level == nil || gameplayMode == .cityOrientation',
                      'service.enabled.contains(.hints), canWrite',
-                     'guard accepts(context), service.enabled.contains(.leader), canWrite',
+                     'guard action != .unlockChapter, accepts(context), service.enabled.contains(.leader), canWrite',
+                     'guard accepts(context), service.enabled.contains(.leader), !leadToolBusy',
                      'service.enabled.contains(.runPersistence), let session = loadedSession, session == currentSession()',
                      'guard canManageRun, let session']:
             self.assertIn(text, coordinator)

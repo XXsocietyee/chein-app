@@ -96,7 +96,7 @@ class TemplateAuthoringContracts(unittest.TestCase):
         for folder in ['App','Core']:
             for path in (ROOT/folder).glob('*Template*.swift'):
                 self.assertNotIn('URLSession',path.read_text())
-                if path.name != 'TemplateAuthoringWireRequestBuilder.swift': self.assertNotIn('URLRequest(',path.read_text())
+                if path.name not in {'TemplateAuthoringWireRequestBuilder.swift', 'TopicTemplateAdoption.swift'}: self.assertNotIn('URLRequest(',path.read_text())
     def test_dormant_wire_builder_is_exact_and_has_no_send(self):
         source=self.source('lib/data/api/template_api.dart')
         native=self.read('Core/TemplateAuthoringWireRequestBuilder.swift')

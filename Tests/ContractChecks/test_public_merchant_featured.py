@@ -40,11 +40,11 @@ class PublicMerchantFeaturedChecks(unittest.TestCase):
         for text in ['homeReader.isConfigured', 'self.sessionRevision == revision',
                      'self.contentDetailRevision == contentRevision', 'self.accountCollectionReader.scope == scope',
                      '@ObservedObject var session: AppSession', 'if !isCurrent()',
-                     'ActivityDetailView(id: id, reader: session)',
+                     'ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)',
                      'AccountCollectionCouponsView(reader: session.accountCollectionReader)',
                      '.environment(\\.couponCodeFactory, nil)', '.privacySensitive()']:
             self.assertIn(text, app)
-        for forbidden in ['registrationEnabled: true', 'playReaderForActivity:', 'AsyncImage(', 'URLSession',
+        for forbidden in ['AsyncImage(', 'URLSession',
                           'CouponCodeCoordinator(', 'AccountCollectionCouponDetailView(', 'ProductionApproval(']:
             self.assertNotIn(forbidden, app)
 

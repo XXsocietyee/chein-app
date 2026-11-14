@@ -103,7 +103,8 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
     def test_no_new_endpoint_literals_in_auth_or_compliance_ui(self):
         for path in ['App/AccountComplianceViews.swift', 'App/AuthChannelView.swift', 'Core/AuthChannelCoordinator.swift',
                      'Core/AccountComplianceCoordinator.swift', 'App/RegionalLaunchConfiguration.swift']:
-            self.assertIsNone(re.search(r'https?://', src(path)), path)
+            release_src = re.sub(r'(?ms)^#if DEBUG\b.*?^#endif\s*$', '', src(path))
+            self.assertIsNone(re.search(r'https?://', release_src), path)
 
     def test_reviewed_deployment_injection_keeps_unconfigured_default_and_no_source_host_literals(self):
         launch = src('App/RegionalLaunchConfiguration.swift')

@@ -58,8 +58,8 @@ class PagesPrivacyIndexPageReadyTests(unittest.TestCase):
         self.assertIn("public enum PrivacyProtectionPageFixtureData", block)
         self.assertNotIn("public enum PrivacyProtectionPageFixtureData", source[end:])
         routes = ROUTES.read_text(encoding="utf-8")
-        self.assertIn('"/api/compliance/usage-records": .missing', routes)
-        self.assertNotIn('"/api/compliance/usage-records": .liveInProduction', routes)
+        self.assertIn('"/api/compliance/usage-records": .liveInProduction', routes)
+        self.assertNotIn('"/api/compliance/usage-records": .missing', routes)
         for name in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
             self.assertIn(f"public static let {name} = false", routes)
         welcome = (ROOT / "App/WelcomeView.swift").read_text(encoding="utf-8")

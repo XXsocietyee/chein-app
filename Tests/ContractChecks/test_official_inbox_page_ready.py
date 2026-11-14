@@ -64,7 +64,7 @@ class OfficialInboxPageReadyChecks(unittest.TestCase):
         self.assertIn("capacityFact = (try? c.decode(OfficialInboxQuantity.self, forKey: OfficialKey(\"capacity\"))) ?? .unknown", contracts)
         routes = read("Core/ChinaReviewedRouteCapability.swift")
         self.assertIn('"/api/official/v2/party-inbox": .liveInProduction', routes)
-        self.assertIn('"/api/official/v2/organizer-invites/{}/{}": .missing', routes)
+        self.assertIn('"/api/official/v2/organizer-invites/{}/{}": .liveInProduction', routes)
 
     def test_fixture_data_is_debug_only_and_flags_stay_off(self):
         fixture = read("Core/OfficialEventSyntheticFixtures.swift")

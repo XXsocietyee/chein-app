@@ -43,7 +43,7 @@ class BusinessRuntimeWiringTests(unittest.TestCase):
         self.assertNotIn('nativeSelectionEnabled = true',s)
     def test_publish_reads_writes_owner_and_unknown_storage_remain_distinct(self):
         s=self.read('App/AppSession.swift')
-        for text in ['factory.permits(.publishingRead)','factory.approval([.publishingWrite])','factory.permits(.projectRead)','factory.approval([.projectRead, .projectWrite])','owner: owner','store: projectDraftStore','else { service = ProjectEditDisabledService() }']:self.assertIn(text,s)
+        for text in ['factory.permits(.publishingRead)','factory.approval([.publishingWrite])','factory.permits(.projectRead)','factory.approval([.projectRead, .projectWrite, .projectPublicationRead])','owner: owner','store: projectDraftStore','else { service = ProjectEditDisabledService() }']:self.assertIn(text,s)
         self.assertIn('owner: seed.owner',self.read('App/SessionPublishingModesView.swift'))
         self.assertIn('composition.storage.operationJournal()',s)
     def test_production_verification_is_not_labeled_synthetic(self):

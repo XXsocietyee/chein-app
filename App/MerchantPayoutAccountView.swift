@@ -75,7 +75,7 @@ import UIKit
         if let link = account.signURL, let key = account.copyKey {
             Section {
                 CYPillButton(LocalizedStringKey(key), style: .primary, tableName: "PayoutReceiver") {
-                    UIPasteboard.general.string = link.absoluteString
+                    LocalPasteboard.copy(link.absoluteString)
                     copied = true
                 }
                 .accessibilityIdentifier("payoutAccount.copyLink")

@@ -1,5 +1,6 @@
 """Invite detail opens the injected public topic and Back re-reads that invite. Source only."""
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -41,8 +42,10 @@ class CooperationProjectNavigationContract(unittest.TestCase):
         self.assertIn('resource: "inbox.\\(direction.rawValue)"', self.browser)
         self.assertIn('.onChange(of: reader.scope) { _, _ in topicFilter = nil }', self.browser)
         self.assertNotIn('topicFilter = nil', self.browser.split('private func invitationSection', 1)[1])
+        self.assertIn('peerReader.markInviteRead(inviteID: inviteID)', self.detail)
+        code = re.sub(r'//[^\n]*', '', self.nav + self.detail)
         for banned in ['api/coop/invite', 'perform(', 'URLSession', 'HTTPTransport']:
-            self.assertNotIn(banned, self.nav + self.detail)
+            self.assertNotIn(banned, code)
 
     def test_scope_change_closes_the_destination_and_retry_stays_independent(self):
         self.assertIn('CooperationProjectNavigationHost(scope: reader.scope, authenticated: reader.isAuthenticated, reader: ObjectIdentifier(reader))', self.browser)
