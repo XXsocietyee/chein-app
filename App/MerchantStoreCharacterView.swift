@@ -32,6 +32,11 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
 
     var body: some View {
         content
+            .safeAreaInset(edge: .top) {
+                MerchantOpsWp03Panel(page: .npc)
+                    .padding(.horizontal)
+                    .background(CYColor.bgPage)
+            }
             .navigationTitle(c.screen == .home ? t("storeCharacter.title.home") : t("storeCharacter.title.avatar"))
             .navigationBarBackButtonHidden(true)
             .toolbar {

@@ -272,3 +272,26 @@ public enum MerchantWriteRoute {
         return granted.contains(group)
     }
 }
+
+/// HANDOVER 33 WP-03. Appended after `MerchantWriteRoute`. These paths are not merchant-write
+/// allowlist members: money and merchant writes stay behind the area switch, and reads are not writes.
+public enum MerchantOpsWp03Catalog {
+    public static let claimsStatus = "api/merchant/claims/status"
+    public static let claimsSubmit = "api/merchant/claims/submit"
+    public static let commerceOrder = "api/merchant/commerce/order"
+    public static let commerceOrderStatus = "api/merchant/commerce/order/status"
+    public static let couponSummary = "api/merchant/coupon-summary"
+    public static let npcReview = "api/merchant/npc/review"
+    public static let invitePreview = "api/merchant/operators/invite/preview"
+    public static let shareCode = "api/merchant/share-code"
+    public static let inviteRevoke = "api/merchant/chapter-application/invite/revoke"
+
+    public static let reads: Set<String> = [claimsStatus, couponSummary, npcReview, invitePreview]
+    public static let money: Set<String> = [commerceOrder, commerceOrderStatus]
+    public static let writes: Set<String> = [claimsSubmit, shareCode, inviteRevoke]
+    public static let paths: Set<String> = reads.union(money).union(writes)
+
+    public static func method(for path: String) -> String {
+        path == claimsStatus || path == npcReview ? "GET" : "POST"
+    }
+}

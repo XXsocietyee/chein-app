@@ -237,6 +237,7 @@
         "MerchantOperationsHomeReadLifetimeTests",
         "MerchantOperatorInvitationReceiptTests",
         "MerchantOperatorSelfRoleCardTests",
+        "MerchantOpsWp03GateTests",
         "MerchantOverviewCompositionTests",
         "MerchantPerkStableOwnerTests",
         "MerchantPerkValidityCalendarTests",

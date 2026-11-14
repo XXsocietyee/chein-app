@@ -483,6 +483,12 @@ struct SessionRootView: View {
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
+        .environment(\.merchantOpsWp03Bridge, MerchantOpsWp03Bridge(
+            baseURL: session.regionalConfiguration?.apiConfiguration?.baseURL,
+            token: session.token,
+            host: session.regionalConfiguration?.apiConfiguration?.baseURL.host,
+            accountID: session.account?.id ?? 0,
+            transport: session.runtimeHTTPTransport))
         .environment(\.registrationMySignupsDestination, { AnyView(SessionPlayerJourneyView(destination: .participations)) })
         .task { await session.bootstrap() }
         .onAppear { session.setPrivateHomePresentationActive(true) }

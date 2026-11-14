@@ -59,6 +59,7 @@ public enum ChinaReviewedRouteCapability {
         if admitsRewardPledge(key) { return true }
         if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
         if beGapMerchantOwnerGrant.contains(key) { return true }
+        if merchantOpsWp03OwnerGrant.contains(key), admitsMerchantOpsWp03(key) { return true }
         if externalGameOwnerGrant.contains(key) || externalGameOwnerGrant.contains(externalGameGrantKey(key)) { return true }
         return g6OwnerGrant.contains(key)
     }
@@ -463,6 +464,29 @@ public enum ChinaReviewedRouteCapability {
         "/api/us/auth/apple/exchange",
         "/api/us/auth/session"
     ]
+
+    /// HANDOVER 33 WP-03. Appended after `beGapMerchantOwnerGrant`.
+    /// Reads are admitted. Commerce order and order status stay on the payment switch and are not admitted.
+    /// Claim submit, share code, and chapter invite revoke are merchant writes and stay closed on this host.
+    static let merchantOpsWp03OwnerGrant: Set<String> = [
+        "/api/merchant/claims/status",
+        "/api/merchant/claims/submit",
+        "/api/merchant/commerce/order",
+        "/api/merchant/commerce/order/status",
+        "/api/merchant/coupon-summary",
+        "/api/merchant/npc/review",
+        "/api/merchant/operators/invite/preview",
+        "/api/merchant/share-code",
+        "/api/merchant/chapter-application/invite/revoke"
+    ]
+
+    static func admitsMerchantOpsWp03(_ key: String) -> Bool {
+        guard merchantOpsWp03OwnerGrant.contains(key) else { return false }
+        if key == "/api/merchant/commerce/order" || key == "/api/merchant/commerce/order/status" { return false }
+        if key == "/api/merchant/claims/submit" || key == "/api/merchant/share-code"
+            || key == "/api/merchant/chapter-application/invite/revoke" { return false }
+        return true
+    }
 
     /// Handover 18, owner 2026-11-13. External HTML/JS games. Monetization is NONE.
     /// Catalog game ids are not numeric, so `externalGameGrantKey` folds that segment to `{}`.
@@ -2445,7 +2469,8 @@ public enum ReleaseMoneyWriteSwitch {
     public static func kind(for rawPath: String) -> ReleaseMoneyWriteKind? {
         let key = ChinaReviewedRouteCapability.normalized(rawPath)
         switch key {
-        case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create":
+        case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create",
+            "/api/merchant/commerce/order", "/api/merchant/commerce/order/status":
             return .payment
         case "/api/club/settlement/withdraw":
             return .payout
