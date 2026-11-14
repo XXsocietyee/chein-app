@@ -206,6 +206,76 @@
         }
       }
     },
+    "audit.attach.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Add appeal images" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "添加申诉图片" } }
+      }
+    },
+    "audit.attach.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Dismiss the upload error" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关闭上传错误" } }
+      }
+    },
+    "audit.attach.item": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Attachment" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "附件" } }
+      }
+    },
+    "audit.attach.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Up to 6. They must be yours and pass content safety. The platform decides." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "最多6张，须本人上传并通过内容安全审核；以平台校验为准" } }
+      }
+    },
+    "audit.attach.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The upload result has no file address." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "上传结果缺少文件地址" } }
+      }
+    },
+    "audit.attach.oversize": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The file is too large. Compress it or choose another. 10MB each." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文件过大，请压缩或更换文件后上传（单个文件最大10MB）" } }
+      }
+    },
+    "audit.attach.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The file was submitted for review. Retry it after it passes." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "文件已提交审核，通过后请重试此文件" } }
+      }
+    },
+    "audit.attach.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The image did not pass review. You can submit it again." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "媒体审核未通过，可重新提交审核" } }
+      }
+    },
+    "audit.attach.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Remove attachment" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "移除附件" } }
+      }
+    },
+    "audit.attach.uploading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Submitting" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提交中" } }
+      }
+    },
     "audit.appeal.open": {
       "extractionState": "manual",
       "localizations": {

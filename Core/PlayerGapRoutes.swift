@@ -83,6 +83,26 @@ public enum PlayerGapReply: Equatable {
         return request
     }
 
+    /// Multipart POST. The appeal image upload uses this so the file bytes are not passed through the JSON encoder.
+    func makeMultipart(_ path: String, body: Data, boundary: String, timeout: TimeInterval) throws -> URLRequest {
+        let segments = path.split(separator: "/", omittingEmptySubsequences: false)
+        guard segments.first == "api", segments.allSatisfy({ !$0.isEmpty && $0.utf8.allSatisfy {
+                  (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 45 || $0 == 95
+              } }), let token = token(), AuthRequestBuilder.isValidToken(token),
+              !body.isEmpty, (1.0...120.0).contains(timeout),
+              !boundary.isEmpty, boundary.utf8.allSatisfy({ $0 >= 33 && $0 != 34 && $0 < 127 }) else { throw APIError.invalidRequest }
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.httpBody = body
+        request.timeoutInterval = timeout
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpShouldHandleCookies = false
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        return request
+    }
+
     func send(_ request: URLRequest) async -> PlayerGapReply {
         do {
             let (data, status) = try await transport.send(request)

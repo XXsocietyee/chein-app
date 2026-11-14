@@ -105,6 +105,72 @@ import XCTest
         XCTAssertNil(command.confirmedAppealID(in: .object(["state": .string("NOT_FOUND")]), owner: 9001))
     }
 
+    /// Mini-program `addAuditAttachment`: uploadOSS, bizType then file, urls in pick order, then the appeal body.
+    func testAppealImagesUploadInOrderAndAFailureDoesNotSubmitEmpty() async throws {
+        let stub = Stub()
+        stub.replies["api/audit/timeline"] = [ok(#"{"rounds":[],"appeal":null,"canAppeal":true}"#)]
+        stub.replies["api/common/uploadOSS"] = [
+            (#"{"code":200,"url":"http://bucket.oss-cn-hangzhou.aliyuncs.com/a.jpg","assetId":12,"reviewState":"APPROVED"}"#, 200),
+            (#"{"code":200,"url":"https://cdn.example/b.jpg","reviewState":"APPROVED"}"#, 200)
+        ]
+        stub.replies["api/audit/appeal"] = [(#"{"code":200,"msg":"操作成功","appealId":"77","taskId":"88","state":"SUBMITTED"}"#, 200)]
+        let target = try XCTUnwrap(CreatorAuditTarget(bizType: "TOPIC", bizID: "992001"))
+        let flow = try XCTUnwrap(CreatorAuditAppealFlow(service: make(stub), store: store(), target: target))
+        await flow.loadTimeline()
+        let jpeg = Data([0xFF, 0xD8, 0xFF, 0xD9])
+        await flow.uploadImages([jpeg, jpeg])
+        let uploads = stub.sent("api/common/uploadOSS")
+        XCTAssertEqual(uploads.count, 2)
+        let first = try XCTUnwrap(uploads.first)
+        XCTAssertEqual(first.httpMethod, "POST")
+        XCTAssertEqual(first.timeoutInterval, 15.0)
+        XCTAssertEqual(first.value(forHTTPHeaderField: "Authorization"), "synthetic-token")
+        let payload = try XCTUnwrap(first.httpBody)
+        let biz = Data("name=\"bizType\"".utf8)
+        let file = Data("name=\"file\"".utf8)
+        let kind = Data("\r\nimage_free\r\n".utf8)
+        let bizAt = try XCTUnwrap(payload.range(of: biz))
+        let fileAt = try XCTUnwrap(payload.range(of: file))
+        XCTAssertLessThan(bizAt.lowerBound, fileAt.lowerBound)
+        XCTAssertNotNil(payload.range(of: kind))
+        XCTAssertEqual(flow.draft.attachments, [
+            "https://bucket.oss-cn-hangzhou.aliyuncs.com/a.jpg",
+            "https://cdn.example/b.jpg"
+        ])
+        stub.replies["api/audit/appeal/receipt"] = [ok("null")]
+        await flow.submit(reason: "图片是原创")
+        let body = stub.json(try XCTUnwrap(stub.sent("api/audit/appeal").last))
+        XCTAssertEqual(body["attachments"] as? [String], flow.draft.attachments)
+        XCTAssertNotEqual(flow.note, .submitted) // receipt was null; the post still carried the urls
+
+        let failed = Stub()
+        failed.replies["api/audit/timeline"] = [ok(#"{"rounds":[],"appeal":null,"canAppeal":true}"#)]
+        failed.replies["api/common/uploadOSS"] = [
+            (#"{"code":200,"url":"https://cdn.example/kept.jpg","reviewState":"APPROVED"}"#, 200),
+            (#"{"code":500,"msg":"上传失败"}"#, 500)
+        ]
+        let broken = try XCTUnwrap(CreatorAuditAppealFlow(service: make(failed), store: store(), target: target))
+        await broken.loadTimeline()
+        await broken.uploadImages([jpeg, jpeg])
+        XCTAssertEqual(broken.imageProblem, .server("上传失败"))
+        XCTAssertTrue(broken.draft.attachments.isEmpty)
+        XCTAssertFalse(broken.offersAppeal)
+        await broken.submit(reason: "图片是原创")
+        XCTAssertTrue(failed.sent("api/audit/appeal").isEmpty)
+        XCTAssertNotEqual(broken.note, .submitted)
+        broken.dismissImageProblem()
+        XCTAssertTrue(broken.offersAppeal)
+        let quiet = Stub()
+        quiet.replies["api/audit/timeline"] = [ok(#"{"rounds":[],"appeal":null,"canAppeal":true}"#)]
+        let oversized = try XCTUnwrap(CreatorAuditAppealFlow(service: make(quiet), store: store(), target: target))
+        await oversized.loadTimeline()
+        await oversized.uploadImages([Data(count: CreatorAuditAppealFlow.maximumImageBytes + 1)])
+        XCTAssertEqual(oversized.imageProblem, .oversize)
+        XCTAssertTrue(quiet.sent("api/common/uploadOSS").isEmpty)
+        await oversized.submit(reason: "太大")
+        XCTAssertTrue(quiet.sent("api/audit/appeal").isEmpty)
+    }
+
     // MARK: ApiAuditController /guard/reference, /guard/appeal, /guard/appeal/receipt
 
     func testGuardAppealRoundTripReadsEligibilitySubmitsOnceAndReadsByRequestID() async throws {

@@ -42,6 +42,12 @@ public final class PlayCreatorTailDefaultsStore {
     /// Raw appeal state from the timeline or, once confirmed, the receipt.
     public private(set) var appealState: String?
     public private(set) var busy = false
+    /// Set when a pick was uploaded and failed. Submit stays closed until the author dismisses it.
+    public private(set) var imageProblem: CreatorAppealImageProblem?
+    public private(set) var uploadingImages = false
+    /// `addAuditAttachment`: at most 6 refs. `upload-client` refuses a known file over 10MB.
+    public static let maximumImages = 6
+    public static let maximumImageBytes = 10 * 1024 * 1024
     @ObservationIgnored private let service: PlayerGapService
     @ObservationIgnored private let store: PlayCreatorTailDefaultsStore
     @ObservationIgnored private let owner: Int
@@ -60,7 +66,16 @@ public final class PlayCreatorTailDefaultsStore {
     }
 
     /// The appeal entry: offered only when the timeline says `canAppeal` and nothing is pending or confirmed.
-    public var offersAppeal: Bool { canAppeal && !draft.pending && !draft.confirmed && !busy && note != .storageFailed }
+    /// A failed image upload keeps this closed so the appeal is not reported sent with an empty new list.
+    public var offersAppeal: Bool {
+        canAppeal && !draft.pending && !draft.confirmed && !busy && !uploadingImages && imageProblem == nil && note != .storageFailed
+    }
+    /// Room left under the mini-program cap of 6. Zero hides "添加申诉图片".
+    public var imageSlots: Int { max(0, Self.maximumImages - draft.attachments.count) }
+    /// A failed upload still allows another pick. It does not reopen submit (`offersAppeal`).
+    public var canAddImages: Bool {
+        canAppeal && !draft.pending && !draft.confirmed && !busy && !uploadingImages && note != .storageFailed && imageSlots > 0
+    }
     public var offersRecovery: Bool { draft.pending && !busy }
 
     public func loadTimeline() async {
@@ -79,9 +94,60 @@ public final class PlayCreatorTailDefaultsStore {
         }
     }
 
+    /// `addAuditAttachment`. Uploads in pick order. Any failure stores none of this batch and sets `imageProblem`.
+    /// The source launches at most 3 uploads at once and writes `results[index]`; one-at-a-time keeps that order
+    /// and still attaches nothing when one file fails (`onDone` only calls back when `failures` is empty).
+    public func uploadImages(_ jpegs: [Data], now: @escaping () -> Date = { Date() }) async {
+        guard canAddImages, !jpegs.isEmpty else { return }
+        guard jpegs.count <= imageSlots else { imageProblem = .unknown; return }
+        if jpegs.contains(where: { $0.count > Self.maximumImageBytes }) { imageProblem = .oversize; return }
+        if jpegs.contains(where: \.isEmpty) { imageProblem = .unknown; return }
+        uploadingImages = true
+        let started = now()
+        var refs: [String] = []
+        for jpeg in jpegs {
+            if now().timeIntervalSince(started) > 60 {
+                uploadingImages = false
+                imageProblem = .unknown
+                return
+            }
+            switch await service.uploadAppealImage(jpeg) {
+            case .uploaded(let reference): refs.append(reference)
+            case .failed(let problem):
+                uploadingImages = false
+                imageProblem = problem
+                return
+            }
+        }
+        var next = draft.attachments
+        next.append(contentsOf: refs)
+        if next.count > Self.maximumImages { next = Array(next.prefix(Self.maximumImages)) }
+        guard saveAttachments(next) else { uploadingImages = false; return }
+        imageProblem = nil
+        uploadingImages = false
+    }
+
+    /// `removeAuditAttachment`.
+    public func removeImage(at index: Int) {
+        guard offersAppeal, draft.attachments.indices.contains(index) else { return }
+        var refs = draft.attachments
+        refs.remove(at: index)
+        _ = saveAttachments(refs)
+    }
+
+    /// The author has seen the upload error and may appeal with the attachments that did save.
+    public func dismissImageProblem() { imageProblem = nil }
+
+    /// A picker failure (not a cancel) is an upload error: do not submit as if the images were attached.
+    public func failImagePick() {
+        guard canAddImages else { return }
+        imageProblem = .unknown
+    }
+
     /// `appealAudit`: freeze the command first, then send it once. A pending command only re-reads its receipt.
     public func submit(reason raw: String) async {
         if draft.pending { await recover(); return }
+        guard imageProblem == nil, !uploadingImages else { return }
         guard offersAppeal, CreatorAuditTimeline.reasonValid(raw) else { return }
         let reason = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard save(pending: true, reason: reason), let command = draft.command else { return }
@@ -125,6 +191,14 @@ public final class PlayCreatorTailDefaultsStore {
         next.command = pending || next.confirmed
             ? (draft.command ?? CreatorAuditAppealCommand(requestID: CreatorAuditAppealCommand.newRequestID(), target: target, reason: reason, attachments: draft.attachments))
             : nil
+        guard store.save(next, key: key) else { note = .storageFailed; return false }
+        draft = next
+        return true
+    }
+
+    @discardableResult private func saveAttachments(_ refs: [String]) -> Bool {
+        var next = draft
+        next.attachments = refs
         guard store.save(next, key: key) else { note = .storageFailed; return false }
         draft = next
         return true

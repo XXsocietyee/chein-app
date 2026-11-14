@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// WP-02 play/creator tail: leader chapter release with its receipt and the station release (pages/play),
 /// the original-run guard appeal (pages/play guard-appeal.js), the author's audit record and appeal
@@ -220,6 +221,7 @@ func appealStateText(_ state: String) -> String {
     @State private var flow: CreatorAuditAppealFlow?
     @State private var composing = false
     @State private var reason = ""
+    @State private var picking = false
 
     var body: some View {
         NavigationStack {
@@ -240,6 +242,7 @@ func appealStateText(_ state: String) -> String {
             await next?.loadTimeline()
         }
         .sheet(isPresented: $composing) { compose }
+        .sheet(isPresented: $picking) { imagePicker }
     }
 
     @ViewBuilder private func content(_ flow: CreatorAuditAppealFlow) -> some View {
@@ -275,6 +278,7 @@ func appealStateText(_ state: String) -> String {
                 CYPillButton("audit.recover", style: .secondary, systemImage: "arrow.clockwise", tableName: tailTable) { Task { await flow.recover() } }
                     .listRowBackground(Color.clear).accessibilityIdentifier("myProject.audit.recover")
             }
+            attachments(flow)
             if flow.offersAppeal {
                 CYPillButton("audit.appeal.open", style: .secondary, systemImage: "text.bubble", tableName: tailTable) {
                     reason = flow.draft.reason; composing = true
@@ -283,6 +287,52 @@ func appealStateText(_ state: String) -> String {
                 Text("audit.appeal.once", tableName: tailTable).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }
         }
+    }
+
+    @ViewBuilder private func attachments(_ flow: CreatorAuditAppealFlow) -> some View {
+        if flow.uploadingImages {
+            Text("audit.attach.uploading", tableName: tailTable).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("myProject.audit.uploading")
+        }
+        if let problem = flow.imageProblem {
+            Text(verbatim: imageProblemText(problem)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("myProject.audit.imageError")
+            Button(action: { flow.dismissImageProblem() }) {
+                Text("audit.attach.dismiss", tableName: tailTable)
+            }
+            .accessibilityIdentifier("myProject.audit.imageError.dismiss")
+        }
+        ForEach(Array(flow.draft.attachments.enumerated()), id: \.offset) { index, _ in
+            if flow.offersAppeal {
+                Button(action: { flow.removeImage(at: index) }) {
+                    Text(verbatim: tailText("audit.attach.remove") + " " + String(index + 1))
+                }
+                .accessibilityIdentifier("myProject.audit.removeImage.\(index)")
+            } else {
+                Text(verbatim: tailText("audit.attach.item") + " " + String(index + 1))
+                    .font(CYTypography.body)
+                    .accessibilityIdentifier("myProject.audit.image.\(index)")
+            }
+        }
+        if flow.canAddImages {
+            Button(action: { picking = true }) {
+                CYListRow(verbatim: tailText("audit.attach.add"), meta: tailText("audit.attach.hint"), trailing: CYListRowTrailing.none) {
+                    CYRowIcon(systemImage: "photo.badge.plus")
+                }
+            }
+            .accessibilityIdentifier("myProject.audit.addImage")
+        }
+    }
+
+    private var imagePicker: some View {
+        AppealImagePicker(limit: max(flow?.imageSlots ?? 1, 1), onImages: { jpegs in
+            picking = false
+            guard !jpegs.isEmpty else { return }
+            Task { await flow?.uploadImages(jpegs) }
+        }, onFailure: {
+            picking = false
+            flow?.failImagePick()
+        })
     }
 
     private var compose: some View {
@@ -314,6 +364,21 @@ func appealStateText(_ state: String) -> String {
         if let action = row.action { return kind + " · " + tailText("audit.action." + action) }
         let item = row.problemItemType.map { tailText("audit.item." + $0) } ?? tailText("audit.item.other")
         return kind + " · " + item + (row.problemItemID.map { " #" + $0 } ?? "") + tailText("audit.problem")
+    }
+
+    private func imageProblemText(_ problem: CreatorAppealImageProblem) -> String {
+        switch problem {
+        case .oversize: return tailText("audit.attach.oversize")
+        case .missingAddress: return tailText("audit.attach.missing")
+        case .pendingReview: return tailText("audit.attach.pending")
+        case .rejected(let reason):
+            let shown = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+            return shown.isEmpty ? tailText("audit.attach.rejected") : shown
+        case .server(let message):
+            let shown = message.trimmingCharacters(in: .whitespacesAndNewlines)
+            return shown.isEmpty ? "—" : shown
+        case .unknown: return "—"
+        }
     }
 
     private func noteText(_ note: CreatorAuditAppealFlow.Note) -> String {
@@ -370,5 +435,52 @@ func appealStateText(_ state: String) -> String {
         let reason = await service.editionEmptyReason(clubID: captured)
         guard captured == clubID else { return }
         phase = reason.map(Phase.ready) ?? .failed
+    }
+}
+
+/// `chooseImage` count is the slots left under 6. The shared picker keeps pick order.
+@MainActor private struct AppealImagePicker: UIViewControllerRepresentable {
+    let limit: Int
+    let onImages: ([Data]) -> Void
+    let onFailure: () -> Void
+    func makeUIViewController(context: Context) -> Host { Host(limit: limit, onImages: onImages, onFailure: onFailure) }
+    func updateUIViewController(_ controller: Host, context: Context) {}
+
+    @MainActor final class Host: UIViewController {
+        private let limit: Int
+        private let onImages: ([Data]) -> Void
+        private let onFailure: () -> Void
+        private var started = false
+        private var picker: RetainedNativeImagePicker?
+        init(limit: Int, onImages: @escaping ([Data]) -> Void, onFailure: @escaping () -> Void) {
+            self.limit = limit
+            self.onImages = onImages
+            self.onFailure = onFailure
+            super.init(nibName: nil, bundle: nil)
+        }
+        required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            guard !started else { return }
+            started = true
+            let picker = RetainedNativeImagePicker(enabled: true, present: { [weak self] view in
+                guard let self, self.presentedViewController == nil else { return false }
+                self.present(view, animated: true)
+                return true
+            }, dismiss: { [weak self] in
+                self?.presentedViewController?.dismiss(animated: true)
+            })
+            self.picker = picker
+            let slots = limit
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                do {
+                    let images = try await picker.selectBatch(limit: slots)
+                    self.onImages(images?.map(\.jpeg) ?? [])
+                } catch {
+                    self.onFailure()
+                }
+            }
+        }
     }
 }

@@ -24,6 +24,27 @@ extension PlayerGapService {
         return await send(request)
     }
 
+    /// `addAuditAttachment` → `chooseImage(..., { skipCrop: true })` → `upload-client` `uploadAll`.
+    /// One file per call, in the order the picker returned. `bizType` then `file`, matching the other
+    /// `chooseImage` ports (`ProjectStoryImageUploadClient`). The appeal stores `url`, not a made-up id.
+    public func uploadAppealImage(_ jpeg: Data) async -> CreatorAppealImageUpload {
+        guard !jpeg.isEmpty else { return .failed(.unknown) }
+        guard jpeg.count <= CreatorAuditAppealFlow.maximumImageBytes else { return .failed(.oversize) }
+        let boundary = "AppealImage-" + UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\nimage_free\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"appeal.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".utf8)
+        body.append(jpeg)
+        body.append(Data("\r\n--\(boundary)--\r\n".utf8))
+        guard let request = try? makeMultipart(ProjectStoryImageUploadClient.path, body: body, boundary: boundary, timeout: 15) else {
+            return .failed(.unknown)
+        }
+        do {
+            let (data, status) = try await transport.send(request)
+            return CreatorAppealImageUpload.parse(data, status: status)
+        } catch {
+            return .failed(.unknown)
+        }
+    }
+
     /// `appealAudit`: POST JSON, the frozen command exactly as saved.
     public func submitAuditAppeal(_ command: CreatorAuditAppealCommand) async -> PlayerGapReply {
         guard let request = try? makeRequest("api/audit/appeal", method: "POST", json: command.body) else { return .unknown }
@@ -166,6 +187,51 @@ public struct CreatorAuditTimeline: Equatable {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         return !trimmed.isEmpty && trimmed.count <= 500
     }
+}
+
+/// Result of one `POST /api/common/uploadOSS` for an appeal image. `.uploaded` is the `url` the mini-program stores.
+public enum CreatorAppealImageUpload: Equatable {
+    case uploaded(String)
+    case failed(CreatorAppealImageProblem)
+    /// `upload-client` `accept`: code 200, refuse a non-APPROVED `reviewState`, then `mapResult` → `data.url`,
+    /// with the OSS http→https rewrite. A missing url is a failure, never an empty attachment.
+    static func parse(_ data: Data, status: Int) -> CreatorAppealImageUpload {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return .failed(.unknown) }
+        let code = Self.code(object["code"])
+        let message = (object["msg"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if status == 401 || code == 401 { return .failed(message.isEmpty ? .unknown : .server(message)) }
+        guard (200..<300).contains(status), code == 200 else {
+            return .failed(message.isEmpty ? .unknown : .server(message))
+        }
+        if let review = object["reviewState"] as? String, review != "APPROVED" {
+            if review == "REJECTED" {
+                let reason = (object["reviewReason"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return .failed(.rejected(reason))
+            }
+            return .failed(.pendingReview)
+        }
+        guard let raw = object["url"] as? String else { return .failed(.missingAddress) }
+        let url = secureOSS(raw).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !url.isEmpty else { return .failed(.missingAddress) }
+        return .uploaded(url)
+    }
+    /// `upload-client` only rewrites an Aliyun OSS http URL. Anything else is kept.
+    static func secureOSS(_ url: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: #"^http://([A-Za-z0-9-]+\.oss-[A-Za-z0-9-]+\.aliyuncs\.com)(/)"#, options: .caseInsensitive) else { return url }
+        let range = NSRange(url.startIndex..., in: url)
+        return regex.stringByReplacingMatches(in: url, range: range, withTemplate: "https://$1$2")
+    }
+    private static func code(_ value: Any?) -> Int? {
+        if let number = value as? Int { return number }
+        if let number = value as? NSNumber { return number.intValue }
+        if let text = value as? String { return Int(text) }
+        return nil
+    }
+}
+
+/// Why an appeal image did not become an attachment. `.unknown` is shown as an em dash.
+public enum CreatorAppealImageProblem: Equatable {
+    case oversize, missingAddress, pendingReview, rejected(String), server(String), unknown
 }
 
 /// The frozen `POST /api/audit/appeal` body. Attachments are de-duplicated trimmed refs; none is sent empty.
