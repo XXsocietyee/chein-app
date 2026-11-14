@@ -211,7 +211,7 @@ import SwiftUI
 @MainActor private struct ClubPostDiscussionFixtureTraceLabel: View {
     @ObservedObject private var events = ClubPostDiscussionFixtureTrace.events
     var body: some View {
-        Text("Fixture discussion events").font(.system(size: 1)).frame(width: 1, height: 1).clipped()
+        Text("Fixture discussion events").font(CYTypography.micro).frame(width: 1, height: 1).clipped()
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier("club.discussion.fixtureTrace")
             .accessibilityLabel("Fixture discussion events").accessibilityValue(events.value)

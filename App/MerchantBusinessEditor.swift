@@ -26,7 +26,7 @@ struct MerchantBusinessEditorContext: Identifiable {
     @State private var reviewContentContextID: UUID?
     @State private var aftercareDraftContextID: UUID?
     @State private var name = ""
-    @State private var color = "#2E6D5A"
+    @State private var color = MerchantCustomerBatchTag.defaultColor
     @State private var role = ""
     @State private var decision: MerchantAftercareDecision = .agree
     @State private var evidence = ""

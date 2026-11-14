@@ -132,7 +132,7 @@ struct CityArrivalPointCard: View {
                                      ChannelCopy.text("已确认", "Confirmed", locale: locale)], current: step)
             if let code {
                 VStack(spacing: CYSpacing.xs) {
-                    Text(verbatim: code).font(.system(size: 40, weight: .bold, design: .rounded).monospacedDigit()).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: code).font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
                         .minimumScaleFactor(0.6).lineLimit(1)
                     CityArrivalCopy.text("showOnlyInPerson").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 }

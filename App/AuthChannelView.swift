@@ -145,7 +145,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
             Image(systemName: "message.badge.filled.fill")
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(CYColor.actionPrimaryFg, CYColor.actionPrimaryBg)
-                .font(.system(size: 26, weight: .semibold))
+                .font(CYTypography.display)
                 .frame(width: 56, height: 56)
                 .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.12), lineWidth: 1))

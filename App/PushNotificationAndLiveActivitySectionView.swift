@@ -264,7 +264,7 @@ public struct PushNotificationAndLiveActivitySectionView: View {
                     tint: row.isLockScreenPreviewRedacted ? .blue : .orange
                 )
                 if row.supportsLiveActivityUpdate {
-                    statusPill(text: "LIVE ACTIVITY", tint: .purple)
+                    statusPill(text: "LIVE ACTIVITY", tint: CYColor.infoText)
                 }
             }
         }

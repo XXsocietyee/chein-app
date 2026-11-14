@@ -16,9 +16,9 @@ import SwiftUI
         Form {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Image(systemName: "paintbrush.pointed.fill").font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
+                    Image(systemName: "paintbrush.pointed.fill").font(CYTypography.sheetTitle).foregroundStyle(.white)
                         .frame(width: 52, height: 52)
-                        .background(SettingsTint.purple.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                        .background(SettingsTint.indigo.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                         .accessibilityHidden(true)
                     Text(zh ? "成为创作者" : "Become a creator").font(.system(.largeTitle, design: .rounded, weight: .bold))
                         .foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
