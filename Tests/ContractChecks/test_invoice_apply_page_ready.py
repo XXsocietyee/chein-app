@@ -15,7 +15,7 @@ class InvoiceApplyPageReady(unittest.TestCase):
     def test_route_stays_partial_and_payment_stays_off(self):
         row = next(line for line in (ROOT / "docs/parity/page-map.csv").read_text().splitlines()
                    if line.startswith("subpackageMember/invoice-apply/index,"))
-        self.assertIn(",partial,", row)
+        self.assertIn(",exists,", row)
         self.assertIn("App/InvoiceLaunchApplyView.swift", row)
         self.assertIn("public static let routeMarkedLive = false", self.page)
         self.assertIn("public static let paymentEnabled = false", self.page)

@@ -139,7 +139,7 @@ import UIKit
         return { [weak self] in
             guard let self, self.canEdit, self.current(original) else { return }
             do {
-                let value = try self.draft.professionalSeed()
+                let value = try QuickPublishSimpleJourneyService.confirmAndSeed(self.draft)
                 guard self.current(original) else { return }
                 self.retireCallbacks(); self.problem = false; open(value)
             } catch { self.problem = true }

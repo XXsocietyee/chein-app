@@ -644,6 +644,7 @@
         "UsageConsentHistoryHostTests",
         "VerificationPresentationAppTests",
         "WP01SeenAckRefreshTests",
+        "WP06PartialPageHostTests",
         "WP07ShopNPCDisclosureTests",
         "WP08ReceiveNativeURLAuditTests",
         "WalkingCheckpointReadRetryTests",

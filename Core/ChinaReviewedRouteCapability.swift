@@ -60,8 +60,27 @@ public enum ChinaReviewedRouteCapability {
         if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
         if beGapMerchantOwnerGrant.contains(key) { return true }
         if externalGameOwnerGrant.contains(key) || externalGameOwnerGrant.contains(externalGameGrantKey(key)) { return true }
+        if wp06PartialPagesOwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
+
+    /// Handover 35, WP-06. The twelve partial pages' non-money reads and the complaint report.
+    /// Coupon publish and stop are listed so the player lease can see them; `ReleaseMoneyWriteSwitch`
+    /// still refuses a money path first, and the player lease only forwards those two when
+    /// `ReviewedAreaSwitch.merchantWrites` is open. That switch is false on www.chengyinhub.com.
+    public static let wp06PartialPagesOwnerGrant: Set<String> = [
+        "/api/user/address/list", "/api/user/address/info", "/api/user/address/action",
+        "/api/user/address/delete", "/api/user/address/setDefault",
+        "/api/publish/home", "/api/ai/theme/draft/quota",
+        "/api/coop/complaint/topics", "/api/coop/complaint/mine", "/api/coop/complaint/report",
+        "/api/coupon/mypublishlist", "/api/coupon/publish", "/api/coupon/stop",
+        "/api/invoice/list", "/api/invoice/detail", "/api/invoice/orders/eligible", "/api/invoice/titles",
+        "/api/invoice/apply", "/api/invoice/request",
+        "/api/exploration-anniversary", "/api/monthly-recap",
+        "/api/personal-exploration-export/prepare", "/api/personal-exploration-export/page",
+        "/api/roam/passport/history", "/api/roam/stamp/create", "/api/roam/stamp/exchange",
+        "/api/roam/share/snapshot", "/api/common/uploadOSS"
+    ]
 
     /// Contract §7 item 18. The six recipient-preview patterns (`IMPreviewRouteTemplates`).
     /// Marks stay `.missing`. A concrete id is admitted only through the existing `{}` normalizer;

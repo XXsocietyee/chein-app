@@ -42,7 +42,7 @@ class StampCameraPageReadyContract(unittest.TestCase):
         document = json.loads(read(STRINGS))
         self.assertEqual(document["page"], "subpackageP3/pages/stamp-camera/index/index")
         self.assertEqual(document["screen"], VIEW)
-        self.assertEqual(document["mapStatus"], "partial")
+        self.assertEqual(document["mapStatus"], "exists")
         self.assertEqual(document["unknownMark"], DASH)
         self.assertEqual(document["accessibilityIdentifiers"], identifiers)
         string_keys = {key for key in quoted if key in catalog}

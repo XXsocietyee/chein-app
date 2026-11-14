@@ -649,6 +649,7 @@
         "UnifiedTicketExecutionMatrixSectionViewTests",
         "UsageConsentHistoryHostTests",
         "VerificationPresentationAppTests",
+        "WP06PartialPageHostTests",
         "WP07ShopNPCDisclosureTests",
         "WP12QmodImportMountTests",
         "WP14NPCChatDataRevokeTests",

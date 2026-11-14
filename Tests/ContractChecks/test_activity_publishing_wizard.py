@@ -17,8 +17,8 @@ STEPS = [
     ("content", "活动内容", "这场活动玩什么？", ["description", "imgUrl", "templateId"]),
     ("ticket", "票务与合作", "这场活动怎么卖票？", ["ticket*"]),
 ]
-QUICK_SHA = "7fd9e5a9d46b28e91e3b5d15358498ffedcf4e1efb705ef1492996f757b77f67"
-PREFIX_SHA = "6afa30ba87bfccebd13a9b58dd2caf83f4d7a0f1c0a0374b11caad5cbec0a0f2"
+QUICK_SHA = "7332c0653e2c406937a219a1d85bc9ab609b6308b4483b075d1e07d87694397d"
+PREFIX_SHA = "99bd9812ff2dc47075e6344a8a7b7159d298c87a02e0e7b26b8b6029208f1524"
 SUFFIX_SHA = "7fb63333236d1014e3c7f7f202e1baf26442c41092b42bed0e6fefa1befbdf6e"
 
 
