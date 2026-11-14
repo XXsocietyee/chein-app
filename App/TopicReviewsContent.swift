@@ -47,16 +47,23 @@ struct TopicReviewsContent: View {
             .questifyCardSurface()
             .questifyCardListRow()
             ForEach(Array(reviews.preview.enumerated()), id: \.offset) { index, review in
-                TopicReviewCard(review: review, index: index)
-                    .questifyCardListRow()
+                UGCBlockedFilterContainer(authorName: review.authorName) {
+                    TopicReviewCard(review: review, index: index)
+                        .questifyCardListRow()
+                }
             }
         }
     }
 }
 
 private struct TopicReviewCard: View {
+    @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     let review: TopicReview
     let index: Int
+
+    private var reviewReportTarget: UGCSafetyReportTarget {
+        .topic(id: max(1, safetySubjectID ?? 1))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -86,6 +93,11 @@ private struct TopicReviewCard: View {
             }
             .textSelection(.enabled)
             .accessibilityIdentifier("topic.reviews.text.\(index)")
+            UGCReviewSafetyFooter(
+                target: reviewReportTarget,
+                subjectTitle: review.contents,
+                authorName: review.authorName
+            )
         }
         .fixedSize(horizontal: false, vertical: true)
         .questifyCardSurface()

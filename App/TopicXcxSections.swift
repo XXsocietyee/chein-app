@@ -126,17 +126,34 @@ struct TopicXcxIncludes: View {
 }
 
 struct TopicXcxLineup: View {
+    @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     let members: [TopicXcxFacts.LineupMember]
+
+    private var lineupReportTarget: UGCSafetyReportTarget {
+        .topic(id: max(1, safetySubjectID ?? 1))
+    }
+
     var body: some View {
         // Mini-program `lineup-row`: horizontal scroll of avatar / name / role cards.
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 ForEach(Array(members.enumerated()), id: \.offset) { _, member in
-                    VStack(spacing: CYSpacing.xs) {
-                        CYAvatarView(name: member.name, size: .lg)
-                        Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
-                        Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
-                    }.frame(width: 88).accessibilityElement(children: .combine)
+                    UGCBlockedFilterContainer(authorName: member.name) {
+                        VStack(spacing: CYSpacing.xs) {
+                            CYAvatarView(name: member.name, size: .lg)
+                            Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
+                        }
+                        .frame(width: 88)
+                        .accessibilityElement(children: .combine)
+                        .contextMenu {
+                            UGCReviewSafetyFooter(
+                                target: lineupReportTarget,
+                                subjectTitle: member.name,
+                                authorName: member.name
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -268,6 +285,12 @@ struct TopicXcxTemplatesSection: View {
                             }.frame(width: 140, alignment: .leading).padding(Theme.Space.s3)
                                 .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
                                 .accessibilityElement(children: .combine).accessibilityIdentifier("topic.nodeIntro.\(template.id)")
+                                .contextMenu {
+                                    UGCReviewSafetyFooter(
+                                        target: .template(id: template.id),
+                                        subjectTitle: template.title
+                                    )
+                                }
                         }
                     }
                 }

@@ -32,6 +32,7 @@ public struct ClubChannelMessagingView: View {
     @Environment(\.locale) private var locale
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.ugcSafetyContext) private var ugcSafety
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
@@ -155,8 +156,11 @@ public struct ClubChannelMessagingView: View {
     }
 
     private var localizedFilter: ChannelContentFilterHook {
-        ChannelContentFilterHook(
-            blockedSenderIDs: moderationCoordinator.blockedSenderIDs.union(contentFilter.blockedSenderIDs),
+        let globalBlocked = ugcSafety?.blockedStore.blockedMemberIDs ?? []
+        return ChannelContentFilterHook(
+            blockedSenderIDs: moderationCoordinator.blockedSenderIDs
+                .union(contentFilter.blockedSenderIDs)
+                .union(globalBlocked),
             mutedKeywords: contentFilter.mutedKeywords,
             maskObjectionableContent: contentFilter.maskObjectionableContent,
             locale: locale
@@ -572,13 +576,16 @@ public struct ClubChannelMessagingView: View {
                                         let nickname = effectiveMemberRoster.first(where: { $0.memberID == authorID })?.nickname
                                             ?? copy("成员 #\(authorID)", "Member #\(authorID)")
                                         Task {
-                                            _ = await moderationCoordinator.blockUser(
+                                            let didBlock = await moderationCoordinator.blockUser(
                                                 targetMemberID: authorID,
                                                 nickname: nickname,
                                                 shouldBlock: true,
                                                 activeChannelID: Int(selectedChannelID),
                                                 locale: locale
                                             )
+                                            if didBlock {
+                                                ugcSafety?.blockedStore.recordLocalBlock(memberID: authorID, authorName: nickname)
+                                            }
                                         }
                                     },
                                     onDeleteMessage: { msg in

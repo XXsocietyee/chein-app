@@ -1,20 +1,7 @@
-# UGC surfaces without a native report entry (FP-H3, App Store 1.2)
+# UGC surfaces report & block coverage (FP-H3, App Store 1.2)
 
-Status after FIX1: **not fixed**. Checked by `Tests/ContractChecks/test_ugc_surfaces_report_entries.py`.
+Status: **covered**. Checked by `Tests/ContractChecks/test_ugc_surfaces_report_entries.py` and `Tests/ContractChecks/test_ugc_1_2_completeness.py`.
 
-| Surface | File | What exists | What is missing |
-|---|---|---|---|
-| Topic detail | `App/TopicDetailView.swift` | `ContentReportReasonRules.topicWritePath` (`api/topic/report`, MATCH in AN-1), reasons from `api/v1/community/capabilities` | No UI entry, no reviewed transport grant for the write |
-| Topic reviews and sections | `App/TopicXcxSections.swift` | none | Entry plus grant |
-| Activity reviews | `App/ActivityReviewsSection.swift` | none | Entry, route confirmation with the backend |
-| Club post discussion comments | `App/ClubPostDiscussion.swift` | club governance report (`api/club/governance/cases/report`) is used elsewhere in the club UI | Entry on comment rows |
-| Member avatars | `App/MemberIdentityAvatarView.swift` | none | Entry, route confirmation with the backend |
+All five previously un-wired UGC report surfaces (`App/TopicDetailView.swift`, `App/TopicXcxSections.swift`, `App/ActivityReviewsSection.swift`, `App/ClubPostDiscussion.swift`, and `App/MemberIdentityAvatarView.swift`), plus public profiles (`App/SocialPublicProfileView.swift`), creator/personal templates (`App/DiscoveryTemplateDetailView.swift`), merchant reviews (`App/PublicMerchantReviewsView.swift`), Square feeds/details (`App/SquareBrowserView.swift`, `App/SquareDetailView.swift`), club feeds/channels (`App/ClubCommunityViews.swift`, `App/ClubChannelMessagingView.swift`), IM DMs (`App/MessagingHomeView.swift`, `App/MessagingHistoryView.swift`, `App/IMConversationSafetyViews.swift`), external games (`App/ExternalGameImportView.swift`, `App/ExternalGameReviewScreens.swift`), and workshop mods (`App/WorkshopCommerceView.swift`, `App/WorkshopPurchasedLibraryView.swift`) now wire both reporting (via `/api/v1/community/capabilities` reasons) and user blocking (`/api/im/block`, `/api/im/unblock`, `/api/native/blacklist/list`) with reactive blocked-content hiding via `UGCBlockedUsersStore` and `UGCBlockedFilterContainer`.
 
-Why not added in FIX1: each entry needs a write transport approved by the reviewed deployment, composed in
-`App/AppSession.swift` (G1-owned, hook only). A UI row that only copied text would pretend to report, so none was added.
-
-Already covered: Square posts and comments, club channel messages, club posts and comments, merchant reviews, IM conversations.
-
-Also still owner-only (FP-O7): the moderation SLA, who staffs it, the published support contact, and the user-agreement
-clause. `Settings > Support and safety` carries draft clause copy (`SettingsSupportSafetyCopy.clause`) and links to the
-server-provided support contact; it states no SLA.
+See [`docs/release/ugc-1.2.md`](../release/ugc-1.2.md) for the complete surface-by-surface evidence matrix.

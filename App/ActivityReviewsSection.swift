@@ -41,16 +41,23 @@ struct ActivityReviewsSection: View {
             .questifyCardSurface()
             .questifyCardListRow()
             ForEach(Array(reviews.preview.enumerated()), id: \.offset) { index, review in
-                ActivityReviewCard(review: review, index: index)
-                    .questifyCardListRow()
+                UGCBlockedFilterContainer(authorName: review.authorName) {
+                    ActivityReviewCard(review: review, index: index)
+                        .questifyCardListRow()
+                }
             }
         }
     }
 }
 
 private struct ActivityReviewCard: View {
+    @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     let review: ActivityReview
     let index: Int
+
+    private var reportTarget: UGCSafetyReportTarget {
+        .activity(activityID: max(1, safetySubjectID ?? 1))
+    }
 
     var body: some View {
         // Mini-program `activity-comment`: name and time, stars, then the text.
@@ -90,6 +97,11 @@ private struct ActivityReviewCard: View {
                     .textSelection(.enabled)
                     .accessibilityIdentifier("activity.reviews.text.\(index)")
             }
+            UGCReviewSafetyFooter(
+                target: reportTarget,
+                subjectTitle: review.contents,
+                authorName: review.authorName
+            )
         }
         .fixedSize(horizontal: false, vertical: true)
         .questifyCardSurface()

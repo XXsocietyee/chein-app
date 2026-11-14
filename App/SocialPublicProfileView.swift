@@ -125,6 +125,9 @@ import SwiftUI
                             }
                             .buttonStyle(.plain)
                         }
+                        if reader.identity.accountID != profile.id, profile.id > 0 {
+                            UGCProfileSafetyActionsSection(memberID: profile.id, displayName: profile.nickname)
+                        }
                         if profile.id == memberID, let accountID = reader.identity.accountID,
                            accountID != memberID, memberID > 0, isCurrent() {
                             NavigationLink { PersonalLocationShareEntry(recipientId: Int64(memberID)) } label: {
@@ -161,8 +164,16 @@ import SwiftUI
                             ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
                         }
                     case .posts:
-                        ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,
-                            actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)
+                        UGCBlockedFilterContainer(memberID: profile.id, authorName: profile.nickname) {
+                            ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader,
+                                actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)
+                        } blockedPlaceholder: {
+                            UGCBlockedNoticeBanner(
+                                messageKey: "ugc.safety.blockedBanner.profile",
+                                memberID: profile.id,
+                                authorName: profile.nickname
+                            )
+                        }
                     case .achievements:
                         // Points come first under 成就, as in the mini-program.
                         if let weeklyPointsAccess {
@@ -242,6 +253,19 @@ import SwiftUI
                 if let ticket = authorPostTicket, ticket.context != context { authorPostTicket = nil }
             }
             .accessibilityIdentifier("social.profile")
+            .toolbar {
+                if reader.identity.accountID != memberID, memberID > 0 {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        UGCSafetyMenuButton(
+                            presentation: UGCReportPresentationTarget(
+                                target: .member(memberID: memberID),
+                                authorMemberID: memberID
+                            )
+                        )
+                        .accessibilityIdentifier("social.profile.safetyMenu")
+                    }
+                }
+            }
             .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in
                 if context == nil && tab == .mine && selfProjectsAccess?.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) == nil { tab = .posts }
             }

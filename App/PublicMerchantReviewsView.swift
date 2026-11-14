@@ -62,32 +62,44 @@ import SwiftUI
                         Text("merchant.publicHome.noMatchingReviews").accessibilityIdentifier("merchant.publicHome.noMatchingReviews")
                     }
                     ForEach(visibleItems, id: \.offset) { _, item in
-                        Section {
-                            HStack(alignment: .top, spacing: Theme.Space.s3) {
-                                Group {
-                                    if let first = item.authorNickname?.first { Text(String(first)).font(.title3.weight(.semibold)) }
-                                    else { Image(systemName: "person.fill").foregroundStyle(.secondary) }
-                                }.frame(width: 44, height: 44)
-                                    .background(Theme.Color.bgRaised(in: .merchant), in: Circle()).accessibilityHidden(true)
-                                Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
-                                    .font(.headline).fixedSize(horizontal: false, vertical: true)
-                            }
-                                // Keep the review ID on its heading, not on the Section: List
-                                // section identifiers can override the nested Report action ID.
-                                .accessibilityIdentifier("merchant.publicHome.review.\(item.id)")
-                            LabeledContent("merchant.publicHome.rating", value: "\(item.rating) / 5")
-                            if item.verifiedRedemption { Label("merchant.publicHome.verified", systemImage: "checkmark.seal") }
-                            if let content = item.content { Text(verbatim: content).textSelection(.enabled) }
-                            if let time = item.createTime { Text(verbatim: time).font(.caption) }
-                            RetainedPublicReviewImages(urls: item.imageUrls, reader: imageReader)
-                            if item.canReport, let writes, let page = itemPages[item.id] {
-                                NavigationLink("merchant.publicHome.report") {
-                                    PublicMerchantReviewEditor(target: target, reportItem: item, page: page, context: writes)
-                                }.accessibilityIdentifier("merchant.publicHome.report.\(item.id)")
-                            }
-                            if let reply = item.merchantReply, !reply.isEmpty {
-                                LabeledContent("merchant.publicHome.reply", value: reply)
-                                if let time = item.repliedAt { Text(verbatim: time).font(.caption) }
+                        UGCBlockedFilterContainer(authorName: item.authorNickname) {
+                            Section {
+                                HStack(alignment: .top, spacing: Theme.Space.s3) {
+                                    Group {
+                                        if let first = item.authorNickname?.first { Text(String(first)).font(.title3.weight(.semibold)) }
+                                        else { Image(systemName: "person.fill").foregroundStyle(.secondary) }
+                                    }.frame(width: 44, height: 44)
+                                        .background(Theme.Color.bgRaised(in: .merchant), in: Circle()).accessibilityHidden(true)
+                                    Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
+                                        .font(.headline).fixedSize(horizontal: false, vertical: true)
+                                    Spacer(minLength: 0)
+                                    UGCSafetyMenuButton(
+                                        presentation: UGCReportPresentationTarget(
+                                            target: .community(targetType: .merchant, targetID: target.merchantRowID.rawValue),
+                                            subjectTitle: item.content,
+                                            authorName: item.authorNickname
+                                        ),
+                                        compactLabel: true
+                                    )
+                                    .accessibilityIdentifier("merchant.publicHome.safety.\(item.id)")
+                                }
+                                    // Keep the review ID on its heading, not on the Section: List
+                                    // section identifiers can override the nested Report action ID.
+                                    .accessibilityIdentifier("merchant.publicHome.review.\(item.id)")
+                                LabeledContent("merchant.publicHome.rating", value: "\(item.rating) / 5")
+                                if item.verifiedRedemption { Label("merchant.publicHome.verified", systemImage: "checkmark.seal") }
+                                if let content = item.content { Text(verbatim: content).textSelection(.enabled) }
+                                if let time = item.createTime { Text(verbatim: time).font(.caption) }
+                                RetainedPublicReviewImages(urls: item.imageUrls, reader: imageReader)
+                                if item.canReport, let writes, let page = itemPages[item.id] {
+                                    NavigationLink("merchant.publicHome.report") {
+                                        PublicMerchantReviewEditor(target: target, reportItem: item, page: page, context: writes)
+                                    }.accessibilityIdentifier("merchant.publicHome.report.\(item.id)")
+                                }
+                                if let reply = item.merchantReply, !reply.isEmpty {
+                                    LabeledContent("merchant.publicHome.reply", value: reply)
+                                    if let time = item.repliedAt { Text(verbatim: time).font(.caption) }
+                                }
                             }
                         }
                     }

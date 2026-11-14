@@ -434,6 +434,7 @@ struct SessionRootView: View {
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
         .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
+        .environment(\.ugcSafetyContext, session.makeUGCSafetyContext())
     }
 
     private func chain3<V: View>(_ v: V) -> some View {

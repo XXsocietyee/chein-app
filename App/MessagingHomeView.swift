@@ -164,16 +164,21 @@ private struct MessagingConversationListView: View {
         .onChange(of: selectedTab) { _, _ in displayLimit = 30 }
     }
     @ViewBuilder private func conversationRow(_ conversation: MessagingConversation) -> some View {
-        NavigationLink {
-            MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
-                directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
-                onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
-        } label: { IMInboxRow(conversation: conversation) }
-        .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            rowActions(for: conversation)
+        UGCBlockedFilterContainer(
+            memberID: conversation.kind == .direct ? conversation.counterparty?.id : nil,
+            authorName: conversation.kind == .direct ? conversation.counterparty?.nickname : nil
+        ) {
+            NavigationLink {
+                MessagingHistoryView(conversationID:conversation.id,conversation:conversation,reader:reader,sender:senderForConversation?(conversation.id),mediaReader:mediaReader,expanded:expanded,
+                    directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
+                    onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
+            } label: { IMInboxRow(conversation: conversation) }
+            .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                rowActions(for: conversation)
+            }
+            .contextMenu { rowActions(for: conversation) }
         }
-        .contextMenu { rowActions(for: conversation) }
     }
     private struct DaySection { let id: Int; let title: String; let rows: [MessagingConversation] }
     private func daySections(_ rows: [MessagingConversation]) -> [DaySection] {

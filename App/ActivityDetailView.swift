@@ -156,7 +156,18 @@ struct ActivityDetailView: View {
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if let access, case .allowed = access {
+            if let access, case .allowed(let detail) = access {
+                ToolbarItem(placement: .topBarTrailing) {
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .activity(activityID: detail.summary.id),
+                            subjectTitle: detail.summary.name,
+                            authorMemberID: detail.people.host?.memberID,
+                            authorName: detail.people.host?.name
+                        )
+                    )
+                    .accessibilityIdentifier("activity.safety.menu")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showsShare = true
@@ -166,6 +177,7 @@ struct ActivityDetailView: View {
                 }
             }
         }
+        .environment(\.ugcSafetySubjectID, id)
         .sheet(isPresented: $showsShare) {
             if let access, case .allowed(let detail) = access { CatalogShareCardView(content: shareContent(detail), tint: .sunset) }
         }
