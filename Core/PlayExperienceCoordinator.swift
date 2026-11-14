@@ -731,6 +731,11 @@ public struct PlayCompletionReview: Equatable {
         }
     }
     public func restoreRun() async {
+        #if DEBUG
+        NSLog("[E2E] restoreRun mode=%@ media=%@ runPersistence=%@ loaded=%@ busy=%@", String(describing: gameplayMode),
+              String(hasCurrentMediaSnapshot), String(service.enabled.contains(.runPersistence)),
+              String(loadedSession != nil && loadedSession == currentSession()), String(runStorageBusy))
+        #endif
         guard gameplayMode == .cityOrientation, hasCurrentMediaSnapshot,
               service.enabled.contains(.runPersistence), let session = loadedSession, session == currentSession(), !runStorageBusy else { return }
         runStorageBusy = true; defer { runStorageBusy = false }

@@ -452,7 +452,7 @@ enum ReviewedPlayerReadRoute {
         "api/play/arrive", "api/play/answer", "api/play/checkin", "api/play/photo", "api/play/sensor-result",
         "api/play/puzzle/reveal", "api/play/action-context", "api/play/action-receipt", "api/play/help",
         "api/play/help/use", "api/play/help/skip", "api/play/help/receipt", "api/play/help/advanced/receipt", "api/play/advanced/start", "api/play/advanced/action",
-        "api/topic/chapter/finish", "api/play/run-session/save", "api/play/journey/opening/complete",
+        "api/topic/chapter/finish", "api/play/run-session", "api/play/run-session/save", "api/play/journey/opening/complete",
         "api/play/orient/session", "api/play/orient/session/start", "api/play/orient/session/abandon",
         "api/play/orient/session/prepare", "api/play/orient/session/receipt",
         "api/play/orient/session/task/{}/result", "api/play/scan-entry", "api/play/nodes", "api/play/route-state",
@@ -533,7 +533,9 @@ enum ReviewedPlayerReadRoute {
         // g-partials: TEAM backpack projection, `perspective=PLAYER` only (see `playerPerspective`).
         "api/game/session/view",
         // cur-team-u0802: the TEAM command receipt re-read.
-        "api/game/session/receipt"
+        "api/game/session/receipt",
+        // E2E-20261113b (coordinator): the paused-run read restoreRun needs before Start can run.
+        "api/play/run-session"
     ]
     static let externalGamePaths: Set<String> = [
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
