@@ -16,6 +16,9 @@ extension ReviewedProductionFormMutationRoute {
         if method != "GET", url.query != nil { return false }
         guard !relative.isEmpty, !ReleaseMoneyWriteSwitch.blocks("/" + relative),
               ChinaReviewedRouteCapability.forcedOff("/" + relative) == nil else { return false }
+        if ReviewedProductionGateLeases.wp07CommercePaths.contains(relative) {
+            return wp07CommerceAllows(request, relative: relative, method: method, baseURL: baseURL, grant: grant)
+        }
         if admitsRewardPledgeWrite(relative) {
             if method == "GET" { return request.httpBody == nil || request.httpBody?.isEmpty == true }
             return method == "POST"
@@ -226,6 +229,56 @@ extension ReviewedProductionFormMutationRoute {
         if approval.paths.contains(relative) { return true }
         let key = ChinaReviewedRouteCapability.normalized("/" + relative)
         return approval.paths.contains { ChinaReviewedRouteCapability.normalized("/" + $0) == key }
+    }
+
+    /// Group quote and coupon usability only. Create and activate stay false while the commerce gate
+    /// or the money switch is off. A card number or a client amount is never this grant.
+    static func wp07CommerceAllows(_ request: URLRequest, relative: String, method: String,
+                                   baseURL: URL, grant: ReviewedPlayerWriteGrant) -> Bool {
+        guard method == "POST", covers(relative, grant.play), request.url?.query == nil else { return false }
+        switch relative {
+        case "api/marketing/group-checkout/quote":
+            return wp07QuoteBody(request)
+        case "api/coupon/usability":
+            return request.httpBody == nil || request.httpBody?.isEmpty == true
+        case "api/marketing/group-checkout/create", "api/marketing/product/activate":
+            let open = MPCommerceGate.purchasesEnabled && ReviewedAreaSwitch.moneyPayments(host: baseURL.host)
+            return open && wp07WriteBody(request, relative: relative)
+        default:
+            return false
+        }
+    }
+
+    /// `{productId, quantity?}`. No price, amount, or card.
+    static func wp07QuoteBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let product = object["productId"] as? NSNumber, CFGetTypeID(product) != CFBooleanGetTypeID(),
+              product.intValue > 0, product.doubleValue == Double(product.intValue) else { return false }
+        let allowed: Set<String> = ["productId", "quantity", "isUsePoint", "offerCode", "participateDate"]
+        guard Set(object.keys).isSubset(of: allowed) else { return false }
+        if let quantity = object["quantity"] {
+            guard let number = quantity as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+                  number.doubleValue == Double(number.intValue), (1...100).contains(number.intValue) else { return false }
+        }
+        return true
+    }
+
+    /// Create and activate bodies. No card, no client total. Activate is `{topicId}` only.
+    static func wp07WriteBody(_ request: URLRequest, relative: String) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        let banned = ["price", "amount", "payAmount", "catalogCashPrice", "payChannel", "card", "pan", "cvv"]
+        guard banned.allSatisfy({ object[$0] == nil }) else { return false }
+        if relative == "api/marketing/product/activate" {
+            guard Set(object.keys) == ["topicId"], let topic = object["topicId"] as? NSNumber,
+                  CFGetTypeID(topic) != CFBooleanGetTypeID(), topic.intValue > 0 else { return false }
+            return true
+        }
+        guard let product = object["productId"] as? NSNumber, product.intValue > 0 else { return false }
+        return true
     }
 
     private struct ThemeReplayBody: Decodable { let sessionId: Int }
@@ -508,7 +561,7 @@ enum ReviewedPlayerReadRoute {
         "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
         "api/external-game/catalog", "api/external-game/catalog/{}", "api/external-game/catalog/{}/package",
         "api/external-game/signing-key", "api/external-game/reports"
-    ]).union(capabilityReadPaths).union(playRuntimeReadPaths)
+    ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
     static func isPlayGrantPath(_ relative: String) -> Bool {
@@ -581,6 +634,14 @@ enum ReviewedPlayerReadRoute {
         "api/creator/feedback", "api/creator/maintenance/tickets", "api/creator/maintenance/tickets/{}",
         "api/creator/maintenance/tickets/{}/close", "api/creator/maintenance/requests/{}",
         "api/creator/analytics/post-game-outcome"
+    ]
+    /// HANDOVER 36, WP-07. Quote and coupon usability are reads. Create and activate stay closed
+    /// unless purchases and money payments are both on, and even then the body cannot carry a card or an amount.
+    static let wp07CommercePaths: Set<String> = [
+        "api/marketing/group-checkout/quote",
+        "api/marketing/group-checkout/create",
+        "api/marketing/product/activate",
+        "api/coupon/usability"
     ]
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding

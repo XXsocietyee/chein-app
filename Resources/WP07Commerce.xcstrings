@@ -1,0 +1,202 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "wp07.activate.closed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activation stays off. A digital-good charge uses the App Store, not a card." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "激活暂不开放。数字商品的扣款走 App Store，不走银行卡。" } }
+      }
+    },
+    "wp07.activate.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No topic to activate." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有可激活的主题。" } }
+      }
+    },
+    "wp07.activate.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activate on first play" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "首次使用时激活" } }
+      }
+    },
+    "wp07.activate.topic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Topic" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "主题" } }
+      }
+    },
+    "wp07.coupon.deduct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Coupon deduction" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "优惠券抵扣" } }
+      }
+    },
+    "wp07.coupon.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No coupons." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有优惠券。" } }
+      }
+    },
+    "wp07.coupon.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Coupons did not load." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "优惠券没有加载出来。" } }
+      }
+    },
+    "wp07.coupon.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading coupons" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在加载优惠券" } }
+      }
+    },
+    "wp07.coupon.readOnly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Read only. This does not reduce the registration total." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "只读。这不会减少报名应付金额。" } }
+      }
+    },
+    "wp07.coupon.reason.available" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Usable" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可用" } }
+      }
+    },
+    "wp07.coupon.reason.disabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Disabled" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已失效" } }
+      }
+    },
+    "wp07.coupon.reason.expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Expired" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已过期" } }
+      }
+    },
+    "wp07.coupon.reason.missing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Coupon missing" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "券不存在" } }
+      }
+    },
+    "wp07.coupon.reason.notStarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not started" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未开始" } }
+      }
+    },
+    "wp07.coupon.reason.used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Used" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已使用" } }
+      }
+    },
+    "wp07.coupon.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try again" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重试" } }
+      }
+    },
+    "wp07.coupon.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Coupons you hold" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我持有的优惠券" } }
+      }
+    },
+    "wp07.group.createClosed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Creating this order stays off." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "建单暂不开放。" } }
+      }
+    },
+    "wp07.group.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No group quote." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有团体报价。" } }
+      }
+    },
+    "wp07.group.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The quote did not load." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "报价没有加载出来。" } }
+      }
+    },
+    "wp07.group.kind" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Kind" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "类型" } }
+      }
+    },
+    "wp07.group.kind.group" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Group" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "团体" } }
+      }
+    },
+    "wp07.group.kind.school" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "School group" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "学校团体" } }
+      }
+    },
+    "wp07.group.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading the server quote" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在加载服务端报价" } }
+      }
+    },
+    "wp07.group.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try again" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重试" } }
+      }
+    },
+    "wp07.group.tier" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Server tier" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "服务端档位" } }
+      }
+    },
+    "wp07.group.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Group and school checkout" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "团体与学校结算" } }
+      }
+    },
+    "wp07.group.total" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Server total" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "服务端合计" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

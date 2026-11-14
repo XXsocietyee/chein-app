@@ -12,7 +12,11 @@ import SwiftUI
                               currentIdentity:{ session.profileReader.identity },
                               quoteEnabled:session.isConfigured,
                               creationPolicy:Self.freeWhenUnapproved(session.registrationCreationPolicy(activityID:activity.summary.id)),
-                              waitlistService:session.registrationWaitlistService(activityID:activity.summary.id))
+                              waitlistService:session.registrationWaitlistService(activityID:activity.summary.id),
+                              couponUsability:{
+                                  guard let client = WP07CommerceSession.client(session) else { return [] }
+                                  return try await client.usability()
+                              })
     }
 
     /// The integrator button opens this sheet. An unapproved session still cannot pay.

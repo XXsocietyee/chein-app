@@ -39,9 +39,11 @@ struct RegistrationSheetView: View {
          currentIdentity: @escaping () -> ProfileReadIdentity?, quoteEnabled: Bool = false,
          creationPolicy: RegistrationUICreationPolicy = .disabled,
          waitlistService: (any RegistrationWaitlistServing)? = nil,
+         couponUsability: (() async throws -> [CouponUsabilityRow])? = nil,
          onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
         self.orderReader = orderReader
         self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
+        self.couponUsability = couponUsability
         _model = StateObject(wrappedValue: RegistrationSheetModel(flow: RegistrationUIFlow(
             activity: activity, coordinator: coordinator, participantReader: participantReader,
             currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
@@ -51,10 +53,13 @@ struct RegistrationSheetView: View {
     /// Offline fixture-only injection keeps the real view/controller clock and guards intact.
     init(fixtureFlow: RegistrationUIFlow) {
         participantReader = nil; participantCoordinator = nil; orderReader = nil
+        couponUsability = nil
         _model = StateObject(wrappedValue: RegistrationSheetModel(flow: fixtureFlow))
     }
     #endif
     private var flow: RegistrationUIFlow { model.flow }
+    private let couponUsability: (() async throws -> [CouponUsabilityRow])?
+    @State private var couponPhase: CouponUsabilityPhase = .loading
     var body: some View {
         // Observe the controller notification even though its fields live in a reference type.
         let _ = model.revision
@@ -98,6 +103,7 @@ struct RegistrationSheetView: View {
                         ticketSection
                         if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
                         quoteSection
+                        CouponUsabilitySection(phase: couponPhase, onRetry: { Task { await reloadCoupons() } })
                         refundTiersSection
                         waitlistSection
                         confirmationSection
@@ -106,6 +112,7 @@ struct RegistrationSheetView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .modifier(G6PromotionCatalogLoader(activityID: flow.activity.summary.id))
+            .task { await reloadCoupons() }
             .safeAreaInset(edge: .bottom, spacing: 0) { if showsCheckoutBar { checkoutBar } }
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
@@ -524,6 +531,22 @@ struct RegistrationSheetView: View {
                     }
                 }
             } header: { Text("registration.waitlist.title") } footer: { Text("registration.waitlist.noAutoPayment") }
+        }
+    }
+    private func reloadCoupons() async {
+        guard let couponUsability else {
+            couponPhase = .empty
+            return
+        }
+        couponPhase = .loading
+        do {
+            let rows = try await couponUsability()
+            if Task.isCancelled { return }
+            couponPhase = rows.isEmpty ? .empty : .ready(rows)
+        } catch is CancellationError {
+            return
+        } catch {
+            couponPhase = .failed
         }
     }
     private var quoteSection: some View {

@@ -60,8 +60,24 @@ public enum ChinaReviewedRouteCapability {
         if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
         if beGapMerchantOwnerGrant.contains(key) { return true }
         if externalGameOwnerGrant.contains(key) || externalGameOwnerGrant.contains(externalGameGrantKey(key)) { return true }
+        if wp07CommerceOwnerGrant.contains(key) {
+            // Quote and coupon usability are reads. Create and activate are payment writes:
+            // ReleaseMoneyWriteSwitch.blocks already returned false above when money is off,
+            // and a payment kind stays closed on www.chengyinhub.com even if this set lists it.
+            return ReleaseMoneyWriteSwitch.kind(for: key) == nil
+        }
         return g6OwnerGrant.contains(key)
     }
+
+    /// HANDOVER 36, WP-07. Group/school quote and coupon usability are reads.
+    /// Create and activate are listed and stay closed: they are payment kinds, so
+    /// `ReleaseMoneyWriteSwitch` refuses them while money is off, including www.chengyinhub.com.
+    public static let wp07CommerceOwnerGrant: Set<String> = [
+        "/api/marketing/group-checkout/quote",
+        "/api/marketing/group-checkout/create",
+        "/api/marketing/product/activate",
+        "/api/coupon/usability"
+    ]
 
     /// Contract §7 item 18. The six recipient-preview patterns (`IMPreviewRouteTemplates`).
     /// Marks stay `.missing`. A concrete id is admitted only through the existing `{}` normalizer;
@@ -2445,7 +2461,8 @@ public enum ReleaseMoneyWriteSwitch {
     public static func kind(for rawPath: String) -> ReleaseMoneyWriteKind? {
         let key = ChinaReviewedRouteCapability.normalized(rawPath)
         switch key {
-        case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create":
+        case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create",
+            "/api/marketing/group-checkout/create", "/api/marketing/product/activate":
             return .payment
         case "/api/club/settlement/withdraw":
             return .payout
