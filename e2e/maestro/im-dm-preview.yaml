@@ -1,0 +1,79 @@
+appId: invalid.example.questify.ios
+name: IM DM + Preview
+tags:
+  - e2e
+  - messaging
+  - im
+env:
+  E2E_DM_TEXT: ${E2E_DM_TEXT:-"E2E IM test message"}
+---
+# Assumes player session already signed in (run after login.yaml).
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Navigate to Passport tab via verified Roam -> Passport bridge (`chein://roam/go` -> `roam.account.open`)
+# (Missing ID in MISSING_IDS.md: root TabView items lack .accessibilityIdentifier).
+- openLink: "chein://roam/go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.account.open"
+    timeout: 15000
+- tapOn:
+    id: "roam.account.open"
+
+# Open Messages from Passport quick actions (`passport.action.messages`).
+- extendedWaitUntil:
+    visible:
+      id: "passport.action.messages"
+    timeout: 15000
+- tapOn:
+    id: "passport.action.messages"
+
+# Wait for MessagingHomeView to load (`messaging.list.scope` / `im.full.startEntry`).
+- extendedWaitUntil:
+    visible:
+      id: "messaging.list.scope"
+    timeout: 15000
+
+# Verify or open an existing conversation row (`messaging.conversation.<id>`), else test IM start entry.
+- runFlow:
+    when:
+      visible:
+        id: "messaging.conversation\\..*"
+    commands:
+      - tapOn:
+          id: "messaging.conversation\\..*"
+      - runFlow:
+          when:
+            visible:
+              id: "im.preview\\..*"
+          commands:
+            - assertVisible:
+                id: "im.preview.line\\..*"
+      - runFlow:
+          when:
+            visible:
+              id: "message.send.input"
+          commands:
+            - tapOn:
+                id: "message.send.input"
+            - inputText: ${E2E_DM_TEXT}
+            - tapOn:
+                id: "message.send.button"
+            - extendedWaitUntil:
+                visible:
+                  id: "message.send.receipt"
+                timeout: 10000
+      - back
+
+- runFlow:
+    when:
+      visible:
+        id: "im.full.startEntry"
+    commands:
+      - tapOn:
+          id: "im.full.startEntry"
+      - assertVisible:
+          id: "im.full.start"

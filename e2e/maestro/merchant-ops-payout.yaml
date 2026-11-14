@@ -1,0 +1,127 @@
+appId: invalid.example.questify.ios
+name: Merchant Ops + Payout (TEST Switch ON)
+tags:
+  - e2e
+  - merchant
+  - payout
+env:
+  E2E_MERCHANT_PHONE: ${E2E_MERCHANT_PHONE:-13900000002}
+  E2E_BRIDGE_PORT: ${E2E_SMS_BRIDGE_PORT:-18120}
+  E2E_SMS_CODE: ${E2E_SMS_CODE:-}
+---
+# Fresh login as TEST merchant 9002 (13900000002).
+# Passing `--e2e-test-host` puts `ReviewedAreaSwitch.isProduction = false`,
+# turning ON TEST switches (payout, merchantWrites, externalGames, moneyPayments).
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Merchant login from WelcomeView (`welcome.merchant`).
+- extendedWaitUntil:
+    visible:
+      id: "welcome.merchant"
+    timeout: 15000
+- tapOn:
+    id: "welcome.merchant"
+
+- extendedWaitUntil:
+    visible:
+      id: "auth.otherChannels"
+    timeout: 10000
+- tapOn:
+    id: "auth.otherChannels"
+
+- extendedWaitUntil:
+    visible:
+      id: "auth.channels.phone"
+    timeout: 10000
+- tapOn:
+    id: "auth.channels.phone"
+- inputText: ${E2E_MERCHANT_PHONE}
+- tapOn:
+    id: "auth.channels.sendCode"
+
+- runScript:
+    file: scripts/get_sms_code.js
+    env:
+      PHONE: ${E2E_MERCHANT_PHONE}
+      BRIDGE_PORT: ${E2E_BRIDGE_PORT}
+      E2E_SMS_CODE: ${E2E_SMS_CODE}
+
+- tapOn:
+    id: "auth.channels.code"
+- inputText: ${output.smsCode}
+- runFlow:
+    when:
+      visible:
+        id: "auth.channels.phoneSignIn"
+    commands:
+      - tapOn:
+          id: "auth.channels.phoneSignIn"
+
+- assertNotVisible:
+    id: "auth.channels.error"
+
+# Expect SessionMerchantRootContainerView / MerchantWorkbench to load.
+- extendedWaitUntil:
+    visible:
+      id: "merchant.store.name"
+    timeout: 20000
+- assertNotVisible:
+    id: "merchant.access.inactive"
+- assertNotVisible:
+    id: "merchant.access.error"
+- assertVisible:
+    id: "merchant.dashboard.revenue"
+
+# 1. Merchant Operations flow (`merchant.operations.open`).
+- scrollUntilVisible:
+    element:
+      id: "merchant.operations.open"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant.operations.open"
+- runFlow:
+    when:
+      visible:
+        id: "merchant.operations.cityEntry"
+    commands:
+      - assertVisible:
+          id: "merchant.operations.cityEntry"
+- runFlow:
+    when:
+      visible:
+        id: "merchant.operations.cityNodeHub"
+    commands:
+      - assertVisible:
+          id: "merchant.operations.cityNodeHub"
+- assertNotVisible:
+    id: "merchant.operations.issue"
+- back
+
+# 2. Payout Account flow (`merchant.payoutAccount.open`).
+# Known TEST gap (docs/release/workflows.md B1 / E2E-20261113b):
+# payout-account / bank withdrawal endpoints can return configuration/readiness gaps on TEST.
+- scrollUntilVisible:
+    element:
+      id: "merchant.payoutAccount.open"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "merchant.payoutAccount.open"
+- extendedWaitUntil:
+    visible:
+      id: "payoutAccount.reload"
+    timeout: 10000
+- tapOn:
+    id: "payoutAccount.reload"
+- assertNotVisible:
+    id: "payoutAccount.loading"
+- back
+
+# Verify merchant->consumer root switch toolbar button exists.
+- assertVisible:
+    id: "merchant.rootMode.switchToConsumer"

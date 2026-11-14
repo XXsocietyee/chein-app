@@ -1,0 +1,90 @@
+appId: invalid.example.questify.ios
+name: Wallet (Earnings, Ledger, Withdrawals)
+tags:
+  - e2e
+  - wallet
+---
+# Assumes signed-in session (player or merchant).
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Passport tab via verified Roam -> Passport bridge.
+- openLink: "chein://roam/go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.account.open"
+    timeout: 15000
+- tapOn:
+    id: "roam.account.open"
+
+# Open Wallet (`passport.action.wallet`).
+- extendedWaitUntil:
+    visible:
+      id: "passport.action.wallet"
+    timeout: 15000
+- tapOn:
+    id: "passport.action.wallet"
+
+# Verify earnings overview (`wallet.earnings.overview`).
+- extendedWaitUntil:
+    visible:
+      id: "wallet.earnings.overview"
+    timeout: 15000
+- assertNotVisible:
+    id: "wallet.issue"
+
+# Open Assets & Balance/Points ledgers (`wallet.assets.open`).
+- runFlow:
+    when:
+      visible:
+        id: "wallet.assets.open"
+    commands:
+      - tapOn:
+          id: "wallet.assets.open"
+      - extendedWaitUntil:
+          visible:
+            id: "wallet.assets.available"
+          timeout: 10000
+      - runFlow:
+          when:
+            visible:
+              id: "wallet.assets.balanceLedger"
+          commands:
+            - tapOn:
+                id: "wallet.assets.balanceLedger"
+            - extendedWaitUntil:
+                visible:
+                  id: "wallet.ledger.hero"
+                timeout: 10000
+            - back
+      - runFlow:
+          when:
+            visible:
+              id: "wallet.assets.pointsLedger"
+          commands:
+            - tapOn:
+                id: "wallet.assets.pointsLedger"
+            - extendedWaitUntil:
+                visible:
+                  id: "wallet.ledger.hero"
+                timeout: 10000
+            - back
+      - back
+
+# Check withdrawal entry (`bank.withdrawal.entry`) if available in TEST region.
+# Known TEST gap (docs/release/workflows.md): /api/asset/withdraw can return failure/unavailable on TEST.
+- runFlow:
+    when:
+      visible:
+        id: "bank.withdrawal.entry"
+    commands:
+      - tapOn:
+          id: "bank.withdrawal.entry"
+      - extendedWaitUntil:
+          visible:
+            id: "bank.withdrawal.name"
+          timeout: 10000
+      - assertVisible:
+          id: "bank.withdrawal.review"

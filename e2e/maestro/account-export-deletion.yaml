@@ -1,0 +1,67 @@
+appId: invalid.example.questify.ios
+name: Account Export / Deletion (Roam Export, NPC Chat Data, Account Cancellation)
+tags:
+  - e2e
+  - account
+  - export
+  - deletion
+---
+# Covers Roam exploration export (`roam.export.screen`), NPC chat data (`npcData.screen`),
+# and account cancellation (`compliance.open.cancellation`, non-destructive precheck check).
+# Known code gap (MISSING_IDS.md):
+# - When signed in on PassportView, Settings gear (`AccountView.swift:177-180`) has NO .accessibilityIdentifier,
+#   blocking navigation from Passport into Settings -> `npcData.open` and `compliance.open.cancellation`.
+# - Workaround on signed-out state: `welcome.more` -> `welcome.settings` opens SettingsView directly.
+# Known TEST backend gap (docs/release/workflows.md B5):
+# - Account deregistration / cancellation API returns UNAVAILABLE on TEST.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+- extendedWaitUntil:
+    visible:
+      id: "welcome.more"
+    timeout: 15000
+- tapOn:
+    id: "welcome.more"
+- extendedWaitUntil:
+    visible:
+      id: "welcome.settings"
+    timeout: 5000
+- tapOn:
+    id: "welcome.settings"
+
+# 1. Account deletion / cancellation compliance entry (`compliance.open.cancellation`).
+- scrollUntilVisible:
+    element:
+      id: "compliance.open.cancellation"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "compliance.open.cancellation"
+- extendedWaitUntil:
+    visible:
+      id: "compliance.serverStatus"
+    timeout: 10000
+- assertNotVisible:
+    id: "compliance.error"
+- back
+
+# 2. NPC chat data export/delete screen (`npcData.open`).
+- scrollUntilVisible:
+    element:
+      id: "npcData.open"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "npcData.open"
+- extendedWaitUntil:
+    visible:
+      id: "npcData.screen"
+    timeout: 10000
+- back
+
+# 3. Roam data export entry (`roam.export.open`) requires signed-in session (via Passport -> Roam Tools
+#    in RoamPassportToolsViews.swift:65); see MISSING_IDS.md for Passport Settings gear & Root TabView IDs.

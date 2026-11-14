@@ -1,0 +1,90 @@
+appId: invalid.example.questify.ios
+name: Search Filters (Keyword, Category, Date, Price Range, Result Kinds)
+tags:
+  - e2e
+  - search
+env:
+  E2E_SEARCH_KEYWORD: ${E2E_SEARCH_KEYWORD:-"Shanghai"}
+  E2E_FILTER_TAG: ${E2E_FILTER_TAG:-"outdoor"}
+---
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Global Search from Home (`homeIndex.hero.searchEntry`).
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.hero.searchEntry"
+    timeout: 15000
+- tapOn:
+    id: "homeIndex.hero.searchEntry"
+
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.filters"
+    timeout: 10000
+
+# 1. Open Search Filters sheet (`searchMap.filters`).
+- tapOn:
+    id: "searchMap.filters"
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.tag"
+    timeout: 10000
+
+- tapOn:
+    id: "searchMap.tag"
+- inputText: ${E2E_FILTER_TAG}
+
+- tapOn:
+    id: "mapDatePreset.today"
+
+- scrollUntilVisible:
+    element:
+      id: "searchMap.filter.min"
+    direction: DOWN
+    timeout: 8000
+- tapOn:
+    id: "searchMap.filter.min"
+- inputText: "0"
+- tapOn:
+    id: "searchMap.filter.max"
+- inputText: "500"
+
+- assertNotVisible:
+    id: "searchMap.filter.invalid"
+- tapOn:
+    id: "searchMap.filter.apply"
+
+# 2. Submit keyword query & toggle result kind chip.
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.keyword"
+    timeout: 10000
+- tapOn:
+    id: "searchMap.keyword"
+- inputText: ${E2E_SEARCH_KEYWORD}
+- tapOn:
+    id: "searchMap.submit"
+
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.resultKinds"
+    timeout: 15000
+- tapOn:
+    id: "searchMap.kind.activity"
+- assertNotVisible:
+    id: "searchMap.unknown"
+
+# 3. Reset filters cleanly.
+- tapOn:
+    id: "searchMap.filters"
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.filter.reset"
+    timeout: 8000
+- tapOn:
+    id: "searchMap.filter.reset"
+- tapOn:
+    id: "searchMap.filter.apply"
