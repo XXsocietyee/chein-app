@@ -80,6 +80,11 @@ extension AppSession: OrientScoreEntryProviding {
 
     static func reviewAudit(for session: AppSession) -> IMReviewAuditSessionReader { slot(for: session).reviewAudit }
 
+    static func sweep2Client(for session: AppSession) -> Sweep2Client? {
+        guard let configuration = session.regionalConfiguration?.apiConfiguration else { return nil }
+        return Sweep2Client(configuration: configuration, transport: session.runtimeHTTPTransport, tokenProvider: { session.token })
+    }
+
     static func filingNumber(_ session: AppSession) async -> String? {
         let owner = session.account?.id
         do {
@@ -102,6 +107,34 @@ extension AppSession: OrientScoreEntryProviding {
         let service = OrientSessionService(configuration: configuration, transport: session.runtimeHTTPTransport, contract: .currentC6)
         let access = session.squareGovernanceAccess()
         return OrientScoreEntryProvider(service: service, token: { access.token }).orientScoreLoader(topicID: topicID, activityID: activityID)
+    }
+
+    static func installSweepWriters(for session: AppSession) {
+        ChallengePOIWriterFactory.makeWriter = {
+            ChallengePOIHTTPWriter(
+                configuration: { session.regionalConfiguration?.apiConfiguration },
+                transport: session.runtimeHTTPTransport,
+                tokenProvider: { session.token },
+                isRouteOpen: {
+                    session.isSignedIn
+                        && session.regionalConfiguration?.market == .china
+                        && (session.account?.role == "player" || session.account?.role == "club")
+                        && session.regionalConfiguration?.showsRoute("/api/city/nodes/{}/complete") == true
+                }
+            )
+        }
+        MyProjectMutationFactory.makeMutator = {
+            MyProjectHTTPMutator(
+                configuration: { session.regionalConfiguration?.apiConfiguration },
+                transport: session.runtimeHTTPTransport,
+                tokenProvider: { session.token },
+                allowsCancelActivity: {
+                    let host = session.regionalConfiguration?.apiConfiguration?.baseURL.host
+                    return ReviewedAreaSwitch.moneyPayments(apiHost: host)
+                        && !ReleaseMoneyWriteSwitch.blocks("/api/activity/cancel")
+                }
+            )
+        }
     }
 }
 
@@ -178,6 +211,11 @@ struct CloudB3RootModifier: ViewModifier {
     @State private var filingNumber: String?
     @State private var reportUnread: Int?
 
+    init(session: AppSession) {
+        self.session = session
+        CloudB3SessionBridge.installSweepWriters(for: session)
+    }
+
     func body(content: Content) -> some View {
         content
             .environment(\.playThemePresentationReader, CloudB3SessionBridge.facts(for: session))
@@ -186,6 +224,8 @@ struct CloudB3RootModifier: ViewModifier {
             .environment(\.imReportProgressUnread, reportUnread)
             .environment(\.aigcFilingNumber, filingNumber)
             .environment(\.squareRouteMap, CloudB3SessionBridge.routeMap(for: session))
+            .environment(\.sweep2Client, CloudB3SessionBridge.sweep2Client(for: session))
+            .environment(\.sweep2AccountID, session.account?.id)
             .task(id: session.account?.id) {
                 let owner = session.account?.id
                 filingNumber = nil

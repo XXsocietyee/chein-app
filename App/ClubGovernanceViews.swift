@@ -1432,6 +1432,7 @@ struct ClubGovernanceReadView: View {
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
             edit(.dissolve, role: .destructive)
         } else if operation == .settlement {
+            ClubPersonalSettlementSection()
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
             // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).

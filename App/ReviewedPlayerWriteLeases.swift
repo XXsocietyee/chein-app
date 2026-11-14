@@ -62,6 +62,9 @@ extension ReviewedProductionFormMutationRoute {
         if OwnerDecisionGuardLease.admits(relative: relative, method: method, body: request.httpBody, host: url.host) {
             return true
         }
+        if let sweep2 = Sweep2ReviewedRouteLease.admits(request, relative: relative, method: method, url: url) {
+            return sweep2
+        }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         if relative == "api/registration/create" {
             return method == "POST" && grant.registration.paths.contains(relative) && freeRegistrationBody(request)
@@ -657,7 +660,10 @@ enum ReviewedPlayerReadRoute {
         // WP-02 (PlayerGapService.creatorTailPaths): the author's own audit timeline, content appeal and its receipt,
         // and the original-run guard reference, appeal and receipt. Non-money; the server checks the author/run owner.
         "api/audit/timeline", "api/audit/appeal", "api/audit/appeal/receipt",
-        "api/audit/guard/reference", "api/audit/guard/appeal", "api/audit/guard/appeal/receipt"
+        "api/audit/guard/reference", "api/audit/guard/appeal", "api/audit/guard/appeal/receipt",
+        // Final sweep: non-money creator project list mutations (`api/activity/cancel` stays behind ReviewedAreaSwitch.moneyPayments).
+        "api/activity/update_publish_status", "api/topic/update_user_status",
+        "api/activity/delete", "api/topic/delete", "api/template/delete", "api/template/updateLibraryStatus"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
@@ -1498,5 +1504,195 @@ enum PayoutReceiverRouteGrant {
 
     static func admits(_ route: PayoutReceiverRoute) -> Bool {
         readPaths.contains(route.rawValue) || moneyPaths.contains(route.rawValue)
+    }
+}
+
+extension ReviewedProductionFormMutationRoute {
+    /// Admits my-project list mutations (`MyProjectHTTPMutator`). Canceling an activity refunds paid
+    /// registrations and goes through `ReviewedAreaSwitch.moneyPayments`; merchant-scoped actions go
+    /// through `ReviewedAreaSwitch.merchantWrites`.
+    static func acceptsMyProjectMutation(_ request: URLRequest, baseURL: URL, token: String) -> Bool {
+        guard let url = request.url,
+              let type = request.value(forHTTPHeaderField: "Content-Type"),
+              type.hasPrefix("multipart/form-data; boundary="),
+              let body = request.httpBody, body.count <= 1024,
+              let text = String(data: body, encoding: .utf8) else { return false }
+        let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+        let requiredKeys: Set<String>
+        let positiveKey: String
+        var expectedStatus: Set<String>?
+        var isActivityCancel = false
+        switch url.absoluteString {
+        case baseURL.appendingPathComponent("api/activity/update_publish_status").absoluteString,
+             baseURL.appendingPathComponent("api/activity/delete").absoluteString,
+             baseURL.appendingPathComponent("api/topic/delete").absoluteString:
+            requiredKeys = ["id", "scope"]; positiveKey = "id"
+        case baseURL.appendingPathComponent("api/topic/update_user_status").absoluteString:
+            requiredKeys = ["id", "scope", "expectedUserStatus"]; positiveKey = "id"; expectedStatus = ["0", "1"]
+        case baseURL.appendingPathComponent("api/activity/cancel").absoluteString:
+            requiredKeys = ["id", "reason", "scope"]; positiveKey = "id"; isActivityCancel = true
+        case baseURL.appendingPathComponent("api/template/delete").absoluteString:
+            requiredKeys = ["template_id", "scope"]; positiveKey = "template_id"
+        case baseURL.appendingPathComponent("api/template/updateLibraryStatus").absoluteString:
+            requiredKeys = ["template_id", "status", "scope"]; positiveKey = "template_id"; expectedStatus = ["1", "3"]
+        default:
+            return false
+        }
+        var fields: [String: String] = [:]
+        for key in requiredKeys {
+            let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+            guard let range = text.range(of: marker),
+                  let end = text[range.upperBound...].range(of: "\r\n") else { return false }
+            fields[key] = String(text[range.upperBound..<end.lowerBound])
+        }
+        guard let rawID = fields[positiveKey], let id = Int(rawID), id > 0, String(id) == rawID else { return false }
+        let scope = fields["scope"] ?? ""
+        guard scope.isEmpty || scope == "MERCHANT" else { return false }
+        if scope == "MERCHANT" {
+            guard ReviewedAreaSwitch.merchantWrites(apiHost: url.host) else { return false }
+        }
+        if isActivityCancel {
+            guard ReviewedAreaSwitch.moneyPayments(apiHost: url.host),
+                  let reason = fields["reason"], !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  reason.count <= 200 else { return false }
+        }
+        if let expectedStatus {
+            let actual = (fields["expectedUserStatus"] ?? fields["status"]) ?? ""
+            guard expectedStatus.contains(actual) else { return false }
+        }
+        guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else {
+            return false
+        }
+        return canonical.httpBody == body
+    }
+}
+
+/// Follow-up 64b (sweep-2) request-level lease matching `ChinaReviewedRouteCapability.sweep2OwnerGrant`.
+/// Money/payout writes require TEST/DEBUG `ReviewedAreaSwitch` + `!ReleaseMoneyWriteSwitch.blocks`, and
+/// strict payload validation ensures wrong-role/test probes (e.g. `{"activityId":3}` on player grant) remain closed.
+enum Sweep2ReviewedRouteLease {
+    static func admits(_ request: URLRequest, relative: String, method: String, url: URL) -> Bool? {
+        let host = url.host
+        let production = host?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == ReviewedAreaSwitch.productionAPIHost
+        switch relative {
+        case "api/registration/payment-readiness":
+            guard method == "POST", !production,
+                  !ReleaseMoneyWriteSwitch.blocks("/api/registration/payment-readiness"),
+                  ReviewedAreaSwitch.moneyPayments(apiHost: host),
+                  isEmptyOrEmptyJSON(request.httpBody) else { return false }
+            return true
+        case "api/club/settlement/mine":
+            guard method == "POST", !production,
+                  !ReleaseMoneyWriteSwitch.blocks("/api/club/settlement/mine"),
+                  ReviewedAreaSwitch.payout(host: host),
+                  isEmptyOrEmptyJSON(request.httpBody) else { return false }
+            return true
+        case "api/club-compensation/editions/empty-reason":
+            guard method == "POST",
+                  let obj = jsonObject(request.httpBody), Set(obj.keys) == ["clubId"],
+                  positiveInt(obj["clubId"]) != nil else { return false }
+            return true
+        case "api/club/lead/release-station":
+            guard method == "POST",
+                  let fields = formFields(request.httpBody),
+                  positiveInt(fields["activityId"]) != nil,
+                  positiveInt(fields["memberId"]) != nil,
+                  positiveInt(fields["nodeId"]) != nil else { return false }
+            return true
+        case "api/club/lead/unlock-chapter-receipt":
+            guard method == "GET", isEmptyBody(request.httpBody),
+                  let query = queryDictionary(url),
+                  positiveInt(query["activityId"]) != nil,
+                  let commandID = query["commandId"],
+                  commandID.range(of: "^[A-Za-z0-9:_-]{1,80}$", options: .regularExpression) != nil else { return false }
+            return true
+        case "api/audit/appeal":
+            guard method == "POST", let obj = jsonObject(request.httpBody),
+                  nonEmptyString(obj["bizType"]) != nil,
+                  positiveInt(obj["bizId"]) != nil,
+                  let reason = nonEmptyString(obj["reason"]), reason.count <= 500,
+                  let requestID = nonEmptyString(obj["requestId"]), requestID.count <= 64 else { return false }
+            return true
+        case "api/audit/appeal/receipt":
+            guard method == "GET", isEmptyBody(request.httpBody),
+                  let query = queryDictionary(url),
+                  nonEmptyString(query["bizType"]) != nil,
+                  positiveInt(query["bizId"]) != nil,
+                  let requestID = nonEmptyString(query["requestId"]), requestID.count <= 64 else { return false }
+            return true
+        case "api/audit/guard/reference":
+            guard method == "GET", isEmptyBody(request.httpBody),
+                  let query = queryDictionary(url),
+                  positiveInt(query["guardLogId"]) != nil,
+                  let arrivalID = nonEmptyString(query["arrivalRequestId"]),
+                  arrivalID.range(of: "^[A-Za-z0-9:_-]{1,80}$", options: .regularExpression) != nil else { return false }
+            return true
+        case "api/audit/guard/appeal":
+            guard method == "POST", let obj = jsonObject(request.httpBody),
+                  positiveInt(obj["guardLogId"]) != nil,
+                  let arrivalID = nonEmptyString(obj["arrivalRequestId"]),
+                  arrivalID.range(of: "^[A-Za-z0-9:_-]{1,80}$", options: .regularExpression) != nil,
+                  let requestID = nonEmptyString(obj["requestId"]), requestID.count <= 80,
+                  let reason = nonEmptyString(obj["reason"]), reason.count <= 500 else { return false }
+            return true
+        case "api/audit/guard/appeal/receipt":
+            guard method == "GET", isEmptyBody(request.httpBody),
+                  let query = queryDictionary(url),
+                  positiveInt(query["guardLogId"]) != nil,
+                  let requestID = nonEmptyString(query["requestId"]), requestID.count <= 80 else { return false }
+            return true
+        case "api/club-direct-merchant/club":
+            guard method == "GET", isEmptyBody(request.httpBody),
+                  let query = queryDictionary(url),
+                  positiveInt(query["clubId"]) != nil else { return false }
+            return true
+        case "api/club-direct-merchant/merchant":
+            guard method == "GET", isEmptyBody(request.httpBody) else { return false }
+            return true
+        default:
+            return nil
+        }
+    }
+
+    private static func isEmptyBody(_ body: Data?) -> Bool { body == nil || body?.isEmpty == true }
+
+    private static func isEmptyOrEmptyJSON(_ body: Data?) -> Bool {
+        if isEmptyBody(body) { return true }
+        return jsonObject(body)?.isEmpty == true
+    }
+
+    private static func jsonObject(_ body: Data?) -> [String: Any]? {
+        guard let body, !body.isEmpty, body.count <= 16_384,
+              let obj = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        return obj
+    }
+
+    private static func formFields(_ body: Data?) -> [String: String]? {
+        guard let body, !body.isEmpty, body.count <= 4096, let raw = String(data: body, encoding: .utf8) else { return nil }
+        var components = URLComponents()
+        components.percentEncodedQuery = raw
+        guard let items = components.queryItems else { return nil }
+        var result: [String: String] = [:]
+        for item in items { result[item.name] = item.value ?? "" }
+        return result
+    }
+
+    private static func queryDictionary(_ url: URL) -> [String: String]? {
+        guard let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { return nil }
+        var result: [String: String] = [:]
+        for item in items { result[item.name] = item.value ?? "" }
+        return result
+    }
+
+    private static func positiveInt(_ value: Any?) -> Int? {
+        if let int = value as? Int { return int > 0 ? int : nil }
+        if let str = value as? String, let int = Int(str), int > 0 { return int }
+        return nil
+    }
+
+    private static func nonEmptyString(_ value: Any?) -> String? {
+        guard let str = value as? String else { return nil }
+        let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }

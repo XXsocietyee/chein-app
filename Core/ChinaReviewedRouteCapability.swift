@@ -75,6 +75,7 @@ public enum ChinaReviewedRouteCapability {
         }
         if wp06PartialPagesOwnerGrant.contains(key) { return true }
         if ownerDecisionGuardGrant.contains(key) { return true }
+        if sweep2OwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
 
@@ -86,6 +87,24 @@ public enum ChinaReviewedRouteCapability {
         "/api/marketing/group-checkout/create",
         "/api/marketing/product/activate",
         "/api/coupon/usability"
+    ]
+
+    /// Follow-up 64b (sweep-2) grant for backend-complete routes on 5c2017eef.
+    /// `payment-readiness` (.payment) and `settlement/mine` (.payout) still fail first above
+    /// in `ReleaseMoneyWriteSwitch.blocks` whenever money/payout switches are off in production.
+    public static let sweep2OwnerGrant: Set<String> = [
+        "/api/audit/appeal",
+        "/api/audit/appeal/receipt",
+        "/api/audit/guard/appeal",
+        "/api/audit/guard/appeal/receipt",
+        "/api/audit/guard/reference",
+        "/api/club-compensation/editions/empty-reason",
+        "/api/club-direct-merchant/club",
+        "/api/club-direct-merchant/merchant",
+        "/api/club/lead/release-station",
+        "/api/club/lead/unlock-chapter-receipt",
+        "/api/club/settlement/mine",
+        "/api/registration/payment-readiness"
     ]
 
     /// WP-04 owner grant. Player content: coop invite receipts and the author's own square post.
@@ -2585,10 +2604,11 @@ public enum ReleaseMoneyWriteSwitch {
         let key = ChinaReviewedRouteCapability.normalized(rawPath)
         switch key {
         case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create",
+            "/api/registration/payment-readiness",
             "/api/merchant/commerce/order", "/api/merchant/commerce/order/status",
             "/api/marketing/group-checkout/create", "/api/marketing/product/activate":
             return .payment
-        case "/api/club/settlement/withdraw",
+        case "/api/club/settlement/withdraw", "/api/club/settlement/mine",
              "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind",
              "/api/merchant/payout-account/save":
             return .payout

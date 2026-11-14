@@ -4,8 +4,6 @@ import QuestifyCore
 #endif
 
 /// Rich character sheet and RPG status detail view (ported from `subpackageMember/character/index.wxml`).
-/// Read view by default. "Adjust" opens a local, clamped editing mode; saving is not wired to a server contract,
-/// so Save explains that instead of claiming success (see `PlayWriteAvailability`).
 @available(macOS 14.0, *)
 @MainActor struct CharacterSheetDetailView: View {
     let card: CharacterCard
@@ -13,20 +11,12 @@ import QuestifyCore
     var definitionSource: String? = nil
     var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
 
-    @State private var draft: CharacterSheetDraft?
-    @State private var saveAttempted = false
     @State private var showingDice = false
-
-    private var isEditing: Bool { draft != nil }
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 headerCard
-
-                if isEditing {
-                    PlayWriteUnavailableBanner(surface: .characterSheetSave)
-                }
 
                 if !card.attributes.isEmpty {
                     CYSectionHeader("characterCard.traits")
@@ -35,15 +25,10 @@ import QuestifyCore
                             ForEach(card.attributes) { attribute in
                                 CharacterAttributeRow(
                                     attribute: attribute,
-                                    levels: attributeLevels[attribute.stateKey] ?? [],
-                                    draft: $draft)
+                                    levels: attributeLevels[attribute.stateKey] ?? [])
                             }
                         }
                     }
-                }
-
-                if let draft, draft.isDirty {
-                    pendingChangesCard(draft)
                 }
 
                 if let rpg = rpgSheet {
@@ -64,14 +49,6 @@ import QuestifyCore
                 }
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("characterSheet.diceRoller")
-
-                if !card.attributes.isEmpty {
-                    Button(LocalizedStringKey(isEditing ? "characterCard.done" : "characterCard.adjust")) {
-                        toggleEditing()
-                    }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("characterSheet.toggleEdit")
-                }
             }
         }
         .sheet(isPresented: $showingDice) { DiceRollerSheet() }
@@ -99,57 +76,6 @@ import QuestifyCore
                     .font(CYTypography.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-
-    // MARK: Editing
-
-    private func toggleEditing() {
-        if isEditing {
-            draft = nil
-            saveAttempted = false
-        } else {
-            draft = CharacterSheetDraft(attributes: card.attributes)
-        }
-    }
-
-    @ViewBuilder
-    private func pendingChangesCard(_ draft: CharacterSheetDraft) -> some View {
-        CYCard(variant: .accentTint) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text("characterCard.preview")
-                    .font(CYTypography.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                ForEach(draft.changes) { change in
-                    HStack {
-                        Text(change.label)
-                            .font(CYTypography.bodyCompact)
-                            .foregroundStyle(CYColor.textSecondary)
-                        Spacer()
-                        Text("\(change.from) → \(change.to)")
-                            .font(CYTypography.numericBody)
-                            .foregroundStyle(CYColor.accentText)
-                    }
-                    .accessibilityElement(children: .combine)
-                }
-                if saveAttempted {
-                    // Honest result of pressing Save: nothing was sent.
-                    Label(PlayWriteAvailability.current(for: .characterSheetSave).title, systemImage: "exclamationmark.circle")
-                        .font(CYTypography.label)
-                        .foregroundStyle(CYColor.warningText)
-                        .accessibilityIdentifier("characterSheet.saveUnavailable")
-                }
-                HStack(spacing: CYSpacing.md) {
-                    Button("characterCard.reset") {
-                        self.draft?.reset()
-                        saveAttempted = false
-                    }
-                    .buttonStyle(.cySecondary(fullWidth: true))
-                    Button("characterCard.save") { saveAttempted = true }
-                        .buttonStyle(.cyPrimary(fullWidth: true))
-                        .accessibilityIdentifier("characterSheet.save")
-                }
             }
         }
     }
@@ -212,25 +138,22 @@ import QuestifyCore
     }
 }
 
-// MARK: - Attribute row (read + local edit)
+// MARK: - Attribute row
 
 @available(macOS 14.0, *)
 @MainActor struct CharacterAttributeRow: View {
     let attribute: CharacterCardAttribute
     let levels: [CharacterAttributeLevel]
-    @Binding var draft: CharacterSheetDraft?
-
-    private var shownValue: Int { draft?.value(for: attribute.stateKey) ?? attribute.value }
 
     private var levelText: String {
         levels.filter { !$0.label.isEmpty }
             .sorted { $0.at < $1.at }
-            .last { shownValue >= $0.at }?.label ?? ""
+            .last { attribute.value >= $0.at }?.label ?? ""
     }
 
     private var percent: Double {
         guard attribute.max > attribute.min else { return 0 }
-        let raw = Double(shownValue - attribute.min) / Double(attribute.max - attribute.min) * 100.0
+        let raw = Double(attribute.value - attribute.min) / Double(attribute.max - attribute.min) * 100.0
         return Swift.max(0, Swift.min(100, raw))
     }
 
@@ -253,13 +176,9 @@ import QuestifyCore
                         .padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.accentSoft, in: Capsule())
                 }
-                if draft != nil {
-                    stepper
-                } else {
-                    Text(String(shownValue))
-                        .font(CYTypography.numericBody)
-                        .foregroundStyle(CYColor.textPrimary)
-                }
+                Text(String(attribute.value))
+                    .font(CYTypography.numericBody)
+                    .foregroundStyle(CYColor.textPrimary)
             }
 
             if attribute.displayType == "bar" {
@@ -269,9 +188,9 @@ import QuestifyCore
             } else if showsStars {
                 HStack(spacing: CYSpacing.xs) {
                     ForEach(0..<attribute.max, id: \.self) { index in
-                        Image(systemName: index < shownValue ? "star.fill" : "star")
+                        Image(systemName: index < attribute.value ? "star.fill" : "star")
                             .font(CYTypography.meta)
-                            .foregroundStyle(index < shownValue ? CYColor.warningText : CYColor.textPlaceholder)
+                            .foregroundStyle(index < attribute.value ? CYColor.warningText : CYColor.textPlaceholder)
                     }
                 }
                 .accessibilityHidden(true)
@@ -287,57 +206,18 @@ import QuestifyCore
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(attribute.label)
-        .accessibilityValue("\(shownValue) / \(attribute.max)" + (levelText.isEmpty ? "" : ", \(levelText)"))
-        .accessibilityAdjustableAction { direction in
-            guard draft != nil else { return }
-            switch direction {
-            case .increment: draft?.adjust(attribute.stateKey, by: 1)
-            case .decrement: draft?.adjust(attribute.stateKey, by: -1)
-            @unknown default: break
-            }
-        }
-    }
-
-    private var stepper: some View {
-        HStack(spacing: CYSpacing.xs) {
-            Button {
-                draft?.adjust(attribute.stateKey, by: -1)
-            } label: {
-                Image(systemName: "minus.circle.fill")
-                    .font(CYTypography.sectionTitle)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            }
-            .disabled(!(draft?.canDecrement(attribute.stateKey) ?? false))
-            .accessibilityHidden(true)
-
-            Text(String(shownValue))
-                .font(CYTypography.numericBody)
-                .foregroundStyle(CYColor.textPrimary)
-                .frame(minWidth: 28)
-
-            Button {
-                draft?.adjust(attribute.stateKey, by: 1)
-            } label: {
-                Image(systemName: "plus.circle.fill")
-                    .font(CYTypography.sectionTitle)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            }
-            .disabled(!(draft?.canIncrement(attribute.stateKey) ?? false))
-            .accessibilityHidden(true)
-        }
-        .foregroundStyle(CYColor.accentText)
+        .accessibilityValue("\(attribute.value) / \(attribute.max)" + (levelText.isEmpty ? "" : ", \(levelText)"))
     }
 }
 
 #if DEBUG
-#Preview("Attribute row · editing") {
+#Preview("Attribute row") {
     let attribute = CharacterCardAttribute(
         stateKey: "str", label: "Strength", value: 3, min: 0, max: 5,
         displayType: "stars", persistScope: "topic", levels: [])
     return CharacterAttributeRow(
         attribute: attribute,
-        levels: [CharacterAttributeLevel(at: 3, label: "Skilled")],
-        draft: .constant(CharacterSheetDraft(attributes: [attribute])))
+        levels: [CharacterAttributeLevel(at: 3, label: "Skilled")])
         .padding()
 }
 #endif

@@ -62,6 +62,7 @@ private struct CreatorContentIssueView: View {
     @StateObject private var model = CreatorContentScreenModel<CreatorContentProjectPage>()
     /// Nil while my-project writes are gated; then no row offers a write.
     @State private var mutation: MyProjectMutationModel?
+    @State private var auditTarget: ProjectAuditTarget?
     @State private var query = CreatorContentQuery(type: "topic")
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -111,7 +112,17 @@ private struct CreatorContentIssueView: View {
                             } label: { card(project) }
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .accessibilityIdentifier("creatorContent.project.\(project.id)")
-                                .contextMenu { MyProjectRowOperationsMenu(project: project) }
+                                .contextMenu {
+                                    MyProjectRowOperationsMenu(project: project)
+                                    if project.sourceID > 0 {
+                                        Button {
+                                            auditTarget = ProjectAuditTarget(bizType: project.bizType, bizID: String(project.sourceID), title: project.title)
+                                        } label: {
+                                            Label(ChannelCopy.text("审核记录", "Audit Record", locale: locale), systemImage: "checkmark.shield")
+                                        }
+                                        .accessibilityIdentifier("myProject.audit.open.\(project.id)")
+                                    }
+                                }
                                 .questifyCardListRow()
                             MyProjectSaveAsTemplateEntry(project: project) { Task { await refresh() } }
                             MyProjectAuditEntry(project: project)
@@ -126,6 +137,7 @@ private struct CreatorContentIssueView: View {
         .environment(\.myProjectMerchantScopeAccess, loadedAccess)
         .environment(\.myProjectMutation, loadedAccess.isBrowseOnly ? nil : mutation)
         .task(id: entryScope) { mutation = MyProjectMutationFactory.liveModel(scope: entryScope) }
+        .sheet(item: $auditTarget) { ProjectAuditTimelineSheet(target: $0) }
         .appNavigationTitle("creatorContent.projects")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
         .onChange(of: listRefresh) { _, request in

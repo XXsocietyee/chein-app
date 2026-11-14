@@ -5,6 +5,7 @@ import FoundationNetworking
 
 @MainActor struct PlayGapMiscSurfaces: View {
     @EnvironmentObject private var session: AppSession
+    @Environment(\.locale) private var locale
     var body: some View {
         List {
             CurA11yLink(title: Text("playGap.device", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapDevicePage(session: session) }
@@ -12,6 +13,10 @@ import FoundationNetworking
             CurA11yLink(title: Text("playGap.return", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapReturnPage(session: session) }
             CurA11yLink(title: Text("playGap.product", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapProductPage(session: session) }
             CurA11yLink(title: Text("playGap.sms", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapSmsPage(session: session) }
+            NavigationLink { PlayGuardAppealLookupView() } label: {
+                Text(verbatim: ChannelCopy.text("原局守卫申诉", "Guard Appeal", locale: locale))
+            }
+            .accessibilityIdentifier("playGap.guardAppeal")
         }
         .navigationTitle(Text("playGap.title", tableName: "PlayGapMisc"))
         .accessibilityIdentifier("playGap.surfaces")

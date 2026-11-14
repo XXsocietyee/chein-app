@@ -938,7 +938,19 @@ struct PlayExperienceIssueView: View {
                                              reload: { Task { await model.loadLead(context: context) } })
                 } else if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
-                    if lead.exists, case .activity(let activityID) = model.scope { LeadMemberTicketScanButton(activityID: activityID) }
+                    if lead.exists, case .activity(let activityID) = model.scope {
+                        LeadMemberTicketScanButton(activityID: activityID)
+                        let currentNodeID = model.snapshot.flatMap { PlayTaskSummaryPresentation(snapshot: $0).currentNodeID }
+                        PlayLeadSweep2ToolsSection(
+                            activityID: activityID,
+                            members: lead.members.filter { !$0.isLeader },
+                            nodeID: currentNodeID,
+                            pendingUnlockCommandID: nil,
+                            expectedChapterID: nil,
+                            targetChapterID: nil,
+                            onReload: { Task { await model.loadLead(context: context) } }
+                        )
+                    }
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
                     if !lead.exists { actionButton(context: context, .start) }
                     else {

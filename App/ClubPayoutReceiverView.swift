@@ -181,6 +181,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                     }
                 }
             }
+            ClubPersonalSettlementSection()
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
