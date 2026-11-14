@@ -45,7 +45,12 @@ struct DiscoveryTemplateBrowserView: View {
     var body: some View {
         Group {
             if !reader.isConfigured {
-                ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYStateLayout(
+                    kind: .offline,
+                    title: Text("discovery.unavailable"),
+                    detail: Text("auth.notConfigured")
+                )
+                .accessibilityIdentifier("discovery.unavailable")
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -69,6 +74,7 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
         .appNavigationTitle("discovery.templateTab.title")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {
@@ -143,19 +149,6 @@ struct DiscoveryTemplateBrowserView: View {
         .padding(.horizontal, CYSpacing.lg)
         .frame(minHeight: CYSpacing.minTouchTarget)
         .background(palette.bgElevated, in: Capsule(style: .continuous))
-        .overlay { Capsule(style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1).allowsHitTesting(false) }
-    }
-
-    private func filterChip(_ title: Text, selected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            title.font(CYTypography.meta.weight(.semibold)).lineLimit(1)
-                .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textSecondary)
-                .padding(.horizontal, CYSpacing.lg).frame(minHeight: CYSpacing.minTouchTarget)
-                .background(selected ? palette.actionPrimaryBg : Color.clear, in: Capsule(style: .continuous))
-                .overlay { Capsule(style: .continuous).strokeBorder(selected ? Color.clear : palette.borderStrong, lineWidth: 1) }
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     @ViewBuilder private var topicShelf: some View {
@@ -178,15 +171,15 @@ struct DiscoveryTemplateBrowserView: View {
         if let categories = home.value?.categories, !categories.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: CYSpacing.sm) {
-                    filterChip(Text("discovery.recommended"), selected: categoryID == nil) { categoryID = nil }
+                    CYFilterChip("discovery.recommended", isSelected: categoryID == nil) { categoryID = nil }
                     ForEach(categories) { category in
-                        filterChip(Text(verbatim: category.name), selected: categoryID == category.id) { categoryID = category.id }
+                        CYFilterChip(verbatim: category.name, isSelected: categoryID == category.id) { categoryID = category.id }
                     }
                 }
             }.accessibilityIdentifier("discovery.topicCategory")
         }
         if let error = topics.error {
-            DiscoveryErrorView(error: error) { Task { await loadTopics() } }
+            shelfIssue(error) { Task { await loadTopics() } }
         }
         if topics.isLoading {
             if topics.value == nil { CYSkeleton() } else { DiscoveryTemplateSyncingRow(hasLoadedRows: true) }
@@ -223,9 +216,9 @@ struct DiscoveryTemplateBrowserView: View {
             searchPill("discovery.search", text: $keyword, field: "discovery.search", submitID: "discovery.search.submit", submit: applySearch)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: CYSpacing.sm) {
-                    filterChip(Text("discovery.allPacks"), selected: pack == nil) { pack = nil }
+                    CYFilterChip("discovery.allPacks", isSelected: pack == nil) { pack = nil }
                     ForEach(DiscoveryPackType.allCases, id: \.rawValue) { item in
-                        filterChip(Text(item.label), selected: pack == item) { pack = item }
+                        CYFilterChip(item.label, isSelected: pack == item) { pack = item }
                     }
                 }
             }.accessibilityIdentifier("discovery.packFilter")
@@ -238,7 +231,7 @@ struct DiscoveryTemplateBrowserView: View {
         if hasGameFilter {
             if games.isLoading { CYSkeleton() }
             if let error = games.error {
-                DiscoveryErrorView(error: error) { Task { await loadGames() } }
+                shelfIssue(error) { Task { await loadGames() } }
             }
             if let rows = games.value {
                 if rows.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
@@ -247,7 +240,7 @@ struct DiscoveryTemplateBrowserView: View {
         } else {
             if home.isLoading { CYSkeleton() }
             if let error = home.error {
-                DiscoveryErrorView(error: error) { Task { await loadHome() } }
+                shelfIssue(error) { Task { await loadHome() } }
             }
             if let value = home.value {
                 if value.isEmpty { CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames") }
@@ -280,7 +273,8 @@ struct DiscoveryTemplateBrowserView: View {
                                     DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle)
                                         .foregroundStyle(palette.textPrimary)
                                     if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary).lineLimit(2)
+                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                                            .fixedSize(horizontal: false, vertical: true)
                                     }
                                     DiscoveryTopicMetadata(item: item)
                                 }
@@ -312,6 +306,38 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
+    @ViewBuilder private func shelfIssue(_ error: Error, retry: @escaping () -> Void) -> some View {
+        let reason = error as? DiscoveryTemplateUnavailable
+        let unauthorized = (error as? APIError) == .unauthorized
+        let offline = reason == .offline || (error as? URLError)?.code == .notConnectedToInternet
+        let title: LocalizedStringKey
+        let detail: LocalizedStringKey?
+        if unauthorized {
+            title = "discovery.signInRequired"
+            detail = "discovery.signInHint"
+        } else if reason == .notFound || reason == .deleted {
+            title = "discovery.templateMissing"
+            detail = "discovery.templateMissingHint"
+        } else if reason == .underReview {
+            title = "discovery.templateReview"
+            detail = "discovery.templateReviewHint"
+        } else if reason == .offline {
+            title = "discovery.templateOffline"
+            detail = "discovery.templateOfflineHint"
+        } else {
+            title = "discovery.loadFailed"
+            detail = nil
+        }
+        let canRetry = !unauthorized && (reason?.retryable ?? true)
+        CYStateLayout(
+            kind: offline ? .offline : .failure,
+            title: Text(title),
+            detail: detail.map { Text($0) },
+            primary: canRetry ? (title: "action.retry", action: retry) : nil,
+            primaryIdentifier: canRetry ? "discovery.retry" : nil
+        )
+    }
+
     private func applyTopicSearch() {
         appliedTopicSearch = DiscoveryTopicTemplateNameSearch(topicKeyword)
         topicSearchFocused = false
