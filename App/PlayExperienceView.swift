@@ -789,6 +789,7 @@ import SwiftUI
                 hintContext = nil
                 Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
             }
+            .accessibilityIdentifier("playx.hints.confirm")
         } message: { Text("playx.hints.consequence") }
         .overlay {
             if showHelpPanel, let help, helpEnabled {

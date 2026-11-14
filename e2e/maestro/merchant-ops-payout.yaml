@@ -122,6 +122,12 @@ env:
     id: "payoutAccount.loading"
 - back
 
-# Verify merchant->consumer root switch toolbar button exists.
+# Verify merchant->consumer root switch toolbar button and merchant tab bar IDs.
 - assertVisible:
     id: "merchant.rootMode.switchToConsumer"
+- assertVisible:
+    id: "rootTabBar.tab.merchant.0"
+- tapOn:
+    id: "rootTabBar.tab.merchant.1"
+- tapOn:
+    id: "rootTabBar.tab.merchant.0"

@@ -13,15 +13,13 @@ env:
     arguments:
       "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
 
-# Navigate to Passport tab via verified Roam -> Passport bridge (`chein://roam/go` -> `roam.account.open`)
-# (Missing ID in MISSING_IDS.md: root TabView items lack .accessibilityIdentifier).
-- openLink: "chein://roam/go"
+# Navigate to Passport tab via native tab bar ID.
 - extendedWaitUntil:
     visible:
-      id: "roam.account.open"
+      id: "rootTabBar.tab.player.3"
     timeout: 15000
 - tapOn:
-    id: "roam.account.open"
+    id: "rootTabBar.tab.player.3"
 
 # Open Messages from Passport quick actions (`passport.action.messages`).
 - extendedWaitUntil:

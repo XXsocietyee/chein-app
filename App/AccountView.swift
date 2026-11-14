@@ -178,6 +178,7 @@ import SwiftUI
                         if settingsGuideHandoff.begin() { showsSettings=true }
                     }
                     .accessibilityLabel(Text("settings.title"))
+                    .accessibilityIdentifier("account.settings")
                 }
             }
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope) }

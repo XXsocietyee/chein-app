@@ -132,6 +132,7 @@ struct RegistrationSheetView: View {
             }
             .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
                 Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirmAndReadBack() } }
+                    .accessibilityIdentifier("registration.form.confirm")
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {

@@ -7,9 +7,8 @@ tags:
   - appeal
 ---
 # Assumes signed-in creator-capable session (or observes creator gating cleanly).
-# Note: On Passport (`AccountView`), `account.creatorProjects` (`AccountRoleSections`) lives inside SettingsView,
-# and Passport toolbar Settings gear (`AccountView.swift:177-180`) lacks `.accessibilityIdentifier` (see MISSING_IDS.md).
-# From Home (`homeFeed.openCreate` / `homeFeed.openProjectEditor`), creation & publishing modes are directly reachable.
+# Creation & publishing modes are directly reachable from Home (`homeFeed.openCreate` / `homeFeed.openProjectEditor`),
+# and `account.creatorProjects` is reachable on Passport via `account.settings`.
 - launchApp:
     clearState: false
     arguments:

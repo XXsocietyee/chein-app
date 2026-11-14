@@ -5,12 +5,6 @@ tags:
   - workshop
 ---
 # Assumes signed-in session (run after login.yaml).
-# Known code gap (MISSING_IDS.md):
-# - In Passport mode (`showsPassportOverview == true`), `AccountRoleSections` (containing
-#   `account.workshopPurchased` from WorkshopPurchasedLibraryView.swift:15) is mounted inside `SettingsView`
-#   (`AccountView.swift:51`, `SettingsView.swift:81`).
-# - The Settings gear button on Passport (`AccountView.swift:177-180`) has NO `.accessibilityIdentifier(...)`,
-#   blocking deterministic automated entry from Passport into Settings -> `account.workshopPurchased`.
 # Known TEST backend status (docs/release/e2e/E2E-20261113b.md N4):
 # - Empty-catalog / purchased-library state has dedicated identifiers tested once inside Settings.
 - launchApp:
@@ -18,20 +12,51 @@ tags:
     arguments:
       "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
 
-# Verify we reach Passport cleanly (`roam.account.open` -> `passport.action.wallet`).
-- openLink: "chein://roam/go"
+# Switch to Passport tab and open Settings via `account.settings`.
 - extendedWaitUntil:
     visible:
-      id: "roam.account.open"
+      id: "rootTabBar.tab.player.3"
     timeout: 15000
 - tapOn:
-    id: "roam.account.open"
+    id: "rootTabBar.tab.player.3"
 - extendedWaitUntil:
     visible:
-      id: "passport.action.wallet"
+      id: "account.settings"
     timeout: 15000
+- tapOn:
+    id: "account.settings"
 
-# Blocked step pending `account.settings` identifier on AccountView.swift:177-180:
-# 1. Tap `account.settings` -> scroll to & tap `account.workshopPurchased`
-# 2. Assert `workshopPurchased.status` or `workshopPurchased.row.*`
-# 3. Tap `workshopPaidInstall.entry` -> assert `workshopPaidInstall.authority` -> tap `workshopPaidInstall.confirm`
+# Open Workshop Purchased Library (`account.workshopPurchased`).
+- scrollUntilVisible:
+    element:
+      id: "account.workshopPurchased"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "account.workshopPurchased"
+
+# Verify purchased rows and paid install flow if catalog items exist.
+- runFlow:
+    when:
+      visible:
+        id: "workshopPurchased.row\\..*"
+    commands:
+      - tapOn:
+          id: "workshopPurchased.row\\..*"
+      - extendedWaitUntil:
+          visible:
+            id: "workshopPurchased.status"
+          timeout: 10000
+      - runFlow:
+          when:
+            visible:
+              id: "workshopPaidInstall.entry"
+          commands:
+            - tapOn:
+                id: "workshopPaidInstall.entry"
+            - extendedWaitUntil:
+                visible:
+                  id: "workshopPaidInstall.authority"
+                timeout: 10000
+            - tapOn:
+                id: "workshopPaidInstall.confirm"

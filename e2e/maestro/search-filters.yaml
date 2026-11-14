@@ -88,3 +88,10 @@ env:
     id: "searchMap.filter.reset"
 - tapOn:
     id: "searchMap.filter.apply"
+- runFlow:
+    when:
+      visible:
+        id: "globalSearch.close"
+    commands:
+      - tapOn:
+          id: "globalSearch.close"

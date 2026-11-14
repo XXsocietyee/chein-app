@@ -24,14 +24,14 @@ Status key: `PASS` | `FAIL` | `BLOCKED_MISSING_ID` | `BLOCKED_BACKEND` | `SKIP`
 | 4 | `discover-activity-signup` | | | Activity `992031` detail + reg sheet |
 | 5 | `play-session` | | | Station answer + hint ladder + team backpack |
 | 6 | `roam` | | | Free roam + simulated GPX (`roam_shanghai_walk.gpx`) + background |
-| 7 | `city-game` | | | City search & layer view (`roam.more` city ID gap noted) |
+| 7 | `city-game` | | | `roam.more` -> `roam.more.city` + city search & layer view |
 | 8 | `club` | | | Seeded club `7001` join/apply + chat + channels |
 | 9 | `im-dm-preview` | | | Passport -> Messages -> conversation preview + send |
 | 10 | `community-post` | | | Home -> Square compose -> review -> publish |
 | 11 | `creator-publish-review-appeal` | | | Project editor -> publishing clarity -> audit/appeal |
 | 12 | `external-game` | | | Home -> Mini Games banner -> catalog / submit / report |
 | 13 | `rewards-store` | | | Passport -> Rewards Store -> browse / present |
-| 14 | `workshop-purchased-install` | | | Blocked by `MISSING_IDS.md` `AccountView.swift:177` gear ID |
+| 14 | `workshop-purchased-install` | | | Passport -> `account.settings` -> `account.workshopPurchased` |
 | 15 | `wallet` | | | Passport -> Wallet -> earnings + ledgers + withdrawal entry |
 | 16 | `search-filters` | | | Filter sheet (tag, date preset, min/max price, result kind) |
 | 17 | `offline-banner` | | | `offline.capsule` (`E2E_EXPECT_OFFLINE=0` / `1`) |

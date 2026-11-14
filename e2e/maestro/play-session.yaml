@@ -98,8 +98,13 @@ env:
     commands:
       - tapOn:
           id: "playx.hints.request"
-      # Note (MISSING_IDS.md): PlayExperienceView.swift:787 confirmationDialog Button("playx.hints.confirm")
-      # does not attach an .accessibilityIdentifier.
+      - runFlow:
+          when:
+            visible:
+              id: "playx.hints.confirm"
+          commands:
+            - tapOn:
+                id: "playx.hints.confirm"
 
 # 4. Station answer (option button OR text input field -> review -> confirm).
 - runFlow:

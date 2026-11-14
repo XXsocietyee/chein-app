@@ -10,14 +10,13 @@ tags:
     arguments:
       "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
 
-# Navigate to Passport tab via verified Roam -> Passport bridge.
-- openLink: "chein://roam/go"
+# Navigate to Passport tab via native tab bar ID.
 - extendedWaitUntil:
     visible:
-      id: "roam.account.open"
+      id: "rootTabBar.tab.player.3"
     timeout: 15000
 - tapOn:
-    id: "roam.account.open"
+    id: "rootTabBar.tab.player.3"
 
 # Scroll down Passport (`AccountView` hosts `AccountCollectionAccountLinks` -> `rewards.open`) and open Rewards Store.
 - scrollUntilVisible:
