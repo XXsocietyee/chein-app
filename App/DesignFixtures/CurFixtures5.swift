@@ -264,7 +264,7 @@ private struct Cur5Down: HTTPTransport {
             GroupCheckoutPanel(phase: .ready(GroupCheckoutDisplay(
                 productName: nil, productKind: nil, tierLabel: nil, totalText: nil, activityID: nil, ticketID: nil)), onRetry: {})
         case .failed:
-            GroupCheckoutPanel(phase: .failed, onRetry: {})
+            GroupCheckoutPanel(phase: .failed(nil), onRetry: {})
         }
     }
 
