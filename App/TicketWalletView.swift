@@ -135,6 +135,7 @@ import SwiftUI
             .cyDomainPageBackground()
             .listSectionSpacing(20)
             .appNavigationTitle("ticketWallet.title")
+            .cyHideTabBar()
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
                 if completionReader != nil, reader.isAuthenticated, model.value(owner: key)?.tickets.isEmpty == false {
