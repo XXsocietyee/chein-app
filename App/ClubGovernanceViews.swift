@@ -1432,6 +1432,15 @@ struct ClubGovernanceReadView: View {
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
             edit(.dissolve, role: .destructive)
         } else if operation == .settlement {
+            if let clubID = scope.clubID, clubID > 0 {
+                Section {
+                    NavigationLink { ClubPayoutReceiverView(clubID: clubID) } label: {
+                        Label {
+                            Text(verbatim: ChannelCopy.text("个人收款", "Personal receiver", locale: Locale.current))
+                        } icon: { Image(systemName: "person.crop.square") }
+                    }.accessibilityIdentifier("club.receiver.open")
+                }
+            }
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
             // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).

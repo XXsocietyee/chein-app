@@ -126,8 +126,12 @@ final class OwnerDecisionGuardTests: XCTestCase {
         let client = try makeClient(transport, payout: false)
         XCTAssertEqual(client.bind(), .notSent)
         XCTAssertTrue(transport.requests.isEmpty)
-        // Owner 2026-11-14: one entry per surface. WP-01/05's ClubPayoutReceiverView is the club receiver screen; the WP-10 copy is gone.
+        // Owner 2026-11-14: one entry per surface. The settlement row opens WP-01/05's ClubPayoutReceiverView; the WP-10 copy is gone.
         let governance = try source("App/ClubGovernanceViews.swift")
+        XCTAssertTrue(governance.contains("ClubPayoutReceiverView(clubID: clubID)"))
+        XCTAssertTrue(governance.contains("club.receiver.open"))
+        XCTAssertTrue(governance.contains("个人收款"))
+        XCTAssertTrue(governance.contains("Personal receiver"))
         XCTAssertTrue(governance.contains("ClubPayoutReceiverLink(clubID: clubID)"))
         XCTAssertFalse(governance.contains("ClubPayoutReceiverEntry"))
     }
