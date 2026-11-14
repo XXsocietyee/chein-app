@@ -34,3 +34,31 @@ Copy added or changed (en and zh-Hans):
 | `club.tab.empty` | No clubs yet | 还没有俱乐部 |
 
 `homeFeed.activitiesEmpty` (No activities right now / 暂时没有活动) and `homeFeed.place` (Place / 地点) were already in the catalog.
+
+## Handover 49
+
+Compared the rows above that were marked not started, against the same public `hengyin` `8390d99e` tree. Home, Discover, and Club home were not opened again. Search, activity sign-up, wallet, passport, city, club chat, and the square list stay as recorded above. `swiftc` is still absent.
+
+| Page | What differed | Result |
+|---|---|---|
+| Topic detail | Middle tab was 路线节点. Free exploration's third tab was always 路线. The details tab still showed the venue card the source removed. Description was titled 主题介绍, and the includes list showed beside it. 场次 showed for every product type. Reviews empty title was 还没有人评价过这条路线 plus an extra line. Lineup was 阵容. Route empty added a second sentence under 路线配置中. | Fixed. Tabs are 详情 / 故事 / 路线, and 地点 when `productType == 2`. Story section title for free exploration is 护照. Description is 活动内容, and the includes list shows only when there is no description. 场次 only for free exploration. Empty reviews say 还没有评价. The points line 评论积分须符合参与及首评条件，以实际积分记录为准 sits under the reviews. Lineup is 参与品牌. Route empty is only 路线配置中. The bottom action bar and the stop-count row stay; the contract still requires them. |
+| Play runtime | Tools row was 旅程记录. The mini-program shell is a story stage plus a tools drawer (开始游戏, 继续故事, 同行者榜, 我的游玩记录). The native screen is still the section list. | Label fixed: 我的游玩记录 / My play history. The stage was not rebuilt. 同行者榜 and 还没有消息-style empties that already matched were left. |
+| Roam | Intro title 漫游, tabs 开始漫游 / 漫游护照, and the 附近活动 peek are already on `RoamBrowserView` / `RoamHomeTabsView`. | No change. |
+| Club detail | Public tabs in source are 帖文 / 活动 / 概览, plus 管理. Native posts tab said 帖子. Header meta (类型 · 成员, 公开加入 / 需审核加入) already matches. Source removed 进入群聊 from the header. | Posts tab is 帖文. The posts-tab chat row stays; `test_club_detail_tabs.py` still requires `club.chat.entry`. |
+| IM list | Empty action said 去广场找人. Title 消息 and empty 还没有消息 already match. Segments stay 全部 / 频道 / 私信 (iOS Messages layout). | Empty action is 去发现找人 / Find people in Discover. |
+| IM chat | Empty title is already 还没有消息. Source nav title is blank with the name under it, or 系统通知. Native title stays 聊天. | No further change. |
+| Community post | Closed title was 当前账号未开放社区. Empty comments added 说说你对这条动态的想法吧 under 还没有评论. Composer placeholder 留下你的评论 and deleted-comment line 该评论已删除 already match. Actions stay like, comment, favourite, share. | Closed title is 社区暂未开放 / Community isn't open yet. Empty comments are only 还没有评论. |
+
+Copy added or changed (en and zh-Hans):
+
+| Key | en | zh-Hans |
+|---|---|---|
+| `topicXcx.tab.nodes` | Story | 故事 |
+| `topicXcx.tab.places` | Places | 地点 |
+| `topicXcx.reviews.emptyTitle` | No reviews yet | 还没有评价 |
+| `topicXcx.section.lineup` | Participating brands | 参与品牌 |
+| `club.detail.tab.posts` | Posts | 帖文 |
+| `square.xcx.closedTitle` | Community isn't open yet | 社区暂未开放 |
+| `im.inbox.emptySquare` | Find people in Discover | 去发现找人 |
+| `journey.record.title` | My play history | 我的游玩记录 |
+

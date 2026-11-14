@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Mini-program `cy-tabs.club-view-tabs`: 帖子 / 活动 / 概览 (+ 管理 when allowed), as a native segmented picker.
+/// Mini-program `cy-tabs.club-view-tabs`: 帖文 / 活动 / 概览 (+ 管理 when allowed), as a native segmented picker.
 struct ClubDetailTabBar: View {
     let tabs: [ClubDetailTab]
     let selection: ClubDetailTab

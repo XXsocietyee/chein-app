@@ -81,7 +81,7 @@
     {
       "key": "club.detail.tab.posts",
       "en": "Posts",
-      "zh-Hans": "帖子",
+      "zh-Hans": "帖文",
       "accessibilityIdentifier": "club.detail.tab.posts"
     },
     {

@@ -93,15 +93,12 @@ struct TopicDetailView: View {
                     withAnimation { proxy.scrollTo(TopicXcxTab.details.anchor, anchor: .top) }
                 }.accessibilityIdentifier("topic.cover.details")
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
-                TopicXcxTabs(proxy: proxy)
+                TopicXcxTabs(proxy: proxy, productType: value.productType)
             }
             // 详情 tab (mini-program `det3`): title, one-line subtitle, venue card, then the audio guide.
             Section {
                 TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                if let venue = TopicXcxFacts.venue(value.addressName) {
-                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name).font(CYTypography.bodyMedium); if let address = venue.address { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(CYColor.accentText) }
-                }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
             if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
@@ -111,11 +108,10 @@ struct TopicDetailView: View {
                 Section {
                     if let introduction = value.introduction {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("topicXcx.section.intro").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                            Text("topicXcx.section.contents").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                             Text(verbatim: introduction).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
                         }
-                    }
-                    if !includes.isEmpty {
+                    } else if !includes.isEmpty {
                         Text("topicXcx.section.contents").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                         TopicXcxIncludes(rows: includes)
                     }
@@ -137,6 +133,7 @@ struct TopicDetailView: View {
                     }.accessibilityIdentifier("topic.records.entry")
                 }
             }
+            if value.productType == 2 {
             Section("topic.source.sessions") {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
@@ -162,6 +159,7 @@ struct TopicDetailView: View {
                 }
                 if !value.tickets.isEmpty { Text("topic.source.sessionNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             }.id("topicXcx.anchor.sessions")
+            }
             if let activities = value.activities {
                 Section("topic.activities") {
                     if activities.isEmpty { Text("topic.noActivities").accessibilityIdentifier("topic.activities.empty") }
@@ -205,16 +203,13 @@ struct TopicDetailView: View {
             }
             Section("topic.comments") {
                 if (value.commentCount ?? value.comments.count) == 0 {
-                    // Source ratings empty state.
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("topicXcx.reviews.emptyTitle").font(.headline)
-                        Text("topicXcx.reviews.emptyDetail").font(.footnote).foregroundStyle(.secondary)
-                    }.accessibilityIdentifier("topic.reviews.emptyPrompt")
+                    Text("topicXcx.reviews.emptyTitle").font(.headline).accessibilityIdentifier("topic.reviews.emptyPrompt")
                 }
                 CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
+                Text("activity.reviewPointsNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             }
-            Section("topic.chapters") {
+            Section {
                 if value.chapters.isEmpty {
                     Text("topic.noChapters").foregroundStyle(.secondary)
                 }
@@ -232,6 +227,8 @@ struct TopicDetailView: View {
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
+            } header: {
+                Text(value.productType == 2 ? "tabBar.passport" : "topic.chapters")
             }.id(TopicXcxTab.nodes.anchor)
             if value.showStoryPaywall {
                 Section("topic.lockedStory") {

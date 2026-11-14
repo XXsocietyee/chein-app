@@ -13327,7 +13327,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "帖子"
+            "value": "帖文"
           }
         }
       }
@@ -69225,13 +69225,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Find people in Square"
+            "value": "Find people in Discover"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "去广场找人"
+            "value": "去发现找人"
           }
         }
       }
@@ -72100,13 +72100,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journey record"
+            "value": "My play history"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "旅程记录"
+            "value": "我的游玩记录"
           }
         }
       }
@@ -203406,13 +203406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Community isn't open for this account"
+            "value": "Community isn't open yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号未开放社区"
+            "value": "社区暂未开放"
           }
         }
       }
@@ -228185,13 +228185,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No one has reviewed this route yet"
+            "value": "No reviews yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有人评价过这条路线"
+            "value": "还没有评价"
           }
         }
       }
@@ -228282,13 +228282,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lineup"
+            "value": "Participating brands"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "阵容"
+            "value": "参与品牌"
           }
         }
       }
@@ -228474,13 +228474,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route stops"
+            "value": "Story"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "路线节点"
+            "value": "故事"
           }
         }
       }
@@ -273743,6 +273743,22 @@
       "localizations": {
         "en": {"stringUnit": {"state": "translated", "value": "Edit landing page"}},
         "zh-Hans": {"stringUnit": {"state": "translated", "value": "编辑落地页"}}
+      }
+    },
+    "topicXcx.tab.places": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点"
+          }
+        }
       }
     }
   },
