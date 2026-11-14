@@ -308,7 +308,7 @@ struct UGCReportSheet: View {
                     ) {
                         Image(systemName: "shield.lefthalf.filled")
                             .font(CYTypography.pageTitle)
-                            .foregroundStyle(CYColor.accent)
+                            .foregroundStyle(CYColor.brand)
                     }
 
                     if let subject = presentation.subjectTitle, !subject.isEmpty {
@@ -328,7 +328,7 @@ struct UGCReportSheet: View {
                     } label: {
                         HStack(spacing: CYSpacing.sm) {
                             Image(systemName: "headphones")
-                                .foregroundStyle(CYColor.accent)
+                                .foregroundStyle(CYColor.brand)
                             Text("ugc.safety.action.contactSupport", tableName: "UGCSafety")
                                 .font(CYTypography.label)
                                 .foregroundStyle(CYColor.textPrimary)
@@ -444,7 +444,7 @@ struct UGCReportSheet: View {
                         .font(CYTypography.bodyCompact)
                         .foregroundStyle(CYColor.textPrimary)
                 }
-                .tint(CYColor.accent)
+                .tint(CYColor.brand)
                 .accessibilityIdentifier("ugc.safety.alsoBlock")
             }
 
@@ -490,7 +490,7 @@ struct UGCReportSheet: View {
         } label: {
             HStack(spacing: CYSpacing.sm) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? CYColor.accent : CYColor.textTertiary)
+                    .foregroundStyle(isSelected ? CYColor.brand : CYColor.textTertiary)
                 Text(verbatim: reason.label)
                     .font(CYTypography.body)
                     .foregroundStyle(CYColor.textPrimary)
@@ -501,12 +501,12 @@ struct UGCReportSheet: View {
             }
             .padding(CYSpacing.md)
             .background(
-                isSelected ? CYColor.accentSoft : CYColor.bgSurface,
+                isSelected ? CYColor.brandSoft : CYColor.bgSurface,
                 in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-                    .stroke(isSelected ? CYColor.accent : CYColor.borderSubtle, lineWidth: 1)
+                    .stroke(isSelected ? CYColor.brand : CYColor.borderSubtle, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)

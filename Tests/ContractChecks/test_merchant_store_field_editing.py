@@ -34,7 +34,7 @@ class Contract(unittest.TestCase):
  def test_lifecycle_clears_new_buffer(self):
   for s in ['.onChange(of: document.revision)','.onChange(of: document.coordinator.draftIdentity)','.onChange(of: document.coordinator.reader.scope)','.onChange(of: scenePhase)','.onDisappear { presentation.viewDisappeared() }','.privacySensitive()']:self.assertIn(s,self.view)
  def test_discard_prompt_not_consumed_by_framework_binding(self):
-  self.assertIn('Binding(get: { session.asksDiscard }, set: { _ in })',self.view)
+  self.assertIn('isPresented: session.asksDiscard,',self.view)
   self.assertIn('.interactiveDismissDisabled(session.buffer.isDirty || session.asksDiscard)',self.view)
  def test_no_new_io_or_write_capability(self):
   for s in ['URLSession','UserDefaults','UIPasteboard','.load(','.prepare(','.confirm(','.save(','.document(','.access(','.grant','canSave =']:self.assertNotIn(s,self.core+self.session+self.view)

@@ -34,7 +34,7 @@ class Contract(unittest.TestCase):
   self.assertIn('func keepEditing() { guard isCurrent, asksDiscard else { return }; asksDiscard = false }',self.session)
   self.assertIn('buffer.value = ""',self.session)
  def test_alert_callbacks_do_not_preconsume_choice(self):
-  self.assertIn('Binding(get: { session.asksDiscard }, set: { _ in })',self.view)
+  self.assertIn('isPresented: session.asksDiscard,',self.view)
   self.assertIn('if session.discard() { close() }',self.view);self.assertIn('{ session.keepEditing() }',self.view)
  def test_dirty_interactive_dismiss_requires_explicit_cancel(self):
   self.assertIn('.interactiveDismissDisabled(session.buffer.isDirty || session.asksDiscard)',self.view)

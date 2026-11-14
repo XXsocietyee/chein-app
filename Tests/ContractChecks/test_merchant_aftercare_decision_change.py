@@ -24,8 +24,10 @@ class MerchantAftercareDecisionContracts(unittest.TestCase):
         self.assertIn('if change.requiresDiscardConfirmation { confirmAftercareDecision = true }', request)
         self.assertIn('else { applyAftercareDecision(change) }', request)
         self.assertNotIn('content =', request)
-        self.assertIn('Button("merchant.aftercareDecision.discard", role: .destructive) { applyAftercareDecision(change) }', self.source)
-        self.assertIn('Button("merchant.aftercareDecision.keep", role: .cancel) { retireAftercareDecision() }', self.source)
+        self.assertIn('confirmTitle: appLocalized("merchant.aftercareDecision.discard", locale: locale)', self.source)
+        self.assertIn('applyAftercareDecision(change)', self.source)
+        self.assertIn('cancelTitle: appLocalized("merchant.aftercareDecision.keep", locale: locale)', self.source)
+        self.assertIn('retireAftercareDecision()', self.source)
     def test_confirmation_can_only_apply_original_context_source_and_raw_draft(self):
         for required in ['pendingAftercareDecision?.id == change.id','context.id == contextID','case .aftercare(let row) = context.kind','snapshot.document.rows.contains(row)','row.id == String(refund.rawValue)','snapshot == self.snapshot','decision == self.decision','content.utf8.elementsEqual(self.content.utf8)','evidence.utf8.elementsEqual(self.evidence.utf8)']:
             self.assertIn(required,self.source)

@@ -97,11 +97,13 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             isDestructive: true,
             onCancel: {
                 showLicenseRemoval = false
-                if let licenseRemoval { model.cancelLicenseRemoval(licenseRemoval) }
+                if let request = licenseRemoval { model.cancelLicenseRemoval(request) }
+                licenseRemoval = nil
             },
             onConfirm: {
                 showLicenseRemoval = false
-                if let licenseRemoval { model.removeLicense(licenseRemoval) }
+                if let request = licenseRemoval { model.removeLicense(request) }
+                licenseRemoval = nil
             }
         )
         .onChange(of: scenePhase) { _, phase in

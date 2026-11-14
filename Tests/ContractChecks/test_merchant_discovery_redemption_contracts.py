@@ -97,7 +97,7 @@ class MerchantDiscoveryRedemptionContracts(unittest.TestCase):
         self.assertNotIn('URLSession', text)
     def test_native_presentation_avoids_scanner_dialog_stacking(self):
         text = self.read('App/CityNodeRedeemView.swift')
-        self.assertIn('.confirmationDialog(', text)
+        self.assertIn('.cyModalConfirm(', text)
         self.assertIn('onDismiss:', text)
         self.assertIn('scannedCode = payload', text)
         self.assertIn('lifetime == captured', text)
