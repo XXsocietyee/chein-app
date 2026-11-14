@@ -8,8 +8,10 @@ public struct AuthRequestBuilder {
     public init(configuration: APIConfiguration) { self.configuration = configuration }
 
     static func isValidToken(_ token: String) -> Bool {
-        !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        token.utf8.allSatisfy { $0 >= 0x20 && $0 < 0x7f }
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty &&
+            trimmed == token &&
+            token.utf8.allSatisfy { $0 >= 0x20 && $0 < 0x7f }
     }
 
     /// Existing Flutter AuthApi uses multipart FormData, and a raw Authorization token.

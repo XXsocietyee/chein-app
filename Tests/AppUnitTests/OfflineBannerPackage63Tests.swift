@@ -100,35 +100,40 @@ final class OfflineBannerPackage63Tests: XCTestCase {
             approvedBaseURLs: [.china: ["https://8120.test"]],
             verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.questify.pkg63b",
-            realm: "pkg63b-test"
+            realm: "pkg63b-test",
+            productionGatesEnabled: true,
+            playerWritesEnabled: true
         )
         let stub = StubTransport()
         let root = AppCompositionRoot(
             deployment: .reviewed(deployment),
             storage: .init(defaults: defaults, tokenStore: { _ in TokenVault() }),
-            makeTransport: { ChinaReviewedProductionTransport(underlying: stub) }
+            makeTransport: { stub }
         )
         let session = root.makeSession()
         await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
         XCTAssertNotNil(session.account)
+        let token = try XCTUnwrap(session.token)
 
         let model = SessionOfflineSyncModel(directory: dir)
         model.bind(session: session)
 
-        // 1. Offline failure during performWriteOptIn enqueues non-money write ("will send when online")
+        // 1. Offline failure during performWriteOptIn enqueues non-money write through real composition transport
         stub.failFeedbackOffline = true
         await model.performWriteOptIn(session: session, routes: ["/api/play/feedback/submit"]) {
             var req = URLRequest(url: URL(string: "https://8120.test/api/play/feedback/submit")!)
             req.httpMethod = "POST"
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.setValue(token, forHTTPHeaderField: "Authorization")
             req.httpBody = Data(#"{"runId":12,"content":"gate offline","requestId":"fb63b000001"}"#.utf8)
             _ = try? await session.runtimeHTTPTransport.send(req)
         }
         XCTAssertEqual(model.queuedCount, 1)
         XCTAssertEqual(model.status(for: ["/api/play/feedback/submit"], isOnline: false), .queued(count: 1))
 
-        // 2. Reconnect replays queued write with idempotency key and marks screen .synced
+        // 2. Reconnect replays queued write through real composition transport and marks screen .synced
         stub.failFeedbackOffline = false
-        await model.flushIfOnline(session: session, isOnline: { true }, transport: stub)
+        await model.flushIfOnline(session: session, isOnline: { true })
         XCTAssertEqual(stub.replayedFeedbackPaths, ["/api/play/feedback/submit"])
         XCTAssertEqual(model.queuedCount, 0)
         XCTAssertEqual(model.status(for: ["/api/play/feedback/submit"], isOnline: true), .synced)
@@ -136,7 +141,13 @@ final class OfflineBannerPackage63Tests: XCTestCase {
         // 3. Money write is strictly excluded and surfaces .moneyExcluded without enqueueing
         var moneyReq = URLRequest(url: URL(string: "https://8120.test/api/pay/create")!)
         moneyReq.httpMethod = "POST"
+        moneyReq.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        moneyReq.setValue(token, forHTTPHeaderField: "Authorization")
         moneyReq.httpBody = Data(#"{"requestId":"pay123456789"}"#.utf8)
+        await model.performWriteOptIn(session: session, routes: ["/api/pay/create"]) {
+            _ = try? await session.runtimeHTTPTransport.send(moneyReq)
+        }
+        XCTAssertEqual(model.queuedCount, 0)
         XCTAssertFalse(model.enqueueNonMoneyIdempotentWrite(moneyReq, session: session))
         XCTAssertTrue(model.blockedMoneyWarningVisible)
         XCTAssertEqual(model.status(for: ["/api/pay/create"], isOnline: false), .moneyExcluded)

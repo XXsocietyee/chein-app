@@ -182,7 +182,7 @@ final class RegistrationCoordinatorTests: XCTestCase {
         await service.waitFor(.quote, count: 1)
         let selection = try RegistrationQuoteRequest(ownerID: 8, ticketID: 12, usePoints: true)
         XCTAssertEqual(coordinator.select(selection), .applied)
-        try await loadQuote(coordinator, service, value: quote(#"{"payAmount":30,"quoteSign":"new-selection"}"#))
+        try await loadQuote(coordinator, service, value: quote(#"{"payAmount":0,"quoteSign":"new-selection"}"#))
         service.completeQuote(0, .success(try quote()))
         let action = await old.value
         XCTAssertEqual(action, .ignoredStale)

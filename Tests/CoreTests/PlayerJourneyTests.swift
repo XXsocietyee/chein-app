@@ -72,8 +72,10 @@ final class PlayerJourneyTests: XCTestCase {
         do { _ = try await makeService(denied).completedForPublicReference(token: "synthetic-token"); XCTFail("Unauthorized") }
         catch { XCTAssertEqual(error as? APIError, .unauthorized) }
         let quiet = JourneyTestTransport(replies: [])
-        do { _ = try await makeService(quiet).completedForPublicReference(token: " bad"); XCTFail("Bad token") }
-        catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+        for badToken in ["", "   ", " bad", "bad ", " bad ", "非ASCII", "tok-é"] {
+            do { _ = try await makeService(quiet).completedForPublicReference(token: badToken); XCTFail("Bad token: \(badToken.debugDescription)") }
+            catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+        }
         let count = await quiet.requests.count
         XCTAssertEqual(count, 0)
     }
