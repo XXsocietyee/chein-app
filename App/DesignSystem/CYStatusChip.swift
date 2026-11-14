@@ -64,24 +64,28 @@ struct CYStatusChip: View {
     }
 
     private var foreground: Color {
-        switch tone {
-        case .neutral: return palette.textSecondary
-        case .success: return palette.success
-        case .warning: return palette.warning
-        case .danger: return palette.danger
-        case .info: return palette.info
-        case .rare: return palette.rare
-        }
+        Self.tokens(for: tone, isSelected: isSelected, in: palette).foreground
     }
     private var background: Color {
+        Self.tokens(for: tone, isSelected: isSelected, in: palette).background
+    }
+
+    static func tokens(
+        for tone: CYStatusTone,
+        isSelected: Bool = false,
+        in palette: CYDomainPalette
+    ) -> (foreground: Color, background: Color, selectedBorder: Color?) {
+        let fg: Color
+        let bg: Color
         switch tone {
-        case .neutral: return palette.actionSecondaryBg
-        case .success: return palette.successSoft
-        case .warning: return palette.warningSoft
-        case .danger: return palette.dangerSoft
-        case .info: return palette.infoSoft
-        case .rare: return palette.rareSoft
+        case .neutral: fg = palette.textSecondary; bg = palette.actionSecondaryBg
+        case .success: fg = palette.success; bg = palette.successSoft
+        case .warning: fg = palette.warning; bg = palette.warningSoft
+        case .danger: fg = palette.danger; bg = palette.dangerSoft
+        case .info: fg = palette.info; bg = palette.infoSoft
+        case .rare: fg = palette.rare; bg = palette.rareSoft
         }
+        return (fg, bg, isSelected ? palette.borderStrong : nil)
     }
 }
 
@@ -105,6 +109,10 @@ struct CYCountBadge: View {
     }
 
     private var label: String? {
+        Self.formattedLabel(count: count, showsZero: showsZero)
+    }
+
+    static func formattedLabel(count: Int?, showsZero: Bool = false) -> String? {
         guard let count else { return "—" }
         if count == 0 && !showsZero { return nil }
         return count > 99 ? "99+" : "\(count)"

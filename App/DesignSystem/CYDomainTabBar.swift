@@ -195,11 +195,23 @@ struct CYRootTabBarStrip: View {
         tabs ?? (domain == .merchant ? RootTab.allCases : RootTab.playerTabs)
     }
 
+    static func stripTokens(isSelected: Bool, in palette: CYDomainPalette) -> (
+        foreground: Color,
+        gradientStops: [Color]
+    ) {
+        let unselectedColor = palette.textPrimary.opacity(Theme.MiniProgramChrome.tabUnselectedOpacity)
+        return (
+            foreground: isSelected ? palette.tabSelectedTint : unselectedColor,
+            gradientStops: [palette.bgPage.opacity(0), palette.bgPage.opacity(0.96), palette.bgPage]
+        )
+    }
+
     var body: some View {
+        let stripGradient = Self.stripTokens(isSelected: false, in: palette).gradientStops
         HStack(spacing: 0) {
             ForEach(activeTabs, id: \.self) { tab in
                 let isSelected = tab == selection
-                let unselectedColor = palette.textPrimary.opacity(Theme.MiniProgramChrome.tabUnselectedOpacity)
+                let fg = Self.stripTokens(isSelected: isSelected, in: palette).foreground
                 let icon = CYDomainTabIcons.icon(for: tab, domain: domain)
                 Button {
                     selection = tab
@@ -207,10 +219,10 @@ struct CYRootTabBarStrip: View {
                     VStack(spacing: CYSpacing.xs) {
                         Image(systemName: isSelected ? icon.selected : icon.idle)
                             .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
-                            .foregroundStyle(isSelected ? palette.tabSelectedTint : unselectedColor)
+                            .foregroundStyle(fg)
                         Text(LocalizedStringKey(CYDomainTabIcons.titleKey(for: tab, domain: domain)))
                             .font(CYTypography.micro.weight(isSelected ? .semibold : .medium))
-                            .foregroundStyle(isSelected ? palette.tabSelectedTint : unselectedColor)
+                            .foregroundStyle(fg)
                             .cyWrapText(alignment: .center)
                     }
                     .frame(maxWidth: .infinity, minHeight: Theme.MiniProgramChrome.minHit)
@@ -225,7 +237,7 @@ struct CYRootTabBarStrip: View {
         .padding(.bottom, CYSpacing.sm)
         .background(
             LinearGradient(
-                colors: [palette.bgPage.opacity(0), palette.bgPage.opacity(0.96), palette.bgPage],
+                colors: stripGradient,
                 startPoint: .top,
                 endPoint: .bottom
             )
