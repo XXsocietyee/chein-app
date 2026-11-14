@@ -604,7 +604,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }
             installSocialWriteApprovals(gates)
             // E2E-20261113b N4: the purchased library follows the TEST money switch (closed on the production host).
-            workshopPurchasedReadApproval = { [gates] context in gates.workshopPurchasedRead(context) }
+            self.workshopPurchasedReadApproval = { [gates] context in gates.workshopPurchasedRead(context) }
         }
     }
 
