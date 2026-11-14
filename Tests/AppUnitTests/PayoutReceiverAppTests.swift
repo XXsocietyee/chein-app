@@ -40,7 +40,11 @@ import XCTest
         for route in PayoutReceiverRoute.allCases {
             XCTAssertTrue(PayoutReceiverRouteGrant.admits(route), route.rawValue)
             XCTAssertEqual(PayoutReceiverRouteGrant.moneyPaths.contains(route.rawValue), route.isPayout, route.rawValue)
-            if route != .settlementSummary {
+            if route == .receiverStatus || route == .merchantPayoutAccount {
+                // Owner 2026-11-14: status reads, granted unconditionally.
+                XCTAssertTrue(ChinaReviewedRouteCapability.ownerDecisionGuardGrant.contains("/" + route.rawValue), route.rawValue)
+                XCTAssertNil(ChinaReviewedRouteCapability.moneyAreaOwnerGrant["/" + route.rawValue], route.rawValue)
+            } else if route != .settlementSummary {
                 XCTAssertNotNil(ChinaReviewedRouteCapability.moneyAreaOwnerGrant["/" + route.rawValue], route.rawValue)
             }
         }
