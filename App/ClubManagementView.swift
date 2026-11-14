@@ -158,7 +158,7 @@ struct ClubManagementView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .cyDomainPageBackground()
+        .cyDomainScreen(.player)
         .cyHeroScreen()
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {

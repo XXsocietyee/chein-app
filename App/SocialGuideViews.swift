@@ -37,7 +37,10 @@ import SwiftUI
             } header: {
                 Text("guideXcx.docs")
             }
-        }.appNavigationTitle("social.guide.title").accessibilityIdentifier("social.guide")
+        }
+        .cyDomainPageBackground()
+        .appNavigationTitle("social.guide.title")
+        .accessibilityIdentifier("social.guide")
     }
 }
 @MainActor struct SocialInformationView: View {
@@ -88,18 +91,15 @@ import SwiftUI
 struct SocialInformationArt: View {
     let id: Int
     var large = false
-    private var tones: [Color] {
-        switch abs(id) % 3 {
-        case 0: return [Color(red: 0.10, green: 0.16, blue: 0.30), Color(red: 0.16, green: 0.36, blue: 0.42)]
-        case 1: return [Color(red: 0.30, green: 0.16, blue: 0.14), Color(red: 0.46, green: 0.30, blue: 0.16)]
-        default: return [Color(red: 0.09, green: 0.22, blue: 0.20), Color(red: 0.14, green: 0.18, blue: 0.34)]
-        }
-    }
+    @Environment(\.cyPalette) private var palette
     var body: some View {
-        LinearGradient(colors: tones, startPoint: .topLeading, endPoint: .bottomTrailing)
+        RoundedRectangle(cornerRadius: large ? CYRadius.lg : CYRadius.sm, style: .continuous)
+            .fill(palette.bgElevated)
             .overlay(alignment: large ? .topTrailing : .center) {
-                Image(systemName: "text.book.closed").font(large ? .system(size: 56, weight: .thin) : .title3.weight(.light))
-                    .foregroundStyle(.white.opacity(large ? 0.25 : 0.7)).padding(large ? CYSpacing.lg : 0)
+                Image(systemName: abs(id) % 2 == 0 ? "text.book.closed" : "doc.text")
+                    .font(large ? .largeTitle.weight(.thin) : .title3.weight(.light))
+                    .foregroundStyle(palette.textTertiary)
+                    .padding(large ? CYSpacing.lg : 0)
             }
             .accessibilityHidden(true)
     }

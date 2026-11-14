@@ -27,20 +27,12 @@ import SwiftUI
                             .background(CYColor.bgElevated, in: Capsule()).accessibilityIdentifier("official.search")
                     }
                     // Source `cy-tabs variant="chip"`: left-aligned capsules, the selected one solid.
-                    HStack(spacing: CYSpacing.sm) {
-                        ForEach(OfficialEventBucket.allCases) { value in
-                            let selected = bucket == value
-                            Button { bucket = value } label: {
-                                Text(LocalizedStringKey(value.tabTitleKey))
-                                    .font(selected ? CYTypography.label.weight(.semibold) : CYTypography.label)
-                                    .foregroundStyle(selected ? CYColor.textInverse : CYColor.textPrimary)
-                                    .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                                    .background(selected ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: CYSpacing.sm) {
+                            ForEach(OfficialEventBucket.allCases) { value in
+                                CYFilterChip(LocalizedStringKey(value.tabTitleKey), isSelected: bucket == value) { bucket = value }
                             }
-                            .buttonStyle(.cyPressable)
-                            .accessibilityAddTraits(selected ? .isSelected : [])
                         }
-                        Spacer(minLength: 0)
                     }
                     .sensoryFeedback(.selection, trigger: bucket)
                     .accessibilityElement(children: .contain)
@@ -68,6 +60,7 @@ import SwiftUI
             if publisherScope != reader.scope { canPublish = false; publisherScope = nil }
         }
         .onDisappear { sourceObservation.stop() }
+            .cyDomainScreen(.player)
             // Keep IDs on the search, filter, and action leaves. A VStack ID can
             // propagate to those controls and hide their individual identifiers.
         }
@@ -121,7 +114,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.player)
     }
     private func checkPublisherPermission() async {
         let captured = reader.scope

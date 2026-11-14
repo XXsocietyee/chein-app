@@ -214,8 +214,9 @@ import SwiftUI
                     Text(LocalizedStringKey(key)).accessibilityIdentifier("nearby.message")
                 }
                 if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
-            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true).padding()
-                .frame(maxWidth: .infinity, alignment: .leading).background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         }
     }
     /// Mini-program 范围 control. Coordinates are only typed in when the host gave no map point.
@@ -308,8 +309,8 @@ import SwiftUI
             default: EmptyView()
             }
             NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
-        }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
     }
     @ViewBuilder private var applicantSection: some View {

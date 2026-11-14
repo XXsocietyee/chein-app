@@ -33,6 +33,7 @@ import SwiftUI
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYStatusChip(LocalizedStringKey(row.sourceStatusKey), tone: row.isPaused ? .warning : .neutral, systemImage: "envelope")
                         if row.title.isEmpty {
                             CYListRow("official.inviteUntitled", trailing: .none) { CYRowIcon(systemImage: "envelope") }
                         } else {
@@ -60,8 +61,8 @@ import SwiftUI
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
                                 .font(CYTypography.caption).foregroundStyle(palette.warning)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        CYStatusChip(LocalizedStringKey(row.sourceStatusKey), tone: row.isPaused ? .warning : .neutral, systemImage: "envelope")
                         if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).font(CYTypography.caption) }
                     }
                     .cyDomainCard(padding: CYSpacing.md)
@@ -117,16 +118,19 @@ import SwiftUI
                         ForEach(Array(broadcasts.enumerated()), id: \.offset) { _, broadcast in
                             if broadcast.id > 0 {
                                 NavigationLink { OfficialBroadcastStatsView(id: broadcast.id, reader: reader, onLogin: onLogin) } label: {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        if broadcast.title.isEmpty { Text("official.untitled") }
-                                        else { Text(verbatim: broadcast.title).font(.headline) }
+                                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                         if let facts = broadcast.facts {
-                                            OfficialPrivateFactsText.broadcastLine(facts).font(.subheadline)
-                                            Text(OfficialPrivateFactsText.broadcastStatusKey(facts.status)).font(.caption)
+                                            CYStatusChip(OfficialPrivateFactsText.broadcastStatusKey(facts.status), tone: .neutral, systemImage: "megaphone")
                                         }
-                                        if let content = broadcast.content { Text(verbatim: content).lineLimit(3) }
-                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(.caption).foregroundStyle(.secondary) }
+                                        if broadcast.title.isEmpty { Text("official.untitled").font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                                        else { Text(verbatim: broadcast.title).font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                                        if let facts = broadcast.facts {
+                                            OfficialPrivateFactsText.broadcastLine(facts).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                                        }
+                                        if let content = broadcast.content { Text(verbatim: content).font(CYTypography.meta).lineLimit(3).fixedSize(horizontal: false, vertical: true) }
+                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(CYTypography.caption).foregroundStyle(palette.textSecondary).monospacedDigit() }
                                     }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 }.accessibilityIdentifier("official.broadcast.\(broadcast.id)")
                             }
                         }
@@ -137,23 +141,23 @@ import SwiftUI
         }.appNavigationTitle("official.published.title").navigationBarTitleDisplayMode(.inline)
     }
     private func publishedEventRow(_ event: OfficialEvent) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                if let title = OfficialPublishedPresentation.nonBlank(event.title) { Text(verbatim: title).font(CYTypography.cardTitle) }
-                else { Text("official.privateParity.published.untitledEvent").font(CYTypography.cardTitle) }
-                Spacer(minLength: 8)
-                Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)))
-                    .font(.caption).padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Capsule().fill(palette.bgRaised))
-                    .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYStatusChip(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)), tone: .neutral, systemImage: "calendar")
+                .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
+            if let title = OfficialPublishedPresentation.nonBlank(event.title) {
+                Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("official.privateParity.published.untitledEvent").font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
             }
             // Source sub line: city, then " · category" only when the server sent one.
             let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text(verbatim: "—")
             Group {
                 if OfficialPublishedPresentation.nonBlank(event.category) != nil { city + Text(verbatim: " · ") + Text(LocalizedStringKey(event.categoryKey)) }
                 else { city }
-            }.font(.subheadline).foregroundStyle(.secondary)
-        }.fixedSize(horizontal: false, vertical: true)
+            }.font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
     }
     /// Mini-program `cy-empty` with a title only.
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {

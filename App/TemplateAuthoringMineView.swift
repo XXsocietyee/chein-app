@@ -102,7 +102,7 @@ import SwiftUI
                 Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus")
             }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(.player).cyHeroScreen()
             .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in

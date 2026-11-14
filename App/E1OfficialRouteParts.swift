@@ -19,20 +19,25 @@ struct OfficialRouteCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom))
                 }
-            HStack(spacing: CYSpacing.sm) {
-                if !route.city.isEmpty {
-                    Label { Text(verbatim: route.city) } icon: { Image(systemName: "mappin.and.ellipse") }
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary).lineLimit(1)
-                }
-                Spacer(minLength: CYSpacing.sm)
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYStatusChip(verbatim: copy, tone: .info, systemImage: "checkmark.seal")
-                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                HStack(spacing: CYSpacing.sm) {
+                    if !route.city.isEmpty {
+                        Label { Text(verbatim: route.city) } icon: { Image(systemName: "mappin.and.ellipse") }
+                            .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text(verbatim: "—").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    }
+                    Spacer(minLength: CYSpacing.sm)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(palette.bgElevated)
         }
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(palette.borderSubtle))
         .accessibilityElement(children: .combine)
     }
 
