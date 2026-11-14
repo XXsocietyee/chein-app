@@ -320,6 +320,7 @@ struct SessionRootView: View {
                 .onAppear { reachability.start() }
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
+                .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.player.0", "rootTabBar.tab.player.1", "rootTabBar.tab.player.2", "rootTabBar.tab.player.3"])
                 .overlay { CYNightTabBar(selection: selectedTab) }
                 .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
                 .cyHaptic(.selection, trigger: selectedTab)
@@ -448,12 +449,25 @@ struct SessionRootView: View {
     private func chain3_1<V: View>(_ v: V) -> some View {
         let session = session
         var readiness: (@MainActor () async -> RegistrationPaymentReadiness?)?
+        var payExecutor: RegistrationPayExecutor?
         if PayoutReceiverBridge.paymentsOpen(session) {
             readiness = { await PayoutReceiverBridge.paymentReadiness(session) }
+            payExecutor = { registrationID, channel, verifiedReadiness in
+                await RegistrationPayBridge.pay(
+                    session,
+                    registrationID: registrationID,
+                    channel: channel,
+                    readiness: verifiedReadiness,
+                    quoteUsable: true,
+                    quoteFresh: true,
+                    consented: true
+                )
+            }
         }
         return v
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
         .environment(\.registrationPaymentReadiness, readiness)
+        .environment(\.registrationPayExecutor, payExecutor)
     }
 
     private func chain3_2<V: View>(_ v: V) -> some View {

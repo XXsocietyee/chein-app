@@ -41,13 +41,21 @@ import SwiftUI
         .sheet(isPresented:$showsGlobalSearch) {
             NavigationStack {
                 SessionGlobalSearchView(onSignIn:{ showsGlobalSearch=false;onSignIn?() })
-                    .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { showsGlobalSearch=false } } }
+                    .toolbar {
+                        ToolbarItem(placement:.cancellationAction) {
+                            Button("action.close") { showsGlobalSearch=false }
+                                .accessibilityIdentifier("globalSearch.close")
+                        }
+                    }
             }.id(session.searchMapReader.scope)
         }
         .sheet(isPresented:$showsProjectEditor) {
             NavigationStack {
                 ProjectEditLaunchView().toolbar {
-                    ToolbarItem(placement:.cancellationAction) { Button("action.close") { showsProjectEditor=false } }
+                    ToolbarItem(placement:.cancellationAction) {
+                        Button("action.close") { showsProjectEditor=false }
+                            .accessibilityIdentifier("projectEditor.close")
+                    }
                 }
             }.id(session.sessionRevision)
         }
@@ -65,6 +73,7 @@ import SwiftUI
                     .toolbar {
                         ToolbarItem(placement:.cancellationAction) {
                             Button("action.close") { showsCreate=false }
+                                .accessibilityIdentifier("create.close")
                         }
                     }
             }
@@ -76,6 +85,7 @@ import SwiftUI
                     .toolbar {
                         ToolbarItem(placement:.cancellationAction) {
                             Button("action.close") { showsTemplates=false }
+                                .accessibilityIdentifier("templates.close")
                         }
                     }
             }
@@ -159,7 +169,12 @@ import SwiftUI
             NavigationStack {
                 ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
                     .navigationTitle(Text(verbatim: HomeIndexParityPresentation.miniGamesBanner.title(locale: locale)))
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { showsMiniGames = false } } }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") { showsMiniGames = false }
+                                .accessibilityIdentifier("miniGames.close")
+                        }
+                    }
             }
             .accessibilityIdentifier("homeIndex.miniGames")
         }

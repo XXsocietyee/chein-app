@@ -1,14 +1,28 @@
 import SwiftUI
 
-/// Team run section of the hint dialog (contract §4). Hints, skips and the timer belong to the whole team, so the
-/// counters are server facts and the hint text is the server's `hint{level, type, content}`. No points are charged here.
+/// Team run section of the hint dialog and run header (contract §4 / §25.1).
+/// Hints, skips, live shared timer countdown, and single `teamScore` belong to the whole team.
+/// No client points or money are spent or written here.
 @MainActor struct TeamPoolHintSection: View {
     @Bindable var model: TeamPoolHintModel
+    @Environment(\.locale) private var locale
+    @State private var confirmingSkip = false
+
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text("teamPool.title").font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+            HStack {
+                Text("teamPool.title").font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                if let pool = model.pool, let score = pool.teamScore {
+                    Text(verbatim: c.t("团队总分 \(score)", "Team score \(score)"))
+                        .font(CYTypography.meta).monospacedDigit()
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("teamPool.score")
+                }
+            }
             if let pool = model.pool {
                 HStack(spacing: CYSpacing.md) {
                     if let left = pool.hintsLeft, let total = pool.hintsTotal {
@@ -17,15 +31,16 @@ import SwiftUI
                     if let left = pool.skipsLeft, let total = pool.skipsTotal {
                         Text("teamPool.skipsLeft \(left) \(total)").accessibilityIdentifier("teamPool.skipsLeft")
                     }
-                    if let score = pool.teamScore {
-                        Text("teamPool.score \(score)").accessibilityIdentifier("teamPool.score")
+                    if let solved = pool.solvedNodeIds {
+                        Text(verbatim: c.t("已解 \(solved.count)", "Solved \(solved.count)"))
+                            .accessibilityIdentifier("teamPool.solvedCount")
                     }
                 }
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                if pool.timerExpired == true {
-                    Text("teamPool.timerExpired").font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
-                }
+                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+
+                teamTimerRow(pool)
             }
+
             if let hint = model.hint {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("teamPool.hintLevel \(hint.level)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
@@ -42,10 +57,25 @@ import SwiftUI
                 Button { Task { await model.recover() } } label: { Text("teamPool.keepChecking") }
                     .accessibilityIdentifier("teamPool.recover")
             } else {
-                Button { Task { await model.requestHint() } } label: { Text("teamPool.useHint") }
-                    .disabled(!model.canRequestHint)
-                    .accessibilityIdentifier("teamPool.useHint")
+                HStack(spacing: CYSpacing.md) {
+                    Button { Task { await model.requestHint() } } label: { Text("teamPool.useHint") }
+                        .disabled(!model.canRequestHint)
+                        .accessibilityIdentifier("teamPool.useHint")
+                    Button { confirmingSkip = true } label: { Text(verbatim: c.t("全队跳过", "Team skip")) }
+                        .disabled(!model.canRequestSkip)
+                        .accessibilityIdentifier("teamPool.useSkip")
+                }
             }
+
+            if model.skipResult != nil || model.isNodeSolvedByTeam {
+                Text(verbatim: model.skippedByTeam
+                     ? c.t("队友已跳过并同步全队进度", "Skipped by teammate; team progress synced")
+                     : c.t("本题已同步全队跳过完成（计入共享团队进度）", "Team shared skip applied and synced"))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("teamPool.skipped")
+            }
+
             if let notice = model.notice { noticeText(notice) }
         }
         .padding(CYSpacing.lg)
@@ -53,31 +83,144 @@ import SwiftUI
         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("teamPool.section")
+        .confirmationDialog(
+            c.t("使用全队共享跳过", "Use team shared skip"),
+            isPresented: $confirmingSkip,
+            titleVisibility: .visible
+        ) {
+            Button(c.t("确认跳过并全队同步", "Confirm team skip"), role: .destructive) {
+                Task { await model.requestSkip() }
+            }
+            .accessibilityIdentifier("teamPool.skip.confirm")
+            Button(c.t("取消", "Cancel"), role: .cancel) {}
+        } message: {
+            Text(c.t("将消耗全队共享跳过额度，并同步给全队成员。",
+                    "This spends one shared team skip and syncs progress across the team."))
+        }
+    }
+
+    @ViewBuilder private func teamTimerRow(_ pool: TeamPoolSnapshot) -> some View {
+        if let limit = pool.timerLimitSec, limit > 0 {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                if pool.isTimerExpired(at: context.date) {
+                    Text("teamPool.timerExpired")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("teamPool.timerExpired")
+                } else if let remaining = pool.remainingTimerSeconds(at: context.date) {
+                    Text(verbatim: c.t("全队计时剩余 \(Self.formatDuration(remaining))", "Team timer \(Self.formatDuration(remaining))"))
+                        .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("teamPool.timerRemaining")
+                } else if model.canStartTimer {
+                    Button { Task { await model.startTimer() } } label: {
+                        Text(verbatim: c.t("开始全队计时 (\(Self.formatDuration(limit)))", "Start team timer (\(Self.formatDuration(limit)))"))
+                    }
+                    .font(CYTypography.meta)
+                    .accessibilityIdentifier("teamPool.timerStart")
+                }
+            }
+        }
+    }
+
+    static func formatDuration(_ seconds: Int) -> String {
+        let clamped = max(0, seconds)
+        let mins = clamped / 60
+        let secs = clamped % 60
+        return String(format: "%02d:%02d", mins, secs)
     }
 
     private func noticeText(_ notice: TeamPoolHintModel.Notice) -> some View {
-        Group {
-            switch notice {
-            case .exhausted: Text("teamPool.exhausted")
-            case .timerExpired: Text("teamPool.timerExpired")
-            case .disabled, .unavailable: Text("teamPool.unavailable")
-            case .hintUnavailable: Text("teamPool.hintUnavailable")
-            case .notMember: Text("teamPool.notMember")
-            case .unknown: Text("teamPool.unknown")
-            case .failed: Text("teamPool.failed")
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Group {
+                switch notice {
+                case .exhausted: Text("teamPool.exhausted")
+                case .timerExpired: Text("teamPool.timerExpired")
+                case .timerDisabled: Text(verbatim: c.t("该玩法未启用全队计时", "Team timer not enabled"))
+                case .disabled, .unavailable: Text("teamPool.unavailable")
+                case .hintUnavailable: Text("teamPool.hintUnavailable")
+                case .notMember: Text("teamPool.notMember")
+                case .nodeNotFound: Text(verbatim: c.t("未找到该打卡节点", "Node not found in team run"))
+                case .requestConflict: Text(verbatim: c.t("请求标识冲突，请刷新后重试", "Request ID conflict; reload"))
+                case .unknown: Text("teamPool.unknown")
+                case .failed: Text("teamPool.failed")
+                }
             }
+            .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+            .accessibilityIdentifier("teamPool.notice")
+            if notice == .unknown || notice == .failed,
+               let row = RequestReferenceRow(pathFragment: "/api/team/pool") { row }
         }
-        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
-        .accessibilityIdentifier("teamPool.notice")
+    }
+}
+
+/// Run-level team shared resource bar mounted on `PlayExperienceView` (`orientationList`) for §25.1.
+@MainActor struct TeamPoolRunStatusSection: View {
+    @Bindable var model: TeamPoolHintModel
+    @Environment(\.locale) private var locale
+
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+
+    var body: some View {
+        if let pool = model.pool, pool.enabled {
+            Section {
+                HStack {
+                    Label {
+                        Text(verbatim: c.t("团队总分", "Team total score"))
+                    } icon: {
+                        Image(systemName: "person.3.fill")
+                    }
+                    Spacer()
+                    Text(verbatim: pool.teamScore.map(String.init) ?? "—")
+                        .font(CYTypography.cardTitle).monospacedDigit()
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("teamPool.run.score")
+                }
+                HStack(spacing: CYSpacing.md) {
+                    if let left = pool.hintsLeft, let total = pool.hintsTotal {
+                        Text("teamPool.hintsLeft \(left) \(total)")
+                    }
+                    if let left = pool.skipsLeft, let total = pool.skipsTotal {
+                        Text("teamPool.skipsLeft \(left) \(total)")
+                    }
+                    if let solved = pool.solvedNodeIds {
+                        Text(verbatim: c.t("已解 \(solved.count) 关", "\(solved.count) solved"))
+                    }
+                }
+                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+
+                if let limit = pool.timerLimitSec, limit > 0 {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        if pool.isTimerExpired(at: context.date) {
+                            Text("teamPool.timerExpired")
+                                .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                        } else if let remaining = pool.remainingTimerSeconds(at: context.date) {
+                            Text(verbatim: c.t("全队计时剩余 \(TeamPoolHintSection.formatDuration(remaining))",
+                                               "Team timer \(TeamPoolHintSection.formatDuration(remaining))"))
+                                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                                .accessibilityIdentifier("teamPool.run.timer")
+                        } else if model.canStartTimer {
+                            Button { Task { await model.startTimer() } } label: {
+                                Text(verbatim: c.t("开始全队计时 (\(TeamPoolHintSection.formatDuration(limit)))",
+                                                   "Start team timer (\(TeamPoolHintSection.formatDuration(limit)))"))
+                            }
+                            .accessibilityIdentifier("teamPool.run.timerStart")
+                        }
+                    }
+                }
+                Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
+                                   "First solve advances the team · Shared hints, skips, timer & single team score"))
+                    .font(.caption).foregroundStyle(CYColor.textTertiary)
+            } header: {
+                Text("teamPool.title")
+            }
+            .accessibilityIdentifier("teamPool.run.section")
+        }
     }
 }
 
 extension AppSession {
-    /// The team pool for one stop of a run. The team is the run's `teamId` from `/api/play/nodes` (contract §5, item 17);
-    /// only when the server omits it does this fall back to the viewer's own active topic team (`/api/team/my`, owner type 1),
-    /// which misses activity-owned teams. Without a team there is no pool. Writes go through the reviewed player-write grant.
+    /// The team pool for one stop (or `nodeID == 0` for run-level shared score/timer/pool bar) of a run.
     func teamPoolHint(topicID: Int?, nodeID: Int, runTeamID: Int? = nil) -> TeamPoolHintModel? {
-        guard let topicID, topicID > 0, nodeID > 0, let configuration = regionalConfiguration?.apiConfiguration,
+        guard let topicID, topicID > 0, nodeID >= 0, let configuration = regionalConfiguration?.apiConfiguration,
               let context = currentRuntimeDependencyContext, composition.playerWriteGrant(context) != nil else { return nil }
         let service = TeamPoolService(configuration: configuration, transport: runtimeHTTPTransport, token: { [weak self] in
             guard let self, self.currentRuntimeDependencyContext == context else { return nil }

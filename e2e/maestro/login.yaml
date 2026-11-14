@@ -1,0 +1,75 @@
+appId: invalid.example.questify.ios
+name: Login (SMS OTP read from TEST Redis)
+tags:
+  - e2e
+  - auth
+env:
+  E2E_PHONE: ${E2E_PHONE:-13900000004}
+  E2E_BRIDGE_PORT: ${E2E_SMS_BRIDGE_PORT:-18120}
+  E2E_SMS_CODE: ${E2E_SMS_CODE:-}
+---
+# Fresh launch targeting TEST host so WelcomeView / LoginView are shown.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Player login sheet from WelcomeView (RoleButtonStyle with RegistrationIntent.player).
+- extendedWaitUntil:
+    visible:
+      id: "welcome.player"
+    timeout: 15000
+- tapOn:
+    id: "welcome.player"
+
+# Open phone / SMS OTP sheet via auth.otherChannels on LoginView.
+- extendedWaitUntil:
+    visible:
+      id: "auth.otherChannels"
+    timeout: 10000
+- tapOn:
+    id: "auth.otherChannels"
+
+# Enter TEST player phone number (default player 9004: 13900000004) and request OTP.
+- extendedWaitUntil:
+    visible:
+      id: "auth.channels.phone"
+    timeout: 10000
+- tapOn:
+    id: "auth.channels.phone"
+- inputText: ${E2E_PHONE}
+- tapOn:
+    id: "auth.channels.sendCode"
+
+# Poll TEST Redis DB 9 (sms_<phone>_code) via local bridge started by run_all.sh
+# (or uses E2E_SMS_CODE directly when exported).
+- runScript:
+    file: scripts/get_sms_code.js
+    env:
+      PHONE: ${E2E_PHONE}
+      BRIDGE_PORT: ${E2E_BRIDGE_PORT}
+      E2E_SMS_CODE: ${E2E_SMS_CODE}
+
+# Enter 6-digit SMS code. AuthChannelView.PhoneSignInForm triggers auto-submit on 6 digits;
+# tap auth.channels.phoneSignIn only if it remains visible.
+- tapOn:
+    id: "auth.channels.code"
+- inputText: ${output.smsCode}
+- runFlow:
+    when:
+      visible:
+        id: "auth.channels.phoneSignIn"
+    commands:
+      - tapOn:
+          id: "auth.channels.phoneSignIn"
+
+# Verify login succeeded without inline auth error and landed on Home tab.
+- assertNotVisible:
+    id: "auth.channels.error"
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.hero.greeting"
+    timeout: 20000
+- assertVisible:
+    id: "homeIndex.hero.searchEntry"

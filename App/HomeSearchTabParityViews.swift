@@ -1127,7 +1127,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.workbench) }
+            .tabItem { merchantTabLabel(.workbench).accessibilityIdentifier("rootTabBar.tab.merchant.0") }
             .tag(MerchantRootBusinessTab.workbench)
 
             NavigationStack {
@@ -1163,7 +1163,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.marketing) }
+            .tabItem { merchantTabLabel(.marketing).accessibilityIdentifier("rootTabBar.tab.merchant.1") }
             .tag(MerchantRootBusinessTab.marketing)
 
             NavigationStack {
@@ -1184,7 +1184,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.templates) }
+            .tabItem { merchantTabLabel(.templates).accessibilityIdentifier("rootTabBar.tab.merchant.2") }
             .tag(MerchantRootBusinessTab.templates)
 
             NavigationStack {
@@ -1205,7 +1205,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.cooperation) }
+            .tabItem { merchantTabLabel(.cooperation).accessibilityIdentifier("rootTabBar.tab.merchant.3") }
             .tag(MerchantRootBusinessTab.cooperation)
 
             Group {
@@ -1222,12 +1222,13 @@ struct SessionMerchantRootContainerView: View {
                     WelcomeView()
                 }
             }
-            .tabItem { merchantTabLabel(.mine) }
+            .tabItem { merchantTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.merchant.4") }
             .tag(MerchantRootBusinessTab.mine)
         }
         .id(coordinator.merchantContainerGeneration)
         .cyScreenStyle()
         .cyDomainTabBar(.merchant)
+        .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.merchant.0", "rootTabBar.tab.merchant.1", "rootTabBar.tab.merchant.2", "rootTabBar.tab.merchant.3", "rootTabBar.tab.merchant.4"])
         .cyTabSelectionFeedback(coordinator.selectedMerchantTab)
         .roleTheme(.merchant)
         .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }
