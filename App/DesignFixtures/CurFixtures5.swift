@@ -10,7 +10,8 @@ enum CurFixtures5 {
         let zh = name.hasSuffix("-zh")
         let id = zh ? String(name.dropLast(3)) : name
         guard let mounted = makeHost(id) else { return nil }
-        return AnyView(Cur5Frame(title: caption(id), zh: zh, merchant: id.hasPrefix("cur5-wp03"), content: mounted))
+        let merchant = id.hasPrefix("cur5-wp03") || id.hasPrefix("cur5-merchant")
+        return AnyView(Cur5Frame(title: caption(id), zh: zh, merchant: merchant, content: mounted))
     }
 
     @MainActor private static func makeHost(_ id: String) -> AnyView? {
@@ -43,6 +44,28 @@ enum CurFixtures5 {
         case "cur5-square-delete-empty": return AnyView(Cur5SquareHost(kind: .empty))
         case "cur5-square-delete-failed": return AnyView(Cur5SquareHost(kind: .failed))
         case "cur5-square-delete-signedout": return AnyView(Cur5SquareHost(kind: .signedOut))
+        case "cur5-quick-empty": return AnyView(Cur5QuickHost(kind: .empty))
+        case "cur5-quick-unknown": return AnyView(Cur5QuickHost(kind: .unknown))
+        case "cur5-quick-zero": return AnyView(Cur5QuickHost(kind: .zero))
+        case "cur5-quick-failed": return AnyView(Cur5QuickHost(kind: .failed))
+        case "cur5-preset": return AnyView(GameplayPresetSection(canDraft: false))
+        case "cur5-lineage": return AnyView(SourceLineageSection(revisionID: "rev-7"))
+        case "cur5-lineage-unknown": return AnyView(SourceLineageSection(revisionID: nil))
+        case "cur5-team-role": return AnyView(Cur5TeamHost(zero: true))
+        case "cur5-team-role-unknown": return AnyView(Cur5TeamHost(zero: false))
+        case "cur5-delivery-zero": return AnyView(Cur5DeliveryHost(zero: true))
+        case "cur5-delivery-unknown": return AnyView(OrderDeliverySection(delivery: nil))
+        case "cur5-pay-return-zero": return AnyView(OrderPaymentReturnSection(loading: false, payment: 0, registration: nil, channels: []))
+        case "cur5-pay-return-unknown": return AnyView(OrderPaymentReturnSection(loading: false, payment: nil, registration: nil, channels: nil))
+        case "cur5-refund-zero": return AnyView(Cur5RefundHost())
+        case "cur5-accrual-unknown": return AnyView(CreatorAccrualSection(projection: .unknown(reason: nil)))
+        case "cur5-receiver": return AnyView(NavigationStack { ClubPayoutReceiverView(clubID: 9003, fixture: Cur5.readyReceiver) })
+        case "cur5-receiver-empty": return AnyView(NavigationStack { ClubPayoutReceiverView(clubID: nil, fixture: .init(phase: .empty)) })
+        case "cur5-receiver-error": return AnyView(NavigationStack { ClubPayoutReceiverView(clubID: 9003, fixture: .init(phase: .error)) })
+        case "cur5-merchant-account": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: Cur5.readyAccount) })
+        case "cur5-merchant-account-empty": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .empty, account: OwnerDecisionMerchantAccount.shape(["available": true, "state": "NONE"]))) })
+        case "cur5-merchant-account-denied": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [], fixture: .init(phase: .ready, denied: true)) })
+        case "cur5-merchant-account-unavailable": return AnyView(NavigationStack { MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .ready, account: OwnerDecisionMerchantAccount.shape(["available": false]))) })
         default: return nil
         }
     }
@@ -77,6 +100,28 @@ enum CurFixtures5 {
         case "cur5-square-delete-empty": return "My square posts · empty"
         case "cur5-square-delete-failed": return "My square posts · failed"
         case "cur5-square-delete-signedout": return "My square posts · signed out"
+        case "cur5-quick-empty": return "Quick publish · empty"
+        case "cur5-quick-unknown": return "Quick publish · unknown quota"
+        case "cur5-quick-zero": return "Quick publish · quota 0"
+        case "cur5-quick-failed": return "Quick publish · failed"
+        case "cur5-preset": return "Gameplay presets · cannot read"
+        case "cur5-lineage": return "Source version"
+        case "cur5-lineage-unknown": return "Source version · unknown"
+        case "cur5-team-role": return "Team role · session count 0"
+        case "cur5-team-role-unknown": return "Team role · unknown"
+        case "cur5-delivery-zero": return "Delivery · amount 0"
+        case "cur5-delivery-unknown": return "Delivery · unknown"
+        case "cur5-pay-return-zero": return "Payment return · status 0"
+        case "cur5-pay-return-unknown": return "Payment return · unknown"
+        case "cur5-refund-zero": return "Partial refund · pending 0"
+        case "cur5-accrual-unknown": return "Creator accrual · unknown"
+        case "cur5-receiver": return "Club receiver · payout off"
+        case "cur5-receiver-empty": return "Club receiver · no club"
+        case "cur5-receiver-error": return "Club receiver · failed"
+        case "cur5-merchant-account": return "Merchant payout account · unsigned"
+        case "cur5-merchant-account-empty": return "Merchant payout account · not set up"
+        case "cur5-merchant-account-denied": return "Merchant payout account · denied"
+        case "cur5-merchant-account-unavailable": return "Merchant payout account · unknown"
         default: return id
         }
     }
@@ -87,6 +132,14 @@ private struct Cur5Frame: View {
     let zh: Bool
     let merchant: Bool
     let content: AnyView
+
+    init(title: String, zh: Bool, merchant: Bool, content: AnyView) {
+        self.title = title
+        self.zh = zh
+        self.merchant = merchant
+        self.content = content
+        W8Text.languageOverride = zh ? "zh-Hans" : "en"
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -137,6 +190,23 @@ private enum Cur5 {
         ])
         state.attribution = .ready(.unknown)
         return state
+    }
+
+    static var readyReceiver: OwnerDecisionScreenFixture {
+        .init(phase: .ready, status: OwnerDecisionReceiverStatus.shape([
+            "available": true, "receiverState": "VERIFIED", "paused": false, "payoutEnabled": false, "canUnbind": false
+        ]))
+    }
+
+    static var readyAccount: OwnerDecisionScreenFixture {
+        .init(phase: .ready, account: OwnerDecisionMerchantAccount.shape([
+            "available": true, "state": "NEED_SIGN", "stateDesc": "等待本人签约",
+            "signUrl": "https://fixture.example/sign"
+        ]))
+    }
+
+    static func decode<T: Decodable>(_ type: T.Type, _ json: String) -> T? {
+        try? JSONDecoder().decode(type, from: Data(json.utf8))
     }
 
     static var failedBounty: VideoBountyState {
@@ -324,4 +394,76 @@ private struct Cur5Down: HTTPTransport {
 }
 
 private struct Cur5ReadFailure: Error {}
+
+@MainActor private struct Cur5QuickHost: View {
+    enum Kind { case empty, unknown, zero, failed }
+    @StateObject private var owner = QuickPublishSimplePageOwner()
+    let kind: Kind
+
+    var body: some View {
+        QuickPublishSimplePageStatus(owner: owner)
+            .task { await owner.load(read: read, draft: draft) }
+    }
+
+    private var draft: QuickPublishDraft {
+        var value = QuickPublishDraft()
+        if kind != .empty { value.title = "Night walk" }
+        return value
+    }
+
+    private var read: ((PublishingRead) async throws -> ProjectEditJSON)? {
+        switch kind {
+        case .empty:
+            return nil
+        case .failed:
+            return { _ in throw Cur5ReadFailure() }
+        case .unknown:
+            return { resource in
+                if resource == .capability { return QuickPublishSimplePageFixture.decode(QuickPublishSimplePageFixture.homeMissingThemesJSON) }
+                if resource == .aiQuota { return QuickPublishSimplePageFixture.decode(QuickPublishSimplePageFixture.quotaUnknownJSON) }
+                throw Cur5ReadFailure()
+            }
+        case .zero:
+            return { resource in
+                if resource == .capability { return QuickPublishSimplePageFixture.decode(QuickPublishSimplePageFixture.homeZeroThemesJSON) }
+                if resource == .aiQuota { return QuickPublishSimplePageFixture.decode(QuickPublishSimplePageFixture.quotaZeroJSON) }
+                throw Cur5ReadFailure()
+            }
+        }
+    }
+}
+
+@MainActor private struct Cur5TeamHost: View {
+    let zero: Bool
+
+    var body: some View {
+        if zero, let shared = Cur5.decode(TeamSharedOutcome.self, #"{"sessionParticipants":0}"#) {
+            TeamRoleAndSharedSection(role: nil, shared: shared)
+        } else {
+            TeamRoleAndSharedSection(role: nil, shared: nil)
+        }
+    }
+}
+
+@MainActor private struct Cur5DeliveryHost: View {
+    let zero: Bool
+
+    var body: some View {
+        if zero, let facts = Cur5.decode(OrderDeliveryFacts.self, #"{"ticketName":"Night","amountFromServer":0}"#) {
+            OrderDeliverySection(delivery: facts)
+        } else {
+            OrderDeliverySection(delivery: nil)
+        }
+    }
+}
+
+@MainActor private struct Cur5RefundHost: View {
+    var body: some View {
+        if let facts = Cur5.decode(OrderSettlementFacts.self, #"{"refundPendingAmount":0,"amountsComplete":false}"#) {
+            OrderPartialRefundSection(settlement: facts)
+        } else {
+            OrderPartialRefundSection(settlement: nil)
+        }
+    }
+}
 #endif

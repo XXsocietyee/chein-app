@@ -1,10 +1,8 @@
 # ui-cur-fixtures-5 — DEBUG fixtures
 
-Rebased onto `origin/ui/main` `6feee423adc8962d7613f8ba93b77ffdc93ea1c4` after the fixture commit. The fixture files were not rewritten. WP-06, WP-09, and WP-10 are on that tip; this pass still does not add fixtures for them. The skip rows below that say those types are absent were true on the cut, and are stale after the rebase.
+Cut from `origin/ui/main` `3e2dca3ec5d5c732ea7d286cbb0fe856944ffce6`, then rebased onto `origin/ui/main` `6feee423adc8962d7613f8ba93b77ffdc93ea1c4`. That tip adds WP-06, WP-09, and WP-10, and this commit fixtures those screens. Launch: `--design-fixture <id>`. Registry: `CurFixtures5.make` in `App/DesignFixtures/DesignFixtureRegistry.swift`. `CurFixtures2` is not on this tip (reverted at `9209d33cb`). `CurFixtures3` and `CurFixtures4` are not on this tip. This file follows the registry that is here.
 
-Base when this branch was cut: `origin/ui/main` `3e2dca3ec5d5c732ea7d286cbb0fe856944ffce6`. Launch: `--design-fixture <id>`. Registry: `CurFixtures5.make` in `App/DesignFixtures/DesignFixtureRegistry.swift`. `CurFixtures2` is not on this tip (reverted at `9209d33cb`). `CurFixtures3` and `CurFixtures4` are not on this tip. This file follows the registry that is here.
-
-Host used by the purchased reader and the WP-03 transport: `https://fixture.example`. Token: `synthetic-fixture-token`. A missing or unknown value is an em dash (`U+2014`). A decoded `0` stays `0`. Each id also has a `-zh` name that sets `Locale(identifier: "zh-Hans")`. The screens' own catalogs supply English and zh-Hans. The fixture footer is `DEBUG fixture · synthetic` or `调试夹具 · 合成数据`.
+Host used by the purchased reader and the WP-03 transport: `https://fixture.example`. Token: `synthetic-fixture-token`. A missing or unknown value is an em dash (`U+2014`). A decoded `0` stays `0`. Each id also has a `-zh` name that sets `Locale(identifier: "zh-Hans")` and `W8Text.languageOverride` to `zh-Hans` (the English id sets it to `en`). The screens' own catalogs and `W8Text` supply English and zh-Hans. The fixture footer is `DEBUG fixture · synthetic` or `调试夹具 · 合成数据`.
 
 `moneyPayments`, `payout`, `merchantWrites`, and `passwordLogin` stay closed on `www.chengyinhub.com`. `ReviewedAreaSwitch` was not redeclared. The WP-03 closed fixture passes that host string into the existing switch and a transport that throws, so money and merchant writes stay withheld and a read does not succeed. The purchased list sits on a blank `AppSession`, so purchase reads stay off and the list is not requested. No fixture shows a charge, a redeem, or a payout as done.
 
@@ -29,6 +27,16 @@ Host used by the purchased reader and the WP-03 transport: `https://fixture.exam
 | Store decoration `MerchantOpsWp03Panel` `.decor` | — | `cur5-wp03-decor-signedout` (no bridge). `cur5-wp03-decor-closed` (production host string, throwing transport: money and writes withheld, a read fails as an em dash) |
 | Invite receipts `CoopInviteReceiptSections` | `cur5-coop-receipt-unknown`. One row whose state and request id are null, drawn as an em dash. | `cur5-coop-receipt-signedout`. `cur5-coop-receipt-failed` (retry, do not send again) |
 | Author square delete `CreativeSquareAuthorDeleteSection` | `cur5-square-delete`. Post `7`. Delete is not confirmed by this fixture. | `cur5-square-delete-empty`. `cur5-square-delete-failed` (retry). `cur5-square-delete-signedout` |
+| Quick publish `QuickPublishSimplePageStatus` | `cur5-quick-zero`. Themes and AI remaining are the decoded `0`. | `cur5-quick-empty` (blank draft, quota an em dash). `cur5-quick-unknown` (missing themes, remaining `UNKNOWN` is an em dash). `cur5-quick-failed` |
+| Gameplay presets `GameplayPresetSection` | — | `cur5-preset`. No client. The list cannot be read. Draft stays off |
+| Source version `SourceLineageSection` | `cur5-lineage`. Revision `rev-7`. Diff and save-as-new stay an em dash | `cur5-lineage-unknown`. No revision. History still needs checking. Continue, diff, and save-as-new are an em dash |
+| Team role `TeamRoleAndSharedSection` | `cur5-team-role`. Session participants is the decoded `0`. Missing role lines are an em dash | `cur5-team-role-unknown`. Role and shared facts are nil |
+| Delivery `OrderDeliverySection` | `cur5-delivery-zero`. Ticket name set. Server amount is the decoded `0` | `cur5-delivery-unknown` |
+| Payment return `OrderPaymentReturnSection` | `cur5-pay-return-zero`. Payment status `0` stays pending confirmation. It does not unlock the purchase. Empty channels are an em dash | `cur5-pay-return-unknown`. Payment and registration are nil. The phase title is an em dash |
+| Partial refund `OrderPartialRefundSection` | `cur5-refund-zero`. Pending amount is the decoded `0`. The other amounts are an em dash. The total stays incomplete | — |
+| Creator accrual `CreatorAccrualSection` | — | `cur5-accrual-unknown`. Earnings unavailable. The reason is an em dash. No amount, including no zero. The public factory is `unknown`; an available projection is not constructed from this module |
+| Club receiver `ClubPayoutReceiverView` | `cur5-receiver`. Verified, payout off, unbind not offered. Binding stays in the mini-program | `cur5-receiver-empty`. `cur5-receiver-error` |
+| Merchant payout account `MerchantPayoutAccountView` | `cur5-merchant-account`. Needs a signature. The signing link is `https://fixture.example/sign`. The masked account is an em dash. No cash-out | `cur5-merchant-account-empty` (`NONE`). `cur5-merchant-account-denied`. `cur5-merchant-account-unavailable` (available false shows the unavailable sentence) |
 
 ## Skipped — type is not on `origin/ui/main`
 
@@ -48,9 +56,6 @@ These branches were not merged. Their types were not copied.
 | `ui/cur-appearance` | none | Token and Dynamic Type edits. No new view type. Not copied. `MerchantOpsWp03Panel` itself is already on this tip and is fixtured above |
 | Handover 56 `ui/cur-perf` | `PlayerFeedImage`, `PlayerFeedJSON` | Not on this tip |
 | `ui/cur-uitests` | `WorkflowJourneyGoldenPathUITests` | A test, not a screen. Not on this tip |
-| Handover 35 `ui/cur-wp-06` | `QuickPublishSimplePageStatus` | Not on this tip |
-| Handover 38 `ui/cur-wp-09` | `GameplayPresetSection`, `SourceLineageSection`, `TeamRoleAndSharedSection`, `OrderDeliverySection`, `OrderPaymentReturnSection`, `OrderPartialRefundSection`, `CreatorAccrualSection` | Not on this tip |
-| Handover 39 `ui/cur-wp-10` | `ClubPayoutReceiverView`, `MerchantPayoutAccountView`, `OwnerDecisionFixtureHost` | Not on this tip |
 | This tip | `VideoBountyAttributionSheet` | Private. The parent `VideoBountyView` is fixtured and the seeded fact is UNKNOWN |
 | This tip | `CoopInviteReadReceiptRow` | Private. `CoopInviteReceiptSections` is the public host and is fixtured |
 
@@ -64,6 +69,6 @@ These branches were not merged. Their types were not copied.
 
 ## 中文
 
-基线是 `origin/ui/main` `3e2dca3e`。只给已经能在这个基线上编译的页面加了 DEBUG 夹具：已购工坊 v2、WP-07 的报价/激活/券可用性、WP-08 的主持小费、渠道兑换、落地页和视频赏金，以及已经在这个基线上的 WP-03 装修面板、合作邀请回执、广场作者删除。未知值是破折号，解码出来的 0 仍是 0。付钱、打款和商家写入在 `www.chengyinhub.com` 上保持关闭。
+分支先从 `3e2dca3e` 切开，再变基到 `6feee423a`。夹具覆盖已购工坊 v2、WP-07、WP-08、WP-03 装修、邀请回执、广场删除，以及这个基线上的 WP-06 快捷发布、WP-09 预设与售后、WP-10 收款账户。未知值是破折号，解码出来的 0 仍是 0。付钱、打款和商家写入在 `www.chengyinhub.com` 上保持关闭。收款账户没有提现按钮。
 
 推送落地、无埋点屏幕、未知值改破折号、深链落地，以及名单里的其他功能分支都没有合进 `ui/main`。那些类型没有抄过来，上表写了跳过原因。本机没有 `swiftc`，没有编译，也没有跑测试，没有 curl。
