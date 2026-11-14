@@ -192,7 +192,7 @@ public struct ContentLandingSource {
             let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
             let code = object.flatMap { $0["code"] as? String } ?? (object?["code"] as? NSNumber).map { $0.stringValue }
             return ContentLandingEnvelope(httpStatus: status, code: code ?? String(status), reasonCode: object?["reasonCode"] as? String,
-                                          message: object?["msg"] as? String, dataJSON: jsonData(object?["data"]), netFail: false)
+                                          message: object?["msg"] as? String, dataJSON: Self.jsonData(object?["data"]), netFail: false)
         } catch {
             return ContentLandingEnvelope(httpStatus: nil, code: "fail", reasonCode: nil, message: nil, dataJSON: nil, netFail: true)
         }
