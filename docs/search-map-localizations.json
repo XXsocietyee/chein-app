@@ -199,6 +199,10 @@
     "en": "Sort",
     "zh-Hans": "排序"
   },
+  "search.sort.recent": {
+    "en": "Recent",
+    "zh-Hans": "最近"
+  },
   "searchMap.nearest": {
     "en": "Nearest",
     "zh-Hans": "最近"

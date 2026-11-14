@@ -195340,6 +195340,22 @@
         }
       }
     },
+    "search.sort.recent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近"
+          }
+        }
+      }
+    },
     "searchMap.startDate": {
       "localizations": {
         "en": {

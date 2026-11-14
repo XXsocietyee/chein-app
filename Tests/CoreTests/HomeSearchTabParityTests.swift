@@ -145,10 +145,12 @@ final class HomeSearchTabParityTests: XCTestCase {
             clubsCount: 1,
             momentsCount: 4
         )
-        XCTAssertEqual(tabs.map(\.title), ["全部", "路线", "活动", "商家", "俱乐部", "动态"])
+        XCTAssertEqual(tabs.map(\.title), ["全部", "主题", "活动", "商家", "俱乐部", "帖文"])
         XCTAssertEqual(tabs.map(\.count), [10, 3, 0, 2, 1, 4])
         XCTAssertEqual(tabs[0].badgeText, "10")
-        XCTAssertEqual(tabs[1].displayLabel, "路线 3")
+        XCTAssertEqual(tabs[1].displayLabel, "主题 3")
+        XCTAssertEqual(tabs[1].kind.title(chinese: false), "Topics")
+        XCTAssertEqual(tabs[5].kind.title(chinese: false), "Posts")
         XCTAssertNil(tabs[2].badgeText)
         XCTAssertEqual(tabs[2].displayLabel, "活动")
     }
