@@ -267,80 +267,101 @@ struct SquareCloudPostActions: View {
     @State private var confirmingDelete = false
 
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                if confirmingDelete {
-                    Text(verbatim: copy("删除这条动态「\(SquarePostExcerpt.text(summary))」?", "Delete this post “\(SquarePostExcerpt.text(summary))”?"))
-                        .font(.headline).foregroundStyle(.white).fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("square.cloud.actions.deleteTitle")
-                    Text(verbatim: copy("这条动态下的全部评论和点赞会一起删掉", "Comments and kudos on this post go with it"))
-                        .font(.subheadline).foregroundStyle(.white.opacity(0.72))
-                    Text(verbatim: copy("此操作不可撤销，动态内容无法找回", "This cannot be undone"))
-                        .font(.subheadline).foregroundStyle(.white.opacity(0.72))
-                    Button { onDelete?() } label: {
-                        Text(verbatim: copy("删除动态", "Delete post")).frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                    .accessibilityIdentifier("square.cloud.actions.deleteConfirm")
-                    Button { confirmingDelete = false } label: {
-                        Text(verbatim: copy("取消", "Cancel")).frame(minHeight: CYSpacing.minTouchTarget)
-                    }
-                    .accessibilityIdentifier("square.cloud.actions.deleteCancel")
-                } else {
-                    if owner || (bookmarkable && onBookmark != nil) {
-                        VStack(spacing: 0) {
-                            if bookmarkable, let onBookmark {
-                                row(bookmarked ? copy("取消收藏", "Remove bookmark") : copy("收藏", "Bookmark"), bookmarked ? "star.fill" : "star", onBookmark).accessibilityIdentifier("square.cloud.actions.bookmark")
-                            }
-                            if owner, let onEdit { row(copy("编辑", "Edit"), "pencil", onEdit).accessibilityIdentifier("square.cloud.actions.edit") }
-                        }
-                        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    }
-                    VStack(spacing: 0) {
-                        if owner, onDelete != nil {
-                            row(copy("删除", "Delete"), "trash") { confirmingDelete = true }.accessibilityIdentifier("square.cloud.actions.delete")
-                        }
-                        if let onReport { row(copy("举报", "Report"), "exclamationmark.triangle", onReport).accessibilityIdentifier("square.cloud.actions.report") }
-                    }
-                    .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    if !owner && onReport == nil && !(bookmarkable && onBookmark != nil) {
+        Group {
+            if confirmingDelete {
+                let excerpt = SquarePostExcerpt.text(summary)
+                CYConfirmSheet(
+                    title: copy("删除这条动态「\(excerpt)」?", "Delete this post “\(excerpt)”?"),
+                    message: appLocalized("square.cloud.delete.c1", locale: locale),
+                    confirmTitle: appLocalized("square.cloud.delete.confirm", locale: locale),
+                    cancelTitle: appLocalized("action.cancel", locale: locale),
+                    isDestructive: true,
+                    confirmIdentifier: "square.cloud.actions.deleteConfirm",
+                    cancelIdentifier: cyAccessibilityID(id: "square.cloud.actions.deleteCancel"),
+                    titleIdentifier: cyAccessibilityID(id: "square.cloud.actions.deleteTitle"),
+                    consequences: [
+                        CYConfirmConsequence(systemImage: "bubble.left.and.exclamationmark.bubble.right", text: appLocalized("square.cloud.delete.c1", locale: locale)),
+                        CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: appLocalized("square.cloud.delete.c2", locale: locale))
+                    ],
+                    onCancel: { confirmingDelete = false },
+                    onConfirm: { onDelete?() }
+                )
+            } else {
+                let items = optionItems
+                if items.isEmpty {
+                    CYSheetContainer(
+                        title: copy("帖文操作", "Post actions"),
+                        closeIdentifier: cyAccessibilityID(id: "square.cloud.actions.close"),
+                        onClose: onClose
+                    ) {
                         Text(verbatim: copy("没有可做的操作", "Nothing to do here"))
-                            .font(.subheadline).foregroundStyle(.white.opacity(0.72))
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, CYSpacing.md)
                             .accessibilityIdentifier("square.cloud.actions.empty")
                     }
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(CYSpacing.lg)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(CYNight.ink0)
-            .navigationTitle(Text(verbatim: copy("帖文操作", "Post actions")))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(action: onClose) { Image(systemName: "xmark") }
-                        .accessibilityLabel(Text(verbatim: copy("关闭", "Close")))
-                        .accessibilityIdentifier("square.cloud.actions.close")
+                } else {
+                    CYOptionSheet(
+                        title: copy("帖文操作", "Post actions"),
+                        items: items,
+                        closeIdentifier: cyAccessibilityID(id: "square.cloud.actions.close"),
+                        onSelect: { id in
+                            switch id {
+                            case "bookmark": onBookmark?()
+                            case "edit": onEdit?()
+                            case "delete": confirmingDelete = true
+                            case "report": onReport?()
+                            default: break
+                            }
+                        },
+                        onClose: onClose
+                    )
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .cyDomainSheet(detents: [.half, .full])
         .accessibilityIdentifier("square.cloud.actions")
     }
 
-    private func row(_ title: String, _ symbol: String, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack {
-                Text(verbatim: title).foregroundStyle(symbol == "trash" || symbol == "exclamationmark.triangle" ? Color.red : Color.white)
-                Spacer(minLength: CYSpacing.sm)
-                Image(systemName: symbol).foregroundStyle(.white.opacity(0.8))
-            }
-            .frame(minHeight: CYSpacing.minTouchTarget)
-            .padding(.horizontal, CYSpacing.lg)
+    private var optionItems: [CYOptionSheetItem<String>] {
+        var result: [CYOptionSheetItem<String>] = []
+        if bookmarkable, onBookmark != nil {
+            result.append(CYOptionSheetItem(
+                id: "bookmark",
+                title: bookmarked ? copy("取消收藏", "Remove bookmark") : copy("收藏", "Bookmark"),
+                systemImage: bookmarked ? "star.fill" : "star",
+                identifier: "square.cloud.actions.bookmark"
+            ))
         }
-        .buttonStyle(.borderless)
+        if owner, onEdit != nil {
+            result.append(CYOptionSheetItem(
+                id: "edit",
+                title: copy("编辑", "Edit"),
+                systemImage: "pencil",
+                identifier: "square.cloud.actions.edit"
+            ))
+        }
+        if owner, onDelete != nil {
+            result.append(CYOptionSheetItem(
+                id: "delete",
+                title: copy("删除", "Delete"),
+                systemImage: "trash",
+                isDanger: true,
+                identifier: "square.cloud.actions.delete"
+            ))
+        }
+        if onReport != nil {
+            result.append(CYOptionSheetItem(
+                id: "report",
+                title: copy("举报", "Report"),
+                systemImage: "exclamationmark.triangle",
+                isDanger: true,
+                identifier: "square.cloud.actions.report"
+            ))
+        }
+        return result
     }
 
     private func copy(_ zh: String, _ en: String) -> String { locale.pick(zh, en) }

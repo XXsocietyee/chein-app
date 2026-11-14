@@ -77,6 +77,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     var retryGate: (() async -> Void)? = nil
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
     @Environment(\.topicUnlikeController) private var unlike
+    @Environment(\.locale) private var locale
     @State private var unliked: Set<Int> = []
     @State private var showRecommendNote = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }

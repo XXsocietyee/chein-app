@@ -14,27 +14,67 @@ struct SquareDeletionConfirmView: View {
     let target: SquareDeletionTarget
     let excerpt: String?
     let coordinator: SquareDeletionCoordinator
+    @Environment(\.locale) private var locale
+
+    private var titleText: String {
+        switch target {
+        case .post:
+            if let excerpt {
+                return appLocalized("square.xcx.delete.postTitle \(excerpt)", locale: locale)
+            }
+            return appLocalized("square.xcx.delete.postTitleImageOnly", locale: locale)
+        case .comment:
+            return appLocalized("square.xcx.delete.commentTitle", locale: locale)
+        }
+    }
+
+    private var messageText: String {
+        switch target {
+        case .post:
+            return appLocalized("square.xcx.delete.postCascade", locale: locale)
+        case .comment:
+            return appLocalized("square.xcx.delete.commentIrreversible", locale: locale)
+        }
+    }
+
+    private var confirmText: String {
+        switch target {
+        case .post:
+            return appLocalized("square.xcx.delete.postConfirm", locale: locale)
+        case .comment:
+            return appLocalized("square.xcx.delete.commentConfirm", locale: locale)
+        }
+    }
+
+    private var consequences: [CYConfirmConsequence] {
+        switch target {
+        case .post:
+            return [
+                CYConfirmConsequence(systemImage: "bubble.left.and.exclamationmark.bubble.right", text: appLocalized("square.delete.c1", locale: locale)),
+                CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: appLocalized("square.delete.c2", locale: locale))
+            ]
+        case .comment:
+            return [
+                CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: appLocalized("square.delete.c2", locale: locale))
+            ]
+        }
+    }
+
     var body: some View {
-        List {
-            Section {
-                switch target {
-                case .post:
-                    if let excerpt { Text("square.xcx.delete.postTitle \(excerpt)").font(.headline).accessibilityAddTraits(.isHeader) }
-                    else { Text("square.xcx.delete.postTitleImageOnly").font(.headline).accessibilityAddTraits(.isHeader) }
-                    Label("square.xcx.delete.postCascade", systemImage: "bubble.left.and.exclamationmark.bubble.right")
-                    Label("square.xcx.delete.postIrreversible", systemImage: "exclamationmark.triangle")
-                case .comment:
-                    Text("square.xcx.delete.commentTitle").font(.headline).accessibilityAddTraits(.isHeader)
-                    Label("square.xcx.delete.commentIrreversible", systemImage: "exclamationmark.triangle")
-                }
-            }
-            Section {
-                Button(role: .destructive) { Task { await coordinator.confirm() } } label: {
-                    if case .post = target { Text("square.xcx.delete.postConfirm") } else { Text("square.xcx.delete.commentConfirm") }
-                }.disabled(coordinator.isBusy).accessibilityIdentifier("square.delete.confirm")
-                CYPillButton("action.cancel", style: .secondary) { coordinator.cancel() }.disabled(coordinator.isBusy)
-            }
-        }.accessibilityIdentifier("square.delete.sheet")
+        CYConfirmSheet(
+            title: titleText,
+            message: messageText,
+            confirmTitle: confirmText,
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            isDestructive: true,
+            confirmDisabled: coordinator.isBusy,
+            confirmIdentifier: "square.delete.confirm",
+            consequences: consequences,
+            onCancel: { coordinator.cancel() },
+            onConfirm: { Task { await coordinator.confirm() } }
+        )
+        .accessibilityIdentifier("square.delete.sheet")
+        .cyDomainSheet(detents: [.half, .full])
         .cyDomainScreen(.player)
     }
     /// Source excerpt: first 12 characters plus "…", or nil for an image-only post.

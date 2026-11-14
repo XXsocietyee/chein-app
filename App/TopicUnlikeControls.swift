@@ -35,20 +35,37 @@ struct TopicUnlikeButton: View {
 struct TopicUnlikeFlow: ViewModifier {
     let controller: TopicUnlikeController?
     let onRemoved: (Int) -> Void
+    @Environment(\.locale) private var locale
+    @State private var toastMessage: LocalizedStringKey?
     @ViewBuilder func body(content: Content) -> some View {
         if let controller {
             content
                 .sheet(isPresented: Binding(
                     get: { if case .confirming = controller.phase { return true }; return false },
                     set: { if !$0 { controller.cancel() } })) {
-                    MemberTopicUnlikeConfirmSheet {
-                        if case .confirming(_, let id) = controller.phase { Task { await controller.confirm(id) } }
-                    }
+                    CYConfirmSheet(
+                        title: String(localized: LocalizedStringResource("member.unlike.confirmTitle", table: "MemberProfile", locale: locale)),
+                        message: String(localized: LocalizedStringResource("member.unlike.confirmMessage", table: "MemberProfile", locale: locale)),
+                        confirmTitle: String(localized: LocalizedStringResource("member.unlike.confirm", table: "MemberProfile", locale: locale)),
+                        cancelTitle: String(localized: LocalizedStringResource("member.unlike.cancel", table: "MemberProfile", locale: locale)),
+                        isDestructive: true,
+                        onCancel: { controller.cancel() },
+                        onConfirm: {
+                            if case .confirming(_, let id) = controller.phase {
+                                Task { await controller.confirm(id) }
+                            }
+                        }
+                    )
+                    .cyDomainSheet(detents: [.peek, .half])
                     .themeDomain(.player)
                 }
                 .safeAreaInset(edge: .bottom) { TopicUnlikeStatus(controller: controller) }
+                .cyToast($toastMessage, tone: .info)
                 .onChange(of: controller.phase) { _, phase in
-                    if case .removed(let id) = phase { onRemoved(id) }
+                    if case .removed(let id) = phase {
+                        toastMessage = "topic.unlike.toast"
+                        onRemoved(id)
+                    }
                 }
         } else {
             content

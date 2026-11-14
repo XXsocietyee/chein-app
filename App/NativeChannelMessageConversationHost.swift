@@ -318,6 +318,7 @@ import SwiftUI
     let messages: [MessagingMessage]
     let currentMessage: (MessagingMessage) -> Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var visible = false
     @State private var screenGeneration: UInt64 = 0
     @State private var screenTask: Task<Void, Never>?
@@ -355,10 +356,16 @@ import SwiftUI
             .disabled(!owns(ticket) || screenTask != nil)
         }
         .font(Theme.Font.body)
-        .confirmationDialog("d7.channelChat.markReadTitle", isPresented: $confirmationPresented,
-                            titleVisibility: .visible, presenting: reviewed) { review in
-            Button("d7.channelChat.markReadConfirm") { confirm(review) }
-            Button("action.cancel", role: .cancel) { reviewed = nil }
+        .sheet(isPresented: $confirmationPresented, onDismiss: { reviewed = nil }) {
+            CYConfirmSheet(
+                title: appLocalized("d7.channelChat.markReadTitle", locale: locale),
+                message: "",
+                confirmTitle: appLocalized("d7.channelChat.markReadConfirm", locale: locale),
+                onCancel: { reviewed = nil }
+            ) {
+                if let reviewed { confirm(reviewed) }
+            }
+            .cyDomainSheet(detents: [.peek, .half])
         }
         .onAppear { visible = true; cancelQueued() }
         .onDisappear { visible = false; cancelQueued() }

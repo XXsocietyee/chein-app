@@ -8,6 +8,7 @@ import SwiftUI
     let readFresh: () -> Void
     let useCurrentImages: () -> Void
     @State private var confirmsDiscard = false
+    @Environment(\.locale) private var locale
     var body: some View {
         Section {
             Text(LocalizedStringKey("localDraft." + String(describing: flow.state)), tableName: "ClubProfileLocalDraft")
@@ -48,9 +49,20 @@ import SwiftUI
             }
             Text("localDraft.localOnly", tableName: "ClubProfileLocalDraft").font(.footnote).foregroundStyle(.secondary)
         } header: { Text("localDraft.title", tableName: "ClubProfileLocalDraft") }
-        .confirmationDialog(Text("localDraft.discardTitle", tableName: "ClubProfileLocalDraft"), isPresented: $confirmsDiscard, titleVisibility: .visible) {
-            Button(role: .destructive) { discard() } label: { Text("localDraft.discard", tableName: "ClubProfileLocalDraft") }
-            Button(role: .cancel) {} label: { Text("localDraft.cancel", tableName: "ClubProfileLocalDraft") }
-        } message: { Text("localDraft.discardMessage", tableName: "ClubProfileLocalDraft") }
+        .sheet(isPresented: $confirmsDiscard) {
+            CYConfirmSheet(
+                title: String(localized: LocalizedStringResource("localDraft.discardTitle", table: "ClubProfileLocalDraft", locale: locale)),
+                message: String(localized: LocalizedStringResource("localDraft.discardMessage", table: "ClubProfileLocalDraft", locale: locale)),
+                confirmTitle: String(localized: LocalizedStringResource("localDraft.discard", table: "ClubProfileLocalDraft", locale: locale)),
+                cancelTitle: String(localized: LocalizedStringResource("localDraft.cancel", table: "ClubProfileLocalDraft", locale: locale)),
+                isDestructive: true,
+                onCancel: { confirmsDiscard = false },
+                onConfirm: {
+                    confirmsDiscard = false
+                    discard()
+                }
+            )
+            .cyDomainSheet(detents: [.peek, .half])
+        }
     }
 }

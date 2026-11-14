@@ -215,21 +215,44 @@ public struct ClubChannelMessagingView: View {
             }
         }
         .background(palette.bgPage)
-        .confirmationDialog(
-            copy("举报频道「#\(selectedChannel?.name ?? "")」", "Report Channel #\(selectedChannel?.name ?? "")"),
-            isPresented: $showReportChannelDialog,
-            titleVisibility: .visible
-        ) {
-            Button(copy("垃圾广告或诈骗信息", "Spam or scam"), role: .destructive) {
-                submitChannelReport(reasonCode: "SPAM_SCAM", detail: "Spam or scam content in channel")
-            }
-            Button(copy("骚扰、辱骂或不当言论", "Harassment or abusive content"), role: .destructive) {
-                submitChannelReport(reasonCode: "HARASSMENT", detail: "Harassment or abusive content in channel")
-            }
-            Button(copy("违法违规或色情低俗", "Illegal or objectionable content"), role: .destructive) {
-                submitChannelReport(reasonCode: "OBJECT_CONTENT", detail: "Illegal or objectionable content in channel")
-            }
-            Button(copy("取消", "Cancel"), role: .cancel) {}
+        .sheet(isPresented: $showReportChannelDialog) {
+            let channelName = selectedChannel?.name ?? ""
+            CYOptionSheet(
+                title: copy("举报频道「#\(channelName)」", "Report Channel #\(channelName)"),
+                items: [
+                    CYOptionSheetItem(
+                        id: "SPAM_SCAM",
+                        title: appLocalized("club.channel.report.spam", locale: locale),
+                        systemImage: "exclamationmark.bubble",
+                        isDanger: true
+                    ),
+                    CYOptionSheetItem(
+                        id: "HARASSMENT",
+                        title: appLocalized("club.channel.report.harassment", locale: locale),
+                        systemImage: "hand.raised",
+                        isDanger: true
+                    ),
+                    CYOptionSheetItem(
+                        id: "OBJECT_CONTENT",
+                        title: appLocalized("club.channel.report.illegal", locale: locale),
+                        systemImage: "exclamationmark.triangle",
+                        isDanger: true
+                    )
+                ],
+                onSelect: { reason in
+                    showReportChannelDialog = false
+                    switch reason {
+                    case "SPAM_SCAM":
+                        submitChannelReport(reasonCode: "SPAM_SCAM", detail: "Spam or scam content in channel")
+                    case "HARASSMENT":
+                        submitChannelReport(reasonCode: "HARASSMENT", detail: "Harassment or abusive content in channel")
+                    default:
+                        submitChannelReport(reasonCode: "OBJECT_CONTENT", detail: "Illegal or objectionable content in channel")
+                    }
+                },
+                onClose: { showReportChannelDialog = false }
+            )
+            .cyDomainSheet(detents: [.half])
         }
         .sheet(isPresented: $showRulesSheet) {
             CYConfirmSheet(

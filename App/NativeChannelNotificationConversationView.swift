@@ -120,9 +120,16 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
             }
             if model.unreadIssue { Text(c("unreadIssue")) }
         }
-        .confirmationDialog(c("recovery.confirm"), isPresented: $retryConfirmation, titleVisibility: .visible) {
-            Button(c("recovery.checkAndRetry")) { run { await $0.retryOriginal() } }
-            Button(c("cancel"), role: .cancel) { }
+        .sheet(isPresented: $retryConfirmation) {
+            CYConfirmSheet(
+                title: c("recovery.confirm"),
+                message: "",
+                confirmTitle: c("recovery.checkAndRetry"),
+                cancelTitle: c("cancel")
+            ) {
+                run { await $0.retryOriginal() }
+            }
+            .cyDomainSheet(detents: [.peek, .half])
         }
         .onDisappear { retryConfirmation = false }
         .onChange(of: model.isCurrent) { _, current in if !current { retryConfirmation = false } }
@@ -282,12 +289,17 @@ enum NativeChannelNotificationCopy {
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
         }
-        .confirmationDialog(c("editor.confirmSave"), isPresented: $saveConfirmation, titleVisibility: .visible) {
-            Button(c("save")) {
+        .sheet(isPresented: $saveConfirmation) {
+            CYConfirmSheet(
+                title: c("editor.confirmSave"),
+                message: "",
+                confirmTitle: c("save"),
+                cancelTitle: c("cancel")
+            ) {
                 let intent = draft, version = preference.version
                 perform { await $0.save(intent, expectedVersion: version) }
             }
-            Button(c("cancel"), role: .cancel) { }
+            .cyDomainSheet(detents: [.peek, .half])
         }
     }
     private func mute(_ minutes: Int) { perform { await $0.mute(minutes: minutes) } }

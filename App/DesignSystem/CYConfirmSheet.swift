@@ -13,8 +13,11 @@ public struct CYConfirmSheet: View {
     private let title: String
     private let message: String
     private let confirmTitle: String
+    private let cancelTitle: String?
+    private let onCancel: (() -> Void)?
     private let onConfirm: () -> Void
     private let isDestructive: Bool
+    private let confirmDisabled: Bool
     private let confirmIdentifier: String?
     private let cancelIdentifier: String?
     private let titleIdentifier: String?
@@ -29,12 +32,16 @@ public struct CYConfirmSheet: View {
     @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 24
 
     public init(title: String, message: String, confirmTitle: String,
-                isDestructive: Bool = false, confirmIdentifier: String? = nil,
+                cancelTitle: String? = nil,
+                isDestructive: Bool = false, confirmDisabled: Bool = false,
+                confirmIdentifier: String? = nil,
                 cancelIdentifier: String? = nil, titleIdentifier: String? = nil,
                 consequences: [CYConfirmConsequence] = [],
                 showsJoinReward: Bool = false,
+                onCancel: (() -> Void)? = nil,
                 onConfirm: @escaping () -> Void) {
         self.isDestructive = isDestructive
+        self.confirmDisabled = confirmDisabled
         self.consequences = consequences
         self.showsJoinReward = showsJoinReward && !isDestructive
         self.confirmIdentifier = confirmIdentifier
@@ -43,6 +50,8 @@ public struct CYConfirmSheet: View {
         self.title = title
         self.message = message
         self.confirmTitle = confirmTitle
+        self.cancelTitle = cancelTitle
+        self.onCancel = onCancel
         self.onConfirm = onConfirm
     }
 
@@ -50,7 +59,7 @@ public struct CYConfirmSheet: View {
         let label = Button(action: confirm) {
             Text(confirmTitle).frame(maxWidth: .infinity)
         }
-        .disabled(rewarding)
+        .disabled(rewarding || confirmDisabled)
         if let confirmIdentifier {
             styled(label).accessibilityIdentifier(confirmIdentifier)
         } else {
@@ -58,10 +67,20 @@ public struct CYConfirmSheet: View {
         }
     }
 
-    private var cancelButton: some View {
-        Button("action.cancel") { dismiss() }.buttonStyle(.cySecondary(fullWidth: true))
-            .pageTemplateControl(label: Text("action.cancel"), traits: .isButton)
-            .cyOptionalAccessibilityIdentifier(cancelIdentifier)
+    @ViewBuilder private var cancelButton: some View {
+        Button {
+            onCancel?()
+            dismiss()
+        } label: {
+            if let cancelTitle {
+                Text(cancelTitle).frame(maxWidth: .infinity)
+            } else {
+                Text("action.cancel").frame(maxWidth: .infinity)
+            }
+        }
+        .buttonStyle(.cySecondary(fullWidth: true))
+        .pageTemplateControl(label: cancelTitle.map { Text($0) } ?? Text("action.cancel"), traits: .isButton)
+        .cyOptionalAccessibilityIdentifier(cancelIdentifier)
     }
 
     @ViewBuilder private func styled(_ label: some View) -> some View {
@@ -80,12 +99,15 @@ public struct CYConfirmSheet: View {
             Text(title)
                 .font(CYTypography.sheetTitle)
                 .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
                 .cyOptionalAccessibilityIdentifier(titleIdentifier)
-            Text(message)
-                .font(CYTypography.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            if !message.isEmpty {
+                Text(message)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if !consequences.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     ForEach(consequences) { item in
@@ -121,10 +143,7 @@ public struct CYConfirmSheet: View {
                     // Visual order is top to bottom: confirm, then cancel.
                     VStack(spacing: CYSpacing.sm) {
                         confirmButton.pageTemplateReadingOrder(2)
-                        Button("action.cancel") { dismiss() }
-                            .buttonStyle(.cySecondary(fullWidth: true))
-                            .pageTemplateControl(label: Text("action.cancel"), traits: .isButton)
-                            .pageTemplateReadingOrder(1)
+                        cancelButton.pageTemplateReadingOrder(1)
                     }
                 } else {
                     // Cancel left, confirm right. The stacked fallback keeps confirm above cancel.

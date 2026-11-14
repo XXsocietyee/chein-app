@@ -276085,6 +276085,934 @@
           }
         }
       }
+    },
+    "team.consequence.disband.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All teammates are removed and the team chat closes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部队员会被移出队伍，队伍群聊同时关闭"
+          }
+        }
+      }
+    },
+    "team.consequence.disband.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No refunds are triggered; everyone's tickets stay valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会触发任何退款；队员各自的票仍然有效，需要自己去核销"
+          }
+        }
+      }
+    },
+    "team.consequence.disband.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; team and chat history cannot be restored"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，队伍与聊天记录无法恢复"
+          }
+        }
+      }
+    },
+    "team.consequence.leave.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You lose team-chat access"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你会失去队伍群聊入口"
+          }
+        }
+      }
+    },
+    "team.consequence.leave.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you are the captain, leadership passes to the earliest-joined teammate; if only you remain, the team disbands"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你是队长的话，队长会移交给最早加入的队员；只剩你一人时队伍直接解散"
+          }
+        }
+      }
+    },
+    "team.consequence.leave.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; you need a new invitation to rejoin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，需要重新被邀请才能回到这支队伍"
+          }
+        }
+      }
+    },
+    "team.consequence.remove.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They lose team-chat access and receive an inbox notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会收到站内通知，并失去队伍群聊入口"
+          }
+        }
+      }
+    },
+    "team.consequence.remove.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removal does not refund tickets; their ticket stays valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移出不同步退票，对方的票仍然有效"
+          }
+        }
+      }
+    },
+    "team.consequence.remove.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; they cannot rejoin with an invite code or apply again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销；被移出的人不能用邀请码回来，也不能再次申请加入"
+          }
+        }
+      }
+    },
+    "team.leaveInsteadHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leadership passes to the earliest-joined teammate and the team stays"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长会移交给最早加入的队员，队伍留着"
+          }
+        }
+      }
+    },
+    "nearby.consequence.reject.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The applicant sees Not Approved in My Teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会在「我的队伍」里看到「未通过」"
+          }
+        }
+      }
+    },
+    "nearby.consequence.reject.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; they cannot apply to this team again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销；对方不能再申请加入这支队伍"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish this event?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布这场活动？"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After passing publish checks, the event becomes visible to players and progresses on the configured schedule."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过发布检查后对报名可见，按设定的报名与开始时间自动推进。"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missions, bound locations, and fulfillment rules take effect together."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务、绑定点位与履约需求一并生效，按报名/开始时间自动推进"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event details become visible once scheduled; stopping later requires Pause."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排期后活动详情对玩家可见；之后需要停下只能用暂停"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.c3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; it cannot return to draft after publishing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，发布后无法退回草稿"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布活动"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause this event?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停这场活动？"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players see the event as paused and your notice policy is recorded as pending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停后玩家侧显示活动已暂停，通知策略记为待执行。"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New registrations, arrival evidence, and fulfillment changes are blocked; the end time stays unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停期间不能报名、到达证据不计入、承接方不能变更履约；原定结束时间不变"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The notice policy is recorded as pending and does not auto-broadcast."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写的通知策略不会自动群发，状态记为「待执行」"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.c3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resuming re-runs publish checks; if the end time passes while paused, it moves to awaiting settlement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复前平台会重新检查主办与履约；到结束时间仍未恢复会直接转入待结算"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停活动"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume this event?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复这场活动？"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform re-runs publish checks and rejects with reasons if checks fail."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台会先重新做发布检查，不通过会拒绝恢复并给出原因。"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumed events return to the phase matching the current time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复后活动按当前时间回到对应阶段（已排期/报名中/进行中）"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If the end time has already passed, it moves to awaiting settlement instead."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果活动已过结束时间，会转入待结算而不是恢复运行"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复活动"
+          }
+        }
+      }
+    },
+    "im.safety.hide.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The conversation disappears from your message list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话从你的列表消失"
+          }
+        }
+      }
+    },
+    "im.safety.hide.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If they send another message, the conversation and history reappear."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方再发消息时，会话和历史消息会重新显示"
+          }
+        }
+      }
+    },
+    "im.safety.report.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform safety team will review the reported message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台安全团队将核查被举报消息"
+          }
+        }
+      }
+    },
+    "im.safety.unblock.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New messages from them will be delivered again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方的新消息会重新送达"
+          }
+        }
+      }
+    },
+    "im.safety.unblock.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The other person is not notified when you unblock."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方不会收到解除提示"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this post?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除这条动态？"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comments and likes on this post will also be removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条动态下的全部评论和点赞会一起删掉"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; the post cannot be recovered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，动态内容无法找回"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete post"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除动态"
+          }
+        }
+      }
+    },
+    "square.delete.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comments and likes on this content will also be removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部关联评论与点赞会一并删除"
+          }
+        }
+      }
+    },
+    "square.delete.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; deleted content cannot be recovered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，内容无法找回"
+          }
+        }
+      }
+    },
+    "club.welcome.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save welcome message?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认保存欢迎语？"
+          }
+        }
+      }
+    },
+    "club.welcome.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认保存"
+          }
+        }
+      }
+    },
+    "club.welcome.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm clear"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认清空"
+          }
+        }
+      }
+    },
+    "club.welcome.keep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "club.welcome.saveBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The text will be checked and saved by the service; the server read-back is authoritative."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字将通过原接口检查并保存；以服务端回读结果为准。"
+          }
+        }
+      }
+    },
+    "club.welcome.clearBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After clearing, new members still see the club introduction but not a custom welcome message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空后，新成员仍会看到俱乐部功能说明，但不再显示主理人自定义欢迎语。"
+          }
+        }
+      }
+    },
+    "club.community.pin.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Announcement pinned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已置顶公告"
+          }
+        }
+      }
+    },
+    "club.community.unpin.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Announcement unpinned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消置顶"
+          }
+        }
+      }
+    },
+    "club.community.delete.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除"
+          }
+        }
+      }
+    },
+    "topic.unlike.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unliked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消点赞"
+          }
+        }
+      }
+    },
+    "square.workspace.draftDeleted.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已删除"
+          }
+        }
+      }
+    },
+    "club.channel.report.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report this channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报此频道"
+          }
+        }
+      }
+    },
+    "club.channel.report.spam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spam or scam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "垃圾广告或诈骗信息"
+          }
+        }
+      }
+    },
+    "club.channel.report.harassment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harassment or abusive content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骚扰、辱骂或不当言论"
+          }
+        }
+      }
+    },
+    "club.channel.report.illegal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illegal or objectionable content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "违法违规或色情低俗"
+          }
+        }
+      }
+    },
+    "club.refund.consequence1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cash refund and points return follow actual payment records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现金退款、积分返还以实际支付记录和查询结果为准"
+          }
+        }
+      }
+    },
+    "club.refund.consequence2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The player is removed from this roster and their group code becomes invalid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方从本团名册移出，群码失效"
+          }
+        }
+      }
+    },
+    "club.refund.consequence3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; they must register again if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，清退后需要对方重新报名"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

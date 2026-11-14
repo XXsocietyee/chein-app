@@ -23,6 +23,7 @@ import SwiftUI
     @Bindable var flow: NativeChannelCheckinFlow
     let current: () -> Bool
     let reminderDate: String?
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scene
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -97,9 +98,16 @@ import SwiftUI
         .onChange(of: current()) { _, valid in if !valid { stop() } }
         .onChange(of: scene) { _, value in if value != .active { stop() } }
         .onDisappear { stop() }
-        .confirmationDialog("d7.checkin.retry.title", isPresented: $retry, titleVisibility: .visible) {
-            Button("d7.channelActivity.retry") { run { current in await flow.retryOriginal(); guard current() else { return }; await refreshSettled() } }
-            Button("d7.channelActivity.cancel", role: .cancel) {}
+        .sheet(isPresented: $retry) {
+            CYConfirmSheet(
+                title: appLocalized("d7.checkin.retry.title", locale: locale),
+                message: "",
+                confirmTitle: appLocalized("d7.channelActivity.retry", locale: locale),
+                cancelTitle: appLocalized("d7.channelActivity.cancel", locale: locale)
+            ) {
+                run { current in await flow.retryOriginal(); guard current() else { return }; await refreshSettled() }
+            }
+            .cyDomainSheet(detents: [.peek, .half])
         }
     }
     @ViewBuilder private func statusSections(_ status: NativeChannelCheckinStatus) -> some View {

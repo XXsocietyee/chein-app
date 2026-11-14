@@ -125,56 +125,158 @@ struct TeamMemberRow: View {
     let review: TeamReview
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
+
+    private var isDestructiveAction: Bool {
+        switch review.action {
+        case .leave, .remove, .disband: return true
+        case .create, .joinByCode, .apply, .reviewApplication, .changeJoinMode: return false
+        }
+    }
+
+    private var consequenceKeys: [String] {
+        switch review.action {
+        case .disband:
+            return ["team.consequence.disband.1", "team.consequence.disband.2", "team.consequence.disband.3"]
+        case .leave:
+            return ["team.consequence.leave.1", "team.consequence.leave.2", "team.consequence.leave.3"]
+        case .remove:
+            return ["team.consequence.remove.1", "team.consequence.remove.2", "team.consequence.remove.3"]
+        default:
+            return []
+        }
+    }
+
+    private var actionTitle: String {
+        switch review.action {
+        case .disband: return appLocalized("team.disband", locale: locale)
+        case .leave: return appLocalized("team.leave", locale: locale)
+        default: return appLocalized(String.LocalizationValue(stringLiteral: review.action.key), locale: locale)
+        }
+    }
+
     var body: some View {
-        NavigationStack {
+        CYSheetContainer(
+            title: actionTitle,
+            onClose: model.running ? nil : { model.cancel(); dismiss() }
+        ) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(LocalizedStringKey(review.action.key)).font(.title2.bold())
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
                     if let detail = review.detail {
-                        Text(verbatim: detail.team.title).font(.headline)
-                        Text(verbatim: "#\(detail.team.id)").font(.caption).foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            Text(verbatim: detail.team.title)
+                                .font(CYTypography.cardTitle)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: "#\(detail.team.id)")
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
+                        }
                     }
                     if case .remove(_, let memberID) = review.action, let member = review.detail?.members.first(where: { $0.id == memberID }) {
-                        Text(verbatim: member.name).font(.headline)
+                        Text(verbatim: member.name)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if case .create(let context, let size, let inviteOnly) = review.action {
-                        Text(verbatim: context.title).font(.headline)
+                        Text(verbatim: context.title)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                         LabeledContent("team.size") { Text(verbatim: "\(size)") }
+                            .font(CYTypography.body)
                         Text(inviteOnly ? "team.mode.invitation" : "team.mode.public")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
                     }
                     if case .changeJoinMode(_, let mode) = review.action {
                         LabeledContent {
                             Text(LocalizedStringKey(review.detail?.team.joinMode.key ?? "team.mode.unknown"))
                         } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "当前方式" : "Current mode") }
+                            .font(CYTypography.body)
                         LabeledContent {
                             Text(LocalizedStringKey(mode.key))
                         } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "确认后的方式" : "Requested mode") }
+                            .font(CYTypography.body)
                         Text(verbatim: locale.language.languageCode?.identifier == "zh"
                             ? "仅更改加入队伍的方式，不变更成员或报名。结果不明时会保留锁定，不自动重试。"
                             : "Only the joining mode changes; membership and registration stay unchanged. An unknown outcome remains locked without automatic retry.")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else if consequenceKeys.isEmpty {
+                        Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail)))
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
-                        Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail))).fixedSize(horizontal: false, vertical: true)
+                        Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail)))
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
+                                HStack(alignment: .top, spacing: CYSpacing.sm) {
+                                    Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
+                                        .accessibilityHidden(true)
+                                    Text(LocalizedStringKey(key))
+                                        .font(CYTypography.bodyCompact)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(CYSpacing.md)
+                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                     }
                     TeamNotice(coordinator: model.coordinator)
-                    Button(LocalizedStringKey(model.coordinator.canSimulate ? "team.simulate" : "team.confirmLive")) {
-                        let permit = model.captureRun()
-                        Task {
-                            guard model.coordinator.review == review else { return }
-                            if await model.run(permit: permit, { await model.coordinator.confirm(review) }) { dismiss() }
-                        }
-                    }.buttonStyle(.questifyPrimary).frame(minHeight: 44)
-                        .disabled(!model.coordinator.canSubmit || model.running)
-                        .accessibilityIdentifier("team.review.confirm")
+                    confirmActionButton
                     if case .disband(let teamID) = review.action {
-                        Button("team.leaveInstead") { model.prepare(.leave(teamID: teamID)) }
-                            .frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.review.leaveInstead")
+                        Button {
+                            model.prepare(.leave(teamID: teamID))
+                        } label: {
+                            VStack(spacing: CYSpacing.xxs) {
+                                Text("team.leaveInstead")
+                                Text("team.page.leaveAndTransfer")
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                        .disabled(model.running)
+                        .accessibilityIdentifier("team.review.leaveInstead")
                     }
-                    Button("team.cancel") { model.cancel(); dismiss() }.frame(minHeight: 44).disabled(model.running)
+                    Button("team.cancel") { model.cancel(); dismiss() }
+                        .buttonStyle(CYGhostButtonStyle(isFullWidth: true))
+                        .disabled(model.running)
                         .accessibilityIdentifier("team.review.cancel")
-                }.padding()
-            }.appNavigationTitle("team.review")
-                .interactiveDismissDisabled(model.running)
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .interactiveDismissDisabled(model.running)
+        .cyDomainSheet(detents: [.half, .full])
+    }
+
+    @ViewBuilder private var confirmActionButton: some View {
+        let button = Button(LocalizedStringKey(model.coordinator.canSimulate ? "team.simulate" : "team.confirmLive")) {
+            let permit = model.captureRun()
+            Task {
+                guard model.coordinator.review == review else { return }
+                if await model.run(permit: permit, { await model.coordinator.confirm(review) }) { dismiss() }
+            }
+        }
+        .disabled(!model.coordinator.canSubmit || model.running)
+        .accessibilityIdentifier("team.review.confirm")
+        if isDestructiveAction {
+            button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+        } else {
+            button.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
         }
     }
 }
@@ -183,34 +285,69 @@ struct TeamMemberRow: View {
     @ObservedObject var model: TeamScreenModel
     @State private var copyMessageKey: String?
     @State private var copyPermit: TeamScreenModel.InviteCopyPermit?
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .info
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("team.invitation") {
+        CYSheetContainer(
+            title: appLocalized("team.invitePreview", locale: locale),
+            onClose: { endPreview(); dismiss() }
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: team.title)
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let code = team.inviteCode, TeamLookup.validInvite(code) {
-                        Text(verbatim: code).accessibilityIdentifier("team.invite.code")
-                        Button("team.invite.copy") { copyInvitationCode(code) }
-                            .frame(minHeight: 44)
-                            .accessibilityIdentifier("team.invite.copy")
-                        ShareLink(item: code) {
-                            Label(CoreLoopCopy(locale: locale).t("分享邀请码", "Share invite code"), systemImage: "square.and.arrow.up")
-                                .frame(minHeight: 44)
-                        }
-                        .accessibilityIdentifier("team.invite.share")
+                        Text(verbatim: code)
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(CYColor.brand)
+                            .monospaced()
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier("team.invite.code")
+                    } else {
+                        Text("team.invite.unavailable")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    else { Text("team.invite.unavailable") }
                     if let copyMessageKey {
                         Text(LocalizedStringKey(copyMessageKey))
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(copyMessageKey == "team.invite.copied" ? CYColor.successText : CYColor.dangerText)
+                            .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("team.invite.copyFeedback")
                     }
-                    Text("team.invite.previewOnly").font(.footnote).foregroundStyle(.secondary)
+                    Text("team.invite.previewOnly")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            }.appNavigationTitle("team.invitePreview")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("team.close") { endPreview(); dismiss() }.accessibilityIdentifier("team.invite.close") } }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(CYSpacing.md)
+                .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+
+                if let code = team.inviteCode, TeamLookup.validInvite(code) {
+                    Button("team.invite.copy") { copyInvitationCode(code) }
+                        .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+                        .accessibilityIdentifier("team.invite.copy")
+                    ShareLink(item: code) {
+                        Label(CoreLoopCopy(locale: locale).t("分享邀请码", "Share invite code"), systemImage: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                    .accessibilityIdentifier("team.invite.share")
+                }
+
+                Button("team.close") { endPreview(); dismiss() }
+                    .buttonStyle(CYGhostButtonStyle(isFullWidth: true))
+                    .accessibilityIdentifier("team.invite.close")
+            }
         }
+        .cyToast($toastMessage, tone: toastTone)
+        .cyDomainSheet(detents: [.half, .full])
         .onAppear { copyPermit = model.beginInvitePreview() }
         .onChange(of: team) { _, _ in endPreview() }
         .onDisappear { endPreview() }
@@ -225,5 +362,7 @@ struct TeamMemberRow: View {
             LocalPasteboard.copy(value)
         }
         copyMessageKey = copied ? "team.invite.copied" : "team.invite.unavailable"
+        toastTone = copied ? .success : .error
+        toastMessage = copied ? "team.invite.copied" : "team.invite.unavailable"
     }
 }

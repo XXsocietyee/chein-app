@@ -8,6 +8,7 @@ import SwiftUI
     @State private var draft = ClubBadgeCreateDraft()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     init(host: ClubBadgeHost) { _model = StateObject(wrappedValue: ClubBadgeHostModel(host: host)) }
     var body: some View {
         let _ = model.revision
@@ -47,17 +48,34 @@ import SwiftUI
             if current == false { creating = false; pendingReview = nil; draft = .init(); model.retire() }
         }
         .sheet(isPresented: $creating) { createForm }
-        .confirmationDialog(Text("confirmGrant", tableName: "ClubBadge"), isPresented: Binding(
-            get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
-                if let review = pendingReview {
-                    Button { pendingReview = nil; model.perform { await $0.confirmGrant(review) } } label: { Text("grant", tableName: "ClubBadge") }
-                }
-                Button(role: .cancel) { pendingReview = nil; model.flow?.cancelReview(); model.changed() } label: { Text("cancel", tableName: "ClubBadge") }
-            } message: {
-                if let review = pendingReview {
-                    Text(verbatim: (review.member.trimmedNickname ?? String(review.member.memberId)) + " · " + (review.badge.badgeName ?? review.badge.badgeCode))
-                }
+        .sheet(isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
+            if let review = pendingReview {
+                let targetName = (review.member.trimmedNickname ?? String(review.member.memberId)) + " · " + (review.badge.badgeName ?? review.badge.badgeCode)
+                let detail = String(localized: LocalizedStringResource("confirmGrantDetail", table: "ClubBadge", locale: locale))
+                CYConfirmSheet(
+                    title: String(localized: LocalizedStringResource("confirmGrant", table: "ClubBadge", locale: locale)),
+                    message: "\(targetName)\n\(detail)",
+                    confirmTitle: String(localized: LocalizedStringResource("grant", table: "ClubBadge", locale: locale)),
+                    cancelTitle: String(localized: LocalizedStringResource("cancel", table: "ClubBadge", locale: locale)),
+                    isDestructive: false,
+                    consequences: [
+                        CYConfirmConsequence(systemImage: "person.badge.plus", text: String(localized: LocalizedStringResource("confirmGrantConsequence1", table: "ClubBadge", locale: locale))),
+                        CYConfirmConsequence(systemImage: "medal", text: String(localized: LocalizedStringResource("confirmGrantConsequence2", table: "ClubBadge", locale: locale))),
+                        CYConfirmConsequence(systemImage: "exclamationmark.circle", text: String(localized: LocalizedStringResource("confirmGrantConsequence3", table: "ClubBadge", locale: locale)))
+                    ],
+                    onCancel: {
+                        pendingReview = nil
+                        model.flow?.cancelReview()
+                        model.changed()
+                    },
+                    onConfirm: {
+                        pendingReview = nil
+                        model.perform { await $0.confirmGrant(review) }
+                    }
+                )
+                .cyDomainSheet(detents: [.half, .full])
             }
+        }
         .cyDomainScreen(.player)
     }
 
@@ -267,16 +285,18 @@ import SwiftUI
     }
 
     private var createForm: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    CYHeroHeader("create", tableName: "ClubBadge")
-                    labeledField("name", text: $draft.name)
-                    labeledField("description", text: $draft.description, axis: .vertical)
-                    Text("limits", tableName: "ClubBadge")
-                        .font(CYTypography.meta)
-                        .foregroundStyle(palette.textTertiary)
-                        .fixedSize(horizontal: false, vertical: true)
+        CYSheetContainer(
+            title: String(localized: LocalizedStringResource("create", table: "ClubBadge", locale: locale)),
+            onClose: { creating = false }
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                labeledField("name", text: $draft.name)
+                labeledField("description", text: $draft.description, axis: .vertical)
+                Text("limits", tableName: "ClubBadge")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+                VStack(spacing: CYSpacing.sm) {
                     CYPillButton("confirmCreate", tableName: "ClubBadge") {
                         let submitted = draft; creating = false
                         model.perform { await $0.create(submitted) }
@@ -284,11 +304,9 @@ import SwiftUI
                     .disabled(draft.validation != nil || model.flow?.canCreate != true)
                     CYPillButton("cancel", style: .tertiary, tableName: "ClubBadge") { creating = false }
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
             }
-            .cyDomainPageBackground()
         }
+        .cyDomainSheet(detents: [.half, .full])
     }
 
     @ViewBuilder private func badgeName(_ badge: ClubBadgeRecord) -> some View {

@@ -38,14 +38,38 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .navigationTitle(Text("payoutReceiver.title", tableName: "PayoutReceiver"))
         .refreshable { await load() }
         .task { await load() }
-        .confirmationDialog(Text("payoutReceiver.bind.confirmTitle", tableName: "PayoutReceiver"), isPresented: $confirmingBind, titleVisibility: .visible) {
-            Button { Task { await bind() } } label: { Text("payoutReceiver.bind", tableName: "PayoutReceiver") }
-                .accessibilityIdentifier("payoutReceiver.bind.confirm")
-        } message: { Text("payoutReceiver.bind.consent", tableName: "PayoutReceiver") }
-        .confirmationDialog(Text("payoutReceiver.unbind.confirmTitle", tableName: "PayoutReceiver"), isPresented: $confirmingUnbind, titleVisibility: .visible) {
-            Button(role: .destructive) { Task { await unbind() } } label: { Text("payoutReceiver.unbind", tableName: "PayoutReceiver") }
-                .accessibilityIdentifier("payoutReceiver.unbind.confirm")
-        } message: { Text("payoutReceiver.unbind.detail", tableName: "PayoutReceiver") }
+        .sheet(isPresented: $confirmingBind) {
+            CYConfirmSheet(
+                title: String(localized: LocalizedStringResource("payoutReceiver.bind.confirmTitle", table: "PayoutReceiver", locale: locale)),
+                message: String(localized: LocalizedStringResource("payoutReceiver.bind.consent", table: "PayoutReceiver", locale: locale)),
+                confirmTitle: String(localized: LocalizedStringResource("payoutReceiver.bind", table: "PayoutReceiver", locale: locale)),
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                isDestructive: false,
+                confirmIdentifier: "payoutReceiver.bind.confirm",
+                onCancel: { confirmingBind = false },
+                onConfirm: {
+                    confirmingBind = false
+                    Task { await bind() }
+                }
+            )
+            .cyDomainSheet(detents: [.peek, .half])
+        }
+        .sheet(isPresented: $confirmingUnbind) {
+            CYConfirmSheet(
+                title: String(localized: LocalizedStringResource("payoutReceiver.unbind.confirmTitle", table: "PayoutReceiver", locale: locale)),
+                message: String(localized: LocalizedStringResource("payoutReceiver.unbind.detail", table: "PayoutReceiver", locale: locale)),
+                confirmTitle: String(localized: LocalizedStringResource("payoutReceiver.unbind", table: "PayoutReceiver", locale: locale)),
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                isDestructive: true,
+                confirmIdentifier: "payoutReceiver.unbind.confirm",
+                onCancel: { confirmingUnbind = false },
+                onConfirm: {
+                    confirmingUnbind = false
+                    Task { await unbind() }
+                }
+            )
+            .cyDomainSheet(detents: [.peek, .half])
+        }
         .appSwitcherPrivacyShield()
         .cyDomainScreen(.player)
     }

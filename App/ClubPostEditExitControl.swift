@@ -64,6 +64,7 @@ import SwiftUI
     let canExit: () -> Bool
     let close: () -> Void
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @StateObject private var model = ClubPostEditExitModel()
     private var draft: ClubPostEditDraft { .init(content: content, images: images) }
     private var original: ClubPostEditDraft { .init(content: post.content, images: post.images) }
@@ -80,17 +81,26 @@ import SwiftUI
         }
         .disabled(!canExit() || scenePhase != .active)
         .accessibilityIdentifier("club.postEditExit.cancel")
-        .confirmationDialog("club.postEditExit.title",
-            isPresented: Binding(get: { model.dialog }, set: { model.presentationChanged($0) }),
-            titleVisibility: .visible, presenting: model.pending) { ticket in
-                Button("club.postEditExit.discard", role: .destructive) {
-                    guard model.discard(ticket, scope: scope, draft: draft, currentSession: session,
-                                        canExit: canExit() && scenePhase == .active) else { return }
-                    close()
-                }.accessibilityIdentifier("club.postEditExit.discard")
-                Button("club.postEditExit.keep", role: .cancel) { model.keepEditing(ticket) }
-                    .accessibilityIdentifier("club.postEditExit.keep")
-            } message: { _ in Text("club.postEditExit.message") }
+        .sheet(isPresented: Binding(get: { model.dialog }, set: { model.presentationChanged($0) })) {
+            if let ticket = model.pending {
+                CYConfirmSheet(
+                    title: appLocalized("club.postEditExit.title", locale: locale),
+                    message: appLocalized("club.postEditExit.message", locale: locale),
+                    confirmTitle: appLocalized("club.postEditExit.discard", locale: locale),
+                    cancelTitle: appLocalized("club.postEditExit.keep", locale: locale),
+                    isDestructive: true,
+                    confirmIdentifier: "club.postEditExit.discard",
+                    cancelIdentifier: "club.postEditExit.keep",
+                    onCancel: { model.keepEditing(ticket) },
+                    onConfirm: {
+                        guard model.discard(ticket, scope: scope, draft: draft, currentSession: session,
+                                            canExit: canExit() && scenePhase == .active) else { return }
+                        close()
+                    }
+                )
+                .cyDomainSheet(detents: [.peek, .half])
+            }
+        }
         .onAppear { model.appear() }
         .onDisappear { model.leave() }
         .onChange(of: draft) { _, _ in model.invalidate() }
