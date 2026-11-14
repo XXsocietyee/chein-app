@@ -105,6 +105,10 @@ struct TopicXcxIncludes: View {
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             switch row {
             case .chapters(let n): Label { Text("topicXcx.include.chapters \(n)") } icon: { Image(systemName: "book") }
+            case .chapterBreakdown(let story, let endings):
+                Label {
+                    Text(story > 0 ? "topicXcx.include.storyAndEndings \(story) \(endings)" : "topicXcx.include.endings \(endings)")
+                } icon: { Image(systemName: "book") }
             case .stops(let n): Label { Text("topicXcx.include.stops \(n)") } icon: { Image(systemName: "mappin.and.ellipse") }
             case .plays(let n): Label { Text("topicXcx.include.plays \(n)") } icon: { Image(systemName: "gamecontroller") }
             case .audioMinutes(let n): Label { Text("topicXcx.include.audioMinutes \(n)") } icon: { Image(systemName: "headphones") }
@@ -142,13 +146,21 @@ struct TopicXcxActionBar: View {
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
     var openPricing: (() -> Void)?
+    var openTickets: (() -> Void)? = nil
     var body: some View {
         VStack(spacing: 6) {
             if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
             HStack {
                 switch TopicXcxFacts.action(topic) {
                 case .ticketWallet:
-                    Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                    if let openTickets {
+                        Button(action: openTickets) {
+                            Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                        }
+                        .accessibilityIdentifier("topic.cta.tickets")
+                    } else {
+                        Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                    }
                 case .locked(let lifecycle):
                     if TopicXcxFacts.opensPricing(topic), let openPricing {
                         Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)

@@ -49,7 +49,11 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     publisherDestination: { detail in
                         guard detail.isOwner, let resource = try? PublishedResource(kind: .topic, value: detail.id) else { return AnyView(EmptyView()) }
                         return AnyView(PublisherLifecycleNavigationLink(session: session, resource: resource))
-                    }, reviewOwner: session.contextualReviews?.coordinator(.topic(id)), selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) })
+                    }, reviewOwner: session.contextualReviews?.coordinator(.topic(id)),
+                    selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
+                    ticketWalletDestination: { topicID in
+                        AnyView(TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator, focusTopicID: topicID))
+                    })
                     .id(session.contentDetailRevision)
             }
         }

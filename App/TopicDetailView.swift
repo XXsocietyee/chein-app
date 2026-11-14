@@ -12,7 +12,9 @@ struct TopicDetailView: View {
     var reviewOwner: ContextualReviewCoordinator? = nil
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
+    var ticketWalletDestination: ((Int) -> AnyView)? = nil
     @State private var showingSelfPlay = false
+    @State private var showingTickets = false
     @State private var showingSessionSelection = false
     /// Load lifecycle (docs/release/state-machines/views.md). `loadedKey` guards a phase that belongs to a stale key.
     @State private var phase: CYPhase<TopicDetail, TopicScreenIssue> = .idle
@@ -42,7 +44,10 @@ struct TopicDetailView: View {
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false }
+        .sheet(isPresented: $showingTickets) {
+            if let ticketWalletDestination { ticketWalletDestination(id) }
+        }
         .sheet(isPresented: $showingSelfPlay) {
             if let detail {
                 if let selfPlayDestination { selfPlayDestination(detail) }
@@ -67,7 +72,7 @@ struct TopicDetailView: View {
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                                 .font(CYTypography.label).foregroundStyle(CYColor.accentText)
                             Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
-                            if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                            if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineLimit(1) }
                             else { Text("topicXcx.coverHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
                         }
                     }.accessibilityElement(children: .combine)
@@ -237,7 +242,7 @@ struct TopicDetailView: View {
                 Section("topic.lockedStory") {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
-                    Text("topicXcx.paywall.detail").font(.footnote)
+                    Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").font(.footnote)
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
                         CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
                     }
@@ -254,7 +259,8 @@ struct TopicDetailView: View {
         .safeAreaInset(edge: .bottom) {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { showingSelfPlay = true },
-                              openPricing: pricingDestination == nil ? nil : { showsPricing = true })
+                              openPricing: pricingDestination == nil ? nil : { showsPricing = true },
+                              openTickets: ticketWalletDestination == nil ? nil : { showingTickets = true })
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)

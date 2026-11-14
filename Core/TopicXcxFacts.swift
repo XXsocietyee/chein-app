@@ -49,11 +49,59 @@ public enum TopicXcxFacts {
 
     /// Source `contentIncludes`, in order, each only when present.
     public enum Include: Equatable {
-        case chapters(Int), stops(Int), plays(Int), audioMinutes(Int), audio, medal(String?), coupon
+        case chapters(Int), chapterBreakdown(story: Int, endings: Int), stops(Int), plays(Int), audioMinutes(Int), audio, medal(String?), coupon
+    }
+    /// Buyer-facing chapter count (`utils/chapter-count.js`): a chapter whose name starts with 结局 is an ending, not a chapter.
+    /// Ending names are counted only from the chapters already delivered. `totalChapterCount` still includes them.
+    public static func buyerChapterCounts(_ topic: TopicDetail) -> (story: Int, endings: Int) {
+        let names = topic.chapters.map(\.title)
+        let total = topic.totalChapterCount > 0 ? topic.totalChapterCount : names.count
+        let endings = min(names.filter(Self.isEndingChapterName).count, max(0, total))
+        return (max(0, total - endings), endings)
+    }
+    public static func isEndingChapterName(_ name: String) -> Bool {
+        name.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("结局")
+    }
+    /// Generated 「第N章」 is skipped when the name already carries 第X章 / 结局 / 终章 / 序章 / 尾声.
+    public static func hidesGeneratedChapterOrdinal(_ name: String) -> Bool {
+        let text = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let expression = Self.selfOrdinalExpression else { return false }
+        let range = NSRange(text.startIndex..., in: text)
+        return expression.firstMatch(in: text, range: range) != nil
+    }
+    /// Preview guide: description, else nothing. Puzzle prompts are cut off. At most 60 characters.
+    public static func chapterGuide(description: String?) -> String {
+        let limit = 60
+        let source = Self.stripPuzzle(description ?? "").split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        if source.count <= limit { return source }
+        let head = String(source.prefix(limit))
+        let breaks = ["。", "！", "？", "."].compactMap { head.lastIndex(of: Character($0)) }
+        if let cut = breaks.max(), head.distance(from: head.startIndex, to: cut) >= 12 {
+            return String(head[...cut])
+        }
+        var trimmed = head
+        while let last = trimmed.last, "，,、；; \t".contains(last) { trimmed.removeLast() }
+        return trimmed + "…"
+    }
+    /// Cover subtitle: 20 characters, with an ellipsis when the cut is not already at the end.
+    public static func heroIntro(_ subtitle: String?) -> String? {
+        let raw = subtitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if raw.isEmpty { return nil }
+        let chars = Array(raw)
+        if chars.count <= 20 { return String(chars) }
+        var head = String(chars.prefix(20))
+        while let last = head.last, "，,、；;。 \t".contains(last) { head.removeLast() }
+        return head + "…"
+    }
+    /// Paywall 「与到店权益」 only when a shop card would be shown.
+    public static func showsInStorePerks(_ topic: TopicDetail) -> Bool {
+        Self.lineup(topic).contains { $0.kind == .merchant }
     }
     public static func includes(_ topic: TopicDetail) -> [Include] {
         var rows: [Include] = []
-        if topic.totalChapterCount > 0 { rows.append(.chapters(topic.totalChapterCount)) }
+        let counts = Self.buyerChapterCounts(topic)
+        if counts.endings > 0 { rows.append(.chapterBreakdown(story: counts.story, endings: counts.endings)) }
+        else if counts.story > 0 { rows.append(.chapters(counts.story)) }
         if let stops = topic.locationCount, stops > 0 { rows.append(.stops(stops)) }
         if topic.templateCount > 0 { rows.append(.plays(topic.templateCount)) }
         if let audio = topic.audioURL, !audio.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -120,4 +168,18 @@ public enum TopicXcxFacts {
     }
     /// Owner of a topic in pricing (lifecycle 2) is sent to the final-price page instead of a toast.
     public static func opensPricing(_ topic: TopicDetail) -> Bool { topic.isOwner && topic.lifecycle == 2 }
+
+    private static let selfOrdinalExpression: NSRegularExpression? = try? NSRegularExpression(
+        pattern: #"^(?:第\s*[0-9一二三四五六七八九十百零两]+\s*章|结局|终章|序章|尾声)"#)
+    private static let puzzleExpression: NSRegularExpression? = try? NSRegularExpression(
+        pattern: #"【\s*(?:题目|观察位置|谜题|提示|线索|密码表?|密文|答案)[^】]*】|(?:^|\s)(?:题目|观察位置)[:：]|密码表|对照表|[A-Z]\s*=\s*\d"#)
+
+    private static func stripPuzzle(_ source: String) -> String {
+        let trimmed = source.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let expression = Self.puzzleExpression else { return trimmed }
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        guard let match = expression.firstMatch(in: trimmed, range: range),
+              let swiftRange = Range(match.range, in: trimmed) else { return trimmed }
+        return String(trimmed[..<swiftRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }

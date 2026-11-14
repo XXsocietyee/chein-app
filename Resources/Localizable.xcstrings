@@ -227764,6 +227764,54 @@
         }
       }
     },
+    "topicXcx.include.endings %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld endings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个结局"
+          }
+        }
+      }
+    },
+    "topicXcx.include.storyAndEndings %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld chapters · %lld endings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 章 · %lld 个结局"
+          }
+        }
+      }
+    },
+    "topicXcx.paywall.detailNoPerks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock to see the full story and quiz reveals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解锁后可看全部故事线、答题揭秘"
+          }
+        }
+      }
+    },
     "topicXcx.paywall.detail": {
       "localizations": {
         "en": {
