@@ -177,9 +177,9 @@ enum PlayTaskStatusCardMapper {
     }
 
     static func arrivalRequirement(for node: PlayNode) -> CYRouteArrivalRequirement {
-        if node.needScan == true { return .scan }
+        if node.needScan == true { return .qr }
         if node.needGPS == true { return .gps }
-        return .free
+        return .neutral("自由到达")
     }
 }
 
