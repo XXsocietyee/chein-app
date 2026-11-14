@@ -196,6 +196,7 @@ import SwiftUI
 @MainActor struct PlayCoopHelpSheet: View {
     let flow: PlayCoopHelpFlow
     let close: () -> Void
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
 
     var body: some View {
         NavigationStack {
@@ -206,7 +207,14 @@ import SwiftUI
                         Text(verbatim: row.title)
                         Spacer()
                         Button {
-                            Task { await flow.use(level: row.level) }
+                            Task {
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/play/help/shared"]
+                                ) {
+                                    await flow.use(level: row.level)
+                                }
+                            }
                         } label: {
                             if flow.busyLevel == row.level { ProgressView() } else { Text(verbatim: row.actionText) }
                         }
@@ -235,12 +243,25 @@ import SwiftUI
                         Text("playTeam.help.skipConsequence")
                         HStack {
                             Button("playTeam.help.skipCancel") { flow.cancelSkip() }.buttonStyle(CYPillButtonStyle(style: .tertiary, fullWidth: false, compact: true))
-                            Button("playTeam.help.skipConfirm", role: .destructive) { Task { await flow.confirmSkip() } }
+                            Button("playTeam.help.skipConfirm", role: .destructive) {
+                                Task {
+                                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                        environmentSession: offlineWriteSession.session,
+                                        routes: ["/api/play/help/shared"]
+                                    ) {
+                                        await flow.confirmSkip()
+                                    }
+                                }
+                            }
                                 .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
                                 .disabled(flow.busyLevel != nil)
                         }
                     }
                 }
+                CYScreenOfflineWriteSection(
+                    routes: ["/api/play/help/shared"],
+                    session: offlineWriteSession.session
+                )
                 if let issue = flow.issue { issueText(issue) }
                 if flow.loading { ProgressView("playTeam.help.loading") }
             }

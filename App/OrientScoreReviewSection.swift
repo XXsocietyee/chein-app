@@ -33,6 +33,7 @@ extension EnvironmentValues {
     @StateObject private var model: OrientScoreReviewModel
     @StateObject private var selection: OrientScoreReviewEntrySelection
     private let entries: [OrientScoreTimelineRow]
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @State private var reason = ""
     @State private var kind: OrientScoreReviewModel.Kind = .appeal
 
@@ -72,6 +73,10 @@ extension EnvironmentValues {
                     .buttonStyle(.cySecondary(fullWidth: true))
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("orientScore.review.begin")
+                CYScreenOfflineWriteBanner(
+                    routes: ["/api/orient/scoring/appeal", "/api/orient/scoring/dispute"],
+                    session: offlineWriteSession.session
+                )
                 statusView
             }
         }
@@ -82,7 +87,16 @@ extension EnvironmentValues {
                 set: { if !$0 { model.cancel() } }),
             titleVisibility: .visible
         ) {
-            Button("orientScore.review.send") { Task { await model.confirm() } }
+            Button("orientScore.review.send") {
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/orient/scoring/appeal", "/api/orient/scoring/dispute"]
+                    ) {
+                        await model.confirm()
+                    }
+                }
+            }
             Button("action.cancel", role: .cancel) { model.cancel() }
         }
     }
