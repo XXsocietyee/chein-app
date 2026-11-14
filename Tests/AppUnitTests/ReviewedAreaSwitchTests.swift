@@ -1,4 +1,5 @@
 import XCTest
+import QuestifyCore
 @testable import Questify
 
 final class ReviewedAreaSwitchTests: XCTestCase {
@@ -53,5 +54,21 @@ final class ReviewedAreaSwitchTests: XCTestCase {
         XCTAssertEqual(ExternalGameReviewModel.pin(rotated, host: "other.example.test", defaults: defaults), rotated)
         XCTAssertNil(ExternalGameReviewModel.pin(first, host: nil, defaults: defaults))
         XCTAssertNil(ExternalGameReviewModel.pin(Data(count: 16), host: "x.example.test", defaults: defaults))
+    }
+
+    func testProductionHostDoesNotPresentAClosedFeatureAsPayment() {
+        let host = ReviewedAreaSwitch.productionAPIHost
+        let money = ReviewedAreaSwitch.moneyPayments(apiHost: host, testOrDebug: true)
+        let payout = ReviewedAreaSwitch.payout(apiHost: host, testOrDebug: true)
+        let writes = ReviewedAreaSwitch.merchantWrites(apiHost: host, testOrDebug: true)
+        let password = ReviewedAreaSwitch.passwordLogin(apiHost: host, testOrDebug: true)
+        XCTAssertFalse(money)
+        XCTAssertFalse(payout)
+        XCTAssertFalse(writes)
+        XCTAssertFalse(password)
+        XCTAssertFalse(BackendErrorCatalog.paymentSucceeded(
+            code: "FEATURE_CLOSED", moneyPaymentsOpen: money, payoutOpen: payout, merchantWritesOpen: writes, passwordLoginOpen: password))
+        XCTAssertFalse(BackendErrorCatalog.paymentSucceeded(
+            code: "CASH_CLOSED", moneyPaymentsOpen: money, payoutOpen: payout, merchantWritesOpen: writes, passwordLoginOpen: password))
     }
 }
