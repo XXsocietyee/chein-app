@@ -92,6 +92,14 @@ import SwiftUI
                     TextField("searchMap.minimum", text: $minimum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.min")
                     TextField("searchMap.maximum", text: $maximum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.max")
                 }
+                if applyCityOptions == nil {
+                    Section("searchMap.sort") {
+                        Picker("searchMap.sort", selection: .constant(SearchListSort.recent)) {
+                            Text("search.sort.recent").tag(SearchListSort.recent)
+                        }
+                        .accessibilityIdentifier("search.sort.recent")
+                    }
+                }
                 if invalid { Label("searchMap.invalidInput", systemImage: "exclamationmark.circle").accessibilityIdentifier("searchMap.filter.invalid") }
                 Button("searchMap.resetFilters") {
                     draft = GlobalSearchQuery(keyword: draft.keyword); minimum = ""; maximum = ""; dateDraft = SearchMapDateFilterDraft(filter: draft); invalid = false
