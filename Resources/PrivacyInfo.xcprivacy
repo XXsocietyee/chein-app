@@ -32,6 +32,12 @@
                 <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
             </array>
         </dict>
+        <!-- Precise location also covers a roam hold that keeps updating after the app
+             leaves the foreground. ui/wp-11 SessionBackgroundLocationTracker sets
+             allowsBackgroundLocationUpdates and showsBackgroundLocationIndicator only
+             while that hold exists, with when-in-use authorization and no Always prompt.
+             That tracker is not in origin/ui/main 9209d33. Apple has no separate
+             background-location collected type or required-reason API, so none is added. -->
         <dict>
             <key>NSPrivacyCollectedDataType</key>
             <string>NSPrivacyCollectedDataTypePreciseLocation</string>
