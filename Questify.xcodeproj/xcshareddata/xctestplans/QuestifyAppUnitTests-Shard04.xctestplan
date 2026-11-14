@@ -256,6 +256,7 @@
         "MerchantOnboardingLicenseRemovalTests",
         "MerchantOperationsEntryHintsTests",
         "MerchantOperationsHomeReadLifetimeTests",
+        "MerchantOpsWp03GateTests",
         "MerchantOverviewCompositionTests",
         "MerchantPerkStableOwnerTests",
         "MerchantPerkValidityCalendarTests",

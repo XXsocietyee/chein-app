@@ -307,6 +307,7 @@ import SwiftUI
         let renderedKey = accessKey
         let queuedRequest = accessModel.request
         List {
+            MerchantOpsWp03Panel(page: .team)
             if reader.isOfflineExample { Text("merchant.business.synthetic").foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.synthetic") }
             // Entry does not grant report access; the destination rechecks original APP permissions.
             NavigationLink { SessionCityMerchantValueView() } label: { CityMerchantValueCopy.text("merchantTitle") }
@@ -533,6 +534,7 @@ import SwiftUI
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches")).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.list.noMatches")
                 }
                 if query == .operators {
+                    MerchantOpsWp03Panel(page: .team)
                     if let roster = try? MerchantOperatorRoster(document: snapshot.document) {
                         MerchantOperatorRosterSections(roster: roster, access: snapshot.access,
                             detailsExpanded: Binding(get: { teamAccessDetailsExpanded }, set: { expanded in

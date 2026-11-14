@@ -1,0 +1,132 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "wp03.chapter.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Chapter invite" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "章节邀请" } }
+      }
+    },
+    "wp03.coupon.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Coupon summary" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "优惠券统计" } }
+      }
+    },
+    "wp03.decor.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Store decoration" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "店铺装修" } }
+      }
+    },
+    "wp03.empty": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Nothing here yet" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "这里还没有内容" } }
+      }
+    },
+    "wp03.loading": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在加载" } }
+      }
+    },
+    "wp03.moneyOff": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Payments are off." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "付款未开启。" } }
+      }
+    },
+    "wp03.npc.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Character review" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "形象审核" } }
+      }
+    },
+    "wp03.retry": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Try again" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重试" } }
+      }
+    },
+    "wp03.row.claimsStatus": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Claim status" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "认领进度" } }
+      }
+    },
+    "wp03.row.claimsSubmit": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Submit a claim" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提交认领" } }
+      }
+    },
+    "wp03.row.couponSummary": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Published coupons" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已发布的优惠券" } }
+      }
+    },
+    "wp03.row.invitePreview": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Invite preview" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "邀请预览" } }
+      }
+    },
+    "wp03.row.inviteRevoke": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Revoke chapter invite" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "撤回章节邀请" } }
+      }
+    },
+    "wp03.row.npcReview": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Review receipt" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "审核回执" } }
+      }
+    },
+    "wp03.row.order": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Decoration order" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "装修订单" } }
+      }
+    },
+    "wp03.row.orderStatus": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Order status" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "订单状态" } }
+      }
+    },
+    "wp03.row.shareCode": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Store share code" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "店铺分享码" } }
+      }
+    },
+    "wp03.signedOut": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Sign in to load this" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "登录后加载" } }
+      }
+    },
+    "wp03.team.title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Store team" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "经营团队" } }
+      }
+    },
+    "wp03.unknown": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "—" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "—" } }
+      }
+    },
+    "wp03.writesOff": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Merchant changes are off." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "商家修改未开启。" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

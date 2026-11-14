@@ -21,6 +21,11 @@ extension ReviewedProductionFormMutationRoute {
             return method == "POST"
         }
         if relative == "api/roam/presence" || relative == "api/roam/presence-visibility" { return false }
+        if MerchantOpsWp03Lease.admits(relative: relative, method: method, host: url.host) {
+            let reading = relative == MerchantOpsWp03Catalog.claimsStatus || relative == MerchantOpsWp03Catalog.npcReview
+            if reading { return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true) }
+            return method == "POST" && request.httpBody?.isEmpty == false
+        }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         if relative == "api/registration/create" {
             return method == "POST" && grant.registration.paths.contains(relative) && freeRegistrationBody(request)
@@ -1271,4 +1276,14 @@ enum WorkshopModRouteGrant {
         "api/mod-settlement/mine",
         "api/mod-settlement/mine/income"
     ]
+}
+
+/// HANDOVER 33 WP-03. Appended after the workshop grant. Money and merchant writes follow ReviewedAreaSwitch.
+enum MerchantOpsWp03Lease {
+    static func admits(relative: String, method: String, host: String?) -> Bool {
+        guard MerchantOpsWp03Catalog.paths.contains(relative), method == MerchantOpsWp03Catalog.method(for: relative) else { return false }
+        if MerchantOpsWp03Catalog.money.contains(relative) { return ReviewedAreaSwitch.moneyPayments(apiHost: host) }
+        if MerchantOpsWp03Catalog.writes.contains(relative) { return ReviewedAreaSwitch.merchantWrites(apiHost: host) }
+        return true
+    }
 }

@@ -254,6 +254,7 @@
         "MerchantOperationsEntryHintsTests",
         "MerchantOperatorInvitationReceiptTests",
         "MerchantOperatorSelfRoleCardTests",
+        "MerchantOpsWp03GateTests",
         "MerchantPerkStableOwnerTests",
         "MerchantPerkValidityCalendarTests",
         "MerchantPersonalIncomeHandoffTests",

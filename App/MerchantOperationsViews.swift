@@ -27,6 +27,7 @@ struct MerchantOperationsHomeView: View {
     var body: some View {
         let readPermit = readLifetime.permit
         List {
+            MerchantOpsWp03Panel(page: .decor)
             MerchantOperationsBoundary(isExample: reader.isOfflineExample)
             if loadedScope == reader.scope, let access {
                 if access.identity.active && access.profileWrite && access.identity.allows(.basicRead), let cityMerchantFactory {
