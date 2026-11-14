@@ -35,6 +35,9 @@ import PhotosUI
             if denied {
                 Button(action: openCameraSettings) { Text("scanner.openSettings") }
                     .accessibilityIdentifier("playkit.camera.openSettings")
+                    .accessibilityLabel(Text("scanner.openSettings"))
+                    .accessibilityValue(Text("scanner.openSettings"))
+                    .accessibilityHint(Text("playkitCamera.screenSpaceOnly"))
             }
             if authorizing { ProgressView("playkitCamera.authorizing") }
         }

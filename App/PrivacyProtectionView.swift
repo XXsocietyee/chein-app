@@ -48,11 +48,17 @@ struct PrivacyProtectionView: View {
             Section {
                 Button { document = AuthEntryLegalSheet(type: .privacyPolicy) } label: { Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.guide")
+                    .accessibilityLabel(Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry"))
+                    .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
+                    .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
                 if !isPrivacyPolicyBundled {
                     Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry").font(.footnote).foregroundStyle(CYColor.textSecondary)
                 }
                 Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.agreement")
+                    .accessibilityLabel(Text("authEntry.gate.openAgreement", tableName: "AuthEntry"))
+                    .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
+                    .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
             }
             Section {
                 LabeledContent {
@@ -60,6 +66,9 @@ struct PrivacyProtectionView: View {
                     else { Label { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.warningText) }
                 } label: { Text("authEntry.privacy.consentStatus", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.consentStatus")
+                    .accessibilityLabel(Text("authEntry.privacy.consentStatus", tableName: "AuthEntry"))
+                    .accessibilityValue(Text(LocalizedStringKey(granted ? "authEntry.privacy.consentGranted" : "authEntry.privacy.consentMissing"), tableName: "AuthEntry"))
+                    .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
                 Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(CYColor.textSecondary)
                 if granted {
                     Button(role: .destructive) {
@@ -69,6 +78,9 @@ struct PrivacyProtectionView: View {
                         Text("compliance.revoke")
                     }
                     .accessibilityIdentifier("authEntry.privacy.withdrawConsent")
+                    .accessibilityLabel(Text("compliance.revoke"))
+                    .accessibilityValue(Text("authEntry.privacy.consentGranted", tableName: "AuthEntry"))
+                    .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
                 }
             }
             SessionLocationHoldsSection()

@@ -15,6 +15,8 @@ import UIKit
                 copied &+= 1
             } label: { Label("mpd.aiChat.export", systemImage: "doc.on.doc") }
             .sensoryFeedback(.success, trigger: copied)
+            .accessibilityLabel(Text("mpd.aiChat.export"))
+            .accessibilityValue(Text("mpd.aiChat.exportCount \(data.records.count)"))
             .accessibilityHint(Text("mpd.aiChat.exportHint"))
             .accessibilityIdentifier("npcData.export")
         }

@@ -88,6 +88,9 @@ struct RoamStampSlipSaveRow: View {
                 Button("roam.share.openPhotoSettings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                 }
+                .accessibilityLabel(Text("roam.share.openPhotoSettings"))
+                .accessibilityValue(Text("roam.share.photoPermissionDenied"))
+                .accessibilityHint(Text("roam.share.openPhotoSettings"))
             }
         }
         .onDisappear { saver.cancel() }

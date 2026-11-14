@@ -336,9 +336,16 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             pendingCoolingOffCopy.accessibilityIdentifier("compliance.pending")
             Button("compliance.withdrawCancellation", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }
                 .accessibilityIdentifier("compliance.cancelApplication")
+                .accessibilityLabel(Text("compliance.withdrawCancellation"))
+                .accessibilityValue(Text("compliance.pending.submitted"))
+                .accessibilityHint(Text(LocalizedStringKey(model.coordinator.coolingOffHasPassed(now: Date()) ? "compliance.pending.afterCoolingOff" : "compliance.pending.duringCoolingOff")))
         case .completed: Text("compliance.completed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.completed")
         case .freshLogin: Text("compliance.freshLogin").accessibilityIdentifier("compliance.freshLogin")
-        case .unknown: Text("compliance.unknown").accessibilityIdentifier("compliance.unknown")
+        case .unknown: Text("compliance.unknown")
+            .accessibilityIdentifier("compliance.unknown")
+            .accessibilityLabel(Text("compliance.unknown"))
+            .accessibilityValue(Text(verbatim: "—"))
+            .accessibilityHint(Text("compliance.unknown"))
         }
         Button("compliance.refresh") { requestCancellationRead() }
             .buttonStyle(CYPillButtonStyle(style: .tertiary))

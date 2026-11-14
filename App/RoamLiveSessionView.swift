@@ -162,6 +162,9 @@ import QuestifyCore
                                 Button("roam.poi.location.openSettings") {
                                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                                 }.frame(minHeight: 44).accessibilityIdentifier("roam.live.openSettings")
+                                    .accessibilityLabel(Text("roam.poi.location.openSettings"))
+                                    .accessibilityValue(Text("roam.poi.location.denied.title"))
+                                    .accessibilityHint(Text("roam.poi.location.denied.message2"))
                             }.accessibilityIdentifier("roam.live.locationDenied")
                         }
                         if owner.presenceAvailable {

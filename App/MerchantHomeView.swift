@@ -236,6 +236,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                 LocalizedStringKey(businessStatus.titleKey),
                                 tone: businessStatus == .open ? .success : .neutral
                             ).singleLine()
+                                .accessibilityLabel(Text(LocalizedStringKey(businessStatus.titleKey)))
+                                .accessibilityValue(Text(LocalizedStringKey(businessStatus.titleKey)))
+                                .accessibilityHint(Text(verbatim: displayName))
                             if let operationsAccess, operationsAccess.allows(.businessStatus), let factory = operationsDestinationFactory {
                                 NavigationLink {
                                     factory(.businessStatus, operationsAccess)
@@ -268,6 +271,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, CYSpacing.lg)
                             .accessibilityElement(children: .combine)
+                            .accessibilityLabel(Text("merchant.revenue"))
+                            .accessibilityValue(Text(verbatim: MerchantMoney.display(value.revenue)))
+                            .accessibilityHint(Text("merchant.revenue"))
                             .accessibilityIdentifier("merchant.dashboard.revenue")
                         }
                     }

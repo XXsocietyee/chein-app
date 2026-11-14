@@ -70,6 +70,9 @@ struct SearchMapOfflineBannerView: View {
                     .tint(palette.warningText)
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("searchMap.w208.offline.retry")
+                    .accessibilityLabel(Text("searchMap.w208.offline.retry"))
+                    .accessibilityValue(spokenCache)
+                    .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "searchMap.w208.offline.stillOffline" : key)))
             }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 .background(palette.warningBg, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .overlay(
@@ -77,7 +80,18 @@ struct SearchMapOfflineBannerView: View {
                         .stroke(palette.warning.opacity(0.28), lineWidth: 1)
                 )
                 .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text(LocalizedStringKey(key)))
+                .accessibilityValue(spokenCache)
+                .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "searchMap.w208.offline.stillOffline" : key)))
                 .accessibilityIdentifier("searchMap.w208.offline")
         }
+    }
+
+    /// No cached clock is unknown. A shown time stays the clock already on the bar.
+    private var spokenCache: Text {
+        if case .cached(let date) = state {
+            return Text(date, format: .dateTime.hour().minute())
+        }
+        return Text(verbatim: "—")
     }
 }

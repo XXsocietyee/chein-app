@@ -34,6 +34,9 @@ import QuestifyCore
             case .done:
                 CYStatusChip(verbatim: W8Text.t("已完成", "Done"), tone: .success, systemImage: "checkmark.circle.fill")
                     .accessibilityIdentifier("myProject.mutation.done")
+                    .accessibilityLabel(Text(verbatim: W8Text.t("已完成", "Done")))
+                    .accessibilityValue(Text(verbatim: W8Text.t("已完成", "Done")))
+                    .accessibilityHint(Text(verbatim: W8Text.t("已完成", "Done")))
             case .failed(_, let message):
                 Label {
                     Text(LocalizedStringKey(message))
@@ -44,6 +47,9 @@ import QuestifyCore
                 .font(CYTypography.body)
                 .foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("myProject.mutation.failed")
+                .accessibilityLabel(Text(verbatim: message.isEmpty ? "—" : message))
+                .accessibilityValue(Text(verbatim: message.isEmpty ? "—" : message))
+                .accessibilityHint(Text(verbatim: message.isEmpty ? "—" : message))
             case .unavailable:
                 Label(W8Text.t("暂未开放：此操作暂时无法在 App 内完成。", "Not available yet: this action can't be done in the app yet."),
                       systemImage: "exclamationmark.circle")
@@ -51,6 +57,9 @@ import QuestifyCore
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("myProject.mutation.unavailable")
+                    .accessibilityLabel(Text(verbatim: W8Text.t("暂未开放：此操作暂时无法在 App 内完成。", "Not available yet: this action can't be done in the app yet.")))
+                    .accessibilityValue(Text(verbatim: W8Text.t("暂未开放：此操作暂时无法在 App 内完成。", "Not available yet: this action can't be done in the app yet.")))
+                    .accessibilityHint(Text(verbatim: W8Text.t("暂未开放：此操作暂时无法在 App 内完成。", "Not available yet: this action can't be done in the app yet.")))
             case .idle, .awaitingConfirmation:
                 EmptyView()
             }
@@ -64,7 +73,13 @@ import QuestifyCore
             titleVisibility: .visible
         ) {
             Button(W8Text.t("确认", "Confirm"), role: .destructive) { Task { await model.confirm() } }
+                .accessibilityLabel(Text(verbatim: W8Text.t("确认", "Confirm")))
+                .accessibilityValue(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
+                .accessibilityHint(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
             Button(W8Text.t("取消", "Cancel"), role: .cancel) { model.dismiss() }
+                .accessibilityLabel(Text(verbatim: W8Text.t("取消", "Cancel")))
+                .accessibilityValue(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
+                .accessibilityHint(Text(verbatim: confirmationText.isEmpty ? "—" : confirmationText))
         }
     }
 

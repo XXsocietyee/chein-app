@@ -52,6 +52,9 @@ import UIKit
                         Button("roam.poi.location.openSettings") {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }.frame(minHeight: 44).accessibilityIdentifier("media.stamp.openSettings")
+                            .accessibilityLabel(Text("roam.poi.location.openSettings"))
+                            .accessibilityValue(Text("media.stamp.cameraDenied.title"))
+                            .accessibilityHint(Text("media.stamp.cameraDenied.message"))
                     }.accessibilityIdentifier("media.stamp.cameraDenied")
                 } else if cameraIssue {
                     Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(palette.warning)
