@@ -113,7 +113,7 @@ import SwiftUI
                     }.accessibilityIdentifier("account.teams")
                     // The Clubs tab is the one Clubs entry on the player bar.
                     if !showsPassportOverview {
-                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: {
+                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, authorSquare: session.squareReader).id(session.sessionRevision) } label: {
                         CYListRow("club.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
                     }.accessibilityIdentifier("account.clubs")
                     }

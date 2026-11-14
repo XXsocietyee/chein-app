@@ -183,7 +183,8 @@ import SwiftUI
                 actionCoordinator: session.clubActionCoordinator,
                 management: session.clubManagementContext,
                 community: session.clubCommunityContext,
-                topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }
+                topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+                authorSquare: session.squareReader
             )
             .toolbar {
                 ToolbarItem(placement:.cancellationAction) {

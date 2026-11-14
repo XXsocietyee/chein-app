@@ -57,6 +57,11 @@ import SwiftUI
                         if let actions, actions.identity.accountID != nil {
                             postActions(post, actions: actions)
                         }
+                        if post.memberID == 0 {
+                            Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("square.author.unknown")
+                        } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
+                            CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
+                        }
                         if let accountReader, post.memberID > 0 {
                             NavigationLink { SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { Label("social.viewAuthor", systemImage: "person.crop.circle") }
                                 .accessibilityIdentifier("social.viewAuthor")
@@ -415,4 +420,67 @@ import SwiftUI
 
 private struct SquareDetailProfileRoute: Identifiable, Hashable {
     let id: Int
+}
+
+/// Author's own legacy square posts. Delete posts `api/creativesquare/delete`, then the list is read again.
+@MainActor struct CreativeSquareAuthorDeleteSection: View {
+    let signedIn: Bool
+    var highlightedPostID: Int? = nil
+    let load: () async throws -> [Int]
+    let remove: (Int) async throws -> [Int]
+    @Environment(\.locale) private var locale
+    @State private var phase = Phase.loading
+    @State private var ids: [Int] = []
+    @State private var removing = false
+    private enum Phase { case loading, empty, ready, failed }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: locale.pick("我的广场", "My square posts")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            if !signedIn {
+                Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+            } else {
+                switch phase {
+                case .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
+                case .empty:
+                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                case .failed:
+                    Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await reload() } }
+                case .ready:
+                    if let highlightedPostID, !ids.contains(highlightedPostID) {
+                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    }
+                    ForEach(ids, id: \.self) { id in
+                        HStack(alignment: .center, spacing: CYSpacing.sm) {
+                            Text(verbatim: "#\(id)").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                            Spacer(minLength: CYSpacing.sm)
+                            CYPillButton(verbatim: locale.pick("删除", "Delete"), style: .secondary, fullWidth: false, compact: true) {
+                                Task { await delete(id) }
+                            }.disabled(removing)
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier("square.authorDelete")
+        .task { await reload() }
+    }
+    private func reload() async {
+        guard signedIn else { return }
+        phase = .loading
+        do {
+            let value = try await load()
+            ids = value
+            phase = value.isEmpty ? .empty : .ready
+        } catch { phase = .failed }
+    }
+    private func delete(_ id: Int) async {
+        guard !removing, id > 0 else { return }
+        removing = true
+        defer { removing = false }
+        do {
+            ids = try await remove(id)
+            phase = ids.isEmpty ? .empty : .ready
+        } catch { phase = .failed }
+    }
 }

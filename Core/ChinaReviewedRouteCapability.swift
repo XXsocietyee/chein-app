@@ -60,8 +60,19 @@ public enum ChinaReviewedRouteCapability {
         if workshopModOwnerGrant.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { return true }
         if beGapMerchantOwnerGrant.contains(key) { return true }
         if externalGameOwnerGrant.contains(key) || externalGameOwnerGrant.contains(externalGameGrantKey(key)) { return true }
+        if wp04OwnerGrant.contains(key) { return true }
         return g6OwnerGrant.contains(key)
     }
+
+    /// WP-04 owner grant. Player content: coop invite receipts and the author's own square post.
+    /// Marks stay as catalogued. Money and merchant writes are not in this set.
+    public static let wp04OwnerGrant: Set<String> = [
+        "/api/coop/invite/read",
+        "/api/coop/invite/request",
+        "/api/coop/invite/requests",
+        "/api/coop/supply-stations",
+        "/api/creativesquare/delete",
+    ]
 
     /// Contract §7 item 18. The six recipient-preview patterns (`IMPreviewRouteTemplates`).
     /// Marks stay `.missing`. A concrete id is admitted only through the existing `{}` normalizer;

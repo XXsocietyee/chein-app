@@ -21,6 +21,14 @@ public struct AccountCollectionService {
         guard envelope.data.rows.count <= pageSize else { throw APIError.malformedResponse }
         return AccountCollectionPostPage(rows: envelope.data.rows.map { $0.post.qualified(as: .legacySquare) }, pageNumber: pageNumber, pageSize: pageSize, rawPayload: data)
     }
+    public func ownCreativeSquareIDs(token: String) async throws -> [Int] {
+        try await CreativeSquareAuthorDeleteClient(configuration: configuration, transport: transport).ownIDs(token: token)
+    }
+    public func deleteOwnCreativeSquare(postID: Int, authorMemberID: Int, token: String) async throws -> [Int] {
+        let command = try CreativeSquareAuthorDelete(postID: postID, authorMemberID: authorMemberID)
+        return try await CreativeSquareAuthorDeleteClient(configuration: configuration, transport: transport)
+            .deleteOwnAndReread(command, viewerMemberID: authorMemberID, token: token)
+    }
     public func coupons(keyword: String? = nil, token: String) async throws -> [AccountCollectionCoupon] {
         var fields: [String: String] = [:]
         if let keyword, !keyword.isEmpty { fields["keyword"] = keyword }

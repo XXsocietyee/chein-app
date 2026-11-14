@@ -22,6 +22,8 @@ public struct AccountCollectionReadSession: Equatable {
     func ownedCoupon(id: Int) async throws -> AccountCollectionCoupon
     func ownedCoupons(keyword: String?, lifetime: OwnedCouponReadLifetime) async throws -> [AccountCollectionCoupon]
     func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime) async throws -> AccountCollectionCoupon
+    func ownCreativeSquareIDs() async throws -> [Int]
+    func deleteOwnCreativeSquare(postID: Int) async throws -> [Int]
 }
 /// Existing credential-free fixtures retain compatibility. Real session readers fence callbacks too.
 public extension AccountCollectionReading {
@@ -37,6 +39,8 @@ public extension AccountCollectionReading {
         do { let value = try await ownedCoupon(id: id); try lifetime.check(); if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }; return value }
         catch { try lifetime.check(); if let expected = lifetime.ownerScope, expected != scope { throw CancellationError() }; throw error }
     }
+    func ownCreativeSquareIDs() async throws -> [Int] { throw APIError.notConfigured }
+    func deleteOwnCreativeSquare(postID: Int) async throws -> [Int] { throw APIError.notConfigured }
 }
 @MainActor public final class AccountCollectionSessionReader: AccountCollectionReading {
     private let service: AccountCollectionService?
@@ -74,6 +78,16 @@ public extension AccountCollectionReading {
     }
     public func ownedCoupon(id: Int, lifetime: OwnedCouponReadLifetime) async throws -> AccountCollectionCoupon {
         try await read(lifetime: lifetime) { try await $0.coupon(id: id, token: $1) }
+    }
+    public func ownCreativeSquareIDs() async throws -> [Int] {
+        try await read { try await $0.ownCreativeSquareIDs(token: $1) }
+    }
+    public func deleteOwnCreativeSquare(postID: Int) async throws -> [Int] {
+        guard let author = currentSession()?.accountID else { throw APIError.unauthorized }
+        return try await read { service, token in
+            guard self.currentSession()?.accountID == author else { throw CancellationError() }
+            return try await service.deleteOwnCreativeSquare(postID: postID, authorMemberID: author, token: token)
+        }
     }
     private func read<T>(lifetime: OwnedCouponReadLifetime? = nil,
                          _ operation: (AccountCollectionService, String) async throws -> T) async throws -> T {

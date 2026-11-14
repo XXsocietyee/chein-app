@@ -43,6 +43,7 @@ extension EnvironmentValues {
     let reader: any CoopFlowReading
     var profiles: CoopRelationProfileContext? = nil
     var displayContext = CoopRelationDisplayContext()
+    var squareReader: (any SquareReading)? = nil
     @State private var model: CoopRelationDiscoveryModel
     @State private var selectedSection: CoopRelationSection?
     @Environment(\.cooperationRelationPostFeed) private var postFeed
@@ -71,8 +72,9 @@ extension EnvironmentValues {
     private var key: LoadKey { .init(reader: ObjectIdentifier(reader), session: reader.session, scope: profiles?.scope, context: displayContext) }
     init(reader: any CoopFlowReading, profiles: CoopRelationProfileContext? = nil,
          displayContext: CoopRelationDisplayContext = .init(),
+         squareReader: (any SquareReading)? = nil,
          model: CoopRelationDiscoveryModel? = nil, presentation: CoopRelationPresentationOwner? = nil) {
-        self.reader = reader; self.profiles = profiles; self.displayContext = displayContext
+        self.reader = reader; self.profiles = profiles; self.displayContext = displayContext; self.squareReader = squareReader
         _model = State(initialValue: model ?? .init())
         _presentation = StateObject(wrappedValue: presentation ?? .init(identityChanges: profiles?.identityChanges))
     }
@@ -102,6 +104,11 @@ extension EnvironmentValues {
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
+            }
+            if let squareReader {
+                CreativeSquareAuthorDeleteSection(signedIn: squareReader.isSignedIn, load: { try await squareReader.ownCreativeSquareIDs() }, remove: { try await squareReader.deleteOwnCreativeSquare(postID: $0) })
+            } else {
+                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cooprelation.authorSquare.missing")
             }
             CoopRelationContextLabel(context: displayContext)
             Section { sectionPicker.padding(.vertical, CYSpacing.xs) }
@@ -335,7 +342,7 @@ private struct CoopRelationContextLabel: View {
                 return AnyView(CoopRelationClubProfileHost(id: id, base: session, isCurrent: { current() && selectionCurrent() }))
             }
         }, image: home.image, identityChanges: session.objectWillChange.eraseToAnyPublisher())
-        CoopRelationDiscoveryView(reader: reader, profiles: profiles)
+        CoopRelationDiscoveryView(reader: reader, profiles: profiles, squareReader: session.squareReader)
     }
 }
 
