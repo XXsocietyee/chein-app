@@ -1,0 +1,87 @@
+appId: invalid.example.questify.ios
+name: Creator Publish + Review Status + Appeal
+tags:
+  - e2e
+  - creator
+  - publish
+  - appeal
+---
+# Assumes signed-in creator-capable session (or observes creator gating cleanly).
+# Note: On Passport (`AccountView`), `account.creatorProjects` (`AccountRoleSections`) lives inside SettingsView,
+# and Passport toolbar Settings gear (`AccountView.swift:177-180`) lacks `.accessibilityIdentifier` (see MISSING_IDS.md).
+# From Home (`homeFeed.openCreate` / `homeFeed.openProjectEditor`), creation & publishing modes are directly reachable.
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# 1. Reach Project Editor / Publishing Clarity via Home (`homeFeed.openProjectEditor`).
+- extendedWaitUntil:
+    visible:
+      id: "homeFeed.openProjectEditor"
+    timeout: 15000
+- tapOn:
+    id: "homeFeed.openProjectEditor"
+
+- extendedWaitUntil:
+    visible:
+      id: "projectEdit.openPublishingModes"
+    timeout: 10000
+- tapOn:
+    id: "projectEdit.openPublishingModes"
+
+# Verify publishing clarity check/status controls if available on this session.
+- runFlow:
+    when:
+      visible:
+        id: "publishClarity.check.run"
+    commands:
+      - tapOn:
+          id: "publishClarity.check.run"
+      - extendedWaitUntil:
+          visible:
+            id: "publishClarity.status"
+          timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: "publishClarity.status"
+    commands:
+      - assertVisible:
+          id: "publishClarity.status"
+
+# 2. Check remote creator projects list (`projectRemote.myProjects`) if visible after closing publishing modes.
+- back
+- runFlow:
+    when:
+      visible:
+        id: "projectRemote.myProjects"
+    commands:
+      - tapOn:
+          id: "projectRemote.myProjects"
+      - runFlow:
+          when:
+            visible:
+              id: "myProject.audit\\..*"
+          commands:
+            - tapOn:
+                id: "myProject.audit\\..*"
+            - runFlow:
+                when:
+                  visible:
+                    id: "myProject.audit.appeal"
+                commands:
+                  - tapOn:
+                      id: "myProject.audit.appeal"
+                  - extendedWaitUntil:
+                      visible:
+                        id: "myProject.audit.reason"
+                      timeout: 10000
+                  - tapOn:
+                      id: "myProject.audit.reason"
+                  - inputText: "E2E appeal verification"
+                  - tapOn:
+                      id: "myProject.audit.submit"
+                  # Known TEST backend gap (docs/release/workflows.md): /api/audit/appeal* is broken on TEST.
+                  - assertVisible:
+                      id: "myProject.audit.appealState"

@@ -1,0 +1,103 @@
+appId: invalid.example.questify.ios
+name: Roam (Incl. Background Location & Simulated GPX)
+tags:
+  - e2e
+  - roam
+  - location
+---
+# Set simulated starting coordinate (People's Square, Shanghai) before opening Roam.
+# During full run_all.sh execution, `xcrun simctl location <udid> start fixtures/roam_shanghai_walk.gpx`
+# also streams GPX track waypoints continuously (including while backgrounded).
+- setLocation:
+    latitude: 31.23040
+    longitude: 121.47370
+
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Switch to Roam tab via verified chein://roam/go deep link
+# (Missing ID in MISSING_IDS.md: SessionRootView native TabView items have no .accessibilityIdentifier).
+- openLink: "chein://roam/go"
+
+# Verify Roam browser shell loaded.
+- extendedWaitUntil:
+    visible:
+      id: "roam.go"
+    timeout: 15000
+- assertVisible:
+    id: "roam.openMap"
+
+# Start Free Roam live session (`roam.go` -> RoamLiveSessionView).
+- tapOn:
+    id: "roam.go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.live.session"
+    timeout: 10000
+
+# Accept location/roam consent if gate card is displayed.
+- runFlow:
+    when:
+      visible:
+        id: "roam.live.consent"
+    commands:
+      - tapOn:
+          id: "roam.live.consent"
+
+# Start live tracking session.
+- extendedWaitUntil:
+    visible:
+      id: "roam.live.start"
+    timeout: 10000
+- tapOn:
+    id: "roam.live.start"
+- extendedWaitUntil:
+    visible:
+      id: "roam.live.phase"
+    timeout: 10000
+
+# Simulate background location movement along Nanjing Road & foreground resume.
+- pressKey: home
+- setLocation:
+    latitude: 31.23350
+    longitude: 121.47760
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+- openLink: "chein://roam/go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.go"
+    timeout: 10000
+- tapOn:
+    id: "roam.go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.live.distance"
+    timeout: 10000
+
+# Pause & Finish flow if active.
+- runFlow:
+    when:
+      visible:
+        id: "roam.live.pause"
+    commands:
+      - tapOn:
+          id: "roam.live.pause"
+- runFlow:
+    when:
+      visible:
+        id: "roam.live.finish"
+    commands:
+      - tapOn:
+          id: "roam.live.finish"
+      - runFlow:
+          when:
+            visible:
+              id: "roam.live.finish.confirm"
+          commands:
+            - tapOn:
+                id: "roam.live.finish.confirm"

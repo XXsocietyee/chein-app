@@ -1,0 +1,37 @@
+appId: invalid.example.questify.ios
+name: Workshop Purchased / Install
+tags:
+  - e2e
+  - workshop
+---
+# Assumes signed-in session (run after login.yaml).
+# Known code gap (MISSING_IDS.md):
+# - In Passport mode (`showsPassportOverview == true`), `AccountRoleSections` (containing
+#   `account.workshopPurchased` from WorkshopPurchasedLibraryView.swift:15) is mounted inside `SettingsView`
+#   (`AccountView.swift:51`, `SettingsView.swift:81`).
+# - The Settings gear button on Passport (`AccountView.swift:177-180`) has NO `.accessibilityIdentifier(...)`,
+#   blocking deterministic automated entry from Passport into Settings -> `account.workshopPurchased`.
+# Known TEST backend status (docs/release/e2e/E2E-20261113b.md N4):
+# - Empty-catalog / purchased-library state has dedicated identifiers tested once inside Settings.
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Verify we reach Passport cleanly (`roam.account.open` -> `passport.action.wallet`).
+- openLink: "chein://roam/go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.account.open"
+    timeout: 15000
+- tapOn:
+    id: "roam.account.open"
+- extendedWaitUntil:
+    visible:
+      id: "passport.action.wallet"
+    timeout: 15000
+
+# Blocked step pending `account.settings` identifier on AccountView.swift:177-180:
+# 1. Tap `account.settings` -> scroll to & tap `account.workshopPurchased`
+# 2. Assert `workshopPurchased.status` or `workshopPurchased.row.*`
+# 3. Tap `workshopPaidInstall.entry` -> assert `workshopPaidInstall.authority` -> tap `workshopPaidInstall.confirm`

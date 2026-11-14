@@ -1,0 +1,80 @@
+appId: invalid.example.questify.ios
+name: Permissions (Usage Consent Launch Gate + Privacy & Notification Settings)
+tags:
+  - e2e
+  - permissions
+  - privacy
+---
+# Pass `--uitesting-usage-consent-pending` alongside `--e2e-test-host` so UsageConsentEnvironment
+# surfaces the real launch consent gate (`UsageConsentGateView`).
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+      "--uitesting-usage-consent-pending": "1"
+
+# 1. Usage Consent Gate checks.
+- extendedWaitUntil:
+    visible:
+      id: "authEntry.gate.checkbox"
+    timeout: 15000
+- tapOn:
+    id: "authEntry.gate.details"
+- assertVisible:
+    id: "authEntry.gate.body"
+- tapOn:
+    id: "authEntry.gate.checkbox"
+- tapOn:
+    id: "authEntry.gate.agree"
+
+# 2. Signed-out WelcomeView -> More -> Settings (`welcome.more` -> `welcome.settings`)
+#    exposes Location Privacy, Notification Permission, and Usage Consent Evidence.
+#    (Note: when signed in on Passport, AccountView.swift:177 gear button lacks an ID — see MISSING_IDS.md).
+- extendedWaitUntil:
+    visible:
+      id: "welcome.more"
+    timeout: 10000
+- tapOn:
+    id: "welcome.more"
+- extendedWaitUntil:
+    visible:
+      id: "welcome.settings"
+    timeout: 5000
+- tapOn:
+    id: "welcome.settings"
+
+# Notification permission screen (`notification.permission.entry`).
+- scrollUntilVisible:
+    element:
+      id: "notification.permission.entry"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "notification.permission.entry"
+- extendedWaitUntil:
+    visible:
+      id: "notification.permission.status"
+    timeout: 8000
+- back
+
+# Location & privacy settings (`settings.privacyLocation`).
+- scrollUntilVisible:
+    element:
+      id: "settings.privacyLocation"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "settings.privacyLocation"
+- assertVisible:
+    id: "settings.privacyLocation"
+- back
+
+# Usage consent evidence (`settings.usageConsentEvidence`).
+- scrollUntilVisible:
+    element:
+      id: "settings.usageConsentEvidence"
+    direction: DOWN
+    timeout: 10000
+- assertVisible:
+    id: "settings.usageConsentEvidence"

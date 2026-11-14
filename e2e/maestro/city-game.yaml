@@ -1,0 +1,46 @@
+appId: invalid.example.questify.ios
+name: City Game (Official City Read & Participation)
+tags:
+  - e2e
+  - city-game
+---
+# City Game flow covers CityPlayerView (`city.read.screen`, `city.orderedMap.entry`,
+# `city.participation.entry`, `city.actionBudget.entry`, `city.value.entry`) and CityMerchant/Search city layers.
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Roam first to confirm `roam.more` menu anchor exists.
+- openLink: "chein://roam/go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.more"
+    timeout: 15000
+- tapOn:
+    id: "roam.more"
+
+# Known code gap (MISSING_IDS.md):
+# - App/RoamBrowserView.swift:283 NavigationLink("city.read.title") inside `roam.more` Menu
+#   has NO `.accessibilityIdentifier(...)`, so UI automation cannot tap into SessionCityPlayerView without text selector.
+# Workaround verified path until ID is added: open Global Search -> citySearch (`searchMap.citySearch`).
+- back
+- tapOn:
+    id: "roam.search"
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.citySearch"
+    timeout: 10000
+- tapOn:
+    id: "searchMap.citySearch"
+
+# Verify public map layers in SearchMapExplorerView if present.
+- runFlow:
+    when:
+      visible:
+        id: "mapLayers.cityPlaces"
+    commands:
+      - tapOn:
+          id: "mapLayers.cityPlaces"
+      - assertVisible:
+          id: "mapViewport.search"

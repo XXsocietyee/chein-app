@@ -1,0 +1,97 @@
+appId: invalid.example.questify.ios
+name: External Game Catalog / Submit / Report
+tags:
+  - e2e
+  - external-game
+env:
+  E2E_EXTERNAL_GAME_REPORT: ${E2E_EXTERNAL_GAME_REPORT:-"E2E external game report check"}
+---
+# Assumes signed-in session; ReviewedAreaSwitch opens externalGames when `--e2e-test-host` is active.
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Mini Games / External Games sheet from Home banner (`homeIndex.actionBanner.mini_games`).
+- scrollUntilVisible:
+    element:
+      id: "homeIndex.actionBanner.mini_games"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    id: "homeIndex.actionBanner.mini_games"
+
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.miniGames"
+    timeout: 10000
+
+# Verify import/review buttons & catalog/submissions entries (`ExternalGameImportView`, `ExternalGameReviewScreens`).
+- runFlow:
+    when:
+      visible:
+        id: "externalGame.catalog"
+    commands:
+      - tapOn:
+          id: "externalGame.catalog"
+      - assertNotVisible:
+          id: "externalGame.catalog.error"
+      - runFlow:
+          when:
+            visible:
+              id: "externalGame.install\\..*"
+          commands:
+            - tapOn:
+                id: "externalGame.install\\..*"
+      - back
+
+- runFlow:
+    when:
+      visible:
+        id: "externalGameImportButton"
+    commands:
+      - assertVisible:
+          id: "externalGameImportButton"
+
+- runFlow:
+    when:
+      visible:
+        id: "externalGame.submitReview"
+    commands:
+      - tapOn:
+          id: "externalGame.submitReview"
+
+- runFlow:
+    when:
+      visible:
+        id: "externalGame.submissions"
+    commands:
+      - tapOn:
+          id: "externalGame.submissions"
+      - extendedWaitUntil:
+          visible:
+            id: "externalGame.submissions.root"
+          timeout: 10000
+      - back
+
+# Report workflow if safety menu is mounted on an imported game card.
+- runFlow:
+    when:
+      visible:
+        id: "externalGame.safetyMenu"
+    commands:
+      - tapOn:
+          id: "externalGame.safetyMenu"
+      - runFlow:
+          when:
+            visible:
+              id: "externalGame.report"
+          commands:
+            - tapOn:
+                id: "externalGame.report"
+            - extendedWaitUntil:
+                visible:
+                  id: "externalGame.reportSheet"
+                timeout: 8000
+            - tapOn:
+                id: "externalGame.reportSubmit"

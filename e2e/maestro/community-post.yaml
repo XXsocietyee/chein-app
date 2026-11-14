@@ -1,0 +1,76 @@
+appId: invalid.example.questify.ios
+name: Community Post (Square Compose & Feed Readback)
+tags:
+  - e2e
+  - community
+  - square
+env:
+  E2E_POST_BODY: ${E2E_POST_BODY:-"E2E community square post verification"}
+---
+# Assumes signed-in session (run after login.yaml).
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Square from Home (`homeFeed.openSquare`).
+- extendedWaitUntil:
+    visible:
+      id: "homeFeed.openSquare"
+    timeout: 15000
+- tapOn:
+    id: "homeFeed.openSquare"
+
+# Wait for SquareBrowserView (`square.browser` / `square.feed`).
+- extendedWaitUntil:
+    visible:
+      id: "square.browser"
+    timeout: 15000
+- assertNotVisible:
+    id: "square.communityClosed"
+
+# Open composer (`social.compose`).
+- extendedWaitUntil:
+    visible:
+      id: "social.compose"
+    timeout: 10000
+- tapOn:
+    id: "social.compose"
+
+# Fill post body and accept community guidelines in SquareWorkspaceView.
+- extendedWaitUntil:
+    visible:
+      id: "squareWorkspace.body"
+    timeout: 10000
+- tapOn:
+    id: "squareWorkspace.body"
+- inputText: ${E2E_POST_BODY}
+
+- scrollUntilVisible:
+    element:
+      id: "squareWorkspace.acceptGuideline"
+    direction: DOWN
+    timeout: 8000
+- tapOn:
+    id: "squareWorkspace.acceptGuideline"
+
+# Review and confirm publication.
+- scrollUntilVisible:
+    element:
+      id: "squareWorkspace.review"
+    direction: DOWN
+    timeout: 8000
+- tapOn:
+    id: "squareWorkspace.review"
+- extendedWaitUntil:
+    visible:
+      id: "squareWorkspace.confirm"
+    timeout: 10000
+- tapOn:
+    id: "squareWorkspace.confirm"
+
+# Return to feed and confirm feed rows render.
+- extendedWaitUntil:
+    visible:
+      id: "square.feed"
+    timeout: 15000

@@ -1,0 +1,64 @@
+appId: invalid.example.questify.ios
+name: Rewards Store (Browse, Pledge & Presentation)
+tags:
+  - e2e
+  - rewards
+---
+# Assumes signed-in session (run after login.yaml).
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Navigate to Passport tab via verified Roam -> Passport bridge.
+- openLink: "chein://roam/go"
+- extendedWaitUntil:
+    visible:
+      id: "roam.account.open"
+    timeout: 15000
+- tapOn:
+    id: "roam.account.open"
+
+# Scroll down Passport (`AccountView` hosts `AccountCollectionAccountLinks` -> `rewards.open`) and open Rewards Store.
+- scrollUntilVisible:
+    element:
+      id: "rewards.open"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    id: "rewards.open"
+
+# Verify Rewards view renders (`rewards.row.<id>` or empty/unavailable state).
+- runFlow:
+    when:
+      visible:
+        id: "rewards.pledge.read"
+    commands:
+      - tapOn:
+          id: "rewards.pledge.read"
+
+- runFlow:
+    when:
+      visible:
+        id: "rewards.row\\..*"
+    commands:
+      - tapOn:
+          id: "rewards.row\\..*"
+      - runFlow:
+          when:
+            visible:
+              id: "rewards.present"
+          commands:
+            - tapOn:
+                id: "rewards.present"
+            - assertVisible:
+                id: "rewards.presentation"
+            - tapOn:
+                id: "rewards.close"
+      - runFlow:
+          when:
+            visible:
+              id: "rewards.pledge.confirm"
+          commands:
+            - assertVisible:
+                id: "rewards.pledge.catalog"
