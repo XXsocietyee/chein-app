@@ -472,6 +472,7 @@ struct HomeFeedCard: View {
                                     minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
                 EmptyView()
             }
+            .cachingFeedImage()
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 priceRow
                 timeRow
@@ -479,7 +480,6 @@ struct HomeFeedCard: View {
             }
             .accessibilityIdentifier("homeFeed.stream.status")
         }
-        .cachingFeedImage()
     }
     private var priceRow: some View {
         statusRow("homeFeed.status.price") {
