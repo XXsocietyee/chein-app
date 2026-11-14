@@ -509,4 +509,94 @@ import UIKit
         XCTAssertEqual(coordinator.statusErrorKey, "merchant.access.denied")
         XCTAssertFalse(coordinator.isMerchantModeActive(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10))
     }
+
+    func testMerchantAccountRequestsMerchantModeUntilConsumerChoiceAndRoleIsNotAdmission() async throws {
+        @MainActor final class CountingReader: MerchantReading {
+            var isConfigured = true
+            var isSignedIn = true
+            var sessionRevision: UInt64 = 10
+            var accessCalls = 0
+            var result: Result<MerchantAccess, Error>
+            init(result: Result<MerchantAccess, Error>) { self.result = result }
+            func merchantAccess() async throws -> MerchantAccess {
+                accessCalls += 1
+                return try result.get()
+            }
+            func merchantDashboard(access: MerchantAccess) async throws -> MerchantDashboard { throw MerchantReadError.accessDenied }
+            func merchantTodo(access: MerchantAccess) async throws -> MerchantTodo { throw MerchantReadError.accessDenied }
+            func merchantEvents(access: MerchantAccess) async throws -> [MerchantEvent] { throw MerchantReadError.accessDenied }
+            func merchantOrders(access: MerchantAccess, filter: MerchantOrderFilter) async throws -> [MerchantOrder] { throw MerchantReadError.accessDenied }
+            func merchantProjects(access: MerchantAccess) async throws -> MerchantProjectPage { throw MerchantReadError.accessDenied }
+        }
+        let active = try access(["merchant:basic:read"], role: "MERCHANT_MANAGER")
+        let inactive = try decode(MerchantAccess.self, #"{"active":false,"merchant":{"id":31},"roleCode":"MERCHANT_OWNER","permissions":[]}"#)
+        let denied = CountingReader(result: .success(inactive))
+        let deniedCoordinator = MerchantRootModeCoordinator()
+        await deniedCoordinator.adoptSignedInAccount(reader: denied, accountID: 501, role: "merchant", userType: 2,
+            isSignedIn: true, isConfigured: true, revision: 10)
+        XCTAssertEqual(denied.accessCalls, 1)
+        XCTAssertEqual(deniedCoordinator.requestedMode, .consumer)
+        XCTAssertEqual(deniedCoordinator.resolvedRoute(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10), .consumerTabs)
+        await deniedCoordinator.adoptSignedInAccount(reader: denied, accountID: 501, role: "merchant", userType: 2,
+            isSignedIn: true, isConfigured: true, revision: 10)
+        XCTAssertEqual(denied.accessCalls, 1, "A failed admission is not retried on refresh")
+
+        let reader = CountingReader(result: .success(active))
+        let coordinator = MerchantRootModeCoordinator()
+        await coordinator.adoptSignedInAccount(reader: reader, accountID: 501, role: "merchant", userType: nil,
+            isSignedIn: true, isConfigured: true, revision: 10)
+        XCTAssertEqual(reader.accessCalls, 1)
+        XCTAssertEqual(coordinator.requestedMode, .merchant)
+        XCTAssertEqual(coordinator.resolvedRoute(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10), .merchantTabs(active))
+        await coordinator.adoptSignedInAccount(reader: reader, accountID: 501, role: "merchant", userType: nil,
+            isSignedIn: true, isConfigured: true, revision: 10)
+        XCTAssertEqual(reader.accessCalls, 1)
+
+        let player = CountingReader(result: .success(active))
+        let playerCoordinator = MerchantRootModeCoordinator()
+        await playerCoordinator.adoptSignedInAccount(reader: player, accountID: 17, role: "player", userType: 1,
+            isSignedIn: true, isConfigured: true, revision: 4)
+        XCTAssertEqual(player.accessCalls, 0)
+        XCTAssertEqual(playerCoordinator.requestedMode, .consumer)
+        XCTAssertEqual(playerCoordinator.resolvedRoute(accountID: 17, isSignedIn: true, isConfigured: true, revision: 4), .consumerTabs)
+        await playerCoordinator.adoptSignedInAccount(reader: player, accountID: 17, role: "player", userType: 1,
+            isSignedIn: true, isConfigured: true, revision: 4)
+        XCTAssertEqual(player.accessCalls, 0)
+
+        let typed = CountingReader(result: .success(active))
+        let typedCoordinator = MerchantRootModeCoordinator()
+        await typedCoordinator.adoptSignedInAccount(reader: typed, accountID: 88, role: "", userType: 2,
+            isSignedIn: true, isConfigured: true, revision: 3)
+        XCTAssertEqual(typed.accessCalls, 1)
+        XCTAssertEqual(typedCoordinator.requestedMode, .merchant)
+        XCTAssertEqual(typedCoordinator.resolvedRoute(accountID: 88, isSignedIn: true, isConfigured: true, revision: 3), .merchantTabs(active))
+
+        coordinator.switchToConsumerMode()
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        XCTAssertEqual(coordinator.resolvedRoute(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10), .consumerTabs)
+        await coordinator.adoptSignedInAccount(reader: reader, accountID: 501, role: "merchant", userType: 2,
+            isSignedIn: true, isConfigured: true, revision: 10)
+        XCTAssertEqual(reader.accessCalls, 1)
+        XCTAssertEqual(coordinator.requestedMode, .consumer)
+        let returned = await coordinator.requestMerchantMode(reader: reader, accountID: 501)
+        XCTAssertTrue(returned)
+        XCTAssertEqual(reader.accessCalls, 2)
+        XCTAssertEqual(coordinator.requestedMode, .merchant)
+        XCTAssertEqual(coordinator.resolvedRoute(accountID: 501, isSignedIn: true, isConfigured: true, revision: 10), .merchantTabs(active))
+
+        coordinator.switchToConsumerMode()
+        coordinator.handleSessionChange(accountID: 502, isSignedIn: true, isConfigured: true, revision: 10)
+        await coordinator.adoptSignedInAccount(reader: reader, accountID: 502, role: "merchant", userType: nil,
+            isSignedIn: true, isConfigured: true, revision: 10)
+        XCTAssertEqual(reader.accessCalls, 3)
+        XCTAssertEqual(coordinator.resolvedRoute(accountID: 502, isSignedIn: true, isConfigured: true, revision: 10), .merchantTabs(active))
+
+        coordinator.switchToConsumerMode()
+        reader.sessionRevision = 11
+        coordinator.handleSessionChange(accountID: 502, isSignedIn: true, isConfigured: true, revision: 11)
+        await coordinator.adoptSignedInAccount(reader: reader, accountID: 502, role: "merchant", userType: nil,
+            isSignedIn: true, isConfigured: true, revision: 11)
+        XCTAssertEqual(reader.accessCalls, 4)
+        XCTAssertEqual(coordinator.resolvedRoute(accountID: 502, isSignedIn: true, isConfigured: true, revision: 11), .merchantTabs(active))
+    }
 }

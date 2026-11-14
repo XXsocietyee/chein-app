@@ -642,6 +642,14 @@ public enum RootTabBarParity {
         return normalized == "merchant" ? .merchant : .consumer
     }
 
+    /// Which mode a signed-in account should request first. `role == merchant` or `userType == 2`
+    /// asks for merchant mode. It does not admit merchant tabs; `merchantAccess()` still has to succeed.
+    public static func initialRequestedMode(role: String, userType: Int?) -> RoleMode {
+        let normalized = role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if normalized == "merchant" || userType == 2 { return .merchant }
+        return .consumer
+    }
+
     /// Maps a `(RootTab, RoleMode)` pair to its dedicated root container route.
     public static func containerRoute(for tab: RootTab, mode: RoleMode) -> RootContainerRoute {
         switch (mode, tab) {

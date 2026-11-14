@@ -179,6 +179,13 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertEqual(RootTabBarParity.resolvedMode(accountRole: "merchant", prefersMerchantContainer: false), .consumer)
         XCTAssertEqual(RootTabBarParity.resolvedMode(accountRole: "player", prefersMerchantContainer: true), .consumer)
         XCTAssertEqual(RootTabBarParity.resolvedMode(accountRole: " Merchant ", prefersMerchantContainer: true), .merchant)
+        XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: "merchant", userType: nil), .merchant)
+        XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: " Merchant ", userType: 1), .merchant)
+        XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: "", userType: 2), .merchant)
+        XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: "player", userType: 2), .merchant)
+        XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: "player", userType: 1), .consumer)
+        XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: "player", userType: nil), .consumer)
+        XCTAssertEqual(RootTabBarParity.initialRequestedMode(role: "club", userType: nil), .consumer)
     }
 
     // MARK: - PublishTabFloatingSheetParity
