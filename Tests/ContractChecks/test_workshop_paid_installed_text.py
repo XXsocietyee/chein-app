@@ -10,10 +10,9 @@ def read(path):
 class WorkshopPaidInstalledTextContracts(unittest.TestCase):
     def test_new_protected_contract_is_separate_and_read_only(self):
         model = read('Core/WorkshopPaidInstalledTextContracts.swift')
-        self.assertIn('w18-paid-installed-text-v1', model)
-        self.assertIn('OWNER_PAID_INSTALLED_TEXT_PROTECTED_READ_ONLY', model)
-        self.assertIn('MATERIALIZATION_REQUIRED', model)
-        self.assertIn('UNRESOLVED', model)
+        self.assertIn('w18-member-text-v1', model)
+        self.assertIn('license_id', read('Core/WorkshopPaidInstalledTextService.swift'))
+        self.assertIn('request_id', read('Core/WorkshopPaidInstalledTextService.swift'))
         self.assertNotIn('public struct WorkshopPaidInstalledText: Codable', model)
         self.assertIn('WorkshopPaidInstalledText[redacted]', model)
         self.assertIn('WorkshopPaidInstalledTextFields[redacted]', model)
@@ -23,11 +22,8 @@ class WorkshopPaidInstalledTextContracts(unittest.TestCase):
         for field in ['merchantGuide','questionAnswer','hint1','hint2','answerReveal']:
             self.assertIn('"' + field + '"', model)
         self.assertIn('sourceFields == installedFields', model)
-        self.assertIn('ContentDraftRecord.hash(sourceJSON) == contentHash', model)
-        self.assertIn('ContentDraftRecord.hash(componentJSON) == componentHash', model)
-        self.assertIn('SHA256.hash(data: document)', model)
-        self.assertIn('document.base64EncodedString().utf8.elementsEqual(encoded.utf8)', model)
         self.assertIn('rights.matches(reference.item)', model)
+        self.assertIn('checkedAt = "—"', model)
 
     def test_independent_approval_defaults_to_nil(self):
         service = read('Core/WorkshopPaidInstalledTextService.swift')
@@ -40,12 +36,12 @@ class WorkshopPaidInstalledTextContracts(unittest.TestCase):
 
     def test_request_shape_has_no_owner_or_payment_and_no_write_alias(self):
         service = read('Core/WorkshopPaidInstalledTextService.swift')
-        shape = service.split('private struct Body: Codable')[1].split('static func body')[0]
-        self.assertIn('let requestId: String', shape)
-        self.assertIn('let ownedDraftId: Int64', shape)
+        shape = service.split('static func body(')[1].split('public static func accepts')[0]
+        self.assertIn('license_id=', shape)
+        self.assertIn('request_id=', shape)
         self.assertNotIn('owner', shape)
         self.assertNotIn('payment', shape)
-        for guard in ['(2...512).contains(data.count)', 'request.httpBodyStream == nil', 'request.cachePolicy == .reloadIgnoringLocalCacheData', '(try? body.data()) == data']:
+        for guard in ['(2...512).contains(data.count)', 'request.httpBodyStream == nil', 'request.cachePolicy == .reloadIgnoringLocalCacheData', 'application/x-www-form-urlencoded; charset=utf-8']:
             self.assertIn(guard, service)
         self.assertIn('try check(lifetime); onUnauthorized(lease.context)', service)
         self.assertIn('data.count <= 2_097_152', service)

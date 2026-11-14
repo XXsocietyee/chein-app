@@ -65,7 +65,7 @@ public struct WorkshopPaidInstalledTextApproval {
         try check(lifetime)
         let data = try WorkshopPaidInstalledTextRequest.body(reference)
         var request = try AuthRequestBuilder.makeFormRequest(url: api.baseURL.appendingPathComponent(WorkshopPaidInstalledTextRequest.path), fields: [:], token: lease.context.session.token, includesBody: false)
-        request.httpBody = data; request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.httpBody = data; request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.setValue(String(data.count), forHTTPHeaderField: "Content-Length"); request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control"); request.setValue("no-cache", forHTTPHeaderField: "Pragma")
         guard WorkshopPaidInstalledTextRequest.accepts(request, baseURL: api.baseURL) else { throw WorkshopPaidInstalledTextIssue.invalid }
@@ -75,14 +75,22 @@ public struct WorkshopPaidInstalledTextApproval {
             let code = (200..<300).contains(status) ? try decode(Code.self, data).code : status
             if status == 401 || code == 401 { try check(lifetime); onUnauthorized(lease.context); throw WorkshopPaidInstalledTextIssue.unauthorized }
             guard (200..<300).contains(status), code == 200 else { throw WorkshopPaidInstalledTextIssue.unavailable }
-            guard let value = try decode(Envelope.self, data).data, value.matches(reference) else { throw WorkshopPaidInstalledTextIssue.malformed }
+            guard let value = try memberText(data, reference: reference), value.matches(reference) else { throw WorkshopPaidInstalledTextIssue.malformed }
             try check(lifetime); return value
         } catch {
             try check(lifetime); throw (error as? WorkshopPaidInstalledTextIssue) ?? .unavailable
         }
     }
     private struct Code: Decodable { let code: Int }
-    private struct Envelope: Decodable { let code: Int; let data: WorkshopPaidInstalledText? }
+    private func memberText(_ data: Data, reference: WorkshopPaidInstalledTextReference) throws -> WorkshopPaidInstalledText {
+        guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let payload = root["data"] as? [String: Any] else { throw WorkshopPaidInstalledTextIssue.malformed }
+        var cleaned: [String: Any] = [:]
+        for (key, value) in payload where !(value is NSNull) { cleaned[key] = value }
+        guard let text = String(data: try JSONSerialization.data(withJSONObject: cleaned, options: [.sortedKeys]), encoding: .utf8) else { throw WorkshopPaidInstalledTextIssue.malformed }
+        let fields = try WorkshopPaidInstalledTextFields.decode(text, component: false)
+        return WorkshopPaidInstalledText(reference: reference, fields: fields, sourceJSON: text)
+    }
     private func decode<T: Decodable>(_ type: T.Type, _ data: Data) throws -> T {
         do { return try WorkshopPaidInstallWire.decode(type, data: data, maximum: 2_097_152) }
         catch { throw WorkshopPaidInstalledTextIssue.malformed }
@@ -90,26 +98,24 @@ public struct WorkshopPaidInstalledTextApproval {
 }
 /// Exact read-only matcher used by the approved normal transport. No generic send or write alias.
 public enum WorkshopPaidInstalledTextRequest {
-    public static let path = "api/workshop/purchased/installed-text/detail"
-    private struct Body: Codable {
-        let requestId: String
-        let ownedDraftId: Int64
-        var valid: Bool { WorkshopPaidInstallWire.requestID(requestId) && ownedDraftId > 0 }
-        func data() throws -> Data { let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]; return try encoder.encode(self) }
-    }
+    public static let path = "api/workshop/v2/purchased/installed-text/detail"
     static func body(_ reference: WorkshopPaidInstalledTextReference) throws -> Data {
-        let body = Body(requestId: reference.command.requestId, ownedDraftId: reference.ownedDraftID)
-        guard body.valid else { throw WorkshopPaidInstalledTextIssue.invalid }; return try body.data()
+        let licenseId = reference.command.licenseId, requestId = reference.command.requestId
+        guard WorkshopPurchasedWire.license(licenseId), WorkshopPaidInstallWire.requestID(requestId) else { throw WorkshopPaidInstalledTextIssue.invalid }
+        return Data("license_id=\(licenseId)&request_id=\(requestId)".utf8)
     }
     public static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
         guard let url = request.url, url.absoluteString == baseURL.appendingPathComponent(path).absoluteString,
               url.query == nil, url.fragment == nil, request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Transfer-Encoding") == nil,
-              request.value(forHTTPHeaderField: "Content-Type") == "application/json; charset=utf-8",
+              request.value(forHTTPHeaderField: "Content-Type") == "application/x-www-form-urlencoded; charset=utf-8",
               let data = request.httpBody, (2...512).contains(data.count), request.value(forHTTPHeaderField: "Content-Length") == String(data.count),
               request.cachePolicy == .reloadIgnoringLocalCacheData, request.value(forHTTPHeaderField: "Cache-Control") == "no-store", request.value(forHTTPHeaderField: "Pragma") == "no-cache",
-              let body = try? WorkshopPaidInstallWire.decode(Body.self, data: data, maximum: 512), body.valid,
-              (try? body.data()) == data else { return false }
+              let text = String(data: data, encoding: .utf8), text.utf8.elementsEqual(data) else { return false }
+        let parts = text.split(separator: "&", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 2, parts[0].hasPrefix("license_id="), parts[1].hasPrefix("request_id="),
+              WorkshopPurchasedWire.license(String(parts[0].dropFirst("license_id=".count))),
+              WorkshopPaidInstallWire.requestID(String(parts[1].dropFirst("request_id=".count))) else { return false }
         return true
     }
 }

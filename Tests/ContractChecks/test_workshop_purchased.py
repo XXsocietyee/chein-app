@@ -5,7 +5,7 @@ class PurchasedReadContracts(unittest.TestCase):
  def read(self,path):return (ROOT/path).read_text()
  def test_schema_and_duration_are_paid_exact_and_not_inferred(self):
   s=self.read('Core/WorkshopPurchasedContracts.swift')
-  for marker in ['PAID_INDIVIDUAL_PURCHASED_VERSION_METADATA_ONLY','PERPETUAL_PURCHASED_VERSION','EXACT_PURCHASED_VERSION','CHANNEL_APPROVAL_REQUIRED','PAID_INSTALL_AUTHORITY_UNAVAILABLE','permitsContentUse: Bool { false }','permitsPurchase: Bool { false }']:
+  for marker in ['workshop-purchased-v2','INDIVIDUAL','PERPETUAL_PURCHASED_VERSION','EXACT_PURCHASED_VERSION','EXACT_VERSION_PURCHASED','PRIVATE_DRAFT_INSTALL_AVAILABLE','permitsContentUse: Bool { false }','permitsPurchase: Bool { false }','WKO_']:
    self.assertIn(marker,s)
   self.assertNotIn('case expired',s)
  def test_normal_account_uses_independent_default_off_paid_factory(self):

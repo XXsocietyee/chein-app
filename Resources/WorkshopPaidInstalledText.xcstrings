@@ -198,13 +198,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "安装记录未绑定专业主题，城市定向或自由探索模式仍未解析。"
+            "value": "这是私人副本。正文没有单独的版本时间，未知项显示为 —。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This installation has no professional topic binding. City Orientation or Free Exploration mode is unresolved."
+            "value": "This is a private copy. The text has no separate version time; unknown values are shown as —."
           }
         }
       }

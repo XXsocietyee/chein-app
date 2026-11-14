@@ -9,32 +9,23 @@ import XCTest
     static func decode<T: Decodable>(_ type: T.Type, _ value: [String: Any]) throws -> T { try WorkshopPaidInstallWire.decode(type, data: data(value), maximum: 2_097_152) }
     static func item() throws -> WorkshopPurchasedItem { var value = WorkshopPurchasedTestData.item; value["contentHash"] = ContentDraftRecord.hash(source); return try decode(WorkshopPurchasedItem.self, value) }
     static func command() throws -> WorkshopPaidInstallCommand {
-        try .init(requestId: requestID, licenseId: "w18-paid-11", moduleId: item().moduleId, purchasedVersionId: item().purchasedVersionId,
+        try .init(requestId: requestID, licenseId: "WKO_0000000000000000000000000000000b", moduleId: Int64(item().moduleId)!, purchasedVersionId: item().purchasedVersionId,
             contentHash: ContentDraftRecord.hash(source), termsHash: item().termsHash, targetDraftId: 91, targetRevision: 1,
-            businessType: "TOPIC", targetPayloadHash: String(repeating: "c", count: 64), planningRegion: "synthetic-region", commercialUse: false)
+            businessType: "MEMBER_TEMPLATE", targetPayloadHash: String(repeating: "c", count: 64), planningRegion: "110101", commercialUse: false)
     }
     static func receipt() throws -> WorkshopPaidInstallOutcome {
         var value = try JSONSerialization.jsonObject(with: command().wireData()) as! [String: Any]
-        value["schema"] = "w18-paid-install-outcome-v1"; value["state"] = "INSTALLED_PRIVATE_DRAFT"; value["mode"] = "UNRESOLVED"
+        value["schema"] = "workshop-private-draft-install-outcome-v2"; value["state"] = "INSTALLED_PRIVATE_DRAFT"; value["mode"] = "PRIVATE_COPY"
         value["holdDeadline"] = "2026-10-05T00:05:00Z"; value["ownedDraftId"] = 101; value["installedAt"] = "2026-10-05T00:00:01Z"
         value["professionalTemplateStatus"] = "MATERIALIZATION_REQUIRED"; value["published"] = false; value["executable"] = false
         return try decode(WorkshopPaidInstallOutcome.self, value)
     }
     static func reference() throws -> WorkshopPaidInstalledTextReference { try .init(item: item(), receipt: receipt()) }
-    static func body() throws -> [String: Any] {
-        let item = try item(), c = try command(); var component = try JSONSerialization.jsonObject(with: Data(source.utf8)) as! [String: Any]
-        component["validationMethod"] = 1; let componentJSON = String(data: try data(component), encoding: .utf8)!
-        let policy = WorkshopPurchasedTestData.item
-        var rights: [String: Any] = ["useDuration":"PERPETUAL_PURCHASED_VERSION", "updates":"EXACT_PURCHASED_VERSION", "redistribution":"PROHIBITED"]
-        for key in ["commercialUse","adaptation","translation","allowedRegions","themeLimit","merchantLimit","runLimit"] { rights[key] = policy[key] }
-        return ["schema":"w18-paid-installed-text-v1", "scope":"OWNER_PAID_INSTALLED_TEXT_PROTECTED_READ_ONLY", "requestId":requestID,
-            "licenseId":item.licenseId,"moduleId":item.moduleId,"purchasedVersionId":item.purchasedVersionId,"version":"v1", "contentHash":item.contentHash,
-            "componentHash":ContentDraftRecord.hash(componentJSON),"ownedDraftId":101,"ownedDraftRevision":1,"installedAt":"2026-10-05T00:00:01Z","checkedAt":"2026-10-05T00:00:02Z",
-            "originalTargetDraftId":91,"originalTargetRevision":1,"originalTargetPayloadHash":c.targetPayloadHash,"originalBusinessType":"TOPIC","mode":"UNRESOLVED",
-            "sourceJson":source,"componentJson":componentJSON,"termsVersion":item.termsVersion,"termsHash":item.termsHash,"termsDocumentHash":ContentDraftRecord.hash(String(data:terms,encoding:.utf8)!),"termsDocumentBase64":terms.base64EncodedString(),
-            "rights":rights,"professionalTemplateStatus":"MATERIALIZATION_REQUIRED","published":false,"executable":false]
+    static func member() throws -> [String: Any] { try JSONSerialization.jsonObject(with: Data(source.utf8)) as! [String: Any] }
+    static func text() throws -> WorkshopPaidInstalledText {
+        WorkshopPaidInstalledText(reference: try reference(), fields: try WorkshopPaidInstalledTextFields.decode(source, component: false), sourceJSON: source)
     }
-    static func envelope() throws -> Data { try data(["code":200,"data":body()]) }
+    static func envelope() throws -> Data { try data(["code":200,"data":member()]) }
 }
 @MainActor final class WorkshopPaidInstalledTextTests: XCTestCase {
     @MainActor private final class Wire: HTTPTransport {
@@ -60,27 +51,35 @@ import XCTest
         func read(_ a: WorkshopPaidInstalledTextAppearance) async throws { await (try XCTUnwrap(controller.appear(a)))() }
     }
     func testExactProtectedSourceAndAllFieldsArePreservedAndDebugRedacted() throws {
-        let body = try WorkshopPaidTextFixture.decode(WorkshopPaidInstalledText.self, WorkshopPaidTextFixture.body())
+        let body = try WorkshopPaidTextFixture.text()
         XCTAssertTrue(body.matches(try WorkshopPaidTextFixture.reference())); XCTAssertEqual(body.sourceJSON,WorkshopPaidTextFixture.source)
+        XCTAssertEqual(body.version,"—"); XCTAssertEqual(body.checkedAt,"—")
         XCTAssertEqual(body.installedFields["merchantGuide"]," 保密说明 "); XCTAssertEqual(body.installedFields["questionAnswer"]," A ")
         XCTAssertEqual(body.installedFields["hint1"],"一"); XCTAssertEqual(body.installedFields["hint2"],"二"); XCTAssertEqual(body.installedFields["answerReveal"],"答案")
-        XCTAssertEqual(body.termsDocument,WorkshopPaidTextFixture.terms); XCTAssertFalse(String(describing:body).contains("保密")); XCTAssertFalse(String(reflecting:body.installedFields).contains("保密"))
+        XCTAssertEqual(body.sourceFields, body.installedFields); XCTAssertFalse(String(describing:body).contains("保密")); XCTAssertFalse(String(reflecting:body.installedFields).contains("保密"))
     }
     func testChangedOriginalComponentTermsAndUnknownFieldsAreRejected() throws {
-        for key in ["contentHash","componentHash","termsDocumentHash"] { var value = try WorkshopPaidTextFixture.body(); value[key] = String(repeating:"0",count:64); XCTAssertThrowsError(try WorkshopPaidTextFixture.decode(WorkshopPaidInstalledText.self,value)) }
-        var value = try WorkshopPaidTextFixture.body(); value["templateId"] = 99; XCTAssertThrowsError(try WorkshopPaidTextFixture.decode(WorkshopPaidInstalledText.self,value))
-        value = try WorkshopPaidTextFixture.body(); value["termsDocumentBase64"] = "unparseable"; XCTAssertThrowsError(try WorkshopPaidTextFixture.decode(WorkshopPaidInstalledText.self,value))
+        var value = try WorkshopPaidTextFixture.member(); value["templateId"] = 99
+        XCTAssertThrowsError(try WorkshopPaidInstalledTextFields.decode(String(data: try WorkshopPaidTextFixture.data(value), encoding: .utf8)!, component: false))
+        value = try WorkshopPaidTextFixture.member(); value["merchantGuide"] = 7
+        XCTAssertThrowsError(try WorkshopPaidInstalledTextFields.decode(String(data: try WorkshopPaidTextFixture.data(value), encoding: .utf8)!, component: false))
     }
-    func testHashConsistentChangedMerchantGuideCannotPassSourceComparison() throws {
-        var value = try WorkshopPaidTextFixture.body(); let changed = (value["componentJson"] as! String).replacingOccurrences(of:"保密说明",with:"changed")
-        value["componentJson"] = changed; value["componentHash"] = ContentDraftRecord.hash(changed)
-        XCTAssertThrowsError(try WorkshopPaidTextFixture.decode(WorkshopPaidInstalledText.self,value))
+    func testNullOptionalFieldIsAbsentAndUnknownKeyIsRejected() throws {
+        var value = try WorkshopPaidTextFixture.member(); value["description"] = NSNull()
+        let decoded = try WorkshopPaidInstalledTextFields.decode(String(data: try WorkshopPaidTextFixture.data(value), encoding: .utf8)!, component: false)
+        XCTAssertNil(decoded["description"])
+        value["unknown"] = "x"; XCTAssertThrowsError(try WorkshopPaidInstalledTextFields.decode(String(data: try WorkshopPaidTextFixture.data(value), encoding: .utf8)!, component: false))
     }
-    func testDifferentReceiptAndBroaderRightsCannotBindToCapturedInstallation() throws {
-        var value = try WorkshopPaidTextFixture.body(); value["ownedDraftId"] = 102
-        XCTAssertFalse(try WorkshopPaidTextFixture.decode(WorkshopPaidInstalledText.self,value).matches(WorkshopPaidTextFixture.reference()))
-        value = try WorkshopPaidTextFixture.body(); var rights = value["rights"] as! [String:Any]; rights["commercialUse"] = "ALLOWED"; value["rights"] = rights
-        XCTAssertFalse(try WorkshopPaidTextFixture.decode(WorkshopPaidInstalledText.self,value).matches(WorkshopPaidTextFixture.reference()))
+    func testDifferentReceiptCannotBindToCapturedInstallation() throws {
+        let text = try WorkshopPaidTextFixture.text()
+        XCTAssertTrue(text.matches(try .init(item: WorkshopPaidTextFixture.item(), receipt: WorkshopPaidTextFixture.receipt())))
+        let foreign = try WorkshopPaidInstallCommand(requestId: "00000000-0000-4000-8000-000000000009", licenseId: text.licenseID, moduleId: Int64(text.moduleID)!, purchasedVersionId: text.purchasedVersionID, contentHash: text.contentHash, termsHash: text.termsHash, targetDraftId: 91, targetRevision: 1, businessType: "MEMBER_TEMPLATE", targetPayloadHash: String(repeating: "c", count: 64), planningRegion: "110101", commercialUse: false)
+        var receipt = try JSONSerialization.jsonObject(with: foreign.wireData()) as! [String: Any]
+        receipt["schema"] = "workshop-private-draft-install-outcome-v2"; receipt["state"] = "INSTALLED_PRIVATE_DRAFT"; receipt["mode"] = "PRIVATE_COPY"
+        receipt["holdDeadline"] = "2026-10-05T00:05:00Z"; receipt["ownedDraftId"] = 101; receipt["installedAt"] = "2026-10-05T00:00:01Z"
+        receipt["professionalTemplateStatus"] = "MATERIALIZATION_REQUIRED"; receipt["published"] = false; receipt["executable"] = false
+        let otherReceipt = try WorkshopPaidTextFixture.decode(WorkshopPaidInstallOutcome.self, receipt)
+        XCTAssertFalse(text.matches(try .init(item: WorkshopPaidTextFixture.item(), receipt: otherReceipt)))
     }
     func testNestedUnknownUnmappedAndInferredMethodCannotPassFieldReader() throws {
         for text in [#"{"schema":"w18-member-text-v1","title":"x","bindings":{},"unknown":"x"}"#,#"{"schema":"w18-member-text-v1","title":"x","bindings":{},"validationMethod":2}"#] { XCTAssertThrowsError(try WorkshopPaidInstalledTextFields.decode(text,component:true)) }
@@ -136,7 +135,7 @@ import XCTest
         let h = try Harness(); try await h.read(.init()); let request = try XCTUnwrap(h.wire.requests.first)
         XCTAssertTrue(WorkshopPaidInstalledTextRequest.accepts(request,baseURL:h.context.baseURL))
         var bad = request; bad.url = h.context.baseURL.appendingPathComponent("api/workshop/purchased/installed-text/publish"); XCTAssertFalse(WorkshopPaidInstalledTextRequest.accepts(bad,baseURL:h.context.baseURL))
-        bad = request; bad.httpBody = Data("{\"ownedDraftId\":101,\"ownerId\":7,\"requestId\":\"\(WorkshopPaidTextFixture.requestID)\"}".utf8); bad.setValue(String(bad.httpBody!.count),forHTTPHeaderField:"Content-Length"); XCTAssertFalse(WorkshopPaidInstalledTextRequest.accepts(bad,baseURL:h.context.baseURL))
+        bad = request; bad.httpBody = Data("license_id=WKO_0000000000000000000000000000000b&request_id=\(WorkshopPaidTextFixture.requestID)&owner=7".utf8); bad.setValue(String(bad.httpBody!.count),forHTTPHeaderField:"Content-Length"); XCTAssertFalse(WorkshopPaidInstalledTextRequest.accepts(bad,baseURL:h.context.baseURL))
         bad = request; bad.setValue(nil,forHTTPHeaderField:"Content-Length"); XCTAssertFalse(WorkshopPaidInstalledTextRequest.accepts(bad,baseURL:h.context.baseURL))
     }
 }

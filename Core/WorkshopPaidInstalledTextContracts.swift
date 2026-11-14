@@ -1,5 +1,4 @@
 import Foundation
-import CryptoKit
 
 /// NEW protected read contract. Metadata and an installation receipt are references, not body-read
 /// approval. This model is deliberately not Encodable or a TemplateAuthoringDraft.
@@ -36,6 +35,7 @@ public struct WorkshopPaidInstalledTextFields: Equatable, CustomStringConvertibl
         var values: [String: Data] = [:]
         for name in names {
             if let value = fields[Data(name.utf8)] {
+                if case .null = value { continue }
                 guard case .string(let bytes) = value, String(data: bytes, encoding: .utf8) != nil else { throw WorkshopPaidInstalledTextIssue.malformed }
                 values[name] = bytes
             }
@@ -69,6 +69,10 @@ public struct WorkshopPaidInstalledTextRights: Decodable, Equatable {
               Set(allowedRegions.map { Data($0.utf8) }).count == allowedRegions.count,
               allowedRegions.allSatisfy({ WorkshopPurchasedWire.bounded($0, 128) }) else { throw WorkshopPaidInstalledTextIssue.malformed }
     }
+    init(item: WorkshopPurchasedItem) {
+        commercialUse = item.commercialUse; translation = item.translation; adaptation = item.adaptation
+        allowedRegions = item.allowedRegions; themeLimit = item.themeLimit; merchantLimit = item.merchantLimit; runLimit = item.runLimit
+    }
     func matches(_ item: WorkshopPurchasedItem) -> Bool {
         commercialUse == item.commercialUse && translation == item.translation && adaptation == item.adaptation &&
         Set(allowedRegions.map { Data($0.utf8) }) == Set(item.allowedRegions.map { Data($0.utf8) }) &&
@@ -76,7 +80,7 @@ public struct WorkshopPaidInstalledTextRights: Decodable, Equatable {
     }
 }
 /// Transient protected data. No generic save, share, editor export or publication representation.
-public struct WorkshopPaidInstalledText: Decodable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct WorkshopPaidInstalledText: CustomStringConvertible, CustomDebugStringConvertible {
     public let requestID, licenseID, moduleID, purchasedVersionID, version: String
     public let contentHash, componentHash, installedAt, checkedAt: String
     public let ownedDraftID, ownedDraftRevision, originalTargetDraftID, originalTargetRevision: Int64
@@ -88,51 +92,40 @@ public struct WorkshopPaidInstalledText: Decodable, CustomStringConvertible, Cus
     public let rights: WorkshopPaidInstalledTextRights
     public var description: String { "WorkshopPaidInstalledText[redacted]" }
     public var debugDescription: String { description }
-    private enum CodingKeys: String, CodingKey, CaseIterable {
-        case schema, scope, requestId, licenseId, moduleId, purchasedVersionId, version, contentHash, componentHash
-        case ownedDraftId, ownedDraftRevision, installedAt, checkedAt, originalTargetDraftId, originalTargetRevision, originalTargetPayloadHash, originalBusinessType
-        case mode, sourceJson, componentJson, termsVersion, termsHash, termsDocumentHash, termsDocumentBase64, rights, professionalTemplateStatus, published, executable
-    }
-    public init(from decoder: Decoder) throws {
-        try WorkshopPurchasedWire.exactKeys(decoder, Set(CodingKeys.allCases.map(\.rawValue)))
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        guard try c.decode(String.self, forKey: .schema) == "w18-paid-installed-text-v1",
-              try c.decode(String.self, forKey: .scope) == "OWNER_PAID_INSTALLED_TEXT_PROTECTED_READ_ONLY",
-              try c.decode(String.self, forKey: .mode) == "UNRESOLVED",
-              try c.decode(String.self, forKey: .professionalTemplateStatus) == "MATERIALIZATION_REQUIRED",
-              try c.decode(Bool.self, forKey: .published) == false, try c.decode(Bool.self, forKey: .executable) == false else { throw WorkshopPaidInstalledTextIssue.malformed }
-        requestID = try c.decode(String.self, forKey: .requestId); licenseID = try c.decode(String.self, forKey: .licenseId)
-        moduleID = try c.decode(String.self, forKey: .moduleId); purchasedVersionID = try c.decode(String.self, forKey: .purchasedVersionId)
-        version = try c.decode(String.self, forKey: .version); contentHash = try c.decode(String.self, forKey: .contentHash)
-        componentHash = try c.decode(String.self, forKey: .componentHash); installedAt = try c.decode(String.self, forKey: .installedAt)
-        checkedAt = try c.decode(String.self, forKey: .checkedAt); ownedDraftID = try c.decode(Int64.self, forKey: .ownedDraftId)
-        ownedDraftRevision = try c.decode(Int64.self, forKey: .ownedDraftRevision); originalTargetDraftID = try c.decode(Int64.self, forKey: .originalTargetDraftId)
-        originalTargetRevision = try c.decode(Int64.self, forKey: .originalTargetRevision)
-        originalTargetPayloadHash = try c.decode(String.self, forKey: .originalTargetPayloadHash); originalBusinessType = try c.decode(String.self, forKey: .originalBusinessType)
-        sourceJSON = try c.decode(String.self, forKey: .sourceJson); componentJSON = try c.decode(String.self, forKey: .componentJson)
-        termsVersion = try c.decode(String.self, forKey: .termsVersion); termsHash = try c.decode(String.self, forKey: .termsHash)
-        termsDocumentHash = try c.decode(String.self, forKey: .termsDocumentHash); rights = try c.decode(WorkshopPaidInstalledTextRights.self, forKey: .rights)
-        let encoded = try c.decode(String.self, forKey: .termsDocumentBase64)
-        guard encoded.utf8.count <= 87_380, let document = Data(base64Encoded: encoded), !document.isEmpty, document.count <= 65_535,
-              document.base64EncodedString().utf8.elementsEqual(encoded.utf8) else { throw WorkshopPaidInstalledTextIssue.malformed }
-        termsDocument = document
-        sourceFields = try WorkshopPaidInstalledTextFields.decode(sourceJSON, component: false)
-        installedFields = try WorkshopPaidInstalledTextFields.decode(componentJSON, component: true)
-        guard sourceFields == installedFields, WorkshopPaidInstallWire.requestID(requestID), WorkshopPurchasedWire.license(licenseID),
-              [moduleID, purchasedVersionID, termsVersion].allSatisfy({ WorkshopPurchasedWire.bounded($0, 128) }), WorkshopPurchasedWire.bounded(version, 65_536),
-              [contentHash, componentHash, termsHash, termsDocumentHash, originalTargetPayloadHash].allSatisfy(WorkshopPurchasedWire.hash),
-              WorkshopPurchasedWire.timestamp(installedAt), WorkshopPurchasedWire.timestamp(checkedAt), ownedDraftID > 0, ownedDraftRevision == 1,
-              originalTargetDraftID > 0, originalTargetRevision > 0, ["TOPIC", "ACTIVITY"].contains(originalBusinessType),
-              ContentDraftRecord.hash(sourceJSON) == contentHash, ContentDraftRecord.hash(componentJSON) == componentHash,
-              SHA256.hash(data: document).map({ String(format: "%02x", $0) }).joined() == termsDocumentHash else { throw WorkshopPaidInstalledTextIssue.malformed }
+    /// v2 installed-text is `w18-member-text-v1`, keyed by the reference's license and request.
+    /// Fields the payload does not carry stay an em dash.
+    init(reference: WorkshopPaidInstalledTextReference, fields: WorkshopPaidInstalledTextFields, sourceJSON: String) {
+        let command = reference.command
+        requestID = command.requestId
+        licenseID = command.licenseId
+        moduleID = String(command.moduleId)
+        purchasedVersionID = command.purchasedVersionId
+        version = "—"
+        contentHash = command.contentHash
+        componentHash = ContentDraftRecord.hash(sourceJSON)
+        installedAt = reference.receipt.installedAt ?? "—"
+        checkedAt = "—"
+        ownedDraftID = reference.ownedDraftID
+        ownedDraftRevision = command.targetRevision
+        originalTargetDraftID = command.targetDraftId
+        originalTargetRevision = command.targetRevision
+        originalTargetPayloadHash = command.targetPayloadHash
+        originalBusinessType = command.businessType
+        self.sourceJSON = sourceJSON
+        componentJSON = sourceJSON
+        sourceFields = fields
+        installedFields = fields
+        termsVersion = reference.item.termsVersion
+        termsHash = command.termsHash
+        termsDocumentHash = "—"
+        termsDocument = Data()
+        rights = WorkshopPaidInstalledTextRights(item: reference.item)
     }
     func matches(_ reference: WorkshopPaidInstalledTextReference) -> Bool {
-        let c = reference.command
-        return WorkshopPaidInstallWire.same(requestID, c.requestId) && WorkshopPaidInstallWire.same(licenseID, c.licenseId) &&
-        WorkshopPaidInstallWire.same(moduleID, c.moduleId) && WorkshopPaidInstallWire.same(purchasedVersionID, c.purchasedVersionId) &&
-        contentHash == c.contentHash && termsHash == c.termsHash && ownedDraftID == reference.ownedDraftID &&
-        originalTargetDraftID == c.targetDraftId && originalTargetRevision == c.targetRevision && originalTargetPayloadHash == c.targetPayloadHash &&
-        originalBusinessType == c.businessType && installedAt == reference.receipt.installedAt &&
-        WorkshopPaidInstallWire.same(termsVersion, reference.item.termsVersion) && rights.matches(reference.item)
+        let command = reference.command
+        guard sourceFields == installedFields, rights.matches(reference.item) else { return false }
+        return WorkshopPaidInstallWire.same(requestID, command.requestId) && WorkshopPaidInstallWire.same(licenseID, command.licenseId) &&
+        WorkshopPaidInstallWire.same(moduleID, String(command.moduleId)) && WorkshopPaidInstallWire.same(purchasedVersionID, command.purchasedVersionId) &&
+        ownedDraftID == reference.ownedDraftID
     }
 }

@@ -29,7 +29,7 @@ import Observation
     public private(set) var targets: [WorkshopPaidInstallTarget] = []
     public private(set) var history: [WorkshopPaidInstallOutcome] = []
     public private(set) var nextTargetCursor: Int64?
-    public private(set) var nextHistoryCursor: String?
+    public private(set) var nextHistoryCursor: Int64?
     public private(set) var target: WorkshopPaidInstallTarget?
     public private(set) var region: String?
     public private(set) var commercialUse = false
@@ -40,7 +40,7 @@ import Observation
     public private(set) var targetIssue: WorkshopPaidInstallIssue?
     public private(set) var loadingPage = false
     public private(set) var pageIssue: WorkshopPaidInstallIssue?
-    private var consumedHistoryCursors: Set<String> = []
+    private var consumedHistoryCursors: Set<Int64> = []
     private var consumedTargetCursors: Set<Int64> = []
     private let service: any WorkshopPaidInstallServing
     private let lease: ContentDraftSessionLease
@@ -105,7 +105,7 @@ import Observation
         }
         lifetime = life; return (action, life)
     }
-    public func offerLoad(_ displayed: WorkshopPaidInstallAppearance, beforeTarget: Int64? = nil, beforeHistory: String? = nil) -> Action? {
+    public func offerLoad(_ displayed: WorkshopPaidInstallAppearance, beforeTarget: Int64? = nil, beforeHistory: Int64? = nil) -> Action? {
         guard beforeTarget == nil || beforeHistory == nil else { return nil }
         if beforeTarget != nil || beforeHistory != nil {
             return offerPage(displayed, beforeTarget: beforeTarget, beforeHistory: beforeHistory)
@@ -161,7 +161,7 @@ import Observation
     }
     /// Each continuation reads only its own collection. Keep earlier receipts available on
     /// transient failure and retain the exact cursor for an explicit retry.
-    private func offerPage(_ displayed: WorkshopPaidInstallAppearance, beforeTarget: Int64?, beforeHistory: String?) -> Action? {
+    private func offerPage(_ displayed: WorkshopPaidInstallAppearance, beforeTarget: Int64?, beforeHistory: Int64?) -> Action? {
         guard phase == .ready || phase == .installed,
               beforeTarget == nil || beforeTarget == nextTargetCursor,
               beforeHistory == nil || beforeHistory == nextHistoryCursor,

@@ -7,52 +7,55 @@ public enum WorkshopPaidInstallIssue: Error, Equatable {
 }
 public struct WorkshopPaidInstallTarget: Codable, Equatable, Identifiable {
     public let targetDraftId, targetRevision: Int64
-    public let businessType, targetPayloadHash: String
+    public let businessType, targetPayloadHash, title: String
     public var id: Int64 { targetDraftId }
+    /// Kept as a local fact so private-copy installs are not treated as a published mode.
     public var mode: String { "UNRESOLVED" }
     public var destinationKind: String { "W18_PRIVATE_COMPONENT_ONLY" }
-    private enum CodingKeys: String, CodingKey, CaseIterable { case targetDraftId, targetRevision, businessType, targetPayloadHash, mode, destinationKind }
+    private enum CodingKeys: String, CodingKey, CaseIterable { case targetDraftId, targetRevision, businessType, targetPayloadHash, title }
     public init(from decoder: Decoder) throws {
         try WorkshopPaidInstallWire.keys(decoder, Set(CodingKeys.allCases.map(\.rawValue)))
         let c = try decoder.container(keyedBy: CodingKeys.self)
         targetDraftId = try c.decode(Int64.self, forKey: .targetDraftId); targetRevision = try c.decode(Int64.self, forKey: .targetRevision)
         businessType = try c.decode(String.self, forKey: .businessType); targetPayloadHash = try c.decode(String.self, forKey: .targetPayloadHash)
-        guard targetDraftId > 0, targetRevision > 0, ["TOPIC", "ACTIVITY"].contains(businessType), WorkshopPurchasedWire.hash(targetPayloadHash),
-              try c.decode(String.self, forKey: .mode) == mode, try c.decode(String.self, forKey: .destinationKind) == destinationKind else { throw WorkshopPaidInstallIssue.malformed }
+        title = try c.decode(String.self, forKey: .title)
+        guard targetDraftId > 0, targetRevision > 0, businessType == "MEMBER_TEMPLATE", WorkshopPurchasedWire.hash(targetPayloadHash),
+              title.utf8.count <= 256, !title.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else { throw WorkshopPaidInstallIssue.malformed }
     }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(targetDraftId, forKey: .targetDraftId); try c.encode(targetRevision, forKey: .targetRevision)
         try c.encode(businessType, forKey: .businessType); try c.encode(targetPayloadHash, forKey: .targetPayloadHash)
-        try c.encode(mode, forKey: .mode); try c.encode(destinationKind, forKey: .destinationKind)
+        try c.encode(title, forKey: .title)
     }
 }
 public struct WorkshopPaidInstallCommand: Codable, Equatable, Identifiable {
     public let schema: String
-    public let requestId, licenseId, moduleId, purchasedVersionId, contentHash, termsHash: String
-    public let targetDraftId, targetRevision: Int64
+    public let requestId, licenseId, purchasedVersionId, contentHash, termsHash: String
+    public let moduleId, targetDraftId, targetRevision: Int64
     public let businessType, targetPayloadHash, planningRegion: String
     public let commercialUse: Bool
     public var id: String { requestId }
-    static let schemaValue = "w18-paid-private-text-install-command-v1"
+    static let schemaValue = "workshop-private-draft-install-command-v2"
     enum CodingKeys: String, CodingKey, CaseIterable {
         case schema, requestId, licenseId, moduleId, purchasedVersionId, contentHash, termsHash
         case targetDraftId, targetRevision, businessType, targetPayloadHash, planningRegion, commercialUse
     }
     public init(item: WorkshopPurchasedItem, target: WorkshopPaidInstallTarget, region: String, commercialUse: Bool, requestID: UUID = UUID()) throws {
         guard item.status == .active, item.allowedRegions.contains(where: { WorkshopPaidInstallWire.same($0, region) }),
-              !commercialUse || item.commercialUse == .allowed else { throw WorkshopPaidInstallIssue.invalid }
-        try self.init(requestId: requestID.uuidString.lowercased(), licenseId: item.licenseId, moduleId: item.moduleId,
+              !commercialUse || item.commercialUse == .allowed, let module = Int64(item.moduleId) else { throw WorkshopPaidInstallIssue.invalid }
+        try self.init(requestId: requestID.uuidString.lowercased(), licenseId: item.licenseId, moduleId: module,
             purchasedVersionId: item.purchasedVersionId, contentHash: item.contentHash, termsHash: item.termsHash,
             targetDraftId: target.targetDraftId, targetRevision: target.targetRevision, businessType: target.businessType,
             targetPayloadHash: target.targetPayloadHash, planningRegion: region, commercialUse: commercialUse)
     }
-    init(requestId: String, licenseId: String, moduleId: String, purchasedVersionId: String, contentHash: String, termsHash: String,
+    init(requestId: String, licenseId: String, moduleId: Int64, purchasedVersionId: String, contentHash: String, termsHash: String,
          targetDraftId: Int64, targetRevision: Int64, businessType: String, targetPayloadHash: String, planningRegion: String, commercialUse: Bool) throws {
-        guard WorkshopPaidInstallWire.requestID(requestId), WorkshopPurchasedWire.license(licenseId),
-              [moduleId, purchasedVersionId, planningRegion].allSatisfy({ WorkshopPaidInstallWire.text($0, 128) }),
+        guard WorkshopPaidInstallWire.requestID(requestId), WorkshopPurchasedWire.license(licenseId), moduleId > 0,
+              [purchasedVersionId].allSatisfy({ WorkshopPaidInstallWire.text($0, 128) }),
+              planningRegion.range(of: #"\A[0-9]{6}\z"#, options: .regularExpression) != nil,
               [contentHash, termsHash, targetPayloadHash].allSatisfy(WorkshopPurchasedWire.hash), targetDraftId > 0, targetRevision > 0,
-              ["TOPIC", "ACTIVITY"].contains(businessType) else { throw WorkshopPaidInstallIssue.invalid }
+              businessType == "MEMBER_TEMPLATE" else { throw WorkshopPaidInstallIssue.invalid }
         schema = Self.schemaValue; self.requestId = requestId; self.licenseId = licenseId; self.moduleId = moduleId
         self.purchasedVersionId = purchasedVersionId; self.contentHash = contentHash; self.termsHash = termsHash
         self.targetDraftId = targetDraftId; self.targetRevision = targetRevision; self.businessType = businessType
@@ -62,13 +65,13 @@ public struct WorkshopPaidInstallCommand: Codable, Equatable, Identifiable {
         try WorkshopPaidInstallWire.keys(decoder, Set(CodingKeys.allCases.map(\.rawValue)))
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard try c.decode(String.self, forKey: .schema) == Self.schemaValue else { throw WorkshopPaidInstallIssue.malformed }
-        try self.init(requestId: c.decode(String.self, forKey: .requestId), licenseId: c.decode(String.self, forKey: .licenseId), moduleId: c.decode(String.self, forKey: .moduleId),
+        try self.init(requestId: c.decode(String.self, forKey: .requestId), licenseId: c.decode(String.self, forKey: .licenseId), moduleId: c.decode(Int64.self, forKey: .moduleId),
             purchasedVersionId: c.decode(String.self, forKey: .purchasedVersionId), contentHash: c.decode(String.self, forKey: .contentHash), termsHash: c.decode(String.self, forKey: .termsHash),
             targetDraftId: c.decode(Int64.self, forKey: .targetDraftId), targetRevision: c.decode(Int64.self, forKey: .targetRevision), businessType: c.decode(String.self, forKey: .businessType),
             targetPayloadHash: c.decode(String.self, forKey: .targetPayloadHash), planningRegion: c.decode(String.self, forKey: .planningRegion), commercialUse: c.decode(Bool.self, forKey: .commercialUse))
     }
     public func belongs(to item: WorkshopPurchasedItem) -> Bool {
-        WorkshopPaidInstallWire.same(licenseId, item.licenseId) && WorkshopPaidInstallWire.same(moduleId, item.moduleId) &&
+        WorkshopPaidInstallWire.same(licenseId, item.licenseId) && WorkshopPaidInstallWire.same(String(moduleId), item.moduleId) &&
         WorkshopPaidInstallWire.same(purchasedVersionId, item.purchasedVersionId) && contentHash == item.contentHash && termsHash == item.termsHash
     }
     func wireData() throws -> Data { let e = JSONEncoder(); e.outputFormatting = [.sortedKeys]; return try e.encode(self) }
@@ -93,7 +96,7 @@ public struct WorkshopPaidInstallOutcome: Decodable, Equatable, Identifiable {
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        guard try c.decode(String.self, forKey: .schema) == "w18-paid-install-outcome-v1" else { throw WorkshopPaidInstallIssue.malformed }
+        guard try c.decode(String.self, forKey: .schema) == "workshop-private-draft-install-outcome-v2" else { throw WorkshopPaidInstallIssue.malformed }
         requestId = try c.decode(String.self, forKey: .requestId); state = try c.decode(State.self, forKey: .state)
         guard WorkshopPaidInstallWire.requestID(requestId) else { throw WorkshopPaidInstallIssue.malformed }
         if state == .notFound {
@@ -101,12 +104,12 @@ public struct WorkshopPaidInstallOutcome: Decodable, Equatable, Identifiable {
             command = nil; holdDeadline = nil; ownedDraftId = nil; installedAt = nil; return
         }
         try WorkshopPaidInstallWire.keys(decoder, Set(CodingKeys.allCases.map(\.rawValue)))
-        command = try WorkshopPaidInstallCommand(requestId: requestId, licenseId: c.decode(String.self, forKey: .licenseId), moduleId: c.decode(String.self, forKey: .moduleId),
+        command = try WorkshopPaidInstallCommand(requestId: requestId, licenseId: c.decode(String.self, forKey: .licenseId), moduleId: c.decode(Int64.self, forKey: .moduleId),
             purchasedVersionId: c.decode(String.self, forKey: .purchasedVersionId), contentHash: c.decode(String.self, forKey: .contentHash), termsHash: c.decode(String.self, forKey: .termsHash),
             targetDraftId: c.decode(Int64.self, forKey: .targetDraftId), targetRevision: c.decode(Int64.self, forKey: .targetRevision), businessType: c.decode(String.self, forKey: .businessType),
             targetPayloadHash: c.decode(String.self, forKey: .targetPayloadHash), planningRegion: c.decode(String.self, forKey: .planningRegion), commercialUse: c.decode(Bool.self, forKey: .commercialUse))
         holdDeadline = try c.decode(String.self, forKey: .holdDeadline); ownedDraftId = try c.decodeIfPresent(Int64.self, forKey: .ownedDraftId); installedAt = try c.decodeIfPresent(String.self, forKey: .installedAt)
-        guard WorkshopPurchasedWire.timestamp(holdDeadline!), try c.decode(String.self, forKey: .mode) == "UNRESOLVED",
+        guard WorkshopPurchasedWire.timestamp(holdDeadline!), try c.decode(String.self, forKey: .mode) == "PRIVATE_COPY",
               try c.decode(String.self, forKey: .professionalTemplateStatus) == "MATERIALIZATION_REQUIRED",
               try c.decode(Bool.self, forKey: .published) == false, try c.decode(Bool.self, forKey: .executable) == false else { throw WorkshopPaidInstallIssue.malformed }
         if state == .installed { guard let ownedDraftId, ownedDraftId > 0, let installedAt, WorkshopPurchasedWire.timestamp(installedAt) else { throw WorkshopPaidInstallIssue.malformed } }
@@ -119,39 +122,44 @@ public struct WorkshopPaidInstallOutcome: Decodable, Equatable, Identifiable {
     }
 }
 public struct WorkshopPaidInstallTargets: Decodable {
-    public let licenseId: String, checkedAt: String
+    public let checkedAt: String
     public let items: [WorkshopPaidInstallTarget]
     public let nextBeforeDraftId: Int64?
     public let hasMore: Bool
-    private enum CodingKeys: String, CodingKey, CaseIterable { case schema, scope, licenseId, checkedAt, items, nextBeforeDraftId, hasMore }
+    private enum CodingKeys: String, CodingKey { case schema, scope, checkedAt, items, nextBeforeDraftId, hasMore }
     public init(from decoder: Decoder) throws {
-        try WorkshopPaidInstallWire.keys(decoder, Set(CodingKeys.allCases.map(\.rawValue)))
+        let keys = try WorkshopPurchasedWire.keySet(decoder)
+        let required: Set<String> = ["schema", "scope", "checkedAt", "items", "hasMore"]
+        guard required.isSubset(of: keys), keys.isSubset(of: required.union(["nextBeforeDraftId"])) else { throw WorkshopPaidInstallIssue.malformed }
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        guard try c.decode(String.self, forKey: .schema) == "w18-paid-install-targets-v1", try c.decode(String.self, forKey: .scope) == "OWNER_DRAFT_METADATA_ONLY" else { throw WorkshopPaidInstallIssue.malformed }
-        licenseId = try c.decode(String.self, forKey: .licenseId); checkedAt = try c.decode(String.self, forKey: .checkedAt)
+        guard try c.decode(String.self, forKey: .schema) == "workshop-targets-v2", try c.decode(String.self, forKey: .scope) == "INDIVIDUAL" else { throw WorkshopPaidInstallIssue.malformed }
+        checkedAt = try c.decode(String.self, forKey: .checkedAt)
         hasMore = try c.decode(Bool.self, forKey: .hasMore); nextBeforeDraftId = try c.decodeIfPresent(Int64.self, forKey: .nextBeforeDraftId)
         items = try WorkshopPaidInstallWire.items(c.superDecoder(forKey: .items))
-        guard WorkshopPurchasedWire.license(licenseId), WorkshopPurchasedWire.timestamp(checkedAt), Set(items.map(\.id)).count == items.count,
-              zip(items, items.dropFirst()).allSatisfy({ $0.0.id > $0.1.id }), hasMore == (nextBeforeDraftId != nil),
+        guard WorkshopPurchasedWire.timestamp(checkedAt), Set(items.map(\.id)).count == items.count,
+              zip(items, items.dropFirst()).allSatisfy({ $0.0.id > $0.1.id }), hasMore == keys.contains("nextBeforeDraftId"),
+              nextBeforeDraftId.map({ $0 > 0 }) != false,
               !hasMore || (items.count == 50 && nextBeforeDraftId == items.last?.id) else { throw WorkshopPaidInstallIssue.malformed }
     }
 }
 public struct WorkshopPaidInstallHistory: Decodable {
-    public let licenseId: String, checkedAt: String
+    public let checkedAt: String
     public let items: [WorkshopPaidInstallOutcome]
-    public let nextBeforeCommandKey: String?
+    public let nextBeforeCommandKey: Int64?
     public let hasMore: Bool
-    private enum CodingKeys: String, CodingKey, CaseIterable { case schema, scope, licenseId, checkedAt, items, nextBeforeCommandKey, hasMore }
+    private enum CodingKeys: String, CodingKey { case schema, scope, checkedAt, items, nextBeforeCommandKey, hasMore }
     public init(from decoder: Decoder) throws {
-        try WorkshopPaidInstallWire.keys(decoder, Set(CodingKeys.allCases.map(\.rawValue)))
+        let keys = try WorkshopPurchasedWire.keySet(decoder)
+        let required: Set<String> = ["schema", "scope", "checkedAt", "items", "hasMore"]
+        guard required.isSubset(of: keys), keys.isSubset(of: required.union(["nextBeforeCommandKey"])) else { throw WorkshopPaidInstallIssue.malformed }
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        guard try c.decode(String.self, forKey: .schema) == "w18-paid-install-history-v1", try c.decode(String.self, forKey: .scope) == "OWNER_COMMAND_RECEIPTS_ONLY" else { throw WorkshopPaidInstallIssue.malformed }
-        licenseId = try c.decode(String.self, forKey: .licenseId); checkedAt = try c.decode(String.self, forKey: .checkedAt)
-        hasMore = try c.decode(Bool.self, forKey: .hasMore); nextBeforeCommandKey = try c.decodeIfPresent(String.self, forKey: .nextBeforeCommandKey)
+        guard try c.decode(String.self, forKey: .schema) == "workshop-install-history-v2", try c.decode(String.self, forKey: .scope) == "INDIVIDUAL" else { throw WorkshopPaidInstallIssue.malformed }
+        checkedAt = try c.decode(String.self, forKey: .checkedAt)
+        hasMore = try c.decode(Bool.self, forKey: .hasMore); nextBeforeCommandKey = try c.decodeIfPresent(Int64.self, forKey: .nextBeforeCommandKey)
         items = try WorkshopPaidInstallWire.items(c.superDecoder(forKey: .items))
-        guard WorkshopPurchasedWire.license(licenseId), WorkshopPurchasedWire.timestamp(checkedAt), Set(items.map(\.id)).count == items.count,
-              items.allSatisfy({ $0.state != .notFound && $0.command?.licenseId == licenseId }), hasMore == (nextBeforeCommandKey != nil),
-              nextBeforeCommandKey.map(WorkshopPurchasedWire.hash) != false, !hasMore || items.count == 50 else { throw WorkshopPaidInstallIssue.malformed }
+        guard WorkshopPurchasedWire.timestamp(checkedAt), Set(items.map(\.id)).count == items.count,
+              items.allSatisfy({ $0.state != .notFound && $0.command != nil }), hasMore == keys.contains("nextBeforeCommandKey"),
+              nextBeforeCommandKey.map({ $0 > 0 }) != false, !hasMore || items.count == 50 else { throw WorkshopPaidInstallIssue.malformed }
     }
 }
 enum WorkshopPaidInstallWire {

@@ -6,8 +6,8 @@ import XCTest
 // No mutation transport, commerce recovery, StoreKit, installation or protected text is invoked.
 @MainActor final class WorkshopPaidInstallReentryTests: XCTestCase {
     private static let base = URL(string: "https://example.test/reentry")!
-    private static let target: [String: Any] = ["targetDraftId": 91, "targetRevision": 1, "businessType": "TOPIC",
-        "targetPayloadHash": String(repeating: "c", count: 64), "mode": "UNRESOLVED", "destinationKind": "W18_PRIVATE_COMPONENT_ONLY"]
+    private static let target: [String: Any] = ["targetDraftId": 91, "targetRevision": 1, "businessType": "MEMBER_TEMPLATE",
+        "targetPayloadHash": String(repeating: "c", count: 64), "title": "Synthetic target"]
     private static func item(_ fields: [String: Any]? = nil) throws -> WorkshopPurchasedItem {
         try JSONDecoder().decode(WorkshopPurchasedItem.self, from: JSONSerialization.data(withJSONObject: fields ?? WorkshopPurchasedAppFixture.item))
     }
@@ -15,12 +15,12 @@ import XCTest
     private static func reply(_ fields: [String: Any]) throws -> (Data, Int) { (try data(["code": 200, "data": fields]), 200) }
     private static func command() throws -> WorkshopPaidInstallCommand {
         try .init(item: item(), target: JSONDecoder().decode(WorkshopPaidInstallTarget.self, from: data(target)),
-                  region: "synthetic-region", commercialUse: false, requestID: XCTUnwrap(UUID(uuidString: "00000000-0000-4000-8000-000000000111")))
+                  region: "110101", commercialUse: false, requestID: XCTUnwrap(UUID(uuidString: "00000000-0000-4000-8000-000000000111")))
     }
     private static func outcome(_ command: WorkshopPaidInstallCommand, state: String) throws -> [String: Any] {
-        if state == "NOT_FOUND" { return ["schema": "w18-paid-install-outcome-v1", "requestId": command.requestId, "state": state] }
+        if state == "NOT_FOUND" { return ["schema": "workshop-private-draft-install-outcome-v2", "requestId": command.requestId, "state": state] }
         var fields = try XCTUnwrap(JSONSerialization.jsonObject(with: command.wireData()) as? [String: Any])
-        fields["schema"] = "w18-paid-install-outcome-v1"; fields["state"] = state; fields["mode"] = "UNRESOLVED"
+        fields["schema"] = "workshop-private-draft-install-outcome-v2"; fields["state"] = state; fields["mode"] = "PRIVATE_COPY"
         fields["holdDeadline"] = "2026-10-05T00:05:00Z"; fields["professionalTemplateStatus"] = "MATERIALIZATION_REQUIRED"
         fields["published"] = false; fields["executable"] = false
         fields["ownedDraftId"] = state == "INSTALLED_PRIVATE_DRAFT" ? 101 as Any : NSNull()
@@ -44,14 +44,17 @@ import XCTest
             requests.append(request)
             let route = try XCTUnwrap(request.url?.lastPathComponent)
             guard ["status", "history", "targets"].contains(route),
-                  request.url?.path.contains("/workshop/purchased/install/") == true else {
+                  request.url?.path.contains("/purchased/install/") == true else {
                 XCTFail("Reentry cannot dispatch install, commerce/reconcile, text or another API")
                 throw WorkshopPaidInstallIssue.disabled
             }
             if pauseNext { pauseNext = false; return await withCheckedContinuation { suspended = $0 } }
             if let failure = overrides[route] { return failure }
             if route == "status" { return try WorkshopPaidInstallReentryTests.reply(WorkshopPaidInstallReentryTests.outcome(XCTUnwrap(command), state: state)) }
-            let paging = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+            let form = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+            func field(_ key: String) -> String? {
+                form.split(separator: "&").first { $0.hasPrefix(key + "=") }.map { String($0.dropFirst(key.count + 1)) }
+            }
             if route == "history" {
                 var rows: [[String: Any]] = []
                 if paginated {
@@ -61,18 +64,20 @@ import XCTest
                         fields["requestId"] = String(format: "00000000-0000-4000-8000-%012d", index); rows.append(fields)
                     }
                 }
-                return try WorkshopPaidInstallReentryTests.reply(["schema": "w18-paid-install-history-v1", "scope": "OWNER_COMMAND_RECEIPTS_ONLY",
-                    "licenseId": "w18-paid-11", "checkedAt": "2026-10-05T00:00:00Z", "items": rows,
-                    "hasMore": paginated, "nextBeforeCommandKey": paginated ? String(repeating: "f", count: 64) as Any : NSNull()])
+                var page: [String: Any] = ["schema": "workshop-install-history-v2", "scope": "INDIVIDUAL",
+                    "checkedAt": "2026-10-05T00:00:00Z", "items": rows, "hasMore": paginated]
+                if paginated { page["nextBeforeCommandKey"] = 40 }
+                return try WorkshopPaidInstallReentryTests.reply(page)
             }
             var targets = [WorkshopPaidInstallReentryTests.target]
             if paginated {
-                let top = (paging["beforeDraftId"] as? Int64) ?? 151
+                let top = Int64(field("before_draft_id") ?? "") ?? 151
                 targets = (1...50).map { offset in var t = WorkshopPaidInstallReentryTests.target; t["targetDraftId"] = top - Int64(offset); return t }
             }
-            return try WorkshopPaidInstallReentryTests.reply(["schema": "w18-paid-install-targets-v1", "scope": "OWNER_DRAFT_METADATA_ONLY",
-                "licenseId": "w18-paid-11", "checkedAt": "2026-10-05T00:00:00Z", "items": targets,
-                "hasMore": paginated, "nextBeforeDraftId": paginated ? targets.last!["targetDraftId"]! : NSNull()])
+            var page: [String: Any] = ["schema": "workshop-targets-v2", "scope": "INDIVIDUAL",
+                "checkedAt": "2026-10-05T00:00:00Z", "items": targets, "hasMore": paginated]
+            if paginated { page["nextBeforeDraftId"] = targets.last!["targetDraftId"]! }
+            return try WorkshopPaidInstallReentryTests.reply(page)
         }
         func wait() async {
             for _ in 0..<1_000 { if suspended != nil { break }; await Task.yield() }
@@ -96,7 +101,7 @@ import XCTest
             .init(market: .china, baseURL: base ?? WorkshopPaidInstallReentryTests.base, role: role, session: try .init(accountID: account, epoch: epoch, namespace: namespace, token: token, role: role))
         }
         func store() throws -> WorkshopPaidInstallPendingStore {
-            try .init(storage: memory, context: XCTUnwrap(current), licenseId: "w18-paid-11")
+            try .init(storage: memory, context: XCTUnwrap(current), licenseId: "WKO_0000000000000000000000000000000b")
         }
         func make(_ item: WorkshopPurchasedItem? = nil) throws -> WorkshopPaidInstallController? {
             binding.make(item: try item ?? WorkshopPaidInstallReentryTests.item(), context: current, approval: approval, api: api,
@@ -122,8 +127,8 @@ import XCTest
                 let reopened = WorkshopPaidInstallAppearance(); await (try XCTUnwrap(fresh.appear(reopened)))()
                 XCTAssertEqual(fresh.phase, .ready); XCTAssertEqual(fresh.pending, h.wire.command); XCTAssertEqual(fresh.outcome?.state, .notFound)
                 XCTAssertEqual(h.wire.requests.dropFirst(count).map { $0.url!.lastPathComponent }, ["status", "history", "targets"])
-                let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(h.wire.requests[count].httpBody)) as? [String: Any])
-                XCTAssertEqual(body["requestId"] as? String, h.wire.command?.requestId)
+                let body = try XCTUnwrap(String(data: XCTUnwrap(h.wire.requests[count].httpBody), encoding: .utf8))
+                XCTAssertEqual(body, "request_id=\(try XCTUnwrap(h.wire.command?.requestId))")
                 XCTAssertEqual(h.memory.values, before); XCTAssertEqual(h.memory.writes, 1); XCTAssertEqual(h.memory.removes, 0)
                 XCTAssertNil(old.appear(WorkshopPaidInstallAppearance())); XCTAssertNil(old.resume(appearance))
             }
@@ -191,8 +196,8 @@ import XCTest
             XCTAssertEqual(fresh.phase, .ready); XCTAssertEqual(fresh.pending, h.wire.command)
             XCTAssertEqual(fresh.outcome?.state, .notFound)
             XCTAssertEqual(h.wire.requests.dropFirst(beforeRead).map { $0.url!.lastPathComponent }, ["status", "history", "targets"])
-            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(h.wire.requests[beforeRead].httpBody)) as? [String: Any])
-            XCTAssertEqual(body["requestId"] as? String, h.wire.command?.requestId)
+            let body = try XCTUnwrap(String(data: XCTUnwrap(h.wire.requests[beforeRead].httpBody), encoding: .utf8))
+            XCTAssertEqual(body, "request_id=\(try XCTUnwrap(h.wire.command?.requestId))")
             XCTAssertEqual(h.memory.values, before); XCTAssertEqual(h.memory.writes, 1); XCTAssertEqual(h.memory.removes, 0)
         }
     }

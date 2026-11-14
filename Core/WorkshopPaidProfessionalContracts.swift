@@ -99,7 +99,7 @@ public struct WorkshopPaidProfessionalCommand: Codable, Equatable, Identifiable 
     func wireData() throws -> Data { let e = JSONEncoder(); e.outputFormatting = [.sortedKeys]; let data = try e.encode(self); guard data.count <= 4_096 else { throw WorkshopPaidProfessionalIssue.invalid }; return data }
     func matches(_ reference: WorkshopPaidInstalledTextReference) -> Bool {
         let c = reference.command
-        return installationRequestId == c.requestId && licenseId == c.licenseId && WorkshopPaidInstallWire.same(moduleId, c.moduleId) && WorkshopPaidInstallWire.same(purchasedVersionId, c.purchasedVersionId) &&
+        return installationRequestId == c.requestId && licenseId == c.licenseId && WorkshopPaidInstallWire.same(moduleId, String(c.moduleId)) && WorkshopPaidInstallWire.same(purchasedVersionId, c.purchasedVersionId) &&
             contentHash == c.contentHash && termsHash == c.termsHash && ownedDraftId == reference.ownedDraftID
     }
 }

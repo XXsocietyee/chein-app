@@ -10,14 +10,14 @@ class PaidInstallReentrySourceContracts(unittest.TestCase):
 
     def test_exact_original_binding_preserved_except_invalidated_cache_guard(self):
         source = self.text('App/WorkshopPaidInstallSessionBinding.swift')
-        self.assertEqual(hashlib.sha256(source.encode()).hexdigest(), '07e7cbed24d6da02ca57b0b4b87e1d06735dcf4e76383e124e752d1456b29e87')
+        self.assertEqual(hashlib.sha256(source.encode()).hexdigest(), '7cc7b4df043e9a409406e76f1b39789fe04400a924dd5f31f96554047d9bc6cb')
         inserted = ('controller.item == item,\n'
                     '           controller.phase != .invalidated { return controller }\n'
                     '        // An invalidated controller owns a revoked lease. Re-entry must use a fresh\n'
                     '        // controller/read lease after the full checks above, retaining the owner store.')
         self.assertEqual(source.count(inserted), 1)
         original = source.replace(inserted, 'controller.item == item { return controller }')
-        self.assertEqual(hashlib.sha256(original.encode()).hexdigest(), 'cc7e230861b48c9a918e65c4435f1c486a5bd762579b47db008a918852f55168')
+        self.assertEqual(hashlib.sha256(original.encode()).hexdigest(), '07a95125f33c6cfe4b439c9d6a806bb61e29b9e2346a6f3ea54b515ce7f7dc17')
 
     def test_original_context_and_grant_checks_still_precede_cache_and_new_lease(self):
         source = self.text('App/WorkshopPaidInstallSessionBinding.swift')

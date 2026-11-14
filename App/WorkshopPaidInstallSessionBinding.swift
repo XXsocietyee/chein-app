@@ -12,7 +12,7 @@ import Foundation
               onUnauthorized: @escaping (RuntimeDependencyContext) -> Void) -> WorkshopPaidInstallController? {
         guard let context, let approval, let api, approval.matches(context), currentApproval()?.revision == approval.revision,
               ContentDraftContextFence.matches(current(), context), api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8) else { invalidate(); return nil }
-        guard ReviewedAreaSwitch.moneyPayments(host: context.baseURL.host) else { invalidate(); return nil }
+        guard ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host) else { invalidate(); return nil }
         if ContentDraftContextFence.matches(captured, context), captured?.session.role.utf8.elementsEqual(context.session.role.utf8) == true,
            revision == approval.revision, let controller, controller.item == item,
            controller.phase != .invalidated { return controller }

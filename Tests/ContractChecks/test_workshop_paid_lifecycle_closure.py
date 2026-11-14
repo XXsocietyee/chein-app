@@ -14,9 +14,9 @@ class PaidInstallLifecycleSourceContracts(unittest.TestCase):
     def test_paid_install_follows_the_money_switch(self):
         """Owner rule 2026-11-13: workshop paid is ON for TEST/DEBUG hosts and closed on the production host."""
         binding = self.text('App/WorkshopPaidInstallSessionBinding.swift')
-        self.assertIn('guard ReviewedAreaSwitch.moneyPayments(host: context.baseURL.host) else { invalidate(); return nil }', binding)
+        self.assertIn('guard ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host) else { invalidate(); return nil }', binding)
         commerce = self.text('App/WorkshopCommerceComposition.swift')
-        self.assertIn('let payments = ReviewedAreaSwitch.moneyPayments(host: context.baseURL.host)', commerce)
+        self.assertIn('let payments = ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host)', commerce)
         self.assertIn('enableApprovedStoreKit && !readOnly && payments', commerce)
         switch = self.text('App/ReviewedAreaSwitch.swift')
         self.assertIn('static let productionAPIHost = "www.chengyinhub.com"', switch)

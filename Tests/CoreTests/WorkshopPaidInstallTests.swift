@@ -2,16 +2,16 @@ import XCTest
 @testable import QuestifyCore
 
 @MainActor final class WorkshopPaidInstallTests: XCTestCase {
-    private static let target: [String: Any] = ["targetDraftId":91,"targetRevision":1,"businessType":"TOPIC","targetPayloadHash":String(repeating:"c",count:64),"mode":"UNRESOLVED","destinationKind":"W18_PRIVATE_COMPONENT_ONLY"]
+    private static let target: [String: Any] = ["targetDraftId":91,"targetRevision":1,"businessType":"MEMBER_TEMPLATE","targetPayloadHash":String(repeating:"c",count:64),"title":"Synthetic target"]
     private static func data(_ value: [String:Any]) throws -> Data { try JSONSerialization.data(withJSONObject:value, options:.sortedKeys) }
     private static func envelope(_ value: [String:Any]) throws -> Data { try data(["code":200,"data":value]) }
     private static func item() throws -> WorkshopPurchasedItem { try WorkshopPurchasedTestData.decode(WorkshopPurchasedTestData.item) }
     private static func decodedTarget() throws -> WorkshopPaidInstallTarget { try WorkshopPaidInstallWire.decode(WorkshopPaidInstallTarget.self,data:data(target)) }
-    private static func command() throws -> WorkshopPaidInstallCommand { try .init(item:item(),target:decodedTarget(),region:"synthetic-region",commercialUse:false,requestID:UUID(uuidString:"00000000-0000-4000-8000-000000000001")!) }
+    private static func command() throws -> WorkshopPaidInstallCommand { try .init(item:item(),target:decodedTarget(),region:"110101",commercialUse:false,requestID:UUID(uuidString:"00000000-0000-4000-8000-000000000001")!) }
     private static func outcome(_ command:WorkshopPaidInstallCommand,state:String="INSTALLED_PRIVATE_DRAFT") throws -> [String:Any] {
-        if state=="NOT_FOUND" {return ["schema":"w18-paid-install-outcome-v1","requestId":command.requestId,"state":state]}
+        if state=="NOT_FOUND" {return ["schema":"workshop-private-draft-install-outcome-v2","requestId":command.requestId,"state":state]}
         var value=try JSONSerialization.jsonObject(with:command.wireData()) as! [String:Any]
-        value["schema"]="w18-paid-install-outcome-v1";value["state"]=state;value["mode"]="UNRESOLVED";value["holdDeadline"]="2026-10-05T00:05:00Z"
+        value["schema"]="workshop-private-draft-install-outcome-v2";value["state"]=state;value["mode"]="PRIVATE_COPY";value["holdDeadline"]="2026-10-05T00:05:00Z"
         value["ownedDraftId"]=state=="INSTALLED_PRIVATE_DRAFT" ? 101 as Any:NSNull();value["installedAt"]=state=="INSTALLED_PRIVATE_DRAFT" ? "2026-10-05T00:00:01Z" as Any:NSNull()
         value["professionalTemplateStatus"]="MATERIALIZATION_REQUIRED";value["published"]=false;value["executable"]=false;return value
     }
@@ -38,9 +38,13 @@ import XCTest
                 let response=responses.removeFirst();scripted[route]=responses;return response
             }
             switch route{
-            case "targets":return(try WorkshopPaidInstallTests.envelope(["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":[WorkshopPaidInstallTests.target],"hasMore":false,"nextBeforeDraftId":NSNull()]),200)
-            case "history":return(try WorkshopPaidInstallTests.envelope(["schema":"w18-paid-install-history-v1","scope":"OWNER_COMMAND_RECEIPTS_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":committed.map{[try! WorkshopPaidInstallTests.outcome($0)]} ?? [],"hasMore":false,"nextBeforeCommandKey":NSNull()]),200)
-            case "status":let body=try JSONSerialization.jsonObject(with:request.httpBody!) as! [String:Any];if let committed{return(try WorkshopPaidInstallTests.envelope(WorkshopPaidInstallTests.outcome(committed)),200)};return(try WorkshopPaidInstallTests.envelope(["schema":"w18-paid-install-outcome-v1","requestId":body["requestId"]!,"state":"NOT_FOUND"]),200)
+            case "targets":return(try WorkshopPaidInstallTests.envelope(["schema":"workshop-targets-v2","scope":"INDIVIDUAL","checkedAt":"2026-10-05T00:00:00Z","items":[WorkshopPaidInstallTests.target],"hasMore":false]),200)
+            case "history":return(try WorkshopPaidInstallTests.envelope(["schema":"workshop-install-history-v2","scope":"INDIVIDUAL","checkedAt":"2026-10-05T00:00:00Z","items":committed.map{[try! WorkshopPaidInstallTests.outcome($0)]} ?? [],"hasMore":false]),200)
+            case "status":
+                let text = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+                let requestId = text.hasPrefix("request_id=") ? String(text.dropFirst("request_id=".count)) : ""
+                if let committed{return(try WorkshopPaidInstallTests.envelope(WorkshopPaidInstallTests.outcome(committed)),200)}
+                return(try WorkshopPaidInstallTests.envelope(["schema":"workshop-private-draft-install-outcome-v2","requestId":requestId,"state":"NOT_FOUND"]),200)
             default:throw WorkshopPaidInstallIssue.disabled
             }
         }
@@ -67,13 +71,13 @@ import XCTest
         }
         func load(_ appearance:WorkshopPaidInstallAppearance)async throws{await (try XCTUnwrap(controller.appear(appearance)))()}
         func review(_ appearance:WorkshopPaidInstallAppearance)throws->WorkshopPaidInstallCommand{
-            controller.select(try XCTUnwrap(controller.targets.first),appearance:appearance);controller.chooseRegion("synthetic-region",appearance:appearance);controller.review(appearance:appearance);return try XCTUnwrap(controller.confirmation)
+            controller.select(try XCTUnwrap(controller.targets.first),appearance:appearance);controller.chooseRegion("110101",appearance:appearance);controller.review(appearance:appearance);return try XCTUnwrap(controller.confirmation)
         }
     }
     func testCommandRequiresExplicitRegionAndCommercialPermissionAndKeepsExactCAS()throws{
-        let c=try Self.command();XCTAssertEqual(c.targetDraftId,91);XCTAssertEqual(c.targetRevision,1);XCTAssertEqual(c.businessType,"TOPIC")
+        let c=try Self.command();XCTAssertEqual(c.targetDraftId,91);XCTAssertEqual(c.targetRevision,1);XCTAssertEqual(c.businessType,"MEMBER_TEMPLATE")
         XCTAssertThrowsError(try WorkshopPaidInstallCommand(item:Self.item(),target:Self.decodedTarget(),region:"other",commercialUse:false))
-        XCTAssertThrowsError(try WorkshopPaidInstallCommand(item:Self.item(),target:Self.decodedTarget(),region:"synthetic-region",commercialUse:true))
+        XCTAssertThrowsError(try WorkshopPaidInstallCommand(item:Self.item(),target:Self.decodedTarget(),region:"110101",commercialUse:true))
         let data=try c.wireData();XCTAssertEqual(try WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self,data:data),c)
         var extra=try JSONSerialization.jsonObject(with:data) as! [String:Any];extra["ownerId"]=7;XCTAssertThrowsError(try WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self,data:Self.data(extra)))
     }
@@ -155,35 +159,35 @@ import XCTest
     }
     func testCorruptPendingAndDifferentUuidAreNeverSilentlyOverwritten()throws{
         let f=try Fixture(),c=try Self.command();try f.store.save(c);let original=f.memory.values
-        let other=try WorkshopPaidInstallCommand(item:Self.item(),target:Self.decodedTarget(),region:"synthetic-region",commercialUse:false)
+        let other=try WorkshopPaidInstallCommand(item:Self.item(),target:Self.decodedTarget(),region:"110101",commercialUse:false)
         XCTAssertThrowsError(try f.store.save(other));XCTAssertEqual(f.memory.values,original)
         let key=try XCTUnwrap(f.memory.values.keys.first);f.memory.values[key]=Data("{\"format\":null}".utf8);let corrupt=f.memory.values
         XCTAssertThrowsError(try f.store.load());XCTAssertThrowsError(try f.store.save(c));XCTAssertEqual(f.memory.values,corrupt)
     }
     func testCanonicalReadAndSubmitRequestShapesRejectForeignFieldsAndGeneralizedPaths()throws{
-        let f=try Fixture(),body=try WorkshopPaidInstallRequest.readBody(.targets,licenseId:"w18-paid-11")
-        var request=URLRequest(url:f.context.baseURL.appendingPathComponent("api/workshop/purchased/install/targets"));request.httpMethod="POST";request.httpBody=body;request.setValue(String(body.count),forHTTPHeaderField:"Content-Length");request.setValue("application/json; charset=utf-8",forHTTPHeaderField:"Content-Type");request.setValue("no-store",forHTTPHeaderField:"Cache-Control");request.setValue("no-cache",forHTTPHeaderField:"Pragma");request.cachePolicy = .reloadIgnoringLocalCacheData
+        let f=try Fixture(),body=try WorkshopPaidInstallRequest.readBody(.targets,licenseId:"WKO_0000000000000000000000000000000b")
+        var request=URLRequest(url:f.context.baseURL.appendingPathComponent("api/workshop/v2/purchased/install/targets"));request.httpMethod="POST";request.httpBody=body;request.setValue(String(body.count),forHTTPHeaderField:"Content-Length");request.setValue("application/x-www-form-urlencoded; charset=utf-8",forHTTPHeaderField:"Content-Type");request.setValue("no-store",forHTTPHeaderField:"Cache-Control");request.setValue("no-cache",forHTTPHeaderField:"Pragma");request.cachePolicy = .reloadIgnoringLocalCacheData
         XCTAssertEqual(WorkshopPaidInstallRequest.accepts(request,baseURL:f.context.baseURL),.targets)
-        request.httpBody=Data("{\"licenseId\":\"w18-paid-11\",\"owner\":7}".utf8);request.setValue(String(request.httpBody!.count),forHTTPHeaderField:"Content-Length");XCTAssertNil(WorkshopPaidInstallRequest.accepts(request,baseURL:f.context.baseURL))
+        request.httpBody=Data("license_id=WKO_0000000000000000000000000000000b&owner=7".utf8);request.setValue(String(request.httpBody!.count),forHTTPHeaderField:"Content-Length");XCTAssertNil(WorkshopPaidInstallRequest.accepts(request,baseURL:f.context.baseURL))
     }
-    private static let historyCursor = String(repeating: "a", count: 64)
+    private static let historyCursor: Int64 = 40
     private static func receipt(_ index: Int) throws -> [String: Any] {
         let requestID = UUID(uuidString: String(format: "00000000-0000-4000-8000-%012d", index))!
-        let command = try WorkshopPaidInstallCommand(item: item(), target: decodedTarget(), region: "synthetic-region", commercialUse: false, requestID: requestID)
+        let command = try WorkshopPaidInstallCommand(item: item(), target: decodedTarget(), region: "110101", commercialUse: false, requestID: requestID)
         return try outcome(command)
     }
-    private static func historyPage(_ ids: [Int], cursor: String? = nil) throws -> (Data, Int) {
-        (try envelope(["schema":"w18-paid-install-history-v1", "scope":"OWNER_COMMAND_RECEIPTS_ONLY",
-                      "licenseId":"w18-paid-11", "checkedAt":"2026-10-05T00:00:00Z",
-                      "items":try ids.map { try receipt($0) }, "hasMore":cursor != nil,
-                      "nextBeforeCommandKey":cursor as Any? ?? NSNull()]), 200)
+    private static func historyPage(_ ids: [Int], cursor: Int64? = nil) throws -> (Data, Int) {
+        var page: [String: Any] = ["schema":"workshop-install-history-v2", "scope":"INDIVIDUAL", "checkedAt":"2026-10-05T00:00:00Z",
+                                   "items":try ids.map { try receipt($0) }, "hasMore":cursor != nil]
+        if let cursor { page["nextBeforeCommandKey"] = cursor }
+        return (try envelope(page), 200)
     }
     private static func targetPage(_ ids: [Int], cursor: Int? = nil) throws -> (Data, Int) {
         let rows = ids.map { id -> [String: Any] in var row = target; row["targetDraftId"] = id; return row }
-        return (try envelope(["schema":"w18-paid-install-targets-v1", "scope":"OWNER_DRAFT_METADATA_ONLY",
-                              "licenseId":"w18-paid-11", "checkedAt":"2026-10-05T00:00:00Z",
-                              "items":rows, "hasMore":cursor != nil,
-                              "nextBeforeDraftId":cursor as Any? ?? NSNull()]), 200)
+        var page: [String: Any] = ["schema":"workshop-targets-v2", "scope":"INDIVIDUAL", "checkedAt":"2026-10-05T00:00:00Z",
+                                   "items":rows, "hasMore":cursor != nil]
+        if let cursor { page["nextBeforeDraftId"] = cursor }
+        return (try envelope(page), 200)
     }
     func testHistoryContinuationKeepsPriorResultsAndNeverReloadsTargets() async throws {
         let f = try Fixture(), a = WorkshopPaidInstallAppearance()
@@ -207,12 +211,12 @@ import XCTest
         f.wire.scripted["targets"] = [try Self.targetPage(Array((51...100).reversed()), cursor: 51), try Self.targetPage([50, 49])]
         try await f.load(a)
         let first = try XCTUnwrap(f.controller.targets.first), receipts = f.controller.history
-        f.controller.select(first, appearance: a); f.controller.chooseRegion("synthetic-region", appearance: a)
+        f.controller.select(first, appearance: a); f.controller.chooseRegion("110101", appearance: a)
         let start = f.wire.requests.count
         await (try XCTUnwrap(f.controller.offerLoad(a, beforeTarget: 51)))()
         XCTAssertEqual(f.wire.requests.count, start + 1); XCTAssertEqual(f.controller.targets.count, 52)
         XCTAssertEqual(f.controller.history, receipts); XCTAssertEqual(f.controller.target, first)
-        XCTAssertEqual(f.controller.region, "synthetic-region"); XCTAssertNil(f.controller.nextTargetCursor)
+        XCTAssertEqual(f.controller.region, "110101"); XCTAssertNil(f.controller.nextTargetCursor)
         XCTAssertEqual(f.wire.writes, 0)
     }
     func testFailedContinuationPreservesResultsAndRetriesSameCursor() async throws {
@@ -236,7 +240,7 @@ import XCTest
         XCTAssertEqual(f.controller.history, before); XCTAssertEqual(f.controller.pageIssue, .malformed)
         XCTAssertEqual(f.controller.nextHistoryCursor, Self.historyCursor)
         XCTAssertNil(f.controller.offerLoad(a, beforeTarget: 99, beforeHistory: Self.historyCursor))
-        XCTAssertNil(f.controller.offerLoad(a, beforeHistory: String(repeating:"b", count:64)))
+        XCTAssertNil(f.controller.offerLoad(a, beforeHistory: 1))
     }
     func testLatePageCannotClearReplacementBusyOrPublishOldResults() async throws {
         let f = try Fixture(), old = WorkshopPaidInstallAppearance()
@@ -283,7 +287,7 @@ import XCTest
         XCTAssertEqual(f.wire.writes, 0)
     }
     func testCursorCycleRejectsSecondContinuationWithoutErasingEarlierPages() async throws {
-        let f = try Fixture(), a = WorkshopPaidInstallAppearance(), second = String(repeating: "9", count: 64)
+        let f = try Fixture(), a = WorkshopPaidInstallAppearance(), second: Int64 = 20
         f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor),
                                     try Self.historyPage(Array(51...100), cursor: second),
                                     try Self.historyPage(Array(101...150), cursor: Self.historyCursor)]
@@ -313,9 +317,9 @@ import XCTest
     func testConflictingReceiptPageIsRejectedAtomically() async throws {
         let f = try Fixture(), a = WorkshopPaidInstallAppearance()
         var changed = try Self.receipt(1); changed["ownedDraftId"] = 102
-        let response = try Self.envelope(["schema":"w18-paid-install-history-v1", "scope":"OWNER_COMMAND_RECEIPTS_ONLY",
-                                         "licenseId":"w18-paid-11", "checkedAt":"2026-10-05T00:00:00Z",
-                                         "items":[try Self.receipt(51), changed], "hasMore":false, "nextBeforeCommandKey":NSNull()])
+        let response = try Self.envelope(["schema":"workshop-install-history-v2", "scope":"INDIVIDUAL",
+                                         "checkedAt":"2026-10-05T00:00:00Z",
+                                         "items":[try Self.receipt(51), changed], "hasMore":false])
         f.wire.scripted["history"] = [try Self.historyPage(Array(1...50), cursor: Self.historyCursor), (response, 200)]
         try await f.load(a); let before = f.controller.history
         await (try XCTUnwrap(f.controller.offerLoad(a, beforeHistory: Self.historyCursor)))()
@@ -394,7 +398,8 @@ import XCTest
         XCTAssertEqual(try f.store.load(), command); XCTAssertEqual(f.memory.values, original)
         XCTAssertEqual(f.wire.writes, 0)
         let ids = try f.wire.requests.filter { $0.url!.lastPathComponent == "status" }.map {
-            try XCTUnwrap((JSONSerialization.jsonObject(with: $0.httpBody!) as? [String: String])?["requestId"])
+            let text = try XCTUnwrap(String(data: XCTUnwrap($0.httpBody), encoding: .utf8))
+            return String(text.dropFirst("request_id=".count))
         }
         XCTAssertEqual(ids, [command.requestId, command.requestId])
     }

@@ -9,7 +9,7 @@ class PaidInstallSourceContracts(unittest.TestCase):
         s = self.read('Core/WorkshopPaidInstallContracts.swift')
         for field in ['requestId', 'licenseId', 'purchasedVersionId', 'contentHash', 'termsHash', 'targetDraftId', 'targetRevision', 'targetPayloadHash', 'planningRegion', 'commercialUse']:
             self.assertIn(field, s)
-        for value in ['w18-paid-private-text-install-command-v1', 'UNRESOLVED', 'W18_PRIVATE_COMPONENT_ONLY', 'MATERIALIZATION_REQUIRED']:
+        for value in ['workshop-private-draft-install-command-v2', 'workshop-private-draft-install-outcome-v2', 'workshop-targets-v2', 'workshop-install-history-v2', 'MEMBER_TEMPLATE', 'PRIVATE_COPY', 'UNRESOLVED', 'W18_PRIVATE_COMPONENT_ONLY', 'MATERIALIZATION_REQUIRED']:
             self.assertIn(value, s)
         self.assertNotIn('var ownerId', s)
     def test_existing_paid_metadata_still_cannot_grant_use_or_checkout(self):
@@ -34,7 +34,7 @@ class PaidInstallSourceContracts(unittest.TestCase):
             self.assertIn(marker, s)
     def test_routes_require_canonical_json_and_bounded_known_length(self):
         s = self.read('Core/WorkshopPaidInstallService.swift')
-        for marker in ['(2...4096).contains(data.count)', 'String(data.count)', 'request.httpBodyStream == nil', 'url.query == nil', '"Transfer-Encoding") == nil', '(try? command.wireData()) == data', '(try? body.data()) == data']:
+        for marker in ['(2...4096).contains(data.count)', 'String(data.count)', 'request.httpBodyStream == nil', 'url.query == nil', '"Transfer-Encoding") == nil', '(try? command.wireData()) == data', 'license_id=', 'before_command_key=', 'request_id=', 'application/x-www-form-urlencoded; charset=utf-8']:
             self.assertIn(marker, s)
     def test_response_parser_reuses_bounded_duplicate_aware_json_validation(self):
         s = self.read('Core/WorkshopPaidInstallContracts.swift')

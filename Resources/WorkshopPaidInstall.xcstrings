@@ -518,13 +518,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法模式尚未绑定。主题或活动类型不能代替城市定向／自由探索模式确认。"
+            "value": "安装结果是私人副本（PRIVATE_COPY）。它不会发布，也不能直接开跑。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gameplay mode is unresolved. A topic or activity storage type does not establish city-orientation or free-exploration mode."
+            "value": "The install is a private copy (PRIVATE_COPY). It is not published and cannot be run."
           }
         }
       }
