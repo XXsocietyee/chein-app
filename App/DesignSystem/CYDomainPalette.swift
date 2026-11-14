@@ -24,6 +24,9 @@ struct CYDomainPalette {
     /// Play runtime overlays `.theme-game` tokens onto the player dark stage rather than light gray merchant chrome.
     private var surfaceDomain: ThemeDomain { domain == .game ? .player : domain }
 
+    var isDarkDomain: Bool { isDark }
+    var resolvedSurfaceDomain: ThemeDomain { surfaceDomain }
+
     private func token(_ name: String, dark: CYRGB, light: CYRGB) -> Color {
         if let value = Theme.Generated.color(name, in: surfaceDomain) { return value }
         return (isDark ? dark : light).swiftUIColor
@@ -326,15 +329,16 @@ struct CYDomainPrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
+        let tokens = CYDomainButtonTokens.resolve(kind: .primary, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
             .font(Theme.Font.button.weight(.bold))
-            .foregroundStyle(isEnabled ? palette.actionPrimaryFg : palette.textPlaceholder)
+            .foregroundStyle(tokens.foreground)
             .padding(.horizontal, 20)   // --cy-btn-pad-x 40rpx
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)   // --cy-btn-h 88rpx
-            .background(shape.fill(isEnabled ? palette.actionPrimaryBg : palette.bgSurfaceSubtle))
+            .background(shape.fill(tokens.background))
             .contentShape(shape)
-            .opacity(configuration.isPressed ? 0.88 : 1)
+            .opacity(tokens.opacity)
     }
 }
 
@@ -346,15 +350,16 @@ struct CYDomainSecondaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
+        let tokens = CYDomainButtonTokens.resolve(kind: .secondary, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
             .font(Theme.Font.button.weight(.bold))
-            .foregroundStyle(isEnabled ? palette.textSecondary : palette.textPlaceholder)
+            .foregroundStyle(tokens.foreground)
             .padding(.horizontal, 20)
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)
-            .background(shape.fill(isEnabled ? palette.actionSecondaryBg : palette.bgSurfaceSubtle))
+            .background(shape.fill(tokens.background))
             .contentShape(shape)
-            .opacity(configuration.isPressed ? 0.88 : 1)
+            .opacity(tokens.opacity)
     }
 }
 
@@ -366,15 +371,16 @@ struct CYDomainDestructiveButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
+        let tokens = CYDomainButtonTokens.resolve(kind: .destructive, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
             .font(Theme.Font.button.weight(.bold))
-            .foregroundStyle(isEnabled ? palette.actionDangerFg : palette.textPlaceholder)
+            .foregroundStyle(tokens.foreground)
             .padding(.horizontal, 20)
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)
-            .background(shape.fill(isEnabled ? palette.actionDangerBg : palette.bgSurfaceSubtle))
+            .background(shape.fill(tokens.background))
             .contentShape(shape)
-            .opacity(configuration.isPressed ? 0.88 : 1)
+            .opacity(tokens.opacity)
     }
 }
 
@@ -391,6 +397,47 @@ extension ButtonStyle where Self == CYDomainSecondaryButtonStyle {
 extension ButtonStyle where Self == CYDomainDestructiveButtonStyle {
     static var cyDomainDestructive: CYDomainDestructiveButtonStyle { CYDomainDestructiveButtonStyle() }
     static func cyDomainDestructive(fullWidth: Bool) -> CYDomainDestructiveButtonStyle { CYDomainDestructiveButtonStyle(fullWidth: fullWidth) }
+}
+
+enum CYDomainButtonKind: Sendable {
+    case primary
+    case secondary
+    case destructive
+}
+
+enum CYDomainButtonTokens {
+    struct Resolved {
+        let foreground: Color
+        let background: Color
+        let opacity: Double
+    }
+
+    static func resolve(
+        kind: CYDomainButtonKind,
+        isEnabled: Bool,
+        isPressed: Bool,
+        in palette: CYDomainPalette
+    ) -> Resolved {
+        let foreground: Color
+        let background: Color
+        if !isEnabled {
+            foreground = palette.textPlaceholder
+            background = palette.bgSurfaceSubtle
+        } else {
+            switch kind {
+            case .primary:
+                foreground = palette.actionPrimaryFg
+                background = palette.actionPrimaryBg
+            case .secondary:
+                foreground = palette.textSecondary
+                background = palette.actionSecondaryBg
+            case .destructive:
+                foreground = palette.actionDangerFg
+                background = palette.actionDangerBg
+            }
+        }
+        return Resolved(foreground: foreground, background: background, opacity: isPressed ? 0.88 : 1.0)
+    }
 }
 
 // MARK: - Previews (synthetic fixtures, preview-only)

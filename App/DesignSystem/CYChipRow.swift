@@ -43,7 +43,18 @@ public struct CYFilterChip: View {
         self.action = action
     }
 
+    static func tokens(
+        isSelected: Bool,
+        in palette: CYDomainPalette
+    ) -> (foreground: Color, background: Color, countForeground: Color) {
+        if isSelected {
+            return (palette.actionPrimaryFg, palette.actionPrimaryBg, palette.actionPrimaryFg.opacity(0.85))
+        }
+        return (palette.textSecondary, palette.bgElevated, palette.textTertiary)
+    }
+
     public var body: some View {
+        let resolved = Self.tokens(isSelected: isSelected, in: palette)
         Button(action: action) {
             HStack(spacing: CYSpacing.xs) {
                 if let systemImage {
@@ -58,16 +69,16 @@ public struct CYFilterChip: View {
                 if let count {
                     Text(verbatim: "\(count)")
                         .font(CYTypography.micro.weight(.semibold).monospacedDigit())
-                        .foregroundStyle(isSelected ? palette.actionPrimaryFg.opacity(0.85) : palette.textTertiary)
+                        .foregroundStyle(resolved.countForeground)
                 }
             }
             .font(isSelected ? CYTypography.label.weight(.semibold) : CYTypography.label)
-            .foregroundStyle(isSelected ? palette.actionPrimaryFg : palette.textSecondary)
+            .foregroundStyle(resolved.foreground)
             .padding(.horizontal, CYSpacing.lg)
             .frame(minHeight: Theme.length("--cy-btn-h-sm"))
             .background(
                 Capsule(style: .continuous)
-                    .fill(isSelected ? palette.actionPrimaryBg : palette.bgElevated)
+                    .fill(resolved.background)
             )
             .frame(minHeight: CYSpacing.minTouchTarget)
             .contentShape(Rectangle())

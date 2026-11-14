@@ -152,6 +152,8 @@
         "CrashResilienceAndMetricKitDiagnosticsSectionViewTests",
         "CreatorCropExportAppTests",
         "DeepLinkToMiniProgramPathTranslatorSectionViewTests",
+        "DesignSystemSharedComponentsTests",
+        "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",
         "EndToEndReleaseCandidateGateSectionViewTests",
         "EnvironmentBranchAndRewardLedgerViewTests",

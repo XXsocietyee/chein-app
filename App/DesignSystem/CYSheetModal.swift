@@ -123,6 +123,50 @@ private struct CYDomainSheetDetentsModifier: ViewModifier {
     }
 }
 
+public enum CYSheetModalTokens {
+    public struct SheetResolved {
+        public let background: Color
+        public let handle: Color
+        public let title: Color
+        public let card: Color
+        public let divider: Color
+    }
+
+    public struct ModalResolved {
+        public let overlay: Color
+        public let panel: Color
+        public let consequenceBackground: Color
+        public let consequenceIcon: Color
+        public let confirmVariant: CYButtonVariant
+        public let shadow: Color
+    }
+
+    static func sheet(in palette: CYDomainPalette) -> SheetResolved {
+        SheetResolved(
+            background: palette.sheetGlass,
+            handle: palette.sheetHandle,
+            title: palette.textPrimary,
+            card: palette.sheetCard,
+            divider: palette.borderSubtle
+        )
+    }
+
+    static func optionRowForeground(isDanger: Bool, in palette: CYDomainPalette) -> Color {
+        isDanger ? palette.danger : palette.textPrimary
+    }
+
+    static func modal(isDestructive: Bool, in palette: CYDomainPalette) -> ModalResolved {
+        ModalResolved(
+            overlay: palette.overlay,
+            panel: palette.modalPanel,
+            consequenceBackground: palette.sheetCard,
+            consequenceIcon: isDestructive ? palette.danger : palette.textSecondary,
+            confirmVariant: isDestructive ? .danger : .primary,
+            shadow: palette.floatShadowColor
+        )
+    }
+}
+
 /// Option row item for `CYOptionSheet` (`56pt` tall row, 0.5pt divider, radio/check/danger).
 public struct CYOptionSheetItem<ID: Hashable>: Identifiable {
     public let id: ID
@@ -172,9 +216,11 @@ public struct CYOptionSheet<ID: Hashable>: View {
 
     public var body: some View {
         CYSheetContainer(title: title, onClose: onClose) {
+            let sheetTokens = CYSheetModalTokens.sheet(in: palette)
             VStack(spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     let isSelected = item.id == selectedID
+                    let rowColor = CYSheetModalTokens.optionRowForeground(isDanger: item.isDanger, in: palette)
                     Button {
                         onSelect(item.id)
                     } label: {
@@ -182,13 +228,13 @@ public struct CYOptionSheet<ID: Hashable>: View {
                             if let systemImage = item.systemImage {
                                 Image(systemName: systemImage)
                                     .font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(item.isDanger ? palette.danger : palette.textPrimary)
+                                    .foregroundStyle(rowColor)
                                     .frame(width: 24)
                             }
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: item.title)
                                     .font(CYTypography.cardTitle)
-                                    .foregroundStyle(item.isDanger ? palette.danger : palette.textPrimary)
+                                    .foregroundStyle(rowColor)
                                 if let subtitle = item.subtitle {
                                     Text(verbatim: subtitle)
                                         .font(CYTypography.meta)
@@ -210,13 +256,13 @@ public struct CYOptionSheet<ID: Hashable>: View {
 
                     if index < items.count - 1 {
                         Rectangle()
-                            .fill(palette.borderSubtle)
+                            .fill(sheetTokens.divider)
                             .frame(height: 0.5)
                             .padding(.leading, CYSpacing.lg)
                     }
                 }
             }
-            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.sheetCard))
+            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(sheetTokens.card))
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         }
     }
@@ -267,8 +313,9 @@ public struct CYModal: View {
     }
 
     public var body: some View {
+        let modalTokens = CYSheetModalTokens.modal(isDestructive: isDestructive, in: palette)
         ZStack {
-            palette.overlay
+            modalTokens.overlay
                 .ignoresSafeArea()
                 .onTapGesture(perform: onCancel)
 
@@ -280,7 +327,8 @@ public struct CYModal: View {
 
     /// Standalone modal panel (also directly embeddable in side-by-side Design Kit fixtures).
     public var panelCard: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+        let modalTokens = CYSheetModalTokens.modal(isDestructive: isDestructive, in: palette)
+        return VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack(alignment: .top, spacing: CYSpacing.sm) {
                 Text(verbatim: title)
                     .font(CYTypography.sectionTitle)
@@ -313,7 +361,7 @@ public struct CYModal: View {
                         HStack(alignment: .top, spacing: CYSpacing.sm) {
                             Image(systemName: item.systemImage)
                                 .font(CYTypography.caption.weight(.semibold))
-                                .foregroundStyle(isDestructive ? palette.danger : palette.textSecondary)
+                                .foregroundStyle(modalTokens.consequenceIcon)
                                 .frame(width: 20, alignment: .center)
                                 .accessibilityHidden(true)
                             Text(verbatim: item.text)
@@ -325,7 +373,7 @@ public struct CYModal: View {
                 }
                 .padding(CYSpacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.sheetCard))
+                .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(modalTokens.consequenceBackground))
             }
 
             if let lighterAlternativeTitle, let onLighterAlternative {
@@ -359,7 +407,7 @@ public struct CYModal: View {
         }
         .padding(CYSpacing.xl)
         .frame(maxWidth: 320, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.modalPanel))
-        .shadow(color: palette.floatShadowColor, radius: 20, x: 0, y: 10)
+        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(modalTokens.panel))
+        .shadow(color: modalTokens.shadow, radius: 20, x: 0, y: 10)
     }
 }

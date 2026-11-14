@@ -23,6 +23,51 @@ public struct CYTabItem<ID: Hashable>: Identifiable {
     }
 }
 
+/// Pure state-to-token resolver for `CYTabs`.
+enum CYTabsTokens {
+    struct Resolved {
+        let foreground: Color
+        let badgeForeground: Color
+        let indicatorFill: Color?
+        let trackFill: Color?
+        let divider: Color?
+        let containerBackground: Color?
+    }
+
+    static func resolve(variant: CYTabsVariant, isSelected: Bool, in palette: CYDomainPalette) -> Resolved {
+        switch variant {
+        case .underline, .sticky:
+            return Resolved(
+                foreground: isSelected ? palette.textPrimary : palette.textSecondary,
+                badgeForeground: isSelected ? palette.textPrimary : palette.textTertiary,
+                indicatorFill: isSelected ? palette.textPrimary : nil,
+                trackFill: nil,
+                divider: palette.borderSubtle,
+                containerBackground: variant == .sticky ? palette.bgPage : nil
+            )
+        case .segmented:
+            return Resolved(
+                foreground: isSelected ? palette.textInverse : palette.textSecondary,
+                badgeForeground: isSelected ? palette.textInverse : palette.textTertiary,
+                indicatorFill: isSelected ? palette.textPrimary : nil,
+                trackFill: palette.bgSurfaceSubtle,
+                divider: nil,
+                containerBackground: nil
+            )
+        case .chip:
+            let chip = CYFilterChip.tokens(isSelected: isSelected, in: palette)
+            return Resolved(
+                foreground: chip.foreground,
+                badgeForeground: chip.countForeground,
+                indicatorFill: chip.background,
+                trackFill: nil,
+                divider: nil,
+                containerBackground: nil
+            )
+        }
+    }
+}
+
 /// Shared tab switcher across `underline`, `segmented`, `chip`, and `sticky` modes.
 /// Active indicator always uses neutral high-contrast tokens (`textPrimary`), never violet.
 public struct CYTabs<ID: Hashable>: View {
@@ -53,8 +98,9 @@ public struct CYTabs<ID: Hashable>: View {
         case .chip:
             chipBar
         case .sticky:
+            let tokens = CYTabsTokens.resolve(variant: .sticky, isSelected: true, in: palette)
             underlineBar
-                .background(palette.bgPage)
+                .background(tokens.containerBackground ?? palette.bgPage)
                 .zIndex(85)
         }
     }
@@ -62,6 +108,7 @@ public struct CYTabs<ID: Hashable>: View {
     @ViewBuilder
     private var underlineBar: some View {
         let shouldScroll = items.count >= 5
+        let barTokens = CYTabsTokens.resolve(variant: variant, isSelected: false, in: palette)
         VStack(spacing: 0) {
             if shouldScroll {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -81,13 +128,14 @@ public struct CYTabs<ID: Hashable>: View {
                 .padding(.horizontal, CYSpacing.pageHorizontal)
             }
             Rectangle()
-                .fill(palette.borderSubtle)
+                .fill(barTokens.divider ?? palette.borderSubtle)
                 .frame(height: 0.5)
         }
     }
 
     private func underlineTabButton(_ item: CYTabItem<ID>, fillsWidth: Bool) -> some View {
         let isSelected = item.id == selection
+        let tokens = CYTabsTokens.resolve(variant: variant, isSelected: isSelected, in: palette)
         return Button {
             select(item.id)
         } label: {
@@ -103,16 +151,16 @@ public struct CYTabs<ID: Hashable>: View {
                     if let badgeCount = item.badgeCount, badgeCount > 0 {
                         Text(verbatim: "\(badgeCount)")
                             .font(CYTypography.micro.weight(.bold).monospacedDigit())
-                            .foregroundStyle(isSelected ? palette.textPrimary : palette.textTertiary)
+                            .foregroundStyle(tokens.badgeForeground)
                     }
                 }
-                .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
+                .foregroundStyle(tokens.foreground)
                 .lineLimit(1)
                 Spacer(minLength: 0)
                 Group {
-                    if isSelected {
+                    if let indicatorFill = tokens.indicatorFill {
                         Capsule(style: .continuous)
-                            .fill(palette.textPrimary)
+                            .fill(indicatorFill)
                             .frame(width: 24, height: 2.5)
                             .matchedGeometryEffect(id: "cy-tab-underline", in: tabNamespace, isSource: true)
                     } else {
@@ -128,9 +176,11 @@ public struct CYTabs<ID: Hashable>: View {
     }
 
     private var segmentedBar: some View {
-        HStack(spacing: CYSpacing.xs) {
+        let trackFill = CYTabsTokens.resolve(variant: .segmented, isSelected: false, in: palette).trackFill ?? palette.bgSurfaceSubtle
+        return HStack(spacing: CYSpacing.xs) {
             ForEach(items) { item in
                 let isSelected = item.id == selection
+                let tokens = CYTabsTokens.resolve(variant: .segmented, isSelected: isSelected, in: palette)
                 Button {
                     select(item.id)
                 } label: {
@@ -143,12 +193,12 @@ public struct CYTabs<ID: Hashable>: View {
                             .font(CYTypography.label.weight(isSelected ? .bold : .semibold))
                             .lineLimit(1)
                     }
-                    .foregroundStyle(isSelected ? palette.textInverse : palette.textSecondary)
+                    .foregroundStyle(tokens.foreground)
                     .frame(maxWidth: .infinity, minHeight: 36)
                     .background {
-                        if isSelected {
+                        if let indicatorFill = tokens.indicatorFill {
                             RoundedRectangle(cornerRadius: CYRadius.sm + 2, style: .continuous)
-                                .fill(palette.textPrimary)
+                                .fill(indicatorFill)
                                 .matchedGeometryEffect(id: "cy-tab-segment", in: tabNamespace)
                         }
                     }
@@ -160,7 +210,7 @@ public struct CYTabs<ID: Hashable>: View {
             }
         }
         .padding(3)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgSurfaceSubtle))
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(trackFill))
     }
 
     private var chipBar: some View {

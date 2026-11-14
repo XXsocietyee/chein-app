@@ -94,21 +94,28 @@ struct CYPillButtonStyle: ButtonStyle {
             .cyPressEffect(configuration.isPressed && isEnabled, reduceMotion: reduceMotion)
     }
 
-    private var foreground: Color {
-        guard isEnabled else { return palette.textPlaceholder }
-        switch style {
-        case .primary: return palette.actionPrimaryFg
-        case .secondary: return palette.textSecondary
-        case .tertiary: return palette.textPrimary
+    static func tokens(style: CYPillStyle, isEnabled: Bool, in palette: CYDomainPalette) -> (foreground: Color, fill: Color) {
+        let fg: Color
+        if !isEnabled {
+            fg = palette.textPlaceholder
+        } else {
+            switch style {
+            case .primary: fg = palette.actionPrimaryFg
+            case .secondary: fg = palette.textSecondary
+            case .tertiary: fg = palette.textPrimary
+            }
         }
-    }
-    private var fill: Color {
+        let bg: Color
         switch style {
-        case .primary: return isEnabled ? palette.actionPrimaryBg : palette.bgSurfaceSubtle
-        case .secondary: return isEnabled ? palette.actionSecondaryBg : palette.bgSurfaceSubtle
-        case .tertiary: return .clear
+        case .primary: bg = isEnabled ? palette.actionPrimaryBg : palette.bgSurfaceSubtle
+        case .secondary: bg = isEnabled ? palette.actionSecondaryBg : palette.bgSurfaceSubtle
+        case .tertiary: bg = .clear
         }
+        return (foreground: fg, fill: bg)
     }
+
+    private var foreground: Color { Self.tokens(style: style, isEnabled: isEnabled, in: palette).foreground }
+    private var fill: Color { Self.tokens(style: style, isEnabled: isEnabled, in: palette).fill }
 }
 
 private struct CYPillButtonPreviewBody: View {

@@ -147,6 +147,7 @@
         "CreatorCropExportAppTests",
         "DeepLinkSafetyDiagnosticsSectionViewTests",
         "DeepLinkToMiniProgramPathTranslatorSectionViewTests",
+        "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",
         "EnvironmentBranchAndRewardLedgerViewTests",
         "ExplorationPrivateToolsAndCapsuleSectionViewTests",
