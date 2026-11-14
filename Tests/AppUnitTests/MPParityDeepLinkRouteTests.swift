@@ -32,4 +32,24 @@ import XCTest
         let reveal = MiniProgramPageLink(path: "subpackagePass/reveal/index", query: [:])!
         XCTAssertEqual(MPParityRoute(link: reveal), .reveal(paid: nil))
     }
+
+    func testSubscribeLandingPagesOpenTheExistingScreens() {
+        let orders = MiniProgramPageLink(path: "subpackageMember/order/order", query: [:])!
+        XCTAssertEqual(MPParityRoute(link: orders), .playerOrderList)
+        let received = MiniProgramPageLink(path: "pages/coop/list/index", query: [:])!
+        XCTAssertEqual(MPParityRoute(link: received), .coopList(.received))
+        let sent = MiniProgramPageLink(path: "pages/coop/list/index", query: ["tab": "sent"])!
+        XCTAssertEqual(MPParityRoute(link: sent), .coopList(.sent))
+        let projects = MiniProgramPageLink(path: "subpackageA/pages/myproject/index", query: [:])!
+        XCTAssertEqual(MPParityRoute(link: projects), .myProjects)
+        let ledger = MiniProgramPageLink(path: "pages/merchant/ledger/index", query: [:])!
+        XCTAssertEqual(MPParityRoute(link: ledger), .merchantLedger)
+        let push = PushTapRouter(routeKeys: ["page"])
+        guard case .miniProgramPage(let tapped) = push.intent(userInfo: ["page": "pages/coop/list/index?tab=sent"]) else {
+            return XCTFail("sent coop page")
+        }
+        XCTAssertEqual(MPParityRoute(link: tapped), .coopList(.sent))
+        XCTAssertNil(push.intent(userInfo: ["page": "pages/roam/index"]))
+        XCTAssertNil(push.intent(userInfo: ["type": "ROAM_RECALL", "page": ""]))
+    }
 }

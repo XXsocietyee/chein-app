@@ -19,6 +19,11 @@ final class MiniProgramPageLinkTests: XCTestCase {
         ("/subpackageJourney/pages/promo/index", "subpackageJourney/pages/promo/index", [:]),
         ("/subpackageJourney/pages/report/index?activityId=3&runId=9&topicName=%E5%9F%8E", "subpackageJourney/pages/report/index", ["activityId": "3", "runId": "9", "topicName": "城"]),
         ("/subpackageJourney/pages/settle/index?topicId=4&registrationId=10", "subpackageJourney/pages/settle/index", ["topicId": "4", "registrationId": "10"]),
+        ("/subpackageMember/order/order", "subpackageMember/order/order", [:]),
+        ("/pages/coop/list/index", "pages/coop/list/index", [:]),
+        ("/pages/coop/list/index?tab=sent", "pages/coop/list/index", ["tab": "sent"]),
+        ("/subpackageA/pages/myproject/index", "subpackageA/pages/myproject/index", [:]),
+        ("/pages/merchant/ledger/index", "pages/merchant/ledger/index", [:]),
     ]
 
     func testTableCoversEveryReviewedPage() {
@@ -79,6 +84,12 @@ final class MiniProgramPageLinkTests: XCTestCase {
             "/subpackageJourney/pages/landing/index?k=g",                   // token required
             "/subpackageJourney/pages/report/index?activityId=abc",
             "https://evil.test/subpackageMember/market/membership/index",   // internal paths carry no host
+            "/pages/coop/list/index?tab=other",                             // not a sent or received list
+            "/pages/roam/index",                                            // roam recall template is empty
+            "/pages/index/index",                                           // fallback page, not a configured type
+            "/pages/merchant/index/index",
+            "/pages/club/workbench/index",
+            "/pages/activity/official-detail/index?id=1",                   // official template id is not configured
         ]
         for path in rejected {
             if case .miniProgramPage = NativeNavigationContract.parseInternal(path) { XCTFail(path) }

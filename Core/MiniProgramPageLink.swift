@@ -34,6 +34,11 @@ public struct MiniProgramPageLink: Equatable, Sendable {
                                                       required: [], ids: ["activityId", "topicId", "runId", "registrationId"]),
         "subpackageJourney/pages/settle/index": .init(allowed: ["activityId", "topicId", "runId", "topicName", "registrationId"],
                                                       required: [], ids: ["activityId", "topicId", "runId", "registrationId"]),
+        // Subscribe-message landing pages from public hengyin (non-empty template ids only).
+        "subpackageMember/order/order": .init(allowed: [], required: [], ids: []),
+        "pages/coop/list/index": .init(allowed: ["tab"], required: [], ids: []),
+        "subpackageA/pages/myproject/index": .init(allowed: [], required: [], ids: []),
+        "pages/merchant/ledger/index": .init(allowed: [], required: [], ids: []),
     ]
 
     public init?(path: String, query: [String: String]) {
@@ -47,6 +52,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
             if rule.ids.contains(key), Self.positiveID(value) == nil { return nil }
         }
         if page == "subpackageJourney/pages/landing/index", !["r", "g", "s"].contains(present["k"] ?? "") { return nil }
+        if page == "pages/coop/list/index", let tab = present["tab"], tab != "sent", tab != "received" { return nil }
         self.page = page
         self.query = present
     }

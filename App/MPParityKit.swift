@@ -107,6 +107,14 @@ enum MPParityRoute: Hashable, Identifiable {
     case journeyPromo
     case journeyReport(JourneyRunScope)
     case journeySettle(JourneyRunScope)
+    /// `subpackageMember/order/order`. Signup, start, and refund subscribe messages share this list.
+    case playerOrderList
+    /// `pages/coop/list/index`. Absent `tab` is received; `tab=sent` is the sender list.
+    case coopList(CooperationDirection)
+    /// `subpackageA/pages/myproject/index`.
+    case myProjects
+    /// `pages/merchant/ledger/index`. Read-only settlement overview. Payout stays off.
+    case merchantLedger
 
     var id: Self { self }
 
@@ -147,6 +155,14 @@ enum MPParityRoute: Hashable, Identifiable {
                                         topicName: nonEmpty("topicName"), registrationID: nonEmpty("registrationId"),
                                         teamID: nonEmpty("teamId"))
             self = page.hasSuffix("report/index") ? .journeyReport(scope) : .journeySettle(scope)
+        case "subpackageMember/order/order":
+            self = .playerOrderList
+        case "pages/coop/list/index":
+            self = .coopList(query["tab"] == "sent" ? .sent : .received)
+        case "subpackageA/pages/myproject/index":
+            self = .myProjects
+        case "pages/merchant/ledger/index":
+            self = .merchantLedger
         default:
             return nil
         }
@@ -184,6 +200,8 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.journeyReport { JourneyReportHost(binding: make(scope), scope: scope) } else { unavailable }
         case .journeySettle(let scope):
             if let make = bindings.journeySettle { JourneySettleHost(binding: make(scope), scope: scope) } else { unavailable }
+        case .playerOrderList, .coopList, .myProjects, .merchantLedger:
+            SubscribeMessageTapEntry(route: route)
         }
     }
 
