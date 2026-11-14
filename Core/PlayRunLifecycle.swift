@@ -97,3 +97,14 @@ public enum PlayRunStorageKey {
         return "play.run.v2:" + parts.map { "\($0.utf8.count):\($0)" }.joined()
     }
 }
+
+/// D-26 (`pages/play/utils/pack-skip.js`): tapping during a pack-open sequence after the 300ms
+/// debounce guard skips directly to the settled open state.
+public enum PlayPackSkipPolicy {
+    public static let guardInterval: TimeInterval = 0.300
+
+    public static func canSkip(isPlaying: Bool, isOpen: Bool, startedAt: Date?, now: Date = Date()) -> Bool {
+        guard isPlaying, !isOpen, let startedAt else { return false }
+        return now.timeIntervalSince(startedAt) >= guardInterval
+    }
+}

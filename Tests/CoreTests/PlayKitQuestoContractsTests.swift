@@ -97,7 +97,7 @@ final class PlayKitQuestoContractsTests: XCTestCase {
         XCTAssertEqual(blank.feedback, "")
         XCTAssertEqual(blank.stationTitle(question: " 一只猫 ", placeName: "站名"), "一只猫")
         XCTAssertEqual(blank.stationFeedback(passText: "过了"), "")
-        let titled = PlayKitHangmanProjection(segment: try wire(#"{"title":"题面","solved":true,"feedback":" 服务端 "}#))
+        let titled = PlayKitHangmanProjection(segment: try wire(#"{"title":"题面","solved":true,"feedback":" 服务端 "}"#))
         XCTAssertEqual(titled.stationTitle(question: "题干", placeName: "站名"), "题面")
         XCTAssertEqual(titled.stationFeedback(passText: "站点"), "服务端")
         let fallback = PlayKitHangmanProjection(segment: try wire(#"{"solved":true}"#))

@@ -15,6 +15,8 @@ import SwiftUI
     @State private var tearing = false
     @State private var dealt = 0
     @State private var dealing = false
+    @State private var packStartedAt: Date?
+    @State private var packTask: Task<Void, Never>?
     var body: some View {
         if let presentation = FreeExplorationPresentation(snapshot: snapshot) {
             let stores = presentation.stores.filter { chapterFilter == nil || $0.chapterID == chapterFilter }
@@ -56,7 +58,7 @@ import SwiftUI
                             .rotationEffect(.degrees(tearing && !reduceMotion ? -2.5 : 0))
                             .scaleEffect(tearing && !reduceMotion ? 1.06 : 1)
                             .opacity(tearing ? 0 : 1)
-                    }.buttonStyle(.plain).disabled(tearing).accessibilityIdentifier("playFree.pack.open")
+                    }.buttonStyle(.plain).accessibilityIdentifier("playFree.pack.open")
                     .sensoryFeedback(.impact(weight: .heavy), trigger: tearing)
                 } else {
                     CYSectionHeader("playFree.stores")
@@ -80,20 +82,31 @@ import SwiftUI
                     }
                 }
             }
+            .onDisappear { packTask?.cancel(); packTask = nil; packStartedAt = nil }
         }
     }
 }
 extension FreeExplorationCardBrowser {
     private func openPack(count: Int) {
-        guard !tearing else { return }
+        if tearing || dealing {
+            // D-26: tapping during opening/dealing after 300ms skips straight to settled open state.
+            guard PlayPackSkipPolicy.canSkip(isPlaying: true, isOpen: packOpen, startedAt: packStartedAt) else { return }
+            packTask?.cancel(); packTask = nil; packStartedAt = nil
+            tearing = false; dealing = false; dealt = count; packOpen = true
+            return
+        }
         if reduceMotion { dealt = count; packOpen = true; return }
+        packStartedAt = Date()
         withAnimation(.spring(response: 0.28, dampingFraction: 0.45)) { tearing = true }
-        Task { @MainActor in
+        packTask = Task { @MainActor in
+            defer { packTask = nil; packStartedAt = nil }
             try? await Task.sleep(for: .milliseconds(320))
+            guard !Task.isCancelled else { return }
             dealt = 0; dealing = true
             withAnimation(CYMotion.standard) { packOpen = true }
             for index in 0..<count {
                 try? await Task.sleep(for: .milliseconds(70))
+                guard !Task.isCancelled else { return }
                 withAnimation(CYMotion.entrance) { dealt = index + 1 }
             }
             tearing = false; dealing = false

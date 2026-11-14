@@ -452,8 +452,7 @@ struct DiscoveryTopicTemplatePreview: View {
             }
             .accessibilityIdentifier("discovery.topicDetail.summary")
             if stops.isEmpty {
-                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(palette.textTertiary)
-                    .accessibilityIdentifier("template.cap.empty")
+                CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
             }
             ForEach(stops, id: \.number) { stop in
                 HStack(alignment: .top, spacing: CYSpacing.md) {

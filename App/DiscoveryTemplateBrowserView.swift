@@ -10,6 +10,9 @@ struct DiscoveryTemplateBrowserView: View {
     let imageReader: (any RetainedPublicImageReading)?
     /// Mini-program merchant scope; staff without project management only browse.
     let templateTabScope: TemplateTabScope
+    /// True when merchant access failed to load (show retry banner rather than asserting readonly).
+    let merchantAccessError: Bool
+    let onRetryMerchantAccess: (() -> Void)?
     /// Mini-program template tab: the "+" opens the publish menu. Hidden for staff who only browse.
     let publishDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
@@ -35,11 +38,14 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
     private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false) {
         _tab = State(initialValue: startOnGames ? .games : .topics)
         self.publishDestination = publishDestination
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
-        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion; self.templateTabScope = templateTabScope
+        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion
+        self.templateTabScope = templateTabScope
+        self.merchantAccessError = merchantAccessError
+        self.onRetryMerchantAccess = onRetryMerchantAccess
     }
 
     var body: some View {
@@ -50,11 +56,26 @@ struct DiscoveryTemplateBrowserView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                         GameplayPresetSection(canDraft: !templateTabScope.isStaffReadOnly)
-                        if templateTabScope == .merchant(canManageProjects: false) {
-                            Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
-                                .foregroundStyle(palette.textSecondary)
-                                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
-                                .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+                        if merchantAccessError || (templateTabScope == .merchant(canManageProjects: nil) && onRetryMerchantAccess != nil) {
+                            if let onRetryMerchantAccess {
+                                Button(action: onRetryMerchantAccess) {
+                                    CYNoteBanner(text: Text("discovery.templateTab.accessRetry"), symbol: "arrow.clockwise", tone: .warning)
+                                }
+                                .cyPressable()
+                                .accessibilityIdentifier("discovery.templateTab.retryAccess")
+                            } else {
+                                CYNoteBanner(text: Text("discovery.templateTab.accessRetry"), symbol: "exclamationmark.triangle", tone: .warning)
+                                    .accessibilityIdentifier("discovery.templateTab.retryAccess")
+                            }
+                        } else if templateTabScope == .merchant(canManageProjects: false) {
+                            HStack(alignment: .top, spacing: CYSpacing.sm) {
+                                Image(systemName: "lock.fill").foregroundStyle(palette.warning).accessibilityHidden(true)
+                                Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
+                                    .foregroundStyle(palette.textSecondary)
+                                    .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                         }
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)

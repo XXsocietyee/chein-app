@@ -131,6 +131,13 @@ import FoundationNetworking
         let paused = try clock.pause(monotonicNow: 20, savedAt: 100); XCTAssertEqual(paused.elapsedSeconds, 10)
         try clock.start(monotonicNow: 1000); XCTAssertEqual(clock.elapsed(monotonicNow: 1001), 11)
     }
+    func testPackSkipHonorsPlayingStateAnd300msGuard() {
+        let start = Date(timeIntervalSince1970: 100)
+        XCTAssertFalse(PlayPackSkipPolicy.canSkip(isPlaying: false, isOpen: false, startedAt: start, now: start.addingTimeInterval(1)))
+        XCTAssertFalse(PlayPackSkipPolicy.canSkip(isPlaying: true, isOpen: true, startedAt: start, now: start.addingTimeInterval(1)))
+        XCTAssertFalse(PlayPackSkipPolicy.canSkip(isPlaying: true, isOpen: false, startedAt: start, now: start.addingTimeInterval(0.299)))
+        XCTAssertTrue(PlayPackSkipPolicy.canSkip(isPlaying: true, isOpen: false, startedAt: start, now: start.addingTimeInterval(0.300)))
+    }
     func testRunStorageSeparatesAccountNamespaceAndActivityTopic() throws {
         let a = PlayRunStorageKey.make(session: try session(), scope: .activity(41))
         XCTAssertNotEqual(a, PlayRunStorageKey.make(session: try session(9002), scope: .activity(41)))

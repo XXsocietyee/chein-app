@@ -563,7 +563,7 @@ import SwiftUI
     }
     private static func finishClockText(_ seconds: Int) -> String? {
         guard seconds > 0 else { return nil }
-        return String(format: "%d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60)
+        return PlayRunElapsedText.format(seconds)
     }
     private func projectAmbient() {
         guard let result = model.snapshot?.result else { return }

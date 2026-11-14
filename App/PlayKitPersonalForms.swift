@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 extension PlayKitScreen {
     /// Mini-program 出生登记: the register card on top, then one question at a time with
@@ -202,7 +205,16 @@ extension PlayKitScreen {
     func photoInput(frame: PlayKitPhotoFrame? = nil, onURL: @escaping (String) -> Void) -> some View {
         Group {
             if let device {
-                PlayKitPhotoInput(model: device, identity: evidenceIdentity, enabled: enabled, frame: frame, onDirty: { dirty = true }, onURL: onURL)
+                PlayKitPhotoInput(
+                    model: device,
+                    identity: evidenceIdentity,
+                    enabled: enabled,
+                    frame: frame,
+                    submitFailed: kind == .photoCheck && model.phase != "submitting" && model.issue != nil,
+                    judging: kind == .photoCheck && model.phase == "submitting",
+                    onDirty: { dirty = true },
+                    onURL: onURL
+                )
             } else { Label("playkit.camera.gated", systemImage: "camera") }
         }
     }
@@ -214,9 +226,13 @@ extension PlayKitScreen {
 
 @MainActor struct PlayKitPhotoInput: View {
     @Bindable var model: PlayDeviceCaptureCoordinator
-    let identity: String; let enabled: Bool; var frame: PlayKitPhotoFrame? = nil; let onDirty: () -> Void; let onURL: (String) -> Void
+    let identity: String; let enabled: Bool; var frame: PlayKitPhotoFrame? = nil
+    var submitFailed: Bool = false
+    var judging: Bool = false
+    let onDirty: () -> Void; let onURL: (String) -> Void
     @State private var capturedIdentity: String?
     @Environment(\.locale) private var locale
+    @Environment(\.openURL) private var openURL
     @State private var cameraPurpose = false
     @State private var uploadReview = false
     @State private var mounted = false
@@ -237,18 +253,34 @@ extension PlayKitScreen {
             }.disabled(!enabled || model.busy || !model.supportsLibraryPhotos)
             if !model.supports(.photo) { Text("playkit.camera.gated").font(.footnote) }
             if model.busy { ProgressView("playkit.photo.working") }
+            if judging { ProgressView("playkit.photo.judging") }
             if capturedIdentity == identity, let output = model.output, case .photo(let bytes, _) = output {
                 if let image = UIImage(data: bytes) { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel(Text("playkit.photo.preview")) }
                 if bytes.count > 10 * 1024 * 1024 { Text("playkit.photo.tooLarge") }
                 CYPillButton(LocalizedStringKey("playkit.photo.upload"), systemImage: "icloud.and.arrow.up") { uploadReview = true }
                     .disabled(!enabled || !model.canUpload || bytes.isEmpty || bytes.count > 10 * 1024 * 1024)
                 if !model.canUpload && model.uploadedPhoto == nil && !model.busy { Text("playkit.photo.uploadGate").font(.footnote) }
+                if model.uploadedPhoto == nil, model.issue != nil {
+                    CYNoteBanner(text: Text("playkit.photo.uploadFailedRetake"), symbol: "exclamationmark.triangle", tone: .warning)
+                }
                 if let evidence = model.reviewedPhoto(), case .photo(let uploadedURL) = evidence {
                     Label("playkit.photo.uploaded", systemImage: "checkmark.circle")
-                    CYPillButton(LocalizedStringKey("playkit.photo.use"), systemImage: "checkmark") { if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) } }.disabled(!enabled)
+                    if submitFailed {
+                        CYNoteBanner(text: Text("playkit.photo.submitFailedKept"), symbol: "arrow.clockwise.circle", tone: .warning)
+                    }
+                    CYPillButton(LocalizedStringKey(submitFailed ? "playkit.photo.resubmit" : "playkit.photo.use"), systemImage: submitFailed ? "arrow.clockwise" : "checkmark") {
+                        if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) }
+                    }
+                    .disabled(!enabled || judging)
                 }
             }
-            if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+            if let issue = model.issue {
+                PlayExperienceIssueView(issue: issue)
+                if issue == .disabled, let settingsURL = Self.settingsURL {
+                    CYPillButton("playkit.media.openSettings", style: .secondary, systemImage: "gear") { openURL(settingsURL) }
+                        .accessibilityIdentifier("playkit.photo.openSettings")
+                }
+            }
         }
         .confirmationDialog("playkit.camera.purpose", isPresented: $cameraPurpose, titleVisibility: .visible) {
             Button("playkit.photo.capture") {
@@ -273,11 +305,20 @@ extension PlayKitScreen {
         .onChange(of: identity) { _, _ in capturedIdentity = nil; cameraPurpose = false; uploadReview = false; model.cancel() }
         .onDisappear { mounted = false; capturedIdentity = nil; model.cancel() }
     }
+
+    private static var settingsURL: URL? {
+        #if canImport(UIKit)
+        URL(string: UIApplication.openSettingsURLString)
+        #else
+        nil
+        #endif
+    }
 }
 
 @MainActor struct PlayKitScanInput: View {
     @Bindable var model: PlayDeviceCaptureCoordinator
     let identity: String; let enabled: Bool; let onDirty: () -> Void; let onCode: (String) -> Void
+    @Environment(\.openURL) private var openURL
     @State private var purpose = false
     @State private var capturedIdentity: String?
     @State private var mounted = false
@@ -290,7 +331,13 @@ extension PlayKitScreen {
                 Label("playkit.scan.captured", systemImage: "qrcode")
                 CYPillButton(LocalizedStringKey("playkit.review"), systemImage: "checkmark") { if mounted && enabled { onCode(code) } }.disabled(!enabled)
             }
-            if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+            if let issue = model.issue {
+                PlayExperienceIssueView(issue: issue)
+                if issue == .disabled, let settingsURL = Self.settingsURL {
+                    CYPillButton("playkit.media.openSettings", style: .secondary, systemImage: "gear") { openURL(settingsURL) }
+                        .accessibilityIdentifier("playkit.scan.openSettings")
+                }
+            }
         }
         .confirmationDialog("playkit.camera.purpose", isPresented: $purpose, titleVisibility: .visible) {
             Button("playkit.scan.capture") {
@@ -306,5 +353,13 @@ extension PlayKitScreen {
         .onAppear { mounted = true; model.cancel() }
         .onChange(of: identity) { _, _ in capturedIdentity = nil; purpose = false; model.cancel() }
         .onDisappear { mounted = false; model.cancel() }
+    }
+
+    private static var settingsURL: URL? {
+        #if canImport(UIKit)
+        URL(string: UIApplication.openSettingsURLString)
+        #else
+        nil
+        #endif
     }
 }
