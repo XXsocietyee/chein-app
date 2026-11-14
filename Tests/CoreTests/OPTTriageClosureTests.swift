@@ -78,10 +78,11 @@ final class OPTTriageClosureTests: XCTestCase {
         let rest = matrix[start.upperBound...]
         let end = rest.range(of: "\n## ")?.lowerBound ?? rest.endIndex
         let section = String(rest[..<end])
-        XCTAssertTrue(section.contains("e3264af9fc694cfadea419e59d31c790aa8163c1"))
-        XCTAssertTrue(section.contains("067da9748"))
+        // RM-02 refreshed the matrix against app 3ac970ec2 and backend 5c2017eef (capgraph on the TEST VPS).
+        XCTAssertTrue(section.contains("3ac970ec20191014b4b9a8779a3a94b961e99c9c"))
+        XCTAssertTrue(section.contains("5c2017eef"))
         XCTAssertTrue(section.contains("1ca6d3215beee96afdcdfd300dd9176f2d0ac5b3"))
-        XCTAssertTrue(section.contains("TEST 8120"))
+        XCTAssertTrue(section.contains("capgraph"))
     }
 
     func testDecisionListCitesOWNOPT003() throws {

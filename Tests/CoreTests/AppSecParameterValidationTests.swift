@@ -26,7 +26,10 @@ final class AppSecParameterValidationTests: XCTestCase {
             let report = try audit(raw)
             XCTAssertEqual(report.decision, .rejected(.malformedURL), raw)
         }
-        XCTAssertNil(URL(string: "https://link.chengyin.example/topic\\index?topicId=10"))
+        // Foundation may percent-encode a backslash (`%5C`) instead of refusing the string; the audit still rejects it.
+        if URL(string: "https://link.chengyin.example/topic\\index?topicId=10") != nil {
+            XCTAssertEqual(try audit("https://link.chengyin.example/topic\\index?topicId=10").decision, .rejected(.malformedURL))
+        }
         XCTAssertNil(NativeNavigationContract.parseInternal("/pages/topic\\index?id=10"))
         XCTAssertNil(NativeNavigationContract.parseInternal("/subpackageMember/market/gift/index?token=a\\b"))
         XCTAssertNil(NativeNavigationContract.parseInternal("/%2e%2e/subpackagePass/reveal/index"))
