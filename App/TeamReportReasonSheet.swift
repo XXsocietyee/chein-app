@@ -29,6 +29,7 @@ import SwiftUI
     let teamID: Int
     @Environment(\.teamOrientBoardAccess) private var access
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selected: Int?
     @State private var state: TeamReportState = .idle
@@ -39,7 +40,7 @@ import SwiftUI
 
     var body: some View {
         CYSheetContainer(
-            title: String(localized: LocalizedStringResource(stringLiteral: "mpfresh.teamReport.title"), table: "MpFresh"),
+            title: String(localized: LocalizedStringResource("mpfresh.teamReport.title", table: "MpFresh", locale: locale)),
             onClose: state == .submitting ? nil : { dismiss() }
         ) {
             Group {

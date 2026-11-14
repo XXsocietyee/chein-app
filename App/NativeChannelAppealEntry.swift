@@ -97,31 +97,9 @@ import SwiftUI
             if phase == .active { Task { await flow.activate() } }
             else { retryConfirmation = false; flow.deactivate() }
         }
-        .sheet(isPresented: $retryConfirmation) {
-            CYSheetContainer {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Text("retry.confirmation", tableName: "NativeChannelAppealDetails")
-                        .font(CYTypography.sheetTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Button {
-                        retryConfirmation = false
-                        Task { await flow.retryOriginal() }
-                    } label: {
-                        Text("retry.confirm", tableName: "NativeChannelAppealDetails")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
-                    Button {
-                        retryConfirmation = false
-                    } label: {
-                        Text("action.cancel", tableName: "NativeChannelAppealDetails")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
-                }
-            }
-            .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(Text("retry.confirmation", tableName: "NativeChannelAppealDetails"), isPresented: $retryConfirmation, titleVisibility: .visible) {
+            Button { Task { await flow.retryOriginal() } } label: { Text("retry.confirm", tableName: "NativeChannelAppealDetails") }
+            Button(role: .cancel) { } label: { Text("action.cancel", tableName: "NativeChannelAppealDetails") }
         }
         .privacySensitive()
     }

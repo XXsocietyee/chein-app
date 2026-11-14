@@ -847,12 +847,19 @@ struct ClubCommunityReviewView: View {
 
                 // E2E R13: the note follows the same grant that admits the write; a granted Confirm never says "unavailable".
                 if model.context.coordinator?.permitsInjectedWrites != true {
-                    CYNoteBanner(text: Text("club.community.offline"), symbol: "wifi.slash", tone: .warning)
+                    HStack(alignment: .top, spacing: CYSpacing.sm) {
+                        Image(systemName: "wifi.slash").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
+                        Text("club.community.offline").foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .font(CYTypography.meta)
+                    .padding(CYSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(CYColor.bgSurface, in: .rect(cornerRadius: CYRadius.md))
                 }
 
                 VStack(spacing: CYSpacing.sm) {
-                    if isDestructiveOperation {
-                        Button("club.community.confirm") {
+                    if !isDestructiveOperation {
+                        CYPillButton("club.community.confirm") {
                             Task {
                                 if await model.confirm(expected: review, refresh: refresh) {
                                     onSettled?(review.operation)
@@ -860,7 +867,6 @@ struct ClubCommunityReviewView: View {
                                 }
                             }
                         }
-                        .buttonStyle(CYDestructiveButtonStyle())
                         .disabled(model.busy)
                         .accessibilityIdentifier("club.community.confirm")
                     } else {
@@ -872,7 +878,7 @@ struct ClubCommunityReviewView: View {
                                 }
                             }
                         }
-                        .buttonStyle(CYPrimaryButtonStyle())
+                        .buttonStyle(CYDestructiveButtonStyle())
                         .disabled(model.busy)
                         .accessibilityIdentifier("club.community.confirm")
                     }

@@ -100,11 +100,9 @@ import SwiftUI
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $pinSelection) { selection in
-            let actionTitle = String(localized: LocalizedStringResource(
-                stringLiteral: selection.command.operation == .pin ? "pins.add" : "pins.remove",
-                table: "NativeChannelMessage",
-                locale: locale
-            ))
+            let actionTitle = selection.command.operation == .pin
+                ? String(localized: LocalizedStringResource("pins.add", table: "NativeChannelMessage", locale: locale))
+                : String(localized: LocalizedStringResource("pins.remove", table: "NativeChannelMessage", locale: locale))
             CYConfirmSheet(
                 title: appLocalized("d7.channelMessage.pinTitle", locale: locale),
                 message: "",

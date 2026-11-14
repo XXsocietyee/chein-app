@@ -65,7 +65,7 @@ enum PopupsSocialFixtures {
                         lighterAlternativeTitle: appLocalized("team.leaveInstead", locale: locale),
                         isDestructive: true,
                         onCancel: {},
-                        onLighterAlternative: { toastMessage = "team.leaveInsteadHint" },
+                        onLighterAlternative: { toastMessage = "team.page.leaveAndTransfer" },
                         onConfirm: {}
                     )
                 } else {

@@ -22,7 +22,7 @@
    - `App/MessagingHistoryView.swift`: `IMChatMoreMenu` converted from `Menu` to `Button` + `CYOptionSheet` (`.cyDomainSheet`, `onDismiss` transition chaining); enriched `ChatSafetySheet.reviewing(_:)` with consequences.
    - `App/IMConversationSafetyViews.swift`: Converted `IMSafetyReviewView` `.reviewing` state to `CYConfirmSheet` with structured consequences (`.unblock`, `.report`, `.hide`, `.block`).
    - `App/MessageActionComposer.swift` & `App/OrdinaryIMSendReceiptRecoveryView.swift`: Converted `.alert` / `.confirmationDialog` confirmations to `.sheet` + `CYConfirmSheet` (`.cyDomainSheet(detents: [.peek, .half])`).
-   - Converted 12 `NativeChannel*` pop-ups (`NativeChannelAppealEntry`, `NativeChannelChainView`, `NativeChannelCheckinView`, `NativeChannelMessageActionSheet`, `NativeChannelMessageConversationHost`, `NativeChannelMessageHostDestination`, `NativeChannelMessagePinsView`, `NativeChannelModerationEntry`, `NativeChannelNotificationConversationView`, `NativeChannelPersonalStateEntry`, `NativeChannelProgressPrivacyView`, `NativeChannelRoleEntry`) from native `.confirmationDialog`/`.alert`/`Form` to `CYOptionSheet` / `CYConfirmSheet` / `CYSheetContainer` / `CYModal`.
+   - Converted 11 `NativeChannel*` pop-ups (`NativeChannelChainView`, `NativeChannelCheckinView`, `NativeChannelMessageActionSheet`, `NativeChannelMessageConversationHost`, `NativeChannelMessageHostDestination`, `NativeChannelMessagePinsView`, `NativeChannelModerationEntry`, `NativeChannelNotificationConversationView`, `NativeChannelPersonalStateEntry`, `NativeChannelProgressPrivacyView`, `NativeChannelRoleEntry`) from native `.confirmationDialog`/`.alert`/`Form` to `CYOptionSheet` / `CYConfirmSheet` / `CYSheetContainer` / `CYModal`. (`NativeChannelAppealEntry` retains `.confirmationDialog` because `Tests/ContractChecks/test_native_channel_appeal_localization.py` asserts `isPresented: $retryConfirmation, titleVisibility: .visible`.)
 
 4. **Official, Favorites & Square**
    - `App/OfficialOrganizerConsoleView.swift`: Converted publish/pause/resume `.confirmationDialog` to `CYConfirmSheet` with consequences (`official.organizer.(schedule|pause|resume).c1..c3`).
@@ -38,7 +38,7 @@
 5. **Club**
    - `App/ClubBadgeManagementView.swift`: Converted grant `.confirmationDialog` to `CYConfirmSheet` with 3 consequences and converted `createForm` to `CYSheetContainer`.
    - `App/ClubGovernanceCommandForm.swift`: Converted event cancel `.alert` to `CYConfirmSheet` with consequences (`clubOpsEvent.cancel.consequence1..2`).
-   - `App/ClubOperationsViews.swift`: Converted discard `.confirmationDialog` to `CYConfirmSheet` / 3-option `CYSheetContainer` (`profileDraftEnabled`).
+   - `App/ClubOperationsViews.swift`: Retains `.confirmationDialog` because `Tests/ContractChecks/test_club_operations_contracts.py` asserts `.confirmationDialog(` in source.
    - `App/ClubPostEditExitControl.swift`, `App/ClubProfileDraftRecoverySection.swift`, `App/ClubWelcomeNoteEditor.swift`, `App/ClubPayoutReceiverView.swift`, `App/ClubContextualViews.swift`: Converted `.confirmationDialog`s to `.sheet` + `CYConfirmSheet`.
    - `App/ClubMembersView.swift` & `App/ClubChannelMessagingView.swift`: Converted `.confirmationDialog` menus to `CYOptionSheet`.
    - `App/ClubOwnerRefundPanel.swift`: Converted `NavigationStack { Form }` refund review sheet to `CYSheetContainer` + `CYCard` evidence + 3 consequences + `CYDestructiveButtonStyle`.
@@ -72,7 +72,8 @@ Added `#if DEBUG` previews in [`App/DesignFixtures/PopupsSocialFixtures.swift`](
 - `python3 tools/check_design_lint.py`: `PASS design lint: scanned 1635 App Swift files outside DesignSystem and Theme; allowlist 29 files (44 existing violations)` (exit `0`).
 - `python3 tools/check_a11y.py`: `PASS accessibility lint: 10 scoped screens, helper checked, 2 range views left, 3106 other App views not scanned` (exit `0`).
 - `python3 tools/check_missing_string_keys.py`: `missing_keys: 0`, `wrong_table: 0`, `incomplete_locales: 0`, `missing: 0` (exit `0`).
-- `xcrun swiftc -parse` and `xcrun swiftc -parse -D DEBUG` on all 47 modified/added `.swift` files (`TOTAL_SWIFT_FILES=47 EXIT=0`):
+- `python3 -m unittest Tests.ContractChecks.test_club_ops_event Tests.ContractChecks.test_e2e_20261113_r12_r13 Tests.ContractChecks.test_native_channel_appeal_localization Tests.ContractChecks.test_team_contracts Tests.ContractChecks.test_workshop_purchased_localization`: `Ran 39 tests ... OK (skipped=6)` (exit `0`).
+- `xcrun swiftc -parse` and `xcrun swiftc -parse -D DEBUG` on all 45 modified/added `.swift` files (`TOTAL_SWIFT_FILES=45 EXIT=0`):
   - `App/AccountCollectionFavoritesView.swift`: `parse=0 debug_parse=0`
   - `App/ClubBadgeManagementView.swift`: `parse=0 debug_parse=0`
   - `App/ClubChannelMessagingView.swift`: `parse=0 debug_parse=0`
@@ -80,7 +81,6 @@ Added `#if DEBUG` previews in [`App/DesignFixtures/PopupsSocialFixtures.swift`](
   - `App/ClubContextualViews.swift`: `parse=0 debug_parse=0`
   - `App/ClubGovernanceCommandForm.swift`: `parse=0 debug_parse=0`
   - `App/ClubMembersView.swift`: `parse=0 debug_parse=0`
-  - `App/ClubOperationsViews.swift`: `parse=0 debug_parse=0`
   - `App/ClubOwnerRefundPanel.swift`: `parse=0 debug_parse=0`
   - `App/ClubPayoutReceiverView.swift`: `parse=0 debug_parse=0`
   - `App/ClubPostEditExitControl.swift`: `parse=0 debug_parse=0`
@@ -94,7 +94,6 @@ Added `#if DEBUG` previews in [`App/DesignFixtures/PopupsSocialFixtures.swift`](
   - `App/IMConversationSafetyViews.swift`: `parse=0 debug_parse=0`
   - `App/MessageActionComposer.swift`: `parse=0 debug_parse=0`
   - `App/MessagingHistoryView.swift`: `parse=0 debug_parse=0`
-  - `App/NativeChannelAppealEntry.swift`: `parse=0 debug_parse=0`
   - `App/NativeChannelChainView.swift`: `parse=0 debug_parse=0`
   - `App/NativeChannelCheckinView.swift`: `parse=0 debug_parse=0`
   - `App/NativeChannelMessageActionSheet.swift`: `parse=0 debug_parse=0`

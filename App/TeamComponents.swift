@@ -240,7 +240,7 @@ struct TeamMemberRow: View {
                         } label: {
                             VStack(spacing: CYSpacing.xxs) {
                                 Text("team.leaveInstead")
-                                Text("team.leaveInsteadHint")
+                                Text("team.page.leaveAndTransfer")
                                     .font(CYTypography.meta)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
