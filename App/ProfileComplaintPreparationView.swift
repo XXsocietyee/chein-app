@@ -8,6 +8,7 @@ import SwiftUI
     /// built from the gated `CoopFlowCoordinator`. nil (the default) keeps the honest "not available yet" state.
     @MainActor static var submitterFactory: (@MainActor (AppSession) -> (any ProfileComplaintSubmitting)?)?
     var body: some View {
+        let _ = WP06ComplaintWrite.install()
         let revision = session.sessionRevision
         let owner = session.cooperationFlowReader.session
         NavigationLink {

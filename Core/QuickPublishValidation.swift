@@ -19,6 +19,21 @@ public enum QuickPublishIssue: Equatable {
     }
 }
 
+public struct QuickPublishSimpleHandoffRefusal: Error, Equatable {
+    public let issues: [QuickPublishIssue]
+    public init(issues: [QuickPublishIssue]) { self.issues = issues }
+}
+
+/// `pages/publish/simple/index` confirmation. The three points are a route title, at least one stop,
+/// and a name plus a map-confirmed place on every stop. Quota stays on `QuickPublishSimplePageCoordinator`.
+public enum QuickPublishSimpleJourneyService {
+    public static func confirmAndSeed(_ draft: QuickPublishDraft) throws -> ProjectEditDraft {
+        let issues = QuickPublishValidation.issues(draft)
+        guard issues.isEmpty else { throw QuickPublishSimpleHandoffRefusal(issues: issues) }
+        return try draft.professionalSeed()
+    }
+}
+
 public enum QuickPublishValidation {
     /// Issues in reading order; empty exactly when `professionalSeed` would accept the draft.
     public static func issues(_ draft: QuickPublishDraft) -> [QuickPublishIssue] {

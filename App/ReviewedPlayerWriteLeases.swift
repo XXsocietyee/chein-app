@@ -19,6 +19,9 @@ extension ReviewedProductionFormMutationRoute {
         if ReviewedProductionGateLeases.wp07CommercePaths.contains(relative) {
             return wp07CommerceAllows(request, relative: relative, method: method, baseURL: baseURL, grant: grant)
         }
+        if let wp06 = ReviewedProductionGateLeases.wp06PartialPageDecision(method: method, relative: relative, request: request, url: url) {
+            return wp06
+        }
         if admitsRewardPledgeWrite(relative) {
             if method == "GET" { return request.httpBody == nil || request.httpBody?.isEmpty == true }
             return method == "POST"
@@ -683,6 +686,43 @@ enum ReviewedPlayerReadRoute {
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
     ]
+    /// Handover 35, WP-06. Same paths as `ChinaReviewedRouteCapability.wp06PartialPagesOwnerGrant`.
+    /// Address, invoice, roam, and passport calls stay on their dedicated transports: this set does not
+    /// let the generic root send them. The history share read stays on its existing reader (BK E06-17),
+    /// so this file does not name that path. Complaint report is the one new generic admit. Coupon publish and
+    /// stop are money-adjacent and stay closed unless `ReviewedAreaSwitch.merchantWrites` is open.
+    static let wp06PartialPagePaths: Set<String> = [
+        "api/user/address/list", "api/user/address/info", "api/user/address/action",
+        "api/user/address/delete", "api/user/address/setDefault",
+        "api/publish/home", "api/ai/theme/draft/quota",
+        "api/coop/complaint/topics", "api/coop/complaint/mine", "api/coop/complaint/report",
+        "api/coupon/mypublishlist", "api/coupon/publish", "api/coupon/stop",
+        "api/invoice/list", "api/invoice/detail", "api/invoice/orders/eligible", "api/invoice/titles",
+        "api/invoice/apply", "api/invoice/request",
+        "api/exploration-anniversary", "api/monthly-recap",
+        "api/personal-exploration-export/prepare", "api/personal-exploration-export/page",
+        "api/roam/passport/history", "api/roam/stamp/create", "api/roam/stamp/exchange",
+        "api/common/uploadOSS"
+    ]
+    static let wp06MoneyPaths: Set<String> = ["api/coupon/publish", "api/coupon/stop"]
+    /// Nil leaves the request to the other player-write rules. False refuses it.
+    /// Address and the other dedicated reads return nil so the generic root still cannot borrow them.
+    static func wp06PartialPageDecision(method: String, relative: String, request: URLRequest, url: URL) -> Bool? {
+        guard wp06PartialPagePaths.contains(relative) else { return nil }
+        if wp06MoneyPaths.contains(relative) {
+            guard ReviewedAreaSwitch.merchantWrites(apiHost: url.host) else { return false }
+            guard method == "POST",
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                  let body = request.httpBody, !body.isEmpty,
+                  (try? JSONSerialization.jsonObject(with: body)) is [String: Any] else { return false }
+            return true
+        }
+        if relative == "api/coop/complaint/report" {
+            guard method == "POST", let body = request.httpBody, !body.isEmpty else { return false }
+            return true
+        }
+        return nil
+    }
     /// Handover 21. Non-cash pledge, claim and the exact coupon root. Cash refund is not in this set.
     static let rewardPledgePaths: Set<String> = [
         "api/reward-pledge", "api/reward-pledge/awards", "api/reward-pledge/drafts",

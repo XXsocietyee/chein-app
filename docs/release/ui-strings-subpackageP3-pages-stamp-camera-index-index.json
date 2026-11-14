@@ -1,7 +1,7 @@
 {
   "page": "subpackageP3/pages/stamp-camera/index/index",
   "screen": "App/RoamStampCameraView.swift",
-  "mapStatus": "partial",
+  "mapStatus": "exists",
   "unknownMark": "—",
   "strings": {
     "action.back": {

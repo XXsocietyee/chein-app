@@ -31,6 +31,11 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var makeTemplateAuthoring: (() -> AnyView)? = nil
     /// Mini-program: activity publishing is for club leaders; other roles never see the entry.
     private var showsActivity: Bool { account == nil || account?.role == "club" }
+    /// Home plus AI quota for the simple page. Nil keeps the form visible and the quota as an em dash.
+    private var simplePageRead: ((PublishingRead) async throws -> ProjectEditJSON)? {
+        guard let service, let account else { return nil }
+        return { query in try await service.read(query, session: account) }
+    }
     var body: some View {
         // Same choices and order as the mini-program publish menu (cy-publish-sheet):
         // a topic (city orientation or free explore, quick or professional), then interaction.
@@ -38,7 +43,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
                 CYHeroHeader("publishModes.title")
                 // One primary action: the quick publish journey ("Quick setup").
-                NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) } label: {
+                NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, simplePageRead: simplePageRead, openProfessional: openProfessional).id(account?.epoch) } label: {
                     Label("publishModes.quick", systemImage: "wand.and.stars")
                 }.buttonStyle(CYPillButtonStyle(style: .primary))
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -87,13 +92,18 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var account: PublishingSession? = nil
     var draftStore: PublishingDraftStore? = nil
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
+    var simplePageRead: ((PublishingRead) async throws -> ProjectEditJSON)? = nil
     var openProfessional: (ProjectEditDraft) -> Void
+    @StateObject private var simplePage = QuickPublishSimplePageOwner()
     var body: some View {
         let _ = journey.bind(account: account)
         let draft = journey.draftBinding()
         // Mini-program publish/simple order: AI draft, the draft (route type, name, story),
         // the stops to confirm on the map, then one primary action into the editor.
         Form {
+            Section {
+                QuickPublishSimplePageStatus(owner: simplePage)
+            }
             Section {
                 Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
                     CYListRow("contextPublish.ai.title") { CYRowIcon(systemImage: "sparkles") }
@@ -144,6 +154,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             }.background(palette.bgPage)
         }
         .onAppear { journey.appear(active: scenePhase == .active) }
+        .task(id: account?.epoch) { await simplePage.load(read: simplePageRead, draft: journey.draft) }
         .onChange(of: scenePhase) { _, phase in journey.setActive(phase == .active) }
         .background { QuickPublishingJourneyLifetime(owner: journey).frame(width: 0, height: 0) }
         .background {

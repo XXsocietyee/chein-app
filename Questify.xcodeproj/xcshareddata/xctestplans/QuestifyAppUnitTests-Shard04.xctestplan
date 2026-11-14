@@ -639,6 +639,7 @@
         "UnifiedReleaseAuditHubViewTests",
         "UnifiedTicketExecutionMatrixSectionViewTests",
         "WP01SeenAckRefreshTests",
+        "WP06PartialPageHostTests",
         "WP07ShopNPCDisclosureTests",
         "WP08HostTipLeaseTests",
         "WP08ReceiveNativeURLAuditTests",

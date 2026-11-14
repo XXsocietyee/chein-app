@@ -651,6 +651,7 @@
         "UsageConsentHistoryHostTests",
         "VerificationPresentationAppTests",
         "WP07CommerceLeaseTests",
+        "WP06PartialPageHostTests",
         "WP07ShopNPCDisclosureTests",
         "WP08HostTipLeaseTests",
         "WP12QmodImportMountTests",
