@@ -50,10 +50,8 @@ import SwiftUI
                         .accessibilityIdentifier("advancedTeam.complete")
                 }
                 Text("advancedTeam.serverTurn").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                TimelineView(.periodic(from: .now, by: 1)) { context in
-                    if let state = model.state, let remaining = state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)), remaining == 0 {
-                        CYStatusChip("advancedTeam.expired", tone: .warning, systemImage: "clock.badge.xmark").accessibilityIdentifier("advancedTeam.expired")
-                    }
+                if let state = model.state, state.remainingSeconds(nowMilliseconds: 0) == 0 {
+                    CYStatusChip("advancedTeam.expired", tone: .warning, systemImage: "clock.badge.xmark").accessibilityIdentifier("advancedTeam.expired")
                 }
             } else { CYEmptyState(systemImage: "person.3", "advancedTeam.unavailable") }
             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }

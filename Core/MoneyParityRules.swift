@@ -419,19 +419,15 @@ public enum MoneyPricingAdapter {
 
     static func yuan(_ fen: Int64) -> Decimal { Decimal(fen) / 100 }
 
-    /// `pointDeductRate` is yuan per point (backend default 0.02). `maxPointsDeductPerOrderYuan` caps once per order.
-    /// Non-positive rate/cap fall back to the backend defaults inside `MoneyPricing.compute`.
+    /// Points use `MoneyPricing.defaultRateMicroYuan` (the port of `CmsConstants.POINT_DEDUCT_RATE`).
+    /// Callers cannot pass a client yuan-per-point rate. `maxPointsDeductPerOrderYuan` caps once per order.
     public static func compute(unitPrice: Decimal, quantity: Int = 1, memberUnitPrice: Decimal? = nil,
                                usePoints: Bool = false, pointsUsableForProduct: Bool = true, userAvailablePoints: Int = 0,
-                               pointDeductRate: Decimal = Decimal(string: "0.02")!,
                                maxPointsDeductPerOrderYuan: Decimal = 50) -> Output {
-        var scaledRate = pointDeductRate * 1_000_000
-        var rateRounded = Decimal()
-        NSDecimalRound(&rateRounded, &scaledRate, 0, .plain)
         let b = MoneyPricing.compute(
             unitMinor: fen(unitPrice), memberUnitMinor: memberUnitPrice.map(fen), quantity: quantity,
             userPoints: Int64(max(0, userAvailablePoints)), usePoints: usePoints && pointsUsableForProduct,
-            rateMicroYuan: NSDecimalNumber(decimal: rateRounded).int64Value,
+            rateMicroYuan: MoneyPricing.defaultRateMicroYuan,
             maxPerOrderMinor: fen(maxPointsDeductPerOrderYuan))
         let price = RegistrationCoreLoopRules.ComputedOrderPrice(
             orderTotalYuan: yuan(b.originalMinor), memberDiscountYuan: yuan(b.memberDiscountMinor),

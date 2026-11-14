@@ -76,6 +76,26 @@ class WP11SessionLocationContracts(unittest.TestCase):
             for claim in ('validated by schema', 'runtime validated', '运行时已校验'):
                 self.assertNotIn(claim, text, str(path))
 
+    def test_own_d01c_app_and_core_have_no_client_point_deduct_rate(self):
+        for source in swift_sources('App', 'Core'):
+            self.assertNotIn('pointDeductRate', source.read_text(), str(source))
+
+    def test_own_opt042b_countdown_does_not_tick_from_the_device_clock(self):
+        screen = self.read('App/PlayKitScreen.swift')
+        self.assertIn('Text(verbatim: "—")', screen)
+        self.assertNotIn('TimelineView(.periodic(from: .now, by: 1))', screen)
+        advanced = self.read('App/PlayAdvancedView.swift')
+        self.assertIn('LabeledContent("playx.advanced.remaining") { Text(verbatim: "—") }', advanced)
+        self.assertNotIn('timeIntervalSince1970 * 1000', advanced)
+        window = self.read('Core/NativeTimeWindowContract.swift')
+        self.assertIn('nextOpenAt.timeIntervalSince1970 - serverNow.timeIntervalSince1970', window)
+        reminder = self.read('App/NativeMotionReminderViews.swift')
+        self.assertIn('countdown(window.countdownSeconds)', reminder)
+        self.assertNotIn('nextOpenAt.timeIntervalSince(context.date)', reminder)
+        challenge = self.read('App/PlayKitTimedChallengeView.swift')
+        self.assertIn('if kind == .countdown { return "—" }', challenge)
+        self.assertNotIn('if kind == .countdown, elapsed >=', challenge)
+
     def test_own_opt072_reference_is_recorded_and_shown(self):
         self.assertIn('RequestReferenceLedger.shared.record(http)', self.read('Core/AuthService.swift'))
         self.assertIn('RequestReferenceRow(pathFragment: "/api/play/")', self.read('App/PlayExperienceView.swift'))

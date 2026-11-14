@@ -164,17 +164,15 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             if let value = segment[key].text, !value.isEmpty { Text(verbatim: value).foregroundStyle(.secondary) }
         }
         if let state = model.state, state.deadlineAt != nil {
-            TimelineView(.periodic(from: .now, by: 1)) { context in
-                let left = max(0, state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)) ?? 0)
-                Label {
-                    Text(verbatim: String(format: "%02ld:%02ld", left / 60, left % 60))
-                        .font(.system(.title2, design: .rounded).weight(.bold)).monospacedDigit()
-                } icon: { Image(systemName: "timer") }
-                .foregroundStyle(left <= 10 ? Color.red : Color.primary)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("playkit.sessionRemaining"))
-                .accessibilityValue(Text(verbatim: "\(left)"))
-            }
+            // No server clock on the play payload, so this does not tick from the phone.
+            Label {
+                Text(verbatim: "—")
+                    .font(.system(.title2, design: .rounded).weight(.bold)).monospacedDigit()
+            } icon: { Image(systemName: "timer") }
+            .foregroundStyle(Color.primary)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("playkit.sessionRemaining"))
+            .accessibilityValue(Text(verbatim: "—"))
         }
     }
     @ViewBuilder private var content: some View {

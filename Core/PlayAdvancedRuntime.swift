@@ -35,8 +35,11 @@ public struct PlayAdvancedState: Equatable {
         accusation = raw["accusation"]; clues = raw["clues"].array ?? []
         modInstallationReceipt = modInstallationRuntime == .null ? .null : raw
     }
+    /// `deadlineAt` is a server deadline. This payload has no server clock (`serverNow` is not a field here),
+    /// so remaining time is unknown. The device clock must not fill it in.
     public func remainingSeconds(nowMilliseconds: Int64) -> Int? {
-        deadlineAt.map { Int(max(0, ceil(Double($0 - nowMilliseconds) / 1000))) }
+        _ = nowMilliseconds
+        return nil
     }
 }
 public enum PlayKitActionCatalog {

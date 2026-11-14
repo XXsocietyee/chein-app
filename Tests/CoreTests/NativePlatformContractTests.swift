@@ -49,7 +49,9 @@ final class NativePlatformContractTests: XCTestCase {
         XCTAssertThrowsError(try challenge.validate(excessive, now: nativeNow))
     }
     func testServerWindowRequiresZoneFutureInstantAndLocalProvider() throws {
-        _ = try NativeTimeWindow(nativeWindow())
+        let window = try NativeTimeWindow(nativeWindow())
+        XCTAssertEqual(window.countdownSeconds, 3_600)
+        XCTAssertEqual(try NativeTimeWindow(nativeWindow(offset: 90_000)).countdownSeconds, 90)
         for field in ["nextOpenAt", "nextCloseAt", "serverNow"] {
             var raw = nativeWindow().object!; raw[field] = .int(0)
             XCTAssertThrowsError(try NativeTimeWindow(.object(raw)))
