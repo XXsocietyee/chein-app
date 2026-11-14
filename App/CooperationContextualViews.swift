@@ -136,6 +136,7 @@ import SwiftUI
     let topicID: Int?
     let merchantMemberIDs: [Int]
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var requests = Load.loading
     @State private var requestRows: [CoopFlowJSON] = []
     @State private var oneReceipt: CoopFlowJSON?
@@ -146,12 +147,12 @@ import SwiftUI
     var body: some View {
         Group {
             Section {
-                Text(verbatim: locale.pick("原请求", "Original requests")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                sectionTitle(locale.pick("原请求", "Original requests"))
                 requestBody
             }
             if kind == .merchant, let topicID, topicID > 0, !merchantMemberIDs.isEmpty {
                 Section {
-                    Text(verbatim: locale.pick("已确定据点", "Confirmed stations")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    sectionTitle(locale.pick("已确定据点", "Confirmed stations"))
                     stationBody
                 }
             }
@@ -159,8 +160,16 @@ import SwiftUI
         .task(id: reader.session) { await loadRequests() }
         .task(id: stationKey) { await loadStations() }
     }
+    private func sectionTitle(_ title: String) -> some View {
+        Text(verbatim: title)
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+    }
+    private var rowGap: CGFloat { dynamicTypeSize.isAccessibilitySize ? CYSpacing.sm : CYSpacing.xxs }
     @ViewBuilder private var requestBody: some View {
-        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
         else {
             switch requests {
             case .idle, .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
@@ -170,38 +179,44 @@ import SwiftUI
             case .failed:
                 Text(verbatim: locale.pick("原请求暂无法查询，请勿重复发送", "The original request cannot be read right now. Do not send again."))
                     .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await loadRequests() } }
+                CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await loadRequests() } }
             case .ready:
                 ForEach(Array(requestRows.enumerated()), id: \.offset) { _, row in
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text(verbatim: row["state"].text ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                        Text(verbatim: row["requestId"].text ?? "—").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    VStack(alignment: .leading, spacing: rowGap) {
+                        valueLine(row["state"].text, font: CYTypography.bodyMedium, color: CYColor.textPrimary)
+                        valueLine(row["requestId"].text, font: CYTypography.meta, color: CYColor.textTertiary)
                     }
                 }
                 if let oneReceipt {
-                    Text(verbatim: oneReceipt["state"].text ?? "—").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
-                    Text(verbatim: oneReceipt["inviteId"].text ?? "—").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    valueLine(oneReceipt["state"].text, font: CYTypography.body, color: CYColor.textPrimary)
+                    valueLine(oneReceipt["inviteId"].text, font: CYTypography.meta, color: CYColor.textTertiary)
                 }
             }
         }
     }
     @ViewBuilder private var stationBody: some View {
-        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
         else {
             switch stations {
             case .idle, .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
             case .empty:
-                Text(verbatim: locale.pick("暂无已确定据点", "No confirmed station")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: locale.pick("暂无已确定据点", "No confirmed station")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             case .failed:
-                Text(verbatim: locale.pick("据点读取失败，请重试", "Stations did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
-                CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await loadStations() } }
+                Text(verbatim: locale.pick("据点读取失败，请重试", "Stations did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await loadStations() } }
             case .ready:
-                if stationRows.isEmpty { Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                if stationRows.isEmpty { valueLine(nil, font: CYTypography.body, color: CYColor.textSecondary) }
                 ForEach(Array(stationRows.enumerated()), id: \.offset) { _, row in
-                    Text(verbatim: row["stationName"].text ?? "—").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    valueLine(row["stationName"].text, font: CYTypography.body, color: CYColor.textPrimary)
                 }
             }
         }
+    }
+    private func valueLine(_ text: String?, font: Font, color: Color) -> some View {
+        Text(verbatim: text ?? "—")
+            .font(font)
+            .foregroundStyle(color)
+            .fixedSize(horizontal: false, vertical: true)
     }
     private func loadRequests() async {
         guard reader.session != nil else { requests = .idle; return }

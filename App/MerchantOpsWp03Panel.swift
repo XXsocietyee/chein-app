@@ -114,18 +114,23 @@ enum MerchantOpsWp03Phase: Equatable {
 struct MerchantOpsWp03Panel: View {
     let page: MerchantOpsWp03Page
     @Environment(\.merchantOpsWp03Bridge) private var bridge
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @StateObject private var model = MerchantOpsWp03Model()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? CYSpacing.md : CYSpacing.sm) {
             Text(LocalizedStringKey(titleKey), tableName: "MerchantOpsWp03")
-                .font(.headline)
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
             ForEach(page.routes) { route in
                 MerchantOpsWp03RowView(route: route, phase: model.phase[route.id] ?? .loading, reply: model.reply[route.id]) {
                     Task { await model.load(page: page, bridge: bridge) }
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityIdentifier("wp03.page." + page.rawValue)
         .task(id: taskKey) { await model.load(page: page, bridge: bridge) }
     }
@@ -151,51 +156,78 @@ private struct MerchantOpsWp03RowView: View {
     let phase: MerchantOpsWp03Phase
     let reply: MerchantOpsWp03Reply?
     let retry: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey(titleKey), tableName: "MerchantOpsWp03")
-                .font(.body)
+        VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? CYSpacing.sm : CYSpacing.xs) {
+            copy(LocalizedStringKey(titleKey), font: CYTypography.bodyMedium, color: CYColor.textPrimary)
             Text(verbatim: MerchantOpsWp03Catalog.method(for: route.path) + " /" + route.path)
-                .font(.body)
-                .foregroundStyle(.secondary)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
             state
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityIdentifier("wp03.row." + route.id)
     }
 
     private var titleKey: String { "wp03.row." + route.rawValue }
 
+    private func copy(_ key: LocalizedStringKey, font: Font, color: Color) -> some View {
+        Text(key, tableName: "MerchantOpsWp03")
+            .font(font)
+            .foregroundStyle(color)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     @ViewBuilder private var state: some View {
         switch phase {
         case .loading:
-            ProgressView { Text("wp03.loading", tableName: "MerchantOpsWp03") }
-                .accessibilityIdentifier("wp03.loading." + route.id)
+            loading
         case .empty:
-            Text("wp03.empty", tableName: "MerchantOpsWp03")
-                .font(.body)
+            copy("wp03.empty", font: CYTypography.body, color: CYColor.textSecondary)
                 .accessibilityIdentifier("wp03.empty." + route.id)
         case .failed:
             Text(verbatim: reply?.message ?? MerchantOpsWp03Reply.unknown)
-                .font(.body)
-            Button(action: retry) { Text("wp03.retry", tableName: "MerchantOpsWp03").font(.body) }
-                .accessibilityIdentifier("wp03.retry." + route.id)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYPillButton(
+                "wp03.retry",
+                style: .secondary,
+                fullWidth: dynamicTypeSize.isAccessibilitySize,
+                compact: !dynamicTypeSize.isAccessibilitySize,
+                tableName: "MerchantOpsWp03",
+                action: retry
+            )
+            .accessibilityIdentifier("wp03.retry." + route.id)
         case .withheld:
-            Text("wp03.unknown", tableName: "MerchantOpsWp03")
-                .font(.body)
+            copy("wp03.unknown", font: CYTypography.body, color: CYColor.textPrimary)
                 .accessibilityIdentifier("wp03.withheld." + route.id)
-            Text(LocalizedStringKey(withheldKey), tableName: "MerchantOpsWp03")
-                .font(.body)
-                .foregroundStyle(.secondary)
+            copy(LocalizedStringKey(withheldKey), font: CYTypography.body, color: CYColor.textSecondary)
         case .signedOut:
-            Text("wp03.signedOut", tableName: "MerchantOpsWp03")
-                .font(.body)
+            copy("wp03.signedOut", font: CYTypography.body, color: CYColor.textSecondary)
                 .accessibilityIdentifier("wp03.signedOut." + route.id)
         case .ready:
             Text(verbatim: reply?.detail ?? MerchantOpsWp03Reply.unknown)
-                .font(.body)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("wp03.ready." + route.id)
         }
+    }
+
+    private var loading: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
+        return layout {
+            ProgressView()
+                .tint(CYColor.textSecondary)
+            copy("wp03.loading", font: CYTypography.body, color: CYColor.textSecondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("wp03.loading." + route.id)
     }
 
     private var withheldKey: String {

@@ -59,6 +59,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         .padding(.bottom, CYSpacing.sm)
                 } else {
                     Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, CYSpacing.pageHorizontal)
                         .accessibilityIdentifier("club.authorSquare.missing")
