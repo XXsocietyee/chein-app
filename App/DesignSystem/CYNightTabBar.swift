@@ -87,9 +87,9 @@ struct CYNightTabBar: View {
 
     private func pill(width: CGFloat) -> some View {
         Capsule(style: .continuous)
-            .fill(CYNight.violet.opacity(0.22))
-            .overlay(Capsule(style: .continuous).strokeBorder(CYNight.violet.opacity(0.55), lineWidth: 1))
-            .shadow(color: CYNight.violet.opacity(0.35), radius: 10)
+            .fill(CYColor.tabSelected.opacity(0.22))
+            .overlay(Capsule(style: .continuous).strokeBorder(CYColor.tabSelected.opacity(0.55), lineWidth: 1))
+            .shadow(color: CYColor.tabSelected.opacity(0.35), radius: 10)
             .frame(width: max(width, 40), height: pillHeight)
     }
 }

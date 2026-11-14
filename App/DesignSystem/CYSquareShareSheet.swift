@@ -59,7 +59,7 @@ struct CYSquareShareSheet: View {
                     .font(CYTypography.bodyMedium.weight(.semibold))
                     .foregroundStyle(CYColor.textOnAccent)
                     .frame(maxWidth: .infinity, minHeight: 52)
-                    .background(Capsule().fill(CYColor.accent))
+                    .background(Capsule().fill(CYColor.actionPrimaryBg))
             }
             .buttonStyle(.cyPressable)
             .accessibilityIdentifier("square.share.send")

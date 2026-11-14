@@ -78,9 +78,9 @@ struct SearchMapCard: View {
 }
 
 extension View {
-    /// Night glass capsule. Selected pills use violet, which is reserved for selection.
+    /// Night glass capsule. Selected pills use neutral primary fill (`CYColor.actionPrimaryBg`).
     func searchNightPill(selected: Bool = false) -> some View {
-        background(Capsule(style: .continuous).fill(selected ? CYNight.violet : CYNight.glassFill))
+        background(Capsule(style: .continuous).fill(selected ? CYColor.actionPrimaryBg : CYNight.glassFill))
             .overlay(Capsule(style: .continuous).strokeBorder(selected ? Color.clear : CYNight.glassEdgeTop, lineWidth: 1))
     }
 }

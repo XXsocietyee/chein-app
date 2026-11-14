@@ -9,7 +9,7 @@ public enum CYCardVariant: Sendable {
     case elevated
     /// Subtle inset group surface (`CYColor.bgSurfaceSubtle`, no shadow).
     case subtle
-    /// Highlighted brand tint surface (`CYColor.accentSoft`, accent border).
+    /// Highlighted brand tint surface (`CYColor.brandSoft`, no border).
     case accentTint
 }
 
@@ -22,7 +22,7 @@ public struct CYCardSurfaceModifier: ViewModifier {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.md,
+        radius: CGFloat = CYRadius.lg,
         padding: CGFloat = CYSpacing.lg
     ) {
         self.variant = variant
@@ -35,18 +35,7 @@ public struct CYCardSurfaceModifier: ViewModifier {
         case .surface: return CYColor.bgSurface
         case .elevated: return CYColor.bgElevated
         case .subtle: return CYColor.bgSurfaceSubtle
-        case .accentTint: return CYColor.accentSoft
-        }
-    }
-
-    private var borderColor: Color {
-        switch variant {
-        case .surface, .elevated:
-            return CYColor.borderSubtle
-        case .subtle:
-            return .clear
-        case .accentTint:
-            return CYColor.accent.opacity(0.32)
+        case .accentTint: return CYColor.brandSoft
         }
     }
 
@@ -55,7 +44,6 @@ public struct CYCardSurfaceModifier: ViewModifier {
         content
             .padding(padding)
             .background(shape.fill(backgroundColor))
-            .overlay(shape.strokeBorder(borderColor, lineWidth: 1))
             .shadow(
                 color: (variant == .elevated && colorScheme == .light)
                     ? Color.black.opacity(0.05)
@@ -69,10 +57,10 @@ public struct CYCardSurfaceModifier: ViewModifier {
 }
 
 public extension View {
-    /// Applies the standard Chengyin card surface, continuous squircle radius, and semantic border.
+    /// Applies the standard Chengyin card surface and continuous squircle radius (no outer stroke border).
     func cyCardSurface(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.md,
+        radius: CGFloat = CYRadius.lg,
         padding: CGFloat = CYSpacing.lg
     ) -> some View {
         modifier(CYCardSurfaceModifier(variant: variant, radius: radius, padding: padding))
@@ -88,7 +76,7 @@ public struct CYCard<Content: View>: View {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.md,
+        radius: CGFloat = CYRadius.lg,
         padding: CGFloat = CYSpacing.lg,
         @ViewBuilder content: () -> Content
     ) {
@@ -151,7 +139,7 @@ public struct CYSectionHeader: View {
                         Image(systemName: "chevron.right")
                             .font(.caption.weight(.semibold))
                     }
-                    .foregroundStyle(CYColor.accentText)
+                    .foregroundStyle(CYColor.brand)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
                 }
@@ -163,7 +151,7 @@ public struct CYSectionHeader: View {
 
 // MARK: - 3. Primary, Secondary & Destructive Button Styles
 
-/// Primary pill button style using brand violet `#7A5CFF` (`>= 44pt` hit target, Reduce Motion aware).
+/// Primary pill button style using domain neutral action fill (`>= 44pt` hit target, Reduce Motion aware).
 public struct CYPrimaryButtonStyle: ButtonStyle {
     public var isFullWidth: Bool
     @Environment(\.isEnabled) private var isEnabled
@@ -176,8 +164,8 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         let shape = RoundedRectangle(cornerRadius: CYRadius.pill, style: .continuous)
         configuration.label
-            .font(CYTypography.label)
-            .foregroundStyle(isEnabled ? CYColor.textOnAccent : CYColor.textDisabled)
+            .font(CYTypography.button)
+            .foregroundStyle(isEnabled ? CYColor.actionPrimaryFg : CYColor.textDisabled)
             .padding(.horizontal, CYSpacing.xl)
             .padding(.vertical, CYSpacing.md)
             .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
@@ -185,7 +173,7 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
                 shape.fill(
                     !isEnabled
                         ? CYColor.bgRaised
-                        : (configuration.isPressed ? CYColor.accentPressed : CYColor.accent)
+                        : (configuration.isPressed ? CYColor.brandStrong : CYColor.actionPrimaryBg)
                 )
             )
             .contentShape(shape)
@@ -194,7 +182,7 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// Secondary button style with subtle surface fill and semantic border (`>= 44pt` hit target).
+/// Secondary button style with subtle surface fill and no outer border (`>= 44pt` hit target).
 public struct CYSecondaryButtonStyle: ButtonStyle {
     public var isFullWidth: Bool
     @Environment(\.isEnabled) private var isEnabled
@@ -205,18 +193,15 @@ public struct CYSecondaryButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
         configuration.label
-            .font(CYTypography.label)
-            .foregroundStyle(isEnabled ? CYColor.textPrimary : CYColor.textDisabled)
+            .font(CYTypography.button)
+            .foregroundStyle(isEnabled ? CYColor.textSecondary : CYColor.textDisabled)
             .padding(.horizontal, CYSpacing.lg)
             .padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
             .background(
                 shape.fill(configuration.isPressed ? CYColor.bgSurfaceStrong : CYColor.actionSecondary)
-            )
-            .overlay(
-                shape.strokeBorder(CYColor.borderStrong, lineWidth: 1)
             )
             .contentShape(shape)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1.0)
@@ -235,18 +220,15 @@ public struct CYDestructiveButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
         configuration.label
-            .font(CYTypography.label)
+            .font(CYTypography.button)
             .foregroundStyle(isEnabled ? CYColor.dangerText : CYColor.textDisabled)
             .padding(.horizontal, CYSpacing.lg)
             .padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
             .background(
                 shape.fill(configuration.isPressed ? CYColor.dangerSoft.opacity(0.85) : CYColor.dangerSoft)
-            )
-            .overlay(
-                shape.strokeBorder(CYColor.dangerText.opacity(0.28), lineWidth: 1)
             )
             .contentShape(shape)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1.0)
@@ -347,7 +329,7 @@ public struct CYErrorStateView: View {
 public enum CYUnreadBadgeStyle: Sendable {
     /// High-priority mention / DM unread (`CYColor.dangerSolid` red capsule).
     case danger
-    /// Brand accent unread (`CYColor.accent` violet capsule).
+    /// Neutral brand unread (`CYColor.brand` capsule).
     case accent
     /// Muted channel / silent notification (`CYColor.bgSurfaceStrong` neutral capsule).
     case muted
@@ -387,7 +369,7 @@ public struct CYUnreadBadge: View {
     private var fillColor: Color {
         switch style {
         case .danger: return CYColor.dangerSolid
-        case .accent: return CYColor.accent
+        case .accent: return CYColor.brand
         case .muted: return CYColor.bgSurfaceStrong
         }
     }
@@ -508,7 +490,7 @@ public struct CYAvatarView: View {
             .overlay(
                 Circle()
                     .strokeBorder(
-                        showAccentRing ? CYColor.accent : CYColor.borderSubtle,
+                        showAccentRing ? CYColor.avatarRing : CYColor.borderSubtle,
                         lineWidth: showAccentRing ? 2 : 1
                     )
             )
@@ -529,10 +511,10 @@ public struct CYAvatarView: View {
 
     private var fallbackView: some View {
         ZStack {
-            CYColor.accentSoft
+            CYColor.brandSoft
             Text(verbatim: Self.monogram(for: name))
                 .font(monogramFont)
-                .foregroundStyle(CYColor.accentText)
+                .foregroundStyle(CYColor.brand)
         }
     }
 }

@@ -434,12 +434,11 @@ private struct CYUnlockCelebration: ViewModifier {
 // MARK: - Album card chrome
 
 extension View {
-    /// Card surface shared by album pages and collection tiles: elevated continuous-corner card with a hairline rim.
+    /// Card surface shared by album pages and collection tiles: elevated continuous-corner card with no outer border.
     func cyAlbumCard(padding: CGFloat = CYSpacing.md) -> some View {
         self
             .padding(padding)
             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
     }
 }
 

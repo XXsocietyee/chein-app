@@ -197,7 +197,6 @@ struct CYPermissionPrimer: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.xl)
         .background(palette.cardFill, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 0.5))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cy.permission.\(identifierKind)")
     }

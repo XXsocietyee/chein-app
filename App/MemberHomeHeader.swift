@@ -164,9 +164,9 @@ import SwiftUI
     private var lettermark: some View {
         let nickname = snapshot?.nickname ?? account.nickname
         return ZStack {
-            Circle().fill(CYColor.accentSoft)
-            if let initial = nickname.first { Text(verbatim: String(initial)).font(CYTypography.sheetTitle).foregroundStyle(CYColor.accentText) }
-            else { Image(systemName: "person.fill").font(CYTypography.sheetTitle).foregroundStyle(CYColor.accentText) }
+            Circle().fill(CYColor.brandSoft)
+            if let initial = nickname.first { Text(verbatim: String(initial)).font(CYTypography.sheetTitle).foregroundStyle(CYColor.brand) }
+            else { Image(systemName: "person.fill").font(CYTypography.sheetTitle).foregroundStyle(CYColor.brand) }
         }
         // The lettermark sits in a fixed 56pt avatar; cap its growth so large Dynamic Type cannot overflow the circle.
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
@@ -296,7 +296,7 @@ struct MemberBenefitRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: benefit.unlocked ? "checkmark.circle.fill" : "lock.fill")
-                .foregroundStyle(benefit.unlocked ? CYColor.accentText : CYColor.textTertiary)
+                .foregroundStyle(benefit.unlocked ? CYColor.brand : CYColor.textTertiary)
             label.font(CYTypography.body).foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)

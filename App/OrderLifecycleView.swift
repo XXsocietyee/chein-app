@@ -359,14 +359,14 @@ private struct CYOrderActionPrimaryLabel: ViewModifier {
     func body(content: Content) -> some View {
         content.font(CYTypography.label).foregroundStyle(CYColor.textOnAccent)
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(CYColor.accent, in: Capsule(style: .continuous))
+            .background(CYColor.actionPrimaryBg, in: Capsule(style: .continuous))
     }
 }
 private struct CYOrderActionSecondaryLabel: ViewModifier {
     func body(content: Content) -> some View {
-        content.font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+        content.font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-            .overlay(Capsule(style: .continuous).strokeBorder(CYColor.borderStrong, lineWidth: 1))
+            .background(CYColor.actionSecondary, in: Capsule(style: .continuous))
             .contentShape(Capsule(style: .continuous))
     }
 }

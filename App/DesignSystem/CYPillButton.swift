@@ -2,7 +2,7 @@ import SwiftUI
 
 enum CYPillStyle { case primary, secondary, tertiary }
 
-/// 56pt capsule button. Primary = solid, secondary = outlined, tertiary = text only.
+/// 56pt capsule button. Primary = solid, secondary = filled grey with no outline, tertiary = text only.
 /// One primary per screen (owner rule). Disabled state keeps full contrast via palette, no opacity drop.
 struct CYPillButton: View {
     private let title: LocalizedStringKey
@@ -82,7 +82,7 @@ struct CYPillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         let shape = Capsule(style: .continuous)
         configuration.label
-            .font(.system(.body).weight(.bold))
+            .font(CYTypography.button)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(foreground)
@@ -90,7 +90,6 @@ struct CYPillButtonStyle: ButtonStyle {
             .padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: compact ? compactHeight : height)
             .background(shape.fill(fill))
-            .overlay(shape.strokeBorder(style == .secondary ? stroke : .clear, lineWidth: 1.5))
             .contentShape(shape)
             .cyPressEffect(configuration.isPressed && isEnabled, reduceMotion: reduceMotion)
     }
@@ -99,16 +98,17 @@ struct CYPillButtonStyle: ButtonStyle {
         guard isEnabled else { return palette.textPlaceholder }
         switch style {
         case .primary: return palette.actionPrimaryFg
-        case .secondary, .tertiary: return palette.textPrimary
+        case .secondary: return palette.textSecondary
+        case .tertiary: return palette.textPrimary
         }
     }
     private var fill: Color {
         switch style {
         case .primary: return isEnabled ? palette.actionPrimaryBg : palette.bgSurfaceSubtle
-        case .secondary, .tertiary: return .clear
+        case .secondary: return isEnabled ? palette.actionSecondaryBg : palette.bgSurfaceSubtle
+        case .tertiary: return .clear
         }
     }
-    private var stroke: Color { isEnabled ? palette.borderStrong : palette.borderSubtle }
 }
 
 private struct CYPillButtonPreviewBody: View {

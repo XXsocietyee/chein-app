@@ -115,7 +115,7 @@ struct ProfileParticipantsView: View {
                                 Button("participant.form.delete", role: .destructive) { deleting = ParticipantRowTarget(id: card.id) }
                                     .accessibilityIdentifier("participant.list.delete.\(card.id)")
                                 Button("participant.form.edit") { editing = ParticipantRowTarget(id: card.id) }
-                                    .tint(CYColor.accent).accessibilityIdentifier("participant.list.edit.\(card.id)")
+                                    .tint(CYColor.infoText).accessibilityIdentifier("participant.list.edit.\(card.id)")
                             }
                         }
                     }

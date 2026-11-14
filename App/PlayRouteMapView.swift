@@ -388,7 +388,7 @@ struct RouteActionPageReadRequest {
                                 Text(verbatim: String(stop.order)).font(.caption.bold())
                             }.foregroundStyle(stop.state == .current ? CYColor.textOnAccent : Color.primary)
                                 .frame(minWidth: 44, minHeight: 44)
-                                .padding(4).background(stop.state == .current ? CYColor.accent : Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 12))
+                                .padding(4).background(stop.state == .current ? CYColor.actionPrimaryBg : Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 12))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(inspecting ? Color.primary : Color.clear, lineWidth: 2))
                         }.buttonStyle(.plain).disabled(request == nil)
                             .accessibilityLabel(stopName(stop) + Text(verbatim: ", ") + Text(LocalizedStringKey(stop.state.labelKey)))

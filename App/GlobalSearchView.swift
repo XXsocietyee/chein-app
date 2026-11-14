@@ -440,7 +440,7 @@ import SwiftUI
         let selected = selectedKind == kind
         return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
             title.font(CYTypography.bodyMedium).lineLimit(1)
-                .foregroundStyle(selected ? Color.white : CYColor.textPrimary)
+                .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .searchNightPill(selected: selected)
         }

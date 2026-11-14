@@ -111,7 +111,7 @@ struct UsageConsentGateView: View {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                     Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary) }
                         .toggleStyle(.switch)
-                        .tint(CYColor.accent)
+                        .tint(CYColor.successText)
                         .padding(.horizontal, CYSpacing.lg)
                         .padding(.vertical, CYSpacing.md)
                         .frame(minHeight: 64)

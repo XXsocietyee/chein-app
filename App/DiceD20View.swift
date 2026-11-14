@@ -155,7 +155,7 @@ import QuestifyCore
 
             if !receipt.detailsHidden, receipt.kept != nil {
                 ProgressView(value: pct, total: 100)
-                    .tint(isCrit ? CYColor.warningText : (receipt.success == true ? CYColor.successText : CYColor.accentWarm))
+                    .tint(isCrit ? CYColor.warningText : (receipt.success == true ? CYColor.successText : CYColor.rare))
                     .accessibilityHidden(true)
             }
 

@@ -273,7 +273,7 @@ public struct ClubChannelMessagingView: View {
             }
             .frame(minHeight: CYSpacing.minTouchTarget)
             .font(CYTypography.label)
-            .foregroundStyle(CYColor.accentText)
+            .foregroundStyle(CYColor.brand)
         }
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.sm)
@@ -480,8 +480,8 @@ public struct ClubChannelMessagingView: View {
                         .font(CYTypography.micro.monospacedDigit())
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(CYColor.accentSoft, in: Capsule())
-                        .foregroundStyle(CYColor.accentText)
+                        .background(CYColor.brandSoft, in: Capsule())
+                        .foregroundStyle(CYColor.brand)
                 } else if channel.isMuted {
                     Image(systemName: "bell.slash")
                         .font(CYTypography.micro)
@@ -491,7 +491,7 @@ public struct ClubChannelMessagingView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(isSelected ? CYColor.accentSoft : Color.clear, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+            .background(isSelected ? CYColor.brandSoft : Color.clear, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 6)
@@ -529,7 +529,7 @@ public struct ClubChannelMessagingView: View {
                                         Text(copy("加载更早的频道消息", "Load earlier messages"))
                                     }
                                     .font(CYTypography.caption)
-                                    .foregroundStyle(CYColor.accentText)
+                                    .foregroundStyle(CYColor.brand)
                                     .frame(maxWidth: .infinity)
                                     .frame(minHeight: CYSpacing.minTouchTarget)
                                 }
@@ -615,7 +615,7 @@ public struct ClubChannelMessagingView: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
-                        .background(CYColor.accent, in: Capsule())
+                        .background(CYColor.actionPrimaryBg, in: Capsule())
                         .foregroundStyle(CYColor.textOnAccent)
                         .shadow(radius: 4)
                     }
@@ -636,7 +636,7 @@ public struct ClubChannelMessagingView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "arrowshape.turn.up.left.fill")
                         .font(.caption)
-                        .foregroundStyle(CYColor.accentText)
+                        .foregroundStyle(CYColor.brand)
                     Text(copy("回复 \(replyTarget.senderName ?? "成员 #\(replyTarget.senderID ?? 0)")：\(replyTarget.content ?? "")", "Replying to \(replyTarget.senderName ?? "Member #\(replyTarget.senderID ?? 0)"): \(replyTarget.content ?? "")"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -704,7 +704,7 @@ public struct ClubChannelMessagingView: View {
                             .font(.subheadline.weight(.bold))
                             .foregroundStyle(CYColor.textOnAccent)
                             .frame(width: 44, height: 44)
-                            .background(CYColor.accent.opacity(composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.35 : 1), in: Circle())
+                            .background(CYColor.actionPrimaryBg.opacity(composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.35 : 1), in: Circle())
                     }
                     .buttonStyle(.plain)
                     .frame(minWidth: 44, minHeight: 44)
@@ -891,8 +891,8 @@ private struct ChannelBurstGroupCard: View {
                             .font(.caption2.weight(.semibold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 1)
-                            .background(CYColor.accentText.opacity(0.14), in: Capsule())
-                            .foregroundStyle(CYColor.accentText)
+                            .background(CYColor.brandSoft, in: Capsule())
+                            .foregroundStyle(CYColor.brand)
                     }
                     Text(group.headerTimestampText)
                         .font(.caption2)
@@ -916,7 +916,7 @@ private struct ChannelBurstGroupCard: View {
                                     if reply.threadReplyCount > 1 {
                                         Text(copy("\(reply.threadReplyCount) 条串内回复", "\(reply.threadReplyCount) thread replies"))
                                             .font(.caption2.weight(.medium))
-                                            .foregroundStyle(CYColor.accentText)
+                                            .foregroundStyle(CYColor.brand)
                                     }
                                 }
                                 .padding(.horizontal, 8)
@@ -1064,7 +1064,7 @@ public struct ClubChannelMemberRosterSheet: View {
                             coordinator.clearBanner()
                         }
                         .font(CYTypography.label)
-                        .foregroundStyle(CYColor.accentText)
+                        .foregroundStyle(CYColor.brand)
                     }
                     .padding(.horizontal, CYSpacing.md)
                     .padding(.vertical, CYSpacing.sm)
@@ -1077,7 +1077,7 @@ public struct ClubChannelMemberRosterSheet: View {
                             ForEach(section.members) { member in
                                 HStack(spacing: 10) {
                                     Circle()
-                                        .fill(CYColor.accentText.opacity(0.16))
+                                        .fill(CYColor.brandSoft)
                                         .frame(width: 32, height: 32)
                                         .overlay(
                                             Text(String(member.nickname.prefix(1)))
@@ -1091,8 +1091,8 @@ public struct ClubChannelMemberRosterSheet: View {
                                                 .font(.caption2.weight(.semibold))
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 1)
-                                                .background(CYColor.accentText.opacity(0.14), in: Capsule())
-                                                .foregroundStyle(CYColor.accentText)
+                                                .background(CYColor.brandSoft, in: Capsule())
+                                                .foregroundStyle(CYColor.brand)
                                             if coordinator.blockedSenderIDs.contains(member.memberID) {
                                                 Text(copy("已拉黑", "Blocked"))
                                                     .font(.caption2)

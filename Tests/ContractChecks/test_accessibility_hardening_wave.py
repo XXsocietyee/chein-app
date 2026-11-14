@@ -55,7 +55,7 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
     def test_jump_pill_uses_tokens(self):
         s = src('App/ClubChannelMessagingView.swift')
         pill = s[s.index('showNewMessageJumpBanner {'):s.index('channelComposerBar: some View')]
-        self.assertIn('CYColor.accent', pill)
+        self.assertIn('CYColor.actionPrimaryBg', pill)
         self.assertIn('CYColor.textOnAccent', pill)
         self.assertNotIn('Color.accentColor', pill)
         self.assertNotIn('.foregroundStyle(.white)', pill)
@@ -248,7 +248,7 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
         self.assertIn('CYColor.textOnAccent', im)
         route = src('App/PlayRouteMapView.swift')
         self.assertIn('stop.state == .current ? CYColor.textOnAccent : Color.primary', route)
-        self.assertIn('stop.state == .current ? CYColor.accent :', route)
+        self.assertIn('stop.state == .current ? CYColor.actionPrimaryBg :', route)
 
     def test_coordinate_pickers_offer_non_gesture_alternative(self):
         im = src('App/IMExpandedViews.swift')

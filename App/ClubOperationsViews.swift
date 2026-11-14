@@ -1011,7 +1011,7 @@ private struct ClubOperationsProfileForm: View {
                         Text(LocalizedStringKey("club.ops.value." + value))
                         Spacer()
                         if draft.clubType == value {
-                            Image(systemName: "checkmark").foregroundStyle(CYNight.selection).accessibilityHidden(true)
+                            Image(systemName: "checkmark").foregroundStyle(CYColor.selection).accessibilityHidden(true)
                         }
                     }
                 }
@@ -1046,7 +1046,7 @@ private struct ClubOperationsProfileForm: View {
                     HStack {
                         Text(LocalizedStringKey("club.ops.value." + value))
                         Spacer()
-                        if selected { Image(systemName: "checkmark").foregroundStyle(CYNight.selection).accessibilityHidden(true) }
+                        if selected { Image(systemName: "checkmark").foregroundStyle(CYColor.selection).accessibilityHidden(true) }
                     }
                 }
                 .buttonStyle(.plain)

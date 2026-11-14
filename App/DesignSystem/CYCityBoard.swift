@@ -143,7 +143,7 @@ struct CYCityBoardRing: View {
                 }
                 if let selection, let index = properties.firstIndex(where: { $0.id == selection }) {
                     RoundedRectangle(cornerRadius: tile * 0.3, style: .continuous)
-                        .strokeBorder(CYNight.violet, lineWidth: 2)
+                        .strokeBorder(CYNight.lantern, lineWidth: 2)
                         .frame(width: tile + 8, height: tile + 8)
                         .matchedGeometryEffect(id: "selection", in: ring)
                         .position(points[index]).allowsHitTesting(false).accessibilityHidden(true)

@@ -90,7 +90,7 @@ public struct CYOfflineBanner: View {
                 Button(action: onRetry) {
                     Text("cy.state.offline.retry")
                         .font(CYTypography.label)
-                        .foregroundStyle(CYColor.accentText)
+                        .foregroundStyle(CYColor.brand)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .contentShape(Rectangle())
                 }

@@ -180,7 +180,7 @@ enum OfficialDetailID {
                                 Spacer()
                                 Text(verbatim: collective.detailCountText).monospacedDigit()
                             }
-                            ProgressView(value: collective.displayFraction ?? 0).tint(CYColor.accent).accessibilityHidden(true)
+                            ProgressView(value: collective.displayFraction ?? 0).tint(CYColor.brand).accessibilityHidden(true)
                             Text(LocalizedStringKey(presentation.collectiveTipKey)).font(.footnote).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
                     }
