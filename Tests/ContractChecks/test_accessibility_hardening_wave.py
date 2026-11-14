@@ -55,8 +55,9 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
     def test_jump_pill_uses_tokens(self):
         s = src('App/ClubChannelMessagingView.swift')
         pill = s[s.index('showNewMessageJumpBanner {'):s.index('channelComposerBar: some View')]
-        self.assertIn('CYColor.accent', pill)
-        self.assertIn('CYColor.textOnAccent', pill)
+        # h-visual-bugs contrast fix: palette action tokens (still tokens, never a raw accent colour).
+        self.assertIn('palette.actionPrimaryBg', pill)
+        self.assertIn('palette.actionPrimaryFg', pill)
         self.assertNotIn('Color.accentColor', pill)
         self.assertNotIn('.foregroundStyle(.white)', pill)
 

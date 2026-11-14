@@ -398,7 +398,8 @@ final class UGCContentSafetyServiceTests: XCTestCase {
         XCTAssertEqual(second, [8], "records wins over rows and list")
 
         let rooted = UGCRecordingTransport(#"{"code":200,"items":[{"memberId":11}]}"#)
-        XCTAssertEqual(try await service(rooted).fetchBlockedMemberIDs(cursor: 0, token: token), [11])
+        let awaited = try await service(rooted).fetchBlockedMemberIDs(cursor: 0, token: token)
+        XCTAssertEqual(awaited, [11])
 
         let zero = UGCRecordingTransport(#"{"code":0,"msg":"closed"}"#)
         do {
