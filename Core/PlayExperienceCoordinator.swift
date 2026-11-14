@@ -856,7 +856,7 @@ public struct PlayCompletionReview: Equatable {
             remoteRunSaveFailed = value.pendingRemote
         } catch {
             #if DEBUG
-            NSLog("[E2E] reconcileRun failed: %@", String(describing: error))
+            NSLog("[E2E] reconcileRun failed: %@", LogFieldRedaction.redacted(String(describing: error)))
             #endif
             guard currentSession() == session, generation == request else { return }
             localRecoveryFailed = true; issue = .persistenceUnavailable; clock.restore(nil); pausedLease = nil; pausedOwner = nil

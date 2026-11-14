@@ -2586,7 +2586,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         #if DEBUG
         do { return try await guardedSend(request) } catch {
-            NSLog("[E2E] composition refused or failed %@ %@: %@", request.httpMethod ?? "GET", request.url?.path ?? "", "\(error)")
+            NSLog("[E2E] composition refused or failed %@ %@: %@", request.httpMethod ?? "GET", request.url?.path ?? "", LogFieldRedaction.redacted("\(error)"))
             throw error
         }
         #else
