@@ -40,6 +40,7 @@
         "Adapt4RoamPOIBackendShapeTests",
         "Adapt5PasswordLoginOffTests",
         "AppCompositionRootTests",
+        "AppSecKeychainClearTests",
         "AppSessionCompositionDiagnosticsSectionViewTests",
         "AppStoreConnectMetadataAndScreenshotSectionViewTests",
         "AppStoreReviewDemoAccountAndFixtureSectionViewTests",
