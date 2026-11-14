@@ -62,6 +62,28 @@ public enum BackendIdempotentWriteRouteCatalog {
         return lower.contains("/refund") || lower.contains("/payout") || lower.contains("/withdraw")
     }
 
+    /// True when `request` targets a money/cash-sensitive route OR carries paid checkout parameters
+    /// (for example `/api/registration/create` with `payChannel` or a positive payment amount).
+    public static func isMoneyOrCashSensitiveRequest(_ request: URLRequest) -> Bool {
+        guard let url = request.url else { return false }
+        let path = ChinaReviewedRouteCapability.normalized(url.path)
+        if isMoneyOrCashSensitiveWrite(path) { return true }
+        if path == "/api/registration/create",
+           let body = request.httpBody, !body.isEmpty,
+           let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any] {
+            if let channel = object["payChannel"] as? String,
+               !channel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return true
+            }
+            for key in ["payableAmount", "payAmount", "totalAmount"] {
+                if let amount = (object[key] as? NSNumber)?.doubleValue, amount > 0 {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     /// Verified non-money write routes whose backend controllers enforce idempotency on `hengyin@067da9748`.
     public static let nonMoneyIdempotentSpecs: [IdempotentWriteRouteSpec] = [
         // Roam & compliance
@@ -190,6 +212,61 @@ public struct OfflineWriteQueueFlushReport: Equatable, Sendable {
     public let lockedUnknownCount: Int
     public let rejectedCount: Int
     public let abortedUnauthorized: Bool
+    public let succeededPaths: [String]
+
+    public init(
+        succeededCount: Int,
+        remainingQueuedCount: Int,
+        lockedUnknownCount: Int,
+        rejectedCount: Int,
+        abortedUnauthorized: Bool,
+        succeededPaths: [String] = []
+    ) {
+        self.succeededCount = succeededCount
+        self.remainingQueuedCount = remainingQueuedCount
+        self.lockedUnknownCount = lockedUnknownCount
+        self.rejectedCount = rejectedCount
+        self.abortedUnauthorized = abortedUnauthorized
+        self.succeededPaths = succeededPaths
+    }
+}
+
+/// Captures pre-send unreachable `URLRequest`s from opted-in write actions without altering service return values or adding retries.
+public struct OfflinePreSendCaptureBox: Sendable {
+    private let recordHandler: @Sendable (URLRequest, Error) -> Void
+
+    public init(onPreSendOffline: @escaping @Sendable (URLRequest, Error) -> Void) {
+        self.recordHandler = onPreSendOffline
+    }
+
+    public func recordIfPreSendOffline(request: URLRequest, error: Error) {
+        recordHandler(request, error)
+    }
+}
+
+/// Task-local scope for screens opting their non-money idempotent write calls into `OfflineIdempotentWriteQueue`.
+public enum OfflineWriteCaptureContext {
+    @TaskLocal public static var current: OfflinePreSendCaptureBox?
+}
+
+/// Pass-through transport wrapper that notifies `OfflineWriteCaptureContext.current` on pre-send unreachable failures.
+public struct OfflineWriteCaptureTransport: HTTPTransport {
+    private let underlying: any HTTPTransport
+
+    public init(underlying: any HTTPTransport) {
+        self.underlying = underlying
+    }
+
+    public func send(_ request: URLRequest) async throws -> (Data, Int) {
+        do {
+            return try await underlying.send(request)
+        } catch {
+            if OfflineIdempotentWriteQueue.isPreSendUnreachable(error) {
+                OfflineWriteCaptureContext.current?.recordIfPreSendOffline(request: request, error: error)
+            }
+            throw error
+        }
+    }
 }
 
 /// Durable account+realm-scoped queue for non-money backend-idempotent writes (`requestId`/`idempotencyKey`/`X-*-Request-Id`).
@@ -232,7 +309,7 @@ public final class OfflineIdempotentWriteQueue {
         let path = ChinaReviewedRouteCapability.normalized(url.path)
         let method = (request.httpMethod ?? "POST").trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
 
-        if BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveWrite(path) {
+        if BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(request) {
             lastBlockedMoneyRoute = path
             throw OfflineWriteQueueError.moneyWriteNeverAutoReplayed
         }
@@ -300,6 +377,7 @@ public final class OfflineIdempotentWriteQueue {
     ) async throws -> OfflineWriteQueueFlushReport {
         guard AuthRequestBuilder.isValidToken(token) else { throw OfflineWriteQueueError.unauthorized }
         var succeeded = 0
+        var succeededPaths: [String] = []
         var abortedUnauthorized = false
 
         let candidates = items.filter { $0.scopeKey == scope.storageKey && $0.status == .queuedOffline }
@@ -347,6 +425,9 @@ public final class OfflineIdempotentWriteQueue {
                         store.complete(existingID)
                     }
                     succeeded += 1
+                    if !succeededPaths.contains(item.path) {
+                        succeededPaths.append(item.path)
+                    }
                 } else if (400..<500).contains(status) || Self.isDefiniteBusinessRejection(data, status: status) {
                     update(id: item.id) {
                         $0.status = .rejected
@@ -387,7 +468,8 @@ public final class OfflineIdempotentWriteQueue {
             remainingQueuedCount: scoped.filter { $0.status == .queuedOffline }.count,
             lockedUnknownCount: scoped.filter { $0.status == .waitingExplicitConfirmation }.count,
             rejectedCount: scoped.filter { $0.status == .rejected }.count,
-            abortedUnauthorized: abortedUnauthorized
+            abortedUnauthorized: abortedUnauthorized,
+            succeededPaths: succeededPaths
         )
     }
 
@@ -414,6 +496,10 @@ public final class OfflineIdempotentWriteQueue {
             return key
 
         case .jsonBodyKey(let field):
+            let contentType = (request.value(forHTTPHeaderField: "Content-Type") ?? "").lowercased()
+            if contentType.contains("application/x-www-form-urlencoded") {
+                return try resolveOrInjectFormFieldKey(on: &request, field: field, path: spec.path, scope: scope, explicitKey: explicitKey)
+            }
             var jsonObject: [String: Any] = [:]
             if let body = request.httpBody, !body.isEmpty {
                 guard let parsed = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else {
@@ -433,22 +519,32 @@ public final class OfflineIdempotentWriteQueue {
             return key
 
         case .formFieldKey(let field):
-            let bodyText = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
-            var components = URLComponents()
-            components.percentEncodedQuery = bodyText
-            var queryItems = components.queryItems ?? []
-            if let existing = queryItems.first(where: { $0.name == field })?.value, HTTPRequestRetrySupport.isValidRequestID(existing) {
-                return existing
-            }
-            let key = try mintKey(subject: scope.storageKey, path: spec.path, body: request.httpBody ?? Data(), explicitKey: explicitKey)
-            queryItems.append(URLQueryItem(name: field, value: key))
-            components.queryItems = queryItems
-            request.httpBody = Data((components.percentEncodedQuery ?? "").utf8)
-            if request.value(forHTTPHeaderField: "Content-Type") == nil {
-                request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-            }
-            return key
+            return try resolveOrInjectFormFieldKey(on: &request, field: field, path: spec.path, scope: scope, explicitKey: explicitKey)
         }
+    }
+
+    private func resolveOrInjectFormFieldKey(
+        on request: inout URLRequest,
+        field: String,
+        path: String,
+        scope: OfflineWriteQueueScope,
+        explicitKey: String?
+    ) throws -> String {
+        let bodyText = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+        var components = URLComponents()
+        components.percentEncodedQuery = bodyText
+        var queryItems = components.queryItems ?? []
+        if let existing = queryItems.first(where: { $0.name == field })?.value, HTTPRequestRetrySupport.isValidRequestID(existing) {
+            return existing
+        }
+        let key = try mintKey(subject: scope.storageKey, path: path, body: request.httpBody ?? Data(), explicitKey: explicitKey)
+        queryItems.append(URLQueryItem(name: field, value: key))
+        components.queryItems = queryItems
+        request.httpBody = Data((components.percentEncodedQuery ?? "").utf8)
+        if request.value(forHTTPHeaderField: "Content-Type") == nil {
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        }
+        return key
     }
 
     private func mintKey(subject: String, path: String, body: Data, explicitKey: String?) throws -> String {
@@ -462,7 +558,18 @@ public final class OfflineIdempotentWriteQueue {
         return UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
     }
 
-    private static func isPreSendUnreachable(_ error: URLError) -> Bool {
+    /// True ONLY for pre-send unreachable failures where the request never left the device (safe to auto-replay with idempotency key).
+    /// Post-dispatch timeouts (`.timedOut`) and connection drops (`.networkConnectionLost`) return false and stay locked.
+    nonisolated public static func isPreSendUnreachable(_ error: Error) -> Bool {
+        if let urlError = error as? URLError {
+            return isPreSendUnreachable(urlError)
+        }
+        let nsError = error as NSError
+        guard nsError.domain == NSURLErrorDomain else { return false }
+        return isPreSendUnreachable(URLError(URLError.Code(rawValue: nsError.code)))
+    }
+
+    nonisolated private static func isPreSendUnreachable(_ error: URLError) -> Bool {
         switch error.code {
         case .notConnectedToInternet, .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed, .dataNotAllowed, .internationalRoamingOff:
             return true

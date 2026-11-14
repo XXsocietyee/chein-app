@@ -2581,6 +2581,13 @@ public struct ChinaReviewedProductionTransport: HTTPTransport {
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
         let outgoing = ChinaReviewedRouteAdaptation.adapt(request) ?? request
         try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(outgoing)
-        return try await underlying.send(outgoing)
+        do {
+            return try await underlying.send(outgoing)
+        } catch {
+            if OfflineIdempotentWriteQueue.isPreSendUnreachable(error) {
+                OfflineWriteCaptureContext.current?.recordIfPreSendOffline(request: outgoing, error: error)
+            }
+            throw error
+        }
     }
 }

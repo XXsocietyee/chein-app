@@ -25,6 +25,7 @@ import SwiftUI
     @Environment(\.nativePlatformRuntime) private var nativePlatform
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @ViewBuilder var body: some View {
         if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
         else { currentContent }
@@ -36,9 +37,35 @@ import SwiftUI
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 if model.state == nil && ["idle", "rejected", "disabled"].contains(model.phase) { CYPillButton("playx.advanced.start") { Task { await model.start() } }.listRowBackground(Color.clear) }
                 if model.state != nil && model.pending == nil { CYPillButton("playx.refresh", style: .secondary) { Task { await model.refreshAuthoritative() } }.listRowBackground(Color.clear) }
-                if model.phase == "unknown" { CYPillButton("playx.reconcile", style: .secondary) { Task { await model.recover() } }.listRowBackground(Color.clear) }
-                if model.phase == "retryable" { CYPillButton("playx.retryExact", style: .tertiary) { Task { await model.retryExact() } }.listRowBackground(Color.clear) }
+                if model.phase == "unknown" {
+                    CYPillButton("playx.reconcile", style: .secondary) {
+                        Task {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/play/advanced/action"]
+                            ) {
+                                await model.recover()
+                            }
+                        }
+                    }.listRowBackground(Color.clear)
+                }
+                if model.phase == "retryable" {
+                    CYPillButton("playx.retryExact", style: .tertiary) {
+                        Task {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/play/advanced/action"]
+                            ) {
+                                await model.retryExact()
+                            }
+                        }
+                    }.listRowBackground(Color.clear)
+                }
             }
+            CYScreenOfflineWriteSection(
+                routes: ["/api/play/advanced/action"],
+                session: offlineWriteSession.session
+            )
             if let receipt = model.modInstallationActionReceipt, let requestID = model.modInstallationActionKey {
                 ModInstallationNativeActionReceiptView(receipt: receipt, requestID: requestID)
             }
@@ -181,7 +208,14 @@ extension PlayAdvancedView {
     /// SUBMIT_HANGMAN through the advanced review. An unknown result keeps the saved request id.
     private var hangmanWrite: PlayKitHangmanWrite {
         { payload in
-            Task { await model.submit(kind: PlayKitPublishedWrites.hangmanKind, action: PlayKitPublishedWrites.hangmanAction, detail: payload) }
+            Task {
+                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineWriteSession.session,
+                    routes: ["/api/play/advanced/action"]
+                ) {
+                    await model.submit(kind: PlayKitPublishedWrites.hangmanKind, action: PlayKitPublishedWrites.hangmanAction, detail: payload)
+                }
+            }
         }
     }
 
@@ -199,7 +233,16 @@ extension PlayAdvancedView {
                 Text("playkit.pendingBoundary")
                 Text(verbatim: pending.key).font(CYTypography.meta).textSelection(.enabled)
                     .accessibilityIdentifier("playkit.album.requestId")
-                Button("playkit.reconcile") { Task { await model.recover() } }
+                Button("playkit.reconcile") {
+                    Task {
+                        await SessionOfflineSyncModel.shared.performWriteOptIn(
+                            environmentSession: offlineWriteSession.session,
+                            routes: ["/api/play/advanced/action"]
+                        ) {
+                            await model.recover()
+                        }
+                    }
+                }
                     .accessibilityIdentifier("playkit.album.reconcile")
             }
             .padding(.horizontal)

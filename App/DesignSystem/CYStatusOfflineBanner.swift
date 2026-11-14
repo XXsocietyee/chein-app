@@ -109,3 +109,136 @@ public struct CYStatusOfflineBanner: View {
         .accessibilityIdentifier("cy.offlineBanner")
     }
 }
+
+/// User-visible per-screen sync state for an opted-in non-money backend-idempotent write.
+enum CYOfflineWriteScreenStatus: Equatable, Sendable {
+    case none
+    case queued(count: Int)
+    case syncing(count: Int)
+    case synced
+    case waitingConfirmation(count: Int)
+    case rejected(count: Int)
+    case moneyExcluded
+}
+
+/// Reusable `CY*` status card embedded on screens that opt non-money idempotent writes into `OfflineIdempotentWriteQueue`.
+struct CYOfflineWriteStatusBanner: View {
+    let status: CYOfflineWriteScreenStatus
+    let isOnline: Bool
+    var accessibilityID: String = "cy.offlineWrite.status"
+    var onSyncNow: (() -> Void)? = nil
+    var onDismissSynced: (() -> Void)? = nil
+
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        switch status {
+        case .none:
+            EmptyView()
+        case .queued(let count):
+            card(tone: .warning, border: palette.warning.opacity(0.35), fill: palette.warningSoft.opacity(0.55)) {
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip("cy.state.offline.write.chip.queued", tone: .warning, systemImage: "icloud.slash")
+                    Spacer(minLength: CYSpacing.xs)
+                    if isOnline, let onSyncNow {
+                        Button("cy.state.offline.queue.syncNow", action: onSyncNow)
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .accessibilityIdentifier("\(accessibilityID).syncNow")
+                    }
+                }
+                Text(count > 1
+                     ? LocalizedStringKey("cy.state.offline.write.willSendCount \(count)")
+                     : LocalizedStringKey("cy.state.offline.write.willSendWhenOnline"))
+                    .font(CYTypography.caption)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("\(accessibilityID).message")
+            }
+        case .syncing(let count):
+            card(tone: .info, border: palette.borderSubtle, fill: palette.bgElevated) {
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip("cy.state.offline.write.chip.syncing", tone: .info, systemImage: "arrow.triangle.2.circlepath")
+                    ProgressView()
+                        .controlSize(.small)
+                    Spacer(minLength: CYSpacing.xs)
+                    Text(verbatim: "\(count)")
+                        .font(CYTypography.caption.monospacedDigit())
+                        .foregroundStyle(palette.textSecondary)
+                }
+                Text("cy.state.offline.queue.syncing")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("\(accessibilityID).message")
+            }
+        case .synced:
+            card(tone: .success, border: palette.success.opacity(0.35), fill: palette.successSoft.opacity(0.5)) {
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip("cy.state.offline.write.chip.synced", tone: .success, systemImage: "checkmark.circle.fill")
+                    Spacer(minLength: CYSpacing.xs)
+                    if let onDismissSynced {
+                        Button("cy.state.offline.write.dismiss", action: onDismissSynced)
+                            .font(CYTypography.caption)
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("\(accessibilityID).dismiss")
+                    }
+                }
+                Text("cy.state.offline.write.synced")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("\(accessibilityID).message")
+            }
+        case .waitingConfirmation(let count):
+            card(tone: .warning, border: palette.danger.opacity(0.35), fill: palette.dangerSoft.opacity(0.45)) {
+                CYStatusChip("cy.state.offline.write.chip.locked", tone: .warning, systemImage: "lock.fill")
+                Text("cy.state.offline.queue.lockedUnknown \(count)")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("\(accessibilityID).message")
+            }
+        case .rejected:
+            card(tone: .danger, border: palette.danger.opacity(0.35), fill: palette.dangerSoft.opacity(0.45)) {
+                CYStatusChip("cy.state.offline.write.chip.rejected", tone: .danger, systemImage: "xmark.octagon.fill")
+                Text("cy.state.offline.write.rejected")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("\(accessibilityID).message")
+            }
+        case .moneyExcluded:
+            card(tone: .danger, border: palette.danger.opacity(0.35), fill: palette.dangerSoft.opacity(0.45)) {
+                CYStatusChip("cy.state.offline.write.chip.excluded", tone: .danger, systemImage: "lock.shield.fill")
+                Text("cy.state.offline.queue.moneyNoAutoReplay")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("\(accessibilityID).message")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func card<Content: View>(
+        tone: CYStatusTone,
+        border: Color,
+        fill: Color,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            content()
+        }
+        .padding(.horizontal, CYSpacing.md)
+        .padding(.vertical, CYSpacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
+                .stroke(border, lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(accessibilityID)
+    }
+}

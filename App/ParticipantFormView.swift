@@ -115,7 +115,16 @@ final class ParticipantFormModel: ObservableObject {
         guard let confirmation else { return false }
         let stamp = generation
         showConfirmation = false; operation = .submitting
-        let result = await coordinator.confirm(confirmation)
+        let result: ParticipantCoordinatorAction
+        if case .save = confirmation.mutation {
+            result = await SessionOfflineSyncModel.shared.performWriteOptIn(
+                routes: ["/api/user/address/action"]
+            ) {
+                await coordinator.confirm(confirmation)
+            }
+        } else {
+            result = await coordinator.confirm(confirmation)
+        }
         guard generation == stamp, loadedIdentity == confirmation.identity,
               reader.identity == confirmation.identity, coordinator.identity == confirmation.identity else { return false }
         self.confirmation = nil; confirmationSummary = ""; sync()
@@ -186,6 +195,7 @@ final class ParticipantFormModel: ObservableObject {
 struct ParticipantFormView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @StateObject private var model: ParticipantFormModel
     @FocusState private var focusedField: ProfileParticipantValidationField?
     let onSaved: () -> Void
@@ -269,6 +279,10 @@ struct ParticipantFormView: View {
                     if let issue = model.issue {
                         Section { ParticipantIssueText(issue: issue) }
                     }
+                    CYScreenOfflineWriteSection(
+                        routes: ["/api/user/address/action"],
+                        session: offlineWriteSession.session
+                    )
                     ParticipantOperationSections(state: model.operation, readback: model.readback, canReadAgain: model.canReadBack, actionIssue: model.issue) {
                         Task { await model.readBack() }
                     }

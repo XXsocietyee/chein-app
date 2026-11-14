@@ -334,4 +334,146 @@ final class OfflineRetryPackage63Tests: XCTestCase {
         XCTAssertTrue(tracker.recordSystemConnectivity(isConnected: false))
         XCTAssertFalse(tracker.recordSystemConnectivity(isConnected: true))
     }
+
+    // MARK: - Follow-up 63b Screen Opt-In, Form-Urlencoded & Registration Guard Tests
+
+    func testPreSendUnreachableClassificationVsTimeouts() {
+        XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.notConnectedToInternet)))
+        XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.cannotFindHost)))
+        XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.cannotConnectToHost)))
+        XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.dnsLookupFailed)))
+        XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.dataNotAllowed)))
+        XCTAssertTrue(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.internationalRoamingOff)))
+
+        XCTAssertFalse(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.timedOut)))
+        XCTAssertFalse(OfflineIdempotentWriteQueue.isPreSendUnreachable(URLError(.networkConnectionLost)))
+        XCTAssertFalse(OfflineIdempotentWriteQueue.isPreSendUnreachable(CancellationError()))
+    }
+
+    func testFormEncodedJsonBodySpecRoutesResolveAndInjectKey() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("pkg63b-form-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let scope = try OfflineWriteQueueScope(accountID: 51, realm: "cn-e2e-test", baseURL: "https://8120.test")
+        let queue = try OfflineIdempotentWriteQueue(fileURL: dir.appendingPathComponent("queue.json"))
+
+        var addrReq = URLRequest(url: URL(string: "https://8120.test/api/user/address/action")!)
+        addrReq.httpMethod = "POST"
+        addrReq.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        addrReq.httpBody = Data("action=create&realName=Alex".utf8)
+        let addrItem = try queue.enqueueOfflineWrite(addrReq, scope: scope, explicitKey: "addrkey12345")
+
+        var tplReq = URLRequest(url: URL(string: "https://8120.test/api/template/topic-template/use")!)
+        tplReq.httpMethod = "POST"
+        tplReq.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        tplReq.httpBody = Data("templateId=9".utf8)
+        let tplItem = try queue.enqueueOfflineWrite(tplReq, scope: scope, explicitKey: "tplkey123456")
+
+        let stub = StubRetryHTTPTransport([
+            .response(Data(#"{"code":200}"#.utf8), 200),
+            .response(Data(#"{"code":200}"#.utf8), 200)
+        ])
+        let api = try APIConfiguration(baseURL: URL(string: "https://8120.test")!)
+        let report = try await queue.flushPending(
+            scope: scope,
+            configuration: api,
+            token: "Bearer tok-form",
+            currentScope: { scope },
+            isOnline: { true },
+            transport: stub
+        )
+
+        XCTAssertEqual(report.succeededCount, 2)
+        XCTAssertEqual(Set(report.succeededPaths), ["/api/user/address/action", "/api/template/topic-template/use"])
+        XCTAssertEqual(stub.recordedRequests.count, 2)
+        let addrBody = String(decoding: stub.recordedRequests[0].httpBody ?? Data(), as: UTF8.self)
+        let tplBody = String(decoding: stub.recordedRequests[1].httpBody ?? Data(), as: UTF8.self)
+        XCTAssertTrue(addrBody.contains("requestId=\(addrItem.idempotencyKey)"))
+        XCTAssertTrue(tplBody.contains("requestId=\(tplItem.idempotencyKey)"))
+    }
+
+    func testRegistrationCreateAllowsFreeAndExcludesPaidMoneyRequests() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("pkg63b-reg-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let scope = try OfflineWriteQueueScope(accountID: 52, realm: "cn-e2e-test", baseURL: "https://8120.test")
+        let queue = try OfflineIdempotentWriteQueue(fileURL: url)
+
+        var paidByChannel = URLRequest(url: URL(string: "https://8120.test/api/registration/create")!)
+        paidByChannel.httpMethod = "POST"
+        paidByChannel.httpBody = Data(#"{"activityId":10,"payChannel":"APP","requestId":"regpaid0001"}"#.utf8)
+        XCTAssertTrue(BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(paidByChannel))
+        XCTAssertThrowsError(try queue.enqueueOfflineWrite(paidByChannel, scope: scope)) { err in
+            XCTAssertEqual(err as? OfflineWriteQueueError, .moneyWriteNeverAutoReplayed)
+        }
+
+        var paidByAmount = URLRequest(url: URL(string: "https://8120.test/api/registration/create")!)
+        paidByAmount.httpMethod = "POST"
+        paidByAmount.httpBody = Data(#"{"activityId":10,"payableAmount":19.9,"requestId":"regpaid0002"}"#.utf8)
+        XCTAssertTrue(BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(paidByAmount))
+        XCTAssertThrowsError(try queue.enqueueOfflineWrite(paidByAmount, scope: scope)) { err in
+            XCTAssertEqual(err as? OfflineWriteQueueError, .moneyWriteNeverAutoReplayed)
+        }
+
+        var freeReq = URLRequest(url: URL(string: "https://8120.test/api/registration/create")!)
+        freeReq.httpMethod = "POST"
+        freeReq.httpBody = Data(#"{"activityId":10,"payableAmount":0,"requestId":"regfree0001"}"#.utf8)
+        XCTAssertFalse(BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(freeReq))
+        let item = try queue.enqueueOfflineWrite(freeReq, scope: scope)
+        XCTAssertEqual(item.path, "/api/registration/create")
+        XCTAssertEqual(item.idempotencyKey, "regfree0001")
+    }
+
+    func testChinaReviewedProductionTransportCapturesPreSendUnreachableOnly() async throws {
+        let stub = StubRetryHTTPTransport([
+            .failure(URLError(.notConnectedToInternet)),
+            .failure(URLError(.timedOut)),
+            .failure(URLError(.notConnectedToInternet))
+        ])
+        let transport = ChinaReviewedProductionTransport(underlying: stub)
+
+        final class CapturedList: @unchecked Sendable {
+            private let lock = NSLock()
+            var requests: [URLRequest] = []
+            func append(_ req: URLRequest) {
+                lock.lock()
+                requests.append(req)
+                lock.unlock()
+            }
+        }
+        let captured = CapturedList()
+        let box = OfflinePreSendCaptureBox { req, _ in
+            captured.append(req)
+        }
+
+        try await OfflineWriteCaptureContext.$current.withValue(box) {
+            var feedbackReq = URLRequest(url: URL(string: "https://8120.test/api/play/feedback/submit")!)
+            feedbackReq.httpMethod = "POST"
+            feedbackReq.httpBody = Data(#"{"runId":1,"content":"gate closed","requestId":"fbreq123456"}"#.utf8)
+            do {
+                _ = try await transport.send(feedbackReq)
+                XCTFail("Expected offline error")
+            } catch {}
+
+            var timeoutReq = URLRequest(url: URL(string: "https://8120.test/api/play/feedback/submit")!)
+            timeoutReq.httpMethod = "POST"
+            timeoutReq.httpBody = Data(#"{"runId":1,"content":"timeout","requestId":"fbtmo123456"}"#.utf8)
+            do {
+                _ = try await transport.send(timeoutReq)
+                XCTFail("Expected timeout error")
+            } catch {}
+        }
+
+        // Outside opt-in context, pre-send offline error must not capture
+        var unoptedReq = URLRequest(url: URL(string: "https://8120.test/api/play/feedback/submit")!)
+        unoptedReq.httpMethod = "POST"
+        do {
+            _ = try await transport.send(unoptedReq)
+            XCTFail("Expected offline error")
+        } catch {}
+
+        XCTAssertEqual(captured.requests.count, 1)
+        XCTAssertEqual(captured.requests.first?.url?.path, "/api/play/feedback/submit")
+    }
 }

@@ -60,6 +60,7 @@ import QuestifyCore
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     /// Location-purpose consent is asked once, on the first GO, by the inline card; the stored answer seeds this state and
     /// still feeds `owner.start(purposeAccepted:)`, which stays the source of truth.
     @AppStorage("roamLivePurposeAcceptedV1") private var storedPurposeAccepted = false
@@ -189,11 +190,25 @@ import QuestifyCore
                 if owner.phase == .recoveryRequired {
                     Section {
                         Text("roam.live.recoveryHint")
-                        Button("roam.live.recover", systemImage: "arrow.clockwise") { Task { if owner.record == nil { owner.prepare() }; await owner.recover() } }
+                        Button("roam.live.recover", systemImage: "arrow.clockwise") {
+                            Task {
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/roam/reveal", "/api/compliance/consents"]
+                                ) {
+                                    if owner.record == nil { owner.prepare() }
+                                    await owner.recover()
+                                }
+                            }
+                        }
                             .disabled(owner.busy).accessibilityIdentifier("roam.live.recover")
                     }
                 }
             }
+            CYScreenOfflineWriteSection(
+                routes: ["/api/roam/reveal", "/api/compliance/consents"],
+                session: offlineWriteSession.session
+            )
             if let error = owner.error {
                 Section {
                     Label { Text(errorText(error)) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
@@ -243,7 +258,14 @@ import QuestifyCore
     }
     private func beginStart() {
         if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
-        Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
+        Task {
+            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineWriteSession.session,
+                routes: ["/api/roam/reveal", "/api/compliance/consents"]
+            ) {
+                await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+            }
+        }
     }
     private var sessionObservers: some View {
         // A ZStack keeps one identity: swapping in the report must not run the session's onDisappear (pause).
@@ -317,7 +339,14 @@ import QuestifyCore
         .sheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }
             locationPrimingAllowed = false
-            Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
+            Task {
+                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineWriteSession.session,
+                    routes: ["/api/roam/reveal", "/api/compliance/consents"]
+                ) {
+                    await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+                }
+            }
         }) {
             CYPermissionPrimerScreen(kind: .location, onPrimary: {
                 CYPermissionSystemPrompt.notePrimed(.location)
@@ -417,7 +446,16 @@ import QuestifyCore
                         Spacer(minLength: 0)
                     }
                 } else if canStart, owner.record?.finishRequested == false {
-                    Button { Task { await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
+                    Button {
+                        Task {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/roam/reveal", "/api/compliance/consents"]
+                            ) {
+                                await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+                            }
+                        }
+                    } label: {
                         Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.cyPrimary)
@@ -446,7 +484,12 @@ import QuestifyCore
         goCommitted = true
         goWave += 1
         Task {
-            await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineWriteSession.session,
+                routes: ["/api/roam/reveal", "/api/compliance/consents"]
+            ) {
+                await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+            }
             if owner.phase != .active { goCommitted = false }
         }
     }
