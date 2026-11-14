@@ -138,6 +138,8 @@ enum DesignFixtureRegistry {
             if let g = MainActor.assumeIsolated({ GParityFixtures.make(name) }) { return g }
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
             if name.hasPrefix("cur4-"), let cur4 = Cur4Fixtures.make(name) { return cur4 }
+            // Batch-7 screens whose view types compile on this base (CurFixtures3): cur3-<view>[-<state>][-zh]
+            if let cur3 = MainActor.assumeIsolated({ CurFixtures3.make(name) }) { return cur3 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
