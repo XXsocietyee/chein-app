@@ -1,6 +1,8 @@
 # ui-cur-fixtures-5 — DEBUG fixtures
 
-Base when this branch was cut: `origin/ui/main` `3e2dca3ec5d5c732ea7d286cbb0fe856944ffce6`. That tip had not moved. Launch: `--design-fixture <id>`. Registry: `CurFixtures5.make` in `App/DesignFixtures/DesignFixtureRegistry.swift`. `CurFixtures2` is not on this tip (reverted at `9209d33cb`). `CurFixtures3` and `CurFixtures4` are not on this tip. This file follows the registry that is here.
+Rebased onto `origin/ui/main` `6feee423adc8962d7613f8ba93b77ffdc93ea1c4` after the fixture commit. The fixture files were not rewritten. WP-06, WP-09, and WP-10 are on that tip; this pass still does not add fixtures for them. The skip rows below that say those types are absent were true on the cut, and are stale after the rebase.
+
+Base when this branch was cut: `origin/ui/main` `3e2dca3ec5d5c732ea7d286cbb0fe856944ffce6`. Launch: `--design-fixture <id>`. Registry: `CurFixtures5.make` in `App/DesignFixtures/DesignFixtureRegistry.swift`. `CurFixtures2` is not on this tip (reverted at `9209d33cb`). `CurFixtures3` and `CurFixtures4` are not on this tip. This file follows the registry that is here.
 
 Host used by the purchased reader and the WP-03 transport: `https://fixture.example`. Token: `synthetic-fixture-token`. A missing or unknown value is an em dash (`U+2014`). A decoded `0` stays `0`. Each id also has a `-zh` name that sets `Locale(identifier: "zh-Hans")`. The screens' own catalogs supply English and zh-Hans. The fixture footer is `DEBUG fixture · synthetic` or `调试夹具 · 合成数据`.
 
