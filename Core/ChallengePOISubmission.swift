@@ -36,6 +36,93 @@ public struct GatedChallengePOIWriter: ChallengePOIWriting {
     public func complete(_ request: ChallengePOICompleteRequest) async -> ChallengePOIWriteOutcome { .unavailable }
 }
 
+/// Live HTTP writer for `POST /api/city/nodes/{id}/complete`, ported from `pages/play/poi-challenge/index.js`.
+public struct ChallengePOIHTTPWriter: ChallengePOIWriting {
+    private static let prewriteRejectionMessages: Set<String> = [
+        "离据点太远,请到店后再完成",
+        "答案不正确",
+        "请上传拍照打卡照片",
+        "照片地址不合法,请重新上传",
+        "照片未上传成功或不属于当前账号，请重新拍摄上传",
+        "照片校验暂不可用，请稍后重试",
+        "据点未开放或已下线",
+        "节点未上线",
+        "缺少定位",
+    ]
+
+    private let configuration: @Sendable () async -> APIConfiguration?
+    private let transport: any HTTPTransport
+    private let tokenProvider: @Sendable () async -> String?
+    private let isRouteOpen: @Sendable () async -> Bool
+
+    public init(
+        configuration: @escaping @Sendable () async -> APIConfiguration?,
+        transport: any HTTPTransport,
+        tokenProvider: @escaping @Sendable () async -> String?,
+        isRouteOpen: @escaping @Sendable () async -> Bool = { true }
+    ) {
+        self.configuration = configuration
+        self.transport = transport
+        self.tokenProvider = tokenProvider
+        self.isRouteOpen = isRouteOpen
+    }
+
+    public func complete(_ request: ChallengePOICompleteRequest) async -> ChallengePOIWriteOutcome {
+        guard await isRouteOpen(), let config = await configuration(), let rawToken = await tokenProvider() else {
+            return .unavailable
+        }
+        let token = rawToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !token.isEmpty else { return .unavailable }
+
+        let relativePath = request.path.hasPrefix("/") ? String(request.path.dropFirst()) : request.path
+        var fields: [String: String] = [
+            "answer": request.body["answer"]?.text ?? "",
+            "photoUrl": request.body["photoUrl"]?.text ?? "",
+            "code": request.body["code"]?.text ?? "",
+        ]
+        if let lat = request.body["lat"] {
+            if let value = lat.double { fields["lat"] = String(value) }
+            else if let text = lat.text { fields["lat"] = text }
+        }
+        if let lng = request.body["lng"] {
+            if let value = lng.double { fields["lng"] = String(value) }
+            else if let text = lng.text { fields["lng"] = text }
+        }
+
+        let urlRequest: URLRequest
+        do {
+            urlRequest = try AuthRequestBuilder.makeFormRequest(
+                url: config.baseURL.appendingPathComponent(relativePath),
+                fields: fields,
+                token: token
+            )
+        } catch {
+            return .unavailable
+        }
+
+        do {
+            let (data, httpStatus) = try await transport.send(urlRequest)
+            guard let root = try? JSONDecoder().decode(PlayWireValue.self, from: data) else {
+                return .unconfirmed(message: W8Text.t("结果还没确认，请稍后重试", "Result is not confirmed yet. Please try again."))
+            }
+            let code = root["code"].tolerantInteger
+            let msg = root["msg"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let payload = root["data"]
+            if (200...299).contains(httpStatus), code == 200, payload["needRedeem"].bool != nil {
+                return .success(data: payload)
+            }
+            let cleanMsg = msg?.isEmpty == false ? msg! : nil
+            if code.map(ChallengePOIRules.isPrewriteRejection) == true
+                || (cleanMsg.map { Self.prewriteRejectionMessages.contains($0) } == true) {
+                return .rejected(message: cleanMsg ?? W8Text.t("未通过挑战，请核对后重试", "Challenge not passed. Check and try again."))
+            }
+            return .unconfirmed(message: cleanMsg ?? W8Text.t("结果还没确认，请稍后重试", "Result is not confirmed yet. Please try again."))
+        } catch {
+            return .unconfirmed(message: W8Text.t("网络异常，请重试", "Network error. Please retry."))
+        }
+    }
+}
+
 public enum ChallengePOISubmitState: Equatable {
     case idle
     case submitting

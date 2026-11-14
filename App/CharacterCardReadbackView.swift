@@ -24,6 +24,9 @@ import SwiftUI
                 CYEmptyState(systemImage: "person.text.rectangle", "characterCard.unavailable",
                              detailVerbatim: CharacterCardPageModel.unknownStat, messageIdentifier: "characterCard.unknown",
                              actionTitle: "characterCard.refresh", actionIdentifier: "characterCard.refresh") { Task { await model.load() } }
+                    .accessibilityLabel(Text("characterCard.unavailable"))
+                    .accessibilityValue(Text(verbatim: CharacterCardPageModel.unknownStat))
+                    .accessibilityHint(Text("characterCard.refresh"))
             case .empty:
                 // A loaded card with no attributes: count is a real 0, not unknown.
                 CYEmptyState(systemImage: "person.text.rectangle", "characterCard.empty", messageIdentifier: "characterCard.empty",

@@ -26,6 +26,7 @@ struct SettingsView: View {
             if let info = accountInfo {
                 if let route = profileOwner.route(.current(session)) {
                     NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true) }
+                        .questifyHidesLinkIndicator()
                         .accessibilityIdentifier("settingsNative.openProfile")
                 } else {
                     SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: false)
@@ -140,6 +141,7 @@ struct SettingsView: View {
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")
+            .cyHideTabBar()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.done") { dismiss() }

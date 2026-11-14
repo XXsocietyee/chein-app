@@ -2,11 +2,17 @@ import CoreLocation
 import SwiftUI
 import UIKit
 import Combine
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
 
 @MainActor private final class RoamLiveViewModel: ObservableObject {
     let controller: RoamLiveSessionController
     let finishedHistory: RoamFinishedHistoryReader
     @Published private var revision = 0
+    /// Port of `utils/roam-sync-status.js`: 2 consecutive transport errors or offline path shows sync banner.
+    private(set) var syncStatus = RoamSyncStatusTracker()
+    private var lastObservedPresenceError = false
     /// Frozen when the walk finishes. The settle chip reads this; a later clear of places does not erase it.
     var finishAddress = RoamFinishAddress.Snapshot()
     init(_ controller: RoamLiveSessionController, offlineExample: Bool) {
@@ -14,8 +20,26 @@ import Combine
         finishedHistory = controller.makeFinishedHistoryReader(offlineExample: offlineExample)
         controller.onChange = { [weak self] in
             self?.captureFinishAddress()
+            self?.updateSyncStatus()
             self?.revision &+= 1
         }
+    }
+    func updateSyncStatus() {
+        let transportOffline = controller.presenceError || isTransportError(controller.placesReadError) || isTransportError(controller.error)
+        if transportOffline {
+            if !lastObservedPresenceError { syncStatus.recordOutcome(netFail: true) }
+        } else if controller.phase == .active && controller.error == nil {
+            syncStatus.recordOutcome(netFail: false, code: 200)
+        }
+        lastObservedPresenceError = controller.presenceError
+    }
+    func syncReachability(isOffline: Bool) {
+        syncStatus.recordSystemConnectivity(isConnected: !isOffline)
+        revision &+= 1
+    }
+    private func isTransportError(_ error: Error?) -> Bool {
+        guard let urlError = error as? URLError else { return false }
+        return HTTPRequestRetrySupport.isTransientTransportError(urlError)
     }
     func captureFinishAddress() {
         guard controller.phase != .finished else { return }
@@ -36,6 +60,8 @@ import Combine
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.analyticsEventClient) private var analytics
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     /// Location-purpose consent is asked once, on the first GO, by the inline card; the stored answer seeds this state and
     /// still feeds `owner.start(purposeAccepted:)`, which stays the source of truth.
     @AppStorage("roamLivePurposeAcceptedV1") private var storedPurposeAccepted = false
@@ -71,6 +97,21 @@ import Combine
     private var sessionContent: some View {
         List {
             if offlineExample { RoamExperienceNotice(offline: true) }
+            if model.syncStatus.isOffline {
+                Section {
+                    CYStatusOfflineBanner(
+                        messageKey: RoamSyncStatusTracker.offlineKey,
+                        serious: true,
+                        onRetry: {
+                            if owner.canRetryNearbyRead {
+                                Task { await owner.retryNearbyRead() }
+                            }
+                        }
+                    )
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+            }
             // Mini-program pcard: goal line, then 用时 / 地盘 / 距离 (公里).
             Section { hud }
                 .listRowBackground(Color.clear)
@@ -121,6 +162,9 @@ import Combine
                                 Button("roam.poi.location.openSettings") {
                                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                                 }.frame(minHeight: 44).accessibilityIdentifier("roam.live.openSettings")
+                                    .accessibilityLabel(Text("roam.poi.location.openSettings"))
+                                    .accessibilityValue(Text("roam.poi.location.denied.title"))
+                                    .accessibilityHint(Text("roam.poi.location.denied.message2"))
                             }.accessibilityIdentifier("roam.live.locationDenied")
                         }
                         if owner.presenceAvailable {
@@ -151,6 +195,9 @@ import Combine
                         RoamPlaceMemorySection(placeName: memory.placeName, text: memory.text) {
                             owner.dismissPlaceMemory(id: memory.id)
                         }
+                        .onAppear {
+                            MiniProgramAnalytics.track(analytics, "roam_poi_meaning_shown", bizType: "roam", pagePath: "/pages/roam/index")
+                        }
                     }
                     nearby
                     trace
@@ -160,11 +207,25 @@ import Combine
                 if owner.phase == .recoveryRequired {
                     Section {
                         Text("roam.live.recoveryHint")
-                        Button("roam.live.recover", systemImage: "arrow.clockwise") { Task { if owner.record == nil { owner.prepare() }; await owner.recover() } }
+                        Button("roam.live.recover", systemImage: "arrow.clockwise") {
+                            Task {
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/roam/reveal", "/api/compliance/consents"]
+                                ) {
+                                    if owner.record == nil { owner.prepare() }
+                                    await owner.recover()
+                                }
+                            }
+                        }
                             .disabled(owner.busy).accessibilityIdentifier("roam.live.recover")
                     }
                 }
             }
+            CYScreenOfflineWriteSection(
+                routes: ["/api/roam/reveal", "/api/compliance/consents"],
+                session: offlineWriteSession.session
+            )
             if let error = owner.error {
                 Section {
                     Label { Text(errorText(error)) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
@@ -214,7 +275,14 @@ import Combine
     }
     private func beginStart() {
         if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
-        Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
+        Task {
+            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineWriteSession.session,
+                routes: ["/api/roam/reveal", "/api/compliance/consents"]
+            ) {
+                await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+            }
+        }
     }
     private var sessionObservers: some View {
         // A ZStack keeps one identity: swapping in the report must not run the session's onDisappear (pause).
@@ -257,13 +325,19 @@ import Combine
             }
         }
         // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
+        if id != nil {
+            let result = owner.settlement?.result
+            MiniProgramAnalytics.track(analytics, "roam_finish", bizType: "roam",
+                bizID: MiniProgramAnalytics.bizID(owner.completedHistory?.serverSessionID), pagePath: "/pages/roam/index",
+                properties: ["shops": .integer(Int64(result?.sessionShops ?? 0)), "pois": .integer(Int64(result?.newPois ?? 0))])
+        }
         guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
         celebrations.enqueue(.roamSummary(payload))
     }
     var body: some View {
         sessionObservers
         .task(id: owner.phase) { await pulseWhileActive() }
-        .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count))
+        .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0))
         .cyCelebrations(celebrations)
         .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in settledSessionChanged(id) }
         .overlay(alignment: .top) {
@@ -288,7 +362,14 @@ import Combine
         .sheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }
             locationPrimingAllowed = false
-            Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
+            Task {
+                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineWriteSession.session,
+                    routes: ["/api/roam/reveal", "/api/compliance/consents"]
+                ) {
+                    await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+                }
+            }
         }) {
             CYPermissionPrimerScreen(kind: .location, onPrimary: {
                 CYPermissionSystemPrompt.notePrimed(.location)
@@ -389,7 +470,16 @@ import Combine
                         Spacer(minLength: 0)
                     }
                 } else if canStart, owner.record?.finishRequested == false {
-                    Button { Task { await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
+                    Button {
+                        Task {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/roam/reveal", "/api/compliance/consents"]
+                            ) {
+                                await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+                            }
+                        }
+                    } label: {
                         Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.cyPrimary)
@@ -418,7 +508,12 @@ import Combine
         goCommitted = true
         goWave += 1
         Task {
-            await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineWriteSession.session,
+                routes: ["/api/roam/reveal", "/api/compliance/consents"]
+            ) {
+                await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
+            }
             if owner.phase != .active { goCommitted = false }
         }
     }
@@ -534,7 +629,16 @@ import Combine
             if owner.actionUnresolved(place, shop: shop) { Text("roam.live.unknownVisit").font(.caption) }
             else if owner.actionConfirmed(place, shop: shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
             else {
-                Button(shop ? "roam.live.visitShop" : "roam.live.discover") { Task { if shop { await owner.visitShop(place) } else { await owner.discover(place) } } }
+                Button(shop ? "roam.live.visitShop" : "roam.live.discover") {
+                    Task {
+                        let before = owner.actionConfirmed(place, shop: false)
+                        if shop { await owner.visitShop(place) } else { await owner.discover(place) }
+                        if !shop, !before, owner.actionConfirmed(place, shop: false) {
+                            MiniProgramAnalytics.track(analytics, "roam_poi_found", bizType: "roam",
+                                bizID: MiniProgramAnalytics.bizID(place.id), pagePath: "/pages/roam/index")
+                        }
+                    }
+                }
                     .disabled(owner.busy || owner.gapMeters(place, shop: shop) != 0)
                 if let gap = owner.gapMeters(place, shop: shop), gap > 0 {
                     Text("roam.live.walkCloser \(gap)").font(.caption).foregroundStyle(.secondary)

@@ -310,6 +310,7 @@ private struct CouponInfoSettingsReadOnlySection: View {
 }
 @MainActor private struct CouponManagementReviewSection: View {
     @Environment(\.locale) private var locale
+    @Environment(\.analyticsEventClient) private var analytics
     @ObservedObject var model: CouponManagementScreenModel
     let review: CouponManagementReview
     var body: some View {
@@ -322,7 +323,22 @@ private struct CouponInfoSettingsReadOnlySection: View {
                 LabeledContent("couponManagement.quantity", value: draft.quantity)
                 if let start = draft.startTime { LabeledContent("couponManagement.start") { Text(CouponValidityTime.display(start)) } }
                 if let end = draft.endTime { LabeledContent("couponManagement.end") { Text(CouponValidityTime.display(end)) } }
-                Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.publishConfirm")) { model.run { await model.core.confirm(review) } }
+                Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.publishConfirm")) {
+                    let published: CouponManagementDraft?
+                    if case .publish(let draft) = review.intent { published = draft } else { published = nil }
+                    model.run {
+                        await model.core.confirm(review)
+                        guard let draft = published, let id = model.core.acknowledgedDefinitionID else { return }
+                        var properties: [String: PlayWireValue] = [
+                            "action": .string("coupon_publish"),
+                            "name": .string(draft.name),
+                            "publishCount": .integer(Int64(Int(draft.quantity) ?? 0)),
+                        ]
+                        if let type = draft.couponType { properties["couponType"] = .integer(Int64(type)) }
+                        MiniProgramAnalytics.track(analytics, "coupon_verify", bizType: "coupon",
+                            bizID: MiniProgramAnalytics.bizID(id.value), pagePath: "/subpackageMember/couponInfo/couponInfo", properties: properties)
+                    }
+                }
                     .buttonStyle(.questifyPrimary)
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)

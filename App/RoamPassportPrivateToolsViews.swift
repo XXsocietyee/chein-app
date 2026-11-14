@@ -263,6 +263,7 @@ struct RoamPrivatePageScope: Hashable {
     let isConfigured: Bool
     let allowsWrites: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @StateObject private var page: RoamPrivatePageOwner
     @State private var model: RoamCapsuleCoordinator
     @State private var composing = false
@@ -285,6 +286,10 @@ struct RoamPrivatePageScope: Hashable {
     var body: some View {
         List {
             if page.isPresented {
+            CYScreenOfflineWriteSection(
+                routes: ["/api/capsules/create"],
+                session: offlineWriteSession.session
+            )
             if tools.isOfflineExample { Section { RoamExperienceNotice(offline: true) } }
             if let issue = model.issue {
                 Section { RoamPrivateIssueView(issue: issue, retry: issue == .outcomeUnknown ? nil : { page.read { await model.load() } }) }
@@ -302,7 +307,16 @@ struct RoamPrivatePageScope: Hashable {
                     // A restored lock has only the original request ID. Checking that
                     // receipt is the only action; the body is never rebuilt in order to resend.
                     if model.pending != nil {
-                        Button("roam.capsule.retryOriginal") { page.settle(write: true, { await model.retryPending() }, refresh: { await model.load() }) }
+                        Button("roam.capsule.retryOriginal") {
+                            page.settle(write: true, {
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/capsules/create"]
+                                ) {
+                                    await model.retryPending()
+                                }
+                            }, refresh: { await model.load() })
+                        }
                             .disabled(model.isBusy || !model.canWrite).accessibilityIdentifier("roam.capsule.retryOriginal")
                     }
                 }
@@ -310,7 +324,7 @@ struct RoamPrivatePageScope: Hashable {
             if let opened = model.opened {
                 Section {
                     Text("roam.capsule.openedMeta \(opened.unlockDateText ?? "—") \(opened.createdDateText ?? "—")").font(.caption).foregroundStyle(.secondary)
-                    Text(verbatim: opened.body ?? "").font(.body).textSelection(.enabled).accessibilityIdentifier("roam.capsule.body")
+                    Text(verbatim: capsuleText(opened.body)).font(.body).textSelection(.enabled).accessibilityIdentifier("roam.capsule.body")
                     if let photo = opened.photoURL, let url = URL(string: photo), url.scheme == "https" {
                         AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: { CYSkeleton() }
                             .accessibilityLabel(Text("roam.capsule.photo"))
@@ -360,10 +374,19 @@ struct RoamPrivatePageScope: Hashable {
         .onDisappear { retire(leaving: true) }
         .alert("roam.capsule.lockedTip", isPresented: $lockedTip) { Button("roam.private.ok", role: .cancel) {} }
         .confirmationDialog("roam.capsule.confirmTitle", isPresented: Binding(get: { model.review != nil }, set: { if !$0 { model.cancelReview() } }), titleVisibility: .visible) {
-            Button("roam.capsule.seal") { page.settle(write: true, { await model.confirmCreate() }, refresh: { await model.load() }) { saved in if saved { composing = false; text = "" } } }
+            Button("roam.capsule.seal") {
+                page.settle(write: true, {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/capsules/create"]
+                    ) {
+                        await model.confirmCreate()
+                    }
+                }, refresh: { await model.load() }) { saved in if saved { composing = false; text = "" } }
+            }
                 .accessibilityIdentifier("roam.capsule.confirmSeal")
             Button("roam.private.notNow", role: .cancel) { model.cancelReview() }
-        } message: { Text("roam.capsule.confirmMessage \(model.review?.unlockDate ?? "")") }
+        } message: { Text("roam.capsule.confirmMessage \(capsuleText(model.review?.unlockDate))") }
         .confirmationDialog("roam.capsule.deleteTitle", isPresented: Binding(get: { model.deleteReview != nil }, set: { if !$0 { model.cancelDelete() } }), titleVisibility: .visible) {
             Button("roam.capsule.delete", role: .destructive) { page.settle(write: true, { await model.confirmDelete() }, refresh: { await model.load() }) }
                 .accessibilityIdentifier("roam.capsule.confirmDelete")
@@ -454,6 +477,10 @@ struct RoamPrivatePageScope: Hashable {
     private func retire(leaving: Bool = false) {
         page.retire(leaving: leaving); model.suspend()
         text = ""; composing = false; lockedTip = false
+    }
+    private func capsuleText(_ value: String?) -> String {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? "—" : trimmed
     }
     private func startComposing() {
         guard page.acceptsInput, !page.settlementInFlight, !model.isBusy else { return }
@@ -574,6 +601,7 @@ extension RoamGoalState {
     let isConfigured: Bool
     let allowsWrites: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @StateObject private var page: RoamPrivatePageOwner
     @State private var model: RoamGoalsCoordinator
     @State private var creating = false
@@ -598,6 +626,10 @@ extension RoamGoalState {
     var body: some View {
         List {
             if page.isPresented {
+            CYScreenOfflineWriteSection(
+                routes: ["/api/exploration-goals/create"],
+                session: offlineWriteSession.session
+            )
             if tools.isOfflineExample { Section { RoamExperienceNotice(offline: true) } }
             if let issue = model.issue, !(creating && (issue == .invalidDraft || isRejection(issue))) {
                 Section { RoamPrivateIssueView(issue: issue, retry: issue == .outcomeUnknown ? nil : { page.read { await model.load() } }) }
@@ -609,7 +641,16 @@ extension RoamGoalState {
                         .disabled(model.isBusy).accessibilityIdentifier("roam.goals.verify")
                     // Restored lock: receipt check only. No draft means no resend.
                     if model.pending != nil {
-                        Button("roam.goals.retryOriginal") { page.settle(write: true, { await model.retryPending() }, refresh: { await model.load() }) }
+                        Button("roam.goals.retryOriginal") {
+                            page.settle(write: true, {
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/exploration-goals/create"]
+                                ) {
+                                    await model.retryPending()
+                                }
+                            }, refresh: { await model.load() })
+                        }
                             .disabled(model.isBusy || !model.canWrite).accessibilityIdentifier("roam.goals.retryOriginal")
                     }
                 }
@@ -670,7 +711,16 @@ extension RoamGoalState {
         }
         .onDisappear { retire(leaving: true) }
         .confirmationDialog("roam.goals.confirmTitle", isPresented: Binding(get: { model.review != nil }, set: { if !$0 { model.cancelCreateReview() } }), titleVisibility: .visible) {
-            Button("roam.goals.create") { page.settle(write: true, { await model.confirmCreate() }, refresh: { await model.load() }) { saved in if saved { creating = false } } }.accessibilityIdentifier("roam.goals.confirmCreate")
+            Button("roam.goals.create") {
+                page.settle(write: true, {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/exploration-goals/create"]
+                    ) {
+                        await model.confirmCreate()
+                    }
+                }, refresh: { await model.load() }) { saved in if saved { creating = false } }
+            }.accessibilityIdentifier("roam.goals.confirmCreate")
             Button("roam.private.notNow", role: .cancel) { model.cancelCreateReview() }
         } message: {
             if let review = model.review { amountText(review.metric, review.target) + Text(verbatim: " · \(review.startDate) – \(review.endDateExclusive)") }

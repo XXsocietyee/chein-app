@@ -29,16 +29,26 @@ import SwiftUI
     var modelPreview: OwnMediaModelPreviewAccess? = nil
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
     @State private var showsRoam = false
+    @State private var homeAutoLocationEnabled = !HomeCityLocationDeclineStore.read()
 
     var body: some View {
         Form {
             Section { CYHeroHeader("member.privacy.title", tableName: "MemberProfile").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            // Mini-program privacy sheet opens with the privacy guide link, then presence, roam and own media.
+            // Mini-program privacy sheet: the location sentence, the guide, then home city, presence, roam and own media.
+            Section {
+                Text("member.privacy.sheetBody", tableName: "MemberProfile")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("member.privacy.sheetBody")
+            }
             Section {
                 NavigationLink {
                     SettingsLegalDocumentView(type: .privacyPolicy, market: market, reader: legalReader)
                 } label: { Text(LocalizedStringKey(SettingsLegalType.privacyPolicy.titleKey)) }
             }
+            Section {
+                SettingsHomeCityLocationControls(compliance: compliance)
+            } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                 Button {} label: { Text("member.privacy.presence.off", tableName: "MemberProfile") }
@@ -60,6 +70,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyHideTabBar()
         .sheet(isPresented: $showsRoam) {
             if let compliance {
                 NavigationStack {
@@ -137,6 +148,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyHideTabBar()
         .privacySensitive()
         .toolbar {
             if controller.phase == .ready || controller.phase == .failed || controller.phase == .denied {
@@ -180,6 +192,81 @@ struct OwnMediaRow: View {
         case .approved: Text("member.media.state.approved", tableName: "MemberProfile").foregroundStyle(palette.success)
         case .rejected: Text("member.media.state.rejected", tableName: "MemberProfile").foregroundStyle(palette.danger)
         case .unavailable: Text("member.media.state.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// pages/privacy 「首页城市自动定位」. 开启 confirms, then records AGREE. 关闭 records REVOKE.
+/// A missing coordinator leaves both buttons visible and reports that the setting was not saved.
+@MainActor private struct SettingsHomeCityLocationControls: View {
+    let compliance: AccountComplianceCoordinator?
+    @State private var busy = false
+    @State private var confirmEnable = false
+    @State private var messageKey: String?
+
+    var body: some View {
+        Button { confirmEnable = true } label: {
+            Text("member.privacy.homeCity.on", tableName: "MemberProfile")
+        }
+        .disabled(busy)
+        .accessibilityIdentifier("member.privacy.homeCity.on")
+        .accessibilityLabel(Text("member.privacy.homeCity.on", tableName: "MemberProfile"))
+        .accessibilityValue(homeCitySpokenValue)
+        .accessibilityHint(Text("member.privacy.sheetBody", tableName: "MemberProfile"))
+        .confirmationDialog(Text("homeCityConsent.title"), isPresented: $confirmEnable, titleVisibility: .visible) {
+            Button("homeCityConsent.agree") { Task { await write(enabled: true) } }
+                .accessibilityLabel(Text("homeCityConsent.agree"))
+                .accessibilityValue(Text("member.privacy.homeCity.on", tableName: "MemberProfile"))
+                .accessibilityHint(Text("homeCityConsent.body"))
+            Button("homeCityConsent.decline", role: .cancel) {}
+                .accessibilityLabel(Text("homeCityConsent.decline"))
+                .accessibilityValue(Text("member.privacy.homeCity.off", tableName: "MemberProfile"))
+                .accessibilityHint(Text("homeCityConsent.body"))
+        } message: {
+            Text("homeCityConsent.body")
+        }
+        Button { Task { await write(enabled: false) } } label: {
+            Text("member.privacy.homeCity.off", tableName: "MemberProfile")
+        }
+        .disabled(busy)
+        .accessibilityIdentifier("member.privacy.homeCity.off")
+        .accessibilityLabel(Text("member.privacy.homeCity.off", tableName: "MemberProfile"))
+        .accessibilityValue(homeCitySpokenValue)
+        .accessibilityHint(Text("member.privacy.sheetBody", tableName: "MemberProfile"))
+        if let shown = messageKey {
+            Text(LocalizedStringKey(shown), tableName: "MemberProfile")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("member.privacy.homeCity.status")
+        }
+    }
+
+    /// No saved setting yet is unknown, spoken as an em dash. A later status sentence is the copy already on the row.
+    private var homeCitySpokenValue: Text {
+        if let messageKey {
+            return Text(LocalizedStringKey(messageKey), tableName: "MemberProfile")
+        }
+        return Text(verbatim: "—")
+    }
+
+    private func write(enabled: Bool) async {
+        guard !busy else { return }
+        guard let compliance else {
+            messageKey = "member.privacy.homeCity.saveFailed"
+            return
+        }
+        busy = true
+        defer { busy = false }
+        do {
+            if enabled {
+                _ = try await compliance.recordHomeCityLocationAgree()
+                messageKey = "member.privacy.homeCity.enabled"
+            } else {
+                _ = try await compliance.recordHomeCityLocationRevoke()
+                messageKey = "member.privacy.homeCity.disabled"
+            }
+        } catch {
+            messageKey = "member.privacy.homeCity.saveFailed"
         }
     }
 }

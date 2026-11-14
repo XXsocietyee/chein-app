@@ -85,9 +85,7 @@ private struct ClubCloud14Thumb: View {
             .overlay {
                 CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false)
                 if let imageURL {
-                    AsyncImage(url: imageURL) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() }
-                    }
+                    PlayerFeedRemoteImage(url: imageURL, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
                 }
             }
             .frame(width: 40, height: 40)

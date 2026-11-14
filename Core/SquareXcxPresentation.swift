@@ -123,6 +123,8 @@ public struct SquarePostCardFacts: Equatable {
 public enum SquareAuthorSafety {
     public enum BlockAvailability: Equatable { case notAvailableYet }
     public static let blockAvailability: BlockAvailability = .notAvailableYet
+    /// App-wide member blocking uses the existing IM/blacklist routes (`/api/im/block`, `/api/native/blacklist/*`).
+    public static let usesMemberBlacklist = true
     /// Offered only for another signed-in viewer's view of someone else's content.
     public static func showsBlockEntry(authorMemberID: Int, viewerMemberID: Int?) -> Bool {
         guard let viewerMemberID, viewerMemberID > 0, authorMemberID > 0 else { return false }

@@ -103,6 +103,7 @@ struct GrowthCenterReadLifecycle: ViewModifier {
 /// truncated two-column metrics at accessibility text sizes.
 struct GrowthCenterMetricRow<Value: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.cyPalette) private var palette
     let title: LocalizedStringKey
     let value: () -> Value
     init(_ title: LocalizedStringKey, @ViewBuilder value: @escaping () -> Value) {
@@ -112,12 +113,12 @@ struct GrowthCenterMetricRow<Value: View>: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title).foregroundStyle(.secondary)
-                    value()
+                    Text(title).foregroundStyle(palette.textSecondary)
+                    value().foregroundStyle(palette.textPrimary)
                 }.frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
             } else {
-                LabeledContent { value() } label: { Text(title) }
+                LabeledContent { value().foregroundStyle(palette.textPrimary) } label: { Text(title).foregroundStyle(palette.textSecondary) }
             }
         }.fixedSize(horizontal: false, vertical: true)
     }

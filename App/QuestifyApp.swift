@@ -21,7 +21,7 @@ struct QuestifyApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if let designFixture = fixtureArgument("--design-fixture") {
+                if let designFixture = AppStoreScreenshotHarness.mountedFixtureID(arguments: ProcessInfo.processInfo.arguments) ?? fixtureArgument("--design-fixture") {
                     DesignFixtureRegistry.make(designFixture)
                 } else if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
                     OwnerDraftFixtureHost(mode: fixtureArgument("--owner-draft-fixture") ?? "ready")
@@ -176,7 +176,7 @@ private struct FixtureThemeDomainModifier: ViewModifier {
         return arguments.joined(separator: " ").lowercased().contains("merchant") ? .merchant : .player
     }
     func body(content: Content) -> some View {
-        if let domain { content.themeDomain(domain) } else { content }
+        if let domain { content.themeDomain(domain).cyScreenStyle() } else { content }
     }
 }
 #endif
@@ -192,6 +192,13 @@ final class AppSessionContainer: ObservableObject {
 
     init(composition: AppCompositionRoot? = nil, arguments: [String] = ProcessInfo.processInfo.arguments) {
         #if DEBUG
+        AppStoreScreenshotHarness.applyStoredLanguage(arguments: arguments)
+        if AppStoreScreenshotHarness.mountedFixtureID(arguments: arguments) != nil {
+            integratedAcceptance = nil
+            couponRuntime = nil
+            session = nil
+            return
+        }
         let fixture = composition == nil ? IntegratedNativeAcceptanceFixture.selected(arguments: arguments) : nil
         integratedAcceptance = fixture
         let coupon = composition == nil ? CouponRuntimeFixture.selected(arguments) : nil
@@ -248,6 +255,16 @@ final class AppSessionContainer: ObservableObject {
     }
 }
 
+/// Identity of the signed-in account for the one-shot merchant-mode request. A refresh with the same values does not retry.
+private struct MerchantModeBoot: Equatable {
+    let accountID: Int?
+    let revision: UInt64
+    let role: String
+    let userType: Int?
+    let isSignedIn: Bool
+    let isConfigured: Bool
+}
+
 /// Only the normal root starts account restoration.
 @MainActor
 struct SessionRootView: View {
@@ -263,12 +280,27 @@ struct SessionRootView: View {
     @State private var presentation = RootPresentationCoordinator()
     @State private var reachability = NetworkReachability()
     @State private var isTabBarHidden = false
+    @State private var homeTabBarVisibility = CYTabBarVisibility()
+    @State private var roamTabBarVisibility = CYTabBarVisibility()
+    @State private var clubTabBarVisibility = CYTabBarVisibility()
+    @State private var mineTabBarVisibility = CYTabBarVisibility()
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
 
+    private var selectedTabBarHidden: Bool {
+        switch selectedTab {
+        case .home: return homeTabBarVisibility.isHidden
+        case .roam: return roamTabBarVisibility.isHidden
+        case .club: return clubTabBarVisibility.isHidden
+        case .mine: return mineTabBarVisibility.isHidden
+        case .publish: return false
+        }
+    }
+
     @ViewBuilder private var homeTab: some View {
-                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine },onStartRoam:{ selectedTab = .roam }).cyFloatingTabBarClearance().tabItem { rootTabLabel(.home) }.tag(RootTab.home)
+                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine },onStartRoam:{ selectedTab = .roam }).cyFloatingTabBarClearance().tabItem { rootTabLabel(.home).accessibilityIdentifier("rootTabBar.tab.player.0") }.tag(RootTab.home)
+                        .environment(\.cyTabBarVisibility, homeTabBarVisibility)
     }
 
     @ViewBuilder private var roamTab: some View {
@@ -292,20 +324,23 @@ struct SessionRootView: View {
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
-                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
+                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.roam).accessibilityIdentifier("rootTabBar.tab.player.1") }.tag(RootTab.roam)
+                        .environment(\.cyTabBarVisibility, roamTabBarVisibility)
     }
 
     @ViewBuilder private var clubTab: some View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
-                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.club) }.tag(RootTab.club)
+                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.club).accessibilityIdentifier("rootTabBar.tab.player.2") }.tag(RootTab.club)
+                        .environment(\.cyTabBarVisibility, clubTabBarVisibility)
     }
 
     @ViewBuilder private var mineTab: some View {
                     Group {
                         if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home },presentsTicketPass:$deepLinkTicketPass).id(session.sessionRevision) }
                         else { WelcomeView() }
-                    }.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
+                    }.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.3") }.tag(RootTab.mine)
+                        .environment(\.cyTabBarVisibility, mineTabBarVisibility)
     }
 
     @ViewBuilder private var playerTabs: some View {
@@ -315,13 +350,13 @@ struct SessionRootView: View {
                     clubTab
                     mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
-                .offlineCapsule(reachability)
-                .onAppear { reachability.start() }
+                .sessionOfflineBanner(reachability: reachability, session: session)
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
+                .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.player.0", "rootTabBar.tab.player.1", "rootTabBar.tab.player.2", "rootTabBar.tab.player.3"])
                 .environment(\.cyTabBarHidden, isTabBarHidden)
                 .onPreferenceChange(CYTabBarHiddenPreferenceKey.self) { isTabBarHidden = $0 }
-                .overlay { CYNightTabBar(selection: selectedTab).environment(\.cyTabBarHidden, isTabBarHidden) }
+                .overlay { CYNightTabBar(selection: selectedTab, isHidden: selectedTabBarHidden).environment(\.cyTabBarHidden, isTabBarHidden) }
                 .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
                 .cyHaptic(.selection, trigger: selectedTab)
                 .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } } // Publish is no player tab (W1-1)
@@ -336,11 +371,18 @@ struct SessionRootView: View {
                         merchantRootCoordinator.switchToConsumerMode()
                         if let destination { selectedTab = destination.isPlayerTab ? destination : .home }
                     })
+                    .sessionOfflineBanner(reachability: reachability, session: session)
                 } else {
                 playerTabs
                 }
-            } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).cyScreenStyle().roleTheme(.player) }
+            } else {
+                WelcomeView(onBrowse:{ browsingAsGuest=true })
+                    .cyScreenStyle()
+                    .roleTheme(.player)
+                    .sessionOfflineBanner(reachability: reachability, session: session)
+            }
         }
+        .onAppear { reachability.start() }
         return chain6(chain5(chain4(chain3(chain2(chain1(chain0(base)))))))
     }
 
@@ -378,6 +420,24 @@ struct SessionRootView: View {
         }
         .onChange(of: session.sessionRevision) { _, revision in
             merchantRootCoordinator.handleSessionChange(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: revision)
+        }
+        .task(id: MerchantModeBoot(
+            accountID: session.account?.id,
+            revision: session.sessionRevision,
+            role: session.account?.role ?? "",
+            userType: session.account?.userType,
+            isSignedIn: session.isSignedIn,
+            isConfigured: session.isConfigured
+        )) {
+            await merchantRootCoordinator.adoptSignedInAccount(
+                reader: session,
+                accountID: session.account?.id,
+                role: session.account?.role ?? "",
+                userType: session.account?.userType,
+                isSignedIn: session.isSignedIn,
+                isConfigured: session.isConfigured,
+                revision: session.sessionRevision
+            )
         }
         .background {
             if session.account != nil { RetainedImagePresenterHost(host: session.retainedImagePickerHost).frame(width: 0, height: 0) }
@@ -430,6 +490,7 @@ struct SessionRootView: View {
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
         .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
+        .environment(\.ugcSafetyContext, session.makeUGCSafetyContext())
     }
 
     private func chain3<V: View>(_ v: V) -> some View {
@@ -449,12 +510,25 @@ struct SessionRootView: View {
     private func chain3_1<V: View>(_ v: V) -> some View {
         let session = session
         var readiness: (@MainActor () async -> RegistrationPaymentReadiness?)?
+        var payExecutor: RegistrationPayExecutor?
         if PayoutReceiverBridge.paymentsOpen(session) {
             readiness = { await PayoutReceiverBridge.paymentReadiness(session) }
+            payExecutor = { registrationID, channel, verifiedReadiness in
+                await RegistrationPayBridge.pay(
+                    session,
+                    registrationID: registrationID,
+                    channel: channel,
+                    readiness: verifiedReadiness,
+                    quoteUsable: true,
+                    quoteFresh: true,
+                    consented: true
+                )
+            }
         }
         return v
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
         .environment(\.registrationPaymentReadiness, readiness)
+        .environment(\.registrationPayExecutor, payExecutor)
     }
 
     private func chain3_2<V: View>(_ v: V) -> some View {

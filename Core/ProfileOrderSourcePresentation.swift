@@ -73,8 +73,11 @@ public extension ProfileOrder {
     func stateNotice(now: Date = Date()) -> ProfileOrderStateNotice? {
         let state = historyState(now: now)
         guard state != .unknown else { return nil }
-        let free = isSourceFreeOrder && (state == .notStarted || state == .inProgress)
         let hint = orderHint.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        if showsUnusedPass(now: now) {
+            return ProfileOrderStateNotice(titleKey: "orderLifecycle.state.passReady", tagKey: "orderLifecycle.state.passReady", hint: hint)
+        }
+        let free = isSourceFreeOrder && (state == .notStarted || state == .inProgress)
         return ProfileOrderStateNotice(titleKey: "profile.orderParity.notice." + (free ? "free" : state.rawValue),
                                        tagKey: "orderLifecycle.state." + state.rawValue, hint: hint)
     }

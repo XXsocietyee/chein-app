@@ -41,29 +41,13 @@ import SwiftUI
                         Button(c.t("同意并继续", "Agree and continue")) { Task { await model.agreeToSignupNotice(orderID: id) } }
                             .accessibilityIdentifier("orderLifecycle.reconsent")
                     }
+                    if let row = RequestReferenceRow(pathFragment: "/api/registration/") { row }
                 }
             }
             if coordinator.accountID == nil { Text("orderLifecycle.issue.login") }
             else if coordinator.isLoading { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("orderLifecycle.loading")) }
             else if let detail = coordinator.detail, detail.id == id {
-                summary(detail)
-                payment(detail)
-                timeline(detail)
-                refund(detail)
-                actions(detail)
-                Section {
-                    NavigationLink { OrderPassPreviewView(orderID: id, coordinator: coordinator) } label: {
-                        Label("orderLifecycle.pass.title", systemImage: "ticket")
-                    }.accessibilityIdentifier("orderLifecycle.pass.open")
-                }
-                if detail.teamOpen, let ownerID = detail.ownerID, let makeTeam = orderTeamCreate {
-                    Section {
-                        NavigationLink { makeTeam(ownerID, detail.id) } label: {
-                            Label("orderLifecycle.teamOpen", systemImage: "person.3")
-                        }
-                        .accessibilityIdentifier("orderLifecycle.teamOpen")
-                    }
-                }
+                acceptedDetail(detail)
             } else if coordinator.issue == nil {
                 // No accepted detail and no issue: unknown, never an empty order or a zero amount.
                 Text(verbatim: OrderInfoPageModel.unknownMark).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textTertiary)
@@ -134,6 +118,37 @@ import SwiftUI
             }
         }
     }
+    /// The accepted order detail, split out so the list body type-checks in reasonable time.
+    @ViewBuilder private func acceptedDetail(_ detail: OrderLifecycleDetail) -> some View {
+            summary(detail)
+            payment(detail)
+            if detail.summary().state == .pendingPayment, detail.id > 0 {
+                RegistrationPaySection(
+                    registrationID: detail.id,
+                    payableAmount: detail.payableAmount,
+                    consented: coordinator.issue != .reconsentRequired,
+                    requiresFreshQuote: false,
+                    channel: .standard
+                )
+            }
+            timeline(detail)
+            refund(detail)
+            actions(detail)
+            Section {
+                NavigationLink { OrderPassPreviewView(orderID: id, coordinator: coordinator) } label: {
+                    Label("orderLifecycle.pass.title", systemImage: "ticket")
+                }.accessibilityIdentifier("orderLifecycle.pass.open")
+            }
+            if detail.teamOpen, let ownerID = detail.ownerID, let makeTeam = orderTeamCreate {
+                Section {
+                    NavigationLink { makeTeam(ownerID, detail.id) } label: {
+                        Label("orderLifecycle.teamOpen", systemImage: "person.3")
+                    }
+                    .accessibilityIdentifier("orderLifecycle.teamOpen")
+                }
+            }
+    }
+
     private func summary(_ detail: OrderLifecycleDetail) -> some View {
         let state = detail.summary()
         let fulfillment = FourShopCompensationPolicy.evaluateSoldContractFulfillment(

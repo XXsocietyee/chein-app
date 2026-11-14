@@ -44,7 +44,10 @@ public struct TopicService {
         if let categoryID = query.categoryID { fields["category_id"] = categoryID }
         if query.recommend { fields["is_recommend"] = "1" }
         let data = try await post("api/topic/list", fields: fields, token: token)
-        let envelope = try decode(TopicRowsEnvelope.self, data)
+        let envelope = try await PlayerFeedJSON.perform { () -> TopicRowsEnvelope in
+            do { return try JSONDecoder().decode(TopicRowsEnvelope.self, from: data) }
+            catch { throw APIError.malformedResponse }
+        }
         return TopicListDocument(page: TopicPage(rows: envelope.rows, pageNumber: pageNumber, pageSize: query.pageSize), body: data)
     }
     public func detail(id: Int, token: String? = nil) async throws -> TopicDetail {

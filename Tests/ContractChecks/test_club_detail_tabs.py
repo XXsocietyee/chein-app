@@ -45,7 +45,7 @@ class ClubDetailTabContracts(unittest.TestCase):
     def test_tab_copy_is_bilingual_in_catalog(self):
         catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
         fragment = json.loads(read('Resources/ClubDetailTabsLocalizations.fragment.json'))['strings']
-        expected = {'club.detail.tab.posts': '帖子', 'club.detail.tab.events': '活动', 'club.detail.tab.overview': '概览', 'club.detail.tab.manage': '管理'}
+        expected = {'club.detail.tab.posts': '帖文', 'club.detail.tab.events': '活动', 'club.detail.tab.overview': '概览', 'club.detail.tab.manage': '管理'}
         for key, zh in expected.items():
             self.assertEqual(catalog[key]['localizations']['zh-Hans']['stringUnit']['value'], zh)
         for key, value in fragment.items():

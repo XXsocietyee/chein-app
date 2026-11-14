@@ -41,7 +41,7 @@ public struct ClubCommunityService {
         if case let .comments(_, page) = operation, page != 1 { throw ClubCommunityFailure.invalid }
         let request = try request(suffix: operation.suffix, fields: operation.fields, session: session)
         try check(); let (data, status) = try await transport.send(request); try check()
-        let value = try Self.decode(data, status: status)
+        let value = try await PlayerFeedJSON.perform { try Self.decode(data, status: status) }
         switch operation {
         case let .posts(clubID, beforeID, limit):
             let page = try ClubCommunityPostPage(clubID: clubID, beforeID: beforeID, limit: limit, rows: CCWire.rows(value))

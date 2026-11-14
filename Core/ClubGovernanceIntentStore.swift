@@ -20,7 +20,11 @@ import CryptoKit
     public func reserve(_ key: String) async throws {
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            #if os(iOS)
+            try Data("pending".utf8).write(to: url(key), options: [.withoutOverwriting, .completeFileProtection])
+            #else
             try Data("pending".utf8).write(to: url(key), options: [.withoutOverwriting])
+            #endif
         } catch { throw ClubGovernanceFailure.outcomeLocked }
     }
 }

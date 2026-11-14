@@ -43,6 +43,7 @@ import SwiftUI
         .cyDomainPageBackground()
         .themeDomain(.player)
         .cyHeroScreen()
+        .appSwitcherPrivacyShield()
     }
 
     /// Page title. Catalog key `ui.cloud05.wallet.title` (docs/release/ui-strings-cloud-05.json).

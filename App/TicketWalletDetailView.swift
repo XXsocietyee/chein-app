@@ -109,6 +109,7 @@ import SwiftUI
         .listSectionSpacing(20)
         .appNavigationTitle("ticketWallet.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
@@ -141,6 +142,7 @@ import SwiftUI
             }
         .accessibilityIdentifier("ticketWallet.detail")
         .cyPushedChrome(domain: .player)
+        .appSwitcherPrivacyShield()
         .modifier(CYOptionalHeroDestination(id: heroID ?? id, namespace: heroNamespace))
         .fullScreenCover(isPresented: $presenting) {
             if let ticket = model.value(owner: key), ticket.id == id {

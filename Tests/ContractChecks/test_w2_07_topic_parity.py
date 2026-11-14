@@ -15,7 +15,7 @@ class W207TopicParity(unittest.TestCase):
         view = read('App/TopicDetailView.swift')
         for exact in ['.accessibilityIdentifier("topic.chapter.\\(chapter.id)")', 'accessibilityIdentifier("topic.lockedChapters")',
                       'accessibilityIdentifier("topic.detail.content")', 'accessibilityIdentifier("contextSelfPlay.open")',
-                      'try await reader.topicDetail(id: id)', 'TopicXcxTabs(proxy: proxy)', '.id(TopicXcxTab.nodes.anchor)',
+                      'try await reader.topicDetail(id: id)', 'TopicXcxTabs(proxy: proxy, productType: value.productType)', '.id(TopicXcxTab.nodes.anchor)',
                       'TopicXcxRouteSection(topic: value).id(TopicXcxTab.route.anchor)']:
             self.assertIn(exact, view)
         self.assertIn('api/topic/info-to-user', read('Core/TopicService.swift'))
@@ -42,8 +42,9 @@ class W207TopicParity(unittest.TestCase):
     def test_source_copy(self):
         catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
         zh = lambda key: catalog[key]['localizations']['zh-Hans']['stringUnit']['value']
-        for key, value in {'topicXcx.tab.details': '详情', 'topicXcx.tab.nodes': '路线节点', 'topicXcx.tab.route': '路线',
-                           'topicXcx.reviews.emptyTitle': '还没有人评价过这条路线', 'topicXcx.cta.signUp': '立即报名',
+        for key, value in {'topicXcx.tab.details': '详情', 'topicXcx.tab.nodes': '故事', 'topicXcx.tab.route': '路线',
+                           'topicXcx.tab.places': '地点', 'topicXcx.reviews.emptyTitle': '还没有评价', 'topicXcx.cta.signUp': '立即报名',
+                           'topicXcx.section.lineup': '参与品牌',
                            'topicXcx.cta.locked.1': '招募中 · 未开售', 'topicXcx.cta.locked.2': '定价中 · 未开售',
                            'topicXcx.cta.locked.7': '立项待审 · 未开售', 'topicXcx.paywall.unlock': '立即解锁'}.items():
             self.assertEqual(zh(key), value, key)

@@ -62,6 +62,9 @@ extension EnvironmentValues {
                         Button("nearbyMerchant.openSettings") {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }.frame(minHeight: 44).accessibilityIdentifier("nearbyMerchant.openSettings")
+                            .accessibilityLabel(Text("nearbyMerchant.openSettings"))
+                            .accessibilityValue(Text("nearbyMerchant.locationDenied.title"))
+                            .accessibilityHint(Text("nearbyMerchant.locationDenied.detail"))
                     }.accessibilityElement(children: .contain).accessibilityIdentifier("nearbyMerchant.locationDenied")
                 }
                 if model.phase == .permissionDenied {

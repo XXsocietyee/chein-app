@@ -69,11 +69,14 @@ struct PayoutReceiverIssueText: View {
     let issue: PayoutReceiverIssue
     let fallbackKey: String
     var body: some View {
-        if let key = issue.codeKey { Text(LocalizedStringKey(key), tableName: "PayoutReceiver") }
-        else if let sentence = issue.serverSentence { Text(verbatim: sentence) }
-        else if issue == .network { Text("payoutReceiver.error.network", tableName: "PayoutReceiver") }
-        else if issue == .closed { Text("payoutReceiver.closed", tableName: "PayoutReceiver") }
-        else { Text(LocalizedStringKey(fallbackKey), tableName: "PayoutReceiver") }
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            if let key = issue.codeKey { Text(LocalizedStringKey(key), tableName: "PayoutReceiver") }
+            else if let sentence = issue.serverSentence { Text(verbatim: sentence) }
+            else if issue == .network { Text("payoutReceiver.error.network", tableName: "PayoutReceiver") }
+            else if issue == .closed { Text("payoutReceiver.closed", tableName: "PayoutReceiver") }
+            else { Text(LocalizedStringKey(fallbackKey), tableName: "PayoutReceiver") }
+            if issue != .closed, issue != .unauthorized, let row = RequestReferenceRow(pathFragment: "/api/") { row }
+        }
     }
 }
 

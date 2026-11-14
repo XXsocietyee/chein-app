@@ -105,6 +105,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
 @MainActor struct AccountComplianceSheet: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @StateObject private var model: ComplianceViewModel
     let destination: ComplianceDestination
     let market: RegionalMarket?
@@ -247,7 +248,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             Section("compliance.serverStatus") {
                 statusMark(status.status).accessibilityIdentifier("compliance.serverStatus")
                 ForEach(Array(status.blockers.enumerated()), id: \.offset) { _, blocker in Text(blocker) }
-                if status.executeAfter != nil || status.pending { DeregistrationExecuteAfterRow(raw: status.executeAfter) }
+                if status.executeAfter != nil || status.pending {
+                    DeregistrationExecuteAfterRow(raw: status.executeAfter, coolingOffEnded: model.coordinator.coolingOffHasPassed(now: Date()))
+                }
             }
         }
         switch model.state.step {
@@ -329,11 +332,20 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 .buttonStyle(CYPillButtonStyle(style: .tertiary))
             }
         case .pending:
-            Text("compliance.pending")
-            Button("compliance.cancelApplication", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }.accessibilityIdentifier("compliance.cancelApplication")
+            Text("compliance.pending.submitted").font(CYTypography.cardTitle).accessibilityIdentifier("compliance.pending.submitted")
+            pendingCoolingOffCopy.accessibilityIdentifier("compliance.pending")
+            Button("compliance.withdrawCancellation", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }
+                .accessibilityIdentifier("compliance.cancelApplication")
+                .accessibilityLabel(Text("compliance.withdrawCancellation"))
+                .accessibilityValue(Text("compliance.pending.submitted"))
+                .accessibilityHint(Text(LocalizedStringKey(model.coordinator.coolingOffHasPassed(now: Date()) ? "compliance.pending.afterCoolingOff" : "compliance.pending.duringCoolingOff")))
         case .completed: Text("compliance.completed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.completed")
         case .freshLogin: Text("compliance.freshLogin").accessibilityIdentifier("compliance.freshLogin")
-        case .unknown: Text("compliance.unknown").accessibilityIdentifier("compliance.unknown")
+        case .unknown: Text("compliance.unknown")
+            .accessibilityIdentifier("compliance.unknown")
+            .accessibilityLabel(Text("compliance.unknown"))
+            .accessibilityValue(Text(verbatim: "—"))
+            .accessibilityHint(Text("compliance.unknown"))
         }
         Button("compliance.refresh") { requestCancellationRead() }
             .buttonStyle(CYPillButtonStyle(style: .tertiary))
@@ -349,6 +361,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             Text("cancellationConsent.title", tableName: "AccountDeregistrationConsent")
         }
         .accessibilityElement(children: .combine)
+    }
+    @ViewBuilder private var pendingCoolingOffCopy: some View {
+        if model.coordinator.coolingOffHasPassed(now: Date()) {
+            Text("compliance.pending.afterCoolingOff")
+        } else {
+            Text("compliance.pending.duringCoolingOff")
+        }
     }
     /// Server status codes (PENDING / ELIGIBLE / BLOCKED) read as plain words, as the mini-program titles them.
     @ViewBuilder private func statusMark(_ raw: String) -> some View {
@@ -367,16 +386,38 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             // E2E-20261112 F3: offer Agree while the latest server row is not a current AGREE.
             if model.state.roamConsent == .notAgreed {
                 Text("compliance.roamConsent.notAgreed").accessibilityIdentifier("compliance.roamConsent.notAgreed")
-                Button("compliance.roamAgree") { Task { await model.coordinator.agreeRoam(explicitlyConfirmed: true) } }
+                Button("compliance.roamAgree") {
+                    Task {
+                        await SessionOfflineSyncModel.shared.performWriteOptIn(
+                            environmentSession: offlineWriteSession.session,
+                            routes: ["/api/compliance/consents"]
+                        ) {
+                            await model.coordinator.agreeRoam(explicitlyConfirmed: true)
+                        }
+                    }
+                }
                     .accessibilityIdentifier("compliance.roamAgree")
             } else {
                 if model.state.roamConsent == .agreed {
                     Text("compliance.roamConsent.agreed").accessibilityIdentifier("compliance.roamConsent.agreed")
                 }
                 Text(LocalizedStringKey("compliance.cleanup." + String(describing: model.state.roamCleanup)))
-                Button("compliance.revoke", role: .destructive) { Task { await model.coordinator.revokeRoam(explicitlyConfirmed: true) } }
+                Button("compliance.revoke", role: .destructive) {
+                    Task {
+                        await SessionOfflineSyncModel.shared.performWriteOptIn(
+                            environmentSession: offlineWriteSession.session,
+                            routes: ["/api/compliance/consents"]
+                        ) {
+                            await model.coordinator.revokeRoam(explicitlyConfirmed: true)
+                        }
+                    }
+                }
                     .disabled(model.state.roamCleanup == .complete).accessibilityIdentifier("compliance.revoke")
             }
+            CYScreenOfflineWriteBanner(
+                routes: ["/api/compliance/consents"],
+                session: offlineWriteSession.session
+            )
         }
         .task { if model.state.roamConsent == .unknown { await model.coordinator.loadRoamConsent() } }
     }
@@ -388,6 +429,10 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if page.phase == .empty {
                 Text("compliance.marketing.empty", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.empty")
             }
+            CYScreenOfflineWriteBanner(
+                routes: ["/api/compliance/consents"],
+                session: offlineWriteSession.session
+            )
             Text("marketingOriginal.scope", tableName: "MarketingConsentOriginalPresentation")
             ForEach(model.state.marketingOriginalResults) { receipt in
                 MarketingConsentOriginalReceiptView(receipt: receipt)
@@ -446,7 +491,14 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Button {
                     guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
                     marketingChange = nil
-                    Task { await model.coordinator.setMarketing(change, explicitlyConfirmed: true) }
+                    Task {
+                        await SessionOfflineSyncModel.shared.performWriteOptIn(
+                            environmentSession: offlineWriteSession.session,
+                            routes: ["/api/compliance/consents"]
+                        ) {
+                            await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
+                        }
+                    }
                 } label: { Text(change.optedIn ? "compliance.marketing.confirmOptIn" : "compliance.marketing.confirmOptOut", tableName: "MarketingConsentOriginalPresentation") }
                     .accessibilityIdentifier("compliance.marketing.confirm")
                 Button("compliance.close", role: .cancel) { marketingChange = nil }
@@ -473,8 +525,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @State private var errorKey: String?
     @State private var requestID = UUID().uuidString
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     var body: some View {
         Form {
+            CYScreenOfflineWriteSection(
+                routes: ["/api/compliance/consents"],
+                session: offlineWriteSession.session
+            )
             if let sourceText, !sourceText.isEmpty {
                 Text(sourceText).accessibilityIdentifier("compliance.scope.document")
                 Toggle("compliance.scope.agree", isOn: $agreed)
@@ -482,7 +539,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     Task {
                         guard !busy, agreed else { return }; busy = true; defer { busy = false }
                         do {
-                            let record = try await service.consent(subject, event: .agree, requestID: requestID, session: session)
+                            let record = try await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/compliance/consents"],
+                                explicitKey: requestID
+                            ) {
+                                try await service.consent(subject, event: .agree, requestID: requestID, session: session)
+                            }
                             try service.check(session); onConfirmed(record); dismiss()
                         } catch { errorKey = "compliance.unknown" }
                     }

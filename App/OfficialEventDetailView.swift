@@ -174,13 +174,15 @@ enum OfficialDetailID {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(alignment: .firstTextBaseline) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(verbatim: collective.detailPercentText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                                    Text(verbatim: collective.percent.map { "\($0)%" } ?? "—").font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                                     Text("official.detailParity.collective.lit").font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                Text(verbatim: collective.detailCountText).monospacedDigit()
+                                Text(verbatim: "\(collective.current.map(String.init) ?? "—") / \(collective.threshold.map(String.init) ?? "—")").monospacedDigit()
                             }
-                            ProgressView(value: collective.displayFraction ?? 0).tint(CYColor.brand).accessibilityHidden(true)
+                            if let fraction = collective.displayFraction {
+                                ProgressView(value: fraction).tint(CYColor.brand).accessibilityHidden(true)
+                            }
                             Text(LocalizedStringKey(presentation.collectiveTipKey)).font(.footnote).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
                     }

@@ -264,6 +264,7 @@ import UIKit
     let inviteID: Int
     let direction: CooperationDirection
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var phase = Phase.loading
     private enum Phase { case loading, done, failed }
     var body: some View {
@@ -276,15 +277,17 @@ import UIKit
                 switch phase {
                 case .loading:
                     Text(verbatim: locale.pick("正在标记已读", "Marking as read")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooperation.detail.read.loading")
                 case .done:
                     Text(verbatim: locale.pick("已读", "Read")).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooperation.detail.read.done")
                 case .failed:
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? CYSpacing.sm : CYSpacing.xs) {
                         Text(verbatim: locale.pick("已读没有记下，请重试", "The read receipt did not stick. Try again."))
                             .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await mark() } }
+                        CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await mark() } }
                     }.accessibilityIdentifier("cooperation.detail.read.failed")
                 }
             }

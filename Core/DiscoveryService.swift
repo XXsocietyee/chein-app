@@ -13,13 +13,21 @@ public struct DiscoveryService {
     }
     public func banners(token: String? = nil) async throws -> [DiscoveryBanner] {
         let data = try await post("api/common/banner", fields: ["showType": "1", "linkType": "0"], token: token)
-        return try decode(DiscoveryArrayEnvelope<DiscoveryBanner>.self, data).data
+        return try await PlayerFeedJSON.perform { () -> [DiscoveryBanner] in
+            do { return try JSONDecoder().decode(DiscoveryArrayEnvelope<DiscoveryBanner>.self, from: data).data }
+            catch let error as APIError { throw error }
+            catch { throw APIError.malformedResponse }
+        }
     }
     public func categories(type: Int? = nil, token: String? = nil) async throws -> [DiscoveryCategory] {
         var fields = ["parentid": "0"] // Required by the retained contract, even for root categories.
         if let type { fields["type"] = String(type) }
         let data = try await post("api/category/list", fields: fields, token: token)
-        return try decode(DiscoveryArrayEnvelope<DiscoveryCategory>.self, data).data
+        return try await PlayerFeedJSON.perform { () -> [DiscoveryCategory] in
+            do { return try JSONDecoder().decode(DiscoveryArrayEnvelope<DiscoveryCategory>.self, from: data).data }
+            catch let error as APIError { throw error }
+            catch { throw APIError.malformedResponse }
+        }
     }
     public func templateMetadataDictionary(kind: TemplateMetadataKind, token: String? = nil) async throws -> [TemplateMetadataOption] {
         let data = try await post("api/common/dict", fields: ["dictType": kind.rawValue], token: token, templateMetadata: true)
@@ -27,7 +35,11 @@ public struct DiscoveryService {
     }
     public func templateHome(token: String? = nil) async throws -> DiscoveryTemplateHome {
         let data = try await post("api/template/homeData", fields: nil, token: token)
-        return try decode(DiscoveryValueEnvelope<DiscoveryTemplateHome>.self, data).data
+        return try await PlayerFeedJSON.perform { () -> DiscoveryTemplateHome in
+            do { return try JSONDecoder().decode(DiscoveryValueEnvelope<DiscoveryTemplateHome>.self, from: data).data }
+            catch let error as APIError { throw error }
+            catch { throw APIError.malformedResponse }
+        }
     }
     public func playTemplates(keyword: String? = nil, packType: DiscoveryPackType? = nil,
                               token: String? = nil) async throws -> [DiscoveryPlayTemplate] {
@@ -36,11 +48,19 @@ public struct DiscoveryService {
         if let keyword, !keyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields["keyword"] = keyword }
         if let packType { fields["pack_type"] = String(packType.rawValue) }
         let data = try await post("api/template/list", fields: fields, token: token)
-        return try decode(DiscoveryRowsEnvelope<DiscoveryPlayTemplate>.self, data).rows
+        return try await PlayerFeedJSON.perform { () -> [DiscoveryPlayTemplate] in
+            do { return try JSONDecoder().decode(DiscoveryRowsEnvelope<DiscoveryPlayTemplate>.self, from: data).rows }
+            catch let error as APIError { throw error }
+            catch { throw APIError.malformedResponse }
+        }
     }
     public func topicTemplates(token: String? = nil) async throws -> [DiscoveryTopicTemplate] {
         let data = try await post("api/template/topic-template/list", fields: nil, token: token)
-        return try decode(DiscoveryRowsEnvelope<DiscoveryTopicTemplate>.self, data).rows
+        return try await PlayerFeedJSON.perform { () -> [DiscoveryTopicTemplate] in
+            do { return try JSONDecoder().decode(DiscoveryRowsEnvelope<DiscoveryTopicTemplate>.self, from: data).rows }
+            catch let error as APIError { throw error }
+            catch { throw APIError.malformedResponse }
+        }
     }
     public func publicTopicTemplate(id: Int, token: String? = nil) async throws -> PublicTopicTemplateDetail {
         guard id > 0 else { throw APIError.invalidRequest }

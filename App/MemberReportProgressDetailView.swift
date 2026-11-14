@@ -96,7 +96,7 @@ import SwiftUI
                     CYSkeleton().listRowInsets(gutter).listRowBackground(Color.clear)
                 }
                 if let failure = flow.failure {
-                    CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress")
+                    CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress", actionTitle: "report.refresh", action: { load(rendered) })
                         .listRowInsets(gutter)
                         .listRowBackground(Color.clear)
                 }

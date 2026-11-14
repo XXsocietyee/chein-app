@@ -94,6 +94,7 @@ struct RoamItemDetailView: View {
             .disabled(scenePhase != .active)
             .appNavigationTitle("roam.detail")
             .navigationBarTitleDisplayMode(.inline)
+            .cyHideTabBar()
             .navigationDestination(item: $eventNavigation) { selection in
                 if selection.mayRemainOpen(in: eventScope), let eventDestination {
                     eventDestination(selection.destination)

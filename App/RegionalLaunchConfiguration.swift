@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
 
 /// Deployment metadata is independent of language. The only reviewed host is the China
 /// registry in `ReviewedMarketLaunch`. The United States registry has no host.
@@ -191,7 +194,12 @@ enum RegionalLaunchConfiguration {
         do {
             try validate(reviewed, build: build)
             let guarded: () -> any HTTPTransport = {
-                ChinaReviewedProductionTransport(underlying: makeTransport())
+                ChinaReviewedProductionTransport(
+                    underlying: ReadRetryHTTPTransport(
+                        underlying: makeTransport(),
+                        isOnline: { SharedNetworkReachabilityState.shared.isOnline }
+                    )
+                )
             }
             return .init(deployment: .reviewed(reviewed), storage: storage, makeTransport: guarded)
         } catch {
@@ -265,12 +273,13 @@ struct E2ETestHostTransport: HTTPTransport {
         let started = Date()
         do {
             let (data, status) = try await underlying.send(outgoing)
-            let body = String(decoding: data.prefix(600), as: UTF8.self)
-            NSLog("[E2E] %@ %@ -> %d %.0fms %@", outgoing.httpMethod ?? "GET", outgoing.url?.absoluteString ?? "",
+            let body = LogFieldRedaction.redacted(String(decoding: data.prefix(600), as: UTF8.self))
+            NSLog("[E2E] %@ %@ -> %d %.0fms %@", outgoing.httpMethod ?? "GET", outgoing.url?.path ?? "",
                   status, Date().timeIntervalSince(started) * 1000, body)
             return (data, status)
         } catch {
-            NSLog("[E2E] %@ %@ -> error %@", outgoing.httpMethod ?? "GET", outgoing.url?.absoluteString ?? "", "\(error)")
+            NSLog("[E2E] %@ %@ -> error %@", outgoing.httpMethod ?? "GET", outgoing.url?.path ?? "",
+                  LogFieldRedaction.redacted("\(error)"))
             throw error
         }
     }

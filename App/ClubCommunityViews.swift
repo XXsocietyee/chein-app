@@ -259,7 +259,7 @@ struct ClubCommunityFeedView: View {
     private var canCompose: Bool { clubID != nil && identity.isSignedIn }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                 // Discover feed already has the page title and the 帖文 tab. A club-scoped list keeps the header.
                 if clubID != nil { CYHeroHeader("club.community.posts") }
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
@@ -276,7 +276,9 @@ struct ClubCommunityFeedView: View {
                         CYEmptyState(systemImage: "text.bubble", "club.community.empty")
                     }
                     ForEach(snapshot.feedItems) { item in
-                        feedItem(item, snapshot: snapshot)
+                        UGCBlockedFilterContainer(memberID: item.post.authorMemberID, authorName: item.post.nickname) {
+                            feedItem(item, snapshot: snapshot)
+                        }
                     }
                     if let clubID {
                         Button("club.community.next") { Task { await model.loadMorePosts(clubID: clubID) } }
@@ -515,7 +517,10 @@ struct ClubCommunityPostTile: View {
                     if allows(.update(content: post.content, images: post.images, requestID: "display")) { Button("club.community.edit") { editing = true } }
                     if allows(.pin(!post.pinned, requestID: "display")) { Button(post.pinned ? "club.community.unpin" : "club.community.pin") { Task { await model.prepare(.pin(!post.pinned, requestID: UUID().uuidString), clubID: clubID, post: post) } } }
                     if allows(.delete) { Button("club.community.delete", role: .destructive) { Task { await model.prepare(.delete, clubID: clubID, post: post) } } }
-                    if allows(.report) { Button("club.community.report") { Task { await model.prepare(.report, clubID: clubID, post: post) } } }
+                    if allows(.report) {
+                        Button("club.community.report") { Task { await model.prepare(.report, clubID: clubID, post: post) } }
+                            .accessibilityLabel(Text("club.community.report"))
+                    }
                 } label: { Label("club.community.actions", systemImage: "ellipsis") }
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
@@ -529,6 +534,19 @@ struct ClubCommunityPostTile: View {
                 Button(action: openHistory) { Text("club.community.history") }
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("club.community.history.\(post.id)")
+                if post.authorMemberID != identity.accountID {
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .clubPost(clubID: post.clubID ?? clubID ?? 0, postID: post.id),
+                            subjectTitle: post.content,
+                            authorMemberID: post.authorMemberID,
+                            authorName: post.nickname,
+                            clubID: post.clubID ?? clubID
+                        ),
+                        compactLabel: true
+                    )
+                    .accessibilityIdentifier("club.community.safety.\(post.id)")
+                }
             }
         }
         .font(CYTypography.body)
@@ -633,8 +651,24 @@ struct ClubCommunityPostDetailView: View {
                     CYEmptyState(systemImage: "bubble", "club.community.noComments")
                 }
                 ForEach(model.snapshot?.comments ?? []) { comment in
-                    ClubCommunityCommentRow(comment: comment)
+                    UGCBlockedFilterContainer(memberID: comment.memberID, authorName: comment.nickname) {
+                        HStack(alignment: .top, spacing: CYSpacing.sm) {
+                            ClubCommunityCommentRow(comment: comment)
+                            if comment.memberID != identity.accountID {
+                                UGCSafetyMenuButton(
+                                    presentation: UGCReportPresentationTarget(
+                                        target: .clubPostComment(commentID: comment.id),
+                                        subjectTitle: comment.content,
+                                        authorMemberID: comment.memberID,
+                                        authorName: comment.nickname,
+                                        clubID: post.clubID ?? clubID
+                                    ),
+                                    compactLabel: true
+                                )
+                            }
+                        }
                         .accessibilityIdentifier("club.community.detail.comment.\(comment.id)")
+                    }
                 }
                 CYPillButton("club.community.refresh") { Task { await model.load(commentsOperation) } }
                     .disabled(model.loading || model.busy)
@@ -856,23 +890,40 @@ struct ClubCommunityCommentsView: View {
                     CYEmptyState(systemImage: "bubble", "club.community.noComments")
                 }
                 ForEach(model.snapshot?.comments ?? []) { comment in
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        ClubCommunityCommentRow(comment: comment)
-                        let moderator = evidence?.owner == true || evidence?.administrator == true || post.viewerCanManage
-                        if identity.isSignedIn {
-                            let canDelete = comment.memberID == identity.accountID || moderator
-                            Button(canDelete ? "club.community.deleteComment" : "club.community.reportComment") {
-                                Task { await model.prepare(canDelete ? .deleteComment : .reportComment, clubID: clubID, post: post, comment: comment) }
+                    UGCBlockedFilterContainer(memberID: comment.memberID, authorName: comment.nickname) {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            HStack(alignment: .top, spacing: CYSpacing.sm) {
+                                ClubCommunityCommentRow(comment: comment)
+                                Spacer(minLength: 0)
+                                if comment.memberID != identity.accountID {
+                                    UGCSafetyMenuButton(
+                                        presentation: UGCReportPresentationTarget(
+                                            target: .clubPostComment(commentID: comment.id),
+                                            subjectTitle: comment.content,
+                                            authorMemberID: comment.memberID,
+                                            authorName: comment.nickname,
+                                            clubID: clubID
+                                        ),
+                                        compactLabel: true
+                                    )
+                                }
                             }
-                            .font(CYTypography.label)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                            .disabled(model.busy || model.context.coordinator?.permitsInjectedWrites != true)
+                            let moderator = evidence?.owner == true || evidence?.administrator == true || post.viewerCanManage
+                            if identity.isSignedIn {
+                                let canDelete = comment.memberID == identity.accountID || moderator
+                                Button(canDelete ? "club.community.deleteComment" : "club.community.reportComment") {
+                                    Task { await model.prepare(canDelete ? .deleteComment : .reportComment, clubID: clubID, post: post, comment: comment) }
+                                }
+                                .font(CYTypography.label)
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .disabled(model.busy || model.context.coordinator?.permitsInjectedWrites != true)
+                            }
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("club.community.comment.\(comment.id)")
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
-                    .accessibilityElement(children: .contain)
-                    .accessibilityIdentifier("club.community.comment.\(comment.id)")
                 }
                 TextField("club.community.commentContent", text: $content, axis: .vertical)
                     .font(CYTypography.body)

@@ -277,6 +277,8 @@ if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_design_lint.py')]).
     raise SystemExit('Design lint failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_a11y.py')]).returncode!=0:
     raise SystemExit('Accessibility lint failed')
+if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_log_redaction.py')]).returncode!=0:
+    raise SystemExit('Log redaction check failed')
 for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),):
     if subprocess.run([sys.executable,'-B',str(ROOT/'tools'/gate)]).returncode!=0:
         raise SystemExit(label+' failed')

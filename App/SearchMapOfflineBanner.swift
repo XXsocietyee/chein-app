@@ -46,27 +46,52 @@ struct SearchMapOfflineBannerView: View {
     let state: SearchMapOfflineBanner
     let stillOffline: Bool
     let retry: () -> Void
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         if let key = state.key {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Label(LocalizedStringKey(key), systemImage: "wifi.slash")
-                    .font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    .font(CYTypography.meta.weight(.semibold))
+                    .foregroundStyle(palette.warning)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("searchMap.w208.offline.message")
                 if case .cached(let date) = state {
                     (Text("searchMap.w208.offline.cachedAt") + Text(verbatim: " ") + Text(date, format: .dateTime.hour().minute()))
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(CYTypography.caption).foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("searchMap.w208.offline.cachedAt")
                 }
                 if stillOffline {
-                    Text("searchMap.w208.offline.stillOffline").font(.footnote)
+                    Text("searchMap.w208.offline.stillOffline").font(CYTypography.caption)
+                        .foregroundStyle(palette.warning)
                         .accessibilityIdentifier("searchMap.w208.offline.stillOffline")
                 }
-                Button("searchMap.w208.offline.retry", action: retry).buttonStyle(.bordered).frame(minHeight: 44)
+                Button("searchMap.w208.offline.retry", action: retry)
+                    .buttonStyle(.bordered)
+                    .tint(palette.warning)
+                    .frame(minHeight: 44)
                     .accessibilityIdentifier("searchMap.w208.offline.retry")
+                    .accessibilityLabel(Text("searchMap.w208.offline.retry"))
+                    .accessibilityValue(spokenCache)
+                    .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "searchMap.w208.offline.stillOffline" : key)))
             }.padding().frame(maxWidth: .infinity, alignment: .leading)
-                .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+                .background(palette.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                        .stroke(palette.warning.opacity(0.28), lineWidth: 1)
+                )
                 .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text(LocalizedStringKey(key)))
+                .accessibilityValue(spokenCache)
+                .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "searchMap.w208.offline.stillOffline" : key)))
                 .accessibilityIdentifier("searchMap.w208.offline")
         }
+    }
+
+    /// No cached clock is unknown. A shown time stays the clock already on the bar.
+    private var spokenCache: Text {
+        if case .cached(let date) = state {
+            return Text(date, format: .dateTime.hour().minute())
+        }
+        return Text(verbatim: "—")
     }
 }

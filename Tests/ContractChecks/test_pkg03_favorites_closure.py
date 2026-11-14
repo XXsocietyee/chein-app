@@ -49,7 +49,9 @@ class Pkg03FavoritesClosureTests(unittest.TestCase):
         host = view.split('@MainActor struct AccountCollectionFavoritesView: View {', 1)[1].split(
             '@MainActor private struct AccountCollectionFavoriteTopicsView: View {', 1
         )[0]
-        self.assertIn('if postsAllowed {\n                Picker("accountCollection.favorites.title", selection: $selectedTab)', host)
+        # h-visual-bugs adds the city places tab; the posts tab itself stays behind the community gate.
+        self.assertIn('if postsAllowed || showsCityNodesTab {\n                Picker("accountCollection.favorites.title", selection: $selectedTab)', host)
+        self.assertIn('if postsAllowed { Text("social.posts").tag(Tab.posts) }', host)
         self.assertIn('if postsAllowed && selectedTab == .posts {', host)
         model = self.text('Core/AccountCollectionReading.swift')
         gate = model.split('public final class AccountCollectionCommunityGateModel', 1)[1]

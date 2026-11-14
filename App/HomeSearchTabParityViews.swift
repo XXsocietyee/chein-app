@@ -8,6 +8,7 @@ struct HomeHeroHeaderSectionView: View {
     var nickname: String? = nil
     var selectedCity: String? = nil
     var isNationwide: Bool = false
+    var isMerchantViewer: Bool = false
     var avatarSource: String? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
@@ -79,7 +80,8 @@ struct HomeHeroHeaderSectionView: View {
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-                                Label("homeFeed.player", systemImage: "checkmark.seal.fill")
+                                Label(isMerchantViewer ? "account.role.merchant" : "homeFeed.player",
+                                      systemImage: isMerchantViewer ? "storefront.fill" : "checkmark.seal.fill")
                                     .foregroundStyle(CYColor.brand)
                             }
                             if hasCity {
@@ -586,6 +588,23 @@ final class MerchantRootModeCoordinator: ObservableObject {
     @Published private(set) var merchantContainerGeneration = UUID()
 
     private var verificationGeneration: UInt64 = 0
+    /// Manual consumer choice for one account and session revision. Identity changes drop it.
+    private var consumerHold: ConsumerModeHold?
+    /// One automatic request per account, revision, and merchant/player signal. Refreshes do not repeat it.
+    private var autoMerchantRequest: AutoMerchantRequest?
+    private var anchoredAccountID: Int?
+    private var anchoredRevision: UInt64?
+
+    private struct ConsumerModeHold: Equatable {
+        let accountID: Int
+        let revision: UInt64
+    }
+
+    private struct AutoMerchantRequest: Equatable {
+        let accountID: Int
+        let revision: UInt64
+        let wantsMerchant: Bool
+    }
 
     var selectedRootTab: RootTab {
         get { selectedMerchantTab.rootTab }
@@ -694,14 +713,53 @@ final class MerchantRootModeCoordinator: ObservableObject {
         selectBusinessTab(MerchantRootBusinessTab(rootTab: tab))
     }
 
+    /// Asks for merchant mode once when `api/userInfo` says `role=merchant` or `userType=2`.
+    /// A consumer hold for the same account and session revision suppresses that request.
+    /// `requestMerchantMode` is how that account returns to merchant mode. The role string is not admission.
+    func adoptSignedInAccount<Reader: MerchantReading>(
+        reader: Reader,
+        accountID: Int?,
+        role: String,
+        userType: Int?,
+        isSignedIn: Bool,
+        isConfigured: Bool,
+        revision: UInt64
+    ) async {
+        handleSessionChange(accountID: accountID, isSignedIn: isSignedIn, isConfigured: isConfigured, revision: revision)
+        guard isConfigured, isSignedIn, let signedInAccount = accountID, signedInAccount > 0 else { return }
+        if let held = consumerHold, held == ConsumerModeHold(accountID: signedInAccount, revision: revision) { return }
+        let wantsMerchant = RootTabBarParity.initialRequestedMode(role: role, userType: userType) == .merchant
+        let key = AutoMerchantRequest(accountID: signedInAccount, revision: revision, wantsMerchant: wantsMerchant)
+        if autoMerchantRequest == key { return }
+        autoMerchantRequest = key
+        anchoredAccountID = signedInAccount
+        anchoredRevision = revision
+        guard wantsMerchant else { return }
+        if isMerchantModeActive(accountID: signedInAccount, isSignedIn: isSignedIn, isConfigured: isConfigured, revision: revision) {
+            return
+        }
+        await requestMerchantMode(reader: reader, accountID: signedInAccount, clearingConsumerHold: false)
+    }
+
     /// Requests switching into Merchant Root Mode by freshly verifying `reader.merchantAccess()`.
     /// Never grants merchant mode from UI intent or unverified role strings.
     @discardableResult
     func requestMerchantMode<Reader: MerchantReading>(
         reader: Reader,
         accountID: Int?,
-        initialTab: MerchantRootBusinessTab = .workbench
+        initialTab: MerchantRootBusinessTab = .workbench,
+        clearingConsumerHold: Bool = true
     ) async -> Bool {
+        if clearingConsumerHold {
+            consumerHold = nil
+        } else if let held = consumerHold, let currentAccount = accountID, currentAccount > 0,
+                  held == ConsumerModeHold(accountID: currentAccount, revision: reader.sessionRevision) {
+            return false
+        }
+        if let currentAccount = accountID, currentAccount > 0 {
+            anchoredAccountID = currentAccount
+            anchoredRevision = reader.sessionRevision
+        }
         verificationGeneration &+= 1
         let generation = verificationGeneration
 
@@ -790,11 +848,11 @@ final class MerchantRootModeCoordinator: ObservableObject {
             return false
         }
         if let verifiedAccountID, verifiedAccountID != accountID {
-            switchToConsumerMode()
+            resetConsumerMode()
             return false
         }
         if let verifiedSessionRevision, verifiedSessionRevision != reader.sessionRevision {
-            switchToConsumerMode()
+            resetConsumerMode()
             return false
         }
         guard let token = beginAccessObservation(accountID: accountID, revision: reader.sessionRevision) else {
@@ -932,16 +990,10 @@ final class MerchantRootModeCoordinator: ObservableObject {
     }
 
     /// Switches back to Player/Consumer Mode and destroys all merchant container navigation state.
+    /// The choice sticks for the current account and session revision until `requestMerchantMode` or an identity change.
     func switchToConsumerMode() {
-        verificationGeneration &+= 1
-        isVerifying = false
-        requestedMode = .consumer
-        verifiedAccess = nil
-        verifiedAccountID = nil
-        verifiedSessionRevision = nil
-        selectedMerchantTab = .workbench
-        statusErrorKey = nil
-        merchantContainerGeneration = UUID()
+        rememberConsumerChoice()
+        resetConsumerMode()
     }
 
     /// Cleans up merchant mode whenever account identity, sign-in state, or session revision changes.
@@ -951,20 +1003,54 @@ final class MerchantRootModeCoordinator: ObservableObject {
         isConfigured: Bool,
         revision: UInt64
     ) {
+        forgetConsumerChoiceUnlessCurrent(accountID: accountID, isSignedIn: isSignedIn, isConfigured: isConfigured, revision: revision)
         if !isConfigured || !isSignedIn || accountID == nil {
             if requestedMode != .consumer || verifiedAccess != nil || isVerifying || statusErrorKey != nil || selectedMerchantTab != .workbench {
-                switchToConsumerMode()
+                resetConsumerMode()
             }
             return
         }
         if let verifiedAccountID, verifiedAccountID != accountID {
-            switchToConsumerMode()
+            resetConsumerMode()
             return
         }
         if let verifiedSessionRevision, verifiedSessionRevision != revision {
-            switchToConsumerMode()
+            resetConsumerMode()
             return
         }
+    }
+
+    private func rememberConsumerChoice() {
+        let accountID = verifiedAccountID ?? anchoredAccountID
+        let revision = verifiedSessionRevision ?? anchoredRevision
+        guard let accountID, accountID > 0, let revision else { return }
+        consumerHold = ConsumerModeHold(accountID: accountID, revision: revision)
+    }
+
+    private func forgetConsumerChoiceUnlessCurrent(
+        accountID: Int?,
+        isSignedIn: Bool,
+        isConfigured: Bool,
+        revision: UInt64
+    ) {
+        guard let held = consumerHold else { return }
+        let current = isConfigured && isSignedIn && held.accountID == accountID && held.revision == revision
+        if !current {
+            consumerHold = nil
+            autoMerchantRequest = nil
+        }
+    }
+
+    private func resetConsumerMode() {
+        verificationGeneration &+= 1
+        isVerifying = false
+        requestedMode = .consumer
+        verifiedAccess = nil
+        verifiedAccountID = nil
+        verifiedSessionRevision = nil
+        selectedMerchantTab = .workbench
+        statusErrorKey = nil
+        merchantContainerGeneration = UUID()
     }
 
     func makeModeSwitch(session: AppSession) -> MerchantRootModeSwitch {
@@ -1127,7 +1213,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.workbench) }
+            .tabItem { merchantTabLabel(.workbench).accessibilityIdentifier("rootTabBar.tab.merchant.0") }
             .tag(MerchantRootBusinessTab.workbench)
 
             NavigationStack {
@@ -1166,7 +1252,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.marketing) }
+            .tabItem { merchantTabLabel(.marketing).accessibilityIdentifier("rootTabBar.tab.merchant.1") }
             .tag(MerchantRootBusinessTab.marketing)
 
             NavigationStack {
@@ -1187,7 +1273,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.templates) }
+            .tabItem { merchantTabLabel(.templates).accessibilityIdentifier("rootTabBar.tab.merchant.2") }
             .tag(MerchantRootBusinessTab.templates)
 
             NavigationStack {
@@ -1208,7 +1294,7 @@ struct SessionMerchantRootContainerView: View {
                     }
                 }
             }
-            .tabItem { merchantTabLabel(.cooperation) }
+            .tabItem { merchantTabLabel(.cooperation).accessibilityIdentifier("rootTabBar.tab.merchant.3") }
             .tag(MerchantRootBusinessTab.cooperation)
 
             Group {
@@ -1225,12 +1311,13 @@ struct SessionMerchantRootContainerView: View {
                     WelcomeView()
                 }
             }
-            .tabItem { merchantTabLabel(.mine) }
+            .tabItem { merchantTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.merchant.4") }
             .tag(MerchantRootBusinessTab.mine)
         }
         .id(coordinator.merchantContainerGeneration)
         .cyScreenStyle()
         .cyDomainTabBar(.merchant)
+        .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.merchant.0", "rootTabBar.tab.merchant.1", "rootTabBar.tab.merchant.2", "rootTabBar.tab.merchant.3", "rootTabBar.tab.merchant.4"])
         .cyTabSelectionFeedback(coordinator.selectedMerchantTab)
         .roleTheme(.merchant)
         .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }

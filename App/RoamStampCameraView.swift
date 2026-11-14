@@ -15,6 +15,7 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.cyCelebrationCenter) private var celebrations
     @Environment(\.cyPalette) private var palette
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @State private var cameraDenied = false
     @State private var showingPriming = false
     @State private var primingAllowed = false
@@ -51,6 +52,9 @@ import UIKit
                         Button("roam.poi.location.openSettings") {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }.frame(minHeight: 44).accessibilityIdentifier("media.stamp.openSettings")
+                            .accessibilityLabel(Text("roam.poi.location.openSettings"))
+                            .accessibilityValue(Text("media.stamp.cameraDenied.title"))
+                            .accessibilityHint(Text("media.stamp.cameraDenied.message"))
                     }.accessibilityIdentifier("media.stamp.cameraDenied")
                 } else if cameraIssue {
                     Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(palette.warning)
@@ -78,9 +82,22 @@ import UIKit
                             .disabled(!coordinator.canCapture)
                     }
                     if coordinator.pending != nil, pageContract.showsCreate {
-                        CYPillButton("media.stamp.create") { run { await coordinator.create() } }
+                        CYPillButton("media.stamp.create") {
+                            run {
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/roam/stamp/create"]
+                                ) {
+                                    await coordinator.create()
+                                }
+                            }
+                        }
                             .disabled(!coordinator.canCreate)
                     }
+                    CYScreenOfflineWriteBanner(
+                        routes: ["/api/roam/stamp/create"],
+                        session: offlineWriteSession.session
+                    )
                     if case .created = coordinator.phase {
                         RoamStampCreatedMark()
                     }

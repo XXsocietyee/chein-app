@@ -6,8 +6,8 @@ import QuestifyCore
 // MARK: - POI Challenge View (Ported from pages/play/poi-challenge/index.wxml & index.js)
 
 /// Challenge screen: header, step checklist, photo + quiz inputs and a submit area.
-/// The challenge write has no approved contract in this build, so the submit area always carries the
-/// "not available yet" banner and `readyButBlocked` explains that a valid attempt was not sent.
+/// When a live writer is not installed, the submit area carries the "not available yet" banner
+/// and `readyButBlocked` explains that a valid attempt was not sent.
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIView: View {
     @Bindable var coordinator: ChallengePOICoordinator
@@ -111,6 +111,8 @@ import QuestifyCore
                 ProgressView(value: ChallengePOIChecklist.progress(items))
                     .tint(palette.textPrimary)
                     .accessibilityLabel(Text(verbatim: W8Text.t("挑战进度", "Challenge progress")))
+                    .accessibilityValue(Text(verbatim: ChallengePOIChecklist.progress(items) == 0 ? "0" : "\(ChallengePOIChecklist.progress(items))"))
+                    .accessibilityHint(Text(verbatim: W8Text.t("挑战进度", "Challenge progress")))
                 ChallengePOIChecklistView(items: items)
             }
             .cyDomainCard()
@@ -131,10 +133,15 @@ import QuestifyCore
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .cyField()
+                .accessibilityLabel(Text("playx.poi.photoUrlPlaceholder"))
+                .accessibilityValue(Text(verbatim: coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.uploadedPhotoUrl))
+                .accessibilityHint(Text("playx.poi.photoStep"))
             CYPillButton("playx.poi.confirmPhoto", style: .secondary, systemImage: "camera") {
                 coordinator.confirmPhotoUploaded(coordinator.uploadedPhotoUrl)
             }
             .accessibilityLabel(Text("playx.poi.confirmPhoto"))
+            .accessibilityValue(Text(verbatim: coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.uploadedPhotoUrl))
+            .accessibilityHint(Text("playx.poi.photoStep"))
         }
         .cyDomainCard()
     }
@@ -154,11 +161,17 @@ import QuestifyCore
                         CYChoiceRow(label: readable(option), selected: coordinator.selectedOptionIndex == idx) {
                             coordinator.selectedOptionIndex = idx
                         }
+                        .accessibilityLabel(Text(verbatim: readable(option)))
+                        .accessibilityValue(Text(verbatim: readable(option)))
+                        .accessibilityHint(Text(verbatim: node.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : readable(node.question)))
                     }
                 } else {
                     TextField(LocalizedStringKey("playx.poi.answerPlaceholder"), text: $coordinator.textAnswer)
                         .font(CYTypography.body)
                         .cyField()
+                        .accessibilityLabel(Text("playx.poi.answerPlaceholder"))
+                        .accessibilityValue(Text(verbatim: coordinator.textAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.textAnswer))
+                        .accessibilityHint(Text(verbatim: node.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : readable(node.question)))
                 }
             }
             .cyDomainCard()
@@ -167,7 +180,9 @@ import QuestifyCore
 
     private var submitArea: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            PlayWriteUnavailableBanner(surface: .challengeSubmit)
+            if !ChallengePOIWriterFactory.isLive {
+                PlayWriteUnavailableBanner(surface: .challengeSubmit)
+            }
 
             if let submitFeedback, !submitFeedback.isEmpty {
                 note(readable(submitFeedback), symbol: "exclamationmark.triangle.fill", tone: .danger)
@@ -183,12 +198,16 @@ import QuestifyCore
                     Task { await onRefresh() }
                 }
                 .accessibilityLabel(Text("playx.poi.verifyReceipt"))
+                .accessibilityValue(Text(verbatim: "—"))
+                .accessibilityHint(Text("playx.poi.verifyReceipt"))
                 CYPillButton("playx.poi.submit", style: .secondary, systemImage: "paperplane.fill") {
                     Task { await onSubmit() }
                 }
                 .disabled(true)
                 .accessibilityIdentifier("playx.poi.submit")
                 .accessibilityLabel(Text("playx.poi.submit"))
+                .accessibilityValue(Text(verbatim: "—"))
+                .accessibilityHint(Text("playx.poi.submit"))
             } else {
                 CYPillButton("playx.poi.submit", systemImage: "paperplane.fill") {
                     Task { await onSubmit() }
@@ -196,6 +215,8 @@ import QuestifyCore
                 .disabled(coordinator.submitting)
                 .accessibilityIdentifier("playx.poi.submit")
                 .accessibilityLabel(Text("playx.poi.submit"))
+                .accessibilityValue(Text(coordinator.submitting ? "playx.poi.loading" : "playx.poi.submit"))
+                .accessibilityHint(Text("playx.poi.submit"))
             }
         }
     }
@@ -255,11 +276,12 @@ import QuestifyCore
 }
 
 /// Mini-program `subpackageRoam/nearby` opens `pages/play/poi-challenge` from a nearby place.
-/// DESIGNED host: built from the already-read roam node; the challenge write has no approved path in this build,
-/// so a validated submission goes through the injected writer (gated by default) and never claims it was sent.
+/// Built from the already-read roam node; submissions run through `ChallengePOIWriterFactory.makeWriter()`
+/// using foreground WGS-84 coordinates projected to GCJ-02 when authorized.
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIHostView: View {
     let node: RoamNodeDetail
+    @Environment(\.playEmergencyLocationProvider) private var locationProvider
     @State private var coordinator: ChallengePOICoordinator?
     @State private var feedback: String?
     @State private var readyButBlocked = false
@@ -278,8 +300,8 @@ import QuestifyCore
                             load(coordinator)
                         },
                         onSubmit: {
-                            // Validate locally, then send through the injected writer (gated by default: nothing is sent).
-                            await submitModel.submit(coordinator: coordinator, userLat: nil, userLon: nil)
+                            let coords = await currentGCJ02Coordinate()
+                            await submitModel.submit(coordinator: coordinator, userLat: coords?.latitude, userLon: coords?.longitude)
                             switch submitModel.state {
                             case .unavailable: feedback = nil; readyButBlocked = true
                             case .invalid(let message), .rejected(let message), .unconfirmed(let message):
@@ -316,7 +338,18 @@ import QuestifyCore
         model.applyLoadedNode(ChallengePOINode(
             id: node.poiId, name: node.name, title: node.name, description: node.description ?? "",
             latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude,
-            radiusM: Double(node.radiusM ?? 100), photoRequired: true, completed: node.completed))
+            radiusM: Double(node.radiusM ?? 100), photoRequired: node.validationMethod == 2, completed: node.completed))
+    }
+
+    private func currentGCJ02Coordinate() async -> (latitude: Double, longitude: Double)? {
+        guard let raw = await locationProvider?.currentCoordinate(),
+              let roam = RoamCoordinate(latitude: raw.latitude, longitude: raw.longitude) else {
+            return nil
+        }
+        if let gcj = try? RuntimeLocationProjection.gcj02MapCenter(RuntimeLocationProjection.MapCenter(coordinate: roam, datum: .wgs84)) {
+            return (gcj.coordinate.latitude, gcj.coordinate.longitude)
+        }
+        return raw
     }
 }
 

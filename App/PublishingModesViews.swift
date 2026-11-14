@@ -166,6 +166,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
 }
 @MainActor struct ActivityPublishingView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cyPalette) private var palette
@@ -218,6 +219,11 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         // the modifiers keep their original order.
         // Mini-program guardPublisherRole: publish_precheck admits the form; 403 shows the server's reason.
         ActivityPublishPrecheckGate { publishingForm(templateSelectionAction: templateSelectionAction, templateReadID: templateReadID) }
+        .onChange(of: submission.receipt?.activityID) { _, id in
+            guard let id, id > 0, submission.receipt?.committed == true else { return }
+            MiniProgramAnalytics.track(analytics, "activity_publish_success", bizType: "activity", bizID: id,
+                pagePath: "/pages/publish/activity/index", properties: ["name": .string(draft.name)])
+        }
         .background {
             if let original = timeRange.presentation {
                 ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in

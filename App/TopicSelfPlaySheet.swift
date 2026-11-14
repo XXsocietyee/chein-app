@@ -58,10 +58,6 @@ import SwiftUI
                     Section {
                         if let document = model.flow.document { Link("contextSelfPlay.noticeLink", destination: document.officialURL) }
                         else { Text("contextSelfPlay.documentUnavailable").font(.caption) }
-                        Toggle("contextSelfPlay.consent", isOn: Binding(get: { model.flow.consented }, set: { model.flow.consented = $0; model.flow.changed() }))
-                            .disabled(!model.flow.canCreate).accessibilityIdentifier("contextSelfPlay.consent")
-                        Button("contextSelfPlay.review") { model.flow.prepare() }
-                            .disabled(!model.flow.canCreate).accessibilityIdentifier("contextSelfPlay.review")
                     }
                 }
                 if model.flow.pending != nil { billSection }
@@ -82,7 +78,28 @@ import SwiftUI
                 } else if model.flow.pending != nil, let orders {
                     NavigationLink("contextSelfPlay.orders") { orders() }
                 }
-            }.navigationTitle("contextSelfPlay.title")
+            }
+            .safeAreaInset(edge: .bottom) {
+                if model.flow.pending == nil {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Group {
+                            Toggle("contextSelfPlay.consent", isOn: Binding(get: { model.flow.consented }, set: { model.flow.consented = $0; model.flow.changed() }))
+                        }
+                        .disabled(!model.flow.canCreate)
+                        .accessibilityIdentifier("contextSelfPlay.consent")
+                        Button(action: { model.flow.prepare() }) {
+                            Text("contextSelfPlay.review").frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.cyPrimary)
+                        .disabled(!model.flow.canCreate)
+                        .accessibilityIdentifier("contextSelfPlay.review")
+                    }
+                    .padding(.horizontal, Theme.Space.pageX)
+                    .padding(.vertical, Theme.Space.s2_5)
+                    .background(.bar)
+                }
+            }
+            .navigationTitle("contextSelfPlay.title")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.flow.leave(); dismiss() } } }
             .task { await model.flow.open() }
             .onDisappear { model.flow.leave() }
@@ -150,10 +167,14 @@ import SwiftUI
                     TopicPrice(value: review.price, label: "topic.selfPlayPrice")
                     Text("contextSelfPlay.paymentNotice")
                     Link("contextSelfPlay.noticeLink", destination: review.document.officialURL)
-                    Toggle("contextSelfPlay.consent", isOn: $consented)
                 }
                 Section {
-                    Button("contextSelfPlay.continuePayment") { confirm(consented) }
+                    Group {
+                        Toggle("contextSelfPlay.consent", isOn: $consented)
+                    }
+                    Button(action: { confirm(consented) }) {
+                        Text("contextSelfPlay.continuePayment").frame(maxWidth: .infinity)
+                    }
                         .buttonStyle(.questifyPrimary)
                         .frame(maxWidth: .infinity)
                         .listRowBackground(Color.clear)

@@ -88,6 +88,27 @@ final class ParticipationParityTests: XCTestCase {
         XCTAssertEqual(ParticipationLoadIssue(APIError.notConfigured, detail: false).titleKey, "playerJourney.notConfigured")
     }
 
+    func testUnusedSelfPlayPassUsesReadyLabelAndKeepsZeroScan() throws {
+        let now = try XCTUnwrap(OrderLifecycleTime.date("2026-10-11 12:00:00"))
+        let open = #"{"id":71,"ownerType":1,"registrationStatus":2,"paymentStatus":2,"verificationStatus":0,"totalAmount":10,"payableAmount":10,"purchaseKind":2,"cmsTopic":{"id":91,"startDate":"2026-10-01","endDate":"2026-12-01"}}"#
+        let ready = try record(open).participationStatus(now: now)
+        XCTAssertEqual(ready.state, .notStarted)
+        XCTAssertTrue(ready.passReady)
+        XCTAssertEqual(ready.labelKey, "orderLifecycle.state.passReady")
+        let future = open.replacingOccurrences(of: "2026-10-01", with: "2026-10-20")
+        let waiting = try record(future).participationStatus(now: now)
+        XCTAssertEqual(waiting.state, .notStarted)
+        XCTAssertFalse(waiting.passReady)
+        XCTAssertEqual(waiting.labelKey, "orderLifecycle.state.notStarted")
+        let zero = String(open.dropLast()) + #","firstSuccessfulScanAt":0}"#
+        let kept = try record(zero)
+        XCTAssertEqual(kept.parity.firstSuccessfulScanAt, "0")
+        XCTAssertTrue(kept.participationStatus(now: now).passReady)
+        let legacy = #"{"id":72,"ownerType":1,"ticketId":0,"expiresAt":"2027-01-01 00:00:00","registrationStatus":2,"paymentStatus":2,"verificationStatus":0,"totalAmount":10,"payableAmount":10,"cmsTopic":{"id":91,"startDate":"2026-10-01","endDate":"2026-12-01"}}"#
+        XCTAssertTrue(try record(legacy).parity.selfPlayPass)
+        XCTAssertEqual(try record(legacy).participationStatus(now: now).labelKey, "orderLifecycle.state.passReady")
+    }
+
     func testModeKeyMatchesSourceModeText() throws {
         XCTAssertEqual(try record(paid).modeKey, "playerJourney.route")
         let free = paid.replacingOccurrences(of: #""name":"Synthetic route""#, with: #""name":"Synthetic route","productType":2"#)

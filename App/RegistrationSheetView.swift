@@ -19,6 +19,7 @@ struct RegistrationSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
@@ -77,6 +78,10 @@ struct RegistrationSheetView: View {
                     Section { Label("registration.form.sessionChanged", systemImage: "person.crop.circle.badge.exclamationmark") }
                 } else {
                     // Source checkout banner: shown, never blocking (the viewer may register someone else).
+                    CYScreenOfflineWriteSection(
+                        routes: ["/api/registration/create", "/api/compliance/consents"],
+                        session: offlineWriteSession.session
+                    )
                     alreadyRegisteredSection
                     if flow.hasRetainedIntent {
                         activitySection
@@ -94,10 +99,23 @@ struct RegistrationSheetView: View {
                             if flow.durableStatusFailed {
                                 Text("registration.form.statusUnavailable")
                                     .accessibilityIdentifier("registration.recovered.statusUnavailable")
+                                if let row = RequestReferenceRow(pathFragment: "/api/registration/info") { row }
                             }
                             if let snapshot = flow.durableStatus {
                                 Text(LocalizedStringKey(RegistrationUIStatus.registrationKey(snapshot.registrationStatus)))
                             }
+                        }
+                        if case .pending(let regID?) = flow.durableCreation, let snapshot = flow.durableStatus, snapshot.paymentStatus != 2 {
+                            RegistrationPaySection(
+                                registrationID: regID,
+                                payableAmount: flow.selectedTicket?.price,
+                                quote: flow.quoteState.quoteValue,
+                                quoteReceivedAt: flow.currentQuoteReceivedAt,
+                                consented: flow.consented,
+                                requiresFreshQuote: false,
+                                channel: .standard,
+                                onExpiredRebuild: { Task { await flow.requestQuote() } }
+                            )
                         }
                         recoveredOrderSection
                     } else {
@@ -131,7 +149,22 @@ struct RegistrationSheetView: View {
                 }
             }
             .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
-                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) { Task { await flow.confirmAndReadBack() } }
+                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) {
+                    let isPaidRegistration = (flow.confirmation?.quote.payAmount ?? 0) > 0
+                    Task {
+                        if isPaidRegistration {
+                            await flow.confirmAndReadBack()
+                        } else {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/registration/create", "/api/compliance/consents"]
+                            ) {
+                                await flow.confirmAndReadBack()
+                            }
+                        }
+                    }
+                }
+                .accessibilityIdentifier("registration.form.confirm")
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {
@@ -615,6 +648,7 @@ struct RegistrationSheetView: View {
                 case .unavailable(let issue):
                     Text("registration.form.quoteFailed").foregroundStyle(.secondary)
                     RegistrationIssueText(issue: issue)
+                    if let row = RequestReferenceRow(pathFragment: "/api/registration/quote") { row }
                 case .idle, .loading:
                     Text("registration.form.quoteNeeded").foregroundStyle(.secondary)
                 }
@@ -728,6 +762,7 @@ private struct RegistrationIssueText: View {
 
 @MainActor
 private struct RegistrationOperationSections: View {
+    @Environment(\.analyticsEventClient) private var analytics
     let flow: RegistrationUIFlow
     let revision:UInt64
     var orderReader: (any ProfileReading)? = nil
@@ -743,6 +778,7 @@ private struct RegistrationOperationSections: View {
             Section("registration.form.outcomeUnknown") {
                 Text("registration.form.outcomeUnknownHint")
                     .accessibilityIdentifier("registration.form.outcomeUnknown")
+                if let row = RequestReferenceRow(pathFragment: "/api/registration/create") { row }
                 Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
                 if let orderReader { RegistrationUncertainOrdersCheck(flow: flow, reader: orderReader) }
             }
@@ -759,6 +795,26 @@ private struct RegistrationOperationSections: View {
                     .disabled(!flow.canReadStatus).accessibilityIdentifier("registration.form.readStatus")
                 Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
             }
+            .onAppear {
+                guard !result.hasPaymentParameters else { return }
+                var properties: [String: PlayWireValue] = ["registrationId": .integer(Int64(result.registrationID))]
+                if let amount = result.payableAmount, let value = MiniProgramAnalytics.amount(amount) { properties["payableAmount"] = value }
+                MiniProgramAnalytics.track(analytics, "signup_submit", bizType: "activity",
+                    bizID: MiniProgramAnalytics.bizID(flow.activity.summary.id), pagePath: "/pages/activity/baoming/baoming",
+                    properties: properties, idempotencyKey: "signup_submit_registration_\(result.registrationID)")
+            }
+            if (result.payableAmount ?? .zero) > .zero || result.hasPaymentParameters {
+                RegistrationPaySection(
+                    registrationID: result.registrationID,
+                    payableAmount: result.payableAmount,
+                    quote: flow.quoteState.quoteValue,
+                    quoteReceivedAt: flow.currentQuoteReceivedAt,
+                    consented: flow.consented,
+                    requiresFreshQuote: flow.quoteState.quoteValue != nil,
+                    channel: .standard,
+                    onExpiredRebuild: { Task { await flow.requestQuote() } }
+                )
+            }
         }
         switch flow.readbackState {
         case .idle: EmptyView()
@@ -767,6 +823,7 @@ private struct RegistrationOperationSections: View {
             Section {
                 Text("registration.form.statusUnavailable")
                 RegistrationIssueText(issue: issue)
+                if let row = RequestReferenceRow(pathFragment: "/api/registration/info") { row }
             }
         case .received(let snapshot):
             Section("registration.form.serverStatus") {

@@ -1,0 +1,137 @@
+appId: invalid.example.questify.ios
+name: Play Session (Station Answer + Hint Ladder + Team Backpack)
+tags:
+  - e2e
+  - play
+env:
+  E2E_ACTIVITY_ID: ${E2E_ACTIVITY_ID:-992031}
+---
+# Assumes player session already signed in with an active registration (9004 holds reg 75).
+# Note: E2E-20261113b N5 flagged PlaySession vs full SessionPlayRuntimeView gating; N3/N5 updated ActivityDetailView.
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Global Search from Home and jump to registered activity.
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.hero.searchEntry"
+    timeout: 15000
+- tapOn:
+    id: "homeIndex.hero.searchEntry"
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.keyword"
+    timeout: 10000
+- tapOn:
+    id: "searchMap.keyword"
+- inputText: ${E2E_ACTIVITY_ID}
+- tapOn:
+    id: "searchMap.submit"
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.result.activity-${E2E_ACTIVITY_ID}"
+    timeout: 15000
+- tapOn:
+    id: "searchMap.result.activity-${E2E_ACTIVITY_ID}"
+
+- extendedWaitUntil:
+    visible:
+      id: "activity.detail.content"
+    timeout: 15000
+
+# Enter play session via Continue Exploring (`activity.primaryAction`) or direct `activity.openPlayExperience`.
+- runFlow:
+    when:
+      visible:
+        id: "activity.primaryAction"
+    commands:
+      - tapOn:
+          id: "activity.primaryAction"
+- runFlow:
+    when:
+      visible:
+        id: "activity.openPlayExperience"
+    commands:
+      - tapOn:
+          id: "activity.openPlayExperience"
+
+# Wait for full runtime overview (`playx.overview`) vs basic fallback (`play.overview`).
+- extendedWaitUntil:
+    visible:
+      id: "playx.overview"
+    timeout: 15000
+- assertNotVisible:
+    id: "playx.issue"
+
+# 1. Open Team Backpack from PlayExperienceView (`play.teamBackpack.open`).
+- scrollUntilVisible:
+    element:
+      id: "play.teamBackpack.open"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "play.teamBackpack.open"
+- extendedWaitUntil:
+    visible:
+      id: "play.teamBackpack"
+    timeout: 10000
+- assertNotVisible:
+    id: "play.teamBackpack.failed"
+- back
+
+# 2. Open first station node (`playx.node.<id>`).
+- scrollUntilVisible:
+    element:
+      id: "playx.node\\..*"
+    direction: UP
+    timeout: 10000
+- tapOn:
+    id: "playx.node\\..*"
+
+# 3. Hint ladder step (`playx.hints.request` -> confirmation dialog).
+- runFlow:
+    when:
+      visible:
+        id: "playx.hints.request"
+    commands:
+      - tapOn:
+          id: "playx.hints.request"
+      - runFlow:
+          when:
+            visible:
+              id: "playx.hints.confirm"
+          commands:
+            - tapOn:
+                id: "playx.hints.confirm"
+
+# 4. Station answer (option button OR text input field -> review -> confirm).
+- runFlow:
+    when:
+      visible:
+        id: "playx.answer.option\\..*"
+    commands:
+      - tapOn:
+          id: "playx.answer.option\\..*"
+- runFlow:
+    when:
+      visible:
+        id: "playx.answer.field"
+    commands:
+      - tapOn:
+          id: "playx.answer.field"
+      - inputText: "answer"
+- runFlow:
+    when:
+      visible:
+        id: "playx.answer.review"
+    commands:
+      - tapOn:
+          id: "playx.answer.review"
+      - extendedWaitUntil:
+          visible:
+            id: "playx.confirm"
+          timeout: 10000
+      - tapOn:
+          id: "playx.confirm"

@@ -67,6 +67,7 @@ public final class RegistrationUIFlow {
     private let waitlistService: (any RegistrationWaitlistServing)?
     private let now: () -> Date
     private var quoteReceivedAt: Date?
+    public var currentQuoteReceivedAt: Date? { quoteReceivedAt }
     private var waitlistGeneration: UInt64 = 0
     private let participantReader: (any ProfileReading)?
     private let currentIdentity: () -> ProfileReadIdentity?

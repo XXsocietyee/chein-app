@@ -135,6 +135,17 @@ struct DiscoveryTemplateDetailView: View {
         .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                UGCSafetyMenuButton(
+                    presentation: UGCReportPresentationTarget(
+                        target: .template(id: id, personal: false),
+                        subjectTitle: detail.value?.template.title
+                    )
+                )
+                .accessibilityIdentifier("discovery.template.safetyMenu")
+            }
+        }
         .task(id: requestKey) { if reader.isConfigured { await reload() } }
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
@@ -317,6 +328,19 @@ struct DiscoveryTopicTemplatePreview: View {
             } else { ProgressView("discovery.loading") }
         }
         .appNavigationTitle("discovery.topicPreview")
+        .toolbar {
+            if let item = detail.value {
+                ToolbarItem(placement: .topBarTrailing) {
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .template(id: item.id, personal: true),
+                            subjectTitle: item.name
+                        )
+                    )
+                    .accessibilityIdentifier("discovery.topicTemplate.safetyMenu")
+                }
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .task { await detail.load() }
         .onDisappear { detail.clear() }
@@ -338,18 +362,21 @@ struct DiscoveryTopicTemplatePreview: View {
         if nonempty(item.description) != nil || !item.chapters.isEmpty {
             Section {
                 if let opening = nonempty(item.description) {
-                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled)
+                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled).lineLimit(4)
                 }
                 let numbered = Self.numberedStops(item.chapters)
                 ForEach(Array(item.chapters.enumerated()), id: \.element.id) { index, chapter in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                            if !(chapter.name ?? "").hasPrefix("第") {
+                            if !TopicXcxFacts.hidesGeneratedChapterOrdinal(chapter.name ?? "") {
                                 Text("u10.template.chapterNo \(index + 1)").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                             }
                             DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(CYTypography.cardTitle)
                         }
-                        optionalText(chapter.description)
+                        let guide = TopicXcxFacts.chapterGuide(description: chapter.description)
+                        if !guide.isEmpty {
+                            Text(verbatim: guide).font(CYTypography.meta).foregroundStyle(palette.textSecondary).lineLimit(2)
+                        }
                         let stops = numbered.filter { $0.chapterID == chapter.id }
                         if !stops.isEmpty {
                             TemplateChipFlow(spacing: CYSpacing.sm) {

@@ -62,6 +62,7 @@ import SwiftUI
 
 @MainActor private struct PlaySharedPlanR5CheckSection: View {
     @Bindable var model: PlaySharedPlanR5Recovery
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     @State private var offered: PlaySharedPlanR5Recovery.Review?
     @State private var actionConfirmation = false
     @State private var retryConfirmation = false
@@ -86,14 +87,39 @@ import SwiftUI
                 Text(result == "PASS" ? "原结算：通过" : "原结算：未通过")
                 if let reply = outcome.reply, !reply.isEmpty { Text(reply) }
             } else if model.outcome?.status == "BLOCKED_COST" { Text("原结算费用尚未满足") }
+            CYScreenOfflineWriteBanner(
+                routes: ["/api/play/advanced/action"],
+                session: offlineWriteSession.session
+            )
             if model.busy { ProgressView() }
         }
         .confirmationDialog("确认原检定动作", isPresented: $actionConfirmation, titleVisibility: .visible) {
-            if let offered { Button("确认" + title(offered.action)) { Task { await model.commit(offered); self.offered = nil } } }
+            if let offered {
+                Button("确认" + title(offered.action)) {
+                    Task {
+                        await SessionOfflineSyncModel.shared.performWriteOptIn(
+                            environmentSession: offlineWriteSession.session,
+                            routes: ["/api/play/advanced/action"]
+                        ) {
+                            await model.commit(offered)
+                        }
+                        self.offered = nil
+                    }
+                }
+            }
             Button("取消", role: .cancel) { offered = nil }
         } message: { Text("使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。") }
         .confirmationDialog("重试同一原请求？", isPresented: $retryConfirmation, titleVisibility: .visible) {
-            Button("确认原请求重试") { Task { await model.retryOriginal() } }
+            Button("确认原请求重试") {
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/play/advanced/action"]
+                    ) {
+                        await model.retryOriginal()
+                    }
+                }
+            }
             Button("取消", role: .cancel) {}
         } message: { Text("只重放已保存的原请求与原编号，不创建新的检定。") }
     }

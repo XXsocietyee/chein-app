@@ -124,7 +124,7 @@ class RegistrationCheckoutParityTests(unittest.TestCase):
         self.assertIn("let deduct = quote.pointsDeductYuan ?? .zero", core)
 
     def test_slice_confirms_explicitly_then_reads_back_without_new_writes(self):
-        self.assertIn("{ Task { await flow.confirmAndReadBack() } }", self.view)
+        self.assertIn("await flow.confirmAndReadBack()", self.view)  # h-offline-2 wraps the free path in the write opt-in
         self.assertNotIn("await flow.confirm()", self.view)
         self.assertIn('Text("registration.form.review")', self.view)
         self.assertIn("if flow.prepareConfirmation() { showingConfirmation = true }", self.view)

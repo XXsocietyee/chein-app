@@ -137,6 +137,8 @@ enum DesignFixtureRegistry {
             if let qr = MainActor.assumeIsolated({ QRScanFixtures.make(name) }) { return qr }
             // G1 / G7-G8 / parity-b player views on a synthetic transport (GParityFixtures): g-<view>[-<non-happy state>]
             if let g = MainActor.assumeIsolated({ GParityFixtures.make(name) }) { return g }
+            // Handovers 59–62: error sentences, permission primers, compliance pages, search filters.
+            if let cur6 = MainActor.assumeIsolated({ CurFixtures6.make(name) }) { return cur6 }
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
             if name.hasPrefix("cur4-"), let cur4 = Cur4Fixtures.make(name) { return cur4 }
             // Batch-7 screens whose view types compile on this base (CurFixtures3): cur3-<view>[-<state>][-zh]
@@ -147,6 +149,10 @@ enum DesignFixtureRegistry {
             }
             // parity-a, G6, mount-g45, be-gap and external-game screens (CurFixtures2): cur2-<view>[-<non-happy state>]
             if let cur2 = MainActor.assumeIsolated({ CurFixtures2.make(name) }) { return cur2 }
+            // Workshop v2, WP-07, WP-08, and the other screens whose types compile on this base (CurFixtures5).
+            if let cur5 = MainActor.assumeIsolated({ CurFixtures5.make(name) }) { return cur5 }
+            if name.hasPrefix("cur7-"), let cur7 = Cur7Fixtures.make(name) { return cur7 }
+            if name.hasPrefix("ugc-"), let ugc = UGCSafetyFixtures.make(name) { return ugc }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }

@@ -3,6 +3,7 @@ import SwiftUI
 /// Mini-program stamp-album count headline (`{{total}} 枚`), shown only after a page was read.
 /// `text` is `StampAlbumIndexPageState.totalText`: a literal count, or the em dash when the total is unknown.
 struct StampAlbumTotalHeader: View {
+    @Environment(\.cyPalette) private var palette
     let text: String
     init(total: Int) { text = String(total) }
     init(text: String) { self.text = text }
@@ -15,9 +16,9 @@ struct StampAlbumTotalHeader: View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
             Text(verbatim: text).font(.system(.largeTitle, design: .default).weight(.light)).monospacedDigit()
                 .contentTransition(.numericText())
-                .foregroundStyle(CYColor.textPrimary)
+                .foregroundStyle(palette.textPrimary)
             if Int(text) != nil {
-                Text("u10.album.unit").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textTertiary)
+                Text("u10.album.unit").font(CYTypography.bodyCompact).foregroundStyle(palette.textTertiary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

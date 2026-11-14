@@ -108,7 +108,7 @@ extension EnvironmentValues {
             if let squareReader {
                 CreativeSquareAuthorDeleteSection(signedIn: squareReader.isSignedIn, load: { try await squareReader.ownCreativeSquareIDs() }, remove: { try await squareReader.deleteOwnCreativeSquare(postID: $0) })
             } else {
-                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cooprelation.authorSquare.missing")
+                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading).accessibilityIdentifier("cooprelation.authorSquare.missing")
             }
             CoopRelationContextLabel(context: displayContext)
             Section { sectionPicker.padding(.vertical, CYSpacing.xs) }
@@ -343,6 +343,12 @@ private struct CoopRelationContextLabel: View {
             }
         }, image: home.image, identityChanges: session.objectWillChange.eraseToAnyPublisher())
         CoopRelationDiscoveryView(reader: reader, profiles: profiles, squareReader: session.squareReader)
+            .environment(\.cooperationRelationPostFeed, CoopRelationPostFeedFactory.make(
+                community: session.clubCommunityContext,
+                identity: {
+                    if session.account == nil { return nil }
+                    return session.clubIdentity
+                }))
     }
 }
 

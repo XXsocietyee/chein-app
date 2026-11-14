@@ -35,7 +35,8 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         content
             .safeAreaInset(edge: .top) {
                 MerchantOpsWp03Panel(page: .npc)
-                    .padding(.horizontal)
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.vertical, CYSpacing.sm)
                     .background(CYColor.bgPage)
             }
             .navigationTitle(c.screen == .home ? t("storeCharacter.title.home") : t("storeCharacter.title.avatar"))

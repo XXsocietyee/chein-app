@@ -149,7 +149,8 @@ public struct ExternalGameReviewClient {
     }
 
     public func downloadApproved(gameID: String, token: String) async -> Data? {
-        guard let detailData = await getData(ExternalGameReviewPaths.catalogDetail(gameID), query: [], token: token),
+        guard ExternalGameValidator.isValidPackageID(gameID),
+              let detailData = await getData(ExternalGameReviewPaths.catalogDetail(gameID), query: [], token: token),
               let fact = Self.catalogFact(from: detailData),
               let path = fact.downloadPath else { return nil }
         return await downloadPackage(downloadPath: path, token: token)

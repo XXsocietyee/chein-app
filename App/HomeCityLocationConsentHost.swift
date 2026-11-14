@@ -57,7 +57,14 @@ enum HomeCityLocationDeclineStore {
             return
         }
         Task {
-            do { _ = try await coordinator.recordHomeCityLocationAgree() }
+            do {
+                _ = try await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    session: session,
+                    routes: ["/api/compliance/consents"]
+                ) {
+                    try await coordinator.recordHomeCityLocationAgree()
+                }
+            }
             catch { toast = LocalizedStringKey("homeCityConsent.saveFailed") }
         }
     }

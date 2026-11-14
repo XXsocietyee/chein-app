@@ -186,6 +186,9 @@ struct PlayLocationCaptureIssueView: View {
                 Button { if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) } } label: {
                     Text("location.openSettings", tableName: table)
                 }.accessibilityIdentifier("playRecovery.location.settings")
+                    .accessibilityLabel(Text("location.openSettings", tableName: table))
+                    .accessibilityValue(Text("location.denied", tableName: table))
+                    .accessibilityHint(Text("location.denied", tableName: table))
             } else {
                 Label { Text("location.unusable", tableName: table).fixedSize(horizontal: false, vertical: true) }
                     icon: { Image(systemName: "location.magnifyingglass") }

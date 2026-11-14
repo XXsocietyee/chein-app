@@ -92,5 +92,16 @@ private final class MerchantInfoChaptersTransport: HTTPTransport {
         }
         XCTAssertTrue(transport.requests.isEmpty)
     }
+
+    func testProjectListReadSendsMerchantScope() async throws {
+        let transport = MerchantInfoChaptersTransport()
+        transport.ok(MerchantContentFixtureData.access)
+        transport.ok(#"{"rows":[]}"#)
+        let result = try await service(transport, session: try session()).load(.projects)
+        XCTAssertEqual(result.query, .projects)
+        XCTAssertEqual(transport.requests.compactMap { $0.url?.path }, ["/api/merchant/access/me", "/api/project/my"])
+        XCTAssertTrue(body(transport.requests[1]).contains("name=\"scope\"\r\n\r\nMERCHANT\r\n"))
+        XCTAssertEqual(result.value["rows"].array?.count, 0)
+    }
 }
 #endif

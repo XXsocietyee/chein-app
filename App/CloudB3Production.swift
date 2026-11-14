@@ -103,6 +103,34 @@ extension AppSession: OrientScoreEntryProviding {
         let access = session.squareGovernanceAccess()
         return OrientScoreEntryProvider(service: service, token: { access.token }).orientScoreLoader(topicID: topicID, activityID: activityID)
     }
+
+    static func installSweepWriters(for session: AppSession) {
+        ChallengePOIWriterFactory.makeWriter = {
+            ChallengePOIHTTPWriter(
+                configuration: { await MainActor.run { session.regionalConfiguration?.apiConfiguration } },
+                transport: session.runtimeHTTPTransport,
+                tokenProvider: { await MainActor.run { session.token } },
+                isRouteOpen: { await MainActor.run {
+                    session.isSignedIn
+                        && session.regionalConfiguration?.market == .china
+                        && (session.account?.role == "player" || session.account?.role == "club")
+                        && session.regionalConfiguration?.showsRoute("/api/city/nodes/{}/complete") == true
+                } }
+            )
+        }
+        MyProjectMutationFactory.makeMutator = {
+            MyProjectHTTPMutator(
+                configuration: { await MainActor.run { session.regionalConfiguration?.apiConfiguration } },
+                transport: session.runtimeHTTPTransport,
+                tokenProvider: { await MainActor.run { session.token } },
+                allowsCancelActivity: { await MainActor.run {
+                    let host = session.regionalConfiguration?.apiConfiguration?.baseURL.host
+                    return ReviewedAreaSwitch.moneyPayments(apiHost: host)
+                        && !ReleaseMoneyWriteSwitch.blocks("/api/activity/cancel")
+                } }
+            )
+        }
+    }
 }
 
 /// Foreground, one-shot location for the SOS copy row. It never calls
@@ -177,6 +205,11 @@ struct CloudB3RootModifier: ViewModifier {
     let session: AppSession
     @State private var filingNumber: String?
     @State private var reportUnread: Int?
+
+    init(session: AppSession) {
+        self.session = session
+        CloudB3SessionBridge.installSweepWriters(for: session)
+    }
 
     func body(content: Content) -> some View {
         content

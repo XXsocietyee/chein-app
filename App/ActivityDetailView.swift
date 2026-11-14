@@ -74,10 +74,12 @@ struct ActivityDetailView: View {
         .appNavigationTitle("activity.details")
         .cyPushedChrome(domain: .player)
         .cyDomainPageBackground()
+        .cyHideTabBar()
     }
 }
 
 @MainActor private struct ActivityDetailContentView: View {
+    @Environment(\.analyticsEventClient) private var analytics
     let id: Int
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
@@ -155,14 +157,30 @@ struct ActivityDetailView: View {
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .toolbar {
-            if let access, case .allowed = access {
+            if let access, case .allowed(let detail) = access {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showsShare = true } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .activity(activityID: detail.summary.id),
+                            subjectTitle: detail.summary.name,
+                            authorMemberID: detail.people.host?.memberID,
+                            authorName: detail.people.host?.name
+                        )
+                    )
+                    .accessibilityIdentifier("activity.safety.menu")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showsShare = true
+                        MiniProgramAnalytics.track(analytics, "content_share", bizType: "activity", bizID: MiniProgramAnalytics.bizID(id), pagePath: "/pages/activity/detail/index")
+                    } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
                         .accessibilityIdentifier("activity.share")
                 }
             }
         }
+        .environment(\.ugcSafetySubjectID, id)
         .sheet(isPresented: $showsShare) {
             if let access, case .allowed(let detail) = access {
                 CatalogShareCardView(content: shareContent(detail), tint: .sunset)
@@ -374,6 +392,13 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
+            if let topicID = detail.summary.linkedTopicID, let topicDestination {
+                Section {
+                    NavigationLink { topicDestination(topicID) } label: {
+                        CYListRow("activity.viewTopic", trailing: .none) { CYRowIcon(systemImage: "map") }
+                    }.accessibilityIdentifier("activity.openTopic")
+                }
+            }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail))
             Section {
                 if detail.tickets.isEmpty {
@@ -450,16 +475,9 @@ struct ActivityDetailView: View {
             if registrationEnabled { registrationAction(detail) }
         }
     }
-    /// The sections that used to follow the tickets, in their original order and with their original gates.
+    /// Secondary sections behind the "More info" disclosure.
     @ViewBuilder private func moreInfoSections(_ detail: ActivityDetail) -> some View {
         // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
-        if let topicID = detail.summary.linkedTopicID, let topicDestination {
-            Section {
-                NavigationLink { topicDestination(topicID) } label: {
-                    CYListRow("activity.viewTopic", trailing: .none) { CYRowIcon(systemImage: "map") }
-                }.accessibilityIdentifier("activity.openTopic")
-            }
-        }
         if let text=ActivityPresentation.nonempty(detail.summary.description) {
             Section("activity.about") {
                 Text(verbatim:text)

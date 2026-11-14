@@ -38,6 +38,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     @State var lifetime = UUID()
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     private var segment: PlayWireValue {
         guard let state = model.state else { return .null }
         return ChapterInlineKitSelection.segment(kind, in: state)
@@ -111,7 +112,14 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             let expectedLifetime = lifetime
             review = nil; reviewedCompletion = nil
             Task {
-                if await model.submit(item), lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
+                let submitted = await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineWriteSession.session,
+                    routes: ["/api/play/advanced/action"],
+                    explicitKey: item.id.uuidString
+                ) {
+                    await model.submit(item)
+                }
+                if submitted, lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
             }
         }
             .buttonStyle(.questifyPrimary)
@@ -146,6 +154,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     private var contents: some View {
         VStack(alignment: .leading, spacing: 24) {
             header
+            CYScreenOfflineWriteBanner(
+                routes: ["/api/play/advanced/action"],
+                session: offlineWriteSession.session
+            )
             if let issue { PlayExperienceIssueView(issue: issue) }
             if let modelIssue = model.issue { PlayExperienceIssueView(issue: modelIssue) }
             if !model.isCurrent { Text("playkit.sessionChanged") }

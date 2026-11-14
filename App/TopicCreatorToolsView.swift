@@ -155,6 +155,7 @@ import QuestifyCore
 }
 
 @MainActor struct TopicCreatorToolsView: View {
+    @Environment(\.analyticsEventClient) private var analytics
     @StateObject var model: TopicCreatorToolsModel
     @Environment(\.locale) private var locale
     @State private var newKeyLabel = ""
@@ -212,7 +213,18 @@ import QuestifyCore
                 LabeledContent { Text(verbatim: detail.name) } label: { Text("creatorEditor.draft.name", tableName: "CreatorEditorUI") }
                 LabeledContent { Text(verbatim: String(detail.chapterCount)) } label: { Text("creatorEditor.draft.chapters", tableName: "CreatorEditorUI") }
                 if detail.isDraft {
-                    Button { Task { await model.publish() } } label: {
+                    Button {
+                        let topicName = model.detail?.name
+                        let hadReceipt = model.publishReceipt != nil
+                        Task {
+                            await model.publish()
+                            guard !hadReceipt, model.publishReceipt != nil else { return }
+                            var properties: [String: PlayWireValue] = [:]
+                            if let topicName { properties["name"] = .string(topicName) }
+                            MiniProgramAnalytics.track(analytics, "topic_publish_success", bizType: "topic",
+                                bizID: MiniProgramAnalytics.bizID(Int(exactly: model.topicID)), pagePath: "/pages/publish/fabu/index", properties: properties)
+                        }
+                    } label: {
                         if model.publishUnknown { Text("creatorEditor.publish.retry", tableName: "CreatorEditorUI") }
                         else { Text("creatorEditor.publish", tableName: "CreatorEditorUI") }
                     }.accessibilityIdentifier("creatorEditor.publish")

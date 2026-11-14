@@ -48,7 +48,7 @@ class OrderLifecycleSourceTests(unittest.TestCase):
    self.assertIn(value,s)
   self.assertNotIn('WechatPayOutcome',s)
  def test_bilingual_catalog_matches_owned_entries(self):
-  entries=json.loads(self.read('docs/order-lifecycle-localizations.json'));self.assertEqual(len(entries),110)
+  entries=json.loads(self.read('docs/order-lifecycle-localizations.json'));self.assertEqual(len(entries),111)
   cat=json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
   for entry in entries:
    for lang in ['en','zh-Hans']:self.assertEqual(entry[lang],cat[entry['key']]['localizations'][lang]['stringUnit']['value'])

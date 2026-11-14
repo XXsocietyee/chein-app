@@ -88,9 +88,10 @@
     {
       "file": "App/ExternalGameReviewModel.swift",
       "kinds": [
+        "keychain",
         "userDefaults"
       ],
-      "purpose": "Pins the server's public Ed25519 external-game signing key per API host (key 'externalGame.signingKey.pinned.<host>'); public key only, no personal data",
+      "purpose": "Pins the server's public Ed25519 external-game signing key per API host in Keychain (service 'questify.externalGame.signingKey.v1', WhenUnlockedThisDeviceOnly) with UserDefaults fallback for isolated test suites; public key only, no personal data",
       "retention": "Until app uninstall; one 32-byte public key per environment host",
       "deletion": "Removed with the app container; a key rotation needs the pinned entry cleared (no in-app path yet)"
     },
@@ -347,6 +348,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/SessionOfflineRetrySupport.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Per-scope Application Support directory ('OfflineIdempotentWriteQueue') storing queued non-money write envelopes with idempotency keys and ClientOperationID locks (no auth tokens stored)",
+      "retention": "Until confirmed replay or explicit user discard/clear",
+      "deletion": "Cleared per scope via clearScope(_:) or removeAll; excluded by scope isolation across account/session switches"
+    },
+    {
       "file": "App/SettingsView.swift",
       "kinds": [
         "userDefaults"
@@ -358,11 +368,12 @@
     {
       "file": "App/SquareCloudComposerView.swift",
       "kinds": [
+        "file",
         "userDefaults"
       ],
-      "purpose": "On-device square compose drafts and pending request envelopes (member id, contents, request id, phase)",
-      "retention": "待隐私评审确定 / pending privacy review",
-      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+      "purpose": "On-device square compose drafts and pending request envelopes stored in Application Support/SquareCloudDrafts-v1 (.completeFileProtection, excluded from backup); clears any legacy UserDefaults keys on access",
+      "retention": "Device-local until published or discarded by the user",
+      "deletion": "Removed on publish or draft discard; legacy UserDefaults keys cleared on read/write/remove"
     },
     {
       "file": "App/SquarePostVideoViews.swift",
@@ -778,6 +789,15 @@
       "purpose": "Self-play pending journal: opaque intent/order IDs only",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/UGCContentSafetyService.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "App Store 1.2 blocked-content filter: member ids and author names the user blocked, so their posts, comments and messages stay hidden on this device",
+      "retention": "until the user unblocks or deletes the app",
+      "deletion": "pending"
     },
     {
       "file": "Core/USAppleCoordinator.swift",

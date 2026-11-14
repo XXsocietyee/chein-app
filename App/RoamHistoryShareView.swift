@@ -13,6 +13,7 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.openURL) private var openURL
+    @Environment(\.analyticsEventClient) private var analytics
     @QuestifyReduceMotion private var reduceMotion
     @StateObject private var photoSave: RoamSharePhotoSaveModel
     @StateObject private var presentation: RoamSharePresentationLifetime
@@ -29,6 +30,8 @@ import UIKit
     @State private var guideSourceChanged = false
     @State private var systemShare: RoamHistorySystemShareRequest?
     @State private var toast: LocalizedStringKey?
+    /// Channel code waiting for the photo-save outcome (`album` / `moments` / `xhs`).
+    @State private var pendingShareCode: String?
     init(record: RoamHistoryRecord, reader: any RoamExperienceReading, photoSaveModel: RoamSharePhotoSaveModel? = nil) {
         let model = photoSaveModel ?? RoamSharePhotoSaveModel()
         _photoSave = StateObject(wrappedValue: model)
@@ -67,8 +70,12 @@ import UIKit
             .onChange(of: photoSave.state.phase) { _, phase in
                 receiveAlbumGuide(phase)
                 switch phase {
-                case .saved: finishExport(success: true, toastKey: "roam.share.savedPhotos")
-                case .permissionDenied, .restricted, .unavailable, .sourceChanged, .failed: machine.send(.exportFinished(false))
+                case .saved:
+                    finishShare(ok: true)
+                    finishExport(success: true, toastKey: "roam.share.savedPhotos")
+                case .permissionDenied, .restricted, .unavailable, .sourceChanged, .failed:
+                    finishShare(ok: false)
+                    machine.send(.exportFinished(false))
                 default: break
                 }
             }
@@ -240,12 +247,17 @@ import UIKit
             invalidateImage(); guideSourceChanged = true; return
         }
         guard let request = albumGuide.begin(destination: destination, selection: selection, saveInFlight: photoSave.inFlight) else { return }
+        let raw = destination == .moments ? "朋友圈" : "小红书"
+        let code = destination == .moments ? "moments" : "xhs"
         if photoSave.state.phase == .saved, photoSave.state.selection == selection {
+            beginShare(raw: raw, code: code)
+            finishShare(ok: true)
             // The identical prepared card was already saved in this presentation.
             // Reuse its receipt rather than writing a duplicate just to show instructions.
             albumGuide.receive(request, phase: .saved, current: selection, sourceIsCurrent: sourceIsCurrent)
             return
         }
+        beginShare(raw: raw, code: code)
         machine.send(.export(.albumGuide))
         photoSave.save(image, selection: selection) {
             permitsAlbumGuide(destination) && albumGuide.accepts(request) && preparedSelection == selection && sourceIsCurrent
@@ -260,6 +272,7 @@ import UIKit
     @ViewBuilder private func photoSaveControls(_ image: UIImage) -> some View {
         let phase = photoSave.state.phase
         CYPillButton(LocalizedStringKey(saveButtonKey), systemImage: "square.and.arrow.down") {
+            beginShare(raw: "保存", code: "album")
             let selection = RoamSharePhotoSaveState.Selection(record: record, includeRoute: includeRoute)
             machine.send(.export(.photos))
             photoSave.save(image, selection: selection) {
@@ -281,7 +294,25 @@ import UIKit
             CYPillButton("roam.share.openPhotoSettings", style: .secondary) {
                 if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
             }.accessibilityIdentifier("roam.share.openPhotoSettings")
+                .accessibilityLabel(Text("roam.share.openPhotoSettings"))
+                .accessibilityValue(Text("roam.share.photoPermissionDenied"))
+                .accessibilityHint(Text("roam.share.openPhotoSettings"))
         }
+    }
+    private func beginShare(raw: String, code: String) {
+        pendingShareCode = code
+        MiniProgramAnalytics.track(analytics, "roam_share_channel", bizType: "roam",
+            bizID: MiniProgramAnalytics.bizID(record.serverSessionID), pagePath: "/pages/roam/index",
+            properties: ["channel": .string(raw)])
+    }
+    private func finishShare(ok: Bool) {
+        guard let code = pendingShareCode else { return }
+        pendingShareCode = nil
+        let name = ok ? "roam_share_complete" : "roam_share_fail"
+        var properties: [String: PlayWireValue] = ["channel": .string(code)]
+        if !ok { properties["reason"] = .string("failed") }
+        MiniProgramAnalytics.track(analytics, name, bizType: "roam",
+            bizID: MiniProgramAnalytics.bizID(record.serverSessionID), pagePath: "/pages/roam/index", properties: properties)
     }
     private var saveButtonKey: String {
         switch photoSave.state.phase {

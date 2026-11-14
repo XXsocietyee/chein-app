@@ -52,6 +52,8 @@ extension AppCompositionRoot {
     let onCopied: (Int) -> Void
     @StateObject private var model: TopicTemplateUseModel
     @Environment(\.cyPalette) private var palette
+    @Environment(\.analyticsEventClient) private var analytics
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
 
     init(templateID: Int, scope: String?, readOnly: Bool, plan: TopicTemplateAdoptionPlan = .init(delivery: nil),
          onCopied: @escaping (Int) -> Void) {
@@ -86,13 +88,27 @@ extension AppCompositionRoot {
                     .accessibilityIdentifier("topicTemplate.useIntent")
             }
             Button {
-                Task { await model.use(id: templateID, scope: scope, plan: plan) }
+                if scope != "my" {
+                    MiniProgramAnalytics.track(analytics, "template_reuse", bizType: "template", bizID: MiniProgramAnalytics.bizID(templateID), pagePath: "/pages/templatedetail/templatedetail")
+                }
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/template/topic-template/use"]
+                    ) {
+                        await model.use(id: templateID, scope: scope, plan: plan)
+                    }
+                }
             } label: {
                 Text(buttonTitle).frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             }
             .buttonStyle(.cyPrimary(fullWidth: true))
             .disabled(model.state == .using)
             .accessibilityIdentifier("topicTemplate.use")
+            CYScreenOfflineWriteBanner(
+                routes: ["/api/template/topic-template/use"],
+                session: offlineWriteSession.session
+            )
             SourceLineageSection(revisionID: model.copiedReceipt?.sourceContentRevisionId ?? plan.sourceContentRevisionId)
             if let message = TopicTemplateUseModel.message(for: model.state) {
                 Label(message, systemImage: model.copiedReceipt == nil ? "exclamationmark.circle" : "checkmark.circle")

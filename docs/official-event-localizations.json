@@ -143,13 +143,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search event names or cities"
+            "value": "Search activity names or cities"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索活动名或城市"
+            "value": "搜索活动名称或城市"
           }
         }
       }

@@ -439,14 +439,17 @@ public enum GlobalSearchParityPresentation {
         case clubs
         case moments
 
-        public var title: String {
+        public var title: String { title(chinese: true) }
+
+        /// Result labels from `utils/discover-search.js` `TYPE_META` and the unified `post` row.
+        public func title(chinese: Bool) -> String {
             switch self {
-            case .all: return "全部"
-            case .routes: return "路线"
-            case .activities: return "活动"
-            case .merchants: return "商家"
-            case .clubs: return "俱乐部"
-            case .moments: return "动态"
+            case .all: return chinese ? "全部" : "All"
+            case .routes: return chinese ? "主题" : "Topics"
+            case .activities: return chinese ? "活动" : "Activities"
+            case .merchants: return chinese ? "商家" : "Merchants"
+            case .clubs: return chinese ? "俱乐部" : "Clubs"
+            case .moments: return chinese ? "帖文" : "Posts"
             }
         }
     }
@@ -470,7 +473,7 @@ public enum GlobalSearchParityPresentation {
             count > 0 ? "\(count)" : nil
         }
 
-        /// Combined display label e.g. `"路线 3"` or `"路线"`.
+        /// Combined display label e.g. `"主题 3"` or `"主题"`.
         public var displayLabel: String {
             if let badge = badgeText {
                 return "\(title) \(badge)"
@@ -512,7 +515,7 @@ public enum GlobalSearchParityPresentation {
         return result
     }
 
-    /// Builds the 6 result tab descriptors (`全部`, `路线`, `活动`, `商家`, `俱乐部`, `动态`) with count badges.
+    /// Builds the 6 result tab descriptors (`全部`, `主题`, `活动`, `商家`, `俱乐部`, `帖文`) with count badges.
     public static func resultTabs(
         routesCount: Int = 0,
         activitiesCount: Int = 0,
@@ -640,6 +643,14 @@ public enum RootTabBarParity {
         guard prefersMerchantContainer else { return .consumer }
         let normalized = accountRole?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
         return normalized == "merchant" ? .merchant : .consumer
+    }
+
+    /// Which mode a signed-in account should request first. `role == merchant` or `userType == 2`
+    /// asks for merchant mode. It does not admit merchant tabs; `merchantAccess()` still has to succeed.
+    public static func initialRequestedMode(role: String, userType: Int?) -> RoleMode {
+        let normalized = role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if normalized == "merchant" || userType == 2 { return .merchant }
+        return .consumer
     }
 
     /// Maps a `(RootTab, RoleMode)` pair to its dedicated root container route.

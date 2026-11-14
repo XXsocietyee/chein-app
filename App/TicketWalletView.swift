@@ -9,6 +9,8 @@ import SwiftUI
     var orderLifecycleCoordinator: OrderLifecycleCoordinator? = nil
     /// Source nav「+」去探索主题 (r3 票夹, hengyin 57815ec71). Hidden until the host wires it.
     var onExplore: (() -> Void)? = nil
+    /// Topic page opens the wallet on this topic's ticket (`topicId` query). Nil keeps the first row.
+    var focusTopicID: Int? = nil
     @Environment(\.ticketWalletPendingOrderProvider) private var pendingOrderProvider
     @Environment(\.ticketWalletCompletionReader) private var completionReader
     @State private var walletFilter = TicketWalletFilter.all
@@ -21,11 +23,13 @@ import SwiftUI
     @State private var refreshOnActive = false
     @State private var pendingOrderEntry = TicketWalletPendingOrderEntry()
     @State private var pendingOrderReadOwner: TicketWalletPendingOrderOwner?
+    @State private var didFocusTopic = false
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader) }
     var body: some View {
         let offeredPresentation = model.presentation
         let offeredPendingPresentation = pendingOrderEntry.presentationID
         NavigationStack {
+            ScrollViewReader { proxy in
             List {
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
@@ -36,13 +40,13 @@ import SwiftUI
                     // Source failure title 票夹没能打开 precedes the specific reason.
                     Text("ticketWallet.parity.error.title").font(.headline)
                         .accessibilityIdentifier("ticketWallet.errorTitle")
-                    TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
+                    TicketWalletIssueView(issue: issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
                 } else if let snapshot = model.value(owner: key) {
                     if let partial = snapshot.partialFailure {
                         Section {
                             Text(LocalizedStringKey(partial.lane == .route ? "ticketWallet.partial.route" : "ticketWallet.partial.activity"))
                                 .font(.headline).accessibilityIdentifier("ticketWallet.partialFailure")
-                            TicketWalletIssueView(issue: partial.issue, retry: { schedule(offeredPresentation) })
+                            TicketWalletIssueView(issue: partial.issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
                         }
                     }
                     if snapshot.tickets.isEmpty {
@@ -86,6 +90,7 @@ import SwiftUI
                             .questifyHidesLinkIndicator()
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                             .questifyCardListRow()
+                            .id(rowIndex)
                         } else if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
                                   pendingOrderEntry.canOpen(ticket: ticket, reader: reader, provider: provider) {
                             Button {
@@ -99,10 +104,12 @@ import SwiftUI
                             .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("ticketWallet.pendingOrder.open.\(ticket.id)")
                             .questifyCardListRow()
+                            .id(rowIndex)
                         } else {
                             TicketWalletRow(ticket: ticket)
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                                 .questifyCardListRow()
+                                .id(rowIndex)
                         }
                     }
                 }
@@ -124,11 +131,14 @@ import SwiftUI
                         .accessibilityIdentifier("ticketWallet.readOnly")
                 }
             }
+            .onAppear { focusTopic(proxy) }
+            .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy) }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .listSectionSpacing(20)
             .appNavigationTitle("ticketWallet.title")
+            .cyHideTabBar()
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
                 if completionReader != nil, reader.isAuthenticated, model.value(owner: key)?.tickets.isEmpty == false {
@@ -141,7 +151,7 @@ import SwiftUI
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
+                    Button { schedule(model.presentation ?? model.beginPresentation(owner: key)) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
                         .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                         .accessibilityIdentifier("ticketWallet.refresh")
                 }
@@ -162,8 +172,9 @@ import SwiftUI
                 }
             }
             .refreshable {
-                if let offeredPresentation, model.accepts(offeredPresentation, currentOwner: key) { retirePendingOrder() }
-                await model.refresh(presentation: offeredPresentation, currentOwner: key) { await load(presentation: $0) }
+                let current = model.presentation ?? model.beginPresentation(owner: key)
+                if let current, model.accepts(current, currentOwner: key) { retirePendingOrder() }
+                await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
             }
             .onAppear { isVisible = true; refreshOnActive = false; pendingOrderEntry.appear(); replacePresentation() }
             .onDisappear { isVisible = false; model.endPresentation(); pendingOrderEntry.disappear() }
@@ -177,7 +188,15 @@ import SwiftUI
                 }
             }
             .accessibilityIdentifier("ticketWallet.list")
+            .appSwitcherPrivacyShield()
+            }
         }
+    }
+    private func focusTopic(_ proxy: ScrollViewProxy) {
+        guard !didFocusTopic, let focusTopicID, let tickets = model.value(owner: key)?.tickets,
+              let index = TicketWalletTopicFocus.index(in: tickets, topicID: focusTopicID) else { return }
+        didFocusTopic = true
+        proxy.scrollTo(index, anchor: .center)
     }
     private func replacePresentation() {
         retirePendingOrder()

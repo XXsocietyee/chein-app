@@ -1,5 +1,30 @@
 import SwiftUI
 
+/// Masks sensitive financial/wallet/payout screens whenever the scene leaves `.active` (including `.inactive` app switcher snapshots).
+private struct AppSwitcherPrivacyShieldModifier: ViewModifier {
+    @Environment(\.scenePhase) private var scenePhase
+    func body(content: Content) -> some View {
+        content
+            .privacySensitive()
+            .redacted(reason: scenePhase == .active ? [] : .privacy)
+            .overlay {
+                if scenePhase != .active {
+                    ZStack {
+                        CYColor.bgPage.ignoresSafeArea()
+                        Image(systemName: "lock.fill")
+                            .font(.largeTitle)
+                            .foregroundStyle(CYColor.textTertiary)
+                    }
+                    .accessibilityHidden(true)
+                }
+            }
+    }
+}
+
+extension View {
+    func appSwitcherPrivacyShield() -> some View { modifier(AppSwitcherPrivacyShieldModifier()) }
+}
+
 /// A denied capability is unavailable; transient/business failures remain retryable.
 enum WalletReadFailurePresentation {
     static func isUnavailable(_ error: Error) -> Bool {
@@ -109,7 +134,6 @@ enum WalletPayoutCapability { static let isOn = false }
     var organizerFinance: WalletOrganizerFinanceAccess? = nil
     var body: some View {
         List {
-            Section { CreatorAccrualSection(projection: .unknown(reason: nil)) }
             if visibility.income {
                 Section {
                     if earnings.loading {
@@ -134,6 +158,7 @@ enum WalletPayoutCapability { static let isOn = false }
             if visibility.assets { assetsSection }
         }.listStyle(.plain).scrollContentBackground(.hidden)
             .appNavigationTitle("wallet.title")
+            .cyHideTabBar()
             .task(id: reader.scope) {
                 isVisible = true
                 earnings.clear()
@@ -155,6 +180,7 @@ enum WalletPayoutCapability { static let isOn = false }
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
                 }
             }
+            .appSwitcherPrivacyShield()
     }
     /// Four circular quick actions: the first available one is the single white primary (withdraw), the last opens More.
     @ViewBuilder private var quickActions: some View {
@@ -375,13 +401,14 @@ enum WalletPayoutCapability { static let isOn = false }
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
                     .accessibilityIdentifier("wallet.assets.pointsLedger")
             }
-        }.appNavigationTitle("wallet.assets").task(id: reader.scope) { funds.clear(); await load() }
+        }.appNavigationTitle("wallet.assets").cyHideTabBar().task(id: reader.scope) { funds.clear(); await load() }
             .onChange(of: funds.loading) { _, isLoading in
                 if WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: isLoading, hasValue: funds.value != nil) {
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
                 }
             }
             .onDisappear { funds.cancel() }.refreshable { await load() }
+            .appSwitcherPrivacyShield()
     }
     private func load() async { await funds.load(reader) { try await $0.stages(token: $1) } }
 }
@@ -471,12 +498,14 @@ enum WalletPayoutCapability { static let isOn = false }
                     .accessibilityIdentifier("wallet.ledger.loadMore")
             }
         }.appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger")
+            .cyHideTabBar()
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
             .onDisappear { if incomeDetail == nil { model.cancel() } }
             .refreshable { incomeDetail = nil; model.reset(); await model.load(reader, kind: kind) }
             .onChange(of: reader.scope) { _, _ in incomeDetail = nil }
             .onChange(of: direction) { _, _ in incomeDetail = nil }
             .onChange(of: scenePhase) { _, phase in if phase != .active { incomeDetail = nil } }
+            .appSwitcherPrivacyShield()
             .sheet(item: $incomeDetail) { selection in
                 NavigationStack {
                     List {
@@ -655,7 +684,7 @@ private struct WalletIncomeListCard: ViewModifier {
                         .zIndex(hold.tab == .organizer ? 1 : 0)
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        }.appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline).themeDomain(.player)
+        }.appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline).themeDomain(.player).cyHideTabBar()
             .onChange(of: scenePhase) { _, phase in
                 guard financeAccess != nil else { return }
                 if phase != .active { hold.background() } else { hold.foreground() }
@@ -666,6 +695,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 debugStages.clear(); await loadDebugStages()
             }
             #endif
+            .appSwitcherPrivacyShield()
     }
     private var incomeBody: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -723,7 +753,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 // An interrupted read is retryable, not a reported business failure.
                 Button("wallet.retry") { scheduleLoad() }.frame(minHeight: 44)
             }
-        }.appNavigationTitle("wallet.mall").searchable(text: $keyword)
+        }.appNavigationTitle("wallet.mall").cyHideTabBar().searchable(text: $keyword)
             .onSubmit(of: .search) { submitSearch() }
             .onChange(of: keyword) { _, value in
                 // Clearing or cancelling search must restore the unfiltered catalogue.
@@ -796,7 +826,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 }
                 Text("wallet.dormant").accessibilityIdentifier("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.product").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.product").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
     }
     private func load() async { await model.load(reader) { try await $0.product(id: productID, token: $1) } }
 }
@@ -829,7 +859,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
                 Text("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.cart").task(id: reader.scope) { selected = []; model.clear(); await load() }
+        }.appNavigationTitle("wallet.cart").cyHideTabBar().task(id: reader.scope) { selected = []; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { selected = []; await load() }
     }
     private func load() async { await model.load(reader) { try await $0.cart(token: $1) } }
@@ -859,7 +889,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 Text("wallet.previewOnly").accessibilityIdentifier("wallet.previewOnly")
                 Text("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.preview").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.preview").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
     }
     private func load() async { await model.load(reader) { try await $0.checkout(cartIDs: cartIDs, token: $1) } }
 }
@@ -898,11 +928,12 @@ private struct WalletIncomeListCard: ViewModifier {
                         .accessibilityIdentifier("wallet.withdrawals.support")
                 }
             }
-        }.appNavigationTitle("wallet.withdrawals").task(id: reader.scope) { showContact = false; model.clear(); await load() }
+        }.appNavigationTitle("wallet.withdrawals").cyHideTabBar().task(id: reader.scope) { showContact = false; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { await load() }
             // Uses the inherited, independently reviewed support reader. History access
             // does not supply a contact or authorize support configuration/copying.
             .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
+            .appSwitcherPrivacyShield()
     }
     private func load() async { await model.load(reader) { try await $0.withdrawals(token: $1) } }
 }
@@ -943,7 +974,7 @@ private struct WalletIncomeListCard: ViewModifier {
                     }
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
-        }.appNavigationTitle("wallet.tasks").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.tasks").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }
     @ViewBuilder private func pointsRuleRow(_ item: WalletPointsTask) -> some View {

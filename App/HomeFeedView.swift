@@ -9,6 +9,7 @@ import UIKit
     var sourceTimeZone: TimeZone? = nil
     var viewerNickname: String? = nil
     var viewerAvatar: String? = nil
+    var viewerIsMerchant: Bool = false
     var selectedCity: String? = nil
     var showsHeroBanners: Bool = false
     var continuationCards: [HomeIndexParityPresentation.ContinuationCard] = []
@@ -70,6 +71,7 @@ import UIKit
                             nickname: viewerNickname,
                             selectedCity: localSelectedCity ?? selectedCity,
                             isNationwide: localIsNationwide,
+                            isMerchantViewer: viewerIsMerchant,
                             avatarSource: viewerAvatar,
                             onSelectCity: onSelectCity != nil ? { city, nationwide in
                                 localSelectedCity = city
@@ -87,6 +89,7 @@ import UIKit
                         HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
+                    CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
                     // Mini-program order: 编辑精选, 附近活动, 即将上线, then the feed.
                     // Today sits after those rails so it cannot push 编辑精选 below the fold.
                     feedSection(.recommended, order: 1)
@@ -96,7 +99,7 @@ import UIKit
                     if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 5, gate: reveal) }
                     // Mini-program store card (city pass entry): one feed card, never a paywall.
                     MPPassExploreCard()
-                    if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
+                    if !continuationCards.isEmpty {
                         PlayContinuationBannerView(
                             cards: continuationCards,
                             readAvailability: continuationReadAvailability,
@@ -153,7 +156,6 @@ import UIKit
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
                     }
-                    .cySectionReveal(order: 7, gate: reveal)
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.top, CYSpacing.lg)
@@ -420,6 +422,11 @@ private struct HomeHeroStatusBarClearance: ViewModifier {
     }
 }
 
+private extension View {
+    /// Outer stack spacing is 24. Stream rows keep the previous 12pt pitch.
+    func homeFeedStreamPitch() -> some View { padding(.bottom, CYSpacing.md - CYSpacing.xxl) }
+}
+
 extension HomeFeedItem {
     var accessibilityKey: String {
         switch id { case .activity(let id): return "activity.\(id)"; case .topic(let id): return "topic.\(id)" }
@@ -440,6 +447,7 @@ struct HomeFeedShelfCard: View {
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
+            .cachingFeedImage()
     }
 }
 
@@ -464,6 +472,7 @@ struct HomeFeedCard: View {
                                     minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
                 EmptyView()
             }
+            .cachingFeedImage()
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 priceRow
                 timeRow
@@ -665,9 +674,7 @@ struct HomeTodayCard: View {
         ZStack {
             CYCoverArt(seed: c.title)
             if let url = c.imageURL, url.scheme?.lowercased() == "https" {
-                AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: CYMotion.Duration.standard))) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) } else { Color.clear }
-                }
+                PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { Color.clear }, failure: { Color.clear })
             }
             // Indigo dusk at the top, ink (never pure black) at the foot where the text sits.
             LinearGradient(stops: [.init(color: CYNight.indigo.opacity(0.45), location: 0),

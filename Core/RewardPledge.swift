@@ -248,7 +248,11 @@ public final class RewardPledgeFileJournal {
     public func save(_ rows: [RewardPledgeUnknown]) throws {
         do {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            #if os(iOS)
+            try JSONEncoder().encode(rows).write(to: url, options: [.atomic, .completeFileProtection])
+            #else
             try JSONEncoder().encode(rows).write(to: url, options: .atomic)
+            #endif
         } catch { throw RewardPledgeFailure.closed("journal") }
     }
 }

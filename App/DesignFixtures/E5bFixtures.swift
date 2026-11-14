@@ -17,17 +17,17 @@ struct E5bMomentFixture: View {
                 CYCelebrationMoment(kind: .badge, seed: "night-owl", symbol: "moon.stars.fill",
                                     title: Text(verbatim: tt("Badge unlocked", "徽章已解锁")),
                                     message: Text(verbatim: tt("Night Owl: you explored after dark three times.", "夜行者：你在夜间探索了三次。")),
-                                    primaryTitle: "Done", onPrimary: {})
+                                    primaryTitle: LocalizedStringKey(tt("Done", "完成")), onPrimary: {})
             case .stamp:
                 CYCelebrationMoment(kind: .stamp, seed: "lantern-gate", symbol: "mappin.and.ellipse",
                                     title: Text(verbatim: tt("Stamp collected", "盖章成功")),
                                     message: Text(verbatim: tt("Lantern Gate is now in your passport.", "灯笼门已收入你的漫游护照。")),
-                                    primaryTitle: "Done", onPrimary: {})
+                                    primaryTitle: LocalizedStringKey(tt("Done", "完成")), onPrimary: {})
             case .checkIn:
                 CYCelebrationMoment(kind: .checkIn, seed: "check-in", symbol: "checkmark.circle.fill",
                                     title: Text(verbatim: tt("Checked in", "签到成功")),
                                     message: Text(verbatim: tt("Day 4 in a row. See you tomorrow.", "已连续签到 4 天，明天见。")),
-                                    primaryTitle: "Done", onPrimary: {})
+                                    primaryTitle: LocalizedStringKey(tt("Done", "完成")), onPrimary: {})
             }
         }
         .themeDomain(.player)

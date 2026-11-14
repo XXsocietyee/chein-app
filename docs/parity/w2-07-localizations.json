@@ -526,13 +526,18 @@
  },
  {
   "key": "topicXcx.tab.nodes",
-  "en": "Route stops",
-  "zh-Hans": "路线节点"
+  "en": "Story",
+  "zh-Hans": "故事"
  },
  {
   "key": "topicXcx.tab.route",
   "en": "Route",
   "zh-Hans": "路线"
+ },
+ {
+  "key": "topicXcx.tab.places",
+  "en": "Places",
+  "zh-Hans": "地点"
  },
  {
   "key": "topicXcx.type.explore",
@@ -626,8 +631,8 @@
  },
  {
   "key": "topicXcx.section.lineup",
-  "en": "Lineup",
-  "zh-Hans": "阵容"
+  "en": "Participating brands",
+  "zh-Hans": "参与品牌"
  },
  {
   "key": "topicXcx.include.chapters %lld",
@@ -751,8 +756,8 @@
  },
  {
   "key": "topicXcx.reviews.emptyTitle",
-  "en": "No one has reviewed this route yet",
-  "zh-Hans": "还没有人评价过这条路线"
+  "en": "No reviews yet",
+  "zh-Hans": "还没有评价"
  },
  {
   "key": "topicXcx.reviews.emptyDetail",
@@ -961,8 +966,8 @@
  },
  {
   "key": "square.xcx.closedTitle",
-  "en": "Community isn't open for this account",
-  "zh-Hans": "当前账号未开放社区"
+  "en": "Community isn't open yet",
+  "zh-Hans": "社区暂未开放"
  },
  {
   "key": "square.xcx.closedDetail",

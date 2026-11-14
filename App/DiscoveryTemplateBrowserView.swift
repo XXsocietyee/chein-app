@@ -13,8 +13,9 @@ struct DiscoveryTemplateBrowserView: View {
     /// Mini-program template tab: the "+" opens the publish menu. Hidden for staff who only browse.
     let publishDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
-    @State private var categoryID: Int?
-    @State private var pack: DiscoveryPackType?
+    @State private var topicTag: String?
+    @State private var gameTag: String?
+    @State private var showsAllTags = false
     @State private var keyword = ""
     @State private var appliedKeyword = ""
     @State private var topicKeyword = ""
@@ -23,17 +24,18 @@ struct DiscoveryTemplateBrowserView: View {
     @StateObject private var topics = PublicTemplateCatalogVisitOwner()
     @State private var topicSelection: PublicTemplateCatalogSelection?
     @StateObject private var games = DiscoveryLoader<[DiscoveryPlayTemplate]>()
+    @StateObject private var shelfGames = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
 
     private enum Shelf: String, CaseIterable { case topics, games }
     private struct Query: Equatable {
         let tab: Shelf
-        let pack: DiscoveryPackType?
         let keyword: String
     }
-    private var query: Query { Query(tab: tab, pack: pack, keyword: appliedKeyword) }
-    private var hasGameFilter: Bool { pack != nil || !appliedKeyword.isEmpty }
+    private var query: Query { Query(tab: tab, keyword: appliedKeyword) }
+    private var hasGameKeyword: Bool { !appliedKeyword.isEmpty }
 
     init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false) {
         _tab = State(initialValue: startOnGames ? .games : .topics)
@@ -84,7 +86,17 @@ struct DiscoveryTemplateBrowserView: View {
         }
         .task(id: query) {
             guard reader.isConfigured else { return }
-            if tab == .games && hasGameFilter { await loadGames() }
+            if tab == .games && hasGameKeyword { await loadGames() }
+        }
+        .task(id: tab) {
+            guard reader.isConfigured, tab == .games, shelfGames.value == nil else { return }
+            await loadShelfGames()
+        }
+        .sheet(isPresented: $showsAllTags) {
+            DiscoveryShelfCategorySheet(groups: allTagGroups, selected: tab == .topics ? topicTag : gameTag) { key in
+                if tab == .topics { topicTag = key } else { gameTag = key }
+                showsAllTags = false
+            }
         }
         .onAppear {
             if let visit = topics.appear(reader: reader), tab == .topics, topicSelection == nil {
@@ -136,9 +148,15 @@ struct DiscoveryTemplateBrowserView: View {
                 .submitLabel(.search)
                 .onSubmit(submit)
                 .accessibilityIdentifier(field)
+                .accessibilityLabel(Text(prompt))
+                .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
+                .accessibilityHint(Text("discovery.searchAction"))
             Button("discovery.searchAction", action: submit)
                 .font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
                 .accessibilityIdentifier(submitID ?? "\(field).submit")
+                .accessibilityLabel(Text("discovery.searchAction"))
+                .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
+                .accessibilityHint(Text(prompt))
         }
         .padding(.horizontal, CYSpacing.lg)
         .frame(minHeight: CYSpacing.minTouchTarget)
@@ -155,6 +173,9 @@ struct DiscoveryTemplateBrowserView: View {
                 .overlay { Capsule(style: .continuous).strokeBorder(selected ? Color.clear : palette.borderStrong, lineWidth: 1) }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(title)
+        .accessibilityHint(title)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
@@ -172,19 +193,13 @@ struct DiscoveryTemplateBrowserView: View {
                         topicSearchFocused = false
                     }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("discovery.topicNameSearch.clear")
+                        .accessibilityLabel(Text("discovery.clearTopicNameSearch"))
+                        .accessibilityValue(Text(verbatim: appliedTopicSearch.keyword.isEmpty ? "—" : appliedTopicSearch.keyword))
+                        .accessibilityHint(Text("discovery.topicNameSearch"))
                 }
             }
         }
-        if let categories = home.value?.categories, !categories.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: CYSpacing.sm) {
-                    filterChip(Text("discovery.recommended"), selected: categoryID == nil) { categoryID = nil }
-                    ForEach(categories) { category in
-                        filterChip(Text(verbatim: category.name), selected: categoryID == category.id) { categoryID = category.id }
-                    }
-                }
-            }.accessibilityIdentifier("discovery.topicCategory")
-        }
+        shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
         if let error = topics.error {
             DiscoveryErrorView(error: error) { Task { await loadTopics() } }
         }
@@ -196,53 +211,66 @@ struct DiscoveryTemplateBrowserView: View {
                 CYEmptyState(systemImage: "map", "discovery.emptyTopics", actionTitle: "discovery.emptyRefresh") { Task { await loadTopics() } }
                     .accessibilityIdentifier("discovery.emptyRefresh")
             } else {
-                let filtered = appliedTopicSearch.filter(rows)
-                if filtered.isEmpty {
+                let catalog = SearchDiscoveryFilterParity.visibleTopics(rows)
+                let named = appliedTopicSearch.filter(catalog)
+                let tags = SearchDiscoveryFilterParity.topicTags(in: catalog, selected: topicTag)
+                let shown = SearchDiscoveryFilterParity.topics(named, matching: tags.selection)
+                if catalog.isEmpty {
+                    CYEmptyState(systemImage: "map", "discovery.emptyTopics", actionTitle: "discovery.emptyRefresh") { Task { await loadTopics() } }
+                        .accessibilityIdentifier("discovery.emptyRefresh")
+                } else if named.isEmpty || shown.isEmpty {
                     CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults")
                         .accessibilityIdentifier("discovery.topicNameSearch.noResults")
+                } else if let selection = tags.selection, let tag = tags.row.first(where: { $0.key == selection }) ?? tags.groups.flatMap(\.tags).first(where: { $0.key == selection }) {
+                    topicSection("discovery.topics", rows: shown, hero: true, verbatimTitle: locale.pick(tag.zh, tag.en))
                 } else {
-                    let matching = filtered.filter { $0.matchesCategory(categoryID) }
-                    let other = filtered.filter { !$0.matchesCategory(categoryID) }
-                    topicSection(categoryID == nil ? "discovery.recommended" : "discovery.categoryMatches", rows: matching, hero: true)
-                    topicSection("discovery.otherTemplates", rows: other, hint: "discovery.otherTemplatesHint")
+                    topicSection("discovery.topics", rows: shown, hero: true)
                 }
             }
         }
-        // Optional category loading must never replace a successful topic shelf with an error screen.
-        if home.error != nil {
-            HStack {
-                Text("discovery.categoriesUnavailable").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
-                Spacer(minLength: CYSpacing.sm)
-                Button("action.retry") { Task { await loadHome() } }.font(CYTypography.meta.weight(.semibold))
-            }
-        }
+    }
+
+    /// Every tag group of the current shelf, for the 全部分类 sheet (same source as the chip row).
+    private var allTagGroups: [DiscoveryShelfTagGroup] {
+        tab == .topics
+            ? SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag).groups
+            : SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).groups
     }
 
     @ViewBuilder private var gameShelf: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             searchPill("discovery.search", text: $keyword, field: "discovery.search", submitID: "discovery.search.submit", submit: applySearch)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: CYSpacing.sm) {
-                    filterChip(Text("discovery.allPacks"), selected: pack == nil) { pack = nil }
-                    ForEach(DiscoveryPackType.allCases, id: \.rawValue) { item in
-                        filterChip(Text(item.label), selected: pack == item) { pack = item }
-                    }
-                }
-            }.accessibilityIdentifier("discovery.packFilter")
-            if hasGameFilter {
+            shelfChipRow(SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag), field: "shelf.game") { gameTag = $0 }
+            if hasGameKeyword || gameTag != nil {
                 Button("discovery.clearFilters") {
-                    keyword = ""; appliedKeyword = ""; pack = nil
+                    keyword = ""; appliedKeyword = ""; gameTag = nil
                 }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                    .accessibilityLabel(Text("discovery.clearFilters"))
+                    .accessibilityValue(Text(verbatim: clearFilterSpoken))
+                    .accessibilityHint(Text("discovery.clearFilters"))
             }
         }
-        if hasGameFilter {
+        if let error = shelfGames.error, shelfGames.value == nil {
+            DiscoveryErrorView(error: error) { Task { await loadShelfGames() } }
+        }
+        if hasGameKeyword {
             if games.isLoading { CYSkeleton() }
             if let error = games.error {
                 DiscoveryErrorView(error: error) { Task { await loadGames() } }
             }
             if let rows = games.value {
-                if rows.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
-                else { gameSection("discovery.searchResults", rows: rows) }
+                let matched = keywordGames(rows)
+                if matched.rows.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
+                else { gameSection("discovery.searchResults", rows: matched.rows, verbatimTitle: matched.title) }
+            }
+        } else if let selection = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).selection {
+            if shelfGames.isLoading, shelfGames.value == nil { CYSkeleton() }
+            if let rows = shelfGames.value {
+                let shown = SearchDiscoveryFilterParity.games(rows, matching: selection)
+                if shown.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "discovery.noResults") }
+                else if let tag = shelfTag(SearchDiscoveryFilterParity.gameTags(in: rows, selected: selection), key: selection) {
+                    gameSection("discovery.searchResults", rows: shown, verbatimTitle: locale.pick(tag.zh, tag.en))
+                } else { gameSection("discovery.searchResults", rows: shown) }
             }
         } else {
             if home.isLoading { CYSkeleton() }
@@ -259,10 +287,14 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
-    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false) -> some View {
+    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false, verbatimTitle: String? = nil) -> some View {
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYSectionHeader(title, subtitle: hint)
+                if let shownTitle = verbatimTitle {
+                    Text(verbatim: shownTitle).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                } else {
+                    CYSectionHeader(title, subtitle: hint)
+                }
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
                     Button {
                         guard topicSelection == nil, topics.canOpen(reader: reader),
@@ -293,10 +325,14 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
-    @ViewBuilder private func gameSection(_ title: LocalizedStringKey, rows: [DiscoveryPlayTemplate], hero: Bool = false) -> some View {
+    @ViewBuilder private func gameSection(_ title: LocalizedStringKey, rows: [DiscoveryPlayTemplate], hero: Bool = false, verbatimTitle: String? = nil) -> some View {
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYSectionHeader(title)
+                if let shownTitle = verbatimTitle {
+                    Text(verbatim: shownTitle).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                } else {
+                    CYSectionHeader(title)
+                }
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
                     NavigationLink {
                         DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
@@ -323,18 +359,123 @@ struct DiscoveryTemplateBrowserView: View {
     private func loadTopics() async {
         await topics.load(reader: reader, visit: topics.visit)
     }
+    /// A typed keyword stays as typed, including 0. No keyword and no chosen tag is unknown.
+    private var clearFilterSpoken: String {
+        if !appliedKeyword.isEmpty { return appliedKeyword }
+        guard let gameTag else { return "—" }
+        let tags = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag)
+        if let tag = shelfTag(tags, key: gameTag) { return locale.pick(tag.zh, tag.en) }
+        return "—"
+    }
+
+    private func shelfTag(_ tags: DiscoveryShelfTagSet, key: String) -> DiscoveryShelfTag? {
+        tags.row.first { $0.key == key } ?? tags.groups.flatMap(\.tags).first { $0.key == key }
+    }
+
+    private func keywordGames(_ rows: [DiscoveryPlayTemplate]) -> (rows: [DiscoveryPlayTemplate], title: String?) {
+        let tags = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? rows, selected: gameTag)
+        guard let selection = tags.selection else { return (rows, nil) }
+        let matched = rows.filter { SearchDiscoveryFilterParity.gameMatches($0, key: selection) }
+        let title = shelfTag(tags, key: selection).map { locale.pick($0.zh, $0.en) }
+        return (matched, title)
+    }
+
+    private func shelfChipRow(_ tags: DiscoveryShelfTagSet, field: String, select: @escaping (String?) -> Void) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: CYSpacing.sm) {
+                filterChip(Text(verbatim: locale.pick("全部", "All")), selected: tags.selection == nil) { select(nil) }
+                    .accessibilityIdentifier("\(field).all")
+                ForEach(tags.row) { tag in
+                    filterChip(Text(verbatim: locale.pick(tag.zh, tag.en)), selected: tags.selection == tag.key) { select(tag.key) }
+                        .accessibilityIdentifier("\(field).\(tag.key)")
+                }
+                filterChip(Text(verbatim: locale.pick("全部分类", "All categories")), selected: false) { showsAllTags = true }
+                    .accessibilityIdentifier("\(field).allCategories")
+            }
+        }.accessibilityIdentifier(field)
+    }
+
     private func loadGames() async {
         let requestedKeyword = appliedKeyword
-        let requestedPack = pack
-        await games.load { try await reader.discoveryPlayTemplates(keyword: requestedKeyword, packType: requestedPack) }
+        await games.load { try await reader.discoveryPlayTemplates(keyword: requestedKeyword, packType: nil) }
+    }
+    private func loadShelfGames() async {
+        await shelfGames.load { try await reader.discoveryPlayTemplates(keyword: "", packType: .single) }
     }
     private func reloadCurrent() async {
         if tab == .topics {
             async let a: Void = loadTopics()
             async let b: Void = loadHome()
             _ = await (a, b)
-        } else if hasGameFilter { await loadGames() }
-        else { await loadHome() }
+        } else if hasGameKeyword {
+            async let a: Void = loadGames()
+            async let b: Void = loadShelfGames()
+            _ = await (a, b)
+        } else {
+            async let a: Void = loadHome()
+            async let b: Void = loadShelfGames()
+            _ = await (a, b)
+        }
+    }
+}
+
+/// `全部分类` sheet from the template shelf. Tags with no matches are already omitted.
+@MainActor private struct DiscoveryShelfCategorySheet: View {
+    let groups: [DiscoveryShelfTagGroup]
+    let selected: String?
+    let choose: (String?) -> Void
+    @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    Button(action: { choose(nil) }) {
+                        Text(verbatim: locale.pick("全部", "All"))
+                            .font(CYTypography.body.weight(selected == nil ? .semibold : .regular))
+                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("discovery.allCategories.all")
+                    .accessibilityLabel(Text(verbatim: locale.pick("全部", "All")))
+                    .accessibilityValue(Text(verbatim: locale.pick("全部", "All")))
+                    .accessibilityHint(Text(verbatim: locale.pick("全部分类", "All categories")))
+                    ForEach(groups) { group in
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text(verbatim: locale.pick(group.zh, group.en))
+                                .font(CYTypography.cardTitle)
+                            ForEach(group.tags) { tag in
+                                Button(action: { choose(tag.key) }) {
+                                    Text(verbatim: locale.pick(tag.zh, tag.en))
+                                        .font(CYTypography.body.weight(selected == tag.key ? .semibold : .regular))
+                                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("discovery.allCategories.\(tag.key)")
+                                .accessibilityLabel(Text(verbatim: locale.pick(tag.zh, tag.en)))
+                                .accessibilityValue(Text(verbatim: locale.pick(tag.zh, tag.en)))
+                                .accessibilityHint(Text(verbatim: locale.pick(group.zh, group.en)))
+                            }
+                        }
+                    }
+                }
+                .padding(CYSpacing.lg)
+            }
+            .navigationTitle(Text(verbatim: locale.pick("全部分类", "All categories")))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                    }
+                    .accessibilityIdentifier("discovery.allCategories.close")
+                    .accessibilityLabel(Text("action.close"))
+                    .accessibilityValue(Text(verbatim: locale.pick("全部分类", "All categories")))
+                    .accessibilityHint(Text(verbatim: locale.pick("全部分类", "All categories")))
+                }
+            }
+        }
     }
 }
 

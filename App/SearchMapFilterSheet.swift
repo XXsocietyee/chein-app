@@ -89,8 +89,27 @@ import SwiftUI
                         .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.end")
                 }
                 Section("searchMap.price") {
-                    TextField("searchMap.minimum", text: $minimum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.min")
-                    TextField("searchMap.maximum", text: $maximum).keyboardType(.decimalPad).accessibilityIdentifier("searchMap.filter.max")
+                    TextField("searchMap.minimum", text: $minimum).keyboardType(.decimalPad)
+                        .accessibilityIdentifier("searchMap.filter.min")
+                        .accessibilityLabel(Text("searchMap.minimum"))
+                        .accessibilityValue(Text(verbatim: minimum.isEmpty ? "—" : minimum))
+                        .accessibilityHint(Text("searchMap.price"))
+                    TextField("searchMap.maximum", text: $maximum).keyboardType(.decimalPad)
+                        .accessibilityIdentifier("searchMap.filter.max")
+                        .accessibilityLabel(Text("searchMap.maximum"))
+                        .accessibilityValue(Text(verbatim: maximum.isEmpty ? "—" : maximum))
+                        .accessibilityHint(Text("searchMap.price"))
+                }
+                if applyCityOptions == nil {
+                    Section("searchMap.sort") {
+                        Picker("searchMap.sort", selection: .constant(SearchListSort.recent)) {
+                            Text("search.sort.recent").tag(SearchListSort.recent)
+                        }
+                        .accessibilityIdentifier("search.sort.recent")
+                        .accessibilityLabel(Text("searchMap.sort"))
+                        .accessibilityValue(Text("search.sort.recent"))
+                        .accessibilityHint(Text("search.sort.recent"))
+                    }
                 }
                 if invalid { Label("searchMap.invalidInput", systemImage: "exclamationmark.circle").accessibilityIdentifier("searchMap.filter.invalid") }
                 Button("searchMap.resetFilters") {

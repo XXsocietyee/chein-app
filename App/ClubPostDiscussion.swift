@@ -102,12 +102,31 @@ import SwiftUI
                     case .ready:
                         if reader.comments.isEmpty { Text("club.community.noComments") }
                         ForEach(reader.comments) { comment in
-                            VStack(alignment: .leading, spacing: 4) {
-                                if comment.nickname.isEmpty { Text("club.community.user").font(.subheadline.bold()) }
-                                else { Text(verbatim: comment.nickname).font(.subheadline.bold()) }
-                                Text(verbatim: comment.content).textSelection(.enabled)
-                            }.accessibilityElement(children: .combine)
-                                .accessibilityIdentifier("club.discussion.comment.\(comment.id)")
+                            UGCBlockedFilterContainer(memberID: comment.memberID, authorName: comment.nickname) {
+                                HStack(alignment: .top, spacing: 8) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        if comment.nickname.isEmpty { Text("club.community.user").font(.subheadline.bold()) }
+                                        else { Text(verbatim: comment.nickname).font(.subheadline.bold()) }
+                                        Text(verbatim: comment.content).textSelection(.enabled)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityIdentifier("club.discussion.comment.\(comment.id)")
+                                    if comment.memberID != target.context.identity.accountID {
+                                        UGCSafetyMenuButton(
+                                            presentation: UGCReportPresentationTarget(
+                                                target: reportTarget(for: comment),
+                                                subjectTitle: comment.content,
+                                                authorMemberID: comment.memberID,
+                                                authorName: comment.nickname,
+                                                clubID: target.context.clubID
+                                            ),
+                                            compactLabel: true
+                                        )
+                                        .accessibilityIdentifier("club.discussion.comment.safety.\(comment.id)")
+                                    }
+                                }
+                            }
                         }
                     }
                     Button("club.community.refresh") { load(reader.page) }.disabled(reader.phase == .loading)
@@ -137,6 +156,9 @@ import SwiftUI
     private func load(_ page: Int) {
         guard current else { return }
         Task { await reader.load(page: page, isCurrent: { current }) }
+    }
+    private func reportTarget(for comment: ClubCommunityComment) -> UGCSafetyReportTarget {
+        .clubPostComment(commentID: comment.id)
     }
 }
 

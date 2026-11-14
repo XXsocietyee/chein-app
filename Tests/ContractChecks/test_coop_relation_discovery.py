@@ -33,7 +33,9 @@ class CoopRelationDiscoveryChecks(unittest.TestCase):
         self.assertIn('.environment(\\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })', root)
         for text in ['PublicMerchantHomeView(target: .ownerMemberID(owner)', 'ClubDetailView(id: id, reader: reader)', 'value.memberId == owner.rawValue', 'session.contentDetailRevision == scope.contentRevision', 'value.id == id', 'guard loadedKey == key', 'guard canOpen(choice) else { return }', 'profiles.isCurrent()', '.navigationDestination(item: presentation.binding)']:
             self.assertIn(text, app)
-        for text in ['AsyncImage(', 'URLSession', 'CoopFlowMutation', 'CoopFlowInvite', 'actionCoordinator:', 'management:', 'community:', 'ProductionApproval(']:
+        # RM-01: the read-only relation post feed is built from the community context; nothing else may take it.
+        self.assertEqual(app.count('community:'), app.count('CoopRelationPostFeedFactory.make(\n                community:'))
+        for text in ['AsyncImage(', 'URLSession', 'CoopFlowMutation', 'CoopFlowInvite', 'actionCoordinator:', 'management:', 'ProductionApproval(']:
             self.assertNotIn(text, app)
     def test_scoped_unauthorized_callbacks_are_fenced_before_expiration(self):
         flow = self.source('Core/CooperationFlowService.swift')

@@ -45,6 +45,7 @@ extension EnvironmentValues {
                     }
                 } else if failed {
                     Text("paymentReadiness.checkFailed", tableName: "PayoutReceiver").foregroundStyle(CYColor.warningText)
+                    if let row = RequestReferenceRow(pathFragment: "/api/registration/payment-readiness") { row }
                     CYPillButton("paymentReadiness.recheck", style: .secondary, tableName: "PayoutReceiver") { Task { await check() } }
                 }
             } header: { Text("paymentReadiness.title", tableName: "PayoutReceiver") }

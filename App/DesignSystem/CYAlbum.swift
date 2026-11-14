@@ -69,6 +69,7 @@ enum CYAlbumRecency {
 
 /// Animatable number: SwiftUI interpolates `animatableData`, so the label counts up with the ring.
 private struct CYCountUpLabel: View, Animatable {
+    @Environment(\.cyPalette) private var palette
     var number: Double
     var font: Font
     var animatableData: Double {
@@ -78,7 +79,7 @@ private struct CYCountUpLabel: View, Animatable {
     var body: some View {
         Text(verbatim: String(Int(number.rounded())))
             .font(font).monospacedDigit()
-            .foregroundStyle(CYColor.textPrimary)
+            .foregroundStyle(palette.textPrimary)
             .contentTransition(.identity)
     }
 }
@@ -86,6 +87,7 @@ private struct CYCountUpLabel: View, Animatable {
 /// Collection progress: gold ring fills and the count counts up together (0.9 s). `total` nil or 0 draws only the dim track and a dash,
 /// never a fake zero percent. Reduce Motion: final state at once. Decorative for VoiceOver; pass the sentence as `accessibilityLabel`.
 struct CYAlbumProgressRing: View {
+    @Environment(\.cyPalette) private var palette
     var value: Int
     var total: Int?
     var size: CGFloat = 92
@@ -102,7 +104,7 @@ struct CYAlbumProgressRing: View {
 
     var body: some View {
         ZStack {
-            Circle().stroke(CYColor.bgRaised, lineWidth: lineWidth)
+            Circle().stroke(palette.bgRaised, lineWidth: lineWidth)
             Circle().trim(from: 0, to: shown ? fraction : 0)
                 .stroke(AngularGradient(colors: [CYAlbumMotion.gold, CYAlbumMotion.amber, CYAlbumMotion.gold], center: .center),
                         style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
@@ -113,11 +115,11 @@ struct CYAlbumProgressRing: View {
                     CYCountUpLabel(number: shown ? Double(value) : 0, font: .system(size: size * 0.30, weight: .bold, design: .rounded))
                     Text(verbatim: "/ \(total ?? 0)")
                         .font(.system(size: size * 0.14, weight: .semibold, design: .rounded)).monospacedDigit()
-                        .foregroundStyle(CYColor.textTertiary)
+                        .foregroundStyle(palette.textTertiary)
                 } else {
                     Text(verbatim: CYAlbumCopy.unknownMark)
                         .font(.system(size: size * 0.30, weight: .bold, design: .rounded))
-                        .foregroundStyle(CYColor.textTertiary)
+                        .foregroundStyle(palette.textTertiary)
                 }
             }
             .minimumScaleFactor(0.6)
@@ -201,6 +203,7 @@ extension View {
 }
 
 private struct CYLockedSilhouette: ViewModifier {
+    @Environment(\.cyPalette) private var palette
     let locked: Bool
     let cornerRadius: CGFloat
     let showsLock: Bool
@@ -212,7 +215,7 @@ private struct CYLockedSilhouette: ViewModifier {
             .overlay {
                 if locked {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .strokeBorder(CYColor.borderStrong, style: StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
+                        .strokeBorder(palette.borderStrong, style: StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
                         .accessibilityHidden(true)
                 }
             }
@@ -220,9 +223,9 @@ private struct CYLockedSilhouette: ViewModifier {
                 if locked && showsLock {
                     Image(systemName: "lock.fill")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(palette.textSecondary)
                         .padding(7)
-                        .background(CYColor.bgRaised, in: Circle())
+                        .background(palette.bgRaised, in: Circle())
                         .padding(CYSpacing.sm)
                         .accessibilityHidden(true)
                 }
@@ -326,6 +329,7 @@ struct CYFlipCard<Front: View, Back: View>: View {
 /// (`scrollTransition` + `rotation3DEffect`, max 42°, slight darkening like the underside of a turned page).
 /// Reduce Motion: plain paging. Haptic `.selection` per page. Dots announce "page n of m" and are adjustable.
 struct CYAlbumPager<Item: Identifiable, Page: View>: View {
+    @Environment(\.cyPalette) private var palette
     let items: [Item]
     var height: CGFloat = 340
     var pageLabel: (Int, Int) -> Text
@@ -364,12 +368,12 @@ struct CYAlbumPager<Item: Identifiable, Page: View>: View {
             if items.count <= 12 {
                 ForEach(items.indices, id: \.self) { i in
                     Capsule()
-                        .fill(i == index ? CYColor.textPrimary : CYColor.bgRaised)
+                        .fill(i == index ? palette.textPrimary : palette.bgRaised)
                         .frame(width: i == index ? 18 : 6, height: 6)
                 }
             } else {
                 Text(verbatim: "\(index + 1) / \(items.count)")
-                    .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                    .font(CYTypography.caption).monospacedDigit().foregroundStyle(palette.textSecondary)
             }
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
@@ -432,6 +436,17 @@ private struct CYUnlockCelebration: ViewModifier {
 }
 
 // MARK: - Album card chrome
+
+private struct CYAlbumCardModifier: ViewModifier {
+    @Environment(\.cyPalette) private var palette
+    let padding: CGFloat
+    func body(content: Content) -> some View {
+        content
+            .padding(padding)
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
+    }
+}
 
 extension View {
     /// Card surface shared by album pages and collection tiles: elevated continuous-corner card with no outer border.

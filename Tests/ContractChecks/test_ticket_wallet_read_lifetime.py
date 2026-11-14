@@ -42,8 +42,11 @@ class TicketWalletReadLifetimeContracts(unittest.TestCase):
             self.assertIn(token, self.adapter)
     def test_every_retry_refresh_and_foreground_entry_captures_owned_presentation(self):
         for view in self.screens:
-            for token in ['let offeredPresentation = model.presentation', 'schedule(offeredPresentation)',
-                          'model.refresh(presentation: offeredPresentation, currentOwner: key)',
+            # h-visual-bugs: retry/refresh start a new owned presentation when the old one ended (spinner hang fix).
+            self.assertTrue('schedule(offeredPresentation)' in view or 'schedule(model.presentation ?? model.beginPresentation(owner: key))' in view)
+            self.assertTrue('model.refresh(presentation: offeredPresentation, currentOwner: key)' in view
+                            or 'model.refresh(presentation: current, currentOwner: key)' in view)
+            for token in ['let offeredPresentation = model.presentation',
                           'model.schedule(presentation: permit, currentOwner: key)', 'schedule(model.beginPresentation(owner: key))',
                           'guard isVisible, scenePhase == .active, !Task.isCancelled,',
                           'model.accepts(presentation, currentOwner: key)']:

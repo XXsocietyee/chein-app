@@ -16,7 +16,6 @@ MISSING_COPY = [
     "动态加载失败",
     "这条帖文暂不可用",
     "没有找到这条帖文",
-    "社区暂未开放",
     "评论加载失败",
     "更多评论加载失败",
     "服务暂时无法提供这条动态",
@@ -81,7 +80,8 @@ class SquareDetailPageReadyContract(unittest.TestCase):
         view = VIEW.read_text(encoding="utf-8")
         self.assertIn("SquareCountDisplay.text(post.likeCount)", view)
         self.assertIn("SquareDetailPageModel.emptyCommentsTitleKey", view)
-        self.assertIn("SquareDetailPageModel.emptyCommentsDetailKey", view)
+        # visual-parity-2: empty comments show only 还没有评论 (the mini-program dropped the detail line).
+        self.assertNotIn("SquareDetailPageModel.emptyCommentsDetailKey", view)
         self.assertNotIn('"square.xcx.noCommentsTitle"', view)
         self.assertNotIn("square.xcx.noCommentsDetail", view)
 

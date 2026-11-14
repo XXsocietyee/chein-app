@@ -26,6 +26,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     @State private var inlineOwnerID = UUID()
     private enum InlineJoin: Equatable { case working, joined, pending, notice(String) }
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     /// Club cards zoom into the detail they open; `cyHeroSource` ids are the club id.
     @Namespace private var hero
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
@@ -59,6 +60,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         .padding(.bottom, CYSpacing.sm)
                 } else {
                     Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, CYSpacing.pageHorizontal)
                         .accessibilityIdentifier("club.authorSquare.missing")
@@ -93,10 +95,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                             .fixedSize(horizontal: false, vertical: true)
                         let create = ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
                             .buttonStyle(.questifyPrimary)
+                            .controlSize(.regular)
                         if typeSize.isAccessibilitySize {
                             VStack(alignment: .leading, spacing: CYSpacing.sm) { prompt; create }
                         } else {
-                            HStack(spacing: CYSpacing.md) { prompt; Spacer(minLength: CYSpacing.sm); create.fixedSize() }
+                            HStack(spacing: CYSpacing.md) { prompt; Spacer(minLength: CYSpacing.sm); create.fixedSize().layoutPriority(1) }
                         }
                     }
                 }
@@ -300,6 +303,10 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("club.home.join.notice.\(club.id)")
                 }
+                CYScreenOfflineWriteBanner(
+                    routes: ["/api/club/join"],
+                    session: offlineWriteSession.session
+                )
                 ClubTabTagLine(club: club, section: section,
                                topicCount: section == .nearby ? nil : page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)
             }
@@ -315,12 +322,18 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         guard action == .join, let coordinator = actionCoordinator, coordinator.isConfigured, identity.isSignedIn,
               coordinator.identity == identity, inlineJoin[club.id] != .working else { openedClubID = club.id; return }
         let id = club.id, owner = inlineOwnerID
+        let offlineSession = offlineWriteSession.session
         inlineJoin[id] = .working
         Task {
             do {
                 let value = try await coordinator.prepare(clubID: id, action: .join, expectedIdentity: identity, ownerID: owner)
                 guard coordinator.identity == identity else { coordinator.cancel(value); inlineJoin[id] = nil; return }
-                _ = await coordinator.confirm(value)
+                _ = await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineSession,
+                    routes: ["/api/club/join"]
+                ) {
+                    await coordinator.confirm(value)
+                }
                 if case .received(let detail) = coordinator.readback(clubID: id), detail.id == id {
                     inlineJoin[id] = detail.isJoined ? .joined : detail.joinPending ? .pending : .notice("club.action.acknowledged")
                     return
@@ -367,7 +380,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         async let body = reader.clubHomeBodyIfAvailable()
         let home = try await reader.clubHome()
         let raw = await body
-        let page = raw.map { ClubTabPageModel.project(homeBody: $0, merchant: discoveryScope.isMerchantViewer) }
+        let merchant = discoveryScope.isMerchantViewer
+        let page = try await PlayerFeedJSON.perform { raw.map { ClubTabPageModel.project(homeBody: $0, merchant: merchant) } }
         return ClubTabLoaded(home: home, page: page.flatMap { $0.phase == .ready || $0.phase == .empty ? $0 : nil })
     }
 }

@@ -33,6 +33,23 @@ final class TopicXcxFactsTests: XCTestCase {
         XCTAssertEqual(TopicXcxFacts.includes(try topic(["audioUrl": "https://example.invalid/a.mp3", "audioDuration": 20])), [.audio])
     }
 
+    func testChapterCountLeavesEndingsOutOfTheChapterNumber() throws {
+        let value = try topic(["totalChapterCount": 7, "chaptersList": [
+            ["id": 1, "name": "开场"], ["id": 2, "name": "结局 · 离开"], ["id": 3, "name": "结局二"]
+        ]])
+        XCTAssertEqual(TopicXcxFacts.buyerChapterCounts(value).story, 5)
+        XCTAssertEqual(TopicXcxFacts.buyerChapterCounts(value).endings, 2)
+        XCTAssertEqual(TopicXcxFacts.includes(value).first, .chapterBreakdown(story: 5, endings: 2))
+        XCTAssertFalse(TopicXcxFacts.hidesGeneratedChapterOrdinal("老门"))
+        XCTAssertTrue(TopicXcxFacts.hidesGeneratedChapterOrdinal("结局 · 离开"))
+        XCTAssertTrue(TopicXcxFacts.hidesGeneratedChapterOrdinal("终章"))
+        XCTAssertTrue(TopicXcxFacts.hidesGeneratedChapterOrdinal("第一章 · 夜"))
+        let guide = TopicXcxFacts.chapterGuide(description: "街口有灯。【题目】灯下的数字是多少")
+        XCTAssertEqual(guide, "街口有灯。")
+        XCTAssertEqual(TopicXcxFacts.heroIntro("一二三四五六七八九十一二三四五六七八九十多余"), "一二三四五六七八九十一二三四五六七八九十…")
+        XCTAssertEqual(TopicXcxFacts.heroIntro("短简介"), "短简介")
+    }
+
     func testVenueParsesBothParenthesisStyles() {
         XCTAssertEqual(TopicXcxFacts.venue("示例公园（示例路 1 号）")?.name, "示例公园")
         XCTAssertEqual(TopicXcxFacts.venue("示例公园（示例路 1 号）")?.address, "示例路 1 号")

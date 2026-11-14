@@ -27,7 +27,13 @@ public struct ProfileOrderHistoryFacts: Decodable, Equatable {
                                              options: .regularExpression) != nil
         } else { totalAmountIsZero = false }
         hasRefundApplication = c.contains(.refundApplication) && (try? c.decodeNil(forKey: .refundApplication)) == false
-        firstSuccessfulScanAt = try? c.decode(String.self, forKey: .firstSuccessfulScanAt)
+        if let text = try? c.decode(String.self, forKey: .firstSuccessfulScanAt) {
+            firstSuccessfulScanAt = text
+        } else if (try? c.decode(Int.self, forKey: .firstSuccessfulScanAt)) == 0 {
+            firstSuccessfulScanAt = "0"
+        } else {
+            firstSuccessfulScanAt = nil
+        }
         let owner = (try? c.decode(Owner.self, forKey: .cmsActivity)) ?? (try? c.decode(Owner.self, forKey: .cmsTopic))
         func present(_ text: String?) -> String? { text?.isEmpty == false ? text : nil }
         start = present(owner?.startDate) ?? present(owner?.startTime)
@@ -60,7 +66,28 @@ public extension ProfileOrder {
         if !free && refundable == false { return .nonRefundable }
         if let end = OrderLifecycleTime.date(historyFacts.end), now > end { return .completed }
         if let start = OrderLifecycleTime.date(historyFacts.start), now < start { return .notStarted }
+        // order-status.js 2026-11-14: a self-play pass with no first scan is usable, not in progress.
+        if isSelfPlayPass, OrderLifecycleTime.date(historyFacts.firstSuccessfulScanAt) == nil { return .notStarted }
         return .inProgress
+    }
+
+    /// purchaseKind 2, else ownerType 1 with no ticket and an expiry. Ticket id 0 stays 0 and counts as no ticket.
+    public var isSelfPlayPass: Bool {
+        if let purchaseKind { return purchaseKind == 2 }
+        let noTicket = ticketID == nil || ticketID == 0
+        let expires = expiresAt?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return ownerType == 1 && noTicket && !expires.isEmpty
+    }
+
+    /// Same key as not_started, with the source text 可使用. A future start stays 未开始.
+    public func showsUnusedPass(now: Date = Date()) -> Bool {
+        guard isSelfPlayPass, OrderLifecycleTime.date(historyFacts.firstSuccessfulScanAt) == nil else { return false }
+        if let start = OrderLifecycleTime.date(historyFacts.start), now < start { return false }
+        return historyState(now: now) == .notStarted
+    }
+
+    public func historyTagKey(now: Date = Date()) -> String {
+        showsUnusedPass(now: now) ? "orderLifecycle.state.passReady" : "orderLifecycle.state." + historyState(now: now).rawValue
     }
 }
 

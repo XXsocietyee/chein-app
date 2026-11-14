@@ -142,7 +142,7 @@ final class SettingsNativeTests: XCTestCase {
         XCTAssertFalse(agreement.isReleaseApproved)
         let cancellation = SettingsSourceLegalCatalog.cancellationNotice
         XCTAssertEqual(cancellation.version, "v2.1"); XCTAssertEqual(cancellation.sections.count, 5)
-        XCTAssertTrue(cancellation.sections[0].body.contains("2. 存在在途提现；"))
+        XCTAssertTrue(cancellation.sections[0].body.contains("2. 存在处理中的微信零钱提现或待审核的银行卡提现；"))
         XCTAssertFalse(cancellation.isReleaseApproved)
     }
     func testPrivacyMissingStateIsNotACompleteDocument() {

@@ -441,7 +441,9 @@ import SwiftUI
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     CYHeroHeader(LocalizedStringKey(snapshot.action.key))
-                    Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    let reviewTitle = (snapshot.team?.title ?? snapshot.application?.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                    if reviewTitle.isEmpty { Text("nearby.w208.mine.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    else { Text(verbatim: reviewTitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                     if let applicant = snapshot.applicant, !applicant.name.isEmpty {
                         Label { Text(verbatim: applicant.name) } icon: { Image(systemName: "person.crop.circle") }
                     }

@@ -38,7 +38,7 @@ import UIKit
                 case .denied: self.phase = .permissionDenied; return
                 case .restricted: self.phase = .restricted; return
                 case .unavailable: self.phase = .unavailable; return
-                case .notDetermined: self.phase = .failed; return
+                case .notDetermined: self.phase = .idle; return
                 }
                 do {
                     let data = try await self.fetch(url)
@@ -88,6 +88,9 @@ struct RoamStampSlipSaveRow: View {
                 Button("roam.share.openPhotoSettings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                 }
+                .accessibilityLabel(Text("roam.share.openPhotoSettings"))
+                .accessibilityValue(Text("roam.share.photoPermissionDenied"))
+                .accessibilityHint(Text("roam.share.openPhotoSettings"))
             }
         }
         .onDisappear { saver.cancel() }

@@ -315,6 +315,7 @@ struct CYClubPhotoCard: View {
             Button(action: onOpen) {
                 CYImageCard(verbatim: name.trimmingCharacters(in: .whitespacesAndNewlines), fallback: "club.untitled",
                             meta: place, imageURL: coverURL, aspectRatio: prominent ? nil : 2.0, style: .hero)
+                    .cachingFeedImage()
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier(identifier ?? "club.card")
@@ -390,9 +391,7 @@ struct CYClubRowCard: View {
         ZStack {
             CYIMCoverArt(seed: seed + name)
             if let logoURL {
-                AsyncImage(url: logoURL) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() }
-                }
+                PlayerFeedRemoteImage(url: logoURL, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
             }
         }
         .frame(width: 56, height: 56)

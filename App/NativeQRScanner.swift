@@ -65,6 +65,9 @@ struct NativeQRScanner: View {
                     }
                 }
                 .buttonStyle(.questifyPrimary)
+                .accessibilityLabel(Text("scanner.openSettings"))
+                .accessibilityValue(Text("scanner.denied.title"))
+                .accessibilityHint(Text("scanner.denied.hint"))
             }
         case .restricted:
             ContentUnavailableView("scanner.restricted.title", systemImage: "lock.shield",

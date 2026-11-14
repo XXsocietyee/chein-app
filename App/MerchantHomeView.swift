@@ -33,7 +33,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 merchantGate(systemImage: "person.crop.circle.badge.exclamationmark", message: "merchant.signIn")
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
-                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturnRevision &+= 1 })
+                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, childReturnRevision: childReturnRevision, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturnRevision &+= 1 })
                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
                 } else {
                     List {
@@ -165,12 +165,15 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     let exportRecovery: (any MerchantExportRecoveryStoring)?
     let showsRecordLinks: Bool
     let predictionReader: MerchantPredictionReader?
+    let childReturnRevision: UInt64
     let refreshAccess: () async -> Void
     @ObservedObject var dashboard: MerchantLoadModel<MerchantDashboard>
     @ObservedObject var todo: MerchantLoadModel<MerchantTodo>
     @ObservedObject var events: MerchantLoadModel<[MerchantEvent]>
     let onChildReturn: () -> Void
     @Environment(\.merchantAuthoringDestination) private var merchantAuthoringDestination
+    @State private var operationsAccess: MerchantOperationsAccess?
+    @State private var businessStatus: MerchantBusinessStatus?
 
     private var aftercareRoute: MerchantWorkbenchBusinessRoute? {
         guard access.canReadAftercare, let businessReader, let businessJournal else { return nil }
@@ -219,14 +222,38 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         List {
             Section {
                 VStack(spacing: CYSpacing.md) {
-                    Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
-                        .font(CYTypography.pageTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityIdentifier("merchant.store.name")
-                    // UIV-TODO: source shows a greeting + 营业中 status chip; no localisation key or open-status field exists yet.
+                    let displayName = access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store", locale: locale)
+                    HStack(alignment: .center, spacing: CYSpacing.sm) {
+                        Text(verbatim: W8Text.t("Hi，\(displayName)", "Hi, \(displayName)"))
+                            .font(CYTypography.pageTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .lineLimit(2)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityIdentifier("merchant.store.name")
+                        if let businessStatus {
+                            let chip = CYStatusChip(
+                                LocalizedStringKey(businessStatus.titleKey),
+                                tone: businessStatus == .open ? .success : .neutral
+                            ).singleLine()
+                                .accessibilityLabel(Text(LocalizedStringKey(businessStatus.titleKey)))
+                                .accessibilityValue(Text(LocalizedStringKey(businessStatus.titleKey)))
+                                .accessibilityHint(Text(verbatim: displayName))
+                            if let operationsAccess, operationsAccess.allows(.businessStatus), let factory = operationsDestinationFactory {
+                                NavigationLink {
+                                    factory(.businessStatus, operationsAccess)
+                                        .onDisappear(perform: onChildReturn)
+                                } label: {
+                                    chip
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("merchant.store.businessStatus")
+                            } else {
+                                chip
+                                    .accessibilityIdentifier("merchant.store.businessStatus")
+                            }
+                        }
+                    }
                     if access.canReadDashboard {
                         MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
                             VStack(spacing: CYSpacing.xs) {
@@ -244,6 +271,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, CYSpacing.lg)
                             .accessibilityElement(children: .combine)
+                            .accessibilityLabel(Text("merchant.revenue"))
+                            .accessibilityValue(Text(verbatim: MerchantMoney.display(value.revenue)))
+                            .accessibilityHint(Text("merchant.revenue"))
                             .accessibilityIdentifier("merchant.dashboard.revenue")
                         }
                     }
@@ -497,7 +527,37 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
             .cyPushedChrome(domain: .merchant)
         }
-        .refreshable { await refreshAccess() }
+        .refreshable {
+            await refreshAccess()
+            await loadBusinessStatus()
+        }
+        .task(id: "\(operationsReader?.scope.uuidString ?? "none"):\(childReturnRevision)") {
+            await loadBusinessStatus()
+        }
+        }
+    }
+    private func loadBusinessStatus() async {
+        guard let operationsReader, operationsReader.isConfigured, operationsReader.isAuthenticated else {
+            operationsAccess = nil
+            businessStatus = nil
+            return
+        }
+        let scope = operationsReader.scope
+        do {
+            let opsAccess = try await operationsReader.access()
+            guard !Task.isCancelled, operationsReader.scope == scope else { return }
+            operationsAccess = opsAccess
+            guard opsAccess.identity.allows(.basicRead) else {
+                businessStatus = nil
+                return
+            }
+            let doc = try await operationsReader.document(.businessStatus)
+            guard !Task.isCancelled, operationsReader.scope == scope else { return }
+            if case .draft(.businessStatus(let state)) = doc {
+                businessStatus = state.status
+            }
+        } catch {
+            // Non-fatal on hero header; operations tools remain available below.
         }
     }
     private func aftercareEvidenceDependencies(journal: any MerchantBusinessIntentStore) -> MerchantAftercareEvidenceDependencies? {
@@ -613,8 +673,8 @@ private struct MerchantQuickCircleAction: View {
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(primary ? palette.actionPrimaryFg : palette.textPrimary)
                     .frame(width: diameter, height: diameter)
-                    .background(CYColor.bgElevated, in: Circle())
-                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 0.5))
+                    .background(primary ? palette.actionPrimaryBg : palette.bgElevated, in: Circle())
+                    .overlay(Circle().strokeBorder(primary ? Color.clear : palette.borderSubtle, lineWidth: 0.5))
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
                     .font(CYTypography.caption)

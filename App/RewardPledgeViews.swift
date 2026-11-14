@@ -210,7 +210,13 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
         }
         let data = try JSONEncoder().encode(memory)
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        do { try data.write(to: url, options: .atomic) } catch { throw RewardPledgeFailure.closed("journal") }
+        do {
+            #if os(iOS)
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            #else
+            try data.write(to: url, options: .atomic)
+            #endif
+        } catch { throw RewardPledgeFailure.closed("journal") }
     }
 
     /// An empty requested store restores the one store recorded for this account. Two stores stay closed.
@@ -809,7 +815,10 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
         let text = reason.trimmingCharacters(in: .whitespacesAndNewlines)
         if text == "CASH_REFUND" {
             let cashOpen = ReviewedAreaSwitch.moneyPayments && ReviewedAreaSwitch.payout
-            guard cashOpen else { notice = "CASH_CLOSED"; return }
+            guard cashOpen else {
+                notice = Self.closedPaymentNotice("CASH_CLOSED")
+                return
+            }
         }
         guard !text.isEmpty, text.count <= 128, !text.contains("\n") else { notice = "validity"; return }
         guard let row = selected, RewardPledgeRoutes.id(row.awardId), let caller = admitted(entry, { $0.support }), !busy else { return }
@@ -832,7 +841,9 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
         } catch {
             let rejected = businessRejection(error)
             if rejected == nil { note(error) }
-            else if rejected == "CASH_CLOSED" { notice = "CASH_CLOSED" }
+            else if let closedName = rejected, closedName == "CASH_CLOSED" || closedName == "FEATURE_CLOSED" {
+                notice = Self.closedPaymentNotice(closedName)
+            }
             else { notice = "unknown" }
         }
     }
@@ -999,6 +1010,18 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             throw RewardPledgeFailure.closed("permission")
         }
         return bind
+    }
+
+    private static func closedPaymentNotice(_ code: String) -> String {
+        let catalogLanguage: BackendErrorLanguage = Locale.current.identifier.lowercased().hasPrefix("zh") ? .zhHans : .en
+        let paid = BackendErrorCatalog.paymentSucceeded(
+            code: code,
+            moneyPaymentsOpen: ReviewedAreaSwitch.moneyPayments,
+            payoutOpen: ReviewedAreaSwitch.payout,
+            merchantWritesOpen: ReviewedAreaSwitch.merchantWrites,
+            passwordLoginOpen: ReviewedAreaSwitch.passwordLogin)
+        if paid { return BackendErrorCatalog.unknownMark }
+        return BackendErrorCatalog.playerFacing(code: code, language: catalogLanguage)
     }
 
     private func businessRejection(_ error: Error) -> String? {
@@ -1195,7 +1218,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
                 Text(player.fields["historyId"] ?? "").accessibilityIdentifier("rewards.pledge.voucher")
                 Text(player.fields["useStatus"] ?? "").accessibilityIdentifier("rewards.pledge.playerUse")
             }
-            if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
+            if let notice = model.notice { PledgeNoticeText(raw: notice) }
             if let item = model.machine.serviceCase { Text(item.readable).accessibilityIdentifier("rewards.pledge.case") }
         }
         .task {
@@ -1307,7 +1330,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             }
             if !model.pledgeID.isEmpty { Text(verbatim: model.pledgeID).accessibilityIdentifier("rewards.pledge.pledge") }
             if let state = model.merchantResult?.fields["version.state"] { Text(verbatim: state).accessibilityIdentifier("rewards.pledge.version") }
-            if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
+            if let notice = model.notice { PledgeNoticeText(raw: notice) }
         }
         .onAppear { restoreDraft() }
         .task {
@@ -1384,7 +1407,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
                 Text(player.fields["requestId"] ?? "").accessibilityIdentifier("rewards.pledge.playerRequest")
                 Text(player.fields["useStatus"] ?? "").accessibilityIdentifier("rewards.pledge.playerUse")
             }
-            if let notice = model.notice { Text(notice).accessibilityIdentifier("rewards.pledge.notice") }
+            if let notice = model.notice { PledgeNoticeText(raw: notice) }
             if let item = model.machine.serviceCase { Text(item.readable).accessibilityIdentifier("rewards.pledge.case") }
         }
         .task {
@@ -1468,6 +1491,24 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
     var body: some View {
         RewardPledgeMerchantView(model: model, entry: entry)
             .onChange(of: entry.accountID) { _, accountID in model.replaceAccount(accountID, store: "") }
+    }
+}
+
+private struct PledgeNoticeText: View {
+    let raw: String
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        let sentence = BackendErrorCatalog.playerFacing(code: raw, language: Self.catalogLanguage(locale))
+        Text(verbatim: sentence)
+            .accessibilityIdentifier("rewards.pledge.notice")
+            .accessibilityLabel(Text(verbatim: sentence))
+            .accessibilityValue(Text(verbatim: sentence))
+            .accessibilityHint(Text(verbatim: sentence))
+    }
+
+    private static func catalogLanguage(_ locale: Locale) -> BackendErrorLanguage {
+        locale.identifier.lowercased().hasPrefix("zh") ? .zhHans : .en
     }
 }
 

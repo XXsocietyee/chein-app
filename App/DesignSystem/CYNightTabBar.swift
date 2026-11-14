@@ -7,6 +7,7 @@ import SwiftUI
 struct CYNightTabBar: View {
     let selection: RootTab
     var tabs: [RootTab] = RootTab.playerTabs
+    var isHidden: Bool = false
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.cyTabBarHidden) private var isTabBarHidden
@@ -20,9 +21,10 @@ struct CYNightTabBar: View {
     private let barHeight: CGFloat = 44
     private let pillHeight: CGFloat = 34
 
-    init(selection: RootTab, tabs: [RootTab] = RootTab.playerTabs) {
+    init(selection: RootTab, tabs: [RootTab] = RootTab.playerTabs, isHidden: Bool = false) {
         self.selection = selection
         self.tabs = tabs
+        self.isHidden = isHidden
         // While `landed` is nil, the capsule follows `selection` and the first change snaps. Seed it so every change stretches, then springs.
         _landed = State(initialValue: .some(selection))
     }
@@ -31,27 +33,29 @@ struct CYNightTabBar: View {
         // The outer reader keeps the real bottom safe area; the inner one ignores it to span the screen. Reading the inset from
         // the ignoring reader gives 0 and drops the pill below the floating bar (outside it, under the icons).
         if !isTabBarHidden {
-            GeometryReader { outer in
-                let bottomInset = outer.safeAreaInsets.bottom
-                pillLayer(bottomInset: bottomInset).ignoresSafeArea()
-            }
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
-            .onChange(of: selection) { old, new in
-                guard !rm else { landed = new; return }
-                let right = (tabs.firstIndex(of: new) ?? 0) >= (tabs.firstIndex(of: old) ?? 0)
-                task?.cancel()
-                task = Task { @MainActor in
-                    anchor = right ? .leading : .trailing
-                    withAnimation(.easeOut(duration: CYMotion.Duration.instant)) { stretch = 1.35 }
-                    try? await Task.sleep(for: .milliseconds(120))
-                    if Task.isCancelled { return }
-                    withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) { landed = new }
-                    try? await Task.sleep(for: .milliseconds(70))
-                    if Task.isCancelled { return }
-                    anchor = right ? .trailing : .leading
-                    withAnimation(.spring(response: 0.34, dampingFraction: 0.62)) { stretch = 1 }
+            if !isHidden {
+                GeometryReader { outer in
+                    let bottomInset = outer.safeAreaInsets.bottom
+                    pillLayer(bottomInset: bottomInset).ignoresSafeArea()
                 }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+            }
+        }
+        .onChange(of: selection) { old, new in
+            guard !rm else { landed = new; return }
+            let right = (tabs.firstIndex(of: new) ?? 0) >= (tabs.firstIndex(of: old) ?? 0)
+            task?.cancel()
+            task = Task { @MainActor in
+                anchor = right ? .leading : .trailing
+                withAnimation(.easeOut(duration: CYMotion.Duration.instant)) { stretch = 1.35 }
+                try? await Task.sleep(for: .milliseconds(120))
+                if Task.isCancelled { return }
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) { landed = new }
+                try? await Task.sleep(for: .milliseconds(70))
+                if Task.isCancelled { return }
+                anchor = right ? .trailing : .leading
+                withAnimation(.spring(response: 0.34, dampingFraction: 0.62)) { stretch = 1 }
             }
         }
     }
@@ -97,6 +101,32 @@ struct CYNightTabBar: View {
     }
 }
 
+@MainActor @Observable
+final class CYTabBarVisibility {
+    private var hiddenTokens: Set<UUID> = []
+
+    var isHidden: Bool { !hiddenTokens.isEmpty }
+
+    func hide(_ token: UUID) {
+        hiddenTokens.insert(token)
+    }
+
+    func show(_ token: UUID) {
+        hiddenTokens.remove(token)
+    }
+}
+
+private struct CYTabBarVisibilityKey: EnvironmentKey {
+    static let defaultValue: CYTabBarVisibility? = nil
+}
+
+extension EnvironmentValues {
+    var cyTabBarVisibility: CYTabBarVisibility? {
+        get { self[CYTabBarVisibilityKey.self] }
+        set { self[CYTabBarVisibilityKey.self] = newValue }
+    }
+}
+
 extension View {
     /// E2E-20261113b N3: on iOS 26 the floating tab bar does not shrink the tab content's safe area, so bottom rows and
     /// pinned actions (play panel stations, the activity "More info" row, club entries) ended up under it. Each tab root
@@ -106,11 +136,28 @@ extension View {
     }
 }
 
+struct CYHideTabBarModifier: ViewModifier {
+    var hidden: Bool = true
+    @Environment(\.cyTabBarVisibility) private var visibility
+    @State private var token = UUID()
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                if hidden { visibility?.hide(token) } else { visibility?.show(token) }
+            }
+            .onDisappear { visibility?.show(token) }
+    }
+}
+
 private struct CYFloatingTabBarClearance: ViewModifier {
     @Environment(\.cyTabBarHidden) private var isTabBarHidden
+    @Environment(\.cyTabBarVisibility) private var visibility
+
     func body(content: Content) -> some View {
         if #available(iOS 26, *) {
-            let clearance = isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height
+            let baseClearance = isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height
+            let clearance = (visibility?.isHidden == true) ? 0 : baseClearance
             content.safeAreaPadding(.bottom, clearance).environment(\.cyTabBarClearance, clearance)
         } else { content }
     }
@@ -118,7 +165,7 @@ private struct CYFloatingTabBarClearance: ViewModifier {
 
 /// Height a self-sizing bottom panel (the map scaffold) reserves for the floating tab bar inside a tab. Zero outside tabs.
 struct CYFloatingTabBarClearanceKey: EnvironmentKey {
-    static let height: CGFloat = 56
+    static let height: CGFloat = 72
     static let defaultValue: CGFloat = 0
 }
 

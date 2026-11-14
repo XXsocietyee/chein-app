@@ -78,6 +78,7 @@ struct MessagingHistoryView: View {
     @State private var pageBlockedByMe: Bool?
     @State private var safety: IMSafetyPresentation?
     @Environment(\.dismiss) private var dismissHistory
+    @Environment(\.ugcSafetyContext) private var ugcSafety
 
     init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, admission: ChannelAdmissionRoute? = nil, directory: ChannelDirectoryAdmissionRequest? = nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
         self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender;self.mediaReader=mediaReader;self.expanded=expanded
@@ -191,6 +192,7 @@ struct MessagingHistoryView: View {
         .privacySensitive()
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if currentHistoryReady,
@@ -302,25 +304,29 @@ struct MessagingHistoryView: View {
                 let accountID = loadedIdentity?.accountID ?? 0
                 let positions = ChatGrouping.positions(history.messages)
                 ForEach(history.messages) { message in
-                    VStack(spacing: CYSpacing.sm) {
-                        // Time is grouped: one divider per burst, not a stamp on every bubble.
-                        if let divider = dividers[message.id] {
-                            IMChatDividerLabel(divider: divider).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                                .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
+                    let blockedSenderID = message.senderID == accountID ? nil : message.senderID
+                    let blockedSenderName = message.senderID == accountID ? nil : message.senderName
+                    UGCBlockedFilterContainer(memberID: blockedSenderID, authorName: blockedSenderName) {
+                        VStack(spacing: CYSpacing.sm) {
+                            // Time is grouped: one divider per burst, not a stamp on every bubble.
+                            if let divider = dividers[message.id] {
+                                IMChatDividerLabel(divider: divider).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                    .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
+                            }
+                            NavigationLink {
+                                MessagingMessageDetailView(message: message, conversation: conversation,
+                                    reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
+                                    currentMessage: { history.messages.first { $0.id == message.id } })
+                            } label: {
+                                MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single)
+                                    .environment(\.imRecipientPreview, recipientPreviewInput)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("messaging.message.\(message.id)")
                         }
-                        NavigationLink {
-                            MessagingMessageDetailView(message: message, conversation: conversation,
-                                reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
-                                currentMessage: { history.messages.first { $0.id == message.id } })
-                        } label: {
-                            MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single)
-                                .environment(\.imRecipientPreview, recipientPreviewInput)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("messaging.message.\(message.id)")
+                        .padding(.top, [.middle, .last].contains(positions[message.id] ?? .single) ? -CYSpacing.xs - 1 : 0)
+                        .id(message.id)
                     }
-                    .padding(.top, [.middle, .last].contains(positions[message.id] ?? .single) ? -CYSpacing.xs - 1 : 0)
-                    .id(message.id)
                 }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
@@ -348,6 +354,9 @@ struct MessagingHistoryView: View {
             guard isCurrent(request, identity, source: source) else { return }
             try history.replace(with: page)
             pageBlocked = page.blocked; pageBlockedByMe = page.blockedByMe
+            if page.blockedByMe == true, let peerID = conversation?.counterparty?.id, peerID > 0 {
+                ugcSafety?.blockedStore.recordLocalBlock(memberID: peerID, authorName: conversation?.counterparty?.nickname)
+            }
             sessionPage = IMChatSessionWire.fromReader(conversation: conversation, page: page)
             loadedIdentity = identity; loadedReaderID = source; visibleMessageID = history.messages.last?.id
             phase = .loaded(())
@@ -495,9 +504,12 @@ private struct MessagingBubble: View {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     Button(role: item == .hide || item == .block ? .destructive : nil) { select(item) } label: {
                         Label(title(item), systemImage: symbol(item))
-                    }.accessibilityIdentifier("im.chat.more.\(identifier(item))")
+                    }
+                    .accessibilityLabel(Text(title(item)))
+                    .accessibilityIdentifier("im.chat.more.\(identifier(item))")
                 }
             } label: { Label("im.chat.more", systemImage: "ellipsis") }
+            .accessibilityLabel(Text("im.chat.more"))
             .accessibilityIdentifier("im.chat.more")
         }
     }

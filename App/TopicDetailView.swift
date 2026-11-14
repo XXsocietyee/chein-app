@@ -12,7 +12,9 @@ struct TopicDetailView: View {
     var reviewOwner: ContextualReviewCoordinator? = nil
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
+    var ticketWalletDestination: ((Int) -> AnyView)? = nil
     @State private var showingSelfPlay = false
+    @State private var showingTickets = false
     @State private var showingSessionSelection = false
     /// Load lifecycle (docs/release/state-machines/views.md). `loadedKey` guards a phase that belongs to a stale key.
     @State private var phase: CYPhase<TopicDetail, TopicScreenIssue> = .idle
@@ -38,13 +40,31 @@ struct TopicDetailView: View {
         .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
+        .toolbar {
+            if let value = detail {
+                ToolbarItem(placement: .topBarTrailing) {
+                    UGCSafetyMenuButton(
+                        presentation: UGCReportPresentationTarget(
+                            target: .topic(id: value.id),
+                            subjectTitle: value.name,
+                            authorName: value.clubName
+                        )
+                    )
+                    .accessibilityIdentifier("topic.safety.menu")
+                }
+            }
+        }
+        .environment(\.ugcSafetySubjectID, detail?.id ?? id)
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
                 .cyPlayerSheetGlass()
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false }
+        .sheet(isPresented: $showingTickets) {
+            if let ticketWalletDestination { ticketWalletDestination(id) }
+        }
         .sheet(isPresented: $showingSelfPlay) {
             Group {
                 if let detail {
@@ -72,7 +92,7 @@ struct TopicDetailView: View {
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                                 .font(CYTypography.label).foregroundStyle(CYColor.brand)
                             Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
-                            if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                            if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineLimit(1) }
                             else { Text("topicXcx.coverHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
                         }
                     }.accessibilityElement(children: .combine)
@@ -98,7 +118,7 @@ struct TopicDetailView: View {
                     withAnimation { proxy.scrollTo(TopicXcxTab.details.anchor, anchor: .top) }
                 }.accessibilityIdentifier("topic.cover.details")
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
-                TopicXcxTabs(proxy: proxy)
+                TopicXcxTabs(proxy: proxy, productType: value.productType)
             }
             // 详情 tab (mini-program `det3`): title, one-line subtitle, venue card, then the audio guide.
             Section {
@@ -116,11 +136,10 @@ struct TopicDetailView: View {
                 Section {
                     if let introduction = value.introduction {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("topicXcx.section.intro").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                            Text("topicXcx.section.contents").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                             Text(verbatim: introduction).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
                         }
-                    }
-                    if !includes.isEmpty {
+                    } else if !includes.isEmpty {
                         Text("topicXcx.section.contents").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                         TopicXcxIncludes(rows: includes)
                     }
@@ -142,6 +161,7 @@ struct TopicDetailView: View {
                     }.accessibilityIdentifier("topic.records.entry")
                 }
             }
+            if value.productType == 2 {
             Section("topic.source.sessions") {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
@@ -167,6 +187,7 @@ struct TopicDetailView: View {
                 }
                 if !value.tickets.isEmpty { Text("topic.source.sessionNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             }.id("topicXcx.anchor.sessions")
+            }
             if let activities = value.activities {
                 Section("topic.activities") {
                     if activities.isEmpty { Text("topic.noActivities").accessibilityIdentifier("topic.activities.empty") }
@@ -210,16 +231,14 @@ struct TopicDetailView: View {
             }
             Section("topic.comments") {
                 if (value.commentCount ?? value.comments.count) == 0 {
-                    // Source ratings empty state.
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("topicXcx.reviews.emptyTitle").font(.headline)
-                        Text("topicXcx.reviews.emptyDetail").font(.footnote).foregroundStyle(.secondary)
-                    }.accessibilityIdentifier("topic.reviews.emptyPrompt")
+                    Text("topicXcx.reviews.emptyTitle").font(.headline).accessibilityIdentifier("topic.reviews.emptyPrompt")
                 }
                 CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
+                Text("activity.reviewPointsNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             }
-            Section("topic.chapters") {
+            .environment(\.ugcSafetySubjectID, value.id)
+            Section {
                 if value.chapters.isEmpty {
                     Text("topic.noChapters").foregroundStyle(.secondary)
                 }
@@ -237,12 +256,14 @@ struct TopicDetailView: View {
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
+            } header: {
+                Text(value.productType == 2 ? "tabBar.passport" : "topic.chapters")
             }.id(TopicXcxTab.nodes.anchor)
             if value.showStoryPaywall {
                 Section("topic.lockedStory") {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
-                    Text("topicXcx.paywall.detail").font(.footnote)
+                    Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").font(.footnote)
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
                         CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
                     }
@@ -259,7 +280,10 @@ struct TopicDetailView: View {
         .safeAreaInset(edge: .bottom) {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { showingSelfPlay = true },
-                              openPricing: pricingDestination == nil ? nil : { showsPricing = true })
+                              openPricing: pricingDestination == nil ? nil : { showsPricing = true },
+                              openTickets: ticketWalletDestination == nil ? nil : { showingTickets = true },
+                              shareURL: PublicContentShareLink.topic(id: value.id),
+                              shareTitle: value.name)
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
@@ -355,7 +379,7 @@ struct TopicChapterView: View {
                     }
                 }
             }
-        }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)
+        }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline).cyHideTabBar()
     }
 }
 

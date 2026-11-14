@@ -657,7 +657,10 @@ enum ReviewedPlayerReadRoute {
         // WP-02 (PlayerGapService.creatorTailPaths): the author's own audit timeline, content appeal and its receipt,
         // and the original-run guard reference, appeal and receipt. Non-money; the server checks the author/run owner.
         "api/audit/timeline", "api/audit/appeal", "api/audit/appeal/receipt",
-        "api/audit/guard/reference", "api/audit/guard/appeal", "api/audit/guard/appeal/receipt"
+        "api/audit/guard/reference", "api/audit/guard/appeal", "api/audit/guard/appeal/receipt",
+        // Final sweep: non-money creator project list mutations (`api/activity/cancel` stays behind ReviewedAreaSwitch.moneyPayments).
+        "api/activity/update_publish_status", "api/topic/update_user_status",
+        "api/activity/delete", "api/topic/delete", "api/template/delete", "api/template/updateLibraryStatus"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
@@ -713,10 +716,13 @@ enum ReviewedPlayerReadRoute {
     static let likePaths: Set<String> = ["api/topic/like", "api/comment/like", "api/creativesquare/like"]
     static let reportPaths: Set<String> = [
         "api/v1/community/reports", "api/v1/community/appeals", "api/comment/report", "api/topic/report",
-        "api/template/report", "api/creativesquare/report", "api/im/report", "api/club/post/report",
-        "api/club/post/comment/report", "api/club/governance/cases/report", "api/club/governance/cases/appeal",
-        "api/orient/scoring/appeal", "api/orient/scoring/dispute",
-        "api/external-game/reports"
+        "api/template/report", "api/template/personal-report", "api/creativesquare/report", "api/im/report",
+        "api/club/post/report", "api/club/post/comment/report", "api/club/governance/cases/report",
+        "api/club/governance/cases/appeal", "api/orient/scoring/appeal", "api/orient/scoring/dispute",
+        "api/external-game/reports", "api/merchant/reviews/report", "api/team/report",
+        "api/community-trust/reports/taxonomy", "api/community-trust/reports/mine",
+        "api/native/blacklist/list",
+        "api/ai/safety/precheck"
     ]
     /// Space admission (contract §6.10). Approve/reject/pause/revoke are owner/admin writes the backend checks.
     static let admissionPaths: Set<String> = [
@@ -1498,5 +1504,65 @@ enum PayoutReceiverRouteGrant {
 
     static func admits(_ route: PayoutReceiverRoute) -> Bool {
         readPaths.contains(route.rawValue) || moneyPaths.contains(route.rawValue)
+    }
+}
+
+extension ReviewedProductionFormMutationRoute {
+    /// Admits my-project list mutations (`MyProjectHTTPMutator`). Canceling an activity refunds paid
+    /// registrations and goes through `ReviewedAreaSwitch.moneyPayments`; merchant-scoped actions go
+    /// through `ReviewedAreaSwitch.merchantWrites`.
+    static func acceptsMyProjectMutation(_ request: URLRequest, baseURL: URL, token: String) -> Bool {
+        guard let url = request.url,
+              let type = request.value(forHTTPHeaderField: "Content-Type"),
+              type.hasPrefix("multipart/form-data; boundary="),
+              let body = request.httpBody, body.count <= 1024,
+              let text = String(data: body, encoding: .utf8) else { return false }
+        let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+        let requiredKeys: Set<String>
+        let positiveKey: String
+        var expectedStatus: Set<String>?
+        var isActivityCancel = false
+        switch url.absoluteString {
+        case baseURL.appendingPathComponent("api/activity/update_publish_status").absoluteString,
+             baseURL.appendingPathComponent("api/activity/delete").absoluteString,
+             baseURL.appendingPathComponent("api/topic/delete").absoluteString:
+            requiredKeys = ["id", "scope"]; positiveKey = "id"
+        case baseURL.appendingPathComponent("api/topic/update_user_status").absoluteString:
+            requiredKeys = ["id", "scope", "expectedUserStatus"]; positiveKey = "id"; expectedStatus = ["0", "1"]
+        case baseURL.appendingPathComponent("api/activity/cancel").absoluteString:
+            requiredKeys = ["id", "reason", "scope"]; positiveKey = "id"; isActivityCancel = true
+        case baseURL.appendingPathComponent("api/template/delete").absoluteString:
+            requiredKeys = ["template_id", "scope"]; positiveKey = "template_id"
+        case baseURL.appendingPathComponent("api/template/updateLibraryStatus").absoluteString:
+            requiredKeys = ["template_id", "status", "scope"]; positiveKey = "template_id"; expectedStatus = ["1", "3"]
+        default:
+            return false
+        }
+        var fields: [String: String] = [:]
+        for key in requiredKeys {
+            let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+            guard let range = text.range(of: marker),
+                  let end = text[range.upperBound...].range(of: "\r\n") else { return false }
+            fields[key] = String(text[range.upperBound..<end.lowerBound])
+        }
+        guard let rawID = fields[positiveKey], let id = Int(rawID), id > 0, String(id) == rawID else { return false }
+        let scope = fields["scope"] ?? ""
+        guard scope.isEmpty || scope == "MERCHANT" else { return false }
+        if scope == "MERCHANT" {
+            guard ReviewedAreaSwitch.merchantWrites(apiHost: url.host) else { return false }
+        }
+        if isActivityCancel {
+            guard ReviewedAreaSwitch.moneyPayments(apiHost: url.host),
+                  let reason = fields["reason"], !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  reason.count <= 200 else { return false }
+        }
+        if let expectedStatus {
+            let actual = (fields["expectedUserStatus"] ?? fields["status"]) ?? ""
+            guard expectedStatus.contains(actual) else { return false }
+        }
+        guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else {
+            return false
+        }
+        return canonical.httpBody == body
     }
 }

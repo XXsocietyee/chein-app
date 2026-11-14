@@ -22,6 +22,8 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let ownerID: Int?
     public let activityID: Int?
     public let topicID: Int?
+    /// `cmsTopic.id` when the list row includes the topic object. Focus prefers this over `ownerId`.
+    public let cmsTopicID: Int?
     public let registrationNumber: String?
     public let registrationStatus: Int?
     public let verificationStatus: Int?
@@ -94,6 +96,7 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         verificationStatus = try c.integer("verificationStatus")
         let activity = try c.decodeIfPresent(TicketWalletOwner.self, forKey: TicketWalletKey("cmsActivity"))
         let topic = try c.decodeIfPresent(TicketWalletOwner.self, forKey: TicketWalletKey("cmsTopic"))
+        cmsTopicID = topic?.id
         let owner = activity ?? topic
         title = owner?.name; productType = owner?.productType
         startDate = owner?.startDate; endDate = owner?.endDate; addressName = owner?.addressName
@@ -187,7 +190,21 @@ public struct TicketWalletSnapshot: Equatable {
     }
 }
 
+/// Where a topic page should land in the wallet. Topic tickets only (`ownerType` 1).
+/// The id is `cmsTopic.id`, then `ownerId`. A missing id does not match ticket 0.
+public enum TicketWalletTopicFocus {
+    public static func index(in tickets: [TicketWalletTicket], topicID: Int) -> Int? {
+        guard topicID > 0 else { return nil }
+        return tickets.firstIndex { ticket in
+            guard ticket.ownerType == 1 else { return false }
+            let focused = (ticket.cmsTopicID ?? 0) > 0 ? ticket.cmsTopicID : ticket.ownerID
+            return focused == topicID
+        }
+    }
+}
+
 private struct TicketWalletOwner: Decodable {
+    let id: Int?
     let name: String?
     let productType: Int?
     let startDate: String?
@@ -195,6 +212,7 @@ private struct TicketWalletOwner: Decodable {
     let addressName: String?
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TicketWalletKey.self)
+        id = try c.integer("id")
         name = try c.text("name"); productType = try c.integer("productType")
         startDate = try c.text("startDate"); endDate = try c.text("endDate"); addressName = try c.text("addressName")
     }

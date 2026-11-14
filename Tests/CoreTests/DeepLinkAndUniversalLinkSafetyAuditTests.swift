@@ -175,4 +175,42 @@ final class DeepLinkAndUniversalLinkSafetyAuditTests: XCTestCase {
         XCTAssertFalse(sanitizedReport.autoTriggersPayment)
         XCTAssertFalse(sanitizedReport.autoTriggersLocationSharing)
     }
+
+    func testRejectsEncodedPathTraversalNullBytesAndNonCanonicalNumericIDs() throws {
+        let traversalURLs = [
+            "https://link.chengyin.example/%2e%2e/profile?memberId=42",
+            "https://link.chengyin.example/topic/%252e%252e?topicId=10",
+            "https://link.chengyin.example/topic?topicId=10%00",
+            "https://link.chengyin.example/topic\\index?topicId=10",
+        ]
+        for raw in traversalURLs {
+            let url = try XCTUnwrap(URL(string: raw.replacingOccurrences(of: "\\", with: "%5C")))
+            let report = DeepLinkAndUniversalLinkSafetyAudit.audit(
+                url: url,
+                session: cnAuthenticatedSession,
+                verifiedHTTPSHosts: trustedHosts
+            )
+            XCTAssertEqual(report.decision, .rejected(.malformedURL), raw)
+        }
+
+        let nonCanonicalIDs = [
+            "https://link.chengyin.example/topic?topicId=007",
+            "https://link.chengyin.example/topic?topicId=+12",
+            "https://link.chengyin.example/merchant/public-home?merchantId=08",
+            "https://link.chengyin.example/club/workspace?clubId=+9",
+        ]
+        for raw in nonCanonicalIDs {
+            let url = try XCTUnwrap(URL(string: raw))
+            let report = DeepLinkAndUniversalLinkSafetyAudit.audit(
+                url: url,
+                session: cnAuthenticatedSession,
+                verifiedHTTPSHosts: trustedHosts
+            )
+            XCTAssertEqual(report.decision, .rejected(.unsupportedRoute(url.path)), raw)
+        }
+
+        XCTAssertNil(NativeNavigationContract.parseInternal("/pages/%2e%2e/topic/index?id=1"))
+        XCTAssertNil(PlayerCode.read(.object(["qr": .string("http://example.com/qr")])))
+        XCTAssertNotNil(PlayerCode.read(.object(["qr": .string("https://example.com/qr")])))
+    }
 }

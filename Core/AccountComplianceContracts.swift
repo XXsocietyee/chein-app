@@ -186,7 +186,11 @@ extension ComplianceJournaling {
     }
     private func write(_ rows: [CompliancePendingOperation]) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        #if os(iOS)
+        try JSONEncoder().encode(rows).write(to: url, options: [.atomic, .completeFileProtection])
+        #else
         try JSONEncoder().encode(rows).write(to: url, options: .atomic)
+        #endif
     }
     public func pending(scope: String, operation: String) throws -> CompliancePendingOperation? {
         let rows = try read().filter { $0.scope == scope && $0.operation == operation }
@@ -213,7 +217,11 @@ extension ComplianceJournaling {
         guard !rows.contains(note) else { return }
         rows.append(note)
         try FileManager.default.createDirectory(at: dispatchURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        #if os(iOS)
+        try JSONEncoder().encode(rows).write(to: dispatchURL, options: [.atomic, .completeFileProtection])
+        #else
         try JSONEncoder().encode(rows).write(to: dispatchURL, options: .atomic)
+        #endif
     }
     public func deregistrationApplyWasDispatched(scope: String, requestID: String) throws -> Bool {
         try readDispatches().contains(DeregistrationApplyDispatch(scope: scope, requestID: requestID))

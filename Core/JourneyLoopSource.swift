@@ -159,17 +159,28 @@ public struct JourneyLoopSource {
     }
 
     /// Form post, matching `rate` (`form: true` in journey-api.js). Not a money write.
-    public func rate(ownerType: Int, ownerID: String, rating: Int, contents: String, token: String) async throws -> JourneyEnvelope {
+    /// Settle rating. `requestID` is one submit intent, reused on retry. Server accepts `[A-Za-z0-9_-]{16,64}`.
+    public func rate(ownerType: Int, ownerID: String, rating: Int, contents: String, requestID: String, token: String) async throws -> JourneyEnvelope {
         guard ownerType == 1 || ownerType == 2 else { throw JourneyRefusal.invalidRequest }
         guard Self.isID(ownerID), (1...5).contains(rating), contents.utf8.count <= 2000 else { throw JourneyRefusal.invalidRequest }
+        guard Self.isCommentRequestID(requestID) else { throw JourneyRefusal.invalidRequest }
         let fields = [
             "owner_type": String(ownerType),
             "owner_id": ownerID,
             "rating": String(rating),
             "contents": contents,
-            "reply_id": "0"
+            "reply_id": "0",
+            "request_id": requestID
         ]
         return try await postForm(.rate, fields: fields, token: token)
+    }
+
+    public static func isCommentRequestID(_ value: String) -> Bool {
+        guard (16...64).contains(value.utf8.count) else { return false }
+        return value.unicodeScalars.allSatisfy { scalar in
+            let code = scalar.value
+            return (48...57).contains(code) || (65...90).contains(code) || (97...122).contains(code) || code == 45 || code == 95
+        }
     }
 
     /// Empty multipart `POST /api/user/info`, the same self read the profile editor uses. Not a write.
@@ -342,7 +353,7 @@ public struct JourneyLoopSource {
         if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
         guard !binding.money, binding.form else { throw JourneyRefusal.invalidRequest }
         guard AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
-        let order = ["owner_type", "owner_id", "rating", "contents", "reply_id"]
+        let order = ["owner_type", "owner_id", "rating", "contents", "reply_id", "request_id"]
         let encoded = try order.map { key -> String in
             guard let value = fields[key] else { throw JourneyRefusal.invalidRequest }
             return try Self.formEscape(key) + "=" + Self.formEscape(value)

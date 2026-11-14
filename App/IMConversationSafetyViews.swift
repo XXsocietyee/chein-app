@@ -54,6 +54,7 @@ struct IMSafetyCopy {
     @StateObject private var model: IMSafetyModel
     let onSettled: (IMSafetyAction) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.ugcSafetyContext) private var ugcSafety
     @State private var task: Task<Void, Never>?
     init(owner: IMSafetyCoordinator, onSettled: @escaping (IMSafetyAction) -> Void) {
         _model = StateObject(wrappedValue: IMSafetyModel(owner: owner)); self.onSettled = onSettled
@@ -89,7 +90,17 @@ struct IMSafetyCopy {
         // A dispatched request is never cancelled by dismissal; its owner keeps the
         // unknown/acknowledged state. Only an acknowledged action refreshes the host.
         .onDisappear {
-            if case .acknowledged(let action) = model.state { onSettled(action) }
+            if case .acknowledged(let action) = model.state {
+                switch action {
+                case .block(_, let targetMemberID):
+                    ugcSafety?.blockedStore.recordLocalBlock(memberID: targetMemberID)
+                case .unblock(_, let targetMemberID):
+                    ugcSafety?.blockedStore.recordLocalUnblock(memberID: targetMemberID)
+                default:
+                    break
+                }
+                onSettled(action)
+            }
             model.owner.cancelReview()
         }
     }
@@ -138,9 +149,11 @@ struct IMSafetyCopy {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            .accessibilityLabel(Text(LocalizedStringKey(copy.confirmKey)))
             .accessibilityIdentifier("im.safety.confirm")
             Button("action.cancel", role: .cancel) { close() }
                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                .accessibilityLabel(Text("action.cancel"))
                 .accessibilityIdentifier("im.safety.cancel")
         case .submitting:
             loadingBlock("im.safety.submitting").accessibilityIdentifier("im.safety.submitting")

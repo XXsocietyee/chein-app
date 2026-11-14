@@ -65,7 +65,11 @@ public final class ChapterReplacementInvitationFileIntents: ChapterReplacementIn
         guard let fileURL else { throw ChapterReplacementInvitationFailure.unknown }
         do {
             try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            #if os(iOS)
+            try JSONEncoder().encode(intent).write(to: fileURL, options: [.atomic, .completeFileProtection])
+            #else
             try JSONEncoder().encode(intent).write(to: fileURL, options: .atomic)
+            #endif
         } catch { throw ChapterReplacementInvitationFailure.unknown }
     }
     public func clear(_ intent: ChapterReplacementInvitationIntent) throws {

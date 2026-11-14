@@ -9,6 +9,7 @@ import SwiftUI
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cyPalette) private var palette
+    @Environment(\.analyticsEventClient) private var analytics
     @State private var draft = BankWithdrawalDraft()
     @State private var snapshot: BankWithdrawalDraft?
     @State private var review: BankWithdrawalReview?
@@ -77,6 +78,7 @@ import SwiftUI
         .cyHaptic(.impactMedium, trigger: receipt?.applicationID) { old, new in old == nil && new != nil }
         .onDisappear { clear() }
         .cyPushedChrome(domain: .player)
+        .appSwitcherPrivacyShield()
     }
 
     private var notice: some View {
@@ -415,6 +417,10 @@ import SwiftUI
         do {
             let result = try await adapter.submit(value)
             guard ticket == generation else { return }
+            var properties: [String: PlayWireValue] = [:]
+            if let amount = MiniProgramAnalytics.amount(value.amount) { properties["amount"] = amount }
+            MiniProgramAnalytics.track(analytics, "withdrawal_submit", bizType: "withdrawal",
+                bizID: MiniProgramAnalytics.bizID(result.applicationID), pagePath: "/subpackageA/pages/assetcenter/earnings/index", properties: properties)
             clear(); receipt = result
         } catch {
             guard ticket == generation else { return }

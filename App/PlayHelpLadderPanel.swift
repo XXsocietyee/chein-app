@@ -31,6 +31,7 @@ import SwiftUI
     @State private var confirmLevel: Int?
     @State private var confirmSkip = false
     @Environment(\.locale) private var locale
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
 
     var body: some View {
         ZStack {
@@ -64,6 +65,10 @@ import SwiftUI
                     }
                     if let teamPool, teamPool.isVisible { TeamPoolHintSection(model: teamPool) }
                     if model.showsSkip { skipRow }
+                    CYScreenOfflineWriteBanner(
+                        routes: ["/api/play/help/use", "/api/play/help/skip"],
+                        session: offlineWriteSession.session
+                    )
                     if let notice = model.notice { noticeText(notice) }
                     receiptGroup
                 }
@@ -83,12 +88,28 @@ import SwiftUI
             Button("playHelp.view") {
                 guard let level = confirmLevel else { return }
                 confirmLevel = nil
-                Task { await model.use(level) }
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/play/help/use"]
+                    ) {
+                        await model.use(level)
+                    }
+                }
             }.accessibilityIdentifier("playHelp.confirm")
             Button("playHelp.cancel", role: .cancel) { confirmLevel = nil }
         } message: { confirmMessage }
         .alert("playHelp.skip", isPresented: $confirmSkip) {
-            Button("playHelp.skip.confirm", role: .destructive) { Task { await model.skip() } }
+            Button("playHelp.skip.confirm", role: .destructive) {
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/play/help/skip"]
+                    ) {
+                        await model.skip()
+                    }
+                }
+            }
                 .accessibilityIdentifier("playHelp.skip.confirm")
             Button("playHelp.cancel", role: .cancel) {}
         } message: { Text("playHelp.skip.consequence") }
@@ -162,7 +183,16 @@ import SwiftUI
 
     private var skipRow: some View {
         Button {
-            if model.skipPending { Task { await model.skip() } } else { confirmSkip = true }
+            if model.skipPending {
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/play/help/skip"]
+                    ) {
+                        await model.skip()
+                    }
+                }
+            } else { confirmSkip = true }
         } label: {
             HStack {
                 Text("playHelp.skip").font(CYTypography.body).foregroundStyle(CYColor.dangerText)

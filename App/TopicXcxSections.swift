@@ -4,18 +4,26 @@ import SwiftUI
 enum TopicXcxTab: Int, CaseIterable, Identifiable {
     case details, nodes, route
     var id: Int { rawValue }
-    var titleKey: LocalizedStringKey { switch self { case .details: return "topicXcx.tab.details"; case .nodes: return "topicXcx.tab.nodes"; case .route: return "topicXcx.tab.route" } }
+    /// Free exploration names the third tab 地点; city orienteering keeps 路线.
+    func titleKey(productType: Int) -> LocalizedStringKey {
+        switch self {
+        case .details: return "topicXcx.tab.details"
+        case .nodes: return "topicXcx.tab.nodes"
+        case .route: return productType == 2 ? "topicXcx.tab.places" : "topicXcx.tab.route"
+        }
+    }
     var anchor: String { "topicXcx.anchor.\(rawValue)" }
 }
 
 /// Mini-program 详情 / 故事 / 路线 tabs as a native segmented control; it jumps to that part of the page
-/// so every existing row stays reachable.
+/// so every existing row stays reachable. Free exploration uses 地点 for the third tab.
 struct TopicXcxTabs: View {
     let proxy: ScrollViewProxy
+    var productType: Int = 0
     @State private var selection: TopicXcxTab = .details
     var body: some View {
         Picker("topicXcx.tabs", selection: $selection) {
-            ForEach(TopicXcxTab.allCases) { tab in Text(tab.titleKey).tag(tab) }
+            ForEach(TopicXcxTab.allCases) { tab in Text(tab.titleKey(productType: productType)).tag(tab) }
         }
         .pickerStyle(.segmented)
         .labelsHidden()
@@ -105,6 +113,10 @@ struct TopicXcxIncludes: View {
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             switch row {
             case .chapters(let n): Label { Text("topicXcx.include.chapters \(n)") } icon: { Image(systemName: "book") }
+            case .chapterBreakdown(let story, let endings):
+                Label {
+                    Text(story > 0 ? "topicXcx.include.storyAndEndings \(story) \(endings)" : "topicXcx.include.endings \(endings)")
+                } icon: { Image(systemName: "book") }
             case .stops(let n): Label { Text("topicXcx.include.stops \(n)") } icon: { Image(systemName: "mappin.and.ellipse") }
             case .plays(let n): Label { Text("topicXcx.include.plays \(n)") } icon: { Image(systemName: "gamecontroller") }
             case .audioMinutes(let n): Label { Text("topicXcx.include.audioMinutes \(n)") } icon: { Image(systemName: "headphones") }
@@ -118,17 +130,34 @@ struct TopicXcxIncludes: View {
 }
 
 struct TopicXcxLineup: View {
+    @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     let members: [TopicXcxFacts.LineupMember]
+
+    private var lineupReportTarget: UGCSafetyReportTarget {
+        .topic(id: max(1, safetySubjectID ?? 1))
+    }
+
     var body: some View {
         // Mini-program `lineup-row`: horizontal scroll of avatar / name / role cards.
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 ForEach(Array(members.enumerated()), id: \.offset) { _, member in
-                    VStack(spacing: CYSpacing.xs) {
-                        CYAvatarView(name: member.name, size: .lg)
-                        Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
-                        Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
-                    }.frame(width: 88).accessibilityElement(children: .combine)
+                    UGCBlockedFilterContainer(authorName: member.name) {
+                        VStack(spacing: CYSpacing.xs) {
+                            CYAvatarView(name: member.name, size: .lg)
+                            Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
+                        }
+                        .frame(width: 88)
+                        .accessibilityElement(children: .combine)
+                        .contextMenu {
+                            UGCReviewSafetyFooter(
+                                target: lineupReportTarget,
+                                subjectTitle: member.name,
+                                authorName: member.name
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -142,6 +171,11 @@ struct TopicXcxActionBar: View {
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
     var openPricing: (() -> Void)?
+    var openTickets: (() -> Void)? = nil
+    var shareURL: URL? = nil
+    var shareTitle: String? = nil
+    var isFavorited: Bool? = nil
+    var onToggleFavorite: (() -> Void)? = nil
     var body: some View {
         CYFooterBar {
             VStack(spacing: 6) {
@@ -149,7 +183,14 @@ struct TopicXcxActionBar: View {
                 HStack {
                     switch TopicXcxFacts.action(topic) {
                     case .ticketWallet:
-                        Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                        if let openTickets {
+                            Button(action: openTickets) {
+                                Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                            }
+                            .accessibilityIdentifier("topic.cta.tickets")
+                        } else {
+                            Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                        }
                     case .locked(let lifecycle):
                         if TopicXcxFacts.opensPricing(topic), let openPricing {
                             Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
@@ -159,13 +200,34 @@ struct TopicXcxActionBar: View {
                         }
                     case .selfPlay(let price):
                         Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
+                            .accessibilityIdentifier("topic.cta.sessions")
                         Button(action: openSelfPlay) {
                             if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                             else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
                         }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                            .accessibilityIdentifier("topic.cta.selfPlay")
                     case .signUp:
                         Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                             .disabled(topic.merchantClosed)
+                            .accessibilityIdentifier("topic.cta.signUp")
+                    }
+                    if let onToggleFavorite {
+                        Button(action: onToggleFavorite) {
+                            Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
+                        .accessibilityIdentifier("topic.cta.favorite")
+                    }
+                    if let shareURL {
+                        ShareLink(item: shareURL, subject: shareTitle.map { Text(verbatim: $0) }) {
+                            Image(systemName: "square.and.arrow.up")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel(Text("mp.common.share"))
+                        .accessibilityIdentifier("topic.cta.share")
                     }
                 }
                 .controlSize(.large)
@@ -189,7 +251,7 @@ struct TopicXcxRouteSection: View {
     @Environment(\.cyPalette) private var palette
     let topic: TopicDetail
     var body: some View {
-        Section("topicXcx.tab.route") {
+        Section {
             // Source `route-note`: 固定路线 for city orienteering, 没有固定路线 for free explore.
             Text(topic.productType == 2 ? "u9cde.topic.routeNote.free" : "u9cde.topic.routeNote.fixed")
                 .font(CYTypography.label.weight(.semibold))
@@ -198,10 +260,8 @@ struct TopicXcxRouteSection: View {
                 .background(Capsule().fill(topic.productType == 2 ? CYNight.glassFill : CYNight.lantern))
                 .accessibilityIdentifier("topic.route.note")
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("u9cde.topic.routeConfiguring").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    Text("topicXcx.route.emptyTitle").foregroundStyle(.secondary)
-                }.accessibilityIdentifier("topic.route.empty")
+                Text("u9cde.topic.routeConfiguring").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityIdentifier("topic.route.empty")
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
                 if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
@@ -219,6 +279,8 @@ struct TopicXcxRouteSection: View {
                     }
                 }
             }
+        } header: {
+            Text(topic.productType == 2 ? "topicXcx.tab.places" : "topicXcx.tab.route")
         }
     }
 }
@@ -254,6 +316,12 @@ struct TopicXcxTemplatesSection: View {
                             }.frame(width: 140, alignment: .leading).padding(Theme.Space.s3)
                                 .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
                                 .accessibilityElement(children: .combine).accessibilityIdentifier("topic.nodeIntro.\(template.id)")
+                                .contextMenu {
+                                    UGCReviewSafetyFooter(
+                                        target: .template(id: template.id),
+                                        subjectTitle: template.title
+                                    )
+                                }
                         }
                     }
                 }

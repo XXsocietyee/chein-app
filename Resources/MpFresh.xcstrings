@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starts in %lld d"
+            "value": "%lld days left"
           }
         },
         "zh-Hans": {
@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starts in %lld h"
+            "value": "%lld hours left"
           }
         },
         "zh-Hans": {
@@ -58,13 +58,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Featured activities didn't load"
+            "value": "Couldn't load nearby activities"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "活动精选加载失败"
+            "value": "附近活动加载失败"
           }
         }
       }
@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Themes didn't load"
+            "value": "Topics didn't load"
           }
         },
         "zh-Hans": {
@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More themes didn't load"
+            "value": "More topics didn't load"
           }
         },
         "zh-Hans": {

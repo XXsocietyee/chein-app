@@ -84,6 +84,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.board.title")
+        .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: reload) { Label("growth.refresh", systemImage: "arrow.clockwise") }
@@ -182,6 +183,7 @@ struct GrowthPodiumMark: View {
 
 /// Mini-program chip pair (周榜 / 总榜, 积分榜 / 成长榜): capsules, the selected one solid.
 private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
+    @Environment(\.cyPalette) private var palette
     let title: LocalizedStringKey
     @Binding var selection: Option
     let options: [Option]
@@ -196,9 +198,9 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
                 Button { selection = option } label: {
                     Text(LocalizedStringKey(key(option)))
                         .font(selected ? CYTypography.label.weight(.semibold) : CYTypography.label)
-                        .foregroundStyle(selected ? CYColor.textInverse : CYColor.textPrimary)
+                        .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textPrimary)
                         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                        .background(selected ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
+                        .background(selected ? palette.actionPrimaryBg : palette.bgElevated, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selected ? .isSelected : [])
@@ -212,6 +214,7 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
 
 /// Mini-program podium: 2 · 1 · 3, initial discs with a rank coin, name, score + unit. Unknown score is an em dash.
 private struct GrowthLeaderboardPodiumView: View {
+    @Environment(\.cyPalette) private var palette
     let entries: [GrowthLeaderboardEntry]
     let metric: GrowthBoardMetric
     var body: some View {
@@ -242,12 +245,12 @@ private struct GrowthLeaderboardPodiumView: View {
             }
             .padding(.bottom, 12)
             GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").font(CYTypography.label.weight(.semibold))
-                .foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                .foregroundStyle(palette.textPrimary).lineLimit(1)
             HStack(spacing: 4) {
                 Circle().fill(tint).frame(width: 10, height: 10).accessibilityHidden(true)
                 GrowthCenterInteger(value: entry.score).font(.subheadline.weight(.bold)).monospacedDigit()
-                    .foregroundStyle(place == 1 ? CYNight.lantern : CYColor.textPrimary)
-                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(place == 1 ? CYNight.lantern : palette.textPrimary)
+                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
             }
         }
         .frame(maxWidth: .infinity)

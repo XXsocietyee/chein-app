@@ -1,13 +1,12 @@
 import SwiftUI
+import UIKit
 
 // MARK: - 我的举报 entry in the system conversation
 
 /// Mini-program `subpackageB/pages/im/chat` (type 2, 城瘾小助手): a 「我的举报」 row above the
 /// transcript with the unread count of 举报进度 notices (`/api/v1/community/notifications`, action REPORT_*).
 /// The destination is the existing my-reports page. Host injects it with
-/// `.environment(\.imReportProgressDestination, …)`; nil ⇒ the row is hidden.
-/// BINDING STUB for Cursor: `imReportProgressUnread` (unread REPORT_* notices; read-on-open) is not wired;
-/// nil hides the badge only.
+/// `.environment(\.imReportProgressDestination, …)` and `.environment(\.imReportProgressUnread, …)`; nil hides the row/badge.
 private struct IMReportProgressDestinationKey: EnvironmentKey { static let defaultValue: (@MainActor () -> AnyView)? = nil }
 private struct IMReportProgressUnreadKey: EnvironmentKey { static let defaultValue: Int? = nil }
 extension EnvironmentValues {
@@ -69,6 +68,7 @@ enum IMInviteReminderPresentation: Equatable {
 @MainActor protocol IMInviteReminderBinding: AnyObject {
     var isEnabled: Bool { get }
     var presentation: IMInviteReminderPresentation { get }
+    var offersSettings: Bool { get }
     func reload() async
     func setEnabled(_ on: Bool) async -> Bool
 }
@@ -83,7 +83,9 @@ extension EnvironmentValues {
 
 @MainActor struct IMInviteReminderToggle: View {
     @Environment(\.imInviteReminder) private var binding
+    @Environment(\.openURL) private var openURL
     @State private var presentation: IMInviteReminderPresentation = .unknown
+    @State private var offersSettings = false
     @State private var ready = false
     @State private var busy = false
     @State private var result: LocalizedStringKey?
@@ -101,6 +103,14 @@ extension EnvironmentValues {
                     Text(result).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                         .transition(.opacity)
                 }
+                if offersSettings {
+                    Button(action: openNotificationSettings) { Text("d7.notifyPermission.settings") }
+                        .font(CYTypography.caption)
+                        .accessibilityIdentifier("im.coopStrip.inviteReminder.settings")
+                        .accessibilityLabel(Text("d7.notifyPermission.settings"))
+                        .accessibilityValue(Text(LocalizedStringKey(presentation == .unknown ? "mpd.im.inviteReminder.unknownLabel" : "mpd.im.inviteReminder.denied")))
+                        .accessibilityHint(Text("d7.notifyPermission.settings"))
+                }
             }
             .task {
                 await reload(binding)
@@ -109,17 +119,26 @@ extension EnvironmentValues {
         }
     }
     @ViewBuilder private func inviteSwitch(_ binding: any IMInviteReminderBinding) -> some View {
-        let toggle = Toggle(isOn: Binding(get: { presentation == .on }, set: { value in Task { await change(value, binding) } })) {
-            Text("mpd.im.inviteReminder").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        Group {
+            Toggle(isOn: Binding(get: { presentation == .on }, set: { value in Task { await change(value, binding) } })) {
+                Text("mpd.im.inviteReminder").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            .toggleStyle(.switch)
         }
-        .toggleStyle(.switch).controlSize(.mini).fixedSize()
+        .controlSize(.mini)
+        .fixedSize()
         .disabled(busy)
         .accessibilityIdentifier("im.coopStrip.inviteReminder")
-        if ready && presentation == .unknown {
-            toggle.accessibilityValue(Text("mpd.im.inviteReminder.unknownLabel"))
-        } else {
-            toggle
-        }
+        .accessibilityLabel(Text("mpd.im.inviteReminder"))
+        .accessibilityValue(inviteSpokenValue)
+        .accessibilityHint(Text("mpd.im.inviteReminder"))
+    }
+
+    private var inviteSpokenValue: Text {
+        if !ready || presentation == .unknown { return Text("mpd.im.inviteReminder.unknownLabel") }
+        if presentation == .on { return Text("mpd.im.inviteReminder.on") }
+        if offersSettings { return Text("mpd.im.inviteReminder.denied") }
+        return Text("mpd.im.inviteReminder")
     }
     private func reload(_ binding: any IMInviteReminderBinding) async {
         await binding.reload()
@@ -132,6 +151,7 @@ extension EnvironmentValues {
     }
     private func apply(_ binding: any IMInviteReminderBinding, changedTo value: Bool?) {
         presentation = binding.presentation
+        offersSettings = binding.offersSettings
         switch binding.presentation {
         case .unknown:
             result = nil
@@ -140,6 +160,9 @@ extension EnvironmentValues {
         case .off:
             result = value == true ? "mpd.im.inviteReminder.denied" : nil
         }
+    }
+    private func openNotificationSettings() {
+        if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
     }
 }
 

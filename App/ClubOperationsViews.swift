@@ -22,7 +22,11 @@ struct ClubOperationsEntryButton: View {
             guard visit == nil else { return }
             let next = ClubProfileDraftVisit(); next.bind(target: target, identity: identity, access: access)
             pendingReturn = nil; pendingWelcomeReturn = nil; lastVisit = next; visit = next
-        } label: { Label(target == .create ? "club.ops.create" : "club.ops.manage", systemImage: target == .create ? "plus.circle" : "slider.horizontal.3") }
+        } label: {
+            Label(target == .create ? "club.ops.create" : "club.ops.manage", systemImage: target == .create ? "plus.circle" : "slider.horizontal.3")
+                .labelStyle(.titleAndIcon)
+                .lineLimit(1)
+        }
             .accessibilityIdentifier("club.ops." + (target == .create ? "openCreate" : "openManage"))
             .sheet(item: $visit, onDismiss: {
                 guard visit == nil else { return }
