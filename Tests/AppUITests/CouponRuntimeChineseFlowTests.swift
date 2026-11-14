@@ -5,8 +5,23 @@ import XCTest
 @MainActor final class CouponRuntimeChineseFlowTests: XCTestCase, CouponRuntimeJourney {
     var app: XCUIApplication!
     var chinese = false
-    /// Re-enable (set false) when merchant surfaces ship; bodies below are intentionally unchanged.
-    static let merchantSurfaceHiddenInV1 = true
+    /// Merchant surfaces are open on DEBUG/TEST and closed only on the production host.
+    /// `CouponRuntimeFixture` drives the synthetic TEST host (`coupon-runtime.example`) under DEBUG,
+    /// so this only skips when built non-DEBUG or explicitly pointed at `www.chengyinhub.com`.
+    private static var isProductionHostConfiguration: Bool {
+        #if DEBUG
+        let env = ProcessInfo.processInfo.environment
+        for key in ["QUESTIFY_API_BASE_URL", "API_BASE_URL", "API_HOST"] {
+            let raw = (env[key] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            guard !raw.isEmpty else { continue }
+            let host = URL(string: raw)?.host ?? raw
+            if host == "www.chengyinhub.com" { return true }
+        }
+        return false
+        #else
+        return true
+        #endif
+    }
     override func setUp() { super.setUp(); continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
 
@@ -15,7 +30,7 @@ import XCTest
 
 
     func testChineseNormalRootLabelsAndReadOnlyConfirmation() throws {
-        try XCTSkipIf(Self.merchantSurfaceHiddenInV1, "merchant surface hidden in the v1 player shell (docs/release/receipts/uitest-14.md)")
+        try XCTSkipIf(Self.isProductionHostConfiguration, "merchant surface closed on production host configuration")
         launch("readOnly", chinese: true); openCoupons(); enterDraft()
         let confirm = app.buttons["couponManagement.confirm"]
         XCTAssertTrue(revealFixtureElement(confirm, in: app, requiresHittable: false)); XCTAssertFalse(confirm.isEnabled)
