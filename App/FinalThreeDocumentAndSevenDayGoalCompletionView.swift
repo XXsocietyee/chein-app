@@ -186,5 +186,9 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
             }
             .accessibilityIdentifier("finalGoalCompletionGate.rows.section")
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(verbatim: "三大主文档与七日上线总目标核验"))
+        .accessibilityValue(Text(verbatim: snapshot.statusHeadline))
+        .accessibilityHint(Text(verbatim: snapshot.isAllGoalsCompleted ? "100% DONE" : "INCOMPLETE"))
     }
 }

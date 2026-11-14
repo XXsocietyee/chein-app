@@ -184,6 +184,9 @@ public struct UnifiedReleaseAuditHubView: View {
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("unifiedReleaseAuditHub.root")
+        .accessibilityLabel(Text(verbatim: "Unified Release Audit Hub (Batches 1–12)"))
+        .accessibilityValue(Text(verbatim: headerBadgeText))
+        .accessibilityHint(Text(verbatim: overallSummaryText))
     }
 
     private var headerSection: some View {

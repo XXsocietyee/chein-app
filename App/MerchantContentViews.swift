@@ -25,7 +25,11 @@ import SwiftUI
                         QuestifyImageEntityCard(imageSource: nil, title: "", fallbackTitle: LocalizedStringKey("merchant.content." + query.key), fallbackSymbol: "map", minimumHeight: 180) {
                             Text("merchant.content.entryHint")
                         }
-                    }.buttonStyle(.plain).accessibilityIdentifier("merchant.content.entry." + query.key)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("merchant.content.entry." + query.key)
+                    .accessibilityLabel(Text("merchant.content." + query.key))
+                    .accessibilityHint(Text("merchant.content.entryHint"))
                 }
             }.padding()
         }.appNavigationTitle("merchant.content.title")
