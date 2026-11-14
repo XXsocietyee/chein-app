@@ -115,7 +115,8 @@ public struct RegionalConfiguration {
     /// Password login, bank withdrawal, and virtual goods stay hidden.
     public func showsRoute(_ path: String) -> Bool {
         guard ChinaReviewedRouteCapability.offersFeature(path, baseURL: apiConfiguration?.baseURL) else { return false }
-        if let capability = ChinaReviewedRouteCapability.hidingCapability(for: path) {
+        // A money route whose own Release switch is on (DEBUG/TEST off the production host) is shown; Release keeps it hidden.
+        if let capability = ChinaReviewedRouteCapability.hidingCapability(for: path), !ReleaseMoneyWriteSwitch.opens(path) {
             return isFeatureShown(capability)
         }
         return true
