@@ -39,4 +39,7 @@ Strings for the quick-publish status live in `Resources/WP06PartialPages.xcstrin
 
 ## Tip and PR
 
-Filled in the follow-up commit after push.
+- PR: https://github.com/liboyang42-cpu/chengyin-app/pull/1218
+- Implementation commit: `731dd1001909190e7c98197e189cdddb729953f6`
+- Tip: the commit on `cursor/ui-cur-wp-06-c9c1` that adds this section. Diff against `ui/main` is that commit's `git diff --stat origin/ui/main...HEAD`.
+- Scaffold pass. Design lint pass. `swiftc` did not run (binary absent). Rows still missing: none.
