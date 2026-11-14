@@ -24,7 +24,7 @@ enum CurFixtures3 {
         }
     }
 
-    @MainActor private static func frame<V: View>(_ title: String, zh: Bool, @ViewBuilder _ view: () -> V) -> AnyView {
+    @MainActor private static func frame<V: View>(_ title: String, zh: Bool, @ViewBuilder _ view: @escaping () -> V) -> AnyView {
         AnyView(Cur3Frame(title: title, zh: zh, content: view))
     }
 }
