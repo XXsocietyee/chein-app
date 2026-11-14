@@ -485,9 +485,12 @@ import SwiftUI
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }
             }
             .interactiveDismissDisabled(dirty)
-            .confirmationDialog("coopflow.invite.discardPrompt", isPresented: $discard) {
-                Button("coopflow.invite.discard", role: .destructive) { dismiss() }
-                Button("action.cancel", role: .cancel) { }
+            .sheet(isPresented: $discard) {
+                MemberCoopInviteDiscardConfirmSheet {
+                    discard = false
+                    dismiss()
+                }
+                .cyDomainSheet(detents: [.half])
             }
             .onChange(of: reader.session) { _, _ in message = ""; fee = ""; fixed = false; dismiss() }
     }

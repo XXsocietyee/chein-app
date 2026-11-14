@@ -46,7 +46,10 @@ import SwiftUI
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("merchant.publicHome.correction")
-                    .sheet(isPresented: $correcting) { MerchantCorrectionSheet(merchantID: merchantID, client: capabilities.client) }
+                    .sheet(isPresented: $correcting) {
+                        MerchantCorrectionSheet(merchantID: merchantID, client: capabilities.client)
+                            .cyDomainSheet(detents: [.half, .full])
+                    }
                 }
             }
         }

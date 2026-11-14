@@ -7,10 +7,14 @@ import UIKit
 struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.deepLinkDirtyTracker) private var dirtyTracker
     @ObservedObject var session: Session
     @StateObject private var model: MerchantOnboardingModel
     let openMerchant: (() -> Void)?
     @State private var loadedRevision: UInt64?
+    @State private var baselineDraft: MerchantOnboardingDraft?
+    @State private var showsDiscardModal = false
     @State private var photo: PhotosPickerItem?
     @State private var showBrandPhotos = false
     @State private var showBrandUploadConfirmation = false
@@ -24,6 +28,9 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     init(session: Session, coordinator: MerchantOnboardingCoordinator, openMerchant: (() -> Void)? = nil) {
         self.session = session; _model = StateObject(wrappedValue: MerchantOnboardingModel(coordinator: coordinator))
         self.openMerchant = openMerchant
+    }
+    private var hasUnsavedChanges: Bool {
+        model.isEditing && baselineDraft != nil && model.draft != baselineDraft && model.coordinator.submission != .acknowledged
     }
     var body: some View {
         ZStack {
@@ -42,11 +49,39 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             } else {
                 content
             }
+            if showsDiscardModal {
+                MemberSettingsSceneDiscardModal(
+                    onCancel: { showsDiscardModal = false },
+                    onConfirm: {
+                        showsDiscardModal = false
+                        baselineDraft = nil
+                        dirtyTracker?.isDirty = false
+                        model.leave()
+                        dismiss()
+                    }
+                )
+            }
         }
         .cyDomainScreen(.merchant)
         .cyHideTabBar(true)
         .appNavigationTitle("merchant.onboarding.title")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(hasUnsavedChanges)
+        .toolbar {
+            if hasUnsavedChanges {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showsDiscardModal = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.backward")
+                            Text(verbatim: MemberPopupCopy.text("返回", "Back", locale: locale))
+                        }
+                    }
+                    .accessibilityIdentifier("merchant.onboarding.back")
+                }
+            }
+        }
         .task(id: session.sessionRevision) {
             // Returning from a transient sheet may restart .task without a new account.
             guard loadedRevision != session.sessionRevision else { return }
@@ -55,13 +90,23 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             showBrandPhotos = false; showBrandUploadConfirmation = false
             showUploadConfirmation = false; showSubmitConfirmation = false
             showLicenseRemoval = false; licenseRemoval = nil; model.cancelLicenseRemoval()
+            showsDiscardModal = false; baselineDraft = nil
             model.reset(); await model.load()
+            if model.isEditing { baselineDraft = model.draft }
+        }
+        .onChange(of: model.isEditing) { _, editing in
+            if editing, baselineDraft == nil { baselineDraft = model.draft }
+            if !editing { baselineDraft = nil; showsDiscardModal = false }
+            dirtyTracker?.isDirty = hasUnsavedChanges
+        }
+        .onChange(of: hasUnsavedChanges) { _, dirty in
+            dirtyTracker?.isDirty = dirty
         }
         .onDisappear {
             // Presenting a child surface is not leaving the application. Keep the draft
             // and selected item through picker/sheet/confirmation transitions.
             guard !showPhotos, !showHours, !showUploadConfirmation, !showSubmitConfirmation, !showBrandPhotos, !showBrandUploadConfirmation, !showLicenseRemoval else { return }
-            loadedRevision = nil; model.leave(); photo = nil
+            loadedRevision = nil; baselineDraft = nil; dirtyTracker?.isDirty = false; model.leave(); photo = nil
         }
         .photosPicker(isPresented: $showPhotos, selection: $photo, matching: .images, preferredItemEncoding: .compatible)
         .onChange(of: photo) { _, value in

@@ -111,6 +111,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     let legalReader: any SettingsLegalReading
     let showsCloseButton: Bool
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var agreement = false
     @State private var document: SettingsLegalDocument?
     @State private var phone = ""
@@ -118,6 +119,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @State private var cancelReview = false
     @State private var cancelIntent: AccountDeregistrationIntent?
     @State private var marketingChange: ComplianceMarketingReview?
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .info
     init(coordinator: AccountComplianceCoordinator, destination: ComplianceDestination, market: RegionalMarket?, legalReader: any SettingsLegalReading, showsCloseButton: Bool = true) {
         _model = StateObject(wrappedValue: ComplianceViewModel(coordinator, isDeregistration: destination == .cancellation, isMarketing: destination == .marketing)); self.destination = destination; self.market = market; self.legalReader = legalReader
         self.showsCloseButton = showsCloseButton
@@ -207,6 +210,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             }
         }
         .onChange(of: cancelReview) { _, visible in if !visible { cancelIntent = nil } }
+        .cyToast(message: $toastMessage, tone: toastTone)
     }
     private var designModeAllowsToggles: Bool {
 #if DEBUG
@@ -379,7 +383,38 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     Text("compliance.roamConsent.agreed").accessibilityIdentifier("compliance.roamConsent.agreed")
                 }
                 Text(LocalizedStringKey("compliance.cleanup." + String(describing: model.state.roamCleanup)))
-                Button("compliance.revoke", role: .destructive) { Task { await model.coordinator.revokeRoam(explicitlyConfirmed: true) } }
+                Button("compliance.revoke", role: .destructive) {
+                    let previous = model.state.roamCleanup
+                    Task {
+                        await model.coordinator.revokeRoam(explicitlyConfirmed: true)
+                        switch RoamConsentWithdrawalFeedback.evaluate(
+                            previous: previous,
+                            current: model.state.roamCleanup,
+                            error: model.state.error
+                        ) {
+                        case .withdrawn:
+                            toastTone = .success
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "已撤回漫游定位同意",
+                                "Roam location consent withdrawn",
+                                locale: locale))
+                        case .partialLocalPending:
+                            toastTone = .warning
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "已撤回平台授权，但本机清理未完成",
+                                "Platform consent revoked; local cleanup pending",
+                                locale: locale))
+                        case .failed:
+                            toastTone = .error
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "撤回漫游定位同意失败，请稍后再试",
+                                "Failed to withdraw roam consent",
+                                locale: locale))
+                        case .idle:
+                            break
+                        }
+                    }
+                }
                     .disabled(model.state.roamCleanup == .complete).accessibilityIdentifier("compliance.revoke")
             }
         }

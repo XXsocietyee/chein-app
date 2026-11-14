@@ -53,7 +53,10 @@ extension ReviewedProductionFormMutationRoute {
             if method == "GET" { return request.httpBody == nil || request.httpBody?.isEmpty == true }
             return method == "POST"
         }
-        if relative == "api/roam/presence" || relative == "api/roam/presence-visibility" { return false }
+        if relative == "api/roam/presence" { return false }
+        if relative == RoamPresenceVisibilityContract.path {
+            return roamPresenceDisableAllowed(request, url: url, grant: grant)
+        }
         if MerchantOpsWp03Lease.admits(relative: relative, method: method, host: url.host) {
             let reading = relative == MerchantOpsWp03Catalog.claimsStatus || relative == MerchantOpsWp03Catalog.npcReview
             if reading { return method == "GET" && (request.httpBody == nil || request.httpBody?.isEmpty == true) }
@@ -251,6 +254,21 @@ extension ReviewedProductionFormMutationRoute {
         let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
         let values = items.filter { $0.name == "perspective" }.map(\.value)
         return values == ["PLAYER"]
+    }
+
+    /// Turning off nearby presence sharing never carries consentVersion or visible=true.
+    private static func roamPresenceDisableAllowed(_ request: URLRequest, url: URL, grant: ReviewedPlayerWriteGrant) -> Bool {
+        guard request.httpMethod == "POST", url.query == nil, request.httpBodyStream == nil,
+              grant.roamExtras.paths.contains("api/roam/session/records"),
+              request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("application/x-www-form-urlencoded") == true,
+              let body = request.httpBody, body.count <= 512,
+              let text = String(data: body, encoding: .utf8), !text.isEmpty else { return false }
+        var parts = URLComponents(); parts.percentEncodedQuery = text
+        guard let items = parts.queryItems else { return false }
+        let fields = Dictionary(uniqueKeysWithValues: items.compactMap { item in item.value.map { (item.name, $0) } })
+        guard fields["visible"] == "false", (fields["consentVersion"] ?? "").isEmpty,
+              Set(fields.keys).isSubset(of: ["sessionId", "visible", "consentVersion"]) else { return false }
+        return true
     }
 
     static func coversCapabilityRead(_ relative: String) -> Bool {
@@ -458,7 +476,7 @@ extension ReviewedProductionFormMutationRoute {
 enum ReviewedPlayerReadRoute {
     // player-read-paths-begin
     static let paths: Set<String> = [
-        "api/club/home", "api/club/detail", "api/club/access/me", "api/coop/list", "api/user/info", "api/project/my",
+        "api/club/home", "api/club/my", "api/club/detail", "api/club/access/me", "api/coop/list", "api/user/info", "api/project/my",
         "api/config/features", "api/medal/wall", "api/badge/wall-v2", "api/growth/leaderboard",
         "api/object-card/list", "api/registration/my-joined", "api/registration/info", "api/play/my-completed", "api/registration/quote"
     ]

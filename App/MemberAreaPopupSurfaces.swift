@@ -535,3 +535,350 @@ struct MemberComplaintSubmitConfirmSheet: View {
         )
     }
 }
+
+/// Discard confirmation when leaving a dirty settings screen (`pages/shezhi/shezhi.wxml:91`).
+struct MemberSettingsSceneDiscardModal: View {
+    @Environment(\.locale) private var locale
+    let onCancel: () -> Void
+    let onConfirm: () -> Void
+
+    var body: some View {
+        CYModal(
+            title: MemberPopupCopy.text("放弃本轮修改", "Discard current changes?", locale: locale),
+            message: MemberPopupCopy.text(
+                "离开当前页面后，未提交的修改不会保存。",
+                "Unsaved changes in this screen will be discarded if you leave.",
+                locale: locale),
+            cancelTitle: MemberPopupCopy.text("继续编辑", "Keep editing", locale: locale),
+            confirmTitle: MemberPopupCopy.text("确认放弃", "Discard", locale: locale),
+            isDestructive: true,
+            confirmIdentifier: "memberPopup.sceneDiscard.confirm",
+            cancelIdentifier: "memberPopup.sceneDiscard.cancel",
+            onCancel: onCancel,
+            onConfirm: onConfirm
+        )
+    }
+}
+
+/// Option sheet choosing among multiple owned clubs from Settings (`pages/shezhi/shezhi.js:123`).
+struct MemberSettingsClubPickerSheet: View {
+    @Environment(\.locale) private var locale
+    let clubs: [ClubRecord]
+    let onSelect: (ClubRecord) -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        CYOptionSheet(
+            title: MemberPopupCopy.text("选择要管理的俱乐部", "Select a club to manage", locale: locale),
+            items: clubs.map { club in
+                CYOptionSheetItem(
+                    id: club.id,
+                    title: club.name,
+                    subtitle: club.city,
+                    systemImage: "flag"
+                )
+            },
+            onSelect: { selectedID in
+                if let match = clubs.first(where: { $0.id == selectedID }) {
+                    onSelect(match)
+                }
+            },
+            onClose: onClose
+        )
+    }
+}
+
+/// Option sheet for AI chat records (`subpackageMember/components/cy/ai-chat-records/index.wxml:1`).
+struct MemberAIChatRecordsOptionSheet: View {
+    @Environment(\.locale) private var locale
+    let onSelect: (NPCChatRecordsOption) -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        CYOptionSheet(
+            title: MemberPopupCopy.text("AI 对话记录", "AI Chat Records", locale: locale),
+            items: [
+                CYOptionSheetItem(
+                    id: .view,
+                    title: MemberPopupCopy.text("查看对话记录", "View chat records", locale: locale),
+                    systemImage: "doc.text.magnifyingglass"
+                ),
+                CYOptionSheetItem(
+                    id: .export,
+                    title: MemberPopupCopy.text("导出对话记录", "Export chat records", locale: locale),
+                    systemImage: "square.and.arrow.up"
+                ),
+                CYOptionSheetItem(
+                    id: .clear,
+                    title: MemberPopupCopy.text("清除对话记录", "Clear chat records", locale: locale),
+                    systemImage: "trash",
+                    isDanger: true
+                ),
+            ],
+            onSelect: onSelect,
+            onClose: onClose
+        )
+    }
+}
+
+/// Full-screen / large detent DS sheet hosting merchant NPC chat plus export and clear controls
+/// (`subpackageMember/components/cy/npc-chat/index.wxml:9`).
+struct MemberMerchantNPCChatSheet<Content: View>: View {
+    @Environment(\.locale) private var locale
+    let title: String
+    let onExport: (() async -> Void)?
+    let onClear: (() async -> Void)?
+    let onClose: () -> Void
+    let content: Content
+
+    @State private var confirmsClear = false
+
+    init(
+        title: String,
+        onExport: (() async -> Void)? = nil,
+        onClear: (() async -> Void)? = nil,
+        onClose: @escaping () -> Void,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
+        self.onExport = onExport
+        self.onClear = onClear
+        self.onClose = onClose
+        self.content = content()
+    }
+
+    var body: some View {
+        CYSheetContainer(title: title, onClose: onClose) {
+            VStack(spacing: CYSpacing.sm) {
+                if onExport != nil || onClear != nil {
+                    HStack(spacing: CYSpacing.sm) {
+                        if let onExport {
+                            CYPillButton(
+                                verbatim: MemberPopupCopy.text("导出我的对话记录", "Export my records", locale: locale),
+                                style: .secondary
+                            ) {
+                                Task { await onExport() }
+                            }
+                            .accessibilityIdentifier("merchant.npcChat.export")
+                        }
+                        if onClear != nil {
+                            CYPillButton(
+                                verbatim: MemberPopupCopy.text("清除我的对话记录", "Clear my records", locale: locale),
+                                style: .tertiary
+                            ) {
+                                confirmsClear = true
+                            }
+                            .accessibilityIdentifier("merchant.npcChat.clear")
+                        }
+                    }
+                }
+                content
+            }
+        }
+        .sheet(isPresented: $confirmsClear) {
+            MemberNPCLogDeleteConfirmSheet {
+                confirmsClear = false
+                if let onClear {
+                    Task { await onClear() }
+                }
+            }
+            .cyDomainSheet(detents: [.half])
+        }
+    }
+}
+
+/// Discard confirmation when leaving cooperation invite editor with unsaved text.
+struct MemberCoopInviteDiscardConfirmSheet: View {
+    @Environment(\.locale) private var locale
+    let onConfirm: () -> Void
+
+    var body: some View {
+        CYConfirmSheet(
+            title: appLocalized("coopflow.invite.discardPrompt", locale: locale),
+            message: MemberPopupCopy.text(
+                "返回后当前填写的邀约说明将不会被保存。",
+                "Your unsaved invitation note will be lost.",
+                locale: locale),
+            confirmTitle: appLocalized("coopflow.invite.discard", locale: locale),
+            isDestructive: true,
+            confirmIdentifier: "coopflow.invite.discard.confirm",
+            onConfirm: onConfirm
+        )
+    }
+}
+
+/// DS invitation sheet (`subpackageMember/components/cy/coop-invite-sheet/index.wxml:2`)
+/// listing owned topics & invite chapters on member/merchant public home.
+struct MemberCoopInviteSheet: View {
+    @Environment(\.locale) private var locale
+    let targetName: String
+    let merchantMemberID: Int?
+    let loadTopics: @MainActor () async -> [(id: Int, title: String)]
+    let loadChapters: @MainActor (Int) async -> [TopicInviteChapter]
+    let onOpenFullCoopFlow: (() -> Void)?
+    let onClose: () -> Void
+
+    @State private var topics: [(id: Int, title: String)] = []
+    @State private var selectedTopicID: Int?
+    @State private var chapters: [TopicInviteChapter] = []
+    @State private var draft = MemberCoopInviteDraft()
+    @State private var loading = false
+    @State private var showsDiscard = false
+    @State private var toastMessage: LocalizedStringKey?
+
+    private var dirty: Bool { draft.selectedChapterID != nil || draft.normalizedNote != nil }
+
+    var body: some View {
+        CYSheetContainer(
+            title: MemberPopupCopy.text("发送邀约", "Send Invitation", locale: locale),
+            onClose: {
+                if dirty { showsDiscard = true } else { onClose() }
+            }
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                if !targetName.isEmpty {
+                    Text(verbatim: targetName)
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                }
+
+                if loading {
+                    CYSkeleton()
+                } else if topics.isEmpty {
+                    CYEmptyState(
+                        systemImage: "doc.text",
+                        LocalizedStringKey(MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale)),
+                        kind: .empty
+                    )
+                } else {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: MemberPopupCopy.text("选择项目主题", "Topic", locale: locale))
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(CYColor.textSecondary)
+                        ForEach(topics, id: \.id) { topic in
+                            Button {
+                                selectedTopicID = topic.id
+                                draft.selectedChapterID = nil
+                                Task { chapters = await loadChapters(topic.id) }
+                            } label: {
+                                HStack {
+                                    Text(verbatim: topic.title)
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                    Spacer()
+                                    if selectedTopicID == topic.id {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(CYColor.brand)
+                                    }
+                                }
+                                .padding(.vertical, CYSpacing.xs)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    if !chapters.isEmpty {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Text(verbatim: MemberPopupCopy.text("选择邀约章节", "Chapter", locale: locale))
+                                .font(CYTypography.sectionTitle)
+                                .foregroundStyle(CYColor.textSecondary)
+                            ForEach(chapters, id: \.id) { chapter in
+                                let numericID = Int(chapter.id) ?? 0
+                                Button {
+                                    draft.selectedChapterID = numericID
+                                } label: {
+                                    HStack {
+                                        Text(verbatim: chapter.name.isEmpty ? "#\(chapter.id)" : chapter.name)
+                                            .font(CYTypography.body)
+                                            .foregroundStyle(CYColor.textPrimary)
+                                        Spacer()
+                                        if draft.selectedChapterID == numericID {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(CYColor.brand)
+                                        }
+                                    }
+                                    .padding(.vertical, CYSpacing.xs)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    TextField(
+                        MemberPopupCopy.text("填写合作说明（选填）", "Optional cooperation note", locale: locale),
+                        text: $draft.note,
+                        axis: .vertical
+                    )
+                    .lineLimit(2...4)
+                    .textFieldStyle(.roundedBorder)
+
+                    HStack(spacing: CYSpacing.sm) {
+                        CYPillButton(
+                            verbatim: MemberPopupCopy.text("关闭", "Close", locale: locale),
+                            style: .secondary
+                        ) {
+                            if dirty { showsDiscard = true } else { onClose() }
+                        }
+                        CYPillButton(
+                            verbatim: MemberPopupCopy.text("发送", "Send", locale: locale),
+                            style: .primary
+                        ) {
+                            if let onOpenFullCoopFlow {
+                                onClose()
+                                onOpenFullCoopFlow()
+                            } else {
+                                toastMessage = LocalizedStringKey(
+                                    MemberPopupCopy.text(
+                                        "俱乐部直发合作邀约已按合规策略收口至合作中心",
+                                        "Cooperation invites open in the Cooperation Center",
+                                        locale: locale)
+                                )
+                            }
+                        }
+                        .disabled(!draft.isReadyToSend || merchantMemberID == nil)
+                        .accessibilityIdentifier("member.coopInvite.send")
+                    }
+                }
+            }
+        }
+        .cyToast(message: $toastMessage, tone: .info)
+        .sheet(isPresented: $showsDiscard) {
+            MemberCoopInviteDiscardConfirmSheet {
+                showsDiscard = false
+                onClose()
+            }
+            .cyDomainSheet(detents: [.half])
+        }
+        .task {
+            loading = true
+            topics = await loadTopics()
+            if let first = topics.first {
+                selectedTopicID = first.id
+                chapters = await loadChapters(first.id)
+            }
+            loading = false
+        }
+    }
+}
+
+/// Discard confirmation when closing a deep-linked scene with unsaved changes (`scene-deep-link/index.wxml:78`).
+struct MemberDeepLinkDiscardModal: View {
+    @Environment(\.locale) private var locale
+    let onCancel: () -> Void
+    let onConfirm: () -> Void
+
+    var body: some View {
+        let prompt = DeepLinkSceneDiscardPrompt()
+        CYModal(
+            title: MemberPopupCopy.text(prompt.title, "Discard current changes?", locale: locale),
+            message: MemberPopupCopy.text(prompt.message, "Unsaved edits will be lost if you close.", locale: locale),
+            cancelTitle: MemberPopupCopy.text(prompt.cancelTitle, "Keep editing", locale: locale),
+            confirmTitle: MemberPopupCopy.text(prompt.confirmTitle, "Discard & close", locale: locale),
+            isDestructive: true,
+            confirmIdentifier: "deepLink.discard.confirm",
+            cancelIdentifier: "deepLink.discard.cancel",
+            onCancel: onCancel,
+            onConfirm: onConfirm
+        )
+    }
+}

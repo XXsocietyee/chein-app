@@ -4,19 +4,64 @@ import SwiftUI
 /// (成为俱乐部主理人 / 成为商家) right after the profile row, and 退出账号 at the end.
 @MainActor struct SettingsIdentityApplicationEntries: View {
     @ObservedObject var session: AppSession
+    @Environment(\.locale) private var locale
+    @State private var loadingClubs = false
+    @State private var pushesHostStatus = false
+    @State private var selectedClubID: Int?
+    @State private var clubPickerChoices: [ClubRecord] = []
+    @State private var showsClubPicker = false
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .info
+
     var body: some View {
         if SettingsIdentityApplications.isOffered(toRole: session.account?.effectiveRole) {
             Section {
-                NavigationLink {
-                    ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: session.clubIdentity,
-                                           access: session.clubGovernanceAccess, coordinator: session.clubGovernanceCoordinator)
+                Button {
+                    guard !loadingClubs else { return }
+                    loadingClubs = true
+                    Task {
+                        let outcome = await session.loadSettingsClubEntry()
+                        loadingClubs = false
+                        switch outcome {
+                        case .applyForHost:
+                            pushesHostStatus = true
+                        case .openClub(let club):
+                            selectedClubID = club.id
+                        case .chooseClub(let clubs):
+                            clubPickerChoices = clubs
+                            showsClubPicker = true
+                        case .failed(let message):
+                            toastTone = .error
+                            toastMessage = LocalizedStringKey(message)
+                        }
+                    }
                 } label: { Label("settings.becomeClubHost", systemImage: "flag") }
+                    .disabled(loadingClubs)
                     .accessibilityIdentifier("settings.becomeClubHost")
                 NavigationLink {
                     MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
                 } label: { Label("settings.becomeMerchant", systemImage: "storefront") }
                     .accessibilityIdentifier("settings.becomeMerchant")
             }
+            .navigationDestination(isPresented: $pushesHostStatus) {
+                ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: session.clubIdentity,
+                                       access: session.clubGovernanceAccess, coordinator: session.clubGovernanceCoordinator)
+            }
+            .navigationDestination(item: $selectedClubID) { clubID in
+                ClubDetailView(id: clubID, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
+                               management: session.clubManagementContext, community: session.clubCommunityContext,
+                               publicRoster: session.clubPublicRosterReader)
+            }
+            .sheet(isPresented: $showsClubPicker) {
+                MemberSettingsClubPickerSheet(clubs: clubPickerChoices, onSelect: { club in
+                    showsClubPicker = false
+                    selectedClubID = club.id
+                }, onClose: {
+                    showsClubPicker = false
+                })
+                .cyDomainSheet(detents: [.half])
+            }
+            .cyToast(message: $toastMessage, tone: toastTone)
         }
     }
 }
