@@ -17,6 +17,38 @@
         }
       }
     },
+    "member.privacy.homeAutoLocation.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatically match your explore city using device location when opening Home."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开首页时根据设备定位自动切换探索城市。"
+          }
+        }
+      }
+    },
+    "member.privacy.homeAutoLocation.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home city auto-location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首页城市自动定位"
+          }
+        }
+      }
+    },
     "member.benefit.createGroup": {
       "localizations": {
         "en": {

@@ -11,9 +11,12 @@ import SwiftUI
     @State private var needsReturnRefresh = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader, query: submittedQuery) }
     private var request: OwnedCouponReadRequest { .list(ownerScope: key.scope, keyword: submittedQuery.isEmpty ? nil : submittedQuery) }
+    private func activePermit(foreground: Bool) -> OwnedCouponReadLifetime? {
+        viewPresentation.permit ?? viewPresentation.begin(model: model, request: request, foreground: foreground)
+    }
+
     var body: some View {
         let appearance = viewPresentation
-        let presentation = appearance.permit
         let offeredRequest = request
         return List {
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
@@ -32,7 +35,10 @@ import SwiftUI
                 .accessibilityIdentifier("accountCollection.coupons.filter")
                 if model.isLoading || model.loadedRequest != offeredRequest { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("accountCollection.loading")) }
                 else if let issue = model.issue(for: offeredRequest) {
-                    AccountCollectionIssueView(issue: issue, retry: { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) }, couponWallet: true)
+                    AccountCollectionIssueView(issue: issue, retry: {
+                        let permit = activePermit(foreground: scenePhase == .active)
+                        model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+                    }, couponWallet: true)
                 } else if let coupons = model.rows(for: offeredRequest) {
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
@@ -59,6 +65,7 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .appNavigationTitle("accountCollection.coupons.title")
+        .cyHideTabBar()
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }
         .onChange(of: searchText) { _, text in
@@ -66,7 +73,10 @@ import SwiftUI
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
+                Button {
+                    let permit = activePermit(foreground: scenePhase == .active)
+                    model.schedule(request: offeredRequest, reader: reader, presentation: permit)
+                } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("accountCollection.coupons.refresh")
             }
@@ -84,13 +94,17 @@ import SwiftUI
             guard let permit = appearance.replace(model: model, request: offeredRequest, foreground: scenePhase == .active) else { return }
             model.schedule(request: offeredRequest, reader: reader, presentation: permit)
         }
-        .refreshable { await model.refresh(request: offeredRequest, reader: reader, presentation: presentation) }
+        .refreshable {
+            let permit = activePermit(foreground: scenePhase == .active)
+            await model.refresh(request: offeredRequest, reader: reader, presentation: permit)
+        }
         .onChange(of: scenePhase) { _, phase in
             // A hidden list must still reread after the app left the foreground.
             if phase != .active { needsReturnRefresh = true }
-            model.setForeground(phase == .active, request: offeredRequest, reader: reader, presentation: presentation)
-            if phase == .active, let presentation, presentation.isActive,
-               model.presentation === presentation { needsReturnRefresh = false }
+            let permit = activePermit(foreground: phase == .active)
+            model.setForeground(phase == .active, request: offeredRequest, reader: reader, presentation: permit)
+            if phase == .active, let permit, permit.isActive,
+               model.presentation === permit { needsReturnRefresh = false }
         }
         .onDisappear {
             appearance.end(model: model)

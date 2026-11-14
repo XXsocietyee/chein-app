@@ -24,26 +24,33 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     var onOpenPost: ((SquareContentRoute) -> Void)? = nil
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var communityGate: (any SquareCommunityFeatureReading)? = nil
+    @Environment(\.playerGapService) private var playerGapService
     @State private var selectedTab: Tab = .posts
     @State private var gateModel = AccountCollectionCommunityGateModel()
-    private enum Tab: Hashable { case posts, topics }
+    private enum Tab: Hashable { case posts, topics, cityNodes }
     private var gateKey: AccountCollectionFavoritesGateKey { AccountCollectionFavoritesGateKey(reader: reader, gate: communityGate) }
     /// Nil, signed-out, unconfigured, pending, denied, and failed all stay closed.
     private var postsAllowed: Bool { gateModel.postsAllowed(reader: reader, gate: communityGate) }
+    private var showsCityNodesTab: Bool { playerGapService != nil }
     var body: some View {
         VStack(spacing: 0) {
             CreativeSquareAuthorDeleteSection(signedIn: reader.isAuthenticated, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.sm)
-            if postsAllowed {
+            if postsAllowed || showsCityNodesTab {
                 Picker("accountCollection.favorites.title", selection: $selectedTab) {
-                    Text("social.posts").tag(Tab.posts)
+                    if postsAllowed { Text("social.posts").tag(Tab.posts) }
                     Text("searchMap.kind.topic").tag(Tab.topics)
+                    if showsCityNodesTab { Text("roam.layer.places").tag(Tab.cityNodes) }
                 }
                 .pickerStyle(.segmented).padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
                 .accessibilityIdentifier("accountCollection.favorites.tabs")
             }
-            if postsAllowed && selectedTab == .posts {
+            if showsCityNodesTab && selectedTab == .cityNodes {
+                List { CityFavoriteNodesSection() }
+                    .listStyle(.insetGrouped)
+                    .cyGroupedSurface()
+            } else if postsAllowed && selectedTab == .posts {
                 AccountCollectionFavoritePostsView(reader: reader, pageSize: pageSize, onOpenPost: onOpenPost, favoriteRemoval: favoriteRemoval)
             } else {
                 AccountCollectionFavoriteTopicsView(reader: reader, onOpenTopic: onOpenTopic, pageSize: pageSize, retryGate: {
@@ -52,6 +59,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
+        .cyHideTabBar()
         .task(id: gateKey) { await gateModel.load(reader: { reader }, gate: { communityGate }) }
         .onChange(of: gateKey) { _, _ in
             gateModel.invalidateIfIdentityChanged(reader: { reader }, gate: { communityGate })

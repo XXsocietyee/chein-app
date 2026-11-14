@@ -53,6 +53,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                 .cyHeroDestination(id, in: hero)
         }
         .cyDomainPageBackground()
+        .cyHideTabBar()
         .onSubmit(of: .search) { submittedName = searchText.trimmingCharacters(in: .whitespacesAndNewlines) }
         .onChange(of: searchText) { _, value in if value.isEmpty { submittedName = "" } }
         .onChange(of: reader.clubIdentity) { _, _ in searchText = ""; submittedName = "" }
@@ -130,6 +131,7 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
                 .cyHeroDestination(id, in: hero)
         }
         .cyDomainPageBackground()
+        .cyHideTabBar()
     }
 }
 

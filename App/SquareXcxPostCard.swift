@@ -83,6 +83,13 @@ struct SquareXcxPostCard: View {
                 .accessibilityLabel(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             Label { Text(verbatim: SquareCountDisplay.text(post.commentCount)) } icon: { Image(systemName: "bubble.right") }
                 .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+            if let shareURL = PublicContentShareLink.squarePost(PublicContentShareLink.l5Post(from: post)) {
+                ShareLink(item: shareURL) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .accessibilityLabel(Text("mp.common.share"))
+                .accessibilityIdentifier("square.card.share")
+            }
         }.font(.caption.monospacedDigit()).foregroundStyle(.secondary)
     }
 }

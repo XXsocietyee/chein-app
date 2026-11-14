@@ -107,6 +107,7 @@ import SwiftUI
         // Mini-program `.detail.theme-dark`: ink ground, elevated post card and comment card (radius 16, 12pt apart).
         .cyMiniListScreen()
         .appNavigationTitle("square.detail")
+        .cyHideTabBar()
         .toolbar {
             // Mini-program `ph-more`: edit, delete and report live in one overflow menu.
             if let post, let actions, actions.identity.accountID != nil, loadedKey == key {

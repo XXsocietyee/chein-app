@@ -34,6 +34,7 @@ struct ObjectBadgeWallLayoutSelection {
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     @Namespace private var hero
     @CYAlbumSeen private var seen
     private var layoutOwner: ObjectBadgeWallLayoutOwner {
@@ -50,6 +51,7 @@ struct ObjectBadgeWallLayoutSelection {
                         get: { layoutSelection.value(for: layoutOwner) },
                         set: { layoutSelection.choose($0, rendered: owner, current: layoutOwner) }))
                 }
+                .listRowBackground(palette.bgElevated)
                 if layout == .wall {
                     let showcase = ObjectBadgeAlbumItem.showcase(wall: wall)
                     if !showcase.isEmpty {
@@ -64,6 +66,7 @@ struct ObjectBadgeWallLayoutSelection {
                         Text("profile.badges.partial")
                         if let message = wall.medalFailureMessage, !message.isEmpty { Text(verbatim: message) }
                     }
+                    .listRowBackground(palette.bgElevated)
                 }
                 if wall.isEmpty {
                     // Mini-program badge-wall empty: 还没有点亮勋章 with 去探索 when a home route is supplied.
@@ -71,11 +74,13 @@ struct ObjectBadgeWallLayoutSelection {
                                  actionTitle: onExploreHome == nil ? nil : "growthExplore.openHome",
                                  actionIdentifier: "badgeWall.empty.explore", action: onExploreHome)
                         .accessibilityIdentifier("profile.badges.emptyState")
+                        .listRowBackground(palette.bgElevated)
                 }
                 if !wall.identities.isEmpty {
                     Section("profile.badges.identities") {
                         badgeRows(ObjectBadgeWallOrdering.litFirst(wall.identities).map { .identity($0) }, accessibilityPrefix: "profile.badge.identity", layout: layout, wall: wall)
                     }
+                    .listRowBackground(palette.bgElevated)
                 }
                 if let medals = wall.medals {
                     let city = medals.filter { !$0.isAchievement }
@@ -84,15 +89,17 @@ struct ObjectBadgeWallLayoutSelection {
                         Section("profile.badges.medals") {
                             badgeRows(city.map { .medal($0) }, accessibilityPrefix: "profile.badge.medal", layout: layout, wall: wall)
                         }
+                        .listRowBackground(palette.bgElevated)
                     }
                     if !achievements.isEmpty {
                         Section("profile.badges.achievements") {
                             badgeRows(achievements.map { .medal($0) }, accessibilityPrefix: "profile.badge.achievement", layout: layout, wall: wall)
                         }
+                        .listRowBackground(palette.bgElevated)
                     }
                 }
             }
-        }.scrollContentBackground(.hidden).cyDomainPageBackground().appNavigationTitle("profile.badges.title")
+        }.scrollContentBackground(.hidden).cyDomainPageBackground().appNavigationTitle("profile.badges.title").cyHideTabBar()
             // The typed internal badge-path entry is not a player feature and is not offered here.
             .onChange(of: layoutOwner) { _, _ in layoutSelection.retire() }
     }
@@ -169,10 +176,11 @@ private struct ObjectBadgeShowcase: View {
     let items: [ObjectBadgeAlbumItem]
     let seen: Set<String>
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: ChannelCopy.text("已点亮", "Lit up", locale: locale))
-                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .accessibilityAddTraits(.isHeader)
             CYAlbumPager(items: items, height: 312, pageLabel: { page, count in
@@ -192,6 +200,7 @@ private struct ObjectBadgeShowcasePage: View {
     let isNew: Bool
     @State private var flipped = false
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     private var name: String { badge.name.isEmpty ? ChannelCopy.text("徽章", "Badge", locale: locale) : badge.name }
     private var obtained: String? { ObjectBadgePresentation.date(ObjectBadgeAlbumItem.obtainedRaw(badge)) }
     private var requirement: String {
@@ -216,7 +225,7 @@ private struct ObjectBadgeShowcasePage: View {
                     Image(systemName: "medal.fill").font(CYTypography.display).foregroundStyle(.white.opacity(0.92))
                 }
             }
-            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
             if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained, tone: .success, systemImage: "checkmark.seal.fill") }
             else { CYStatusChip("profile.badges.unlocked", tone: .success, systemImage: "checkmark.seal.fill") }
@@ -230,22 +239,22 @@ private struct ObjectBadgeShowcasePage: View {
     private var back: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: "medal.fill").foregroundStyle(CYAlbumMotion.gold).accessibilityHidden(true)
             }
             Divider()
-            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             if let obtained, !obtained.isEmpty {
                 CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
             }
             Text(verbatim: ChannelCopy.text("获得条件", "How it was earned", locale: locale))
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
             Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
-                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                .font(CYTypography.caption).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .cyAlbumCard(padding: CYSpacing.lg)
@@ -348,7 +357,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                     stage
                     VStack(spacing: CYSpacing.sm) {
                         Text(verbatim: displayName).font(CYTypography.display).multilineTextAlignment(.center)
-                            .foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            .foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: CYSpacing.sm) { statusChips }
                             VStack(spacing: CYSpacing.sm) { statusChips }
@@ -363,16 +372,16 @@ struct ObjectBadgeWallBadgeLabel: View {
             if valid, !badge.isLocked {
                 ShareLink(item: ChannelCopy.text("我在「城瘾」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on 城瘾", locale: locale)) {
                     Label { Text(verbatim: ChannelCopy.text("分享徽章", "Share badge", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
-                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textInverse)
-                        .frame(maxWidth: .infinity, minHeight: 56).background(CYColor.textPrimary, in: Capsule())
+                        .font(CYTypography.cardTitle).foregroundStyle(palette.actionPrimaryFg)
+                        .frame(maxWidth: .infinity, minHeight: 56).background(palette.actionPrimaryBg, in: Capsule())
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
-                .background(CYColor.bgPage.opacity(0.96))
+                .background(palette.bgPage.opacity(0.96))
                 .accessibilityIdentifier("objects.badge.share")
             }
         }
-        .background(CYColor.bgPage.ignoresSafeArea())
-        .appNavigationTitle("profile.badges.detail").privacySensitive()
+        .background(palette.bgPage.ignoresSafeArea())
+        .appNavigationTitle("profile.badges.detail").privacySensitive().cyHideTabBar()
         .sensoryFeedback(.success, trigger: celebrate)
         .cyCelebrations(celebrations)
         .onAppear { arrive() }
@@ -426,25 +435,25 @@ struct ObjectBadgeWallBadgeLabel: View {
     private var stageBack: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: badge.isLocked ? "lock.fill" : "medal.fill")
-                    .foregroundStyle(badge.isLocked ? CYColor.textTertiary : CYAlbumMotion.gold).accessibilityHidden(true)
+                    .foregroundStyle(badge.isLocked ? palette.textTertiary : CYAlbumMotion.gold).accessibilityHidden(true)
             }
             Divider()
-            Text(verbatim: displayName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: displayName).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             if let obtained, !obtained.isEmpty {
                 CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
             }
             CYFactRow(label: Text(verbatim: ChannelCopy.text("状态", "Status", locale: locale)),
                       value: ChannelCopy.text(badge.isLocked ? "未解锁" : "已点亮", badge.isLocked ? "Locked" : "Unlocked", locale: locale))
             Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
             Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
-                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                .font(CYTypography.caption).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity, minHeight: 212, alignment: .topLeading)
         .cyAlbumCard(padding: CYSpacing.lg)
@@ -457,14 +466,14 @@ struct ObjectBadgeWallBadgeLabel: View {
     private var requirementCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
-                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
             Text(verbatim: requirement.isEmpty ? "—" : requirement)
-                .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             if case .identity(let value) = badge, !value.statement.isEmpty, value.statement != requirement {
-                Text(verbatim: value.statement).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: value.statement).font(CYTypography.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.lg)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
     }
     private func collectionCard(_ summary: ObjectBadgeWallSummary) -> some View {
         CYInfoCard(title: Text(verbatim: ChannelCopy.text("我的收藏", "My collection", locale: locale)), symbol: "square.grid.2x2.fill") {
@@ -480,6 +489,7 @@ struct ObjectBadgeWallBadgeLabel: View {
     let currentScope: () -> UUID
     var media: (any ObjectCardImageLoading)? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.cyPalette) private var palette
     @State private var turntable: ObjectBadgeTurntable?
     var body: some View {
         let table = turntable ?? ObjectBadgeTurntable(style: parameters.style, reducedMotion: reduceMotion)
@@ -514,7 +524,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                     }
                     .accessibilityIdentifier("objects.badge.turntable")
                 if let hint = table.hintKey {
-                    Text(LocalizedStringKey(hint)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(LocalizedStringKey(hint)).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("objects.badge.turntableHint")
                 }
                 if !parameters.subtitle.isEmpty {
@@ -532,6 +542,7 @@ struct ObjectBadgeWallBadgeLabel: View {
         .themeDomain(.player)
         .tint(CYDomainPalette(.player).brand)
         .appNavigationTitle("profile.badges.detail")
+        .cyHideTabBar()
         .privacySensitive()
     }
 }

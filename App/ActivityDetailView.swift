@@ -73,6 +73,7 @@ struct ActivityDetailView: View {
         }
         .appNavigationTitle("activity.details")
         .cyDomainPageBackground()
+        .cyHideTabBar()
     }
 }
 
@@ -155,6 +156,7 @@ struct ActivityDetailView: View {
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .toolbar {
             if let access, case .allowed(let detail) = access {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -383,6 +385,13 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
+            if let topicID = detail.summary.linkedTopicID, let topicDestination {
+                Section {
+                    NavigationLink { topicDestination(topicID) } label: {
+                        CYListRow("activity.viewTopic", trailing: .none) { CYRowIcon(systemImage: "map") }
+                    }.accessibilityIdentifier("activity.openTopic")
+                }
+            }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail))
             Section {
                 if detail.tickets.isEmpty {
@@ -458,16 +467,9 @@ struct ActivityDetailView: View {
             if registrationEnabled { registrationAction(detail) }
         }
     }
-    /// The sections that used to follow the tickets, in their original order and with their original gates.
+    /// Secondary sections behind the "More info" disclosure.
     @ViewBuilder private func moreInfoSections(_ detail: ActivityDetail) -> some View {
         // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
-        if let topicID = detail.summary.linkedTopicID, let topicDestination {
-            Section {
-                NavigationLink { topicDestination(topicID) } label: {
-                    CYListRow("activity.viewTopic", trailing: .none) { CYRowIcon(systemImage: "map") }
-                }.accessibilityIdentifier("activity.openTopic")
-            }
-        }
         if let text=ActivityPresentation.nonempty(detail.summary.description) {
             Section("activity.about") {
                 Text(verbatim:text)

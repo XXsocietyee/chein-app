@@ -68,6 +68,7 @@ import SwiftUI
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyHideTabBar()
         .refreshable { await refresh() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

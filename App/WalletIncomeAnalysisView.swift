@@ -43,6 +43,7 @@ import SwiftUI
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
         .privacySensitive()

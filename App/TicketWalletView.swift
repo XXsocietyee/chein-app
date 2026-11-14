@@ -40,13 +40,13 @@ import SwiftUI
                     // Source failure title 票夹没能打开 precedes the specific reason.
                     Text("ticketWallet.parity.error.title").font(.headline)
                         .accessibilityIdentifier("ticketWallet.errorTitle")
-                    TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
+                    TicketWalletIssueView(issue: issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
                 } else if let snapshot = model.value(owner: key) {
                     if let partial = snapshot.partialFailure {
                         Section {
                             Text(LocalizedStringKey(partial.lane == .route ? "ticketWallet.partial.route" : "ticketWallet.partial.activity"))
                                 .font(.headline).accessibilityIdentifier("ticketWallet.partialFailure")
-                            TicketWalletIssueView(issue: partial.issue, retry: { schedule(offeredPresentation) })
+                            TicketWalletIssueView(issue: partial.issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
                         }
                     }
                     if snapshot.tickets.isEmpty {
@@ -135,6 +135,7 @@ import SwiftUI
             .cyDomainPageBackground()
             .listSectionSpacing(20)
             .appNavigationTitle("ticketWallet.title")
+            .cyHideTabBar()
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
                 if completionReader != nil, reader.isAuthenticated, model.value(owner: key)?.tickets.isEmpty == false {
@@ -147,7 +148,7 @@ import SwiftUI
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
+                    Button { schedule(model.presentation ?? model.beginPresentation(owner: key)) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
                         .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                         .accessibilityIdentifier("ticketWallet.refresh")
                 }
@@ -166,8 +167,9 @@ import SwiftUI
                 }
             }
             .refreshable {
-                if let offeredPresentation, model.accepts(offeredPresentation, currentOwner: key) { retirePendingOrder() }
-                await model.refresh(presentation: offeredPresentation, currentOwner: key) { await load(presentation: $0) }
+                let current = model.presentation ?? model.beginPresentation(owner: key)
+                if let current, model.accepts(current, currentOwner: key) { retirePendingOrder() }
+                await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
             }
             .onAppear { isVisible = true; refreshOnActive = false; pendingOrderEntry.appear(); replacePresentation() }
             .onDisappear { isVisible = false; model.endPresentation(); pendingOrderEntry.disappear() }

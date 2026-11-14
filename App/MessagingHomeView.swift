@@ -20,6 +20,7 @@ struct MessagingHomeView: View {
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
         }.appNavigationTitle("messaging.title")
         .themeDomain(.player)
+        .cyHideTabBar()
     }
 }
 

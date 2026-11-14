@@ -176,7 +176,7 @@ private struct FixtureThemeDomainModifier: ViewModifier {
         return arguments.joined(separator: " ").lowercased().contains("merchant") ? .merchant : .player
     }
     func body(content: Content) -> some View {
-        if let domain { content.themeDomain(domain) } else { content }
+        if let domain { content.themeDomain(domain).cyScreenStyle() } else { content }
     }
 }
 #endif
@@ -269,12 +269,27 @@ struct SessionRootView: View {
     @State private var showsAreaPicker=false
     @State private var presentation = RootPresentationCoordinator()
     @State private var reachability = NetworkReachability()
+    @State private var homeTabBarVisibility = CYTabBarVisibility()
+    @State private var roamTabBarVisibility = CYTabBarVisibility()
+    @State private var clubTabBarVisibility = CYTabBarVisibility()
+    @State private var mineTabBarVisibility = CYTabBarVisibility()
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
 
+    private var selectedTabBarHidden: Bool {
+        switch selectedTab {
+        case .home: return homeTabBarVisibility.isHidden
+        case .roam: return roamTabBarVisibility.isHidden
+        case .club: return clubTabBarVisibility.isHidden
+        case .mine: return mineTabBarVisibility.isHidden
+        case .publish: return false
+        }
+    }
+
     @ViewBuilder private var homeTab: some View {
                     SessionHomeFeedView(onSignIn:{ selectedTab = .mine },onStartRoam:{ selectedTab = .roam }).cyFloatingTabBarClearance().tabItem { rootTabLabel(.home).accessibilityIdentifier("rootTabBar.tab.player.0") }.tag(RootTab.home)
+                        .environment(\.cyTabBarVisibility, homeTabBarVisibility)
     }
 
     @ViewBuilder private var roamTab: some View {
@@ -299,12 +314,14 @@ struct SessionRootView: View {
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
                         .cyFloatingTabBarClearance().tabItem { rootTabLabel(.roam).accessibilityIdentifier("rootTabBar.tab.player.1") }.tag(RootTab.roam)
+                        .environment(\.cyTabBarVisibility, roamTabBarVisibility)
     }
 
     @ViewBuilder private var clubTab: some View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .cyFloatingTabBarClearance().tabItem { rootTabLabel(.club).accessibilityIdentifier("rootTabBar.tab.player.2") }.tag(RootTab.club)
+                        .environment(\.cyTabBarVisibility, clubTabBarVisibility)
     }
 
     @ViewBuilder private var mineTab: some View {
@@ -312,6 +329,7 @@ struct SessionRootView: View {
                         if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home },presentsTicketPass:$deepLinkTicketPass).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.3") }.tag(RootTab.mine)
+                        .environment(\.cyTabBarVisibility, mineTabBarVisibility)
     }
 
     @ViewBuilder private var playerTabs: some View {
@@ -325,7 +343,7 @@ struct SessionRootView: View {
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.player.0", "rootTabBar.tab.player.1", "rootTabBar.tab.player.2", "rootTabBar.tab.player.3"])
-                .overlay { CYNightTabBar(selection: selectedTab) }
+                .overlay { CYNightTabBar(selection: selectedTab, isHidden: selectedTabBarHidden) }
                 .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
                 .cyHaptic(.selection, trigger: selectedTab)
                 .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } } // Publish is no player tab (W1-1)

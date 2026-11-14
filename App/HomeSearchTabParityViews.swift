@@ -8,6 +8,7 @@ struct HomeHeroHeaderSectionView: View {
     var nickname: String? = nil
     var selectedCity: String? = nil
     var isNationwide: Bool = false
+    var isMerchantViewer: Bool = false
     var avatarSource: String? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
@@ -79,7 +80,8 @@ struct HomeHeroHeaderSectionView: View {
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-                                Label("homeFeed.player", systemImage: "checkmark.seal.fill")
+                                Label(isMerchantViewer ? "account.role.merchant" : "homeFeed.player",
+                                      systemImage: isMerchantViewer ? "storefront.fill" : "checkmark.seal.fill")
                                     .foregroundStyle(QuestifyPalette.accent)
                             }
                             if hasCity {

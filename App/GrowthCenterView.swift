@@ -16,6 +16,7 @@ extension EnvironmentValues {
     let reader: any GrowthCenterReading
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     @State private var badgePresentationID = UUID()
     @State private var badgeVisible = false
     @State private var badgeExploreConsumed = false
@@ -59,6 +60,7 @@ extension EnvironmentValues {
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.title")
+        .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: reload) { Label("growth.refresh", systemImage: "arrow.clockwise") }
@@ -76,7 +78,7 @@ extension EnvironmentValues {
     @ViewBuilder private func score(_ overview: GrowthCenterOverview) -> some View {
         // B68 gc-score-card: avatar + name, the points on the right, then the 总积分榜 row.
         Section { scoreRows(overview) }
-            .listRowBackground(CYNight.ink2)
+            .listRowBackground(palette.bgElevated)
     }
     @ViewBuilder private func scoreRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
@@ -84,14 +86,15 @@ extension EnvironmentValues {
                 HStack(spacing: CYSpacing.md) {
                     GrowthProfileDisc(name: board.me.nickname)
                     if let name = GrowthCenterFormatting.nonempty(board.me.nickname) {
-                        Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                        Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary).lineLimit(1)
                     }
                     Spacer(minLength: CYSpacing.sm)
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                         GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
+                            .foregroundStyle(palette.textPrimary)
                             .lineLimit(1).minimumScaleFactor(0.5)
                         Group { if board.metric == .exp { Text("u10.growth.unit.exp") } else { Text("growth.unit.point") } }
-                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
                     }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("growth.currentPoints"))
@@ -118,7 +121,7 @@ extension EnvironmentValues {
             Group {
                 if let rank { Text("u10.growth.boardRank \(rank)") } else { Text("u10.growth.board") }
             }
-            .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+            .font(CYTypography.body).foregroundStyle(palette.textPrimary)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("growth.myRank"))
             .accessibilityValue(rankValue(rank))
@@ -130,7 +133,7 @@ extension EnvironmentValues {
                         Text("growth.board.link")
                         Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
                     }
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 .frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
             }
@@ -138,7 +141,7 @@ extension EnvironmentValues {
         .frame(minHeight: 44)
     }
     private func growthHeader(_ key: LocalizedStringKey) -> some View {
-        Text(key).font(.title3.weight(.heavy)).textCase(nil).foregroundStyle(Color.primary).padding(.top, 8)
+        Text(key).font(.title3.weight(.heavy)).textCase(nil).foregroundStyle(palette.textPrimary).padding(.top, 8)
     }
     @ViewBuilder private func footprint(_ overview: GrowthCenterOverview) -> some View {
         // 我的足迹 in the mini-program order: 探索值, 徽章 (枚), 完成主题 (个), 累计距离 (km); level sits in the header.
@@ -166,7 +169,7 @@ extension EnvironmentValues {
                 }
             }
         }
-        .listRowBackground(CYNight.ink2)
+        .listRowBackground(palette.bgElevated)
     }
     @ViewBuilder private func growthCount(_ value: Int?, unit: LocalizedStringKey) -> some View {
         if let value = GrowthCenterFormatting.nonnegative(value) {
@@ -178,10 +181,10 @@ extension EnvironmentValues {
             HStack {
                 growthHeader("growth.badges")
                 Spacer(minLength: 8)
-                if let count = overview.center.value?.badges.count { Text(count, format: .number).monospacedDigit() }
+                if let count = overview.center.value?.badges.count { Text(count, format: .number).monospacedDigit().foregroundStyle(palette.textSecondary) }
             }
         }
-        .listRowBackground(CYNight.ink2)
+        .listRowBackground(palette.bgElevated)
     }
     @ViewBuilder private func badgeRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
@@ -189,7 +192,7 @@ extension EnvironmentValues {
             else if let center = overview.center.value {
                 if center.badges.isEmpty {
                     Label { Text("growth.badges.empty") } icon: { Image(systemName: "star").accessibilityHidden(true) }
-                        .foregroundStyle(.secondary).accessibilityIdentifier("growth.badges.empty")
+                        .foregroundStyle(palette.textSecondary).accessibilityIdentifier("growth.badges.empty")
                     if let onExploreHome {
                         let selection = GrowthBadgeExploreSelection(readerID: ObjectIdentifier(reader), key: key,
                             center: center, presentationID: badgePresentationID)
@@ -248,13 +251,14 @@ extension EnvironmentValues {
 
 /// Initial disc for the score card (the mini-program avatar slot; remote avatars are not loaded on this screen).
 struct GrowthProfileDisc: View {
+    @Environment(\.cyPalette) private var palette
     let name: String?
     var body: some View {
         let initial = GrowthCenterFormatting.nonempty(name).map { String($0.prefix(1)) }
         ZStack {
-            Circle().fill(CYNight.ink1)
-            if let initial { Text(verbatim: initial).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
-            else { Image(systemName: "person.fill").font(.title3).foregroundStyle(CYColor.textTertiary) }
+            Circle().fill(palette.bgRaised)
+            if let initial { Text(verbatim: initial).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary) }
+            else { Image(systemName: "person.fill").font(.title3).foregroundStyle(palette.textTertiary) }
         }
         .frame(width: 48, height: 48)
         .overlay(Circle().strokeBorder(CYNight.lantern.opacity(0.6), lineWidth: 2))
@@ -264,6 +268,7 @@ struct GrowthProfileDisc: View {
 
 /// gc-badge-row: initial tile, name, 查看获得时刻 (or 获得于 … / 获得时间未记录 when open), 查看 / 收起.
 struct GrowthBadgeMomentRow: View {
+    @Environment(\.cyPalette) private var palette
     let badge: GrowthCenterBadge
     let expanded: Bool
     let toggle: () -> Void
@@ -271,23 +276,23 @@ struct GrowthBadgeMomentRow: View {
         Button(action: toggle) {
             HStack(spacing: CYSpacing.md) {
                 Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
-                    .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
                     .frame(width: 40, height: 40)
-                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")
-                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
                     Group {
                         if !expanded { Text("u10.growth.badge.hint") }
                         else if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(moment)") }
                         else { Text("u10.growth.badge.noTime") }
                     }
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 Spacer(minLength: CYSpacing.sm)
                 Group { if expanded { Text("u10.template.cap.collapse") } else { Text("u10.growth.badge.view") } }
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
             }
             .frame(minHeight: 44)
             .contentShape(Rectangle())

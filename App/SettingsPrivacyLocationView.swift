@@ -29,6 +29,7 @@ import SwiftUI
     var modelPreview: OwnMediaModelPreviewAccess? = nil
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
     @State private var showsRoam = false
+    @State private var homeAutoLocationEnabled = !HomeCityLocationDeclineStore.read()
 
     var body: some View {
         Form {
@@ -69,6 +70,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyHideTabBar()
         .sheet(isPresented: $showsRoam) {
             if let compliance {
                 NavigationStack {
@@ -146,6 +148,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyHideTabBar()
         .privacySensitive()
         .toolbar {
             if controller.phase == .ready || controller.phase == .failed || controller.phase == .denied {

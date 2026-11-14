@@ -54,6 +54,7 @@ struct TopicDetailView: View {
             }
         }
         .environment(\.ugcSafetySubjectID, detail?.id ?? id)
+        .cyHideTabBar()
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
@@ -273,7 +274,9 @@ struct TopicDetailView: View {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { showsPricing = true },
-                              openTickets: ticketWalletDestination == nil ? nil : { showingTickets = true })
+                              openTickets: ticketWalletDestination == nil ? nil : { showingTickets = true },
+                              shareURL: PublicContentShareLink.topic(id: value.id),
+                              shareTitle: value.name)
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
@@ -363,7 +366,7 @@ struct TopicChapterView: View {
                     }
                 }
             }
-        }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)
+        }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline).cyHideTabBar()
     }
 }
 

@@ -95,10 +95,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                             .fixedSize(horizontal: false, vertical: true)
                         let create = ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
                             .buttonStyle(.questifyPrimary)
+                            .controlSize(.regular)
                         if typeSize.isAccessibilitySize {
                             VStack(alignment: .leading, spacing: CYSpacing.sm) { prompt; create }
                         } else {
-                            HStack(spacing: CYSpacing.md) { prompt; Spacer(minLength: CYSpacing.sm); create.fixedSize() }
+                            HStack(spacing: CYSpacing.md) { prompt; Spacer(minLength: CYSpacing.sm); create.fixedSize().layoutPriority(1) }
                         }
                     }
                 }

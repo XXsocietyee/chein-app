@@ -62,6 +62,7 @@ import SwiftUI
             }
         }
         .cyHeroScreen()
+        .cyHideTabBar()
         .accessibilityIdentifier("club.publicRoster.root")
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("club.refresh", systemImage: "arrow.clockwise") { Task { await load() } }.disabled(loading) } }
         .refreshable { await load() }

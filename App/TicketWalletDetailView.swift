@@ -109,6 +109,7 @@ import SwiftUI
         .listSectionSpacing(20)
         .appNavigationTitle("ticketWallet.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }

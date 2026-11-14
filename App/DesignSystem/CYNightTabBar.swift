@@ -7,6 +7,7 @@ import SwiftUI
 struct CYNightTabBar: View {
     let selection: RootTab
     var tabs: [RootTab] = RootTab.playerTabs
+    var isHidden: Bool = false
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     @QuestifyReduceMotion private var rm
@@ -19,9 +20,10 @@ struct CYNightTabBar: View {
     private let barHeight: CGFloat = 44
     private let pillHeight: CGFloat = 34
 
-    init(selection: RootTab, tabs: [RootTab] = RootTab.playerTabs) {
+    init(selection: RootTab, tabs: [RootTab] = RootTab.playerTabs, isHidden: Bool = false) {
         self.selection = selection
         self.tabs = tabs
+        self.isHidden = isHidden
         // While `landed` is nil, the capsule follows `selection` and the first change snaps. Seed it so every change stretches, then springs.
         _landed = State(initialValue: .some(selection))
     }
@@ -30,8 +32,10 @@ struct CYNightTabBar: View {
         // The outer reader keeps the real bottom safe area; the inner one ignores it to span the screen. Reading the inset from
         // the ignoring reader gives 0 and drops the pill below the floating bar (outside it, under the icons).
         GeometryReader { outer in
-            let bottomInset = outer.safeAreaInsets.bottom
-            pillLayer(bottomInset: bottomInset).ignoresSafeArea()
+            if !isHidden {
+                let bottomInset = outer.safeAreaInsets.bottom
+                pillLayer(bottomInset: bottomInset).ignoresSafeArea()
+            }
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -94,6 +98,32 @@ struct CYNightTabBar: View {
     }
 }
 
+@MainActor @Observable
+final class CYTabBarVisibility {
+    private var hiddenTokens: Set<UUID> = []
+
+    var isHidden: Bool { !hiddenTokens.isEmpty }
+
+    func hide(_ token: UUID) {
+        hiddenTokens.insert(token)
+    }
+
+    func show(_ token: UUID) {
+        hiddenTokens.remove(token)
+    }
+}
+
+private struct CYTabBarVisibilityKey: EnvironmentKey {
+    static let defaultValue: CYTabBarVisibility? = nil
+}
+
+extension EnvironmentValues {
+    var cyTabBarVisibility: CYTabBarVisibility? {
+        get { self[CYTabBarVisibilityKey.self] }
+        set { self[CYTabBarVisibilityKey.self] = newValue }
+    }
+}
+
 extension View {
     /// E2E-20261113b N3: on iOS 26 the floating tab bar does not shrink the tab content's safe area, so bottom rows and
     /// pinned actions (play panel stations, the activity "More info" row, club entries) ended up under it. Each tab root
@@ -101,19 +131,39 @@ extension View {
     func cyFloatingTabBarClearance() -> some View {
         modifier(CYFloatingTabBarClearance())
     }
+
+    /// Hides both the system tab bar and the floating pill overlay while a secondary screen is active.
+    func cyHideTabBar() -> some View {
+        modifier(CYHideTabBarModifier())
+    }
+}
+
+private struct CYHideTabBarModifier: ViewModifier {
+    @Environment(\.cyTabBarVisibility) private var visibility
+    @State private var token = UUID()
+
+    func body(content: Content) -> some View {
+        content
+            .toolbar(.hidden, for: .tabBar)
+            .onAppear { visibility?.hide(token) }
+            .onDisappear { visibility?.show(token) }
+    }
 }
 
 private struct CYFloatingTabBarClearance: ViewModifier {
+    @Environment(\.cyTabBarVisibility) private var visibility
+
     func body(content: Content) -> some View {
+        let clearance = (visibility?.isHidden == true) ? 0 : CYFloatingTabBarClearanceKey.height
         if #available(iOS 26, *) {
-            content.safeAreaPadding(.bottom, CYFloatingTabBarClearanceKey.height).environment(\.cyTabBarClearance, CYFloatingTabBarClearanceKey.height)
+            content.safeAreaPadding(.bottom, clearance).environment(\.cyTabBarClearance, clearance)
         } else { content }
     }
 }
 
 /// Height a self-sizing bottom panel (the map scaffold) reserves for the floating tab bar inside a tab. Zero outside tabs.
 struct CYFloatingTabBarClearanceKey: EnvironmentKey {
-    static let height: CGFloat = 56
+    static let height: CGFloat = 72
     static let defaultValue: CGFloat = 0
 }
 

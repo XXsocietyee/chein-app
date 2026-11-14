@@ -71,6 +71,7 @@ struct ProfileOrdersView: View {
             }
         }
         .appNavigationTitle("profile.orders.title")
+        .cyHideTabBar()
         .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in
             filterSelection.retire(); orderEntry = nil; lookedUpOrderID = nil
@@ -349,6 +350,7 @@ struct ProfileOrderDetailView: View {
         }
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
+        .cyHideTabBar()
         .background {
             if orderLocator != nil {
                 Color.clear.frame(width: 0, height: 0)
