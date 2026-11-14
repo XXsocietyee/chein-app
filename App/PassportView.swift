@@ -47,11 +47,23 @@ struct PassportBadge: Identifiable, Equatable {
     var onOpenStamps: (() -> Void)? = nil
     var onOpenBadges: (() -> Void)? = nil
     @State private var stampCount: Int?
+    @State private var stampPhase: StampPhase = .loading
     @State private var badges: [PassportBadge]?
+    private enum StampPhase { case loading, ready, failed, offline }
     private struct LoadKey: Equatable { var stamps: ObjectIdentifier; var growth: ObjectIdentifier?; var refresh: Int }
 
     var body: some View {
         Section {
+            switch stampPhase {
+            case .loading:
+                CYLoadingStateView(rows: 1).accessibilityIdentifier("passport.stamps.loading")
+            case .offline:
+                CYOfflineBanner { load() }.accessibilityIdentifier("passport.stamps.offline")
+            case .failed:
+                CYInlineError("roam.experience.readFailed") { load() }.accessibilityIdentifier("passport.stamps.error")
+            case .ready:
+                EmptyView()
+            }
             PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
         }
         // No white slab: the section rows are clear and each block below draws its own dark glass card.
@@ -71,30 +83,26 @@ struct PassportBadge: Identifiable, Equatable {
     }
 
     private func load() {
-        // Local saved-record read only; failure leaves the count unknown (em dash).
-        stampCount = (try? RoamPassportHome(records: try reader.history()))?.stamps
-    }
-}
-
-/// Dark glass card used by the Passport blocks. Palette colours (not system-dynamic ones) so the card stays dark
-/// in the player domain; Reduce Transparency swaps the material for the solid elevated fill.
-private struct PassportGlassCard: ViewModifier {
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
-        content
-            .padding(CYSpacing.lg)
-            .background {
-                if reduceTransparency { shape.fill(palette.bgElevated) }
-                else { shape.fill(.ultraThinMaterial).overlay(shape.fill(palette.bgGlass.opacity(0.55))) }
-            }
-            .overlay(shape.strokeBorder(palette.borderSubtle, lineWidth: 1))
+        // Local saved-record read only. A thrown read stays an em dash, and says whether it was offline.
+        do {
+            let records = try reader.history()
+            stampCount = try RoamPassportHome(records: records).stamps
+            stampPhase = .ready
+        } catch is CancellationError {
+            return
+        } catch is URLError {
+            stampCount = nil
+            stampPhase = .offline
+        } catch {
+            stampCount = nil
+            stampPhase = .failed
+        }
     }
 }
 
 private extension View {
-    func passportGlassCard() -> some View { modifier(PassportGlassCard()) }
+    /// Borderless elevated card. Depth comes from the surface step, not a stroke.
+    func passportFlatCard() -> some View { cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg) }
 }
 
 /// Large rolling "3 of 12" header. Unknown (nil) is an em dash, never 0. Reduce Motion: final number at once.
@@ -118,7 +126,7 @@ private struct PassportRollingCount: View {
                 Text(verbatim: "—").font(.system(.largeTitle, design: .rounded).weight(.bold)).foregroundStyle(palette.textTertiary)
             }
         }
-        .minimumScaleFactor(0.6).lineLimit(1)
+        .fixedSize(horizontal: false, vertical: true)
         .onAppear { reveal() }
         .onChange(of: value) { _, _ in reveal() }
     }
@@ -143,7 +151,6 @@ private struct PassportRollingCount: View {
     var onOpenBadges: (() -> Void)? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.cyPalette) private var palette
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.cyOpenPassportStamp) private var openStamp
     /// Glass circle scales with the glyph (Dynamic Type) so the icon never outgrows it.
     @ScaledMetric(relativeTo: .title3) private var actionCircle: CGFloat = 56
@@ -151,8 +158,8 @@ private struct PassportRollingCount: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             actions
-            stamps.passportGlassCard()
-            if badges?.isEmpty != true { badgeRail.passportGlassCard() }
+            stamps.passportFlatCard()
+            if badges?.isEmpty != true { badgeRail.passportFlatCard() }
         }
     }
 
@@ -174,11 +181,7 @@ private struct PassportRollingCount: View {
                     .dynamicTypeSize(...DynamicTypeSize.accessibility1) // glyph stops growing before three circles stop fitting in a row
                     .foregroundStyle(palette.textPrimary)
                     .frame(width: min(actionCircle, 84), height: min(actionCircle, 84))
-                    .background {
-                        if reduceTransparency { Circle().fill(palette.bgElevated) }
-                        else { Circle().fill(.ultraThinMaterial).overlay(Circle().fill(palette.bgGlass.opacity(0.55))) }
-                    }
-                    .overlay(Circle().strokeBorder(LinearGradient(colors: [palette.borderStrong, palette.borderSubtle], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
+                    .background(Circle().fill(palette.bgElevated))
                     .accessibilityHidden(true)
                 Text(title)
                     .font(CYTypography.meta)

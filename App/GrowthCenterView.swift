@@ -16,6 +16,7 @@ extension EnvironmentValues {
     let reader: any GrowthCenterReading
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     @State private var badgePresentationID = UUID()
     @State private var badgeVisible = false
     @State private var badgeExploreConsumed = false
@@ -59,6 +60,7 @@ extension EnvironmentValues {
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.title")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: reload) { Label("growth.refresh", systemImage: "arrow.clockwise") }
@@ -76,7 +78,6 @@ extension EnvironmentValues {
     @ViewBuilder private func score(_ overview: GrowthCenterOverview) -> some View {
         // B68 gc-score-card: avatar + name, the points on the right, then the 总积分榜 row.
         Section { scoreRows(overview) }
-            .listRowBackground(CYNight.ink2)
     }
     @ViewBuilder private func scoreRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
@@ -84,12 +85,13 @@ extension EnvironmentValues {
                 HStack(spacing: CYSpacing.md) {
                     GrowthProfileDisc(name: board.me.nickname)
                     if let name = GrowthCenterFormatting.nonempty(board.me.nickname) {
-                        Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                        Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: CYSpacing.sm)
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                         GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
-                            .lineLimit(1).minimumScaleFactor(0.5)
+                            .fixedSize(horizontal: false, vertical: true)
                         Group { if board.metric == .exp { Text("u10.growth.unit.exp") } else { Text("growth.unit.point") } }
                             .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     }
@@ -166,7 +168,6 @@ extension EnvironmentValues {
                 }
             }
         }
-        .listRowBackground(CYNight.ink2)
     }
     @ViewBuilder private func growthCount(_ value: Int?, unit: LocalizedStringKey) -> some View {
         if let value = GrowthCenterFormatting.nonnegative(value) {
@@ -181,15 +182,13 @@ extension EnvironmentValues {
                 if let count = overview.center.value?.badges.count { Text(count, format: .number).monospacedDigit() }
             }
         }
-        .listRowBackground(CYNight.ink2)
     }
     @ViewBuilder private func badgeRows(_ overview: GrowthCenterOverview) -> some View {
         Group {
             if let issue = overview.center.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
             else if let center = overview.center.value {
                 if center.badges.isEmpty {
-                    Label { Text("growth.badges.empty") } icon: { Image(systemName: "star").accessibilityHidden(true) }
-                        .foregroundStyle(.secondary).accessibilityIdentifier("growth.badges.empty")
+                    CYEmptyState(systemImage: "star", "growth.badges.empty", messageIdentifier: "growth.badges.empty")
                     if let onExploreHome {
                         let selection = GrowthBadgeExploreSelection(readerID: ObjectIdentifier(reader), key: key,
                             center: center, presentationID: badgePresentationID)
@@ -249,15 +248,21 @@ extension EnvironmentValues {
 /// Initial disc for the score card (the mini-program avatar slot; remote avatars are not loaded on this screen).
 struct GrowthProfileDisc: View {
     let name: String?
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         let initial = GrowthCenterFormatting.nonempty(name).map { String($0.prefix(1)) }
         ZStack {
-            Circle().fill(CYNight.ink1)
-            if let initial { Text(verbatim: initial).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
-            else { Image(systemName: "person.fill").font(.title3).foregroundStyle(CYColor.textTertiary) }
+            Circle().fill(palette.bgRaised)
+            if let initial { Text(verbatim: initial).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary) }
+            else { Image(systemName: "person.fill").font(.title3).foregroundStyle(palette.textTertiary) }
         }
         .frame(width: 48, height: 48)
-        .overlay(Circle().strokeBorder(CYNight.lantern.opacity(0.6), lineWidth: 2))
+        .overlay {
+            if themeDomain == .player {
+                Circle().strokeBorder(palette.avatarRing, lineWidth: 2)
+            }
+        }
         .accessibilityHidden(true)
     }
 }
@@ -267,13 +272,15 @@ struct GrowthBadgeMomentRow: View {
     let badge: GrowthCenterBadge
     let expanded: Bool
     let toggle: () -> Void
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         Button(action: toggle) {
             HStack(spacing: CYSpacing.md) {
                 Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
-                    .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minWidth: 40, minHeight: 40)
+                    .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")

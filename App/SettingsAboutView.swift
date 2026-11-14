@@ -27,13 +27,9 @@ import UIKit
                         .padding(CYSpacing.lg)
                         .frame(width: 112, height: 112)
                         .background {
-                            ZStack {
-                                CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
-                                Color.black.opacity(0.35)
-                            }.clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                            CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
+                                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.xl, style: .continuous))
                         }
-                        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(.white.opacity(0.25), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.35), radius: 14, y: 8)
                         .accessibilityHidden(true)
                     appName
                     Text("settingsNative.about.tagline")
@@ -90,6 +86,7 @@ import UIKit
         .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
         .appNavigationTitle("settingsNative.about.title")
+        .navigationBarTitleDisplayMode(.large)
         .safeAreaInset(edge: .bottom) {
             if let phone = model.contactPhone {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {

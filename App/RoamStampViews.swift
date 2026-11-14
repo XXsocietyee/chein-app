@@ -134,6 +134,7 @@ struct RoamAlbumReadOwner: Hashable {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.collectionAlbumHosted) private var hosted
+    @Environment(\.cyPalette) private var palette
     @Namespace private var hero
     @StateObject private var presentation: RoamAlbumReadPresentation
     init(album: RoamStampAlbumView) {
@@ -216,12 +217,14 @@ struct RoamAlbumReadOwner: Hashable {
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.cyDomainPageBackground()
+            .navigationTitle("roam.experience.album")
+            .navigationBarTitleDisplayMode(.large)
             .overlay(alignment: .bottomTrailing) {
                 // B62 al-fab: the camera is a round + once the album has stamps (the empty state has its own CTA).
                 if hosted, allowsCapture, canShowAlbum, (pager.total ?? pager.stamps.count) > 0 {
                     NavigationLink { captureDestination } label: {
-                        Image(systemName: "plus").font(.title2.weight(.medium)).foregroundStyle(CYNight.ink0)
-                            .frame(width: 56, height: 56).background(Color.white, in: Circle())
+                        Image(systemName: "plus").font(.title2.weight(.medium)).foregroundStyle(palette.actionPrimaryFg)
+                            .frame(width: 56, height: 56).background(palette.actionPrimaryBg, in: Circle())
                     }
                     .accessibilityLabel(Text("stampAlbum.openCamera"))
                     .accessibilityIdentifier("roam.experience.album.fab")

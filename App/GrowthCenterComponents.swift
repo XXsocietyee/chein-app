@@ -20,18 +20,38 @@ struct GrowthCenterIssueView: View {
     let issue: GrowthCenterIssue
     var retry: (() -> Void)? = nil
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label {
-                if case .server(let message) = issue { Text(verbatim: message) }
-                else { Text(LocalizedStringKey(issue.localizationKey)) }
-            } icon: { Image(systemName: issue == .login ? "lock" : "info.circle").accessibilityHidden(true) }
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("growth.issue")
-            if let retry, issue != .login, issue != .notConfigured {
-                Button("growth.retry", action: retry).buttonStyle(.bordered).controlSize(.large).frame(minHeight: 44)
-                    .accessibilityIdentifier("growth.retry")
+        Group {
+            if issue == .network {
+                CYEmptyState(systemImage: "wifi.slash", LocalizedStringKey(issue.localizationKey),
+                             messageIdentifier: "growth.issue",
+                             actionTitle: retry == nil ? nil : "growth.retry",
+                             actionIdentifier: "growth.retry",
+                             kind: .offline,
+                             action: retry)
+            } else if issue == .login || issue == .notConfigured {
+                Label {
+                    Text(LocalizedStringKey(issue.localizationKey))
+                } icon: { Image(systemName: issue == .login ? "lock" : "info.circle").accessibilityHidden(true) }
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("growth.issue")
+            } else {
+                CYEmptyState(systemImage: "exclamationmark.triangle",
+                             issueTitle,
+                             detailVerbatim: serverDetail,
+                             messageIdentifier: "growth.issue",
+                             actionTitle: retry == nil ? nil : "growth.retry",
+                             actionIdentifier: "growth.retry",
+                             kind: .failure,
+                             action: retry)
             }
-        }.padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var issueTitle: LocalizedStringKey { LocalizedStringKey(issue.localizationKey) }
+    private var serverDetail: String? {
+        if case .server(let message) = issue { return message }
+        return nil
     }
 }
 struct GrowthCenterName: View {

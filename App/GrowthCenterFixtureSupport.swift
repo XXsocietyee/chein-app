@@ -2,7 +2,7 @@
 import SwiftUI
 
 @MainActor final class GrowthCenterFixtureReader: GrowthCenterReading {
-    enum Scenario: String { case content, empty, partialCenter, partialMileage, partialCompleted, partialRank, failure, unauthorized, guest, unconfigured, unranked, sessionChange, slowFilters, denied, newBadge }
+    enum Scenario: String { case content, empty, partialCenter, partialMileage, partialCompleted, partialRank, failure, unauthorized, guest, unconfigured, unranked, sessionChange, slowFilters, denied, newBadge, network }
     let scenario: Scenario
     private(set) var scope = UUID()
     private(set) var isAuthenticated: Bool
@@ -16,6 +16,7 @@ import SwiftUI
         if scenario == .unauthorized { throw APIError.unauthorized }
         if scenario == .unconfigured { throw APIError.notConfigured }
         if scenario == .failure { throw APIError.httpStatus(503) }
+        if scenario == .network { throw URLError(.notConnectedToInternet) }
         if scenario == .denied { throw APIError.httpStatus(403) }
     }
     private struct Envelope<T: Decodable>: Decodable { let data: T }
