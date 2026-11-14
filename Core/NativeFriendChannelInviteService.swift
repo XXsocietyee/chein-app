@@ -8,9 +8,19 @@ public struct NativeFriendChannelInviteApproval: Equatable {
     public let mode: NativeFriendChannelInviteMode
     public let issuanceID: UUID
     public let expiresAt: Date
-    public static let prefix = "api/friend/channel-invite/"
-    public static let reads: Set<String> = Set(["picker", "batch", "landing", "mine", "notice", "receipt"].map { prefix + $0 })
-    public static let writes: Set<String> = [prefix + "command"]
+    public static let pickerPath = "api/friend/channel-invite/picker"
+    public static let batchPath = "api/friend/channel-invite/batch"
+    public static let landingPath = "api/friend/channel-invite/landing"
+    public static let minePath = "api/friend/channel-invite/mine"
+    public static let noticePath = "api/friend/channel-invite/notice"
+    public static let receiptPath = "api/friend/channel-invite/receipt"
+    public static let commandPath = "api/friend/channel-invite/command"
+    static let endpoints: [String: String] = [
+        "picker": pickerPath, "batch": batchPath, "landing": landingPath,
+        "mine": minePath, "notice": noticePath, "receipt": receiptPath, "command": commandPath
+    ]
+    public static let reads: Set<String> = [pickerPath, batchPath, landingPath, minePath, noticePath, receiptPath]
+    public static let writes: Set<String> = [commandPath]
     public init(endpoint: OperationEndpointApproval, mode: NativeFriendChannelInviteMode, expiresAt: Date, issuanceID: UUID = UUID()) throws {
         guard mode.valid, Self.reads.isSubset(of: endpoint.paths), endpoint.paths.isSubset(of: Self.reads.union(Self.writes)), expiresAt.timeIntervalSince1970.isFinite else { throw NativeFriendFailure.invalid }
         self.endpoint = endpoint; self.mode = mode; self.expiresAt = expiresAt; self.issuanceID = issuanceID
@@ -108,7 +118,8 @@ public struct NativeFriendChannelInviteApproval: Equatable {
     nonisolated public static func id(_ raw: String) -> Int64? { guard let n = Int64(raw), n > 0, String(n) == raw else { return nil }; return n }
     private func exchange<T: Decodable>(_ suffix: String, fields: [String: String] = [:], body: Data? = nil) async throws -> T {
         guard isCurrent, !Task.isCancelled else { throw NativeFriendFailure.notSent }
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(NativeFriendChannelInviteApproval.prefix + suffix), resolvingAgainstBaseURL: false)!
+        guard let route = NativeFriendChannelInviteApproval.endpoints[suffix] else { throw NativeFriendFailure.invalid }
+        var parts = URLComponents(url: context.baseURL.appendingPathComponent(route), resolvingAgainstBaseURL: false)!
         if body == nil { parts.queryItems = fields.sorted { $0.key < $1.key }.map { .init(name: $0.key, value: $0.value) } }
         guard let url = parts.url else { throw NativeFriendFailure.invalid }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
@@ -137,7 +148,7 @@ public enum NativeFriendChannelInviteTransportPolicy {
               parts.user == nil, parts.password == nil, parts.fragment == nil else { return false }
         var origin = parts; origin.query = nil
         guard let path = approval.endpoint.paths.first(where: { context.baseURL.appendingPathComponent($0) == origin.url }) else { return false }
-        if path == NativeFriendChannelInviteApproval.prefix + "command" {
+        if path == NativeFriendChannelInviteApproval.commandPath {
             guard request.httpMethod == "POST", parts.query == nil, let body = request.httpBody, body.count <= 32_768,
                   let command = try? JSONDecoder().decode(NativeFriendChannelInviteCommand.self, from: body), (try? command.validate()) != nil,
                   (try? JSONSerialization.jsonObject(with: body) as? NSDictionary) == (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(command)) as? NSDictionary) else { return false }
@@ -149,7 +160,8 @@ public enum NativeFriendChannelInviteTransportPolicy {
         }
         guard request.httpMethod == "GET", request.httpBody == nil, let items = parts.queryItems,
               items.allSatisfy({ $0.value != nil }), Set(items.map(\.name)).count == items.count else { return false }
-        let f = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) }); let suffix = String(path.dropFirst(NativeFriendChannelInviteApproval.prefix.count))
+        let f = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })
+        guard let suffix = NativeFriendChannelInviteApproval.endpoints.first(where: { $0.value == path })?.key else { return false }
         if suffix == "receipt" { return Set(f.keys) == ["request_id"] && UUID(uuidString: f["request_id"] ?? "") != nil }
         if suffix == "mine" { return approval.mode == .mine && Set(f.keys) == ["before"] && (f["before"] == "0" || NativeFriendChannelInviteService.id(f["before"] ?? "") != nil) }
         if suffix == "picker" {

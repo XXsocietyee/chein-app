@@ -9,8 +9,7 @@ enum OwnerDecisionGuardLease {
     static let paths: Set<String> = [
         "api/club/personal-receiver/status",
         "api/club/personal-receiver/unbind",
-        "api/merchant/payout-account",
-        "api/merchant/payout-account/save"
+        "api/merchant/payout-account"
     ]
 
     static func admits(relative: String, method: String, body: Data?, host: String?) -> Bool {
@@ -278,6 +277,7 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/coupon" { return true }
         if relative.hasPrefix("api/coupon/") { return false }
         if relative == "api/reward-pledge/versions" { return false }
+        if relative == "api/rewards/noncash/subjects" || relative == "api/rewards/noncash/versions" { return false }
         if ReviewedProductionGateLeases.rewardPledgePaths.contains(relative) { return true }
         return ReviewedProductionGateLeases.rewardPledgePaths.contains { root in
             root != "api/coupon" && relative.hasPrefix(root + "/")
@@ -799,7 +799,7 @@ enum ReviewedPlayerReadRoute {
         "api/reward-pledge/fulfilment/resolve", "api/reward-pledge/ops", "api/reward-pledge/pledges",
         "api/reward-pledge/review",
         "api/rewards/noncash", "api/rewards/noncash/cases", "api/rewards/noncash/claims",
-        "api/rewards/noncash/claims/recover", "api/rewards/noncash/subjects", "api/rewards/noncash/versions",
+        "api/rewards/noncash/claims/recover",
         "api/coupon"
     ]
     // player-write-paths-end

@@ -85,7 +85,7 @@ public enum MerchantContentCommand: Codable, Equatable {
             try positive(id); try positive(chapter); try positive(topic)
             return json("api/merchant/chapter-application/invite/respond", ["applicationId": .integer(id), "accepted": .bool(accepted)])
         case .auditApplication(let id, let approve, let reason):
-            try positive(id); guard approve || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw MerchantContentFailure.invalid }; return json("api/merchant/chapter-application/audit", ["id": .integer(id), "approve": .bool(approve), "reason": .string(reason)])
+            try positive(id); guard approve || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw MerchantContentFailure.invalid }; return json("api/merchant/chapter-application/audit", ["applicationId": .integer(id), "approved": .bool(approve), "auditRemark": .string(reason)])
         case .submitNode(let chapter, let draft): return json("api/merchant/chapter-node/submit", try draft.fields(chapterID: chapter))
         case .auditNode(let node, let approve, let reason):
             try positive(node); guard approve || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw MerchantContentFailure.invalid }; var f = ["nodeId": String(node), "approve": approve ? "true" : "false"]

@@ -4,9 +4,11 @@ import FoundationNetworking
 #endif
 
 public struct NativeFriendTeamInviteApproval: Equatable {
-    public static let prefix = "api/friend/team-invite/"
+    public static let pickerPath = "api/friend/team-invite/picker"
+    public static let landingPath = "api/friend/team-invite/landing"
+    public static let minePath = "api/friend/team-invite/mine"
     public static let receipt = "api/team/original-request"
-    public static let paths: Set<String> = [prefix + "picker", prefix + "landing", prefix + "mine", receipt]
+    public static let paths: Set<String> = [pickerPath, landingPath, minePath, receipt]
     public let endpoint: OperationEndpointApproval
     public let mode: NativeFriendTeamInviteMode
     public let allowWrites: Bool
@@ -37,7 +39,7 @@ public struct NativeFriendTeamInviteApproval: Equatable {
     }
     public func picker(team: Int64, section: NativeFriendDirectorySection, cursor: String?) async throws -> NativeFriendTeamInvitePicker {
         var fields = ["team_id": String(team), "section": section.rawValue]; if let cursor { fields["cursor"] = cursor }
-        let p: NativeFriendTeamInvitePicker = try await exchange(NativeFriendTeamInviteApproval.prefix + "picker", fields: fields)
+        let p: NativeFriendTeamInvitePicker = try await exchange(NativeFriendTeamInviteApproval.pickerPath, fields: fields)
         let d = p.directory
         guard d.viewerID == viewerID, p.teamID == String(team), !p.name.isEmpty, d.section == section, d.groupID == nil, !d.starredOnly,
               (0...500).contains(d.total), d.items.count <= 50, p.items.count == d.items.count,
@@ -48,11 +50,11 @@ public struct NativeFriendTeamInviteApproval: Equatable {
               Set(d.items.map(\.peerID)).count == d.items.count else { throw NativeFriendFailure.invalid }; return p
     }
     public func landing(offer: String) async throws -> NativeFriendTeamOffer {
-        let r: NativeFriendTeamOffer = try await exchange(NativeFriendTeamInviteApproval.prefix + "landing", fields: ["offer_id": offer]); try valid(r)
+        let r: NativeFriendTeamOffer = try await exchange(NativeFriendTeamInviteApproval.landingPath, fields: ["offer_id": offer]); try valid(r)
         guard r.offerID == offer else { throw NativeFriendFailure.invalid }; return r
     }
     public func mine(before: String = "0") async throws -> NativeFriendTeamInviteMine {
-        let r: NativeFriendTeamInviteMine = try await exchange(NativeFriendTeamInviteApproval.prefix + "mine", fields: ["before": before])
+        let r: NativeFriendTeamInviteMine = try await exchange(NativeFriendTeamInviteApproval.minePath, fields: ["before": before])
         guard r.viewerID == viewerID, r.items.count <= 50, Set(r.items.map(\.id)).count == r.items.count,
               r.nextBefore == "0" || NativeFriendChannelInviteService.id(r.nextBefore) != nil else { throw NativeFriendFailure.invalid }
         try r.items.forEach(valid); return r
@@ -134,12 +136,12 @@ public enum NativeFriendTeamInviteTransportPolicy {
         guard request.httpMethod == "GET", request.httpBody == nil, let items = parts.queryItems, items.allSatisfy({ $0.value != nil }), Set(items.map(\.name)).count == items.count else { return false }
         let f = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })
         if path == NativeFriendTeamInviteApproval.receipt { return Set(f.keys) == ["requestId"] && UUID(uuidString: f["requestId"] ?? "")?.uuidString.lowercased() == f["requestId"] }
-        if path == NativeFriendTeamInviteApproval.prefix + "mine" { return Set(f.keys) == ["before"] && (f["before"] == "0" || NativeFriendChannelInviteService.id(f["before"] ?? "") != nil) }
-        if path == NativeFriendTeamInviteApproval.prefix + "landing" {
+        if path == NativeFriendTeamInviteApproval.minePath { return Set(f.keys) == ["before"] && (f["before"] == "0" || NativeFriendChannelInviteService.id(f["before"] ?? "") != nil) }
+        if path == NativeFriendTeamInviteApproval.landingPath {
             guard Set(f.keys) == ["offer_id"], let id = f["offer_id"], UUID(uuidString: id)?.uuidString.lowercased() == id else { return false }
             if case .offer(let scoped) = approval.mode { return scoped == id }; return approval.mode == .mine
         }
-        if path == NativeFriendTeamInviteApproval.prefix + "picker", case .team(let team) = approval.mode {
+        if path == NativeFriendTeamInviteApproval.pickerPath, case .team(let team) = approval.mode {
             return Set(f.keys).isSubset(of: ["team_id", "section", "cursor"]) && f["team_id"] == String(team) && NativeFriendDirectorySection(rawValue: f["section"] ?? "") != nil && (f["cursor"].map(NativeFriendDirectoryService.validCursor) ?? true)
         }
         return false

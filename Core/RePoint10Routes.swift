@@ -29,7 +29,7 @@ public enum RePoint10Routes {
             gap("/api/user/follow-list"), gap("/api/welcome-screen/get"),
             gap("/api/workshop/creator/pending-packages"), gap("/api/workshop/creator/public-theme-use"),
             gap("/api/workshop/owned"), gap("/api/workshop/owned/detail"), gap("/api/workshop/owned/list"),
-            gap("/api/workshop/owned/package"), gap("/api/workshop/purchased"),
+            gap("/api/workshop/owned/package"),
             gap("/api/workshop/purchased/detail"), gap("/api/workshop/purchased/install"),
             gap("/api/workshop/purchased/installed-text/detail"), gap("/api/workshop/purchased/list"),
             gap("/api/workshop/purchased/professional-operations/cancel"),

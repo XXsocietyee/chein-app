@@ -10,15 +10,17 @@ import XCTest
 final class RePoint10RoutesTests: XCTestCase {
     private let base = URL(string: "https://example.invalid")!
 
-    func testTableCoversAll29RoutesOnce() {
-        XCTAssertEqual(RePoint10Routes.table.count, 29)
-        XCTAssertEqual(Set(RePoint10Routes.table.map(\.iosPath)).count, 29)
+    func testTableCoversAll28RoutesOnce() {
+        XCTAssertEqual(RePoint10Routes.table.count, 28)
+        XCTAssertEqual(Set(RePoint10Routes.table.map(\.iosPath)).count, 28)
     }
     func testCounts() {
         let c = Dictionary(grouping: RePoint10Routes.table, by: \.status).mapValues(\.count)
-        XCTAssertEqual(c[.repointed], 3); XCTAssertEqual(c[.needsOwner], 1); XCTAssertEqual(c[.trueGap], 25)
+        XCTAssertEqual(c[.repointed], 3); XCTAssertEqual(c[.needsOwner], 1); XCTAssertEqual(c[.trueGap], 24)
     }
     func testGapRoutesProduceNoRequest() {
+        XCTAssertNil(RePoint10Routes.mapping(for: "/api/workshop/purchased"))
+        XCTAssertNil(RePoint10Routes.formRequest(baseURL: base, iosPath: "/api/workshop/purchased", fields: ["id": "1"], token: "t"))
         XCTAssertNil(RePoint10Routes.formRequest(baseURL: base, iosPath: "/api/workshop/owned", fields: ["id": "1"], token: "t"))
         XCTAssertNil(RePoint10Routes.formRequest(baseURL: base, iosPath: "/api/us/auth/apple/exchange", fields: ["id": "1"], token: "t"))
     }

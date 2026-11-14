@@ -164,7 +164,8 @@ import FoundationNetworking
               let body=try JSONSerialization.jsonObject(with:row.body) as? [String:Any],Set(body.keys) == ["request_id",row.field.rawValue],
               body["request_id"] as? String == row.requestID,body[row.field.rawValue] as? Int == (row.value ? 1 : 0) else { throw APIError.malformedResponse };return row
     }
-    private func receiptPath(_ id: String) -> String { "api/channels/member-state-requests/"+id }
+    private static let receiptPathTemplate = "api/channels/member-state-requests/{requestId}"
+    private func receiptPath(_ id: String) -> String { Self.receiptPathTemplate.replacingOccurrences(of: "{requestId}", with: id) }
     private func valid(_ run: UInt64) -> Bool { run == generation && isCurrent && !Task.isCancelled }
     private func exchange(_ method: String,_ path: String,body: Data? = nil,query: [URLQueryItem] = [],freshReceiptID: String? = nil) async throws -> [String:Any] {
         let run = generation

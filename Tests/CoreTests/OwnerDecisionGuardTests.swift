@@ -175,6 +175,14 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertEqual(awaited3, .notSent)
         XCTAssertTrue(transport.requests.isEmpty)
         let lease = try source("App/ReviewedPlayerWriteLeases.swift")
+        let testConfig = try APIConfiguration(baseURL: URL(string: "https://8120.example.test/native/")!)
+        let testClient = OwnerDecisionPayoutClient(configuration: testConfig, transport: transport, token: "synthetic-token",
+                                                   payoutOpen: true, merchantWritesOpen: true)
+        let awaited4 = await testClient.saveAccount()
+        XCTAssertEqual(awaited4, .notSent)
+        XCTAssertTrue(transport.requests.isEmpty)
+        XCTAssertFalse(lease.contains("api/merchant/payout-account/save"))
+        XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: "/api/merchant/payout-account/save"))
         for path in ChinaReviewedRouteCapability.ownerDecisionGuardGrant {
             XCTAssertTrue(lease.contains(String(path.dropFirst())), path)
         }

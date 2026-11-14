@@ -415,3 +415,16 @@ import FoundationNetworking
         return (Data(), status)
     }
 }
+
+extension NativeChannelManagementRuntimeGateTests {
+    func testPersonalStateReceiptAcceptsTemplatedUUIDAndRejectsBarePrefixOn8120Stub() async throws {
+        XCTAssertFalse(BusinessRuntimeFeature.imChannelPersonalStateReceipt.accepts(try .get("api/channels/member-state-requests")))
+        let concrete = try BusinessRuntimeRoute.get("api/channels/member-state-requests/" + "00000000-0000-4000-8000-000000000001")
+        XCTAssertTrue(BusinessRuntimeFeature.imChannelPersonalStateReceipt.accepts(concrete))
+        let wire = ManagementRuntimeGateWire()
+        var req = URLRequest(url: URL(string: "https://8120.example.test/" + concrete.path)!)
+        req.httpMethod = "GET"
+        _ = try await wire.send(req)
+        XCTAssertEqual(wire.requests.last?.url?.path, "/api/channels/member-state-requests/00000000-0000-4000-8000-000000000001")
+    }
+}

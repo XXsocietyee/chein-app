@@ -281,3 +281,49 @@ private extension RewardPledgeIntent {
         RewardPledgeUnknown(ownerID: ownerID, storeID: storeID, businessKey: businessKey, requestID: requestID, kind: kind)
     }
 }
+
+private final class RewardPledge8120StubTransport: HTTPTransport {
+    var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request)
+        return (Data(#"{"code":200,"data":{}}"#.utf8), 200)
+    }
+}
+
+extension RewardPledgeTests {
+    func testTemplatedRoutesSubstituteIDsAndRejectBarePrefixesOnStub8120() async throws {
+        XCTAssertEqual(RewardPledgeRoutes.offerTemplate, "api/rewards/noncash/versions/{versionId}")
+        XCTAssertEqual(RewardPledgeRoutes.catalogTemplate, "api/rewards/noncash/subjects/{subjectId}")
+        XCTAssertEqual(RewardPledgeRoutes.holdTemplate, "api/reward-pledge/versions/{versionId}/hold")
+        XCTAssertEqual(RewardPledgeRoutes.withdrawTemplate, "api/reward-pledge/versions/{versionId}/withdraw")
+
+        let base = try APIConfiguration(baseURL: URL(string: "https://8120.example.test/")!).baseURL
+        let holdReq = try RewardPledgeRoutes.hold(versionID: "ver-9", baseURL: base, token: "t")
+        let withdrawReq = try RewardPledgeRoutes.withdraw(versionID: "ver-9", baseURL: base, token: "t")
+        let catalogReq = try RewardPledgeRoutes.catalog(subjectID: "sub-7", baseURL: base, token: "t")
+        let offerReq = try RewardPledgeRoutes.offer(versionID: "ver-9", branch: "THEME", subjectID: "sub-7", baseURL: base, token: "t")
+        XCTAssertEqual(RewardPledgeRoutes.operation(of: holdReq), "hold")
+        XCTAssertEqual(RewardPledgeRoutes.operation(of: withdrawReq), "withdraw")
+        XCTAssertEqual(RewardPledgeRoutes.operation(of: catalogReq), "catalog")
+        XCTAssertEqual(RewardPledgeRoutes.operation(of: offerReq), "offer")
+        XCTAssertEqual(holdReq.url?.path, "/api/reward-pledge/versions/ver-9/hold")
+        XCTAssertEqual(withdrawReq.url?.path, "/api/reward-pledge/versions/ver-9/withdraw")
+        XCTAssertEqual(catalogReq.url?.path, "/api/rewards/noncash/subjects/sub-7")
+        XCTAssertEqual(offerReq.url?.path, "/api/rewards/noncash/versions/ver-9")
+
+        var bareVersions = URLRequest(url: base.appendingPathComponent("api/reward-pledge/versions"))
+        bareVersions.httpMethod = "POST"
+        XCTAssertNil(RewardPledgeRoutes.operation(of: bareVersions))
+        XCTAssertNil(RewardPledgeRoutes.operation(of: URLRequest(url: base.appendingPathComponent("api/rewards/noncash/subjects"))))
+        XCTAssertNil(RewardPledgeRoutes.operation(of: URLRequest(url: base.appendingPathComponent("api/rewards/noncash/versions"))))
+
+        let wire = RewardPledge8120StubTransport()
+        for req in [holdReq, withdrawReq, catalogReq, offerReq] { _ = try await wire.send(req) }
+        XCTAssertEqual(wire.requests.map { $0.url?.path }, [
+            "/api/reward-pledge/versions/ver-9/hold",
+            "/api/reward-pledge/versions/ver-9/withdraw",
+            "/api/rewards/noncash/subjects/sub-7",
+            "/api/rewards/noncash/versions/ver-9"
+        ])
+    }
+}
