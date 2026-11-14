@@ -14,7 +14,7 @@ class BrandImageContracts(unittest.TestCase):
  def test_existing_photo_adapter_only(self):self.assertIn('MerchantOnboardingPhotoAdapter.load(item)',self.model);self.assertNotIn('PHPhotoLibrary',self.ui)
  def test_selection_never_uploads(self):
   x=self.model.split('func selectBrandImage(load:')[1].split('func discardBrandImage')[0];self.assertNotIn('uploadLicense',x)
- def test_upload_explicit_confirmation(self):self.assertIn('.confirmationDialog("merchant.onboardingBrand.uploadTitle"',self.ui);self.assertIn('uploadSelectedBrandImage(expectedID: uploadID)',self.ui)
+ def test_upload_explicit_confirmation(self):self.assertIn('title: appLocalized("merchant.onboardingBrand.uploadTitle"',self.ui);self.assertIn('uploadSelectedBrandImage(expectedID: uploadID)',self.ui)
  def test_existing_upload_service_reused(self):self.assertIn('coordinator.uploadLicense(image, expectedIdentity: identity)',self.model);self.assertNotIn('URLSession',self.ui+self.core)
  def test_upload_never_assigns_license(self):
   x=self.model.split('func uploadSelectedBrandImage')[1].split('func prepare()')[0];self.assertNotIn('draft.license =',x);self.assertIn('draft.brandImages = images',x)

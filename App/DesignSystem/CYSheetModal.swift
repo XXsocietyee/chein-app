@@ -231,8 +231,11 @@ public struct CYModal: View {
     private let cancelTitle: String
     private let confirmTitle: String
     private let lighterAlternativeTitle: String?
+    private let showCancel: Bool
     private let isDestructive: Bool
     private let isConfirmLoading: Bool
+    private let cancelIdentifier: String?
+    private let confirmIdentifier: String?
     private let onCancel: () -> Void
     private let onLighterAlternative: (() -> Void)?
     private let onConfirm: () -> Void
@@ -247,8 +250,11 @@ public struct CYModal: View {
         cancelTitle: String = "取消",
         confirmTitle: String = "确认",
         lighterAlternativeTitle: String? = nil,
+        showCancel: Bool = true,
         isDestructive: Bool = false,
         isConfirmLoading: Bool = false,
+        cancelIdentifier: String? = nil,
+        confirmIdentifier: String? = nil,
         onCancel: @escaping () -> Void,
         onLighterAlternative: (() -> Void)? = nil,
         onConfirm: @escaping () -> Void
@@ -259,8 +265,11 @@ public struct CYModal: View {
         self.cancelTitle = cancelTitle
         self.confirmTitle = confirmTitle
         self.lighterAlternativeTitle = lighterAlternativeTitle
+        self.showCancel = showCancel
         self.isDestructive = isDestructive
         self.isConfirmLoading = isConfirmLoading
+        self.cancelIdentifier = cancelIdentifier
+        self.confirmIdentifier = confirmIdentifier
         self.onCancel = onCancel
         self.onLighterAlternative = onLighterAlternative
         self.onConfirm = onConfirm
@@ -302,10 +311,12 @@ public struct CYModal: View {
                 .accessibilityLabel(Text("action.close"))
             }
 
-            Text(verbatim: message)
-                .font(CYTypography.bodyCompact)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            if !message.isEmpty {
+                Text(verbatim: message)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             if !consequences.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
@@ -334,26 +345,23 @@ public struct CYModal: View {
                         .font(CYTypography.label.weight(.semibold))
                         .foregroundStyle(palette.info)
                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .buttonStyle(CYGhostButtonStyle(isFullWidth: true, size: .sm))
             }
 
-            HStack(spacing: CYSpacing.md) {
-                Button(action: onCancel) {
-                    Text(verbatim: cancelTitle)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.md) {
+                    if showCancel {
+                        cancelActionButton
+                    }
+                    confirmActionButton
                 }
-                .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
-
-                if isDestructive {
-                    Button(role: .destructive, action: onConfirm) {
-                        Text(verbatim: confirmTitle)
+                VStack(spacing: CYSpacing.sm) {
+                    confirmActionButton
+                    if showCancel {
+                        cancelActionButton
                     }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
-                } else {
-                    Button(action: onConfirm) {
-                        Text(verbatim: confirmTitle)
-                    }
-                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
                 }
             }
         }
@@ -361,5 +369,227 @@ public struct CYModal: View {
         .frame(maxWidth: 320, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.modalPanel))
         .shadow(color: palette.floatShadowColor, radius: 20, x: 0, y: 10)
+    }
+
+    @ViewBuilder
+    private var cancelActionButton: some View {
+        Button(action: onCancel) {
+            Text(verbatim: cancelTitle)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+        .cyOptionalAccessibilityIdentifier(cancelIdentifier)
+    }
+
+    @ViewBuilder
+    private var confirmActionButton: some View {
+        if isDestructive {
+            Button(role: .destructive, action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        } else {
+            Button(action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        }
+    }
+}
+
+/// Centered prompt modal matching `utils/modal.js` editable input dialogs (`overlay`, `modalPanel`, inline validation).
+public struct CYPromptModal: View {
+    private let title: String
+    private let message: String?
+    @Binding private var text: String
+    private let placeholder: String
+    private let validationMessage: String?
+    private let cancelTitle: String
+    private let confirmTitle: String
+    private let isDestructive: Bool
+    private let isConfirmLoading: Bool
+    private let cancelIdentifier: String?
+    private let confirmIdentifier: String?
+    private let onCancel: () -> Void
+    private let onConfirm: () -> Void
+
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    public init(
+        title: String,
+        message: String? = nil,
+        text: Binding<String>,
+        placeholder: String = "",
+        validationMessage: String? = nil,
+        cancelTitle: String = "取消",
+        confirmTitle: String = "确认",
+        isDestructive: Bool = false,
+        isConfirmLoading: Bool = false,
+        cancelIdentifier: String? = nil,
+        confirmIdentifier: String? = nil,
+        onCancel: @escaping () -> Void,
+        onConfirm: @escaping () -> Void
+    ) {
+        self.title = title
+        self.message = message
+        self._text = text
+        self.placeholder = placeholder
+        self.validationMessage = validationMessage
+        self.cancelTitle = cancelTitle
+        self.confirmTitle = confirmTitle
+        self.isDestructive = isDestructive
+        self.isConfirmLoading = isConfirmLoading
+        self.cancelIdentifier = cancelIdentifier
+        self.confirmIdentifier = confirmIdentifier
+        self.onCancel = onCancel
+        self.onConfirm = onConfirm
+    }
+
+    public var body: some View {
+        ZStack {
+            palette.overlay
+                .ignoresSafeArea()
+                .onTapGesture(perform: onCancel)
+
+            panelCard
+                .padding(.horizontal, CYSpacing.xxxl)
+                .transition(reduceMotion ? .opacity : .scale(scale: 0.96).combined(with: .opacity))
+        }
+    }
+
+    public var panelCard: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            HStack(alignment: .top, spacing: CYSpacing.sm) {
+                Text(verbatim: title)
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: CYSpacing.sm)
+                Button(action: onCancel) {
+                    Image(systemName: "xmark")
+                        .font(CYTypography.caption.weight(.semibold))
+                        .foregroundStyle(palette.textSecondary)
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(palette.bgSurfaceSubtle))
+                        .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .offset(x: 8, y: -8)
+                .accessibilityLabel(Text("action.close"))
+            }
+
+            if let message, !message.isEmpty {
+                Text(verbatim: message)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                TextField(text: $text, prompt: Text(verbatim: placeholder).foregroundStyle(palette.textSecondary)) {
+                    Text(verbatim: title)
+                }
+                .font(CYTypography.bodyCompact)
+                .foregroundStyle(palette.textPrimary)
+                .padding(.horizontal, CYSpacing.md)
+                .padding(.vertical, CYSpacing.s2_5)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.sheetCard))
+
+                if let validationMessage, !validationMessage.isEmpty {
+                    Text(verbatim: validationMessage)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.danger)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.md) {
+                    cancelButton
+                    confirmButton
+                }
+                VStack(spacing: CYSpacing.sm) {
+                    confirmButton
+                    cancelButton
+                }
+            }
+        }
+        .padding(CYSpacing.xl)
+        .frame(maxWidth: 320, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.modalPanel))
+        .shadow(color: palette.floatShadowColor, radius: 20, x: 0, y: 10)
+    }
+
+    private var cancelButton: some View {
+        Button(action: onCancel) {
+            Text(verbatim: cancelTitle)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+        .cyOptionalAccessibilityIdentifier(cancelIdentifier)
+    }
+
+    @ViewBuilder
+    private var confirmButton: some View {
+        if isDestructive {
+            Button(role: .destructive, action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        } else {
+            Button(action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        }
+    }
+}
+
+private struct CYModalOverlayModifier<ModalContent: View>: ViewModifier {
+    let isPresented: Bool
+    let modalContent: () -> ModalContent
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if isPresented {
+                    modalContent()
+                }
+            }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: isPresented)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func cyOptionalAccessibilityIdentifier(_ identifier: String?) -> some View {
+        if let identifier {
+            accessibilityIdentifier(identifier)
+        } else {
+            self
+        }
+    }
+}
+
+public extension View {
+    /// Presents a DesignSystem modal panel (`CYModal`, `CYPromptModal`) over the view with reduced-motion support.
+    func cyModalOverlay<ModalContent: View>(
+        isPresented: Bool,
+        @ViewBuilder content: @escaping () -> ModalContent
+    ) -> some View {
+        modifier(CYModalOverlayModifier(isPresented: isPresented, modalContent: content))
     }
 }

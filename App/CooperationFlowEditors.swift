@@ -133,7 +133,37 @@ struct CoopFlowHandleEditor: View {
     let inviteID: Int
     let action: CoopFlowHandle
     let currentStatus: Int
+    @Environment(\.locale) private var locale
     @State private var reason = ""
+    @State private var confirmHandle = false
+    @State private var proceedPreview = false
+
+    private var modalTitle: String {
+        switch action {
+        case .accept:
+            return MerchantAreaCopy.text("接受合作邀约", "Accept cooperation invite", locale)
+        case .reject:
+            return MerchantAreaCopy.text("拒绝这条邀约", "Reject this invite", locale)
+        case .cancel:
+            return currentStatus == 1
+                ? MerchantAreaCopy.text("取消合作", "Cancel cooperation", locale)
+                : MerchantAreaCopy.text("撤回邀约", "Withdraw invite", locale)
+        }
+    }
+
+    private var modalMessage: String {
+        switch action {
+        case .accept:
+            return MerchantAreaCopy.text("确认进入提交预览，核对无误后发送决定。", "Continue to review your acceptance before submitting.", locale)
+        case .reject:
+            return MerchantAreaCopy.text("拒绝理由会连同决定一起发给对方。", "Your decline reason will be sent to the other party.", locale)
+        case .cancel:
+            return currentStatus == 1
+                ? MerchantAreaCopy.text("锁价开卖前可取消；锁价后需联系客服协商。", "You can cancel before price lock; after price lock, contact support.", locale)
+                : MerchantAreaCopy.text("撤回后对方将无法接受这条邀约。", "Withdrawing prevents the other party from accepting this invite.", locale)
+        }
+    }
+
     var body: some View {
         Form {
             LabeledContent("coopflow.field.id", value: String(inviteID))
@@ -146,11 +176,34 @@ struct CoopFlowHandleEditor: View {
             else if action == .reject { Text("cooperation.detail.reject.reasonRequired") }
             else if action == .cancel { Text("cooperation.detail.withdraw.reasonRequired") }
             if action == .accept || !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason)) }
+                Button("coopflow.reviewAction") {
+                    confirmHandle = true
+                }
             }
             Text("coopflow.contract.notice")
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.reviewAction")
+        }
+        .navigationTitle("coopflow.reviewAction")
+        .cyModalConfirm(
+            isPresented: confirmHandle,
+            title: modalTitle,
+            message: modalMessage,
+            cancelTitle: MerchantAreaCopy.text("再想想", "Reconsider", locale),
+            confirmTitle: action == .cancel && currentStatus == 1
+                ? MerchantAreaCopy.text("提交取消", "Confirm cancel", locale)
+                : action == .reject
+                    ? MerchantAreaCopy.text("确认拒绝", "Decline", locale)
+                    : MerchantAreaCopy.confirm(locale),
+            isDestructive: action != .accept,
+            onCancel: { confirmHandle = false },
+            onConfirm: {
+                confirmHandle = false
+                proceedPreview = true
+            }
+        )
+        .navigationDestination(isPresented: $proceedPreview) {
+            CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason))
+        }
     }
 }
 /// Context is supplied only by a current, approved merchant chapter application.
@@ -298,10 +351,18 @@ struct CoopFlowOfferEditor: View {
             }
         }
         .interactiveDismissDisabled(hasDraft)
-        .confirmationDialog("coopflow.invite.discardPrompt", isPresented: $confirmDiscard, titleVisibility: .visible) {
-            Button("coopflow.invite.discard", role: .destructive) { dismiss() }
-            Button("coopflow.invite.keepEditing", role: .cancel) {}
-        }
+        .cyModalConfirm(
+            isPresented: confirmDiscard,
+            title: appLocalized("coopflow.invite.discardPrompt", locale: locale),
+            cancelTitle: appLocalized("coopflow.invite.keepEditing", locale: locale),
+            confirmTitle: appLocalized("coopflow.invite.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { confirmDiscard = false },
+            onConfirm: {
+                confirmDiscard = false
+                dismiss()
+            }
+        )
         .onChange(of: reader.session) { _, _ in
             message = ""; fee = ""; fixed = false; focusedField = nil; dismiss()
         }

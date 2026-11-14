@@ -82,6 +82,7 @@ import Combine
     private let overlaysOpen: () -> Bool
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     init(model: TemplateAuthoringModel, overlaysOpen: @escaping () -> Bool) {
         self.overlaysOpen = overlaysOpen
         _controller = StateObject(wrappedValue: .init(model: model, overlaysOpen: overlaysOpen))
@@ -96,18 +97,36 @@ import Combine
                 }
                     .disabled(!controller.canRequestBack).accessibilityIdentifier("templateAuthorExit.back")
             } }
-            .confirmationDialog(Text("templateAuthorExit.title", tableName: "CreatorExitGuard"), isPresented: controller.presentationBinding(), titleVisibility: .visible) {
-                if let review = controller.review {
-                    Button(role: .destructive, action: controller.leaveAction(review) { dismiss() }) { Text("templateAuthorExit.leave", tableName: "CreatorExitGuard") }
-                        .accessibilityIdentifier("templateAuthorExit.leave")
-                    if review.status == .unverified {
-                        Button(action: controller.retryAction(review) { dismiss() }) { Text("templateAuthorExit.retry", tableName: "CreatorExitGuard") }.accessibilityIdentifier("templateAuthorExit.retry")
+            .cyModalConfirm(
+                isPresented: controller.presentationBinding(),
+                title: String(localized: LocalizedStringResource("templateAuthorExit.title", table: "CreatorExitGuard", locale: locale)),
+                message: controller.review?.status == .unverified
+                    ? String(localized: LocalizedStringResource("templateAuthorExit.unverified", table: "CreatorExitGuard", locale: locale))
+                    : String(localized: LocalizedStringResource("templateAuthorExit.unsaved", table: "CreatorExitGuard", locale: locale)),
+                cancelTitle: String(localized: LocalizedStringResource("templateAuthorExit.continue", table: "CreatorExitGuard", locale: locale)),
+                confirmTitle: String(localized: LocalizedStringResource("templateAuthorExit.leave", table: "CreatorExitGuard", locale: locale)),
+                lighterAlternativeTitle: controller.review?.status == .unverified
+                    ? String(localized: LocalizedStringResource("templateAuthorExit.retry", table: "CreatorExitGuard", locale: locale))
+                    : nil,
+                isDestructive: true,
+                cancelIdentifier: "templateAuthorExit.continue",
+                confirmIdentifier: "templateAuthorExit.leave",
+                onCancel: {
+                    if let review = controller.review {
+                        controller.cancelAction(review)()
                     }
-                    Button(role: .cancel, action: controller.cancelAction(review)) { Text("templateAuthorExit.continue", tableName: "CreatorExitGuard") }.accessibilityIdentifier("templateAuthorExit.continue")
+                },
+                onLighterAlternative: {
+                    if let review = controller.review, review.status == .unverified {
+                        controller.retryAction(review) { dismiss() }()
+                    }
+                },
+                onConfirm: {
+                    if let review = controller.review {
+                        controller.leaveAction(review) { dismiss() }()
+                    }
                 }
-            } message: {
-                Text(LocalizedStringKey(controller.review?.status == .unverified ? "templateAuthorExit.unverified" : "templateAuthorExit.unsaved"), tableName: "CreatorExitGuard")
-            }
+            )
             .onChange(of: overlaysOpen()) { _, _ in controller.overlayChanged() }
             .onAppear { controller.activate() }
             .onDisappear { controller.retire() }

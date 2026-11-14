@@ -131,11 +131,21 @@ struct TemplateLocationTodosSection: View {
                 }
             }
         }
-        .confirmationDialog(PlayerCapabilityCopy.text("绑定到哪个节点", "Bind to which node", locale),
-                            isPresented: Binding(get: { picking != nil }, set: { if !$0 { picking = nil } })) {
-            ForEach(bindableNodes, id: \.id) { node in
-                Button(node.label) { if let row = picking { Task { await bind(row, nodeID: node.id) } } }
-            }
+        .sheet(item: $picking) { row in
+            MerchantChoiceOptionSheet(
+                title: PlayerCapabilityCopy.text("绑定到哪个节点", "Bind to which node", locale),
+                options: bindableNodes.map { node in
+                    MerchantChoiceOption(id: String(node.id), title: node.label, systemImage: "mappin.and.ellipse")
+                },
+                domain: .topicEditor,
+                selectedID: .constant(nil),
+                onSelect: { option in
+                    if let nodeID = Int(option.id) {
+                        Task { await bind(row, nodeID: nodeID) }
+                    }
+                },
+                onClose: { picking = nil }
+            )
         }
     }
 
@@ -183,10 +193,15 @@ struct TemplateProjectActions: View {
             .accessibilityIdentifier(kind == .topic ? "template.saveAs.\(id)" : "template.marketSubmit.\(id)")
             if let toast { Text(verbatim: toast).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
-        .confirmationDialog(PlayerCapabilityCopy.text("另存为模板", "Save as template", locale), isPresented: $confirming, titleVisibility: .visible) {
-            Button(PlayerCapabilityCopy.text("另存为模板", "Save as template", locale)) { Task { await run() } }
-        } message: {
-            Text(verbatim: "「" + (title.isEmpty ? "这个主题" : title) + "」会出现在主题模板货架上，其他人可以复制它作为草稿起点。")
+        .sheet(isPresented: $confirming) {
+            CYConfirmSheet(
+                title: PlayerCapabilityCopy.text("另存为模板", "Save as template", locale),
+                message: "「" + (title.isEmpty ? "这个主题" : title) + "」会出现在主题模板货架上，其他人可以复制它作为草稿起点。",
+                confirmTitle: PlayerCapabilityCopy.text("另存为模板", "Save as template", locale),
+                onConfirm: { Task { await run() } }
+            )
+            .cyDomainSheet(detents: [.half])
+            .themeDomain(.topicEditor)
         }
     }
 

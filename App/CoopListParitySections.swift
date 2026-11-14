@@ -32,7 +32,7 @@ import SwiftUI
                             if let chapter = row.chapterName {
                                 Text(verbatim: row.leg == .owner && row.merchantName != nil ? chapter + " · " + (row.merchantName ?? "") : chapter).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             }
-                            Text(LocalizedStringKey("cooperation.list.chapter.action." + row.action.rawValue)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.brand)
+                            Text(LocalizedStringKey("cooperation.list.chapter.action." + row.action.rawValue)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.infoText)
                         }.padding(.vertical, CYSpacing.xs).accessibilityElement(children: .combine)
                             .accessibilityIdentifier("cooperation.list.chapter.\(row.id)")
                     }

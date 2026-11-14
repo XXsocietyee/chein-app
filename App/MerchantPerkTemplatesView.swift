@@ -6,6 +6,7 @@ import SwiftUI
     @Bindable var model: MerchantPerkTemplatesCoordinator
     /// False when the host has no write executor: add and delete are hidden, the list stays readable.
     var writesEnabled = true
+    @Environment(\.locale) private var locale
     @State private var draft = MerchantPerkTemplateDraft()
     @State private var showingForm = false
     @State private var confirmingDiscard = false
@@ -27,16 +28,32 @@ import SwiftUI
             }
             .task { if model.phase == .idle { await model.load() } }
             .refreshable { await model.load() }
-            .sheet(isPresented: $showingForm) { formSheet }
-            .confirmationDialog("merchant.perks.delete.title", isPresented: deleteDialogPresented, titleVisibility: .visible) {
-                if let row = pendingDelete {
-                    Button("merchant.perks.delete.confirm", role: .destructive) {
+            .sheet(isPresented: $showingForm) {
+                formSheet
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
+            }
+            .cyModalConfirm(
+                isPresented: pendingDelete != nil,
+                title: appLocalized("merchant.perks.delete.title", locale: locale),
+                message: appLocalized("merchant.perks.delete.message", locale: locale),
+                consequences: [
+                    CYConfirmConsequence(
+                        systemImage: "trash",
+                        text: MerchantAreaCopy.text("删除后无法恢复；关联的门店或优惠活动需重新配置。", "Cannot be undone; linked stores or perks will need reconfiguration.", locale)
+                    )
+                ],
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                confirmTitle: appLocalized("merchant.perks.delete.confirm", locale: locale),
+                isDestructive: true,
+                onCancel: { pendingDelete = nil },
+                onConfirm: {
+                    if let row = pendingDelete {
                         pendingDelete = nil
                         Task { await model.delete(id: row.id) }
                     }
                 }
-                Button("action.cancel", role: .cancel) { pendingDelete = nil }
-            } message: { Text("merchant.perks.delete.message") }
+            )
     }
 
     private var deleteDialogPresented: Binding<Bool> {
@@ -199,12 +216,19 @@ import SwiftUI
                 }
             }
         }
-        .presentationDetents([.medium, .large])
         .interactiveDismissDisabled(MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled))
-        .confirmationDialog("merchant.perks.discard.title", isPresented: $confirmingDiscard, titleVisibility: .visible) {
-            Button("merchant.perks.discard.confirm", role: .destructive) { showingForm = false }
-            Button("merchant.perks.discard.keep", role: .cancel) {}
-        }
+        .cyModalConfirm(
+            isPresented: confirmingDiscard,
+            title: appLocalized("merchant.perks.discard.title", locale: locale),
+            cancelTitle: appLocalized("merchant.perks.discard.keep", locale: locale),
+            confirmTitle: appLocalized("merchant.perks.discard.confirm", locale: locale),
+            isDestructive: true,
+            onCancel: { confirmingDiscard = false },
+            onConfirm: {
+                confirmingDiscard = false
+                showingForm = false
+            }
+        )
     }
 
     private var formReady: Bool {

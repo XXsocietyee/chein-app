@@ -538,37 +538,48 @@ import SwiftUI
             ProjectEditModeReviewSheet(controller: modeReview, original: original, finished: { created in
                 copiedCoordinator = created; showingCopy = true; modeCopyFailed = false
             }, failed: { modeCopyFailed = true })
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.topicEditor)
         }
         .sheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in
             submissionResult(receipt: receipt, submissionIncarnation: submissionIncarnation)
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.topicEditor)
         }
         .sheet(item: ownedCover.binding(coverPresentation)) { original in
             OwnedTopicCoverAuthorView(original: original, mayChange: { ownedCover.mayChange(original.opening) },
                 selected: { ownedCover.acceptedSelection($0); reviewRequest.retire(); approvedRelease.retire() }, close: { ownedCover.close(original) }, picker: ownedCoverPicker?())
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.topicEditor)
         }
         .sheet(item: approvedRelease.binding(releasePresentation)) { original in
             if approvedRelease.isPresented(original) {
                 ApprovedReleasePreparationView(original: original) { approvedRelease.close(original) }
-                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.topicEditor)
             }
         }
         .sheet(item: reviewRequest.binding(reviewRequestPresentation)) { original in
             Group {
                 if reviewRequest.isPresented(original) { ApprovedTopicReviewRequestView(original: original) { reviewRequest.close(original) } }
-            }.cyPlayerSheetGlass()
+            }.cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.topicEditor)
         }
         .modifier(ProjectEditStarterPresentation(model: model, controller: starter))
         .modifier(ProjectEditPendingPresentation(model: model, controller: pending))
         .modifier(ProjectChapterRemovalPresentation(model: model, controller: chapterRemoval))
         .onDisappear { if let coverPresentation { ownedCover.close(coverPresentation) }; reviewRequest.retire(); approvedRelease.retire(); chapterRemoval.retire(); starter.retire(); pending.retire(); model.leave() }
         .modifier(ProjectEditPreparedReviewPresentation(model: model))
-        .alert("projectEdit.discardTitle", isPresented: $discardConfirmation) {
-            Button("projectEdit.discardLocal", role: .destructive) { model.discard() }
-            Button("action.cancel", role: .cancel) {}
-        } message: { Text("projectEdit.discardHint") }
+        .cyModalConfirm(
+            isPresented: $discardConfirmation,
+            title: appLocalized("projectEdit.discardTitle", locale: locale),
+            message: appLocalized("projectEdit.discardHint", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("projectEdit.discardLocal", locale),
+            isDestructive: true,
+            onCancel: { discardConfirmation = false },
+            onConfirm: { discardConfirmation = false; model.discard() }
+        )
     }
     private func submissionBinding(presentedSubmission: PublishingSubmissionHandoff?, submissionIncarnation: UUID) -> Binding<PublishingSubmissionHandoff?> {
         Binding<PublishingSubmissionHandoff?>(get: { () -> PublishingSubmissionHandoff? in

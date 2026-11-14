@@ -140,7 +140,8 @@ struct DiscoveryTemplateDetailView: View {
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
         .sheet(item: $capabilityPreview) { state in
             TemplateNodePreviewSheet(state: state) { capabilityPreview = nil }
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.player)
         }
         .navigationDestination(item: $adoption) { selected in
             if let authoringFactory {

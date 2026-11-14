@@ -35,8 +35,16 @@ enum MerchantGameNodeCopy {
     var body: some View {
         let importID = submissionImport.session?.id
         page
-        .sheet(isPresented: Binding(get: { c.sheet != nil }, set: { if !$0 { c.closeSheet() } })) { sheetContent }
-        .sheet(isPresented: $showsServiceTime) { MerchantGameNodeServiceTimeSheet(model: model) }
+        .sheet(isPresented: Binding(get: { c.sheet != nil }, set: { if !$0 { c.closeSheet() } })) {
+            sheetContent
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
+        }
+        .sheet(isPresented: $showsServiceTime) {
+            MerchantGameNodeServiceTimeSheet(model: model)
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
+        }
         .sheet(isPresented: submissionImport.presentationBinding(), onDismiss: {
             if let identifier = submissionImport.finishDismissal(id: importID), scenePhase == .active {
                 c.openVerify(submissionID: identifier)
@@ -46,11 +54,25 @@ enum MerchantGameNodeCopy {
                 MerchantGameNodeScanImportSheet(session: session,
                     cancel: { submissionImport.cancel(session) },
                     apply: { submissionImport.accept(session) })
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
             }
         }
-        .alert(MerchantGameNodeCopy.text(confirmTitleKey), isPresented: confirmationShown, presenting: c.confirmation) { command in
-            confirmActions(command)
-        } message: { command in MerchantGameNodeCopy.text(confirmMessageKey(command)) }
+        .cyModalConfirm(
+            isPresented: c.confirmation != nil,
+            title: MerchantGameNodeCopy.string(confirmTitleKey),
+            message: c.confirmation.map { MerchantGameNodeCopy.string(confirmMessageKey($0)) } ?? "",
+            cancelTitle: MerchantGameNodeCopy.string(c.confirmation?.action == .pause ? "merchantGameNode.pause.noFallbackCancel" : "merchantGameNode.cancel"),
+            confirmTitle: c.confirmation.map { MerchantGameNodeCopy.string(confirmButtonKey($0)) } ?? MerchantGameNodeCopy.string("merchantGameNode.cancel"),
+            isDestructive: c.confirmation?.action == .pause,
+            confirmIdentifier: "gameNode.confirm",
+            onCancel: { c.cancelConfirmation() },
+            onConfirm: {
+                if let command = c.confirmation {
+                    Task { await c.confirm(command) }
+                }
+            }
+        )
         .fullScreenCover(isPresented: Binding(get: { c.checkinVisible }, set: { if !$0 { c.closeCheckin() } })) {
             MerchantGameNodeCheckinView(model: model)
         }
@@ -59,7 +81,14 @@ enum MerchantGameNodeCopy {
         }
         .onChange(of: model.revision) { _, _ in submissionImport.invalidate() }
         .onDisappear { submissionImport.invalidate() }
-        .overlay(alignment: .bottom) { toastView }
+        .cyToast(
+            verbatimMessage: Binding(
+                get: { c.toast.map { MerchantGameNodeCopy.string($0) } },
+                set: { if $0 == nil { c.clearToast() } }
+            ),
+            tone: .info,
+            duration: 2.0
+        )
     }
     private func openSubmissionImport() {
         let revision = model.revision, scope = c.service.scope

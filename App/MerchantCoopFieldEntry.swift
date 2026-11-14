@@ -45,6 +45,7 @@ import SwiftUI
             if value == nil, let shownID { close(shownID) }
         })) { selected in
             MerchantCoopFieldSheet(session: selected) { close(selected.id) }
+                .cyDomainSheet(detents: [.half, .full])
         }
                 .id(route?.id)
         }
@@ -62,6 +63,7 @@ import SwiftUI
 @MainActor private struct MerchantCoopFieldSheet: View {
     @ObservedObject var session: MerchantCoopFieldSession
     let close: () -> Void
+    @Environment(\.locale) private var locale
     private var text: Binding<String> { .init(get: { session.buffer.value }, set: { _ = session.update($0) }) }
     var body: some View {
         NavigationStack {
@@ -97,11 +99,17 @@ import SwiftUI
         .privacySensitive()
         .interactiveDismissDisabled(session.buffer.isDirty || session.asksDiscard)
         // Explicit buttons settle the decision; framework dismissal cannot consume it before its button callback.
-        .alert("merchant.coopField.discardTitle", isPresented: Binding(get: { session.asksDiscard }, set: { _ in })) {
-            Button("merchant.coopField.discard", role: .destructive) { if session.discard() { close() } }
-                .accessibilityIdentifier("merchant.coopField.discard")
-            Button("merchant.coopField.keepEditing", role: .cancel) { session.keepEditing() }
-                .accessibilityIdentifier("merchant.coopField.keepEditing")
-        } message: { Text("merchant.coopField.discardBody") }
+        .cyModalConfirm(
+            isPresented: session.asksDiscard,
+            title: appLocalized("merchant.coopField.discardTitle", locale: locale),
+            message: appLocalized("merchant.coopField.discardBody", locale: locale),
+            cancelTitle: appLocalized("merchant.coopField.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.coopField.discard", locale: locale),
+            isDestructive: true,
+            cancelIdentifier: "merchant.coopField.keepEditing",
+            confirmIdentifier: "merchant.coopField.discard",
+            onCancel: { session.keepEditing() },
+            onConfirm: { if session.discard() { close() } }
+        )
     }
 }

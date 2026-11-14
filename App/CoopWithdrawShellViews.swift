@@ -30,7 +30,11 @@ import SwiftUI
             }
         }
         .onChange(of: isSignedIn) { _, signedIn in if !signedIn { showsSupport = false } }
-        .sheet(isPresented: $showsSupport) { WithdrawalSupportContactView() }
+        .sheet(isPresented: $showsSupport) {
+            WithdrawalSupportContactView()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
+        }
         .accessibilityIdentifier("cooperation.withdraw")
     }
 }

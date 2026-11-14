@@ -194,6 +194,7 @@ struct MerchantContentBoundary: View {
 @MainActor struct MerchantContentStatus: View {
     @ObservedObject var model: MerchantContentViewModel
     @State private var confirmsRetry = false
+    @Environment(\.locale) private var locale
     var allowsRecovery = true
     var allowsReload = true
     var reload: (() async -> Void)? = nil
@@ -205,9 +206,15 @@ struct MerchantContentBoundary: View {
             if c.locked && allowsRecovery {
                 Button("merchant.content.reconcile") { Task { await model.reconcile() } }.disabled(c.busy)
                 Button("merchant.content.retryOriginal") { confirmsRetry = true }.disabled(c.busy || !c.service.permitsWrites)
-                    .confirmationDialog("merchant.content.retryOriginalWarning", isPresented: $confirmsRetry, titleVisibility: .visible) {
-                        Button("merchant.content.retryOriginal") { Task { await model.retryStation() } }
-                        Button("action.cancel", role: .cancel) { }
+                    .sheet(isPresented: $confirmsRetry) {
+                        CYConfirmSheet(
+                            title: appLocalized("merchant.content.retryOriginalWarning", locale: locale),
+                            confirmTitle: appLocalized("merchant.content.retryOriginal", locale: locale),
+                            isDestructive: true,
+                            onConfirm: { Task { await model.retryStation() } }
+                        )
+                        .cyDomainSheet(detents: [.half])
+                        .themeDomain(.merchant)
                     }
             }
         }

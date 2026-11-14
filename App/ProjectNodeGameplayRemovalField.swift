@@ -40,6 +40,7 @@ import SwiftUI
 @MainActor struct ProjectNodeGameplayRemovalField: View {
     @ObservedObject private var model: ProjectEditModel
     @StateObject private var controller: ProjectNodeGameplayRemovalController
+    @Environment(\.locale) private var locale
     init(model: ProjectEditModel, chapterID: String, nodeID: String) {
         self.model = model; _controller = StateObject(wrappedValue: .init(model: model, chapterID: chapterID, nodeID: nodeID))
     }
@@ -51,16 +52,20 @@ import SwiftUI
             if controller.saveUnconfirmed { Text("projectNodeGameplay.saveUnconfirmed", tableName: "ProjectNodeGameplayRemoval") }
             else if !controller.available { Text("projectNodeGameplay.unavailable", tableName: "ProjectNodeGameplayRemoval").font(.caption) }
         }
-        .confirmationDialog(Text("projectNodeGameplay.confirmTitle", tableName: "ProjectNodeGameplayRemoval"),
-            isPresented: controller.binding(original), titleVisibility: .visible) {
-                if let original {
-                    Button(role: .destructive, action: { controller.clear(original) }, label: { Text("projectNodeGameplay.confirm", tableName: "ProjectNodeGameplayRemoval") })
-                    Button("action.cancel", role: .cancel) { controller.close(original) }
-                }
-            } message: {
-                if let original { Text(verbatim: original.nodeName + " · #" + String(original.templateID)) }
-                Text("projectNodeGameplay.impact", tableName: "ProjectNodeGameplayRemoval")
+        .sheet(isPresented: controller.binding(original)) {
+            if let original {
+                CYConfirmSheet(
+                    title: String(localized: LocalizedStringResource("projectNodeGameplay.confirmTitle", table: "ProjectNodeGameplayRemoval", locale: locale)),
+                    message: "\(original.nodeName) · #\(original.templateID)\n"
+                        + String(localized: LocalizedStringResource("projectNodeGameplay.impact", table: "ProjectNodeGameplayRemoval", locale: locale)),
+                    confirmTitle: String(localized: LocalizedStringResource("projectNodeGameplay.confirm", table: "ProjectNodeGameplayRemoval", locale: locale)),
+                    isDestructive: true,
+                    onConfirm: { controller.clear(original) }
+                )
+                .cyDomainSheet(detents: [.half])
+                .themeDomain(.topicEditor)
             }
+        }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }

@@ -6,6 +6,7 @@ import UIKit
     @ObservedObject var model: MerchantOnboardingModel
     @Binding var pickerPresented: Bool
     @Binding var uploadConfirmationPresented: Bool
+    @Environment(\.locale) private var locale
     @State private var photo: PhotosPickerItem?
     @State private var pickerIdentity: ProfileReadIdentity?
     @State private var pickerDraft: MerchantOnboardingDraft?
@@ -41,10 +42,20 @@ import UIKit
                 await model.selectBrandImage(selected); photo = nil
             }
         }
-        .confirmationDialog("merchant.onboardingBrand.uploadTitle", isPresented: $uploadConfirmationPresented, titleVisibility: .visible) {
-            Button("merchant.onboardingBrand.upload") { if let uploadID { Task { await model.uploadSelectedBrandImage(expectedID: uploadID) } } }
-            Button("action.cancel", role: .cancel) { }
-        } message: { Text("merchant.onboardingBrand.uploadMessage") }
+        .sheet(isPresented: $uploadConfirmationPresented) {
+            CYConfirmSheet(
+                title: appLocalized("merchant.onboardingBrand.uploadTitle", locale: locale),
+                message: appLocalized("merchant.onboardingBrand.uploadMessage", locale: locale),
+                confirmTitle: appLocalized("merchant.onboardingBrand.upload", locale: locale),
+                onConfirm: {
+                    if let uploadID {
+                        Task { await model.uploadSelectedBrandImage(expectedID: uploadID) }
+                    }
+                }
+            )
+            .cyDomainSheet(detents: [.half])
+            .themeDomain(.merchant)
+        }
         .onChange(of: model.identity) { _, _ in photo = nil; pickerPresented = false; uploadConfirmationPresented = false }
     }
 }

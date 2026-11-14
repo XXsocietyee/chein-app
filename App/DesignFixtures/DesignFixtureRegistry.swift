@@ -141,6 +141,10 @@ enum DesignFixtureRegistry {
             if name.hasPrefix("cur4-"), let cur4 = Cur4Fixtures.make(name) { return cur4 }
             // Batch-7 screens whose view types compile on this base (CurFixtures3): cur3-<view>[-<state>][-zh]
             if let cur3 = MainActor.assumeIsolated({ CurFixtures3.make(name) }) { return cur3 }
+            if name.hasPrefix("merchant-popup-"),
+               let popupFixture = MainActor.assumeIsolated({ MerchantAreaPopupFixtures.make(name) }) {
+                return popupFixture
+            }
             // parity-a, G6, mount-g45, be-gap and external-game screens (CurFixtures2): cur2-<view>[-<non-happy state>]
             if let cur2 = MainActor.assumeIsolated({ CurFixtures2.make(name) }) { return cur2 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())

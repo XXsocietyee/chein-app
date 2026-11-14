@@ -307,6 +307,40 @@ private struct CYToastModifier: ViewModifier {
     }
 }
 
+private struct CYToastVerbatimModifier: ViewModifier {
+    @Binding var message: String?
+    let tone: CYToastTone
+    let undoTitle: LocalizedStringKey?
+    let duration: Double
+    let onUndo: (() -> Void)?
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content.overlay(alignment: .bottom) {
+            if let message {
+                CYToastPill(verbatim: message, tone: tone, undoTitle: undoTitle, onUndo: onUndo.map { action in
+                    {
+                        action()
+                        self.message = nil
+                    }
+                })
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.bottom, CYSpacing.xxl)
+                .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                .task(id: message) {
+                    try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                        self.message = nil
+                    }
+                }
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: message != nil)
+    }
+}
+
 public extension View {
     /// Shows a short bottom toast while `message` is non-nil, then clears it.
     func cyToast(message: Binding<LocalizedStringKey?>, duration: Double = 2.5) -> some View {
@@ -322,6 +356,17 @@ public extension View {
         onUndo: (() -> Void)? = nil
     ) -> some View {
         modifier(CYToastModifier(message: message, tone: tone, undoTitle: undoTitle, duration: duration, onUndo: onUndo))
+    }
+
+    /// Shows a toned floating pill toast for an already localized runtime string.
+    func cyToast(
+        verbatimMessage: Binding<String?>,
+        tone: CYToastTone = .info,
+        undoTitle: LocalizedStringKey? = nil,
+        duration: Double = 2.5,
+        onUndo: (() -> Void)? = nil
+    ) -> some View {
+        modifier(CYToastVerbatimModifier(message: verbatimMessage, tone: tone, undoTitle: undoTitle, duration: duration, onUndo: onUndo))
     }
 }
 

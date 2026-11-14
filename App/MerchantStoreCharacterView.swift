@@ -25,6 +25,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
     @StateObject private var model: StoreCharacterModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     init(coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext? = nil, authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil) {
         _model = StateObject(wrappedValue: .init(coordinator, reform: reform, authorFlow: authorFlow))
     }
@@ -54,19 +55,44 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                 c.setPageVisible(phase == .active)
                 if phase == .active, c.homeVoiceStatus == .pending { Task { await c.refreshVoice() } }
             }
-            .sheet(isPresented: fieldPresented) { StoreCharacterFieldSheet(model: model) }
-            .sheet(isPresented: presetsPresented) { StoreCharacterPresetSheet(model: model) }
-            .sheet(isPresented: voicePresented) { StoreCharacterVoiceSheet(model: model) }
-            .confirmationDialog(Text("storeCharacter.discard.title", tableName: "StoreCharacter"), isPresented: discardPresented, titleVisibility: .visible) {
-                Button(role: .destructive) { if c.discardChanges() == .leave { dismiss() } } label: { t("storeCharacter.discard.discard") }
-                Button(role: .cancel) { c.keepEditing() } label: { t("storeCharacter.discard.keep") }
-            } message: { t("storeCharacter.discard.body") }
-            .confirmationDialog(Text("storeCharacter.mapPoint.confirmTitle", tableName: "StoreCharacter"), isPresented: mapPointPresented, titleVisibility: .visible) {
-                if let value = c.mapPointConfirmation {
-                    Button { Task { await c.confirmMapPoint(value.id) } } label: { t("storeCharacter.action.confirmSave") }
+            .sheet(isPresented: fieldPresented) {
+                StoreCharacterFieldSheet(model: model)
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
+            }
+            .sheet(isPresented: presetsPresented) {
+                StoreCharacterPresetSheet(model: model)
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
+            }
+            .sheet(isPresented: voicePresented) {
+                StoreCharacterVoiceSheet(model: model)
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
+            }
+            .cyModalConfirm(
+                isPresented: discardPresented.wrappedValue,
+                title: String(localized: LocalizedStringResource("storeCharacter.discard.title", table: "StoreCharacter", locale: locale)),
+                message: String(localized: LocalizedStringResource("storeCharacter.discard.body", table: "StoreCharacter", locale: locale)),
+                cancelTitle: String(localized: LocalizedStringResource("storeCharacter.discard.keep", table: "StoreCharacter", locale: locale)),
+                confirmTitle: String(localized: LocalizedStringResource("storeCharacter.discard.discard", table: "StoreCharacter", locale: locale)),
+                isDestructive: true,
+                onCancel: { c.keepEditing() },
+                onConfirm: { if c.discardChanges() == .leave { dismiss() } }
+            )
+            .cyModalConfirm(
+                isPresented: mapPointPresented.wrappedValue,
+                title: String(localized: LocalizedStringResource("storeCharacter.mapPoint.confirmTitle", table: "StoreCharacter", locale: locale)),
+                message: String(localized: LocalizedStringResource("storeCharacter.mapPoint.confirmBody", table: "StoreCharacter", locale: locale)),
+                cancelTitle: String(localized: LocalizedStringResource("storeCharacter.action.cancel", table: "StoreCharacter", locale: locale)),
+                confirmTitle: String(localized: LocalizedStringResource("storeCharacter.action.confirmSave", table: "StoreCharacter", locale: locale)),
+                onCancel: { c.cancelMapPoint() },
+                onConfirm: {
+                    if let value = c.mapPointConfirmation {
+                        Task { await c.confirmMapPoint(value.id) }
+                    }
                 }
-                Button(role: .cancel) { c.cancelMapPoint() } label: { t("storeCharacter.action.cancel") }
-            } message: { t("storeCharacter.mapPoint.confirmBody") }
+            )
     }
 
     private var deniedKey: Bool { if case .denied = c.phase { return true }; return false }

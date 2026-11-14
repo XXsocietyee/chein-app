@@ -226,7 +226,11 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 }.id(original.id)
             }
         }
-        .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) { pickerSheet }
+        .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) {
+            pickerSheet
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.topicEditor)
+        }
         .sheet(isPresented: $localReview) {
             let snapshot = review
             NavigationStack {
@@ -256,7 +260,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
                 }
             }
-            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.topicEditor)
         }
     }
     private func publishingForm(templateSelectionAction: UUID, templateReadID: UUID) -> some View {
@@ -425,12 +430,16 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             draft = .init(); draftID = UUID(); review = nil; localReview = false; message = ""
             wizardStep = 0; wizardBlock = nil; abandonConfirm = false
         }
-        .alert(Text("publishModes.abandon.title"), isPresented: $abandonConfirm) {
-            Button(role: .destructive) { dismiss() } label: { Text("publishModes.abandon.confirm") }
-            Button(role: .cancel) {} label: { Text("publishModes.abandon.keepEditing") }
-        } message: {
-            Text("publishModes.abandon.message")
-        }
+        .cyModalConfirm(
+            isPresented: $abandonConfirm,
+            title: appLocalized("publishModes.abandon.title", locale: locale),
+            message: appLocalized("publishModes.abandon.message", locale: locale),
+            cancelTitle: appLocalized("publishModes.abandon.keepEditing", locale: locale),
+            confirmTitle: appLocalized("publishModes.abandon.confirm", locale: locale),
+            isDestructive: true,
+            onCancel: { abandonConfirm = false },
+            onConfirm: { abandonConfirm = false; dismiss() }
+        )
         .onAppear { submission.setActive(scenePhase == .active); cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             submission.setActive(phase == .active)

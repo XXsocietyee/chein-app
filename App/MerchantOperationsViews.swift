@@ -213,6 +213,7 @@ struct MerchantOperationsDocumentView: View {
     var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @StateObject private var model: MerchantOperationsViewModel
     @State private var confirmDiscard = false
     @State private var confirmReload = false
@@ -293,19 +294,40 @@ struct MerchantOperationsDocumentView: View {
             }
         }
         .interactiveDismissDisabled(coordinator.isDirty || coordinator.isBusy)
-        .alert("merchant.operations.discardTitle", isPresented: $confirmDiscard) {
-            Button("merchant.operations.discard", role: .destructive) { model.discard(); dismiss() }
-            Button("merchant.operations.keepEditing", role: .cancel) { }
-                .accessibilityIdentifier("merchant.operations.keepEditing")
-        } message: { Text("merchant.operations.discardBody") }
-        .alert("merchant.operations.discardTitle", isPresented: $confirmReload) {
-            Button("merchant.operations.discardReload", role: .destructive) { model.discard(); Task { await model.load() } }
-                .accessibilityIdentifier("merchant.operations.discardReload")
-            Button("merchant.operations.keepEditing", role: .cancel) { }
-                .accessibilityIdentifier("merchant.operations.keepEditing")
-        } message: { Text("merchant.operations.discardBody") }
+        .cyModalConfirm(
+            isPresented: confirmDiscard,
+            title: appLocalized("merchant.operations.discardTitle", locale: locale),
+            message: appLocalized("merchant.operations.discardBody", locale: locale),
+            cancelTitle: appLocalized("merchant.operations.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.operations.discard", locale: locale),
+            isDestructive: true,
+            cancelIdentifier: "merchant.operations.keepEditing",
+            onCancel: { confirmDiscard = false },
+            onConfirm: {
+                confirmDiscard = false
+                model.discard()
+                dismiss()
+            }
+        )
+        .cyModalConfirm(
+            isPresented: confirmReload,
+            title: appLocalized("merchant.operations.discardTitle", locale: locale),
+            message: appLocalized("merchant.operations.discardBody", locale: locale),
+            cancelTitle: appLocalized("merchant.operations.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.operations.discardReload", locale: locale),
+            isDestructive: true,
+            cancelIdentifier: "merchant.operations.keepEditing",
+            confirmIdentifier: "merchant.operations.discardReload",
+            onCancel: { confirmReload = false },
+            onConfirm: {
+                confirmReload = false
+                model.discard(); Task { await model.load() }
+            }
+        )
         .sheet(item: Binding(get: { coordinator.isCurrent ? coordinator.confirmation : nil }, set: { if $0 == nil { model.cancel() } })) { confirmation in
             MerchantOperationsConfirmationView(model: model, confirmation: confirmation)
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
         }
         .task(id: reader.scope) { await model.loadForAppearance() }
         .onChange(of: reader.scope) { _, _ in model.invalidate() }

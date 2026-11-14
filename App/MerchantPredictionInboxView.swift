@@ -290,9 +290,8 @@ extension MerchantPredictionReading {
                     ContentUnavailableView("merchant.predict.stale", systemImage: "arrow.clockwise")
                 }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.close(id: selected.id) } } }
             .onAppear { model.didPresent(id: selected.id) }
             .onDisappear { model.close(id: selected.id); model.didDismiss(id: selected.id) }

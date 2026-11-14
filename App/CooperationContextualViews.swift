@@ -346,7 +346,10 @@ import SwiftUI
                 if phase == .active { let value = model.permit; Task { await model.loadInitial(value) } }
             }
             .onDisappear { model.disappear() }
-            .sheet(isPresented: $showEditor) { NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) } }
+            .sheet(isPresented: $showEditor) {
+                NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
+                    .cyDomainSheet(detents: [.half, .full])
+            }
     }
 }
 
@@ -485,10 +488,18 @@ import SwiftUI
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }
             }
             .interactiveDismissDisabled(dirty)
-            .confirmationDialog("coopflow.invite.discardPrompt", isPresented: $discard) {
-                Button("coopflow.invite.discard", role: .destructive) { dismiss() }
-                Button("action.cancel", role: .cancel) { }
-            }
+            .cyModalConfirm(
+                isPresented: discard,
+                title: appLocalized("coopflow.invite.discardPrompt", locale: locale),
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                confirmTitle: appLocalized("coopflow.invite.discard", locale: locale),
+                isDestructive: true,
+                onCancel: { discard = false },
+                onConfirm: {
+                    discard = false
+                    dismiss()
+                }
+            )
             .onChange(of: reader.session) { _, _ in message = ""; fee = ""; fixed = false; dismiss() }
     }
 }
