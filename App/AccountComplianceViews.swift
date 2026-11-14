@@ -545,7 +545,7 @@ struct ComplianceHeader: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Image(systemName: symbol).font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: symbol).font(CYTypography.sheetTitle).foregroundStyle(.white)
                 .frame(width: 52, height: 52)
                 .background(tint.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                 .accessibilityHidden(true)

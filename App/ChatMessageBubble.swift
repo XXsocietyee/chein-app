@@ -5,7 +5,7 @@ enum ChatGroupPosition { case single, first, middle, last
     var showsTail: Bool { self == .single || self == .last }
 }
 
-/// Chat colours. Sent bubbles use one neutral-blue accent (white text >= 5:1); violet stays on the selected tab only.
+/// Chat colours. Sent bubbles use one neutral-blue accent (white text >= 5:1); CYColor.tabSelected stays on the selected tab only.
 enum CYChat {
     static let sent = Color(red: 0.043, green: 0.388, blue: 0.898)
     static let onSent = Color.white

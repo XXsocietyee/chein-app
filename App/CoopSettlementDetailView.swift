@@ -134,7 +134,7 @@ import SwiftUI
             ForEach(Array(detail.timeline.enumerated()), id: \.offset) { _, step in
                 LabeledContent { Text(verbatim: valueText(step.value)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) } label: {
                     // Mini `.sd__timeline`: dot + label (600) with the time beneath on the trailing side.
-                    Label { Text(LocalizedStringKey("cooperation.settlement.step." + step.key)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.textPrimary) } icon: { Image(systemName: "circle.fill").font(.system(size: 7)).foregroundStyle(CYColor.textPrimary) }
+                    Label { Text(LocalizedStringKey("cooperation.settlement.step." + step.key)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.textPrimary) } icon: { Image(systemName: "circle.fill").font(CYTypography.micro).foregroundStyle(CYColor.textPrimary) }
                 }.accessibilityIdentifier("cooperation.settlement.step.\(step.key)")
             }
         }

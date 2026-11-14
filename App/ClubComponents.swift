@@ -292,7 +292,7 @@ struct E3LocationCard: View {
                     p.move(to: CGPoint(x: 40, y: 0)); p.addLine(to: CGPoint(x: 120, y: 120))
                     p.move(to: CGPoint(x: 200, y: 0)); p.addLine(to: CGPoint(x: 170, y: 120))
                 }.stroke(Color.white.opacity(0.14), lineWidth: 6)
-                Image(systemName: "mappin.circle.fill").font(.system(size: 34)).foregroundStyle(.white, Color.red)
+                Image(systemName: "mappin.circle.fill").font(CYTypography.dataXL).foregroundStyle(.white, Color.red)
                     .symbolRenderingMode(.palette)
             }
             .frame(height: 96).clipped().accessibilityHidden(true)
@@ -477,7 +477,7 @@ struct E3SectionTitle: View {
     }
 }
 
-/// Elevated card surface (#1C1C1E on #000), continuous 22 radius.
+/// Elevated card surface (`CYColor.bgElevated` on `CYColor.bgPage`), continuous `CYRadius.xxl`.
 extension View {
     func e3Card(padding: CGFloat = CYSpacing.lg) -> some View {
         self.padding(padding).frame(maxWidth: .infinity, alignment: .leading)

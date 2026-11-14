@@ -59,7 +59,8 @@ struct E1CoverArt: View {
             GeometryReader { g in
                 if let symbolPoint {
                 Image(systemName: symbol)
-                    .font(.system(size: min(g.size.width, g.size.height) * 0.3, weight: .light))
+                    .font(CYTypography.display)
+                    .scaleEffect(min(g.size.width, g.size.height) * 0.3 / Theme.length("--cy-type-display"))
                     .foregroundStyle(.white.opacity(0.4))
                     .position(x: g.size.width * symbolPoint.x, y: g.size.height * symbolPoint.y)
                 }
@@ -67,7 +68,7 @@ struct E1CoverArt: View {
         }
         .overlay(alignment: .topTrailing) {
             if debugLabel {
-                Text(verbatim: "DEBUG ART").font(.system(size: 8, weight: .semibold)).foregroundStyle(.white.opacity(0.5)).padding(6)
+                Text(verbatim: "DEBUG ART").font(CYTypography.micro).foregroundStyle(.white.opacity(0.5)).padding(6)
             }
         }
     }

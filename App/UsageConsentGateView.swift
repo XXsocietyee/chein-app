@@ -58,7 +58,7 @@ struct UsageConsentGateView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     Image(systemName: checked ? "checkmark.shield.fill" : "shield.lefthalf.filled")
-                        .font(.system(size: 30, weight: .semibold))
+                        .font(CYTypography.display)
                         .foregroundStyle(checked ? CYColor.successText : CYColor.textPrimary)
                         .frame(width: 64, height: 64)
                         .background(CYColor.bgElevated, in: Circle())

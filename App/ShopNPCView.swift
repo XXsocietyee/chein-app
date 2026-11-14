@@ -177,7 +177,7 @@ import SwiftUI
     private var textReviewButton: some View {
         let empty = draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         return Button { typing = false; guardedSend(current: { (draft, nil) }) { attempt { try coordinator.reviewText(draft) } } } label: {
-            Image(systemName: "arrow.up").font(.system(size: 17, weight: .bold))
+            Image(systemName: "arrow.up").font(CYTypography.button)
                 .frame(width: 44, height: 44)
                 .foregroundStyle(empty || !canCompose ? CYColor.textDisabled : CYColor.textInverse)
                 .background(empty || !canCompose ? CYColor.bgElevated : CYColor.textPrimary, in: Circle())
@@ -195,7 +195,7 @@ import SwiftUI
                 else { try capture.startAfterExplicitMicrophoneIntent(grants: coordinator.grants, onEnded: { recording = false }); recording = true }
             }
         } label: {
-            Image(systemName: recording ? "stop.fill" : "mic.fill").font(.system(size: 17, weight: .semibold))
+            Image(systemName: recording ? "stop.fill" : "mic.fill").font(CYTypography.button)
                 .frame(width: 44, height: 44).foregroundStyle(CYColor.textPrimary)
                 .background(CYColor.bgElevated, in: Circle())
         }

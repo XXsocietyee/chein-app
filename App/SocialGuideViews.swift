@@ -98,7 +98,7 @@ struct SocialInformationArt: View {
     var body: some View {
         LinearGradient(colors: tones, startPoint: .topLeading, endPoint: .bottomTrailing)
             .overlay(alignment: large ? .topTrailing : .center) {
-                Image(systemName: "text.book.closed").font(large ? .system(size: 56, weight: .thin) : .title3.weight(.light))
+                Image(systemName: "text.book.closed").font(large ? CYTypography.data2XL : .title3.weight(.light))
                     .foregroundStyle(.white.opacity(large ? 0.25 : 0.7)).padding(large ? CYSpacing.lg : 0)
             }
             .accessibilityHidden(true)

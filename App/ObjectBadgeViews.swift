@@ -408,7 +408,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                 if media == nil || badge.image.isEmpty {
                     ZStack {
                         LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Image(systemName: "medal.fill").font(.system(size: 76, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
+                        Image(systemName: "medal.fill").font(CYTypography.data2XL).foregroundStyle(.white.opacity(0.92))
                             .symbolEffect(.bounce, value: celebrate && !reduceMotion)
                     }
                 } else {

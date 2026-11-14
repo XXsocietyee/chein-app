@@ -235,7 +235,7 @@ struct PlayContinuationBannerView: View {
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "play.circle.fill")
-                                .font(.system(size: 40))
+                                .font(CYTypography.dataXL)
                                 .foregroundStyle(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
                         }

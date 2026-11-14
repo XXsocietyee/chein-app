@@ -113,8 +113,8 @@ struct SettingsView: View {
                     Text("settings.languageNotice")
                 }
                 .environment(\.settingsTileTint, SettingsTint.blue)
-                MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
-                SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
+                MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 Section {
                     NavigationLink {
                         BeGapMerchantHubView()
@@ -183,14 +183,13 @@ struct SettingsGuideHandoff {
 }
 
 
-/// Night-city tile colours: one muted hue per group. Lantern stays off chrome; violet stays off these tiles.
+/// Night-city tile colours: one muted hue per group. Lantern stays off chrome; CYColor.tabSelected stays off these tiles.
 enum SettingsTint {
     static let blue = CYNight.tileBlue
     static let green = CYNight.tileGreen
     static let orange = CYNight.tileOrange
     static let red = CYNight.tileRed
     static let pink = CYNight.tilePink
-    static let purple = CYNight.indigo
     static let indigo = CYNight.indigo
     static let teal = CYNight.tileTeal
     static let gray = CYNight.ink2

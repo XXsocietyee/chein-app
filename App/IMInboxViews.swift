@@ -205,7 +205,8 @@ struct CYIMCoverArt: View {
             RadialGradient(colors: [Color.white.opacity(0.22), .clear], center: .topTrailing, startRadius: 4, endRadius: 160)
             if symbolSize > 0 {
                 Image(systemName: systemImage)
-                    .font(.system(size: symbolSize, weight: .semibold))
+                    .font(CYTypography.dataXL)
+                    .scaleEffect(symbolSize / Theme.length("--cy-type-data-xl"))
                     .foregroundStyle(Color.white.opacity(0.85))
             }
         }

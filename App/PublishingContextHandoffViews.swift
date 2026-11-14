@@ -24,8 +24,8 @@ struct QuickPublishingInterest: Identifiable {
 
 enum QuickPublishingPalette {
     static func selection(in domain: ThemeDomain) -> Color {
-        // Existing topic-editor info blue is exactly c6's local #2F6DF0.
-        // The global brand token is charcoal and the old AI token is purple.
+        // Topic-editor selection reads CYColor.infoText for this domain.
+        // CYColor.brand stays neutral. CYColor.tabSelected stays on the selected tab.
         Theme.Generated.color("--cy-color-status-info", in: domain) ?? Theme.Color.accent(in: domain)
     }
 }

@@ -1031,18 +1031,17 @@ private struct WalletEarningsHero: View {
     let label: String
     let number: String
     let symbol: String?
-    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 56
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
             Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 if let symbol {
-                    Text(symbol).font(.system(size: size * 0.7, weight: .bold, design: .rounded))
+                    Text(symbol).font(CYTypography.dataXL)
                 } else {
                     Text("—").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
                         .accessibilityLabel(Text(verbatim: ""))
                 }
-                Text(number).font(.system(size: size, weight: .bold, design: .rounded)).monospacedDigit()
+                Text(number).font(CYTypography.data2XL)
             }
             .foregroundStyle(CYColor.textPrimary).lineLimit(1).minimumScaleFactor(0.5)
         }

@@ -117,7 +117,8 @@ import QuestifyCore
         if let frontVal = item.frontValue {
             let labelColor = item.gold ? Color(red: 0.17, green: 0.11, blue: 0.02) : Color.white
             let text = Text("\(frontVal)")
-                .font(.system(size: max(12, radius * 0.36), weight: .bold, design: .rounded))
+                .font(CYTypography.numericBody)
+                .scaleEffect(max(12, radius * 0.36) / Theme.length("--cy-type-body"))
                 .foregroundStyle(labelColor.opacity(item.alpha))
             context.draw(text, at: CGPoint(x: cx, y: cy), anchor: .center)
         }

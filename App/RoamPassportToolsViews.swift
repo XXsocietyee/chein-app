@@ -825,7 +825,7 @@ struct RoamRecapShareFace: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(month, format: .dateTime.year().month(.wide)).font(CYTypography.meta.weight(.semibold)).foregroundStyle(.white.opacity(0.85)).textCase(.uppercase)
-            Text(routes, format: .number).font(.system(size: 64, weight: .heavy, design: .rounded)).monospacedDigit().foregroundStyle(.white)
+            Text(routes, format: .number).font(CYTypography.data2XL).foregroundStyle(.white)
                 .minimumScaleFactor(0.6).lineLimit(1)
             Text("roam.tools.recap.routesDone").font(CYTypography.body.weight(.semibold)).foregroundStyle(.white.opacity(0.9))
             ViewThatFits(in: .horizontal) {

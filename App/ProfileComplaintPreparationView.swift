@@ -65,7 +65,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
         Form {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Image(systemName: "text.bubble.fill").font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
+                    Image(systemName: "text.bubble.fill").font(CYTypography.sheetTitle).foregroundStyle(.white)
                         .frame(width: 52, height: 52)
                         .background(SettingsTint.teal.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                         .accessibilityHidden(true)
