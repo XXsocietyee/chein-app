@@ -123,6 +123,9 @@ import SwiftUI
             // the same owner's mode host through refresh so its open card pack survives.
             if presentationMount.enter(model) { selectedNode = nil; presentedMode = nil }
             await model.load()
+            // E2E-20261113b: the mode can switch to city orientation before the snapshot is ready, when restoreRun's
+            // guard still fails, so the run record was never read and Start did nothing. Restore once the load is done.
+            if model.gameplayMode == .cityOrientation { await model.restoreRun(); projectAmbient() }
         }
         .onChange(of: model.gameplayMode) { _, mode in
             let previous = presentedMode
