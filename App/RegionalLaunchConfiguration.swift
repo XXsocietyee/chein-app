@@ -7,9 +7,16 @@ enum RegionalLaunchConfiguration {
     /// every United States build stay unconfigured and call no backend.
     @MainActor static var composition: AppCompositionRoot {
         #if DEBUG
-        if let e2e = E2ETestHostOverride.selected() { return e2e }
+        if let e2e = E2ETestHostOverride.selected() {
+            ReviewedAreaSwitch.installReleaseMoneyDerivation(host: e2e.reviewed?.regional.apiConfiguration?.baseURL.host)
+            return e2e
+        }
         #endif
-        return shippedComposition(build: .current)
+        let shipped = shippedComposition(build: .current)
+        #if DEBUG || TEST
+        ReviewedAreaSwitch.installReleaseMoneyDerivation(host: shipped.reviewed?.regional.apiConfiguration?.baseURL.host)
+        #endif
+        return shipped
     }
 
     /// China selection uses `ReviewedAppDeployment` through `reviewedComposition` and the

@@ -105,6 +105,7 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
+    @State private var showsPlay = false
     /// One load lifecycle instead of `access` / `loading` / `failed` (docs/release/state-machines/views.md).
     @State private var phase: CYPhase<ActivityDetailAccess, Void> = .idle
     private var access: ActivityDetailAccess? { phase.value }
@@ -210,6 +211,10 @@ struct ActivityDetailView: View {
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+        }
+        .navigationDestination(isPresented: $showsPlay) {
+            // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
+            if let playReaderForActivity { PlaySessionView(reader: playReaderForActivity(id)) }
         }
         .sheet(isPresented:$showsTicketWallet) {
             // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
@@ -424,6 +429,9 @@ struct ActivityDetailView: View {
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .accessibilityIdentifier("activity.detail.content")
+        // E2E-20261113b N3: the List did not inset for the pinned action, so the last section ("More info", which holds
+        // the play row) ended under it. Reserve the pinned action's height below the content.
+        .contentMargins(.bottom, registrationEnabled ? 112 : 0, for: .scrollContent)
         .safeAreaInset(edge:.bottom,spacing:0) {
             // This view exists only for .allowed details. Preserve the caller's
             // existing gate; the unchanged registration sheet owns further checks.
@@ -525,6 +533,7 @@ struct ActivityDetailView: View {
     }
     private func performPrimaryAction() {
         if primaryAction == .signUp { showsRegistration = true }
+        else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
         else if primaryAction != .cancelled, reader is AppSession { showsTicketWallet = true }
     }
     /// "From ¥58 · 24 going"; an unknown price or count is an em dash, never 0.
@@ -557,9 +566,10 @@ struct ActivityDetailView: View {
                 let action = primaryAction
                 let walletAvailable = reader is AppSession
                 CYPillButton(LocalizedStringKey(action.titleKey)) {
-                    if action != .cancelled, walletAvailable { showsTicketWallet = true }
+                    if action == .continueExploring, playReaderForActivity != nil { showsPlay = true }
+                    else if action != .cancelled, walletAvailable { showsTicketWallet = true }
                 }
-                .disabled(action == .cancelled || !walletAvailable)
+                .disabled(action == .cancelled || (!walletAvailable && !(action == .continueExploring && playReaderForActivity != nil)))
                 .accessibilityIdentifier("activity.primaryAction")
                 .accessibilityLabel(Text(LocalizedStringKey(action.titleKey)))
             }

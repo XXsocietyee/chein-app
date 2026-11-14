@@ -2411,10 +2411,20 @@ public enum ReleaseMoneyWriteKind: String, Sendable, CaseIterable {
 }
 
 public enum ReleaseMoneyWriteSwitch {
+    #if DEBUG || TEST
+    /// DEBUG/TEST only (owner 2026-11-13: money ON for TEST/DEBUG). The app installs a derivation from its host-based area
+    /// switch; with none installed every kind stays off. Release builds compile the constants below instead.
+    nonisolated(unsafe) public static var testDerivation: (@Sendable (ReleaseMoneyWriteKind) -> Bool)?
+    public static var paymentEnabled: Bool { testDerivation?(.payment) ?? false }
+    public static var payoutEnabled: Bool { testDerivation?(.payout) ?? false }
+    public static var withdrawalEnabled: Bool { testDerivation?(.withdrawal) ?? false }
+    public static var virtualGoodsEnabled: Bool { testDerivation?(.virtualGoods) ?? false }
+    #else
     public static let paymentEnabled = false
     public static let payoutEnabled = false
     public static let withdrawalEnabled = false
     public static let virtualGoodsEnabled = false
+    #endif
 
     public static func isEnabled(_ kind: ReleaseMoneyWriteKind) -> Bool {
         switch kind {

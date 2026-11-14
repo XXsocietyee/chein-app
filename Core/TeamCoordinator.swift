@@ -224,7 +224,8 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         if case .create(let context, _, _) = action, context != creation { messageKey = "team.changed"; return }
         do { _ = try TeamWriteContract(action) } catch { messageKey = "team.changed"; return }
         review = .init(id: UUID(), action: action, detail: detail, session: session)
-        messageKey = canSimulate ? "team.fixtureNotice" : "team.writesDisabled"
+        // E2E-20261113b: an approved lease must not announce "not available" before a create that will succeed.
+        messageKey = canSimulate ? "team.fixtureNotice" : (canSubmit ? nil : "team.writesDisabled")
     }
     public func cancelReview() { review = nil }
     /// The create control stays on screen when the write lease is closed. This records the refusal and does not call submit.

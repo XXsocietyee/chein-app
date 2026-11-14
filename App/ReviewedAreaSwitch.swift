@@ -69,6 +69,25 @@ enum ReviewedAreaSwitch {
         openMoney(apiHost: host, testOrDebug: testOrDebug)
     }
 
+    // MARK: Core money-write switch (DEBUG/TEST only)
+
+    #if DEBUG || TEST
+    /// Owner 2026-11-13: money ON for TEST/DEBUG only. Core `ReleaseMoneyWriteSwitch` follows this host's area switch:
+    /// payment from `moneyPayments`, payout and withdrawal from `payout`. Virtual goods stay off (no digital goods are sold).
+    /// Release builds compile none of this and keep the Core constants false.
+    static func installReleaseMoneyDerivation(host: String?) {
+        ReleaseMoneyWriteSwitch.testDerivation = { kind in releaseMoneyDerivation(kind, host: host) }
+    }
+
+    static func releaseMoneyDerivation(_ kind: ReleaseMoneyWriteKind, host: String?) -> Bool {
+        switch kind {
+        case .payment: return moneyPayments(host: host)
+        case .payout, .withdrawal: return payout(host: host)
+        case .virtualGoods: return false
+        }
+    }
+    #endif
+
     // MARK: shared
 
     private static func openMoney(apiHost: String?, testOrDebug: Bool) -> Bool {

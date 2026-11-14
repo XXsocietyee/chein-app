@@ -12,6 +12,13 @@ struct HomeHeroHeaderSectionView: View {
     var onSelectCity: ((String?, Bool) -> Void)? = nil
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
+    @Environment(\.externalGameSession) private var externalGameSession
+    /// The fixed banners, plus Mini games for a signed-in session where the external-games switch is open.
+    private var actionBanners: [HomeIndexParityPresentation.ActionBanner] {
+        guard let externalGameSession, ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession.baseURL)
+        else { return HomeIndexParityPresentation.fixedActionBanners }
+        return HomeIndexParityPresentation.fixedActionBanners + [HomeIndexParityPresentation.miniGamesBanner]
+    }
 
     private var hasCity: Bool {
         onSelectCity != nil || isNationwide || !(selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
@@ -118,7 +125,7 @@ struct HomeHeroHeaderSectionView: View {
                 }
                 // The three fixed action banners are demoted into one quiet menu row; every banner stays reachable.
                 Menu {
-                    ForEach(HomeIndexParityPresentation.fixedActionBanners) { banner in
+                    ForEach(actionBanners) { banner in
                         Button {
                             onSelectBanner?(banner)
                         } label: {

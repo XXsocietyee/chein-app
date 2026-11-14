@@ -21,4 +21,24 @@ final class ReviewedAreaSwitchTests: XCTestCase {
         XCTAssertFalse(ReviewedAreaSwitch.externalGames(apiHost: nil))
         XCTAssertFalse(ReviewedAreaSwitch.externalGames(apiHost: ""))
     }
+
+    /// Owner 2026-11-13: Core money writes follow the area switch in DEBUG/TEST builds. Production host and no host stay off;
+    /// virtual goods stay off for every host. Release builds keep the Core constants false (compiled out, checked in source).
+    func testDebugMoneyWriteSwitchFollowsTheHostAndRestoresClosed() {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReviewedAreaSwitch.installReleaseMoneyDerivation(host: "8120.example.test")
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.blocks("/api/pay/create"))
+        ReviewedAreaSwitch.installReleaseMoneyDerivation(host: ReviewedAreaSwitch.productionAPIHost)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.blocks("/api/pay/create"))
+        ReviewedAreaSwitch.installReleaseMoneyDerivation(host: nil)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
+    }
 }

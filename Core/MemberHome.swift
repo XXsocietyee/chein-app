@@ -270,12 +270,31 @@ public struct MemberHomeService {
         self.configuration = configuration; self.transport = transport
     }
     public func identity(token: String) async throws -> MemberIdentitySnapshot {
-        try await read(AuthRequestBuilder(configuration: configuration).make(.userInfo, token: token))
+        let base: MemberIdentitySnapshot = try await read(AuthRequestBuilder(configuration: configuration).make(.userInfo, token: token))
+        guard !base.countersReady, let request = try? countersRequest(token),
+              let full: MemberIdentitySnapshot = try? await read(request), full.countersReady,
+              base.id == nil || full.id == base.id else { return base }
+        return full
     }
     /// Same body-less `userInfo` read as `identity`. Null or non-object data is `.unknown`, not a zeroed card.
     public func identityPage(token: String) async throws -> MemberHomePageState {
         let request = try AuthRequestBuilder(configuration: configuration).make(.userInfo, token: token)
-        return try await page(request, classify: MemberHomePageModel.classifyIdentity)
+        let base = try await page(request, classify: MemberHomePageModel.classifyIdentity)
+        guard case .ready(.identity(let card)) = base, card.followText == MemberHomeCountFact.unknownDisplay,
+              let counters = try? await page(countersRequest(token), classify: MemberHomePageModel.classifyIdentity),
+              case .ready(.identity(let full)) = counters, full.nickname == card.nickname,
+              full.followText != MemberHomeCountFact.unknownDisplay else { return base }
+        return counters
+    }
+    /// E2E-20261113b R10: `api/userInfo` carries no counters. `api/user/info` (the profile read, an empty multipart form)
+    /// carries follow, fans, friend, topic, activity, like and balance. Used only when the first read had none.
+    private func countersRequest(_ token: String) throws -> URLRequest {
+        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/user/info"),
+                                                             fields: [:], token: token, includesBody: false)
+        let boundary = "MemberCounters-" + UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data("--\(boundary)--\r\n".utf8)
+        return request
     }
     public func roleInfo(token: String) async throws -> MemberRoleInfo {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }

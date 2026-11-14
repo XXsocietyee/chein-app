@@ -319,6 +319,7 @@ struct SessionRootView: View {
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .overlay { CYNightTabBar(selection: selectedTab) }
+                .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
                 .cyHaptic(.selection, trigger: selectedTab)
                 .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } } // Publish is no player tab (W1-1)
                 .roleTheme(.player)

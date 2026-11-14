@@ -119,6 +119,32 @@ private struct IMRecipientPreviewKey: EnvironmentKey {
     static let defaultValue = IMRecipientPreviewInput.closed
 }
 
+/// Leases for one server conversation id, one per template; nil when previews are not granted (fixtures, guests).
+private struct IMRecipientPreviewLeasesKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int64) -> [IMPreviewTemplateLease])? = nil
+}
+
+extension EnvironmentValues {
+    var imRecipientPreviewLeases: (@MainActor (Int64) -> [IMPreviewTemplateLease])? {
+        get { self[IMRecipientPreviewLeasesKey.self] }
+        set { self[IMRecipientPreviewLeasesKey.self] = newValue }
+    }
+}
+
+extension AppSession {
+    /// E2E-20261113b N1. One lease per GET template for the signed-in viewer and a server-provided conversation id.
+    /// Nil unless the reviewed China player grant is on; the lease factory refuses other roles and ids.
+    var imRecipientPreviewLeaseSource: (@MainActor (Int64) -> [IMPreviewTemplateLease])? {
+        guard composition.reviewed?.playerWritesEnabled == true, composition.reviewed?.regional.market == .china else { return nil }
+        return { [weak self] conversationID in
+            guard let self, let context = self.currentRuntimeDependencyContext else { return [] }
+            return ReviewedProductionGateLeases.imPreviewTemplates.compactMap {
+                self.composition.productionGateLeases.imPreviewLease(context, conversationID: conversationID, template: $0)
+            }
+        }
+    }
+}
+
 extension EnvironmentValues {
     var imRecipientPreview: IMRecipientPreviewInput {
         get { self[IMRecipientPreviewKey.self] }

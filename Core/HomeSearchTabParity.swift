@@ -79,6 +79,7 @@ public enum HomeIndexParityPresentation {
             case "club_apply": return "Become a Club"
             case "merchant_apply": return "Become a Merchant"
             case "activity_list": return "Join Activities with Friends"
+            case "mini_games": return "Mini games"
             default: return title
             }
         }
@@ -134,6 +135,9 @@ public enum HomeIndexParityPresentation {
         ActionBanner(id: "merchant_apply", title: "成为商家", routePath: "pages/merchant/apply"),
         ActionBanner(id: "activity_list", title: "和朋友报名活动", routePath: "pages/activity/list")
     ]
+
+    /// E2E-20261113b: the discoverable external HTML game entry. Shown only where the external-games switch is open.
+    public static let miniGamesBanner = ActionBanner(id: "mini_games", title: "小游戏", routePath: "native/mini-games")
 
     /// Continuation card kind for Home (`play/run-session/list` vs `registration/my-joined`).
     public enum ContinuationKind: String, Equatable, Hashable, Sendable {

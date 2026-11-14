@@ -111,6 +111,17 @@ struct MessagingHistoryView: View {
             && history.conversationID == conversationID && replyPolicy.isValidConversation
             && !isLoading && issue == nil
     }
+    @Environment(\.imRecipientPreviewLeases) private var previewLeases
+    /// E2E-20261113b N1. The lease's conversation is server-provided only: the decoded conversation record, else the
+    /// decoded messages' own conversation. The route's `conversationID` is never used; `issue` re-checks each message.
+    private var recipientPreviewInput: IMRecipientPreviewInput {
+        guard let previewLeases, let serverConversationID = conversation?.id ?? history.messages.first?.conversationID,
+              serverConversationID > 0 else { return .closed }
+        if isLoading { return IMRecipientPreviewInput(phase: .loading, leases: [], now: Date()) }
+        if issue != nil { return IMRecipientPreviewInput(phase: .error, leases: [], now: Date()) }
+        return IMRecipientPreviewInput(phase: .ready, leases: previewLeases(Int64(serverConversationID)), now: Date())
+    }
+
     var body: some View {
         let authority = replyAuthority
         let lease = authority.bind(reader: reader, policy: replyPolicy, ready: currentHistoryReady)
@@ -303,6 +314,7 @@ struct MessagingHistoryView: View {
                                 currentMessage: { history.messages.first { $0.id == message.id } })
                         } label: {
                             MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single)
+                                .environment(\.imRecipientPreview, recipientPreviewInput)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("messaging.message.\(message.id)")

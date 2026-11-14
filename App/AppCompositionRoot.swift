@@ -418,7 +418,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let workshopPaidProfessionalWriteApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidProfessionalWriteApproval?
     let workshopPaidInstalledTextApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstalledTextApproval?
     let workshopPaidInstallApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPaidInstallApproval?
-    let workshopPurchasedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPurchasedReadApproval?
+    var workshopPurchasedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopPurchasedReadApproval?
     let workshopOwnedReadApproval: @MainActor (RuntimeDependencyContext) -> WorkshopOwnedReadApproval?
     let ownerDraftReadApproval: @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval?
     let couponLocks: @MainActor () -> any CouponManagementLocking
@@ -603,6 +603,8 @@ extension KeychainTokenStore: AppTokenStorage {}
             clubPublicTopicsApproval = { [gates] context, clubID in gates.clubPublicTopics(context, clubID: clubID) }
             nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }
             installSocialWriteApprovals(gates)
+            // E2E-20261113b N4: the purchased library follows the TEST money switch (closed on the production host).
+            workshopPurchasedReadApproval = { [gates] context in gates.workshopPurchasedRead(context) }
         }
     }
 

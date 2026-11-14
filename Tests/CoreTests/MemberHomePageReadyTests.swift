@@ -172,3 +172,31 @@ extension MemberHomePageReadyTests {
         XCTAssertEqual(preferred.nickname, "Synthetic member")
     }
 }
+
+/// `api/userInfo` (no counters) first, then `api/user/info` (counters), like TEST r2.
+private actor MemberHomeTwoReadWire: HTTPTransport {
+    private(set) var paths: [String] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let path = request.url?.path ?? ""
+        paths.append(path)
+        if path.hasSuffix("/api/userInfo") {
+            return (Data(#"{"code":200,"msg":"ok","appUser":{"userId":7,"nickName":"Synthetic member"}}"#.utf8), 200)
+        }
+        let full = #"{"code":200,"data":{"id":7,"nickname":"Synthetic member","followNum":3,"fansNum":4,"friendNum":2,"topicNum":1,"activityNum":5,"likeNum":6,"balance":1.50}}"#
+        return (Data(full.utf8), 200)
+    }
+}
+
+extension MemberHomePageReadyTests {
+    /// E2E-20261113b R10: the Passport counters come from `api/user/info` when `api/userInfo` has none.
+    func testCountersComeFromUserInfoWhenTheSessionReadHasNone() async throws {
+        let wire = MemberHomeTwoReadWire()
+        let page = try await service(wire).identityPage(token: "synthetic-member")
+        guard case .ready(.identity(let card)) = page else { return XCTFail("\(page)") }
+        XCTAssertEqual(card.followText, "3"); XCTAssertEqual(card.fansText, "4"); XCTAssertEqual(card.friendText, "2")
+        let paths = await wire.paths
+        XCTAssertEqual(paths.map { String($0.split(separator: "/").suffix(2).joined(separator: "/")) }, ["api/userInfo", "user/info"])
+        let identity = try await service(MemberHomeTwoReadWire()).identity(token: "synthetic-member")
+        XCTAssertEqual(identity.followCount, 3); XCTAssertTrue(identity.countersReady)
+    }
+}

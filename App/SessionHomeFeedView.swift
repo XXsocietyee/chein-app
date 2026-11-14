@@ -21,6 +21,8 @@ import SwiftUI
     @State private var showsProjectEditor=false
     @State private var showsClubApplication=false
     @State private var showsMerchantApplication=false
+    @State private var showsMiniGames = false
+    @Environment(\.locale) private var locale
     @StateObject private var cityConsent = HomeCityLocationConsentModel()
     var body:some View {
         navigationRoot
@@ -153,6 +155,14 @@ import SwiftUI
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .sheet(isPresented:$showsClubApplication) { clubApplicationSheet }
         .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet }
+        .sheet(isPresented: $showsMiniGames) {
+            NavigationStack {
+                ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
+                    .navigationTitle(Text(verbatim: HomeIndexParityPresentation.miniGamesBanner.title(locale: locale)))
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { showsMiniGames = false } } }
+            }
+            .accessibilityIdentifier("homeIndex.miniGames")
+        }
     }
     @ViewBuilder private func continuationDestination(_ scope: PlaySessionScope) -> some View {
         if session.playExperience(for: scope) != nil {
@@ -224,6 +234,8 @@ import SwiftUI
             if session.account == nil { onSignIn?() } else { showsClubApplication = true }
         case "merchant_apply":
             if session.account == nil { onSignIn?() } else { showsMerchantApplication = true }
+        case "mini_games":
+            if session.account == nil { onSignIn?() } else { showsMiniGames = true }
         default:
             break
         }
