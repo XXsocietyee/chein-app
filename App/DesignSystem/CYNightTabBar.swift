@@ -93,3 +93,18 @@ struct CYNightTabBar: View {
             .frame(width: max(width, 40), height: pillHeight)
     }
 }
+
+extension View {
+    /// E2E-20261113b N3: on iOS 26 the floating tab bar does not shrink the tab content's safe area, so bottom rows and
+    /// pinned actions (play panel stations, the activity "More info" row, club entries) ended up under it. Each tab root
+    /// reserves the bar's height; the bar itself is outside this padding.
+    func cyFloatingTabBarClearance() -> some View {
+        modifier(CYFloatingTabBarClearance())
+    }
+}
+
+private struct CYFloatingTabBarClearance: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) { content.safeAreaPadding(.bottom, 56) } else { content }
+    }
+}
