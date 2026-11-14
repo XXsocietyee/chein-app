@@ -589,7 +589,7 @@ enum HostedAccessibilityRuntime {
     @MainActor private final class Wire: HTTPTransport {
         var accountID = 7, role = "player", token = "synthetic-7", delaysOwned = false
         var requests: [URLRequest] = []
-        var owned: [URLRequest] { requests.filter { $0.url?.path.contains("/workshop/purchased/") == true } }
+        var owned: [URLRequest] { requests.filter { $0.url?.path.contains("/workshop/v2/purchased/") == true } }
         var pending: CheckedContinuation<(Data, Int), Never>?
         func waitForPending() async { for _ in 0..<500 { if pending != nil { return }; await Task.yield() }; XCTFail("synthetic transport did not start") }
         func resume(_ reply: (Data, Int)) { let continuation = pending; pending = nil; continuation?.resume(returning: reply) }
@@ -599,7 +599,7 @@ enum HostedAccessibilityRuntime {
         static func envelope(_ data: [String: Any]) -> (Data, Int) { (try! JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200) }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request)
-            if request.url?.path.contains("/workshop/purchased/") == true {
+            if request.url?.path.contains("/workshop/v2/purchased/") == true {
                 if delaysOwned { return await withCheckedContinuation { pending = $0 } }
                 if request.url?.lastPathComponent == "list" { return Self.listReply }
                 var detail = Self.header; detail["item"] = Self.item; return Self.envelope(detail)

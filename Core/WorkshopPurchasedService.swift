@@ -82,7 +82,7 @@ public struct WorkshopPurchasedReadApproval {
     private struct Code: Decodable { let code: Int }
     private func request<T: Decodable>(path: String, body: Data, lifetime: WorkshopPurchasedReadLifetime) async throws -> T {
         try check(lifetime)
-        var request = try AuthRequestBuilder.makeFormRequest(url: api.baseURL.appendingPathComponent("api/workshop/purchased/" + path),
+        var request = try AuthRequestBuilder.makeFormRequest(url: api.baseURL.appendingPathComponent("api/workshop/v2/purchased/" + path),
             fields: [:], token: lease.context.session.token, includesBody: false)
         request.httpBody = body
         request.setValue(String(body.count), forHTTPHeaderField: "Content-Length")
