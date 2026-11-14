@@ -120,6 +120,7 @@ class TestDesignTokenUnificationContract(unittest.TestCase):
             "App/DesignSystem/CYDesignTokens.swift",
             "App/DesignSystem/CYDomainPalette.swift",
             "App/DesignSystem/CYDesignComponents.swift",
+            "App/DesignFixtures/E3Fixtures.swift",
             "App/GrowthCenterView.swift",
             "App/GrowthLeaderboardView.swift",
             "App/MemberHomeHeader.swift",
