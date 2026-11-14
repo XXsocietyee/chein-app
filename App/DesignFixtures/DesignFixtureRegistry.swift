@@ -136,6 +136,8 @@ enum DesignFixtureRegistry {
             if let qr = MainActor.assumeIsolated({ QRScanFixtures.make(name) }) { return qr }
             // G1 / G7-G8 / parity-b player views on a synthetic transport (GParityFixtures): g-<view>[-<non-happy state>]
             if let g = MainActor.assumeIsolated({ GParityFixtures.make(name) }) { return g }
+            // Handovers 59–62: error sentences, permission primers, compliance pages, search filters.
+            if let cur6 = MainActor.assumeIsolated({ CurFixtures6.make(name) }) { return cur6 }
             if let preview = MainActor.assumeIsolated({ IMRecipientPreviewFixtures.make(name) }) { return preview }
             if name.hasPrefix("cur4-"), let cur4 = Cur4Fixtures.make(name) { return cur4 }
             // Batch-7 screens whose view types compile on this base (CurFixtures3): cur3-<view>[-<state>][-zh]
