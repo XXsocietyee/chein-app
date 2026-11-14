@@ -43,11 +43,23 @@ import SwiftUI
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
-                            CYEmptyState(systemImage: "ticket", "accountCollection.coupons.empty", kind: .orders, messageIdentifier: "accountCollection.coupons.empty")
-                                .listRowBackground(Color.clear)
+                            CYEmptyState(
+                                systemImage: "ticket",
+                                "accountCollection.coupons.empty",
+                                detail: "accountCollection.coupons.empty.detail",
+                                messageIdentifier: "accountCollection.coupons.empty",
+                                kind: .orders
+                            )
+                            .listRowBackground(Color.clear)
                         } else {
-                            CYEmptyState(systemImage: "line.3.horizontal.decrease.circle", "accountCollection.coupons.filteredEmpty", kind: .search, messageIdentifier: "accountCollection.coupons.filteredEmpty")
-                                .listRowBackground(Color.clear)
+                            CYEmptyState(
+                                systemImage: "line.3.horizontal.decrease.circle",
+                                "accountCollection.coupons.filteredEmpty",
+                                detail: "accountCollection.coupons.filteredEmpty.detail",
+                                messageIdentifier: "accountCollection.coupons.filteredEmpty",
+                                kind: .search
+                            )
+                            .listRowBackground(Color.clear)
                         }
                     }
                     let selections = model.selections(for: offeredRequest, filter: filter)

@@ -69,7 +69,10 @@ import SwiftUI
                 }
                 if let row = p.rows.first(where: { $0.endingKey == selectedEnding }) {
                     Section(row.title) {
-                        if let proposal = row.proposalKey { Text("原提案 \(proposal) · 版本 \(row.version ?? 0)").font(.caption) }
+                        if let proposal = row.proposalKey {
+                            let versionText = row.version.map(String.init) ?? "—"
+                            Text(verbatim: "原提案 \(proposal) · 版本 \(versionText)").font(.caption)
+                        }
                         Text("本队私有意向：" + amounts(row.ownIntent, p))
                         Text(row.ownConfirmed ? "本队当前队长已确认托管" : row.signatureCurrent ? "本队当前队长已签署意向，尚未托管" : row.ownIntent.isEmpty ? "尚无本队投入意向" : "队长已变更，旧意向签名无效，须改案后重新签署")
                         ForEach(row.confirmed.keys.sorted(), id: \.self) { team in Text("原公开托管 · 队伍 \(team)：" + amounts(row.confirmed[team] ?? [], p)).font(.caption) }

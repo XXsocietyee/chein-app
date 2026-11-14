@@ -530,33 +530,35 @@
       }
     },
     "storeCharacter.error.network": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Network error. Please try again later."
+            "value": "Connection timed out. Check your network and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "网络异常，请稍后重试"
+            "value": "网络不太稳，检查后再试一次"
           }
         }
       }
     },
     "storeCharacter.error.request": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request failed. Please try again."
+            "value": "Could not complete this request. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求失败，请重试"
+            "value": "没有完成这次请求，再试一次"
           }
         }
       }

@@ -28,7 +28,7 @@
     {"key": "growth.explorer", "en": "Explorer", "zh-Hans": "探索者"},
     {"key": "growth.unranked", "en": "Not ranked yet", "zh-Hans": "暂无排名"},
     {"key": "growth.unknown", "en": "—", "zh-Hans": "—"},
-    {"key": "growth.unknownValue", "en": "Not available", "zh-Hans": "暂无数据"},
+    {"key": "growth.unknownValue", "en": "Unknown", "zh-Hans": "未知"},
     {"key": "growth.unit.point", "en": "Points", "zh-Hans": "积分"},
     {"key": "growth.unit.exp", "en": "EXP", "zh-Hans": "EXP"},
     {"key": "growth.board.meTag", "en": "Me", "zh-Hans": "我"},

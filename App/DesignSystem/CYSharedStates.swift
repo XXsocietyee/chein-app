@@ -69,13 +69,34 @@ public struct CYLoadingStateView: View {
 /// Inline banner for "no connection". One optional retry action; text wraps at large Dynamic Type sizes.
 public struct CYOfflineBanner: View {
     private let onRetry: (() -> Void)?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(onRetry: (() -> Void)? = nil) {
         self.onRetry = onRetry
     }
 
     public var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
+        Group {
+            if dynamicTypeSize >= .xxLarge {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    bannerLabel
+                    retryButton
+                }
+            } else {
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    bannerLabel
+                    retryButton
+                }
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg)
+        .padding(.vertical, CYSpacing.xs)
+        .background(CYColor.warningSoft)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var bannerLabel: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
             Image(systemName: "wifi.slash")
                 .font(CYTypography.label)
                 .foregroundStyle(CYColor.warningText)
@@ -84,23 +105,24 @@ public struct CYOfflineBanner: View {
             Text("cy.state.offline.title")
                 .font(CYTypography.bodyCompact)
                 .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-            if let onRetry {
-                Button(action: onRetry) {
-                    Text("cy.state.offline.retry")
-                        .font(CYTypography.label)
-                        .foregroundStyle(CYColor.brand)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.vertical, CYSpacing.xs)
-        .background(CYColor.warningSoft)
-        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var retryButton: some View {
+        if let onRetry {
+            Button(action: onRetry) {
+                Text("cy.state.offline.retry")
+                    .font(CYTypography.label)
+                    .foregroundStyle(CYColor.brand)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
     }
 }
 
@@ -110,6 +132,7 @@ public struct CYInlineError: View {
     private let verbatim: String?
     private let retryTitle: LocalizedStringKey?
     private let onRetry: (() -> Void)?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(
         _ message: LocalizedStringKey,
@@ -134,7 +157,27 @@ public struct CYInlineError: View {
     }
 
     public var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
+        Group {
+            if dynamicTypeSize >= .xxLarge {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    errorLabel
+                    retryButton
+                }
+            } else {
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    errorLabel
+                    retryButton
+                }
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg)
+        .padding(.vertical, CYSpacing.md)
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.dangerSoft))
+        .accessibilityElement(children: .combine)
+    }
+
+    private var errorLabel: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
             Image(systemName: "exclamationmark.circle.fill")
                 .font(CYTypography.label)
                 .foregroundStyle(CYColor.dangerText)
@@ -149,23 +192,24 @@ public struct CYInlineError: View {
             }
             .font(CYTypography.bodyCompact)
             .foregroundStyle(CYColor.dangerText)
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
-
-            if let retryTitle, let onRetry {
-                Button(action: onRetry) {
-                    Text(retryTitle)
-                        .font(CYTypography.label.weight(.semibold))
-                        .foregroundStyle(CYColor.dangerText)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.vertical, CYSpacing.md)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.dangerSoft))
-        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var retryButton: some View {
+        if let retryTitle, let onRetry {
+            Button(action: onRetry) {
+                Text(retryTitle)
+                    .font(CYTypography.label.weight(.semibold))
+                    .foregroundStyle(CYColor.dangerText)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
     }
 }
 
@@ -247,6 +291,7 @@ public struct CYToastPill: View {
             .font(CYTypography.bodyCompact)
             .foregroundStyle(CYColor.textPrimary)
             .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
 
             if let undoTitle, let onUndo {
                 Button(action: onUndo) {

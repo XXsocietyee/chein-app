@@ -4,113 +4,273 @@
     "requestReference.label": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Request reference (for support)"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "请求编号（反馈问题时提供）"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request reference (for support)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求编号（反馈问题时提供）"
+          }
+        }
       }
     },
     "requestReference.copy": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Copy"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "复制"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制"
+          }
+        }
       }
     },
     "requestReference.copied": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Copied"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已复制"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制"
+          }
+        }
       }
     },
     "privacy.location.holds.title": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Location in use now"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "正在使用定位"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location in use now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在使用定位"
+          }
+        }
       }
     },
     "privacy.location.holds.roam": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This device is collecting location for roam"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机正在为漫游采集位置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device is collecting location for roam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机正在为漫游采集位置"
+          }
+        }
       }
     },
     "privacy.location.holds.play": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This device is using location for a play run (only while it is open)"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机正在为游玩使用定位（仅前台）"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device is using location for a play run (only while it is open)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机正在为游玩使用定位（仅前台）"
+          }
+        }
       }
     },
     "privacy.location.holds.background": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Also when the screen is locked"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "锁屏后仍在记录"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also when the screen is locked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁屏后仍在记录"
+          }
+        }
       }
     },
     "privacy.location.holds.none": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This device is not collecting location for roam or play"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机未在为漫游或游玩采集位置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device is not collecting location for roam or play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机未在为漫游或游玩采集位置"
+          }
+        }
       }
     },
     "privacy.location.holds.stop": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Stop"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "停止"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
+          }
+        }
       }
     },
     "privacy.location.holds.footer": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Stop ends that session's location on this device now. Your location is never shared with other players."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "停止后本机立即结束该行程的定位。你的位置不会分享给其他玩家。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop ends that session's location on this device now. Your location is never shared with other players."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止后本机立即结束该行程的定位。你的位置不会分享给其他玩家。"
+          }
+        }
       }
     },
     "roam.live.backgroundLocationOn": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Recording your route, also when the screen is locked"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "锁屏后仍在记录轨迹"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording your route, also when the screen is locked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁屏后仍在记录轨迹"
+          }
+        }
       }
     },
     "roam.live.backgroundLocationHint": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Pause or finish the walk to stop location."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂停或结束漫游即停止定位"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause or finish the walk to stop location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停或结束漫游即停止定位"
+          }
+        }
       }
     },
     "wallet.points.spendRules": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Points spending"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "积分消耗"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points spending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分消耗"
+          }
+        }
       }
     },
     "wallet.points.spendUsedCount": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Times used"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已用次数"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Times used"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用次数"
+          }
+        }
       }
     },
     "registration.form.points.noPoints": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No points available"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂无可用积分"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可用积分"
+          }
+        }
       }
     },
     "registration.form.points.ticketRefuses": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This ticket doesn’t support points"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该票不支持积分抵扣"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ticket doesn’t support points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该票不支持积分抵扣"
+          }
+        }
       }
     },
     "beGapIm.entry": {
@@ -4909,13 +5069,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Service unavailable"
+            "value": "Service is not ready yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务不可用"
+            "value": "当前服务暂未就绪"
           }
         }
       }
@@ -43072,13 +43232,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon codes are unavailable"
+            "value": "Coupon codes are not open yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券出示码暂不可用"
+            "value": "优惠券出示码暂未开放"
           }
         }
       }
@@ -43089,13 +43249,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon code display is currently unavailable. Contact the administrator."
+            "value": "Coupon code display is not open right now. Check with the organizer or administrator."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券出示码暂不可用，请联系管理员"
+            "value": "优惠券出示码暂未开放，请联系管理员"
           }
         }
       }
@@ -51470,13 +51630,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your map and lit tiles are here; new content waits for the network."
+            "value": "Saved content is still here; new updates wait for the network."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地图和已点亮的格子还在；新内容等网络回来"
+            "value": "已缓存的内容还在；新内容等网络回来后再更新"
           }
         }
       }
@@ -67003,13 +67163,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not available"
+            "value": "Unknown"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无数据"
+            "value": "未知"
           }
         }
       }
@@ -113898,13 +114058,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request failed"
+            "value": "Did not go through. Try sending again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求失败"
+            "value": "没发出去，再试一次"
           }
         }
       }
@@ -122531,7 +122691,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "— joined"
+            "value": "Group size —"
           }
         },
         "zh-Hans": {
@@ -237631,13 +237791,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unable to load content right now"
+            "value": "Could not load this right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法加载内容"
+            "value": "内容没加载出来"
           }
         }
       }
@@ -239263,13 +239423,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please check your network connection and try again"
+            "value": "Check your connection and try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请检查网络连接后重试"
+            "value": "检查网络后再试一次"
           }
         }
       }
@@ -275650,6 +275810,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "已离线保存，将于联网后自动发送"
+          }
+        }
+      }
+    },
+    "cy.progress.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read progress. Node status is unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度没读出来，暂时无法确认当前节点状态"
+          }
+        }
+      }
+    },
+    "accountCollection.coupons.empty.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join an activity or claim a coupon and it will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参加活动或领券后，可用优惠券会显示在这里"
+          }
+        }
+      }
+    },
+    "accountCollection.coupons.filteredEmpty.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try another status filter or clear your search."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换上方筛选状态，或清空搜索关键词再看看"
+          }
+        }
+      }
+    },
+    "searchMap.w208.sheet.failed.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your connection and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查网络后再试一次"
+          }
+        }
+      }
+    },
+    "citySnapshot.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snapshot expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图快照已过期"
+          }
+        }
+      }
+    },
+    "citySnapshot.unloaded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图没加载出来"
+          }
+        }
+      }
+    },
+    "nearby.w208.mine.membersUnknownCap %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—/%lld joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已组 —/%lld"
           }
         }
       }

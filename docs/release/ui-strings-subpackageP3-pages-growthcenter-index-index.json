@@ -103,8 +103,8 @@
       "zh-Hans": "—"
     },
     "growth.unknownValue": {
-      "en": "Not available",
-      "zh-Hans": "暂无数据"
+      "en": "Unknown",
+      "zh-Hans": "未知"
     },
     "growth.unranked": {
       "en": "Not ranked yet",

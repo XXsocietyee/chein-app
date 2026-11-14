@@ -220,24 +220,62 @@ struct CYOfflineStrip: View {
     var onRetry: (() -> Void)? = nil
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let t = CYKitCopy(locale: locale)
-        HStack(spacing: CYSpacing.sm) {
-            Image(systemName: "wifi.slash").font(.footnote.weight(.semibold))
-            Text(verbatim: appLocalized("cy.kit.offline.saved", locale: t.resourceLocale)).font(CYTypography.meta)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            if let onRetry {
-                Button(action: onRetry) { Text(verbatim: appLocalized("cy.kit.offline.retry", locale: t.resourceLocale)).font(CYTypography.meta.weight(.semibold)) }
-                    .frame(minHeight: 44)
+        Group {
+            if dynamicTypeSize >= .xxLarge {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    stripLabel(t)
+                    stripRetry(t)
+                }
+            } else {
+                HStack(spacing: CYSpacing.sm) {
+                    stripLabel(t)
+                    Spacer(minLength: 0)
+                    stripRetry(t)
+                }
             }
         }
         .foregroundStyle(palette.textPrimary)
         .padding(.horizontal, CYSpacing.lg)
         .padding(.vertical, CYSpacing.sm)
-        .background(Capsule(style: .continuous).fill(palette.bgRaised))
-        .overlay(Capsule(style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
+        .background(
+            RoundedRectangle(
+                cornerRadius: dynamicTypeSize >= .xxLarge ? CYRadius.lg : CYRadius.pill,
+                style: .continuous
+            )
+            .fill(palette.bgRaised)
+        )
+        .overlay(
+            RoundedRectangle(
+                cornerRadius: dynamicTypeSize >= .xxLarge ? CYRadius.lg : CYRadius.pill,
+                style: .continuous
+            )
+            .strokeBorder(palette.borderSubtle, lineWidth: 1)
+        )
         .accessibilityElement(children: .combine)
+    }
+
+    private func stripLabel(_ t: CYKitCopy) -> some View {
+        HStack(alignment: .top, spacing: CYSpacing.sm) {
+            Image(systemName: "wifi.slash").font(.footnote.weight(.semibold))
+            Text(verbatim: appLocalized("cy.kit.offline.saved", locale: t.resourceLocale))
+                .font(CYTypography.meta)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private func stripRetry(_ t: CYKitCopy) -> some View {
+        if let onRetry {
+            Button(action: onRetry) {
+                Text(verbatim: appLocalized("cy.kit.offline.retry", locale: t.resourceLocale))
+                    .font(CYTypography.meta.weight(.semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(minHeight: 44)
+        }
     }
 }
 

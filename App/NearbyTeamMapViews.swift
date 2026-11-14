@@ -230,12 +230,18 @@ struct NearbyMineMembersText: View {
     var body: some View {
         // A missing joined count is an em dash. A decoded 0 still uses the numeric keys.
         Group {
-            if let joined, let maximum { Text("nearby.w208.mine.members \(joined) \(maximum)") }
-            else if let joined { Text("nearby.w208.mine.membersOnly \(joined)") }
-            else if let maximum { Text("nearby.w208.mine.membersUnknown \(maximum)") }
-            else { Text("nearby.w208.mine.membersUnknown") }
+            if let joined, let maximum {
+                Text("nearby.w208.mine.members \(joined) \(maximum)")
+            } else if let joined {
+                Text("nearby.w208.mine.membersOnly \(joined)")
+            } else if let maximum {
+                Text("nearby.w208.mine.membersUnknownCap \(maximum)")
+            } else {
+                Text("nearby.w208.mine.membersUnknown")
+            }
         }
-        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+        .font(CYTypography.meta)
+        .foregroundStyle(CYColor.textTertiary)
     }
 }
 

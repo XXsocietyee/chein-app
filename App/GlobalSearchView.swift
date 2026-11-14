@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct GlobalSearchView<Destination: View>: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.themeDomain) private var themeDomain
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// Player-first: shops/merchants are not a player search target (no chip, no wording, no rows).
     private var hidesMerchants: Bool { themeDomain == .player }
     private var searchKinds: [GlobalSearchKind] { GlobalSearchKind.allCases.filter { !(hidesMerchants && $0 == .merchant) } }
@@ -387,15 +388,30 @@ import SwiftUI
                     if let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
                 }
                 if !value.failedKinds.isEmpty {
-                    // Mini-program info banner: one line of copy with 重试本页 trailing.
-                    HStack(spacing: CYSpacing.md) {
-                        Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
-                        Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
-                            .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: CYSpacing.sm)
-                        Button("searchMap.retryPage") { Task { await search() } }
-                            .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                    // Mini-program info banner: one line of copy with 重试本页 trailing, stacking vertically at >= .xxLarge.
+                    Group {
+                        if dynamicTypeSize >= .xxLarge {
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                HStack(alignment: .top, spacing: CYSpacing.md) {
+                                    Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                                    Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
+                                        .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Button("searchMap.retryPage") { Task { await search() } }
+                                    .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                            }
+                        } else {
+                            HStack(spacing: CYSpacing.md) {
+                                Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                                Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
+                                    .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: CYSpacing.sm)
+                                Button("searchMap.retryPage") { Task { await search() } }
+                                    .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                            }
+                        }
                     }
                     .listRowBackground(CYColor.bgElevated)
                     .accessibilityIdentifier("searchMap.partialFailure")

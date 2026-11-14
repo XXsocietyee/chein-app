@@ -65,7 +65,7 @@ import SwiftUI
                 CYHeroHeader(verbatim: copy("行动额度", "Action budget"))
                 CYStateLayout(
                     kind: .failure,
-                    title: Text(verbatim: copy("行动额度暂不可用", "Action budget is unavailable")),
+                    title: Text(verbatim: copy("行动额度暂时读不到", "Couldn't read action budget")),
                     detail: Text(verbatim: copy("保留原请求，不会自动重新提交。", "The original request is kept and will not be submitted again.")),
                     primaryVerbatim: reopen,
                     primaryStyle: .primary

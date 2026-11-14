@@ -780,6 +780,7 @@ public struct CYProgressBar: View {
     private let onRetry: (() -> Void)?
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(
         title: String,
@@ -797,18 +798,21 @@ public struct CYProgressBar: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack {
-                Text(verbatim: title)
-                    .font(CYTypography.label.weight(.semibold))
-                    .foregroundStyle(palette.textPrimary)
-                Spacer(minLength: CYSpacing.sm)
-                Text(verbatim: counterText)
-                    .font(CYTypography.meta.weight(.semibold).monospacedDigit())
-                    .foregroundStyle(loadFailed ? palette.danger : palette.textSecondary)
+            if dynamicTypeSize >= .xxLarge {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    progressTitle
+                    progressCounter
+                }
+            } else {
+                HStack {
+                    progressTitle
+                    Spacer(minLength: CYSpacing.sm)
+                    progressCounter
+                }
             }
 
             if loadFailed {
-                CYInlineError(verbatim: "进度读取失败，未能确认当前节点状态。", onRetry: onRetry)
+                CYInlineError("cy.progress.loadFailed", retryTitle: "cy.state.offline.retry", onRetry: onRetry)
             } else if let total, total > 0 {
                 HStack(spacing: CYSpacing.xs) {
                     ForEach(0..<total, id: \.self) { index in
@@ -826,6 +830,20 @@ public struct CYProgressBar: View {
         }
         .cyDomainCard()
         .accessibilityElement(children: .combine)
+    }
+
+    private var progressTitle: some View {
+        Text(verbatim: title)
+            .font(CYTypography.label.weight(.semibold))
+            .foregroundStyle(palette.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var progressCounter: some View {
+        Text(verbatim: counterText)
+            .font(CYTypography.meta.weight(.semibold).monospacedDigit())
+            .foregroundStyle(loadFailed ? palette.danger : palette.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var counterText: String {

@@ -37,11 +37,14 @@ import SwiftUI
         } else if model.phase == .loading {
             ProgressView("正在读取地图")
         } else {
-            VStack(spacing: 16) {
-                ContentUnavailableView(model.phase == .expired ? "地图快照已过期" : "地图暂不可用",
-                    systemImage: "map", description: Text("重新读取当前范围，不会提交任何游戏操作。"))
-                if !model.isRetired { refreshButton }
-            }
+            CYStateLayout(
+                kind: .failure,
+                title: Text(model.phase == .expired ? "citySnapshot.expired" : "citySnapshot.unloaded"),
+                detail: Text("重新读取当前范围，不会提交任何游戏操作。"),
+                primary: (!model.isRetired && scenePhase == .active) ? (title: "重新读取", action: { Task { await model.open() } }) : nil,
+                primaryStyle: .secondary,
+                primaryIdentifier: "city.orderedMap.refresh"
+            )
         }
     }
     private var refreshButton: some View {

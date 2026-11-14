@@ -31,7 +31,7 @@ import SwiftUI
                 case .unavailable:
                     CYStateLayout(
                         kind: .offline,
-                        title: Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews are not available yet"))
+                        title: Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews aren't open yet"))
                     )
                     .accessibilityIdentifier("bundleReview.unavailable")
                 case .failed:
