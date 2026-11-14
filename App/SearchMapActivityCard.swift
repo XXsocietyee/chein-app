@@ -23,7 +23,6 @@ struct SearchMapActivityCard: View {
             timestamp(value.starts, label: "mapActivity.starts")
             timestamp(value.ends, label: "mapActivity.ends")
         }
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1).allowsHitTesting(false))
         .accessibilityElement(children: .combine)
         .onAppear { phoneTimeZone = .current }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in phoneTimeZone = .current }

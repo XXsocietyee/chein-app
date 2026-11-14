@@ -5,10 +5,10 @@ enum ChatGroupPosition { case single, first, middle, last
     var showsTail: Bool { self == .single || self == .last }
 }
 
-/// Chat colours. Sent bubbles use one neutral-blue accent (white text >= 5:1); violet stays on the selected tab only.
+/// Sent bubbles use the domain primary fill (inverted solid). Restricted accent stays off chat.
 enum CYChat {
-    static let sent = Color(red: 0.043, green: 0.388, blue: 0.898)
-    static let onSent = Color.white
+    static let sent = CYColor.actionPrimaryBg
+    static let onSent = CYColor.actionPrimaryFg
 }
 
 /// Presentation only. IM, node NPC and merchant NPC keep their own models and authority.
@@ -22,7 +22,6 @@ struct ChatMessageBubble<Sender: View, Content: View>: View {
     @ViewBuilder let sender: () -> Sender
     @ViewBuilder let content: () -> Content
     @Environment(\.dynamicTypeSize) private var typeSize
-    @Environment(\.themeDomain) private var domain
     private var shape: UnevenRoundedRectangle {
         let big: CGFloat = 20, small: CGFloat = 6
         let topInner = position == .middle || position == .last
@@ -40,9 +39,9 @@ struct ChatMessageBubble<Sender: View, Content: View>: View {
                 .font(.body)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
-                .foregroundStyle(isOwn ? CYChat.onSent : Theme.Color.textPrimary(in: domain))
+                .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
                 .padding(.horizontal, Theme.Space.s3 + 2).padding(.vertical, Theme.Space.s2 + 1)
-                .background(isOwn ? CYChat.sent : Theme.Color.bgRaised(in: domain), in: shape)
+                .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: shape)
             if let timestamp, !timestamp.isEmpty {
                 Text(verbatim: timestamp).font(.caption2).foregroundStyle(.secondary)
                     .padding(.horizontal, Theme.Space.s1)
