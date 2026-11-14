@@ -27,9 +27,9 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     var body: some View {
         ZStack {
             if !reader.isConfigured {
-                ContentUnavailableView("merchant.projects", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYEmptyState(systemImage: "network.slash", "merchant.projects", subtitle: "auth.notConfigured")
             } else if !reader.isSignedIn {
-                ContentUnavailableView("merchant.projects", systemImage: "lock", description: Text("merchant.signIn"))
+                CYEmptyState(systemImage: "lock", "merchant.projects", subtitle: "merchant.signIn")
             } else if model.loadedRevision == reader.sessionRevision, let snapshot = model.value {
                 let page = snapshot.page
                 let shownTab = tab
@@ -37,10 +37,10 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                 let permit = presentation.permit(snapshot: snapshot)
                 List {
                     Section {
-                        if page.hasUnloadedRows { Text("merchant.projects.partial").font(.footnote).foregroundStyle(.secondary) }
-                        if model.isLoading { ProgressView("merchant.refreshing") }
+                        if page.hasUnloadedRows { Text("merchant.projects.partial").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                        if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
                         if let error = model.errorKey {
-                            Text("merchant.stale").font(.footnote).foregroundStyle(.secondary)
+                            Text("merchant.stale").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                             MerchantInlineFailure(errorKey: error, retry: { Task { await reload() } })
                         }
                     }
@@ -49,19 +49,18 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         presentation.invalidate(); tab = selected
                     }
                     if page.rows.isEmpty {
-                        ContentUnavailableView {
-                            Label { Text("merchant.projects.empty").accessibilityIdentifier("merchant.projects.empty") } icon: { Image(systemName: "calendar") }
-                        }
-                        .listRowBackground(Color.clear)
+                        CYEmptyState(systemImage: "calendar", "merchant.projects.empty", messageIdentifier: "merchant.projects.empty")
+                            .listRowBackground(Color.clear)
                     } else if browser.rows.isEmpty {
-                        Text("merchant.projectBrowser.emptyTab").accessibilityIdentifier("merchant.projectBrowser.emptyTab")
+                        Text("merchant.projectBrowser.emptyTab")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("merchant.projectBrowser.emptyTab")
                         ForEach(browser.alternatives, id: \.rawValue) { alternative in
-                            Button {
+                            CYPillButton(LocalizedStringKey(alternative.titleKey), style: .secondary) {
                                 guard model.value?.id == snapshot.id, !model.isLoading, tab == shownTab,
                                       browser.alternatives.contains(alternative) else { return }
                                 presentation.invalidate(); tab = alternative
-                            } label: {
-                                Text(LocalizedStringKey(alternative.titleKey))
                             }.accessibilityIdentifier("merchant.projectBrowser.switch." + alternative.rawValue)
                         }
                     }
@@ -78,13 +77,25 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             recordSummaryFixture("selected=\(presentation.selection != nil)")
                             #endif
                         } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title).font(.headline)
-                                if let text = project.projectTypeText, !text.isEmpty { Text(text).font(.subheadline) }
-                                if let text = project.stateText, !text.isEmpty { Text(text).foregroundStyle(.secondary) }
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title)
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                if let text = project.projectTypeText, !text.isEmpty {
+                                    Text(text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                }
+                                if let text = project.stateText, !text.isEmpty {
+                                    Text(text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                }
                                 MerchantProjectCardContext(project: project)
-                                if let text = project.startTime, !text.isEmpty { Label(text, systemImage: "calendar").font(.caption) }
-                            }.padding(.vertical, 4)
+                                if let text = project.startTime, !text.isEmpty {
+                                    Label(text, systemImage: "calendar")
+                                        .font(CYTypography.caption)
+                                        .monospacedDigit()
+                                        .foregroundStyle(CYColor.textSecondary)
+                                }
+                            }
+                            .padding(.vertical, CYSpacing.xs)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                         }
@@ -97,7 +108,11 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                 }.refreshable { await reload() }
             } else if let error = model.errorKey {
                 MerchantFailureView(errorKey: error, identifier: "merchant.projects", retry: { Task { await reload() } })
-            } else { ProgressView("merchant.loading") }
+            } else {
+                CYSkeleton(variant: .card)
+                    .padding(CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
@@ -132,8 +147,10 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                                         return sourceFresh && presentation.selectionIsCurrent(selected, snapshot: current, context: context)
                                     })
                                     .cyPushedChrome(domain: .merchant)
-                            } label: { Label("merchant.projectEvents.open", systemImage: "bell") }
-                            .padding().frame(maxWidth: .infinity).background(.regularMaterial)
+                            } label: { Label("merchant.projectEvents.open", systemImage: "bell").font(CYTypography.button).foregroundStyle(CYColor.textPrimary) }
+                            .padding(CYSpacing.md)
+                            .frame(maxWidth: .infinity)
+                            .background(CYColor.bgSurface)
                             .accessibilityIdentifier("merchant.projectEvents.open")
                         }
                     }
@@ -155,7 +172,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     }
                 } else { ContentUnavailableView("merchant.projectWorkspace.changed", systemImage: "lock") }
             }
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
             #if DEBUG
             .onAppear { recordSummaryFixture("sheet appeared") }
             #endif
@@ -189,8 +207,12 @@ private struct MerchantProjectSummary: View {
     var body: some View {
         Form {
             Section {
-                Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title).font(.headline)
-                Text("merchant.summarySnapshot").font(.footnote).foregroundStyle(.secondary)
+                Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title)
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                Text("merchant.summarySnapshot")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(CYColor.textSecondary)
                 MerchantProjectCardContext(project: project)
                 MerchantCountRow("merchant.recordID", value: project.projectID)
                 if let text = project.projectTypeText, !text.isEmpty { LabeledContent("merchant.project.type", value: text) }
@@ -201,9 +223,11 @@ private struct MerchantProjectSummary: View {
             }
             if canOpenWorkspace {
                 Section {
-                    Button("merchant.projectWorkspace.open", action: openWorkspace)
+                    CYPillButton("merchant.projectWorkspace.open", style: .primary, action: openWorkspace)
                         .accessibilityIdentifier("merchant.projectWorkspace.open")
-                    Text("merchant.projectWorkspace.explanation").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchant.projectWorkspace.explanation")
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
             }
             if project.signupCount > 0 || project.viewCount > 0 {
@@ -212,7 +236,10 @@ private struct MerchantProjectSummary: View {
                     if project.viewCount > 0 { MerchantCountRow("merchant.project.views", value: project.viewCount) }
                 }
             }
-        }.scrollContentBackground(.hidden).background(CYColor.bgPage).appNavigationTitle("merchant.project.summary")
+        }
+        .scrollContentBackground(.hidden)
+        .cyDomainScreen(.merchant)
+        .appNavigationTitle("merchant.project.summary")
     }
 }
 

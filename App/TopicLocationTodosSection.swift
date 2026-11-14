@@ -50,7 +50,8 @@ import QuestifyCore
                                 }
                             }
                     }
-                    .presentationDetents([.large])
+                    .cyDomainSheet(detents: [.full])
+                    .themeDomain(.topicEditor)
                     .interactiveDismissDisabled(model.busySlot != nil)
                 }
             }
@@ -64,6 +65,7 @@ import QuestifyCore
     let nodes: [TopicLocationEditorNode]
     @State private var picking: TopicLocationTodoRow?
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
 
     var body: some View {
         List {
@@ -91,14 +93,23 @@ import QuestifyCore
         .navigationTitle(W8Text.t("地点待办", "Place to-dos"))
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await model.load() }
-        .confirmationDialog(W8Text.t("选择节点", "Choose a stop"), isPresented: Binding(get: { picking != nil }, set: { if !$0 { picking = nil } }),
-                            titleVisibility: .visible, presenting: picking) { row in
-            ForEach(nodes, id: \.id) { node in
-                Button(node.name.isEmpty ? node.place : "\(node.name) · \(node.place)") {
-                    Task { await model.bind(row, nodeId: node.id) }
-                }
-            }
-            Button(W8Text.t("取消", "Cancel"), role: .cancel) {}
+        .sheet(item: $picking) { row in
+            MerchantChoiceOptionSheet(
+                title: MerchantAreaCopy.text("选择节点", "Choose a stop", locale),
+                options: nodes.map { node in
+                    let label = node.name.isEmpty ? node.place : "\(node.name) · \(node.place)"
+                    return MerchantChoiceOption(id: String(node.id), title: label, systemImage: "mappin.and.ellipse")
+                },
+                domain: .topicEditor,
+                selectedID: .constant(row.nodeId.map(String.init)),
+                onSelect: { option in
+                    picking = nil
+                    if let nodeID = Int64(option.id) {
+                        Task { await model.bind(row, nodeId: nodeID) }
+                    }
+                },
+                onClose: { picking = nil }
+            )
         }
         .accessibilityIdentifier("locationTodos.sheet")
     }

@@ -622,6 +622,7 @@ struct ProfileEditView: View {
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
         .appNavigationTitle("profile.edit.title")
+        .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
         .interactiveDismissDisabled(model.blocksInteractiveExit)
         .toolbar {
@@ -631,24 +632,28 @@ struct ProfileEditView: View {
                 } label: { Label("action.back", systemImage: "chevron.left") }
                 .disabled(!model.canRequestExit)
                 .accessibilityIdentifier("profile.exitDiscard.back")
-                .confirmationDialog("profile.exitDiscard.title", isPresented: $showExitConfirmation,
-                                    titleVisibility: .visible, presenting: model.exitConfirmation) { value in
-                    Button("profile.exitDiscard.confirm", role: .destructive) {
-                        if model.confirmExit(value) { dismiss() }
-                    }.accessibilityIdentifier("profile.exitDiscard.confirm")
-                    Button("action.cancel", role: .cancel) { model.cancelExit() }
-                } message: { _ in Text("profile.exitDiscard.message") }
+                .sheet(isPresented: $showExitConfirmation) {
+                    if let value = model.exitConfirmation {
+                        MemberProfileDiscardConfirmSheet(kind: .exitDiscard, onCancel: { model.cancelExit() }) {
+                            showExitConfirmation = false
+                            if model.confirmExit(value) { dismiss() }
+                        }
+                    }
+                }
+                .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
             }
         }
         .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }
         .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
         .onChange(of: model.preferencePicker?.id) { _, _ in model.cancelExit() }
-        .confirmationDialog("profile.reloadDiscard.title", isPresented: $showReloadConfirmation,
-                            titleVisibility: .visible, presenting: model.reloadConfirmation) { value in
-            Button("profile.reloadDiscard.confirm", role: .destructive) { _ = model.confirmReload(value) }
-                .accessibilityIdentifier("profile.reloadDiscard.confirm")
-            Button("action.cancel", role: .cancel) { model.cancelReload() }
-        } message: { _ in Text("profile.reloadDiscard.message") }
+        .sheet(isPresented: $showReloadConfirmation) {
+            if let value = model.reloadConfirmation {
+                MemberProfileDiscardConfirmSheet(kind: .reloadDiscard, onCancel: { model.cancelReload() }) {
+                    showReloadConfirmation = false
+                    _ = model.confirmReload(value)
+                }
+            }
+        }
         .onChange(of: model.reloadConfirmation?.id) { _, id in showReloadConfirmation = id != nil }
         .onChange(of: showReloadConfirmation) { _, showing in if !showing { model.cancelReload() } }
         .onChange(of: model.confirmation?.id) { _, _ in model.retireReload() }
@@ -726,7 +731,7 @@ struct ProfileEditView: View {
                     if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil {
                         Text("profile.case.descriptionUnavailable").font(.caption).foregroundStyle(.secondary)
                     } else if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
-                    else { Text(verbatim: value).lineLimit(3) }
+                    else { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) }
                 } label: { Text(LocalizedStringKey(field.titleKey)) }
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
                     .accessibilityHidden(true)

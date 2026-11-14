@@ -96,7 +96,11 @@ import SwiftUI
         Button { if let captured { controller.open(captured) } } label: {
             Text("projectInitialAttributes.title", tableName: "ProjectInitialAttributes")
         }.disabled(captured == nil || original != nil).accessibilityIdentifier("projectInitialAttributes.open")
-            .sheet(item: controller.binding(original)) { original in ProjectInitialAttributesSheet(controller: controller, original: original) }
+            .sheet(item: controller.binding(original)) { original in
+                ProjectInitialAttributesSheet(controller: controller, original: original)
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.topicEditor)
+            }
             .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
             .onDisappear { controller.retire() }
     }
@@ -107,6 +111,7 @@ import SwiftUI
     @ObservedObject private var model: ProjectEditModel
     let original: ProjectInitialAttributesController.Presentation
     @State private var invalid = false
+    @Environment(\.locale) private var locale
     init(controller: ProjectInitialAttributesController, original: ProjectInitialAttributesController.Presentation) {
         self.controller = controller; self.original = original; model = controller.model
     }
@@ -164,13 +169,22 @@ import SwiftUI
             }
             .scrollDismissesKeyboard(.interactively)
             .onDisappear { controller.close(original) }
-            .alert(Text("projectInitialAttributes.removeTitle", tableName: "ProjectInitialAttributes"), isPresented: removalBinding(intent), presenting: intent) { intent in
-                Button(role: .destructive) { _ = controller.confirmRemoval(intent, in: original) } label: { text("remove") }
-                Button("action.cancel", role: .cancel) { controller.cancelRemoval(intent) }
-            } message: { intent in
-                Text(verbatim: intent.label + " (" + intent.key + ")") + Text("\n") + text("removeHint")
-            }
         }
+        .cyModalConfirm(
+            isPresented: removalBinding(intent),
+            title: String(localized: LocalizedStringResource("projectInitialAttributes.removeTitle", table: "ProjectInitialAttributes", locale: locale)),
+            message: (intent.map { "\($0.label) (\($0.key))\n" } ?? "")
+                + String(localized: LocalizedStringResource("projectInitialAttributes.removeHint", table: "ProjectInitialAttributes", locale: locale)),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: String(localized: LocalizedStringResource("projectInitialAttributes.remove", table: "ProjectInitialAttributes", locale: locale)),
+            isDestructive: true,
+            onCancel: {
+                if let intent { controller.cancelRemoval(intent) }
+            },
+            onConfirm: {
+                if let intent { _ = controller.confirmRemoval(intent, in: original) }
+            }
+        )
     }
     private func removalBinding(_ intent: ProjectInitialAttributesController.Removal?) -> Binding<Bool> {
         .init(get: { intent.map { controller.isCurrent($0, in: original) } ?? false },

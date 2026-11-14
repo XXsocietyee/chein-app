@@ -1,16 +1,26 @@
 import SwiftUI
 
 /// Settings row 隐私与定位 (mini-program `pages/shezhi` privacy sheet), placed
-/// after 我的收藏 as in the source. Nothing here writes: presence sharing has
-/// no reviewed write path yet, and roam withdrawal reuses the existing flow.
+/// after 我的收藏 as in the source.
 @MainActor struct SettingsPrivacyLocationEntry: View {
     let session: AppSession
     var body: some View {
         if session.account != nil {
             Section {
                 NavigationLink {
-                    SettingsPrivacyLocationView(mediaReader: session.ownMediaReader,
-                        compliance: session.accountComplianceCoordinator, market: session.operationalMarket, imagePreview: session.ownMediaImagePreviewAccess, approvedLink: session.ownMediaApprovedLinkAccess, audioPreview: session.ownMediaAudioPreviewAccess, modelPreview: session.ownMediaModelPreviewAccess, legalReader: session.legalReader)
+                    SettingsPrivacyLocationView(
+                        mediaReader: session.ownMediaReader,
+                        compliance: session.accountComplianceCoordinator,
+                        market: session.operationalMarket,
+                        imagePreview: session.ownMediaImagePreviewAccess,
+                        approvedLink: session.ownMediaApprovedLinkAccess,
+                        audioPreview: session.ownMediaAudioPreviewAccess,
+                        modelPreview: session.ownMediaModelPreviewAccess,
+                        legalReader: session.legalReader,
+                        disablePresence: (session.isSignedIn && session.isConfigured) ? {
+                            await session.disableRoamPresenceVisibility()
+                        } : nil
+                    )
                 } label: {
                     Label { Text("member.privacy.title", tableName: "MemberProfile") } icon: { Image(systemName: "hand.raised") }
                 }.accessibilityIdentifier("settings.privacyLocation")
@@ -28,8 +38,13 @@ import SwiftUI
     var audioPreview: OwnMediaAudioPreviewAccess? = nil
     var modelPreview: OwnMediaModelPreviewAccess? = nil
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
+    var disablePresence: (() async -> RoamPresenceDisableOutcome)? = nil
+    @Environment(\.locale) private var locale
     @State private var showsRoam = false
-    @State private var homeAutoLocationEnabled = !HomeCityLocationDeclineStore.read()
+    @State private var disablingPresence = false
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .info
+    @State private var lastRoamCleanup: ComplianceRoamCleanup = .idle
 
     var body: some View {
         Form {
@@ -51,9 +66,41 @@ import SwiftUI
             } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
-                Button {} label: { Text("member.privacy.presence.off", tableName: "MemberProfile") }
-                    .disabled(true).accessibilityIdentifier("member.privacy.presence.off")
-            } header: { Text("member.privacy.presence.title", tableName: "MemberProfile") } footer: { Text("member.privacy.presence.unavailable", tableName: "MemberProfile") }
+                Button {
+                    guard let disablePresence, !disablingPresence else { return }
+                    disablingPresence = true
+                    Task {
+                        let outcome = await disablePresence()
+                        disablingPresence = false
+                        switch outcome {
+                        case .disabled:
+                            toastTone = .success
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "已关闭附近的人位置分享",
+                                "Nearby presence sharing turned off",
+                                locale: locale))
+                        case .rejected(let msg):
+                            toastTone = .error
+                            toastMessage = LocalizedStringKey(msg ?? MemberPopupCopy.text(
+                                "关闭位置分享失败，请稍后重试",
+                                "Failed to turn off presence sharing",
+                                locale: locale))
+                        case .unavailable, .failed:
+                            toastTone = .error
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "关闭位置分享失败，请稍后重试",
+                                "Failed to turn off presence sharing",
+                                locale: locale))
+                        }
+                    }
+                } label: { Text("member.privacy.presence.off", tableName: "MemberProfile") }
+                    .disabled(disablePresence == nil || disablingPresence)
+                    .accessibilityIdentifier("member.privacy.presence.off")
+            } header: { Text("member.privacy.presence.title", tableName: "MemberProfile") } footer: {
+                if disablePresence == nil {
+                    Text("member.privacy.presence.unavailable", tableName: "MemberProfile")
+                }
+            }
             Section {
                 Text("member.privacy.roam.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                 if compliance != nil {
@@ -71,13 +118,33 @@ import SwiftUI
         .cyGroupedSurface()
         .cyHeroScreen()
         .cyHideTabBar()
-        .sheet(isPresented: $showsRoam) {
+        .cyToast(message: $toastMessage, tone: toastTone)
+        .onAppear {
+            if let compliance { lastRoamCleanup = compliance.state.roamCleanup }
+        }
+        .sheet(isPresented: $showsRoam, onDismiss: {
+            guard let compliance else { return }
+            let feedback = RoamConsentWithdrawalFeedback.evaluate(
+                previous: lastRoamCleanup,
+                current: compliance.state.roamCleanup,
+                error: compliance.state.error)
+            lastRoamCleanup = compliance.state.roamCleanup
+            if feedback == .withdrawn {
+                toastTone = .success
+                toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                    "已撤回漫游定位同意",
+                    "Roam location consent withdrawn",
+                    locale: locale))
+            }
+        }) {
             if let compliance {
                 NavigationStack {
                     AccountComplianceSheet(coordinator: compliance, destination: .roam, market: market, legalReader: legalReader)
                 }
+                .cyDomainSheet(detents: [.half, .full])
             }
         }
+        .cyDomainScreen(.player)
     }
 }
 

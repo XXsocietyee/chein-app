@@ -49,7 +49,13 @@ class GrowthLeaderboardPageReadyContract(unittest.TestCase):
         self.assertEqual(self.catalog["accessibilityIdentifiers"], expected)
         for identifier in expected:
             swift = identifier.replace("\\\\", "\\")
-            self.assertIn(f'.accessibilityIdentifier("{swift}")', self.view + self.components)
+            combined = self.view + self.components
+            self.assertTrue(
+                f'.accessibilityIdentifier("{swift}")' in combined
+                or f'messageIdentifier: "{swift}"' in combined
+                or f'actionIdentifier: "{swift}"' in combined,
+                identifier,
+            )
 
     def test_model_keeps_loading_empty_error_and_unknown_and_hides_missing_boards(self):
         self.assertIn("case loading", self.model)

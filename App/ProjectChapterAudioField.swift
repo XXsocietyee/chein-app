@@ -62,6 +62,7 @@ import SwiftUI
     let preview: ProjectEditorAudioPreviewController
     @StateObject private var controller: ProjectChapterAudioController
     @StateObject private var uploads: ProjectChapterAudioPresentation
+    @Environment(\.locale) private var locale
     init(model: ProjectEditModel, chapterID: String, preview: ProjectEditorAudioPreviewController) {
         self.preview = preview
         self.model = model; _controller = StateObject(wrappedValue: .init(model: model, chapterID: chapterID))
@@ -94,17 +95,23 @@ import SwiftUI
                 }
             }
         } header: { Text("projectChapterAudio.title", tableName: "ProjectChapterAudio") }
-        .confirmationDialog(Text("projectChapterAudio.clearTitle", tableName: "ProjectChapterAudio"),
-                            isPresented: controller.binding(original), titleVisibility: .visible) {
+        .sheet(isPresented: controller.binding(original)) {
             if let original {
-                Button(role: .destructive) { controller.clear(original) } label: {
-                    Text("projectChapterAudio.clear", tableName: "ProjectChapterAudio")
-                }
-                Button("action.cancel", role: .cancel) { controller.close(original) }
+                CYConfirmSheet(
+                    title: String(localized: LocalizedStringResource("projectChapterAudio.clearTitle", table: "ProjectChapterAudio", locale: locale)),
+                    message: String(localized: LocalizedStringResource("projectChapterAudio.clearMessage", table: "ProjectChapterAudio", locale: locale)),
+                    confirmTitle: String(localized: LocalizedStringResource("projectChapterAudio.clear", table: "ProjectChapterAudio", locale: locale)),
+                    isDestructive: true,
+                    onConfirm: { controller.clear(original) }
+                )
+                .cyDomainSheet(detents: [.half])
+                .themeDomain(.topicEditor)
             }
-        } message: { Text("projectChapterAudio.clearMessage", tableName: "ProjectChapterAudio") }
+        }
         .sheet(item: uploads.binding(upload)) { original in
             ProjectChapterAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { uploads.apply($0) }, close: { uploads.close(original) })
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.topicEditor)
         }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire(); uploads.retire() }
         .onDisappear { controller.retire(); uploads.retire() }

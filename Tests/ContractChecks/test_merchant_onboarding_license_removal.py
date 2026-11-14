@@ -18,7 +18,7 @@ class LicenseRemovalContracts(unittest.TestCase):
             self.assertIn(x,self.addition)
     def test_normal_entry_and_confirmation(self):
         self.assertIn('merchant.onboarding.license.remove',self.view)
-        self.assertIn('presenting: licenseRemoval',self.view)
+        self.assertIn('isPresented: showLicenseRemoval && licenseRemoval != nil',self.view)
         self.assertIn('model.cancelLicenseRemoval(request)',self.view)
         self.assertIn('model.removeLicense(request)',self.view)
         self.assertIn('phase != .active',self.view)

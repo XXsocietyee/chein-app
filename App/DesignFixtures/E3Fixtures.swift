@@ -211,7 +211,7 @@ struct E3ClubFeedFixture: View {
                     ForEach([t("夜行者", "Night Walkers"), t("光影", "Lumen"), t("味蕾", "Tastebuds"), t("骑行", "Riders")], id: \.self) { n in
                         VStack(spacing: 6) {
                             E3Avatar(seed: n, systemImage: "sparkles", size: 60).padding(3)
-                                .overlay(Circle().strokeBorder(AngularGradient(colors: [.orange, .pink, .purple, .orange], center: .center), lineWidth: 2.5))
+                                .overlay(Circle().strokeBorder(AngularGradient(colors: [.orange, .pink, CYColor.avatarRing, .orange], center: .center), lineWidth: 2.5))
                             Text(verbatim: n).font(.caption).foregroundStyle(CYColor.textSecondary).lineLimit(1).frame(width: 72)
                         }
                     }

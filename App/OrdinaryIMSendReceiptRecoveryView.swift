@@ -11,6 +11,7 @@ import SwiftUI
     let resend: (String) -> Void
     @State private var reviewedID: String?
     @State private var showingConfirmation = false
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             if state == .reading {
@@ -29,14 +30,19 @@ import SwiftUI
                     .disabled(!canRetry).accessibilityIdentifier("ordinary.receipt.reviewRetry")
             }
         }
-        .confirmationDialog(Text("ordinary.receipt.confirmTitle", tableName: "OrdinaryIMSendReceipt"),
-                            isPresented: $showingConfirmation, titleVisibility: .visible) {
-            Button {
+        .sheet(isPresented: $showingConfirmation, onDismiss: { reviewedID = nil }) {
+            CYConfirmSheet(
+                title: String(localized: LocalizedStringResource("ordinary.receipt.confirmTitle", table: "OrdinaryIMSendReceipt", locale: locale)),
+                message: String(localized: LocalizedStringResource("ordinary.receipt.confirmHint", table: "OrdinaryIMSendReceipt", locale: locale)),
+                confirmTitle: String(localized: LocalizedStringResource("ordinary.receipt.confirm", table: "OrdinaryIMSendReceipt", locale: locale)),
+                cancelTitle: String(localized: LocalizedStringResource("ordinary.receipt.cancel", table: "OrdinaryIMSendReceipt", locale: locale)),
+                onCancel: { reviewedID = nil }
+            ) {
                 guard canRetry, state == .notFound, let reviewedID, reviewedID == clientMessageID else { return }
                 self.reviewedID = nil; resend(reviewedID)
-            } label: { Text("ordinary.receipt.confirm", tableName: "OrdinaryIMSendReceipt") }
-            Button(role: .cancel) { reviewedID = nil } label: { Text("ordinary.receipt.cancel", tableName: "OrdinaryIMSendReceipt") }
-        } message: { Text("ordinary.receipt.confirmHint", tableName: "OrdinaryIMSendReceipt") }
+            }
+            .cyDomainSheet(detents: [.peek, .half])
+        }
         .onChange(of: clientMessageID) { _, _ in clear() }
         .onChange(of: canRetry) { _, allowed in if !allowed { clear() } }
         .onChange(of: state) { _, state in if state != .notFound { clear() } }

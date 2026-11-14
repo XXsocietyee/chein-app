@@ -165,6 +165,7 @@ import SwiftUI
                     access: governance.access, coordinator: governance.coordinator).id(target.id)
             }
         }
+        .cyDomainScreen(.player)
     }
     private var sessionBannerSeed: String {
         let name = club.name.trimmingCharacters(in: .whitespacesAndNewlines)

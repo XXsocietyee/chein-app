@@ -273,15 +273,14 @@ extension View {
 
 // MARK: - Layout pieces
 
-/// Night page ground with an optional single lantern glow at the top (one light source per screen).
+/// Pure canvas (`CYColor.bgPage`) with an optional single warm lantern glow at the top for hero reward/pass stages.
 struct MPNightGround: View {
     var glow = false
     var body: some View {
         ZStack(alignment: .top) {
-            CYNight.ink0
-            LinearGradient(colors: [CYNight.indigo.opacity(0.55), .clear], startPoint: .top, endPoint: .center)
+            CYColor.bgPage
             if glow {
-                CYNight.glow(radius: 160).frame(height: 360).offset(y: -80).opacity(0.5)
+                CYNight.glow(radius: 160).frame(height: 360).offset(y: -80).opacity(0.45)
             }
         }
         .ignoresSafeArea()
@@ -289,17 +288,16 @@ struct MPNightGround: View {
     }
 }
 
-/// Grouped card on ink1 with a 1 pt subtle edge (rows go inside).
+/// Borderless flat grouped card (`cyDomainCard` surface, zero outer stroke).
 struct MPCard<Content: View>: View {
     @ViewBuilder var content: Content
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content }
-            .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+            .cyDomainCard(radius: CYRadius.lg, padding: 0)
     }
 }
 
-/// Title + optional sub line on the left, a value on the right. Text is already resolved (server or catalog).
+/// Title + optional sub line on the left, a value on the right (stacks at AX sizes). Text is already resolved (server or catalog).
 struct MPRow: View {
     let title: Text
     var sub: Text? = nil
@@ -308,21 +306,36 @@ struct MPRow: View {
     var muted = false
     var chevron = false
     var leading: AnyView? = nil
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
+        let stack = typeSize.isAccessibilitySize && value != nil
+        let layout = stack
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
         HStack(alignment: .center, spacing: CYSpacing.md) {
             if let leading { leading }
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                title.font(CYTypography.bodyMedium).foregroundStyle(muted ? CYColor.textTertiary : CYColor.textPrimary)
-                if let sub { sub.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+            layout {
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    title.font(CYTypography.bodyMedium)
+                        .foregroundStyle(muted ? CYColor.textTertiary : CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let sub {
+                        sub.font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                if !stack { Spacer(minLength: CYSpacing.sm) }
+                if let value {
+                    value.font(strong ? CYTypography.cardTitle : CYTypography.bodyCompact)
+                        .monospacedDigit()
+                        .foregroundStyle(muted ? CYColor.textTertiary : (strong ? CYColor.textPrimary : CYColor.textSecondary))
+                        .multilineTextAlignment(stack ? .leading : .trailing)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            Spacer(minLength: CYSpacing.sm)
-            if let value {
-                value.font(strong ? CYTypography.cardTitle : CYTypography.bodyCompact)
-                    .monospacedDigit()
-                    .foregroundStyle(muted ? CYColor.textTertiary : (strong ? CYColor.textPrimary : CYColor.textSecondary))
-                    .multilineTextAlignment(.trailing)
-            }
+            if stack { Spacer(minLength: 0) }
             if chevron {
                 Image(systemName: "chevron.right").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }
@@ -337,7 +350,7 @@ struct MPRow: View {
 
 /// Hairline between rows inside an `MPCard`.
 struct MPDivider: View {
-    var body: some View { Rectangle().fill(CYColor.borderSubtle).frame(height: 1).padding(.leading, CYSpacing.lg).accessibilityHidden(true) }
+    var body: some View { Rectangle().fill(CYColor.borderSubtle).frame(height: 0.5).padding(.leading, CYSpacing.lg).accessibilityHidden(true) }
 }
 
 /// Rows separated by hairlines.
@@ -399,7 +412,7 @@ struct MPChipTabs<Tab: Hashable & Identifiable>: View {
                                 if on {
                                     Capsule(style: .continuous).fill(CYColor.selection).matchedGeometryEffect(id: "pill", in: pill)
                                 } else {
-                                    Capsule(style: .continuous).fill(CYNight.ink2)
+                                    Capsule(style: .continuous).fill(CYColor.bgElevated)
                                 }
                             }
                             .frame(minHeight: CYSpacing.minTouchTarget)
@@ -449,17 +462,13 @@ struct MPInlineError: View {
     }
 }
 
-/// Bottom bar on night glass (one primary action per screen).
+/// Bottom bar delegating to `CYFooterBar` (one primary action per screen).
 struct MPBottomBar<Content: View>: View {
     @ViewBuilder var content: Content
     var body: some View {
-        VStack(spacing: CYSpacing.sm) { content }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.top, CYSpacing.md)
-            .padding(.bottom, CYSpacing.sm)
-            .frame(maxWidth: .infinity)
-            .background(CYNight.ink0.opacity(0.92).ignoresSafeArea(edges: .bottom))
-            .overlay(alignment: .top) { Rectangle().fill(CYColor.borderSubtle).frame(height: 1) }
+        CYFooterBar {
+            VStack(spacing: CYSpacing.sm) { content }
+        }
     }
 }
 

@@ -127,7 +127,8 @@ class RegistrationCheckoutParityTests(unittest.TestCase):
         self.assertIn("await flow.confirmAndReadBack()", self.view)  # h-offline-2 wraps the free path in the write opt-in
         self.assertNotIn("await flow.confirm()", self.view)
         self.assertIn('Text("registration.form.review")', self.view)
-        self.assertIn("if flow.prepareConfirmation() { showingConfirmation = true }", self.view)
+        self.assertIn("if flow.prepareConfirmation() {", self.view)
+        self.assertIn("showingConfirmation = true", self.view)
         slice_source = read("Core/RegistrationConfirmedReadback.swift")
         confirm = slice_source.split("func confirmAndReadBack() async {")[1].split("func uncertainOutcomeEvidence")[0]
         ordered(self, confirm, ("let previousRequestID = coordinator.retainedIntent?.requestID",

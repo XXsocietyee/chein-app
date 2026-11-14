@@ -46,12 +46,18 @@ struct MerchantGamePlayerView: View {
                 Task { await coordinator.load(); dismissIfRevoked() }
             } else { coordinator.revoke() }
         }
-        .alert(isPresented: $confirmAcknowledge) {
-            Alert(title: copy("Close the verified terminal request?", "关闭已核实的终态请求？"),
-                  message: copy("Only this local pending marker will be removed. The server reply is not deleted, and AI will not be called again. Any new question is a separate explicit action.", "仅移除本地待确认标记，不删除服务端回复，也不再次调用 AI。新问题需要另行明确发送。"),
-                  primaryButton: .default(copy("Close this pending record", "关闭该待确认记录")) { coordinator.acknowledgeOriginal() },
-                  secondaryButton: .cancel())
-        }
+        .cyModalConfirm(
+            isPresented: confirmAcknowledge,
+            title: MerchantAreaCopy.text("关闭已核实的终态请求？", "Close the verified terminal request?", locale),
+            message: MerchantAreaCopy.text("仅移除本地待确认标记，不删除服务端回复，也不再次调用 AI。新问题需要另行明确发送。", "Only this local pending marker will be removed. The server reply is not deleted, and AI will not be called again. Any new question is a separate explicit action.", locale),
+            cancelTitle: MerchantAreaCopy.cancel(locale),
+            confirmTitle: MerchantAreaCopy.text("关闭该待确认记录", "Close this pending record", locale),
+            onCancel: { confirmAcknowledge = false },
+            onConfirm: {
+                confirmAcknowledge = false
+                coordinator.acknowledgeOriginal()
+            }
+        )
     }
     private var playerContent: some View {
         Form {

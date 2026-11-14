@@ -104,6 +104,7 @@ import UIKit
                     NavigationStack { PlayDirectorCommandEditor(projection: projection, action: action) { command in editor = nil; Task { await model.submit(command) } } }
                 }
             }
+        .cyDomainScreen(.game)
     }
 }
 @MainActor private struct PlayDirectorCommandEditor: View {

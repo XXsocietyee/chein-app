@@ -81,6 +81,7 @@ import SwiftUI
                 }
             } else { Color.clear.onAppear { profileTarget = nil } }
         }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var rosterTitle: some View {
         if isLeaderboard {

@@ -212,43 +212,63 @@ extension MerchantPredictionReading {
     var body: some View {
         List {
             if !reader.isConfigured {
-                ContentUnavailableView("merchant.predict.unavailable", systemImage: "questionmark.bubble")
+                CYEmptyState(systemImage: "questionmark.bubble", "merchant.predict.unavailable")
+                    .listRowBackground(Color.clear)
             }
-            else if model.phase == .loading || model.phase == .idle { ProgressView().frame(maxWidth: .infinity) }
+            else if model.phase == .loading || model.phase == .idle {
+                CYSkeleton(variant: .card).listRowBackground(Color.clear)
+            }
             else if model.phase == .denied {
                 // Source predict/index.wxml no-permission state.
-                ContentUnavailableView {
-                    Label { Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.title")) } icon: { Image(systemName: "lock") }
-                } description: {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.denied.body"))
-                }
+                CYEmptyState(
+                    systemImage: "lock",
+                    verbatimTitle: MerchantOpsCopy.text("merchantOps.predict.denied.title"),
+                    verbatimSubtitle: MerchantOpsCopy.text("merchantOps.predict.denied.body")
+                )
+                .listRowBackground(Color.clear)
                 .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.denied")
             }
             else if model.phase == .failed {
-                ContentUnavailableView {
-                    Label { Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error")) } icon: { Image(systemName: "exclamationmark.triangle") }
-                } actions: {
-                    Button(MerchantOpsCopy.text("merchantOps.predict.retry")) { Task { await model.load() } }
+                VStack(spacing: CYSpacing.md) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(CYTypography.display)
+                        .foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error"))
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                    CYPillButton(verbatim: MerchantOpsCopy.text("merchantOps.predict.retry"), style: .primary) {
+                        Task { await model.load() }
+                    }
                 }
+                .padding(CYSpacing.lg)
+                .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("merchantOps.predict.error")
             } else if model.phase == .ready {
                 if model.rows.isEmpty {
                     // Source empty state has a title only.
-                    ContentUnavailableView {
-                        Label { Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.empty.title")) } icon: { Image(systemName: "checkmark.circle") }
-                    }
+                    CYEmptyState(
+                        systemImage: "checkmark.circle",
+                        verbatimTitle: MerchantOpsCopy.text("merchantOps.predict.empty.title")
+                    )
+                    .listRowBackground(Color.clear)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.predict.empty")
                 } else {
                     Section {
                         ForEach(model.rows) { round in
                             Button { model.open(round) } label: {
-                                VStack(alignment: .leading, spacing: 5) {
-                                    Text(verbatim: round.nodeName.isEmpty ? appLocalized("merchant.predict.unnamedNode", locale: locale) : round.nodeName).font(.headline)
+                                VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+                                    Text(verbatim: round.nodeName.isEmpty ? appLocalized("merchant.predict.unnamedNode", locale: locale) : round.nodeName)
+                                        .font(CYTypography.cardTitle)
+                                        .foregroundStyle(CYColor.textPrimary)
                                     Text(verbatim: round.question.isEmpty ? "—" : round.question)
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(CYColor.textPrimary)
                                     MerchantPredictionRoundFacts(round: round)
                                 }
-                                .foregroundStyle(.primary)
-                            }.accessibilityIdentifier("merchant.prediction.round.\(round.id)")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                            }.buttonStyle(.plain).accessibilityIdentifier("merchant.prediction.round.\(round.id)")
                         }
                     } header: {
                         Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.summary %lld", model.rows.count)).accessibilityIdentifier("merchantOps.predict.summary")
@@ -269,9 +289,12 @@ extension MerchantPredictionReading {
                 if model.isCurrent(selected) {
                     List {
                         Section {
-                            Text(verbatim: selected.round.question.isEmpty ? "—" : selected.round.question).font(.headline)
+                            Text(verbatim: selected.round.question.isEmpty ? "—" : selected.round.question)
+                                .font(CYTypography.cardTitle)
+                                .foregroundStyle(CYColor.textPrimary)
                             Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", selected.round.playDay))
-                                .foregroundStyle(.secondary)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
                         }
                         // Answer options. Publishing the answer is not wired in the app, so options are listed without an action.
                         Section {
@@ -284,15 +307,16 @@ extension MerchantPredictionReading {
                             MerchantPredictionRoundFacts(round: selected.round)
                         }
                     }
+                    .scrollContentBackground(.hidden)
+                    .cyDomainScreen(.merchant)
                     .navigationTitle(Text(verbatim: selected.round.nodeName.isEmpty ? appLocalized("merchant.predict.unnamedNode", locale: locale) : selected.round.nodeName))
                     .navigationBarTitleDisplayMode(.inline)
                 } else {
-                    ContentUnavailableView("merchant.predict.stale", systemImage: "arrow.clockwise")
+                    CYEmptyState(systemImage: "arrow.clockwise", "merchant.predict.stale")
                 }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.close(id: selected.id) } } }
             .onAppear { model.didPresent(id: selected.id) }
             .onDisappear { model.close(id: selected.id); model.didDismiss(id: selected.id) }
@@ -336,17 +360,31 @@ extension MerchantPredictionReading {
     let round: MerchantPredictionInboxRound
     var body: some View {
         let facts = MerchantPredictionInboxPresentation(daysLeft: round.daysLeft, betCount: round.betCount, optionCount: round.options.count)
-        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", round.playDay)).font(.subheadline)
+        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", round.playDay))
+            .font(CYTypography.meta)
+            .foregroundStyle(CYColor.textSecondary)
         Group {
             switch facts.deadline {
-            case .daysLeft(let days): Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.daysLeft %lld", days)).foregroundStyle(CYColor.warningText)
-            case .lastDay: Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.lastDay")).foregroundStyle(CYColor.dangerText)
+            case .daysLeft(let days):
+                CYStatusChip(verbatim: MerchantOpsCopy.text("merchantOps.predict.daysLeft %lld", days), tone: .warning)
+            case .lastDay:
+                CYStatusChip(verbatim: MerchantOpsCopy.text("merchantOps.predict.lastDay"), tone: .danger)
             }
-        }.font(.footnote.bold()).accessibilityIdentifier("merchantOps.predict.deadline.\(round.id)")
+        }.accessibilityIdentifier("merchantOps.predict.deadline.\(round.id)")
         switch facts.bets {
-        case .count(let count): Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.bets %lld", count)).font(.footnote)
-        case .none: Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.noBets")).font(.footnote)
+        case .count(let count):
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.bets %lld", count))
+                .font(CYTypography.caption)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textSecondary)
+        case .none:
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.noBets"))
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textSecondary)
         }
-        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.options %lld", facts.optionCount)).font(.footnote).foregroundStyle(.secondary)
+        Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.options %lld", facts.optionCount))
+            .font(CYTypography.caption)
+            .monospacedDigit()
+            .foregroundStyle(CYColor.textSecondary)
     }
 }

@@ -15,6 +15,7 @@ import SwiftUI
     @Environment(\.squareAuthorFollowState) private var followState
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.ugcSafetyContext) private var ugcSafety
+    @Environment(\.locale) private var locale
     @State private var shareRoute: ShareRoute?
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
@@ -155,25 +156,24 @@ import SwiftUI
             }
         }
         .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false; blockTarget = nil }
-        .alert(
-            Text("ugc.safety.block.confirmTitle", tableName: "UGCSafety"),
-            isPresented: Binding(get: { blockTarget != nil }, set: { if !$0 { blockTarget = nil } }),
-            presenting: blockTarget
-        ) { target in
-            Button(role: .cancel) { blockTarget = nil } label: {
-                Text("ugc.safety.block.cancel", tableName: "UGCSafety")
+        .overlay {
+            if let target = blockTarget {
+                CYModal(
+                    title: String(localized: LocalizedStringResource("ugc.safety.block.confirmTitle", table: "UGCSafety", locale: locale)),
+                    message: String(localized: LocalizedStringResource("ugc.safety.block.confirmMessage", table: "UGCSafety", locale: locale)),
+                    cancelTitle: String(localized: LocalizedStringResource("ugc.safety.block.cancel", table: "UGCSafety", locale: locale)),
+                    confirmTitle: String(localized: LocalizedStringResource("ugc.safety.block.confirmButton", table: "UGCSafety", locale: locale)),
+                    isDestructive: true,
+                    onCancel: { blockTarget = nil },
+                    onConfirm: {
+                        let targetToBlock = target
+                        blockTarget = nil
+                        Task {
+                            try? await ugcSafety?.blockUser(memberID: targetToBlock.memberID, authorName: targetToBlock.authorName)
+                        }
+                    }
+                )
             }
-            Button(role: .destructive) {
-                let targetToBlock = target
-                blockTarget = nil
-                Task {
-                    try? await ugcSafety?.blockUser(memberID: targetToBlock.memberID, authorName: targetToBlock.authorName)
-                }
-            } label: {
-                Text("ugc.safety.block.confirmButton", tableName: "UGCSafety")
-            }
-        } message: { _ in
-            Text("ugc.safety.block.confirmMessage", tableName: "UGCSafety")
         }
         .sheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
@@ -183,7 +183,9 @@ import SwiftUI
             if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane: contentGeneration == .communityV1 ? .communityV1 : .legacy) }.id(workspace.session) }
         }
         .sheet(item: deletionBinding) { item in
-            if let deletion { NavigationStack { SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion) }.presentationDetents([.medium]) }
+            if let deletion {
+                SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion)
+            }
         }
         .onChange(of: deletion?.phase) { _, phase in
             // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.

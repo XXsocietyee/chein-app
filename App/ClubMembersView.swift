@@ -8,6 +8,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     var governance: ClubGovernanceContext? = nil
     @Environment(\.clubEnrollmentProfile) private var inheritedProfile
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.locale) private var locale
     private struct ProfileDestination: Hashable {
         let selectionID = UUID()
         let clubID: Int
@@ -104,14 +105,38 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             if !reportSourceActive { reportSourceActive = true; reportRefreshRevision &+= 1 }
         }
         .onDisappear { reportSourceActive = false; reportReadGeneration &+= 1 }
-        .confirmationDialog("club.members", isPresented: $choosing, titleVisibility: .hidden, presenting: choice) { target in
-            Button("social.profile") { select(target, customer: false) }
-                .accessibilityIdentifier("club.member.choice.public")
-            if target.viewerRevision == governance?.viewerRevision, matchesGovernance(target.identity) {
-                Button("club.gov.customer") { select(target, customer: true) }
-                    .accessibilityIdentifier("club.member.choice.customer")
+        .sheet(isPresented: $choosing) {
+            if let target = choice {
+                var items: [CYOptionSheetItem<String>] = [
+                    CYOptionSheetItem(
+                        id: "public",
+                        title: appLocalized("social.profile", locale: locale),
+                        systemImage: "person.crop.circle",
+                        identifier: "club.member.choice.public"
+                    )
+                ]
+                if target.viewerRevision == governance?.viewerRevision, matchesGovernance(target.identity) {
+                    items.append(CYOptionSheetItem(
+                        id: "customer",
+                        title: appLocalized("club.gov.customer", locale: locale),
+                        systemImage: "person.text.rectangle",
+                        identifier: "club.member.choice.customer"
+                    ))
+                }
+                CYOptionSheet(
+                    title: appLocalized("club.members", locale: locale),
+                    items: items,
+                    onSelect: { selected in
+                        choosing = false
+                        select(target, customer: selected == "customer")
+                    },
+                    onClose: {
+                        choosing = false
+                        choice = nil
+                    }
+                )
+                .cyDomainSheet(detents: [.peek, .half])
             }
-            Button("action.cancel", role: .cancel) { choice = nil }
         }
         .navigationDestination(item: $destination) { target in
             if target.clubID == id, target.viewerRevision == governance?.viewerRevision, target.identity == reader.clubIdentity {

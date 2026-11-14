@@ -1303,9 +1303,7 @@ struct ClubGovernanceReadView: View {
         } else if operation == .hostStatus {
             // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
             if value["accountRole"] == .string("merchant") {
-                ContentUnavailableView {
-                    Label("club.host.merchant.title", systemImage: "storefront")
-                } description: { Text("club.gov.hostMerchantBlocked") }
+                CYEmptyState(systemImage: "storefront", "club.host.merchant.title", detail: "club.gov.hostMerchantBlocked")
                     .listRowBackground(Color.clear)
             } else if value["accountRole"] == .string("club") {
                 // Source club/apply done card: page title 成为主理人, an 已生效 chip, then the 可建俱乐部 row.
@@ -1750,7 +1748,7 @@ struct ClubGovernanceEventView: View {
                     Label { Text("story.aigc", tableName: "SocialParity") } icon: { Image(systemName: "sparkles") }
                         .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                        .background(Capsule().strokeBorder(CYColor.borderStrong, lineWidth: 1))
+                        .background(CYColor.bgSurfaceElevated, in: Capsule())
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("club.story.aigc")
                 }

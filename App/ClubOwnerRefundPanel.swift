@@ -16,6 +16,7 @@ extension EnvironmentValues {
     let onReadback: () -> Void
     @Environment(\.clubOwnerRefundCoordinator) private var coordinator
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var review: ClubOwnerRefundReview?
     @State private var failure: ClubOwnerRefundFailure?
     @State private var ownerID = UUID()
@@ -55,42 +56,69 @@ extension EnvironmentValues {
                 Text("club.refund.policy").font(.footnote).foregroundStyle(.secondary)
             }
             .sheet(item: $review, onDismiss: cancelPending) { pending in
-                NavigationStack {
-                    Form {
-                        Section {
-                            fact("club.refund.player", pending.evidence.displayName)
-                            fact("club.refund.topic", pending.evidence.topicName)
-                            fact("club.refund.ticket", pending.evidence.ticketText)
-                            fact("club.refund.order", pending.evidence.orderNo)
-                            fact("club.refund.paid", pending.evidence.paidAmountText)
+                CYSheetContainer(
+                    title: appLocalized("club.refund.question", locale: locale),
+                    onClose: status.inFlight ? nil : {
+                        coordinator?.cancel(pending)
+                        review = nil
+                    }
+                ) {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        CYCard {
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                factRow("club.refund.player", pending.evidence.displayName)
+                                factRow("club.refund.topic", pending.evidence.topicName)
+                                factRow("club.refund.ticket", pending.evidence.ticketText)
+                                factRow("club.refund.order", pending.evidence.orderNo)
+                                factRow("club.refund.paid", pending.evidence.paidAmountText)
+                            }
                         }
-                        Section {
+
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Text("club.refund.scopeWarning")
-                            if coordinator?.canDispatchOffline == true { Text("club.refund.synthetic") }
-                            else if coordinator?.canDispatch != true { Text("club.refund.disabled") }
-                            Button(role: .destructive) {
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            refundConsequenceRow("arrow.uturn.backward.circle", "club.refund.consequence1")
+                            refundConsequenceRow("ticket", "club.refund.consequence2")
+                            refundConsequenceRow("exclamationmark.triangle", "club.refund.consequence3")
+                        }
+
+                        if coordinator?.canDispatchOffline == true {
+                            CYNoteBanner(text: Text("club.refund.synthetic"), symbol: "info.circle", tone: .info)
+                        } else if coordinator?.canDispatch != true {
+                            CYNoteBanner(text: Text("club.refund.disabled"), symbol: "lock", tone: .warning)
+                        }
+
+                        if status.inFlight {
+                            ProgressView("club.refund.working")
+                                .frame(maxWidth: .infinity)
+                        }
+
+                        VStack(spacing: CYSpacing.sm) {
+                            Button("club.refund.confirm") {
                                 guard let coordinator else { return }
                                 Task {
                                     await coordinator.confirm(pending)
                                     review = nil
                                     if coordinator.identity == identity { onReadback() }
                                 }
-                            } label: { Text("club.refund.confirm") }
+                            }
+                            .buttonStyle(CYDestructiveButtonStyle())
                             .disabled(!model.confirmEnabled)
                             .accessibilityIdentifier("club.refund.confirm")
-                            if status.inFlight { ProgressView("club.refund.working") }
+
+                            Button("club.refund.cancel") {
+                                coordinator?.cancel(pending)
+                                review = nil
+                            }
+                            .buttonStyle(CYSecondaryButtonStyle())
+                            .disabled(status.inFlight)
+                            .accessibilityIdentifier("club.refund.cancel")
                         }
                     }
-                    .cyGroupedSurface()
-                    .navigationTitle("club.refund.question")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .cancellationAction) {
-                        Button("club.refund.cancel") { coordinator?.cancel(pending); review = nil }
-                            .disabled(status.inFlight).accessibilityIdentifier("club.refund.cancel")
-                    } }
                 }
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
+                .cyDomainSheet(detents: [.half, .full])
                 .interactiveDismissDisabled(status.inFlight)
             }
             .onChange(of: identity) { _, _ in coordinator?.leave(ownerID: ownerID); review = nil; failure = nil }
@@ -111,6 +139,38 @@ extension EnvironmentValues {
     }
     private func fact(_ title: LocalizedStringKey, _ value: String?) -> some View {
         LabeledContent(title) { if let value { Text(verbatim: value) } else { Text("club.refund.unknownValue") } }
+    }
+    private func factRow(_ title: LocalizedStringKey, _ value: String?) -> some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            Text(title)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+            Spacer(minLength: CYSpacing.sm)
+            if let value {
+                Text(verbatim: value)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("club.refund.unknownValue")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textTertiary)
+            }
+        }
+    }
+    private func refundConsequenceRow(_ systemImage: String, _ key: String.LocalizationValue) -> some View {
+        HStack(alignment: .top, spacing: CYSpacing.sm) {
+            Image(systemName: systemImage)
+                .font(CYTypography.label)
+                .foregroundStyle(CYColor.dangerText)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+            Text(verbatim: appLocalized(key, locale: locale))
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
     private func receiptRows(_ receipt: ClubOwnerRefundReceipt) -> some View {
         VStack(alignment: .leading, spacing: 8) {

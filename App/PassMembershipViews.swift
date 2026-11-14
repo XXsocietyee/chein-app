@@ -96,7 +96,7 @@ struct PassMembershipView: View {
                 ready(content)
             }
         }
-        .background { MPNightGround() }
+        .cyPushedChrome(domain: .player)
         .navigationTitle(Text("mp.member.title"))
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -137,7 +137,7 @@ struct PassMembershipView: View {
                 } else {
                     buyLabel(content).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity, minHeight: 56)
-                        .background(CYNight.ink2, in: Capsule())
+                        .background(CYColor.bgElevated, in: Capsule())
                         .accessibilityAddTraits(.isStaticText)
                         .accessibilityIdentifier("membership.buy")
                     MPGatedNote(text: Text("mp.gate.purchase"), identifier: "membership.purchaseOff")
@@ -166,50 +166,54 @@ struct PassMembershipView: View {
             Spacer()
             PassKeyEmblem(size: 92, lit: content.active)
         }
-        .padding(CYSpacing.xl)
-        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.xl)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("membership.card")
     }
 
     private func plans(_ content: PassMembershipContent) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            ForEach(content.plans) { plan in
-                let on = plan.code == content.selectedPlan
-                Button { onSelectPlan(plan.code) } label: {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: plan.priceText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                        plan.lineText.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
-                    .padding(CYSpacing.lg)
-                    .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-                        .strokeBorder(on ? CYColor.selection : CYColor.borderSubtle, lineWidth: on ? 2 : 1))
-                    .overlay(alignment: .topTrailing) {
-                        if plan.best {
-                            Text("mp.member.best").font(CYTypography.micro).foregroundStyle(CYNight.ink0)
-                                .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                                .background(CYNight.lantern, in: Capsule())
-                                .offset(x: -CYSpacing.sm, y: -CYSpacing.sm)
-                        }
-                    }
-                    .scaleEffect(on && !reduceMotion ? 1.02 : 1)
-                    .cyAnimation(.spring(response: 0.3, dampingFraction: 0.7), value: on)
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(on ? [.isSelected] : [])
-                .accessibilityIdentifier("membership.plan.\(plan.code)")
-                .cyHaptic(.selection, trigger: on)
-            }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: CYSpacing.md) { planButtons(content) }
+            VStack(spacing: CYSpacing.md) { planButtons(content) }
         }
         .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder private func planButtons(_ content: PassMembershipContent) -> some View {
+        ForEach(content.plans) { plan in
+            let on = plan.code == content.selectedPlan
+            Button { onSelectPlan(plan.code) } label: {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: plan.priceText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    plan.lineText.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+                .padding(CYSpacing.lg)
+                .background(on ? CYColor.bgRaised : CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                    .strokeBorder(on ? CYColor.selection : Color.clear, lineWidth: on ? 2 : 0))
+                .overlay(alignment: .topTrailing) {
+                    if plan.best {
+                        Text("mp.member.best").font(CYTypography.micro).foregroundStyle(CYNight.ink0)
+                            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                            .background(CYNight.lantern, in: Capsule())
+                            .offset(x: -CYSpacing.sm, y: -CYSpacing.sm)
+                    }
+                }
+                .scaleEffect(on && !reduceMotion ? 1.02 : 1)
+                .cyAnimation(.spring(response: 0.3, dampingFraction: 0.7), value: on)
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(on ? [.isSelected] : [])
+            .accessibilityIdentifier("membership.plan.\(plan.code)")
+            .cyHaptic(.selection, trigger: on)
+        }
     }
 
     private func renewNote(_ content: PassMembershipContent) -> some View {
         buyLabel(content).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-            .background(CYNight.ink1, in: Capsule())
+            .background(CYColor.bgElevated, in: Capsule())
             .accessibilityIdentifier("membership.renew")
     }
 }
@@ -345,7 +349,7 @@ struct PassLibraryView: View {
             .padding(.vertical, CYSpacing.lg)
         }
         .refreshable { onLoad(kind) }
-        .background { MPNightGround() }
+        .cyPushedChrome(domain: .player)
         .navigationTitle(Text("mp.library.title"))
         .navigationBarTitleDisplayMode(.large)
         .onAppear { if !started { kind = initialKind; loadedKind = initialKind; started = true; onLoad(initialKind) } }
@@ -446,6 +450,7 @@ struct PassRevealPaidFacts: Hashable {
     @State private var route: MPParityRoute?
     @State private var timeline: Task<Void, Never>?
     @State private var skipVisible = false
+    @GestureState private var pressingSkip = false
 
     /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
     private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
@@ -464,7 +469,7 @@ struct PassRevealPaidFacts: Hashable {
         .toolbar {
             if full && skipVisible && step < 8 {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("mp.reveal.skip") { finish(); go() }.accessibilityIdentifier("passReveal.skip")
+                    Button("mp.reveal.skip") { finish() }.accessibilityIdentifier("passReveal.skip")
                 }
             }
         }
@@ -494,6 +499,8 @@ struct PassRevealPaidFacts: Hashable {
                     .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
             }
             .frame(height: 320)
+            .contentShape(Rectangle())
+            .onTapGesture { if full, step < 8 { finish() } }
             .accessibilityHidden(true)
             Spacer()
             VStack(spacing: CYSpacing.md) {
@@ -503,12 +510,21 @@ struct PassRevealPaidFacts: Hashable {
                 CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
                     .accessibilityIdentifier("passReveal.start")
                     .revealIn(step >= 8, reduceMotion: reduceMotion)
+                    .allowsHitTesting(step >= 8)
                     .padding(.top, CYSpacing.sm)
             }
-            .padding(.horizontal, CYSpacing.xxl)
-            .padding(.bottom, CYSpacing.xxl)
-            .accessibilityElement(children: .contain)
+        .padding(.horizontal, CYSpacing.xxl)
+        .padding(.bottom, CYSpacing.xxl)
+        .accessibilityElement(children: .contain)
         }
+        .opacity(pressingSkip && full && step < 8 && !reduceMotion ? 0.8 : 1)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .updating($pressingSkip) { _, state, _ in
+                    if full, step < 8, !reduceMotion { state = true }
+                }
+        )
+        .simultaneousGesture(TapGesture().onEnded { if full, step < 8 { finish() } })
         .background(alignment: .bottom) {
             LinearGradient(colors: [.clear, CYNight.ember.opacity(0.28), CYNight.lantern.opacity(0.18)], startPoint: .top, endPoint: .bottom)
                 .frame(height: 420)

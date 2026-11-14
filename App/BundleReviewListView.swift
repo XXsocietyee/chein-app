@@ -16,7 +16,11 @@ import SwiftUI
                 CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(W8Text.t("评价加载失败", "Couldn't load reviews")),
                              actionTitle: "action.retry") { Task { await model.load() } }.listRowBackground(Color.clear)
             case .empty:
-                CYEmptyState(systemImage: "star.bubble", LocalizedStringKey(W8Text.t("暂无评价", "No reviews yet"))).listRowBackground(Color.clear)
+                CYEmptyState(
+                    systemImage: "star.bubble",
+                    LocalizedStringKey(W8Text.t("还没有评价", "No reviews yet")),
+                    detailVerbatim: W8Text.t("完成体验后，可以留下第一条评价。", "Finish an experience to share the first review.")
+                ).listRowBackground(Color.clear)
             default:
                 ForEach(model.items, id: \.id) { review in
                     VStack(alignment: .leading, spacing: 4) {
@@ -33,5 +37,6 @@ import SwiftUI
             }
         }
         .task { await model.load() }
+        .cyDomainScreen(.player)
     }
 }

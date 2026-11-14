@@ -13,7 +13,7 @@ CONTRACTS = ROOT / "Core/GrowthCenterContracts.swift"
 SERVICE = ROOT / "Core/GrowthCenterService.swift"
 FIXTURE = ROOT / "Core/GrowthCenterSyntheticFixtures.swift"
 UNKNOWN = "\u2014"
-IDENTIFIER = re.compile(r'\.accessibilityIdentifier\("([^"]+)"\)')
+IDENTIFIER = re.compile(r'(?:\.accessibilityIdentifier\(|(?:message|action)Identifier:\s*)"([^"]+)"')
 QUOTED = re.compile(
     r'"(growth(?:\.[A-Za-z]+)*(?: \\\([^"]*\))?|growthExplore\.[A-Za-z.]+|profile\.selfGrowth\.[A-Za-z.]+|growthNormalEntry\.[A-Za-z.]+)"'
 )

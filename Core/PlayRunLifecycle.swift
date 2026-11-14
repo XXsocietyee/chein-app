@@ -80,9 +80,31 @@ public struct PlayRunClock: Equatable {
         elapsedSeconds = elapsed(monotonicNow: monotonicNow); anchor = nil; phase = .ended
     }
 }
+/// Whole-run clock from `utils/play-ui-contract.js` `formatRunElapsed`.
+/// Under one hour stays `mm:ss`. At one hour it becomes `h:mm:ss`, so 118:41 cannot appear.
+/// Short challenge timers keep their own minute clock.
+public enum PlayRunElapsedText {
+    public static func format(_ seconds: Int) -> String {
+        let safe = max(0, seconds)
+        if safe < 3600 { return String(format: "%02d:%02d", safe / 60, safe % 60) }
+        return String(format: "%d:%02d:%02d", safe / 3600, (safe / 60) % 60, safe % 60)
+    }
+}
+
 public enum PlayRunStorageKey {
     public static func make(session: PlayExperienceSession, scope: PlaySessionScope) -> String {
         let parts = [session.namespace, String(session.accountID), scope.fields.keys.first!, String(scope.id)]
         return "play.run.v2:" + parts.map { "\($0.utf8.count):\($0)" }.joined()
+    }
+}
+
+/// D-26 (`pages/play/utils/pack-skip.js`): tapping during a pack-open sequence after the 300ms
+/// debounce guard skips directly to the settled open state.
+public enum PlayPackSkipPolicy {
+    public static let guardInterval: TimeInterval = 0.300
+
+    public static func canSkip(isPlaying: Bool, isOpen: Bool, startedAt: Date?, now: Date = Date()) -> Bool {
+        guard isPlaying, !isOpen, let startedAt else { return false }
+        return now.timeIntervalSince(startedAt) >= guardInterval
     }
 }

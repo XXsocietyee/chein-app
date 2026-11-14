@@ -138,6 +138,8 @@
         "CoreLoopCopyPluralTests",
         "DeepLinkSafetyDiagnosticsSectionViewTests",
         "DeepLinkToMiniProgramPathTranslatorSectionViewTests",
+        "DesignSystemSharedComponentsTests",
+        "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",
         "EndToEndReleaseCandidateGateSectionViewTests",
         "ExplorationPrivateToolsAndCapsuleSectionViewTests",

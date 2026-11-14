@@ -13,6 +13,7 @@ import UIKit
     @Environment(\.locale) private var locale
     @State private var copyStatus: CopyStatus?
     @State private var showsPlayerCodePending = false
+    @State private var toastMessage: LocalizedStringKey?
     private enum CopyStatus { case copied, failed }
 
     private var model: SettingsAboutPageModel { SettingsAboutPageModel(information: appInformation, market: market) }
@@ -27,13 +28,9 @@ import UIKit
                         .padding(CYSpacing.lg)
                         .frame(width: 112, height: 112)
                         .background {
-                            ZStack {
-                                CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
-                                Color.black.opacity(0.35)
-                            }.clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                            CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
+                                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.xl, style: .continuous))
                         }
-                        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(.white.opacity(0.25), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.35), radius: 14, y: 8)
                         .accessibilityHidden(true)
                     appName
                     Text("settingsNative.about.tagline")
@@ -90,6 +87,7 @@ import UIKit
         .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
         .appNavigationTitle("settingsNative.about.title")
+        .navigationBarTitleDisplayMode(.large)
         .safeAreaInset(edge: .bottom) {
             if let phone = model.contactPhone {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -110,7 +108,8 @@ import UIKit
                 .background(palette.bgPage)
             }
         }
-        .onDisappear { copyStatus = nil; showsPlayerCodePending = false }
+        .onDisappear { copyStatus = nil; showsPlayerCodePending = false; toastMessage = nil }
+        .cyToast(message: $toastMessage, tone: copyStatus == .failed ? .warning : .info)
     }
 
     /// `SettingsAboutPageModel.playerCode`. Production is `.error` (the player-code POST stays uninstalled), so the
@@ -162,10 +161,20 @@ import UIKit
         .padding(.vertical, CYSpacing.sm)
         .contentShape(Rectangle())
         // Source bind:retry="explainQrPending": a tap explains, it never requests a code.
-        .onTapGesture { if case .error = phase { showsPlayerCodePending = true } }
+        .onTapGesture {
+            if case .error = phase {
+                showsPlayerCodePending = true
+                toastMessage = "settingsNative.about.playerCodePending"
+            }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(phase == .error ? .isButton : [])
-        .accessibilityAction { if case .error = phase { showsPlayerCodePending = true } }
+        .accessibilityAction {
+            if case .error = phase {
+                showsPlayerCodePending = true
+                toastMessage = "settingsNative.about.playerCodePending"
+            }
+        }
         .accessibilityIdentifier("settingsNative.about.playerCode")
         .cyAnimation(CYMotion.standard, value: showsPlayerCodePending)
     }
@@ -203,6 +212,7 @@ import UIKit
             copyStatus = .failed
         }
         let key: String.LocalizationValue = copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"
+        toastMessage = copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"
         UIAccessibility.post(notification: .announcement, argument: appLocalized(key, locale: locale))
     }
 }
@@ -229,8 +239,7 @@ private struct SettingsFactRow: View {
         let text = Text(verbatim: shown)
             .font(CYTypography.numericBody)
             .foregroundStyle(palette.textSecondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
+            .cyWrapText()
         if let value {
             text
                 .accessibilityLabel(Text(title))

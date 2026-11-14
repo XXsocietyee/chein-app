@@ -21,7 +21,7 @@ struct RoamHistoryParityStrip: View {
     private func column(_ value: Text, _ label: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             value.font(.system(.title3, design: .rounded).weight(.heavy).italic()).monospacedDigit()
-                .foregroundStyle(CYColor.textPrimary).lineLimit(1).minimumScaleFactor(0.7)
+                .foregroundStyle(CYColor.textPrimary).cyWrapText()
             Text(label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
@@ -107,7 +107,7 @@ struct RoamRunCardParityMeta: View {
     private func stat(_ value: String, _ label: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: value).font(.system(.headline, design: .rounded).weight(.bold).monospacedDigit())
-                .lineLimit(1).minimumScaleFactor(0.7)
+                .cyWrapText()
             Text(label).font(.caption2).foregroundStyle(CYColor.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -248,6 +248,7 @@ struct RoamShareLinkDormantNotice: View {
             }.padding()
         }.navigationTitle(Text("roamSub.w208.session.title"))
             .task(id: token) { await load() }
+        .cyDomainScreen(.player)
     }
     private func snapshotCard(_ snapshot: RoamShareSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -404,6 +405,7 @@ struct RoamPOIMissingView: View {
         }.navigationTitle(Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))))
             .navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("roamSub.w208.stamp.flow")
+        .cyDomainScreen(.player)
     }
     private var writeStep: some View {
         VStack(alignment: .leading, spacing: 14) {

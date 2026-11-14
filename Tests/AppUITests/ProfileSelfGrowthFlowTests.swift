@@ -16,10 +16,10 @@ final class ProfileSelfGrowthFlowTests:XCTestCase {
         XCTAssertTrue(app.buttons["growth.openLeaderboard"].waitForExistence(timeout:5))
     }
     func testReadFailureRetriesWithoutEmptyOrSavedClaim() {
-        launch("failure");let retry=app.buttons["growth.retry"];XCTAssertTrue(retry.waitForExistence(timeout:5));retry.tap();XCTAssertTrue(app.staticTexts["700"].waitForExistence(timeout:5))
+        launch("failure");let retry=app.descendants(matching: .any)["growth.issue"].buttons["growth.retry"];XCTAssertTrue(retry.waitForExistence(timeout:5));retry.tap();XCTAssertTrue(app.staticTexts["700"].waitForExistence(timeout:5))
     }
     func testPartialCenterShowsIssueAlongsideKnownCheckins() {
-        launch("partialCenter");XCTAssertTrue(app.buttons["growth.retry"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["12"].exists);XCTAssertFalse(app.staticTexts["700"].exists)
+        launch("partialCenter");XCTAssertTrue(app.descendants(matching: .any)["growth.issue"].buttons["growth.retry"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["12"].exists);XCTAssertFalse(app.staticTexts["700"].exists)
     }
     func testRefreshCanRereadKnownZeroValues() {
         launch("zero");let refresh=app.buttons["profile.selfGrowth.refresh"];XCTAssertTrue(refresh.waitForExistence(timeout:5));refresh.tap()

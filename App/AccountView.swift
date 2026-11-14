@@ -171,6 +171,7 @@ import SwiftUI
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .appNavigationTitle(showsPassportOverview ? "tabBar.passport" : "account.title")
+            .navigationBarTitleDisplayMode(.large)
             // Stamp grid cells zoom into the stamp detail (Passport tab only draws the cells).
             .cyPassportStampHost()
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
@@ -228,13 +229,16 @@ import SwiftUI
                     .cyPlayerSheetGlass()
             }
             .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).cyPlayerSheetGlass() }
-            .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible,presenting:logoutConfirmation) { expected in
-                Button("auth.signOut",role:.destructive) {
-                    logoutConfirmation = nil; confirmsLogout = false
-                    Task { _ = await session.logout(matching: expected) }
+            .sheet(isPresented: $confirmsLogout) {
+                if let expected = logoutConfirmation {
+                    MemberSignOutConfirmSheet(confirmIdentifier: "auth.signOut.confirm") {
+                        logoutConfirmation = nil; confirmsLogout = false
+                        Task { _ = await session.logout(matching: expected) }
+                    }
+                    .themeDomain(.player)
                 }
-                Button("action.cancel",role:.cancel) { logoutConfirmation = nil }
             }
+            .onChange(of: confirmsLogout) { _, visible in if !visible { logoutConfirmation = nil } }
         }
         .onAppear { savedPostOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active); savedTopicOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active) }
         .onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear(); logoutConfirmation = nil; confirmsLogout = false; presentation?.setSheet("passport", open: false) }

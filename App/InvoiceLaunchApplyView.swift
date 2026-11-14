@@ -24,6 +24,8 @@ struct InvoiceLaunchApplyIntent {
     @State private var titleID: Int64?
     @State private var selected = Set<Int64>()
     @State private var choosingTitle = false
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .warning
     private var title: InvoiceLaunchTitle? { model.overview?.titles.first { $0.id == titleID } }
     /// Host switches only. A missing read stays hidden. Apply stays off unless the existing permit is on.
     private var applyPage: InvoiceLaunchApplyPage {
@@ -46,20 +48,44 @@ struct InvoiceLaunchApplyIntent {
                         LabeledContent { Text(verbatim: title?.titleName ?? "—") } label: { invoiceText("chooseTitle") }
                     }.disabled(!model.allows(.apply))
                 } header: { invoiceText("titles") }
-                Section {
-                    if overview.eligibleOrders.isEmpty { invoiceText("noOrders") }
-                    ForEach(overview.eligibleOrders, id: \.orderId) { order in
-                        Toggle(isOn: Binding(get: { selected.contains(order.orderId) }, set: { on in
-                            if on { selected.insert(order.orderId) } else { selected.remove(order.orderId) }
-                        })) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(verbatim: order.orderTitle ?? InvoiceLaunchApplyPage.unknownDisplay)
-                                Text(verbatim: applyAmount(order))
+                if overview.eligibleOrders.isEmpty {
+                    Section { invoiceText("noOrders") } header: { invoiceText("orders") }
+                } else {
+                    ForEach(InvoiceIssuerGrouping.group(orders: overview.eligibleOrders)) { group in
+                        Section {
+                            ForEach(group.orders, id: \.orderId) { order in
+                                Toggle(isOn: Binding(
+                                    get: { selected.contains(order.orderId) },
+                                    set: { _ in
+                                        switch InvoiceIssuerSelectionGuard.toggle(
+                                            order: order,
+                                            in: overview.eligibleOrders,
+                                            currentlySelected: selected
+                                        ) {
+                                        case .updated(let next):
+                                            selected = next
+                                        case .rejectedUnenabledIssuer(let msg):
+                                            toastTone = .info
+                                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(msg, "Issuer not enabled for invoicing yet", locale: locale))
+                                        case .rejectedMixedIssuers(let msg):
+                                            toastTone = .warning
+                                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(msg, "Orders from different issuers must be applied separately", locale: locale))
+                                        }
+                                    }
+                                )) {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text(verbatim: order.orderTitle ?? InvoiceLaunchApplyPage.unknownDisplay)
+                                        Text(verbatim: applyAmount(order))
+                                    }
+                                }
+                                .disabled(!model.allows(.apply) || (!selected.contains(order.orderId) && selected.count >= 50))
+                                .accessibilityIdentifier("invoice.select.\(order.orderId)")
                             }
-                        }.disabled(!model.allows(.apply) || (!selected.contains(order.orderId) && selected.count >= 50))
-                        .accessibilityIdentifier("invoice.select.\(order.orderId)")
+                        } header: {
+                            Text(verbatim: group.issuerTitle)
+                        }
                     }
-                } header: { invoiceText("orders") }
+                }
                 LabeledContent { Text(selected.count, format: .number) } label: { invoiceText("selectedCount") }
             }
         }
@@ -91,21 +117,38 @@ struct InvoiceLaunchApplyIntent {
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { titleID = nil; selected = []; choosingTitle = false }
         }
+        .cyToast(message: $toastMessage, tone: toastTone)
     }
     private var titlePicker: some View {
-        NavigationStack {
-            List(model.overview?.titles ?? [], id: \.id) { candidate in
-                Button {
-                    titleID = candidate.id; choosingTitle = false
-                } label: {
-                    HStack {
-                        Text(verbatim: candidate.titleName)
-                        Spacer()
-                        if candidate.id == titleID { Image(systemName: "checkmark") }
+        CYSheetContainer(title: MemberPopupCopy.table("chooseTitle", table: "InvoiceLaunchUI", locale: locale), onClose: { choosingTitle = false }) {
+            VStack(spacing: CYSpacing.sm) {
+                ForEach(model.overview?.titles ?? [], id: \.id) { candidate in
+                    Button {
+                        titleID = candidate.id
+                        choosingTitle = false
+                    } label: {
+                        HStack {
+                            Text(verbatim: candidate.titleName)
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: CYSpacing.sm)
+                            if candidate.id == titleID {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(CYColor.brand)
+                            }
+                        }
+                        .padding(CYSpacing.md)
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }
-                }.disabled(!model.allows(.apply))
-            }.navigationTitle(invoiceText("chooseTitle"))
-        }        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+                    .buttonStyle(.plain)
+                    .disabled(!model.allows(.apply))
+                }
+            }
+            .padding(.bottom, CYSpacing.lg)
+        }
+        .cyDomainSheet(detents: [.half, .full])
     }
     private func applyAmount(_ order: InvoiceLaunchOrder) -> String {
         let line = applyPage.lines.first { $0.orderID == order.orderId }

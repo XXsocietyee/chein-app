@@ -123,6 +123,7 @@ func playerFactOrDash(_ raw: String?) -> String {
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberScoreReadIdentity) { _, _ in selection = nil; retire(); start() }
         .refreshable { guard let (original, intent) = rendered else { return }; await original.loadList(intent: intent) }
+        .cyDomainScreen(.player)
     }
     private func start() {
         guard visible, scene == .active else { return }; retire()
@@ -151,18 +152,18 @@ private struct MemberScoreAppealRowLabel: View {
         Group {
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    MemberScoreStatusChip(status: row.status)
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         CYRowIcon(systemImage: symbol)
                         copy
                     }
-                    MemberScoreStatusChip(status: row.status)
                 }
             } else {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
+                    MemberScoreStatusChip(status: row.status)
                     CYRowIcon(systemImage: symbol)
                     copy
                     Spacer(minLength: CYSpacing.sm)
-                    MemberScoreStatusChip(status: row.status)
                     if showsChevron {
                         Image(systemName: "chevron.right")
                             .font(.footnote.weight(.semibold))

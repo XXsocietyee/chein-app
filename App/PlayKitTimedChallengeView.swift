@@ -114,7 +114,7 @@ import SwiftUI
             Circle().stroke(CYColor.bgRaised, lineWidth: 14)
             Circle().trim(from: 0, to: clockProgress).stroke(timing.phase == .measured ? (resultTone ?? CYColor.textPrimary) : CYColor.textPrimary, style: StrokeStyle(lineWidth: 14, lineCap: .round))
                 .rotationEffect(.degrees(-90)).animation(.linear(duration: 0.05), value: clockProgress)
-            Text(verbatim: clockLabel).font(.system(size: 76, weight: .bold, design: .rounded)).monospacedDigit()
+            Text(verbatim: clockLabel).font(CYTypography.data2XL)
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.5).lineLimit(1).padding(CYSpacing.xl)
         }
         .frame(maxWidth: 300).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
@@ -188,7 +188,7 @@ import SwiftUI
         if let goal = segment["goalMs"].integer, goal > 0 { LabeledContent("playkit.reaction.goal") { Text(verbatim: PlayTimedDisplayLocalization.milliseconds(goal, locale: locale)) } }
         if reaction.phase == .idle || reaction.phase == .interrupted {
             VStack(spacing: CYSpacing.lg) {
-                Image(systemName: "hand.tap.fill").font(.system(size: 44, weight: .semibold)).foregroundStyle(CYColor.textSecondary)
+                Image(systemName: "hand.tap.fill").font(CYTypography.data2XL).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: ChannelCopy.text("圆圈变绿时立刻点按，别抢跑。", "Tap the circle the moment it turns green. Don't jump the gun.", locale: locale))
                     .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -210,7 +210,7 @@ import SwiftUI
                     Circle().fill(go ? CYColor.successText : CYColor.bgElevated)
                     Circle().strokeBorder(go ? Color.white.opacity(0.5) : CYColor.borderStrong, lineWidth: 4)
                     VStack(spacing: CYSpacing.sm) {
-                        Image(systemName: go ? "hand.tap.fill" : "hourglass").font(.system(size: 44, weight: .semibold))
+                        Image(systemName: go ? "hand.tap.fill" : "hourglass").font(CYTypography.data2XL)
                         Text(go ? "playkit.reaction.tap" : "playkit.reaction.wait").font(CYTypography.sectionTitle)
                     }.foregroundStyle(go ? Color.black : CYColor.textSecondary).padding(CYSpacing.lg)
                 }
@@ -292,9 +292,9 @@ struct PlayTimedResultCard: View {
     }
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
-            Image(systemName: icon).font(.system(size: 34, weight: .semibold)).foregroundStyle(tone)
+            Image(systemName: icon).font(CYTypography.dataXL).foregroundStyle(tone)
             Text(verbatim: headline).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-            Text(verbatim: value).font(.system(size: 44, weight: .bold, design: .rounded)).monospacedDigit()
+            Text(verbatim: value).font(CYTypography.data2XL)
                 .minimumScaleFactor(0.5).lineLimit(1).foregroundStyle(CYColor.textPrimary)
             if target != nil || delta != nil {
                 Text(verbatim: [target.map { ChannelCopy.text("目标 \($0)", "Target \($0)", locale: locale) },

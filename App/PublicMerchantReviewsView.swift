@@ -26,8 +26,14 @@ import SwiftUI
         List {
             if !reader.isConfigured { Text("merchant.publicHome.notConfigured") }
             else {
-                if reader.isOfflineExample { Text("merchant.publicHome.synthetic").font(.footnote) }
-                Text(writes == nil ? "merchant.publicHome.reviewsReadOnly" : "merchant.publicHome.reviewBoundary").font(.footnote)
+                if reader.isOfflineExample {
+                    Text("merchant.publicHome.synthetic")
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary)
+                }
+                Text(writes == nil ? "merchant.publicHome.reviewsReadOnly" : "merchant.publicHome.reviewBoundary")
+                    .font(CYTypography.caption)
+                    .foregroundStyle(CYColor.textSecondary)
                 if loadedKey == key, let snapshot {
                     Section("merchant.publicHome.summary") {
                         LabeledContent("merchant.publicHome.total", value: String(snapshot.total))
@@ -37,7 +43,9 @@ import SwiftUI
                                 .accessibilityIdentifier("merchant.publicHome.rating")
                         }
                         // Do not infer an authenticated action from a public read or start an upload/provider.
-                        Text("merchant.publicHome.reviewBoundary").font(.footnote)
+                        Text("merchant.publicHome.reviewBoundary")
+                            .font(CYTypography.caption)
+                            .foregroundStyle(CYColor.textSecondary)
                     }
                     if let writes, snapshot.eligibility.canCreate, let registration = snapshot.eligibility.registrationId {
                         NavigationLink("merchant.publicHome.createReview") {
@@ -50,28 +58,40 @@ import SwiftUI
                                 Text(LocalizedStringKey("merchant.publicHome.reviewFilter." + filter.rawValue)).tag(filter)
                             }
                         }.pickerStyle(.menu).accessibilityIdentifier("merchant.publicHome.reviewFilter")
-                        Text("merchant.publicHome.reviewFilterScope").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.publicHome.reviewFilterScope")
+                            .font(CYTypography.caption)
+                            .foregroundStyle(CYColor.textSecondary)
                         if reviewFilter != .all {
-                            Button("merchant.publicHome.clearReviewFilter") { reviewFilter = .all }
+                            CYPillButton("merchant.publicHome.clearReviewFilter", style: .secondary) { reviewFilter = .all }
                                 .accessibilityIdentifier("merchant.publicHome.clearReviewFilter")
                         }
                     }
                     if items.isEmpty {
-                        Text("merchant.publicHome.noReviews").accessibilityIdentifier("merchant.publicHome.noReviews")
+                        Text("merchant.publicHome.noReviews")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("merchant.publicHome.noReviews")
                     } else if visibleItems.isEmpty {
-                        Text("merchant.publicHome.noMatchingReviews").accessibilityIdentifier("merchant.publicHome.noMatchingReviews")
+                        Text("merchant.publicHome.noMatchingReviews")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("merchant.publicHome.noMatchingReviews")
                     }
                     ForEach(visibleItems, id: \.offset) { _, item in
                         UGCBlockedFilterContainer(authorName: item.authorNickname) {
                             Section {
-                                HStack(alignment: .top, spacing: Theme.Space.s3) {
+                                HStack(alignment: .top, spacing: CYSpacing.md) {
                                     Group {
-                                        if let first = item.authorNickname?.first { Text(String(first)).font(.title3.weight(.semibold)) }
-                                        else { Image(systemName: "person.fill").foregroundStyle(.secondary) }
-                                    }.frame(width: 44, height: 44)
-                                        .background(Theme.Color.bgRaised(in: .merchant), in: Circle()).accessibilityHidden(true)
+                                        if let first = item.authorNickname?.first { Text(String(first)).font(CYTypography.sectionTitle) }
+                                        else { Image(systemName: "person.fill").foregroundStyle(CYColor.textSecondary) }
+                                    }
+                                    .frame(width: 44, height: 44)
+                                    .background(CYColor.bgSection, in: Circle())
+                                    .accessibilityHidden(true)
                                     Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
-                                        .font(.headline).fixedSize(horizontal: false, vertical: true)
+                                        .font(CYTypography.cardTitle)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
                                     Spacer(minLength: 0)
                                     UGCSafetyMenuButton(
                                         presentation: UGCReportPresentationTarget(
@@ -88,8 +108,8 @@ import SwiftUI
                                     .accessibilityIdentifier("merchant.publicHome.review.\(item.id)")
                                 LabeledContent("merchant.publicHome.rating", value: "\(item.rating) / 5")
                                 if item.verifiedRedemption { Label("merchant.publicHome.verified", systemImage: "checkmark.seal") }
-                                if let content = item.content { Text(verbatim: content).textSelection(.enabled) }
-                                if let time = item.createTime { Text(verbatim: time).font(.caption) }
+                                if let content = item.content { Text(verbatim: content).font(CYTypography.body).textSelection(.enabled) }
+                                if let time = item.createTime { Text(verbatim: time).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
                                 RetainedPublicReviewImages(urls: item.imageUrls, reader: imageReader)
                                 if item.canReport, let writes, let page = itemPages[item.id] {
                                     NavigationLink("merchant.publicHome.report") {
@@ -100,20 +120,24 @@ import SwiftUI
                                 }
                                 if let reply = item.merchantReply, !reply.isEmpty {
                                     LabeledContent("merchant.publicHome.reply", value: reply)
-                                    if let time = item.repliedAt { Text(verbatim: time).font(.caption) }
+                                    if let time = item.repliedAt { Text(verbatim: time).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
                                 }
                             }
                         }
                     }
                     if snapshot.hasMore, failure == nil {
-                        Button("merchant.publicHome.more") { Task { await load(page: snapshot.pageNum + 1) } }.disabled(loading).accessibilityIdentifier("merchant.publicHome.more")
+                        CYPillButton("merchant.publicHome.more", style: .secondary) { Task { await load(page: snapshot.pageNum + 1) } }
+                            .disabled(loading)
+                            .accessibilityIdentifier("merchant.publicHome.more")
                     }
                 }
                 if let failure {
                     MerchantM02Notice(message: Text(LocalizedStringKey(failure.localizationKey)), symbol: "exclamationmark.circle", isError: true)
-                    Button("merchant.publicHome.retry") { Task { await load(page: failedPage) } }.disabled(loading).accessibilityIdentifier("merchant.publicHome.retry")
+                    CYPillButton("merchant.publicHome.retry", style: .primary) { Task { await load(page: failedPage) } }
+                        .disabled(loading)
+                        .accessibilityIdentifier("merchant.publicHome.retry")
                 }
-                if loading { ProgressView("merchant.publicHome.loading") }
+                if loading { CYSkeleton(variant: .card) }
             }
         }
         .merchantM02Page()
@@ -122,6 +146,7 @@ import SwiftUI
         // Pushing the editor must not delete the NavigationLink that owns it.
         // loadedKey == key still hides every retained row after a target/session change.
         .onDisappear { generation += 1; loading = false }
+        .cyDomainScreen(.merchant)
     }
     private func load(page: Int) async {
         guard reader.isConfigured else { return }

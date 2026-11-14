@@ -55,37 +55,39 @@ import SwiftUI
                 }
             }
         }
-        .listStyle(.insetGrouped).navigationTitle(invoiceText("history"))
+        .listStyle(.insetGrouped).cyDomainScreen(.player).navigationTitle(invoiceText("history"))
         .task { await model.refresh() }.refreshable { await model.refresh() }
-        .confirmationDialog(invoiceText("withdrawConfirm"), isPresented: Binding(
-            get: { withdraw.confirming != nil }, set: { if !$0 { withdraw.cancelAsk() } }), titleVisibility: .visible) {
-            Button(role: .destructive) {
+        .sheet(isPresented: Binding(
+            get: { withdraw.confirming != nil }, set: { if !$0 { withdraw.cancelAsk() } })) {
+            MemberInvoiceWithdrawConfirmSheet(confirmIdentifier: "invoice.history.withdraw.confirm") {
                 // Success is announced only after the service returns success.
                 if let id = withdraw.confirm() {
                     Task { let ok = await model.cancel(id); withdraw.finish(id: id, success: ok) }
                 }
-            } label: { invoiceText("withdraw") }
-            Button(role: .cancel) { withdraw.cancelAsk() } label: { invoiceText("keep") }
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.invalidate() }
             else { Task { await model.refresh() } }
         }
+        .cyDomainScreen(.player)
     }
     private func historyRow(_ row: InvoiceLaunchApplication) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                Text(verbatim: row.titleName).font(CYTypography.cardTitle).lineLimit(2)
-                Spacer(minLength: CYSpacing.sm)
-                Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).font(CYTypography.numericBody).monospacedDigit()
-            }
-            HStack(spacing: CYSpacing.sm) {
-                CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
-                Text(verbatim: invoiceTime(row.createTime, locale: locale)).font(CYTypography.meta)
-                    .foregroundStyle(CYColor.textSecondary).lineLimit(1)
-            }
+            CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
+            Text(verbatim: row.titleName.isEmpty ? "—" : row.titleName)
+                .font(CYTypography.cardTitle)
+                .cyWrapText()
+            Text(verbatim: invoiceTime(row.createTime, locale: locale)).font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .cyWrapText()
+            Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale))
+                .font(CYTypography.numericBody)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textSecondary)
             if let tax = row.taxNoMasked, !tax.isEmpty {
-                Text(verbatim: tax).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: tax).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, CYSpacing.xs)

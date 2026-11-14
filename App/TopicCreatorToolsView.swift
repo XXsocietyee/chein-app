@@ -157,6 +157,7 @@ import QuestifyCore
 @MainActor struct TopicCreatorToolsView: View {
     @Environment(\.analyticsEventClient) private var analytics
     @StateObject var model: TopicCreatorToolsModel
+    @Environment(\.locale) private var locale
     @State private var newKeyLabel = ""
     @State private var newKeyKind = "clue"
     @State private var renaming: TopicStateKeyRow?
@@ -184,14 +185,27 @@ import QuestifyCore
         .disabled(model.busy)
         .task { await model.load() }
         .refreshable { await model.load() }
-        .alert(Text("creatorEditor.keys.rename", tableName: "CreatorEditorUI"), isPresented: Binding(
-            get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-            TextField(text: $renameText) { Text("creatorEditor.keys.name", tableName: "CreatorEditorUI") }
-            Button { if let row = renaming { Task { await model.rename(row, to: renameText) } }; renaming = nil } label: {
-                Text("creatorEditor.save", tableName: "CreatorEditorUI")
+        .cyPromptModalOverlay(
+            isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }),
+            title: String(localized: LocalizedStringResource("creatorEditor.keys.rename", table: "CreatorEditorUI", locale: locale)),
+            text: $renameText,
+            placeholder: String(localized: LocalizedStringResource("creatorEditor.keys.name", table: "CreatorEditorUI", locale: locale)),
+            validationMessage: renameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? MerchantAreaCopy.text("请输入名称", "Enter a name", locale)
+                : nil,
+            cancelTitle: String(localized: LocalizedStringResource("creatorEditor.cancel", table: "CreatorEditorUI", locale: locale)),
+            confirmTitle: String(localized: LocalizedStringResource("creatorEditor.save", table: "CreatorEditorUI", locale: locale)),
+            onCancel: { renaming = nil },
+            onConfirm: {
+                let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { return }
+                if let row = renaming {
+                    Task { await model.rename(row, to: renameText) }
+                }
+                renaming = nil
             }
-            Button(role: .cancel) { renaming = nil } label: { Text("creatorEditor.cancel", tableName: "CreatorEditorUI") }
-        }
+        )
+        .cyDomainScreen(.topicEditor)
     }
 
     @ViewBuilder private var draftSection: some View {

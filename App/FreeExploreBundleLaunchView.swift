@@ -48,7 +48,7 @@ import SwiftUI
             case .error(.stale):
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
             case .loading:
-                ProgressView { text("loading") }.frame(maxWidth: .infinity).padding(CYSpacing.md)
+                CYLoadingStateView(rows: 2)
                     .accessibilityIdentifier("freeBundle.loading")
             case .empty:
                 CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
@@ -65,12 +65,15 @@ import SwiftUI
                     }
                 } else {
                     // Nothing has arrived yet: not an empty shelf and not a price of 0.
-                    ProgressView { text("loading") }.frame(maxWidth: .infinity).padding(CYSpacing.md)
+                    CYLoadingStateView(rows: 2)
                 }
             case .ready(let facts):
                 readyContent(facts)
             }
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .cyPushedChrome(domain: .player)
         .navigationTitle(text("title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task { await model.load() }
@@ -93,14 +96,18 @@ import SwiftUI
                         .disabled(!model.canReserve).listRowBackground(Color.clear)
                     CYPillButton(LocalizedStringKey("cancel"), style: .tertiary, tableName: table) { model.cancelReview() }
                         .listRowBackground(Color.clear)
-                }.navigationTitle(text("review"))
+                }
+                .scrollContentBackground(.hidden)
+                .cyDomainScreen(.player)
+                .navigationTitle(text("review"))
             }
+            .cyDomainSheet(detents: [.half, .full])
         }
         // A reopened destination must receive a fresh model from its authorized host.
         .onDisappear { model.cancelReview() }
     }
     @ViewBuilder private func readyContent(_ facts: FreeExploreBundlePageReady.Facts) -> some View {
-        if facts.refreshing { ProgressView { text("loading") }.frame(maxWidth: .infinity).padding(CYSpacing.md) }
+        if facts.refreshing { CYLoadingStateView(rows: 2) }
         if facts.refreshFailed {
             // A failed refresh keeps the last record on screen instead of zeroing it.
             CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")

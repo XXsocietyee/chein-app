@@ -59,6 +59,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
             }
         }
         .appNavigationTitle("accountCollection.favorites.title")
+        .navigationBarTitleDisplayMode(.large)
         .cyHideTabBar()
         .task(id: gateKey) { await gateModel.load(reader: { reader }, gate: { communityGate }) }
         .onChange(of: gateKey) { _, _ in
@@ -76,6 +77,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     var retryGate: (() async -> Void)? = nil
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
     @Environment(\.topicUnlikeController) private var unlike
+    @Environment(\.locale) private var locale
     @State private var unliked: Set<Int> = []
     @State private var showRecommendNote = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
@@ -140,6 +142,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         // mylike.js onPullDownRefresh parity: same guarded refresh as the toolbar button.
         .refreshable { await refresh() }
         .appNavigationTitle("accountCollection.favorites.title")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { Task { await refresh() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
@@ -149,10 +152,9 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
         .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
-        .alert(Text("member.favorites.recommendNote.title", tableName: "MemberProfile"), isPresented: $showRecommendNote) {
-            Button(role: .cancel) {} label: { Text("member.favorites.recommendNote.dismiss", tableName: "MemberProfile") }
-        } message: {
-            Text("member.favorites.recommendNote.body", tableName: "MemberProfile")
+        .sheet(isPresented: $showRecommendNote) {
+            MemberFavoritesRecommendNoteSheet { showRecommendNote = false }
+                .themeDomain(.player)
         }
     }
     private func refresh() async {
@@ -178,7 +180,7 @@ private struct AccountCollectionFavoriteCard: View {
                                fallbackSymbol: "photo", minimumHeight: 250) {
             if let categories = topic.favoriteCategoryText {
                 QuestifyImageEntityMetadata(label: "accountCollection.favorites.categories", value: categories, systemImage: "tag")
-                    .lineLimit(1).truncationMode(.tail)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("accountCollection.favorite.categories.\(topic.id)")
             }
             // Unknown stop count is an em dash (pages/mylike page model), never 未知 or 0.

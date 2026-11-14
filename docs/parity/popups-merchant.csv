@@ -1,0 +1,748 @@
+mini-program file:line,trigger,title/copy,buttons/actions,native screen,native equivalent file:line,status
+components/cy/category-sheet/index.js:91,toast (toggleCategory),最多只能选择 ${num} 个分类,dismiss,App/ProjectEditView.swift (Category Picker),matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+components/cy/category-sheet/index.js:97,toast (toggleCategory),最多只能选择 ${num} 个分类,dismiss,App/ProjectEditView.swift (Category Picker),matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+components/cy/category-sheet/index.js:120,toast (onSave),最多只能选择 ${num} 个分类,dismiss,App/ProjectEditView.swift (Category Picker),matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+components/cy/category-sheet/index.wxml:1,cy-sheet,选择分类,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift:704 (ProjectEditCategoryField),DONE
+components/cy/publish-sheet/index.js:57,toast (chooseTopicMode),发布信息尚未就绪，请稍后重试,dismiss,App/PublishingModesViews.swift (Publish Sheet),matched zh-Hans string in App/*.swift,DONE
+components/cy/publish-sheet/index.js:67,toast (choosePro),当前身份不可发布主题,dismiss,App/PublishingModesViews.swift (Publish Sheet),gap: App/PublishingModesViews.swift (Publish Sheet) inline error/status surface,MISSING
+components/cy/publish-sheet/index.js:71,toast (choosePro),在架已满，可先存草稿或下架旧项目,dismiss,App/PublishingModesViews.swift (Publish Sheet),gap: App/PublishingModesViews.swift (Publish Sheet) inline error/status surface,MISSING
+components/cy/publish-sheet/index.js:79,toast (goTemplate),发布信息尚未就绪，请稍后重试,dismiss,App/PublishingModesViews.swift (Publish Sheet),matched zh-Hans string in App/*.swift,DONE
+components/cy/publish-sheet/index.js:97,toast (_closeAndGo),跳转失败，请重试,dismiss,App/PublishingModesViews.swift (Publish Sheet),matched zh-Hans string in App/*.swift,DONE
+components/cy/scene-topic-customers/index.wxml:1,cy-scene-sheet,客户,close / select,App/MerchantContentViews.swift,App/MerchantContentViews.swift:186 (MerchantProjectParticipantsReadHost),DONE
+pages/coop/invite-detail/index.js:309,toast (copyPhone),已复制,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:357,wx.showModal,"modal.show({ title: title, content: content, confirmText: title, danger: danger,",confirm / cancel,App/CooperationFlowEditors.swift,App/CooperationFlowEditors.swift:354 (CYModal confirm),DONE
+pages/coop/invite-detail/index.js:395,toast (success),已提交,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:397,toast (success),已提交,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:400,toast (fail),网络异常，没能提交,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:458,toast (success),网络异常，没能联系对方,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:460,toast (fail),网络异常，没能联系对方,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:474,wx.showModal,取消合作 — 锁价开卖前可取消；锁价后需联系客服协商。,提交取消 / 再想想,App/CooperationFlowEditors.swift,App/CooperationFlowEditors.swift:354 (CYModal confirm cancel),DONE
+pages/coop/invite-detail/index.js:482,toast (success),请填写取消理由,dismiss,App/CooperationInviteDetailView.swift,App/CooperationInviteDetailView.swift inline status / .cyToast,DONE
+pages/coop/invite-detail/index.js:485,toast (fail),操作确认没有打开，请重试,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:579,toast (success),网络异常，供给没申报上,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:582,toast (fail),网络异常，供给没申报上,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:601,toast (reviewCoop),该合作暂不可评价,dismiss,App/CooperationInviteDetailView.swift,App/CooperationInviteDetailView.swift inline status / .cyToast,DONE
+pages/coop/invite-detail/index.js:617,wx.showModal,评语(选填),提交 / 取消,App/CooperationInviteActionSections.swift,App/CooperationInviteActionSections.swift:132 (CYPromptModal review comment),DONE
+pages/coop/invite-detail/index.js:641,toast (success),评价失败,dismiss,App/CooperationInviteDetailView.swift,App/CooperationInviteDetailView.swift inline status / .cyToast,DONE
+pages/coop/invite-detail/index.js:651,toast (fail),评价确认没有打开，请重试,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.js:657,toast (fail),评价确认没有打开，请重试,dismiss,App/CooperationInviteDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite-detail/index.wxml:197,cy-sheet,申报本次供给,close / select,App/CooperationInviteDetailView.swift,App/CooperationContextualViews.swift:351 (.cyDomainSheet),DONE
+pages/coop/invite-detail/index.wxml:213,cy-option-sheet,这次合作打几分,close / select,App/CooperationInviteActionSections.swift,App/CooperationInviteActionSections.swift:119 (MerchantChoiceOptionSheet 5-1 stars),DONE
+pages/coop/invite/index.js:609,toast (_supplyReady),页面或账号已变化，请重新打开邀约,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:612,toast (_supplyReady),请先确认主题类型,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:619,toast (_supplyReady),不同邀约不能选择同一据点,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:621,toast (_supplyReady),不同邀约不能选择同一据点,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:708,toast (sendInvite),请先恢复主题与合作对象列表,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:712,toast (sendInvite),请先选择关联主题,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:716,toast (sendInvite),请先勾选邀请对象,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:720,toast (sendInvite),请先勾选邀请对象,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:725,toast (sendInvite),固定合作费用必须大于 0,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:781,toast (confirmInvite),对象或据点已变，请重新确认,dismiss,App/CooperationFlowEditors.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/invite/index.js:786,toast (confirmInvite),固定合作费用必须大于 0,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.js:790,toast (confirmInvite),请重新选择主题和对象,dismiss,App/CooperationFlowEditors.swift,gap: App/CooperationFlowEditors.swift inline error/status surface,MISSING
+pages/coop/invite/index.wxml:142,cy-sheet,编辑邀约语,close / select,App/CooperationFlowEditors.swift,App/CooperationFlowEditors.swift:187 (.cyModalConfirm),DONE
+pages/coop/invite/index.wxml:166,cy-result-sheet,{{resultSheet.title}},confirm / cancel,App/CooperationInviteDetailView.swift,App/CooperationContextualViews.swift:491 (.cyModalConfirm),DONE
+pages/coop/list/index.js:597,wx.showModal,确认接受邀约,接受 / 取消,App/CoopListParitySections.swift,App/CooperationFlowEditors.swift:354 (CYModal accept),DONE
+pages/coop/list/index.js:610,wx.showModal,拒绝邀约,destructive 拒绝 / 再想想,App/CoopListParitySections.swift,App/CooperationFlowEditors.swift:354 (CYModal reject),DONE
+pages/coop/list/index.js:697,wx.showModal,撤回申请 — 撤回后商家将不再看到这条申请，之后可重新申请。,撤回 / 取消,App/CoopListParitySections.swift,App/CooperationFlowEditors.swift:354 (CYModal withdraw),DONE
+pages/coop/list/index.js:731,wx.showModal,拒绝申请 — 拒绝「,destructive 拒绝 / 再想想,App/CoopListParitySections.swift,App/CooperationFlowEditors.swift:354 (CYModal decline),DONE
+pages/coop/list/index.js:827,wx.showModal,确认候选 — 确认该商家占住这个地点?同地点其他待调配报名将自动落选。\n确认后需再向他发出带条款的合作邀约，他接受才成合作单。,确认 / 取消,App/CoopListParitySections.swift,gap: not on App/CoopListParitySections.swift,MISSING
+pages/coop/list/index.js:843,wx.showModal,已占位，接着发邀约 — 现在给「,去发邀约 / 稍后,App/CoopListParitySections.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/list/index.js:960,toast (onPaySuccess),保证金已缴纳,dismiss,App/CoopListParitySections.swift,gap: App/CoopListParitySections.swift inline error/status surface,MISSING
+pages/coop/list/index.js:975,wx.showModal,支付结果待确认 — 请勿重复缴纳，稍后刷新合作列表查看保证金状态,confirm / cancel,App/CoopListParitySections.swift,matched zh-Hans string (Resources/Localizable.xcstrings:orderLifecycle.payment.pending),DONE
+pages/coop/list/index.js:1051,wx.showModal,确认核销据点 — 确认核销据点：,确认并接受 / 再核对一下,App/CoopListParitySections.swift,gap: not on App/CoopListParitySections.swift,MISSING
+pages/coop/list/index.js:1059,wx.showModal,拒绝这条邀约,destructive 拒绝 / 取消,App/CoopListParitySections.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/list/index.js:1095,wx.showModal,modal.show({,确定 / 再想想,App/CoopListParitySections.swift,App/CooperationFlowEditors.swift:354 (CYModal cancel),DONE
+pages/coop/nearby/index.js:422,toast (openMerchant),这家还没在平台建档，先电话联系,dismiss,App/NearbyMerchantView.swift,gap: App/NearbyMerchantView.swift inline error/status surface,MISSING
+pages/coop/nearby/index.js:477,wx.showModal,邀请商家补位 — 邀请「,发送邀请 / 取消,App/NearbyMerchantView.swift,App/MerchantOperationsViews.swift:297 (.cyModalConfirm),DONE
+pages/coop/nearby/index.js:488,toast (confirmChapterReplacement),补位候选已变化，请刷新后重试,dismiss,App/NearbyMerchantView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/coop/nearby/index.wxml:5,cy-option-sheet,选择补位操作,close / select,App/NearbyMerchantView.swift,App/NearbyMerchantView.swift:119 (.cyDomainSheet),DONE
+pages/merchant/aftercare/detail/index.js:259,wx.showModal,modal.show({,confirm / cancel,App/MerchantBusinessEditor.swift,App/MerchantBusinessEditor.swift:148 (.cyModalConfirm),DONE
+pages/merchant/aftercare/detail/index.js:260,submitResponse,"dangerKey: 'merchant.aftercare.reject',",confirm / cancel,App/MerchantBusinessEditor.swift,App/MerchantBusinessEditor.swift:162 (.cyModalConfirm),DONE
+pages/merchant/aftercare/detail/index.js:315,toast (action),凭证已提交，等待平台处理,dismiss,App/MerchantBusinessEditor.swift,matched zh-Hans string (Resources/PlayCreatorTail.xcstrings:appeal.state.SUBMITTED),DONE
+pages/merchant/aftercare/detail/index.wxml:127,cy-sheet,{{respondStep === 0 ? flow.formTitle : flow.confirmTitle}},close / select,App/MerchantBusinessEditor.swift,App/MerchantBusinessEditor.swift:198 (.cyDomainSheet),DONE
+pages/merchant/aftercare/index.js:153,toast (handleListFailure),toast(message);,dismiss,App/MerchantBusinessViews.swift,gap: App/MerchantBusinessViews.swift inline error/status surface,MISSING
+pages/merchant/apply/index.js:388,toast (onNextDisabledTap),if (!fe.realName && !fe.idCard && fe.consent) toast(fe.consent);,dismiss,App/MerchantOnboardingView.swift,gap: App/MerchantOnboardingView.swift inline error/status surface,MISSING
+pages/merchant/apply/index.js:439,toast (confirmIndustrySheet),请至少选择一个行业类型,dismiss,App/MerchantOnboardingView.swift,gap: App/MerchantOnboardingView.swift inline error/status surface,MISSING
+pages/merchant/apply/index.js:481,wx.showModal,选择店铺位置 — 将打开微信地图，用于标注店铺地址；仅在本次选择时获取位置。,打开地图 / 取消,App/MerchantOnboardingView.swift,App/MerchantOnboardingView.swift:79 (.cyModalConfirm),DONE
+pages/merchant/apply/index.js:511,wx.showModal,无法选择位置,确定 / 稍后再试,App/MerchantOnboardingView.swift,App/MerchantOnboardingView.swift:91 (.cyModalConfirm),DONE
+pages/merchant/apply/index.js:588,toast (addDerivative),最多6张,dismiss,App/MerchantOnboardingView.swift,gap: App/MerchantOnboardingView.swift inline error/status surface,MISSING
+pages/merchant/apply/index.js:691,toast (onReapply),审核中，请耐心等待,dismiss,App/MerchantOnboardingView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/apply/index.wxml:313,cy-sheet,设置经营时间,close / select,App/MerchantOnboardingView.swift,App/MerchantOnboardingView.swift:74 (.cyDomainSheet),DONE
+pages/merchant/citynode/create/index.js:114,toast (onNavBack),正在提交，请稍候,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/citynode/create/index.js:273,toast (goConfigTemplate),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/create/index.js:281,toast (templateCreated),if (isAlbumTemplate(tpl)) { toast(ALBUM_ONLY_IN_STORY); return; },dismiss,App/MerchantCityNodeCreateView.swift,App/MerchantCityNodeCreateView.swift inline status / .cyToast,DONE
+pages/merchant/citynode/create/index.js:304,toast (repick),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/create/index.js:324,wx.showModal,无法选择位置,确定 / 稍后再试,App/MerchantCityNodeCreateView.swift,App/MerchantCityNodeCreateView.swift:84 (.cyModalConfirm),DONE
+pages/merchant/citynode/create/index.js:382,toast (submitNode),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/create/index.js:386,toast (submitNode),请先配置店铺玩法,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.create.needTemplate),DONE
+pages/merchant/citynode/create/index.js:387,toast (submitNode),请确认店址,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.create.needAddress),DONE
+pages/merchant/citynode/create/index.js:388,toast (submitNode),请先确认店址是否准确,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.create.needConfirm),DONE
+pages/merchant/citynode/create/index.js:404,toast (success),投放申请已提交,dismiss,App/MerchantCityNodeCreateView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.create.submitted),DONE
+pages/merchant/citynode/create/index.wxml:87,cy-modal,放弃未提交草稿吗 — 玩法或店址还没有提交，直接离开会丢失本页草稿。,destructive 离开 / 继续编辑,App/MerchantCityNodeCreateView.swift,App/MerchantCityNodeCreateView.swift:68 (.cyModalConfirm),DONE
+pages/merchant/citynode/index.js:215,toast (goCreate),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/index.js:218,toast (goCreate),节点配额暂未取回，请重试,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.place.quotaRetry),DONE
+pages/merchant/citynode/index.js:223,toast (goCreate),当前没有节点配额,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.place.noQuota),DONE
+pages/merchant/citynode/index.js:230,toast (toggleClaim),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/index.js:281,toast (submitClaim),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/index.js:293,toast (success),认领申请已提交,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.claim.success),DONE
+pages/merchant/citynode/index.js:322,toast (cancelClaim),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/index.js:335,toast (success),已撤回认领申请,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/citynode/index.js:360,toast (loadPosterCode),当前岗位没有核销权限,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.verify),DONE
+pages/merchant/citynode/index.js:445,toast (toggleNode),当前岗位没有节点管理权限,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/merchant/citynode/index.js:459,toast (success),已更新,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/citynode/index.js:484,toast (submitCityNodeRedeem),非据点核销码,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/BackendErrorCatalog.xcstrings:backendError.message.notPlaceCode),DONE
+pages/merchant/citynode/index.js:498,wx.showModal,核销结果待确认,知道了 / 取消,App/MerchantCityNodeHubView.swift,App/MerchantCityNodeHubView.swift:108 (.cyModalConfirm),DONE
+pages/merchant/citynode/index.js:509,toast (successStatusAbnormal),待复核,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/citynode/index.js:513,wx.showModal,待复核,知道了 / 取消,App/MerchantCityNodeHubView.swift,App/MerchantCityNodeHubView.swift:108 (.cyModalConfirm 待复核),DONE
+pages/merchant/citynode/index.js:516,wx.showModal,核销失败,知道了 / 取消,App/MerchantCityNodeHubView.swift,App/MerchantCityNodeHubView.swift:108 (.cyModalConfirm 核销失败),DONE
+pages/merchant/citynode/index.js:527,toast (readReceipt),核销处理中，请勿重复提交,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/citynode/index.js:534,toast (scanRedeem),当前岗位没有核销权限,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.verify),DONE
+pages/merchant/citynode/index.js:544,toast (success),未识别到核销码,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,App/MerchantCityNodeHubView.swift inline status / .cyToast,DONE
+pages/merchant/citynode/index.js:551,toast (fail),扫码失败，请重试,dismiss,App/MerchantCityNodeHubView.swift / App/CityNodeRedeemView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/citynode/index.wxml:97,cy-sheet,认领平台节点,close / select,App/MerchantCityNodeHubView.swift,App/MerchantCityNodeHubView.swift:136 (.cyDomainSheet 认领平台节点),DONE
+pages/merchant/citynode/index.wxml:123,cy-sheet,到店打卡码,close / select,App/MerchantCityNodeHubView.swift,App/MerchantCityNodeHubView.swift:142 (.cyDomainSheet 到店打卡码),DONE
+pages/merchant/components/cy/info-pop/index.wxml:17,cy-modal,{{title}} — {{content}},知道了 / 取消,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/components/cy/info-pop/index.wxml:33,cy-sheet,{{_sheetTitle}},close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/components/cy/tag-sheet/index.js:77,toast (onTap),最多选 ,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:club.ops.directionsHint),DONE
+pages/merchant/components/cy/tag-sheet/index.wxml:3,cy-sheet,"<cy-sheet show=""{{show}}"" handle closable=""{{false}}"" mask-closable=""{{!saving}}"" footer bind:close=",close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/components/cy/time-range/index.wxml:1,cy-date-sheet,{{title}},close / select,App/MerchantOnboardingView.swift,App/MerchantOnboardingView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/components/merchant-claim-sheet/index.wxml:1,cy-sheet,认领已有门店,close / select,App/MerchantCityNodeHubView.swift,App/MerchantCityNodeHubView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/crm-campaigns/index.js:104,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantBusinessViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/merchant/crm-campaigns/index.js:112,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantBusinessViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/merchant/crm-campaigns/index.wxml:44,cy-sheet,{{detail ? detail.titleText : ,close / select,App/MerchantBusinessViews.swift,App/MerchantBusinessViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/customer/detail/index.js:102,toast (loadDetail),客户详情刷新失败,dismiss,App/MerchantCustomerDetailSections.swift,gap: App/MerchantCustomerDetailSections.swift inline error/status surface,MISSING
+pages/merchant/customer/detail/index.js:108,toast (loadDetail),客户详情加载失败，请重试,dismiss,App/MerchantCustomerDetailSections.swift,matched zh-Hans string (Resources/ClubOpsCustomer.xcstrings:clubOps.customer.failed),DONE
+pages/merchant/customer/detail/index.js:206,cy-modal,隐藏跟进记录 — 原文会保留在审计记录中，客户时间线不再显示。,confirm / cancel,App/MerchantBusinessEditor.swift,App/MerchantBusinessEditor.swift:209 (.cyModalConfirm),DONE
+pages/merchant/customer/detail/index.js:225,toast (_hideNote),网络异常，请重试,dismiss,App/MerchantCustomerDetailSections.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/customer/detail/index.js:228,toast (_hideNote),网络异常，请重试,dismiss,App/MerchantCustomerDetailSections.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/customer/detail/index.js:272,cy-modal,移除标签 — 只会移除当前客户与该标签的关系。,confirm / cancel,App/MerchantBusinessViews.swift,App/MerchantBusinessViews.swift:626 (.cyModalConfirm),DONE
+pages/merchant/customer/detail/index.js:293,toast (_removeTag),网络异常，请重试,dismiss,App/MerchantCustomerDetailSections.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/customer/detail/index.js:297,toast (_removeTag),网络异常，请重试,dismiss,App/MerchantCustomerDetailSections.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/customer/detail/index.wxml:100,cy-sheet,编辑标签与备注,close / select,App/MerchantCustomerDetailSections.swift,App/MerchantBusinessEditor.swift:148,DONE
+pages/merchant/customer/index.js:698,toast (submitBatchTag),标签已添加,dismiss,App/MerchantBusinessViews.swift,gap: App/MerchantBusinessViews.swift inline error/status surface,MISSING
+pages/merchant/customer/index.js:710,wx.showModal,存为分群,confirm / cancel,App/MerchantBusinessViews.swift,App/MerchantBusinessViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/customer/index.js:748,toast (saveCurrentSegment),请输入1至30字分群名称,dismiss,App/MerchantBusinessViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/customer/index.js:760,toast (saveCurrentSegment),保存分群失败,dismiss,App/MerchantBusinessViews.swift,gap: App/MerchantBusinessViews.swift inline error/status surface,MISSING
+pages/merchant/customer/index.js:762,toast (saveCurrentSegment),网络连接失败,dismiss,App/MerchantBusinessViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/customer/index.js:767,toast (saveCurrentSegment),网络连接失败,dismiss,App/MerchantBusinessViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/customer/index.js:900,toast (downloadExport),下载凭证不可用，请重新创建导出,dismiss,App/MerchantBusinessViews.swift,gap: App/MerchantBusinessViews.swift inline error/status surface,MISSING
+pages/merchant/customer/index.js:920,toast (downloadExport),文件打开失败,dismiss,App/MerchantBusinessViews.swift,gap: App/MerchantBusinessViews.swift inline error/status surface,MISSING
+pages/merchant/customer/index.wxml:109,cy-sheet,"<cy-sheet inset show=""{{toolsOpen}}"" bind:close=""closeTools"">",close / select,App/MerchantBusinessViews.swift,App/MerchantBusinessViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/customer/index.wxml:132,cy-sheet,"<cy-sheet show=""{{filterOpen}}"" class=""cu-filter-sheet"" closable=""{{false}}"" handle=""{{true}}"" fixed",close / select,App/MerchantBusinessViews.swift,App/MerchantBusinessViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/customer/index.wxml:188,cy-result-sheet,{{resultSheet.title}},confirm / cancel,App/MerchantBusinessViews.swift,App/MerchantBusinessViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/decor/ai-npc/index.js:429,toast (savePersona),选一个性格,dismiss,App/MerchantStoreCharacterView.swift,gap: App/MerchantStoreCharacterView.swift inline error/status surface,MISSING
+pages/merchant/decor/ai-npc/index.js:433,toast (savePersona),先给角色起个名字,dismiss,App/MerchantStoreCharacterView.swift,matched zh-Hans string (Resources/StoreCharacter.xcstrings:storeCharacter.notice.nameFirst),DONE
+pages/merchant/decor/ai-npc/index.js:460,toast (saveField),请填写角色名字,dismiss,App/MerchantStoreCharacterView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.npcField.nameRequired),DONE
+pages/merchant/decor/ai-npc/index.js:473,toast (saveField),先给角色起个名字,dismiss,App/MerchantStoreCharacterView.swift,matched zh-Hans string (Resources/StoreCharacter.xcstrings:storeCharacter.notice.nameFirst),DONE
+pages/merchant/decor/ai-npc/index.js:536,toast (chooseStorePoint),".catch((e) => toast(e.message)),",dismiss,App/MerchantStoreCharacterView.swift,gap: App/MerchantStoreCharacterView.swift inline error/status surface,MISSING
+pages/merchant/decor/ai-npc/index.js:753,toast (persistProfile),角色已更新,dismiss,App/MerchantStoreCharacterView.swift,matched zh-Hans string (Resources/StoreCharacter.xcstrings:storeCharacter.notice.saved),DONE
+pages/merchant/decor/ai-npc/index.js:770,toast (save),登录状态已变更，请重新选择照片,dismiss,App/MerchantStoreCharacterView.swift,gap: App/MerchantStoreCharacterView.swift inline error/status surface,MISSING
+pages/merchant/decor/ai-npc/index.js:772,toast (save),先选择一张照片,dismiss,App/MerchantStoreCharacterView.swift,gap: App/MerchantStoreCharacterView.swift inline error/status surface,MISSING
+pages/merchant/decor/ai-npc/index.js:804,toast (openVoice),请先保存角色形象,dismiss,App/MerchantStoreCharacterView.swift,matched zh-Hans string (Resources/StoreCharacter.xcstrings:storeCharacter.notice.saveProfileFirst),DONE
+pages/merchant/decor/ai-npc/index.js:912,wx.showModal,另起独立声音请求？ — 原结果仍可能完成。新建可能产生重复音色或占用额度，费用以实际模型为准；原未知记录会保留，系统不会重发原请求。,确认新建 / 取消,App/MerchantNPCRecoveryPresentation.swift,App/MerchantNPCRecoveryPresentation.swift:83 (CYConfirmSheet),DONE
+pages/merchant/decor/ai-npc/index.js:1127,wx.showModal,清除角色声音？ — 清除后店铺角色不再用这段声音说话，需要重新录音生成才能恢复。,destructive 清除 / 取消,App/MerchantNPCVoiceSamplesView.swift,App/MerchantNPCVoiceSamplesView.swift:72 (CYConfirmSheet),DONE
+pages/merchant/decor/ai-npc/index.js:1148,toast (_doClearVoice),角色声音已清除,dismiss,App/MerchantStoreCharacterView.swift,gap: App/MerchantStoreCharacterView.swift inline error/status surface,MISSING
+pages/merchant/decor/ai-npc/index.wxml:119,cy-sheet,"<cy-sheet show=""{{introVisible}}"" inset bind:close=""dismissIntro"">",close / select,App/MerchantStoreCharacterView.swift,App/MerchantStoreCharacterView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/decor/ai-npc/index.wxml:140,cy-sheet,选现成的,close / select,App/MerchantStoreCharacterView.swift,matched zh-Hans string (Resources/StoreCharacter.xcstrings:storeCharacter.preset.title),DONE
+pages/merchant/decor/ai-npc/index.wxml:160,cy-sheet,{{field.label}},close / select,App/MerchantStoreCharacterView.swift,App/MerchantStoreCharacterView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/decor/ai-npc/index.wxml:193,cy-sheet,"<cy-sheet inset show=""{{personaSheet}}"" bind:close=""closePersona""",close / select,App/MerchantStoreCharacterView.swift,App/MerchantStoreCharacterView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/decor/ai-npc/index.wxml:208,cy-sheet,还没有保存,close / select,App/MerchantStoreCharacterView.swift,App/MerchantStoreCharacterView.swift:73 (.cyModalConfirm),DONE
+pages/merchant/decor/ai-npc/index.wxml:217,cy-sheet,{{!voiceFile && voiceStatus === 1 ? ,close / select,App/MerchantStoreCharacterView.swift,App/MerchantStoreCharacterView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/decor/components/hours/index.wxml:3,cy-sheet,经营时间,close / select,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.operations.businessTime),DONE
+pages/merchant/decor/coop-setting/index.js:82,toast (applyEditor),接待人数要填非负整数,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/coop-setting/index.js:193,toast (onSave),可容纳人数要填数字,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/coop-setting/index.js:196,toast (onSave),请选择收费方式,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/coop-setting/index.js:229,toast (success),已保存,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/decor/coop-setting/index.wxml:115,cy-sheet,{{editor ? editor.label : ,close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/decor/coop-setting/index.wxml:137,cy-sheet,还没有保存,close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift:297 (.cyModalConfirm),DONE
+pages/merchant/decor/gallery/index.js:209,toast (addGallery),最多 9 张,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/gallery/index.js:278,toast (success),已保存,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/decor/gallery/index.wxml:41,cy-sheet,还没有保存,close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift:312 (.cyModalConfirm),DONE
+pages/merchant/decor/index.js:482,toast (_startSave),toast.success(receipt);,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:602,toast (loadActiveSubs),已确认该权益生效,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:713,loading (tapTier),请点下方「联系运营开通」,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:719,toast (tapTier),请点下方「联系运营开通」,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:736,toast (onOrderFail),暂不能自助开通,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:750,toast (onPayFail),支付结果待确认 — 请勿重复支付，稍后查看已开通权益或联系平台,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:orderLifecycle.payment.pending),DONE
+pages/merchant/decor/index.js:754,wx.showModal,支付结果待确认 — 请勿重复支付，稍后查看已开通权益或联系平台,confirm / cancel,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:orderLifecycle.payment.pending),DONE
+pages/merchant/decor/index.js:819,toast (saveImage),请先选择图片,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:890,toast (confirmField),请填写店铺名称,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.storeField.nameRequired),DONE
+pages/merchant/decor/index.js:891,toast (confirmField),内容超过字数限制,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:892,toast (confirmField),请填写店铺名称,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.storeField.nameRequired),DONE
+pages/merchant/decor/index.js:925,toast (previewLicense),入驻时提交，如需更新请联系平台,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:929,toast (previewBrandImages),入驻时提交，如需更新请联系平台,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:994,toast (toggleTag),最多12个,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:1011,toast (onAddTagBlocked),请填写标签名称,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.decorTags.empty),DONE
+pages/merchant/decor/index.js:1017,toast (addCustomTag),请填写标签名称,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.decorTags.empty),DONE
+pages/merchant/decor/index.js:1020,toast (addCustomTag),最多12个,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:1111,toast (toggleChip),最多选 ,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:club.ops.directionsHint),DONE
+pages/merchant/decor/index.js:1133,toast (saveChipSheet),内容超过字数限制,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:1137,toast (saveChipSheet),请至少选择一个行业类型,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.js:1221,toast (goPreview),资料加载中,dismiss,App/MerchantOperationsViews.swift,gap: App/MerchantOperationsViews.swift inline error/status surface,MISSING
+pages/merchant/decor/index.wxml:429,cy-sheet,{{fieldSheet.label}},close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/merchant/decor/index.wxml:493,cy-sheet,自定义标签,close / select,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.decorTags.custom),DONE
+pages/merchant/decor/index.wxml:506,cy-sheet,还没有保存,close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift:297 (.cyModalConfirm),DONE
+pages/merchant/decor/perks/index.js:378,cy-danger-confirm (askDelete),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantPerkTemplatesView.swift,App/MerchantPerkTemplatesView.swift:36 (.cyModalConfirm + CYConfirmConsequence),DONE
+pages/merchant/decor/perks/index.js:405,cy-danger-confirm (confirmDelete),const dcFail = that.selectComponent && that.selectComponent('#dc');,confirm / cancel,App/MerchantPerkTemplatesView.swift,App/MerchantPerkTemplatesView.swift:36 (.cyModalConfirm + CYConfirmConsequence),DONE
+pages/merchant/decor/perks/index.js:409,cy-danger-confirm (confirmDelete),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantPerkTemplatesView.swift,App/MerchantPerkTemplatesView.swift:36 (.cyModalConfirm + CYConfirmConsequence),DONE
+pages/merchant/decor/perks/index.wxml:9,cy-danger-confirm,{{formVisible ? ,confirm / cancel,App/MerchantPerkTemplatesView.swift,App/MerchantPerkTemplatesView.swift:36 (.cyModalConfirm + CYConfirmConsequence),DONE
+pages/merchant/decor/perks/index.wxml:226,cy-sheet,还没有保存,close / select,App/MerchantPerkTemplatesView.swift,App/MerchantPerkTemplatesView.swift:220 (.cyModalConfirm),DONE
+pages/merchant/game-node/index.js:340,toast (_showStation),本站现在不能暂停,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.toast.cannotPause),DONE
+pages/merchant/game-node/index.js:425,toast (submitDecline),请选择拒绝原因,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.decline.tip),DONE
+pages/merchant/game-node/index.js:503,wx.showModal,不设备用方案，直接暂停？ — 玩家会看到本站暂停、暂停原因和预计恢复时间，不会被引导到其他节点；如需退款请联系平台客服。,确认暂停 / 再想想,App/MerchantGameNodeView.swift,App/MerchantGameNodeView.swift:61 (.cyModalConfirm),DONE
+pages/merchant/game-node/index.js:512,toast (submitPause),请选暂停原因和预计恢复时间,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.toast.pauseInvalid),DONE
+pages/merchant/game-node/index.js:536,toast (scanSubmission),这不是可核验的游戏提交码,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.toast.badSubmissionCode),DONE
+pages/merchant/game-node/index.js:664,toast (submitVerification),请选择核验结论；驳回时需选择原因,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.toast.verifyInvalid),DONE
+pages/merchant/game-node/index.js:690,toast (_submitCommand),无法安全保存，请稍后重试,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/game-node/index.js:741,toast (_handleAuthorityConflict),本局权威版本已更新，请刷新,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.write.authorityConflict),DONE
+pages/merchant/game-node/index.js:793,toast (retryUnknownWrite),无法安全保存，未发送重试,dismiss,App/MerchantGameNodeView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/game-node/index.wxml:192,cy-sheet,拒绝节点邀请,close / select,App/MerchantGameNodeView.swift,App/MerchantGameNodeView.swift:40 (.cyDomainSheet),DONE
+pages/merchant/game-node/index.wxml:203,cy-sheet,暂停接待,close / select,App/MerchantGameNodeView.swift,App/MerchantGameNodeView.swift:45 (.cyDomainSheet),DONE
+pages/merchant/game-node/index.wxml:237,cy-sheet,核验游戏提交,close / select,App/MerchantGameNodeView.swift,App/MerchantGameNodeView.swift:57 (.cyDomainSheet),DONE
+pages/merchant/index/index.js:172,wx.showModal,暂停营业？ — 玩家会看到本店今日已打烊，到店仍可核销。,暂停营业 / 继续营业,App/CityMerchantOperationsView.swift,App/CityMerchantOperationsView.swift:122 (.cyModalConfirm),DONE
+pages/merchant/index/index.js:203,toast (success),切换失败,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift inline error/status surface,MISSING
+pages/merchant/index/index.js:208,toast (fail),网络异常，请重试,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/index/index.js:222,toast (success),状态更新中，请刷新,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:orderLifecycle.state.unknown),DONE
+pages/merchant/index/index.js:226,toast (success),已营业,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift inline error/status surface,MISSING
+pages/merchant/index/index.js:231,toast (fail),状态更新中，请刷新,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:orderLifecycle.state.unknown),DONE
+pages/merchant/index/index.js:1316,toast (_submitVerification),核销处理中，请勿重复提交,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/index/index.js:1363,toast (fail),未识别到二维码，请对准后重试,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift inline error/status surface,MISSING
+pages/merchant/index/index.js:1372,wx.showModal,核销入口不对,确定 / 留在这里,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.js:1428,toast (openChapterSheet),没有可核销的章节,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift inline error/status surface,MISSING
+pages/merchant/index/index.js:1491,toast (openStationSheet),没有可核销的节点,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift inline error/status surface,MISSING
+pages/merchant/index/index.js:1524,toast (goPreviewProfile),商家资料加载中，请稍候,dismiss,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/index/index.wxml:258,cy-scene-sheet,{{sceneCurrent.title}},close / select,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:294,wx.showActionSheet,{{sceneCurrent.title}},select / cancel,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:297,cy-scene-sheet,{{sceneCurrent.title}},close / select,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:311,cy-scene-sheet,{{sceneCurrent.title}},close / select,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:325,cy-result-sheet,{{verificationResult.title}},confirm / cancel,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:336,cy-scene-sheet,{{sceneCurrent.title}},close / select,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:345,cy-scene-sheet,{{sceneCurrent.title}},close / select,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:350,cy-scene-sheet,{{sceneCurrent.title}},close / select,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,gap: not on App/MerchantHomeView.swift,MISSING
+pages/merchant/index/index.wxml:354,cy-modal,放弃本轮修改,destructive 确认放弃 / 继续编辑,App/MerchantCoopFieldEntry.swift,App/MerchantCoopFieldEntry.swift:102 (.cyModalConfirm),DONE
+pages/merchant/ledger/index.js:698,toast (enableCoopSettleAlerts),已允许微信通知,dismiss,App/MerchantFinanceView.swift,gap: App/MerchantFinanceView.swift inline error/status surface,MISSING
+pages/merchant/payout-account/index.js:86,toast (loadAccount),刷新失败，稍后再试,dismiss,App/MerchantPayoutAccountView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/merchant/payout-account/index.js:95,toast (loadAccount),刷新失败，稍后再试,dismiss,App/MerchantPayoutAccountView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/merchant/payout-account/index.js:104,toast (copySignUrl),已复制,dismiss,App/MerchantPayoutAccountView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/predict/index.js:217,toast (onConfirmSettle),结算失败，请重试,dismiss,App/MerchantPredictionInboxView.swift / App/MerchantOfferWithdrawalView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/predict/index.js:222,toast (onConfirmSettle),已公布 · ,dismiss,App/MerchantPredictionInboxView.swift / App/MerchantOfferWithdrawalView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:cityGame.properties.empty),DONE
+pages/merchant/predict/index.js:232,toast (onConfirmSettle),网络异常，请重试,dismiss,App/MerchantPredictionInboxView.swift / App/MerchantOfferWithdrawalView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/predict/index.wxml:71,cy-modal,公布答案「{{confirm.label}}」？ — {{confirm.content}},公布并结算 / 再想想,App/MerchantOfferWithdrawalView.swift,App/MerchantOfferWithdrawalView.swift:93 (.cyModalConfirm),DONE
+pages/merchant/reviews/index.js:199,cy-danger-confirm (syncReplyRecovery),const dc = this.selectComponent && this.selectComponent('#dc-reply-delete');,confirm / cancel,App/MerchantEngagementViews.swift,App/MerchantEngagementViews.swift:135 (.sheet review),DONE
+pages/merchant/reviews/index.js:205,cy-danger-confirm (syncReplyRecovery),const dc = this.selectComponent && this.selectComponent('#dc-reply-delete');,confirm / cancel,App/MerchantEngagementViews.swift,App/MerchantEngagementViews.swift:135 (.sheet review),DONE
+pages/merchant/reviews/index.js:443,toast (submitReview),toast(title);,dismiss,App/MerchantEngagementViews.swift,gap: App/MerchantEngagementViews.swift inline error/status surface,MISSING
+pages/merchant/reviews/index.js:496,cy-danger-confirm (askDeleteReply),const dc = this.selectComponent && this.selectComponent('#dc-reply-delete');,confirm / cancel,App/MerchantEngagementViews.swift,App/MerchantEngagementViews.swift:135 (.sheet review),DONE
+pages/merchant/reviews/index.js:505,cy-danger-confirm (onConfirmDeleteReply),const dc = this.selectComponent && this.selectComponent('#dc-reply-delete');,confirm / cancel,App/MerchantEngagementViews.swift,App/MerchantEngagementViews.swift:135 (.sheet review),DONE
+pages/merchant/reviews/index.js:608,toast (submitReport),举报已提交，等待平台复核,dismiss,App/MerchantEngagementViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:club.community.queued),DONE
+pages/merchant/reviews/index.wxml:12,cy-danger-confirm,{{pageState === ,confirm / cancel,App/MerchantEngagementViews.swift,App/MerchantEngagementViews.swift:135 (.sheet review),DONE
+pages/merchant/team/index.js:512,toast (openInviteRoleSheet),岗位列表还没加载好，请稍后再试,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:551,toast (createInvite),经营身份无效，请刷新后重试,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:577,toast (createInvite),邀请创建失败,dismiss,App/MerchantOperatorRosterView.swift,gap: App/MerchantOperatorRosterView.swift inline error/status surface,MISSING
+pages/merchant/team/index.js:594,toast (action),分享凭证只显示一次，请撤销后重建,dismiss,App/MerchantOperatorRosterView.swift,gap: App/MerchantOperatorRosterView.swift inline error/status surface,MISSING
+pages/merchant/team/index.js:598,toast (action),网络异常，请重试,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:610,toast (updateOperatorRole),经营身份无效，请刷新后重试,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:644,toast (action),岗位后续已变化，已刷新最新名单,dismiss,App/MerchantOperatorRosterView.swift,gap: App/MerchantOperatorRosterView.swift inline error/status surface,MISSING
+pages/merchant/team/index.js:650,toast (action),岗位修改失败,dismiss,App/MerchantOperatorRosterView.swift,gap: App/MerchantOperatorRosterView.swift inline error/status surface,MISSING
+pages/merchant/team/index.js:655,toast (action),网络异常，请重试,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:658,toast (action),网络异常，请重试,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:669,cy-danger-confirm (askRemoveOperator),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantOperatorRosterSections.swift,App/MerchantOperatorRosterSections.swift (operator remove flow),DONE
+pages/merchant/team/index.js:679,cy-danger-confirm (askRevokeInvite),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantOperatorRosterSections.swift,App/MerchantOperatorRosterSections.swift (invite revoke flow),DONE
+pages/merchant/team/index.js:692,cy-danger-confirm (confirmDanger),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantOperatorRosterSections.swift,App/MerchantOperatorRosterSections.swift (danger confirm),DONE
+pages/merchant/team/index.js:697,toast (confirmDanger),经营身份无效，请刷新后重试,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:769,cy-danger-confirm (reportDanger),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantOperatorRosterSections.swift,App/MerchantOperatorRosterSections.swift (danger report),DONE
+pages/merchant/team/index.js:770,toast (reportDanger),已完成,dismiss,App/MerchantOperatorRosterView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/merchant/team/index.js:829,toast (acceptIncomingInvite),邀请处理失败,dismiss,App/MerchantOperatorRosterView.swift,gap: App/MerchantOperatorRosterView.swift inline error/status surface,MISSING
+pages/merchant/team/index.js:834,toast (acceptIncomingInvite),邀请处理失败,dismiss,App/MerchantOperatorRosterView.swift,gap: App/MerchantOperatorRosterView.swift inline error/status surface,MISSING
+pages/merchant/team/index.wxml:97,cy-scene-sheet,{{roleSheet.mode === ,close / select,App/MerchantOperatorRolePermissionSection.swift,App/MerchantOperatorRolePermissionSection.swift (role sheet),DONE
+pages/merchant/team/index.wxml:117,cy-danger-confirm,"<cy-danger-confirm id=""dc"" bind:confirm=""confirmDanger"" bind:cancel=""cancelDanger"" />",confirm / cancel,App/MerchantOperatorRosterSections.swift,App/MerchantOperatorRosterSections.swift (danger confirm),DONE
+pages/merchant/verify-records/index.js:101,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/publish/activity/index.js:353,toast (removeTicket),至少保留一个票单,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:479,toast (onContinueDisabledTap),cyToast(publisherIdentity.checkIdentityForm(this.activityIdentityForm()).message),dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:613,toast (registerActivityIdentity),if (!check.ok) { cyToast(check.message); return },dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:928,wx.showModal,modal.show({,放弃 / 继续编辑,App/PublishingModesViews.swift,App/PublishingModesViews.swift:433 (.cyModalConfirm),DONE
+pages/publish/activity/index.js:995,toast (showStartTimePicker),已售出，时间不可改,dismiss,App/PublishingModesViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/activity/index.js:1108,toast (advanceTimePicker),请选择完整的开始时间,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:1126,toast (advanceTimePicker),开始时间已到可选范围末端,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:1173,toast (confirmTimePicker),请选择完整的活动时间,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:1180,toast (confirmTimePicker),结束时间必须晚于开始时间,dismiss,App/PublishingModesViews.swift,matched zh-Hans string (Resources/NativeConditionAuthor.xcstrings:nativeCondition.issue.timeWindow),DONE
+pages/publish/activity/index.js:1194,toast (confirmTimePicker),时间设置完成,dismiss,App/PublishingModesViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/activity/index.js:1406,toast (updateCollaborator),已添加: ${selectedUser.nickname},dismiss,App/PublishingModesViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:image.galleryBatch.boundary),DONE
+pages/publish/activity/index.js:1408,toast (updateCollaborator),该合作者已添加,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:1428,toast (removeCollaborator),已移除: ${removedUser.nickname},dismiss,App/PublishingModesViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.operatorRoster.previousMembers),DONE
+pages/publish/activity/index.js:1477,toast (confirmTemp),cyToast(ALBUM_ONLY_IN_STORY);,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:1488,toast (confirmTemp),模板选择成功,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.js:1557,toast (choosePoiForNode),已售出，地点不可改,dismiss,App/PublishingModesViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/activity/index.js:1573,toast (onPick),地点选择成功,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/activity/index.wxml:230,cy-sheet,我的模板,close / select,App/PublishingModesViews.swift,App/PublishingModesViews.swift:231 (.cyDomainSheet),DONE
+pages/publish/activity/index.wxml:279,cy-sheet,设置活动时间,close / select,App/PublishingModesViews.swift,App/PublishingModesViews.swift:263 (.cyDomainSheet),DONE
+pages/publish/activity/index.wxml:332,popup,{{resultSheet.title}},confirm / cancel,App/PublishingModesViews.swift,App/PublishingModesViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/activity/index.wxml:338,cy-result-sheet,{{resultSheet.title}},confirm / cancel,App/PublishingModesViews.swift,App/PublishingModesViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/choice-sheet/index.wxml:1,cy-sheet,"<cy-sheet show=""{{show}}"" handle bind:close=""onClose"">",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/collaborator-picker/index.wxml:1,cy-sheet,选择合作者,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/d20-settings/index.js:131,wx.showModal,删除「 — 用到它的检定将不再加上属性值。,destructive 删除 / 取消,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/d20-settings/index.js:170,wx.showModal,删除进度钟「 — 用到它的条件和效果需要重新选择。,destructive 删除 / 取消,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/d20-settings/index.js:201,wx.showModal,移除特质「 — 用到它的条件需要重新选择。,destructive 移除 / 取消,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/d20-settings/index.wxml:2,cy-sheet,d20 与角色设定,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/d20-settings/index.wxml:6,cy-sheet,d20 与角色设定,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/d20-settings/index.wxml:44,cy-sheet,更多规则,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/location-todos/index.wxml:10,cy-sheet,地点待办,close / select,App/TopicLocationTodosSection.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/components/location-todos/index.wxml:35,cy-option-sheet,选择节点,close / select,App/TopicLocationTodosSection.swift,matched zh-Hans string (Resources/Localizable.xcstrings:projectEdit.rich.selectNode),DONE
+pages/publish/components/look-preview/index.wxml:17,cy-sheet,"<cy-sheet wx:else show=""{{show}}"" handle=""{{true}}"" stacked=""{{false}}"" bind:close=""onClose"">",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/reward-selector/index.js:244,wx.showModal,放弃创建？ — 已填写的优惠券信息不会保存,destructive 放弃 / 取消,App/PublishingModesViews.swift,App/PublishingModesViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/reward-selector/index.js:248,wx.showModal,放弃创建？ — 已填写的优惠券信息不会保存,destructive 放弃 / 取消,App/PublishingModesViews.swift,App/PublishingModesViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/reward-selector/index.js:261,toast (onCreateSubmit),cyToast(check.message);,dismiss,App/PublishingModesViews.swift,gap: App/PublishingModesViews.swift inline error/status surface,MISSING
+pages/publish/components/reward-selector/index.js:276,toast (onCreateSubmit),发布成功,dismiss,App/PublishingModesViews.swift,matched zh-Hans string (Resources/NativeAttributeAuthor.xcstrings:nativeAttribute.originalReportNeeded),DONE
+pages/publish/components/reward-selector/index.wxml:12,cy-sheet,选择奖励,close / select,App/PublishingModesViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:rewards.read.reselect),DONE
+pages/publish/components/reward-selector/index.wxml:48,cy-sheet,创建{{rewardKind === ,close / select,App/PublishingModesViews.swift,App/PublishingModesViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/start-prep/index.wxml:2,cy-sheet,开局前准备,close / select,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/components/start-prep/index.wxml:4,cy-sheet,开局前准备,close / select,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/components/topic-state-keys/index.js:14,wx.showModal,不能删除「${name}」,好 / 取消,App/TopicCreatorToolsView.swift,matched zh-Hans string (Resources/NativeAttributeAuthor.xcstrings:nativeAttribute.referenced),DONE
+pages/publish/components/topic-state-keys/index.wxml:8,cy-sheet,"<cy-sheet show=""{{open}}"" bind:close=""onClose"" class=""node-sheet-host"">",close / select,App/TopicCreatorToolsView.swift,App/TopicCreatorToolsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/components/topic-state-keys/index.wxml:59,cy-danger-confirm,{{deleteError}},confirm / cancel,App/TopicCreatorToolsView.swift,App/TopicCreatorToolsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.js:707,wx.showModal,草稿还没有保存 — 本机存储空间可能不足，直接返回会丢失本次修改。,仍要返回 / 继续编辑,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.js:914,toast (_persistDraftEnvelope),本地草稿保存失败，请检查存储空间,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.write.storageFailed),DONE
+pages/publish/fabu/index.js:958,toast (_applyDraftEnvelope),cyToast(pendingMaterials.length,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1016,toast (_bootstrapNewLocalDraft),草稿属于其他账号，已新建草稿,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:projectEdit.memberMismatch),DONE
+pages/publish/fabu/index.js:1101,wx.showModal,modal.show({,使用本地草稿 / 使用已保存版本,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.js:1151,toast (clearLocalDraft),上次发布未确认，不能清空草稿,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1158,toast (clearLocalDraft),清空本地草稿？,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1163,wx.showModal,清空本地草稿？ — 当前未发布的章节和待编排素材都会从本机删除。,清空 / 取消,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.js:1176,toast (clearLocalDraft),本地草稿清空失败，请稍后重试,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:1303,toast (openStoryEditor),故事流内容不完整，请检查后重试,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:1367,toast (closeStoryEditor),相册至少添加 1 张照片,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:1468,toast (insertStoryTextAt),添加文字失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1478,toast (insertStoryNodeAt),开局请添加故事玩法,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1483,toast (insertStoryNodeAt),请先添加并填写故事文字,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1551,toast (insertStoryAudioAt),添加音频块失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1571,toast (uploadStoryAudio),音频保存失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1647,toast (_insertStoryMedia),添加失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1669,toast (insertStoryThoughtAt),先在「伏笔」那张卡里配一个,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1683,toast (onStoryThoughtChange),换伏笔失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1699,toast (onStoryWhenPick),修改失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1711,toast (onStoryPlainPick),修改失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1715,toast (onStoryPlainInput),修改失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1727,toast (onStoryMoodChange),换氛围失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1738,toast (_insertAlbumTemplate),if (parsed.error) { cyToast(parsed.error); return true; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1741,toast (_insertAlbumTemplate),if (error) { cyToast(error); return true; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1743,toast (_insertAlbumTemplate),请在故事流中添加相册,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1754,toast (onAlbumTitleInput),修改相册名称失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1769,toast (addStoryDreamImage),添加失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1783,toast (onStoryDreamLineInput),保存失败,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:1795,toast (removeStoryDreamImage),删除失败,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:1813,toast (removeStoryMedia),删除失败,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:1873,toast (onStoryTextInput),文字保存失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:1897,toast (_storyMergeUp),合并失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2138,toast (fillStoryGalleryCell),选图失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2143,toast (onStoryGalleryCaptionInput),修改说明失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2149,toast (onStoryCapInput),保存失败,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:2166,toast (_storyBranchCommand),修改分支失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2317,toast (onStoryDragDrop),移动失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2351,toast (_storyGripAction),移动失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2389,toast (openStoryVarSheet),先写几个字，再把变量插到光标处,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2430,toast (insertStoryVar),插入变量失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2448,wx.showModal,删除这段文字？ — 前后的文字块会保持原样，不会自动合并。,confirm / cancel,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.js:2458,toast (removeStoryText),删除失败,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:2489,toast (onStoryTextBlur),删除失败,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:2505,wx.showModal,确认删除节点 — 删除后 5 秒内可以撤销，过后不可恢复。,confirm / cancel,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:projectChapterRemoval.readback.removed),DONE
+pages/publish/fabu/index.js:2574,toast (_removeStoryNodeNow),节点已删除，,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2576,toast (action),删除失败,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:2675,toast (editPendingMaterial),未找到待编排素材,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2708,toast (_savePendingMaterial),if (message) cyToast(message);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2716,wx.showModal,删除这个素材？ — 素材尚未进入正式章节，删除后无法恢复。,confirm / cancel,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:roam.capsule.deleteMessage),DONE
+pages/publish/fabu/index.js:2734,toast (_canAddFormalNodes),权限加载中，请稍候重试,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2750,toast (arrangePendingIntoChapter),未找到素材或章节,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2754,toast (arrangePendingIntoChapter),请先补齐有效地点坐标,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2761,toast (arrangePendingIntoChapter),cyToast(proEditorPolicy.hasRealStory(chapter),dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2771,toast (arrangePendingIntoChapter),cyToast(issue.message);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2786,toast (action),已放入,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2795,toast (createChapterForPending),请先补齐有效地点坐标,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2827,toast (_pickNextClubPlace),已录入地点，可继续添加,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2864,toast (_commitInlineNodeAt),未找到节点，请重试,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:2890,toast (_startMapPickForNode),未找到节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2900,toast (_startMapPickForNode),拖动地图对准位置后确认,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2917,toast (pickNodePhoto),每个节点最多9张,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2946,toast (onLocationTodoReplace),没有找到这个地点对应的节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2952,toast (pickNodeLocation),节点信息不完整，请检查后重试,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:2980,toast (onTapAddNode),请点击目标缝添加节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:2985,toast (onTapAddNode),cyToast(issue.message);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:3179,toast (saveNodeLocation),请先拖动地图对准站点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:3200,toast (saveNodeLocation),请先添加章节,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:3223,toast (action),未找到章节,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:3226,toast (action),未找到节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:3244,toast (fail),获取中心点失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:3624,wx.showModal,这些改动存不下来 — 主题已过审开卖，开始/结束日期、章节节点结构、票种与价格都不能再改了。,知道了 / 取消,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:registration.form.endDate),DONE
+pages/publish/fabu/index.js:3789,wx.showModal,复制为新草稿？ — 当前草稿会保留不变；将复制一份并切换主题模式。,复制并切换 / 取消,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:contextPublish.mode.confirmTitle),DONE
+pages/publish/fabu/index.js:4039,toast (confirmEndTime),结束时间必须晚于开始时间,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/NativeConditionAuthor.xcstrings:nativeCondition.issue.timeWindow),DONE
+pages/publish/fabu/index.js:4051,toast (confirmEndTime),时间设置完成,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:4360,wx.showModal,复制提醒,知道了 / 取消,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.js:4495,wx.showModal,确认删除章节,confirm / cancel,App/ProjectChapterRemovalPresentation.swift,App/ProjectChapterRemovalPresentation.swift:115 (.sheet confirm chapter removal),DONE
+pages/publish/fabu/index.js:4821,toast (normalizeChapterMerchantConfig),请选择适合商家的招募品类,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:4825,toast (normalizeChapterMerchantConfig),请选择平台条款档,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:4830,toast (normalizeChapterMerchantConfig),商家名额填 0 到 127 的整数,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:4838,toast (normalizeChapterMerchantConfig),选俱乐部，填正数且最多两位小数,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:4856,toast (action),权益门槛请输入大于0的金额,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:club.gov.field.paidAmount),DONE
+pages/publish/fabu/index.js:4886,toast (confrimChapter),请输入章节名称,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:4896,toast (confrimChapter),待编排素材已不存在,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:4906,toast (action),cyToast(issue.message);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5036,toast (onMarkerTap),已定位到故事流，请点节点卡编辑,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5100,toast (showAddNode),cyToast(issue.message);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5141,toast (deleteNode),未找到章节,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5147,toast (deleteNode),确认删除 — 节点会移到待编排区，5 秒内可以撤销。,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:5150,wx.showModal,确认删除 — 节点会移到待编排区，5 秒内可以撤销。,confirm / cancel,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:projectChapterRemoval.warning),DONE
+pages/publish/fabu/index.js:5185,toast (action),已移到待编排区，,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5286,toast (action),撤销失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5293,toast (action),已撤销,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:5382,toast (confrimNode),请填写节点名称,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5386,toast (confrimNode),if (gameplayIssue) { cyToast(gameplayIssue); return; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5389,toast (confrimNode),玩法详情未加载，请稍后再完成节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5410,toast (confrimNode),未找到章节,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5415,toast (confrimNode),cyToast(creationIssue.message);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5423,toast (action),未找到节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5437,toast (action),未找到节点块,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5464,toast (action),地点待补，已移到待编排区,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5466,toast (action),移动节点失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5488,toast (action),地点待补，已移到待编排区,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5520,toast (action),已插入故事流,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5522,toast (action),插入节点失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5541,toast (action),节点已更新,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5543,toast (action),更新节点失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5568,toast (action),已添加到路线,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:5863,toast (uploadAddressPic),每个节点最多9张,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6013,toast (onPreviewChapterAudio),预听失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6051,toast (onPreviewStoryAudio),预听失败,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6082,toast (uploadImgArr),最多,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6337,toast (onSaveTicketDisabledTap),if (reason) cyToast(reason);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6346,toast (saveTicket),cyToast(blocked);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6408,toast (onEditTicketChange),价格格式错误,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6557,toast (removeTicket),至少保留一个票价,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6841,toast (openNodeRouteMapping),请先保存节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6868,toast (openNodeRouteMapping),请先重新选择玩法模板,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6994,toast (finishNodeRouteMapping),：有一句还没选完,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:6996,toast (finishNodeRouteMapping),：请先选择下一站，再保存条件与效果,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7182,toast (validateForm),"cyToast(bingoError, { duration: 3000 });",dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7190,toast (validateForm),"cyToast(bag.firstMessage(), { duration: 3000 });",dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7353,toast (onPreviewLockedTap),cyToast((e && e.currentTarget && e.currentTarget.dataset.reason) || '');,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7679,toast (_backToIdentity),发布者实名还没登记,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7694,toast (openStoryPreview),还有 ,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7748,toast (onPublishCheckDisabledTap),发布者实名还没登记,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7752,toast (onPublishCheckDisabledTap),if (first) cyToast(first.label);,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:7931,toast (openThoughts),} catch (error) { cyToast(error.message); },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8077,toast (onChapterEndingToggle),结局章里不能放节点或玩法,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8193,toast (openInitialState),} catch (error) { cyToast(error.message); },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8257,toast (submitForm),正在保存草稿，保存完成后再发布,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8260,toast (submitForm),主题还在加载，稍等一下,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8271,toast (submitForm),请选择路线归属的俱乐部,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8333,toast (_buildSubmitPayload),有条件与效果未完成，请先补全,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:8350,toast (_buildSubmitPayload),故事流内容不完整，请检查后重试,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:8370,toast (action),if (runtimeIssue) { cyToast(runtimeIssue); return null; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8458,toast (_doSubmit),正在保存草稿，保存完成后再发布,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8786,toast (saveServerDraft),先给主题起个名字，再保存草稿,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8929,toast (_onServerDraftSuperseded),已存上一版，后续修改会自动保存,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:8978,toast (action),自动保存未成功：,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9292,toast (selectTemp),请先选择一个模板,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9295,toast (selectTemp),if (reason) { cyToast(reason); return; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9317,toast (confirmTemp),请先选择一个模板,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9322,toast (confirmTemp),请先选择一个模板,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9324,toast (confirmTemp),if (reason) { cyToast(reason); return; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9364,toast (_adoptPublicTemplate),const error = message => { this.setData({ templateAdoptionError: message }); cyToast(message); };,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9474,toast (_readAdoptedTemplate),已存为我的玩法草稿并绑定,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9510,toast (success),玩法详情未加载，请重新选择,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:9513,toast (fail),玩法详情未加载，请重新选择,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/index.js:9518,toast (fail),if (reason) { cyToast(reason); return false; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9521,toast (fail),玩法资源声明无法读取,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9837,toast (onCreateGame),if (reason && !dataset.preview) { cyToast(reason); return; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9860,toast (templateCreated),已绑定新玩法,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:9971,toast (onPick),地点已定位到地图,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.js:10135,wx.showModal,发布前提示,继续发布 / 再改改,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.js:10191,toast (onChapterRewardInput),请上传主题封面,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/index.wxml:811,cy-option-sheet,{{storyOptions.title}},close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:966,cy-sheet,"<cy-sheet variant=""full"" show=""{{popChapterNodes}}"" back-guard=""{{false}}"" footer=""{{nodeSheetView==",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1164,cy-sheet,{{routeMappingLayer.title}},close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1166,cy-sheet,{{routeMappingLayer.title}},close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1167,cy-sheet,下一站,close / select,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:chapterFlip.nextStop %@),DONE
+pages/publish/fabu/index.wxml:1689,cy-date-sheet,选择营业时间,close / select,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.onboarding.chooseHours),DONE
+pages/publish/fabu/index.wxml:1726,cy-result-sheet,{{resultSheet.title}},confirm / cancel,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1732,cy-date-sheet,选择开始时间,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1764,cy-date-sheet,{{ticketTimePicker.title || ,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1798,cy-date-sheet,选择结束时间,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1829,popup,"<cy-category-sheet show=""{{categorySheetVisible}}"" type=""{{1}}"" ids=""{{categorySheetIds}}""",confirm / cancel,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1836,cy-sheet,"<cy-sheet show=""{{modePickerShow}}"" back-guard=""{{false}}"" style=""--cy-comp-sheet-max-h: calc(100vh ",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/index.wxml:1875,cy-sheet,可玩时段,close / select,App/ProjectEditView.swift,matched zh-Hans string (Resources/PublishClarity.xcstrings:status.gate),DONE
+pages/publish/fabu/index.wxml:1903,cy-sheet,"<cy-sheet show=""{{thoughtsEditor.show}}"" variant=""bottom"" bind:close=""closeThoughts"" class=""node-she",close / select,App/ProjectThoughtDefinitionsEditor.swift,App/ProjectThoughtDefinitionsEditor.swift:116 (.cyDomainSheet),DONE
+pages/publish/fabu/index.wxml:1922,cy-sheet,"<cy-sheet show=""{{initialStateEditor.show}}"" stacked=""{{carryPicker.show}}"" back-guard=""{{false}}"" s",close / select,App/ProjectInitialAttributesEditor.swift,App/ProjectInitialAttributesEditor.swift:101 (.cyDomainSheet),DONE
+pages/publish/fabu/index.wxml:1977,cy-sheet,"<cy-sheet show=""{{carryPicker.show}}"" back-guard=""{{false}}"" style=""--cy-comp-sheet-max-h: calc(100v",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/look-sheet.wxml:3,cy-sheet,"<cy-sheet show=""{{lookSheetShow}}"" bind:close=""closeLookEditor"">",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/runtime-editor.wxml:1,cy-sheet,"<cy-sheet show=""{{runtimeEditor.show}}"" fixed=""full"" stacked=""{{runtimeRewardOpen}}"" bind:close=""clo",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/runtime-structure-editor.wxml:6,cy-sheet,到达与引导,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/runtime-structure-editor.wxml:9,cy-sheet,到达与引导,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/survival-editor.wxml:6,cy-sheet,"<cy-sheet show=""{{survivalEditor.show}}"" fixed=""full"" bind:close=""closeSurvivalEditor"" style=""--cy-c",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/theme-d20-page.js:73,toast (onD20Toggle),cyToast(failure(error));,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-d20-page.js:111,toast (onD20Save),} catch (error) { cyToast(failure(error)); },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-d20-page.js:118,toast (onPrepChange),this._savePlaySetup(msg => cyToast(msg));,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-d20-page.js:119,toast (onPrepChange),} catch (error) { cyToast(failure(error)); },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-initial-carry.js:101,toast (_carryCreateFailed),没有保存成功，请再试一次。,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:roam.private.rejected),DONE
+pages/publish/fabu/theme-keys-items.js:40,toast (onKeysItemChange),没有删除成功，请再试一次。,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/theme-route-names.js:73,toast (onRouteRuleCreate),请先保存主题草稿,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/CreatorEditorUI.xcstrings:creatorEditor.registry.saveFirst),DONE
+pages/publish/fabu/theme-route-names.js:82,toast (onRouteRuleCreate),没有保存成功，请再试一次。,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:roam.private.rejected),DONE
+pages/publish/fabu/theme-route-names.js:88,toast (onRouteRuleCreate),没有保存成功，请再试一次。,dismiss,App/ProjectEditView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:roam.private.rejected),DONE
+pages/publish/fabu/theme-runtime-structure.js:418,wx.showModal,请重新选择章节,confirm / cancel,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/theme-runtime-survival.js:202,toast (toggleThemeReplay),队伍玩法不支持个人重玩，请关闭再玩一次,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:240,toast (onChapterRationToggle),if (on && draft.reason) { toast(draft.reason); this.setData({ 'runtimeChapterRation.enabled': false ,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:263,toast (_saveChapterRation),if (issue) { toast(issue); return false; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:334,toast (addChapterExclusiveGroup),请先保存本章至少 2 个节点,dismiss,App/ProjectEditView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/fabu/theme-runtime.js:343,toast (toggleChapterExclusiveNode),该节点已在其他互斥组,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:396,toast (onStoryNodeRole),先保存草稿，再设置额外节点,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:407,toast (onStoryNodeRole),if (issue) { toast(issue); return; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:440,toast (_saveChapterRules),if (costs.error) { toast(costs.error); return false; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:451,toast (_saveChapterRules),if (issue) { toast(issue); return false; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:462,toast (_saveChapterRules),还差一步,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:464,wx.showModal,还差一步,知道了 / 取消,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/theme-runtime.js:494,toast (closeRuntimeEditor),if (issue) { toast(issue); return; },dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:643,toast (removeValue),请先移除引用，位置已列在值域中,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:667,toast (onRuntimeStatToggle),请先移除引用，位置已列在值域中,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:673,toast (onRuntimeStatToggle),当前账号无法添加勋章,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:676,toast (addRuntimeContent),当前账号无法添加勋章,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:695,toast (onRuntimeItem),自定义值不能用于减耗,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/theme-runtime.js:720,toast (removeRuntimeItem),请先移除这个物品的发放和奖励配置,dismiss,App/ProjectEditView.swift,gap: App/ProjectEditView.swift inline error/status surface,MISSING
+pages/publish/fabu/topic-detail-sheet.wxml:8,cy-sheet,"<cy-sheet variant=""full"" show=""{{topicDetailShow && !runtimeRewardOpen}}"" stacked=""{{lookSheetShow |",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/fabu/zero-hp-editor.wxml:4,cy-sheet,"<cy-sheet show=""{{runtimeZeroEditor.show}}"" fixed=""full"" bind:close=""closeZeroHpEditor"" style=""--cy-",close / select,App/ProjectEditView.swift,App/ProjectEditView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/simple/index.js:630,wx.showModal,另起一次 AI 起草？ — 上一次的结果仍可能返回。原记录会保留；另起一次不是重试，可能额外占用 AI 额度。是否明确另起？,确认另起 / 保留原记录,App/PublishingModesViews.swift (QuickPublishingView),matched zh-Hans string (Resources/Localizable.xcstrings:g6.ai.confirmNew.open),DONE
+pages/publish/simple/index.wxml:128,cy-option-sheet,选择原起草记录,close / select,App/PublishingModesViews.swift (QuickPublishingView),App/PublishingModesViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/temp/index.js:515,wx.showModal,放弃未保存的玩法？ — 本次修改尚未保存为草稿。,放弃 / 继续编辑,App/TemplateAuthoringExitGuard.swift,App/TemplateAuthoringExitGuard.swift:100 (.cyModalConfirm 3-button),DONE
+pages/publish/temp/index.js:583,toast (chooseAlbumImage),照片顺序变了，请重新替换,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:586,toast (chooseAlbumImage),最多 6 张照片,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/publish/temp/index.js:640,toast (onCompassCapture),这台设备没报出方向，请在真机上试,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:644,toast (onCompassCapture),已记下当前方向,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:861,toast (addBlindOption),盲品选项最多 6 项,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:896,toast (addDiySuggestion),备选名最多 6 个,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:917,toast (addProfileQuestion),建档最多 8 个问题,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:templateAuthor.prefab.scene.dream3),DONE
+pages/publish/temp/index.js:975,toast (removeProfileQuestion),建档至少留一个问题,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1113,toast (addEffectRow),一项最多配 16 条效果,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:templateMemo.capacity),DONE
+pages/publish/temp/index.js:1122,toast (updateEffectField),请从所需数值资源中选择,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1141,toast (pickEffectOp),请选择增加或恢复到至少,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1212,toast (removeProfileOption),选项题至少留 2 个选项,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:creator.validation.branch),DONE
+pages/publish/temp/index.js:1257,toast (addNotePreset),预设短句最多 6 条,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1281,toast (addSortItem),排序最多 8 条,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1286,toast (removeSortItem),排序至少 2 条,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1293,toast (addMatchPair),连线最多 6 对,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1303,toast (removeMatchPair),连线至少 2 对,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1313,toast (addClassifyBin),分类最多 4 个类别,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+pages/publish/temp/index.js:1320,toast (removeClassifyBin),分类至少 2 个类别,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:playkitAuthor.validation.classify.bins.count),DONE
+pages/publish/temp/index.js:1333,toast (addClassifyItem),分类最多 10 条,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+pages/publish/temp/index.js:1338,toast (removeClassifyItem),分类至少 2 条,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1457,toast (success),商家权限没能读取,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1463,toast (fail),商家权限没能读取,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1464,toast (successStatusAbnormal),商家权限没能读取,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1914,toast (addQaFbImg),每个选项最多 ,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1921,toast (addQaFbImg),每个选项最多 ,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:1982,toast (addChoiceOption),最多 4 个选项,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:creator.validation.branch),DONE
+pages/publish/temp/index.js:1990,toast (deleteOption),至少需要 2 个选项,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:creator.validation.branch),DONE
+pages/publish/temp/index.js:2084,toast (uploadStoryBeatImg),每个节点最多6张,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2178,toast (onPreviewAudio),预听失败,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2356,toast (removeCategory),移除成功,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2578,toast (openToolSheet),请先选择主玩法,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2579,toast (openToolSheet),请先选择主玩法,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2580,toast (openToolSheet),相册暂不支持叠加工具,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2582,toast (openToolSheet),请先移除费用或次数规则,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2591,wx.showModal,"if (tool) modal.show({ title: tool.label,",confirm / cancel,App/TemplateAuthoringView.swift,App/TemplateAuthoringView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/temp/index.js:2756,toast (changeTargetScope),请先移除投票工具,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2790,toast (pickGame),请先选择主玩法,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2791,toast (pickGame),请先选择主玩法,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2792,toast (pickGame),相册暂不支持叠加玩法,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2793,toast (pickGame),当前玩法不支持限时挑战,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:2802,toast (pickGame),if (locked) { toast(locked); return; },dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:3324,toast (publishGame),当前岗位没有节点管理权限,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/publish/temp/index.js:3396,toast (saveDraft),节点玩法请配置完成后直接保存,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:3439,toast (sendData),当前岗位没有节点管理权限,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/MerchantCityNode.xcstrings:merchantCityNode.permission.manage),DONE
+pages/publish/temp/index.js:3493,toast (success),玩法已保存,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:3717,toast (_openWithUnusableMedia),if (msg) toast(String(msg));,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:4019,toast (_ownTemplateWritable),请先确认该模板可由你编辑,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.js:4063,toast (_returnToJoinForm),玩法已发布,dismiss,App/TemplateAuthoringView.swift,gap: App/TemplateAuthoringView.swift inline error/status surface,MISSING
+pages/publish/temp/index.wxml:2060,popup,"<cy-category-sheet show=""{{categorySheetVisible}}"" back-guard=""{{false}}"" type=""{{4}}"" ids=""{{catego",confirm / cancel,App/TemplateAuthoringView.swift,App/TemplateAuthoringView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/publish/temp/index.wxml:2077,cy-result-sheet,{{resultSheet.title}},confirm / cancel,App/TemplateAuthoringView.swift,App/TemplateAuthoringView.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/template/index.js:162,toast (onShelfToast),"onShelfToast(e) { cyToast(((e && e.detail) || {}).text || ''); },",dismiss,App/DiscoveryTemplateBrowserView.swift,gap: App/DiscoveryTemplateBrowserView.swift inline error/status surface,MISSING
+pages/template/index.js:167,toast (openPublishSheet),当前岗位没有项目发布权限,dismiss,App/DiscoveryTemplateBrowserView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:discovery.templateTab.refusal.staffCannotPublish),DONE
+pages/templatedetail/shelf/index.wxml:166,cy-sheet,全部分类,close / select,App/DiscoveryTemplateDetailView.swift,matched zh-Hans string (Resources/NearbyMapDiscovery.xcstrings:nearby.map.allTags),DONE
+pages/templatedetail/templatedetail.js:493,toast (onPreviewDisabledTap),请先作答再完成预览,dismiss,App/DiscoveryTemplateDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:discovery.templateDetail.preview.answerFirst),DONE
+pages/templatedetail/templatedetail.wxml:289,cy-sheet,节点交互预览,close / select,App/DiscoveryTemplateDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:discovery.templateDetail.preview.title),DONE
+pages/templatedetail/topic-detail/index.js:201,toast (useTemplate),当前岗位仅可浏览模板,dismiss,App/DiscoveryTemplateDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:discovery.templateTab.refusal.staffBrowseOnly),DONE
+pages/templatedetail/topic-detail/index.js:212,toast (_submitUse),正在配置，请稍候,dismiss,App/DiscoveryTemplateDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:play.empty),DONE
+pages/templatedetail/topic-detail/index.js:227,toast (success),使用模板失败,dismiss,App/DiscoveryTemplateDetailView.swift,gap: App/DiscoveryTemplateDetailView.swift inline error/status surface,MISSING
+pages/templatedetail/topic-detail/index.js:238,toast (fail),网络错误，请重试,dismiss,App/DiscoveryTemplateDetailView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE
+pages/topic/catalog/index.wxml:20,cy-sheet,选择城市,close / select,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:publicCatalog.pickCity),DONE
+pages/topic/components/cy/chapter-node-form/index.js:264,cy-modal,确认到店位置 — 地图选点用于保存这个节点的到店位置，供玩家导航和现场位置校验。,去地图选点 / 取消,App/ProjectEditFlowParity.swift,App/ProjectEditFlowParity.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/components/cy/chapter-node-form/index.js:303,toast (onTemplatePick),cyToast(ALBUM_ONLY_IN_STORY);,dismiss,App/ProjectEditFlowParity.swift,gap: App/ProjectEditFlowParity.swift inline error/status surface,MISSING
+pages/topic/components/cy/chapter-node-form/index.wxml:3,cy-sheet,{{formMode === ,close / select,App/ProjectEditFlowParity.swift,App/ProjectEditFlowParity.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/components/cy/chapter-target-picker/index.wxml:3,cy-sheet,申请承接章节,close / select,App/ProjectEditFlowParity.swift,App/ProjectEditFlowParity.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/components/cy/date-range-sheet/index.wxml:1,cy-sheet,{{title}},close / select,App/ProjectEditFlowParity.swift,App/ProjectEditFlowParity.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/components/cy/node-npc-form/index.js:487,wx.showModal,另起独立声音请求？ — 原结果仍可能完成。新建可能产生重复音色或占用额度，费用以实际模型为准；原未知记录会保留，系统不会重发原请求。,确认新建 / 取消,App/ProjectEditFlowParity.swift,App/ProjectEditFlowParity.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/components/cy/node-npc-form/index.wxml:3,cy-sheet,节点NPC,close / select,App/ProjectEditFlowParity.swift,App/ProjectEditFlowParity.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/components/cy/node-npc-form/index.wxml:82,cy-result-sheet,{{result.title}},confirm / cancel,App/ProjectEditFlowParity.swift,App/ProjectEditFlowParity.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/components/cy/session-picker/index.wxml:4,cy-sheet,{{singleDay ? ,close / select,App/TopicDetailView.swift,gap: not on App/TopicDetailView.swift,MISSING
+pages/topic/index/index.js:622,toast (onHeroCta),主题已截止,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:668,toast (toggleFav),网络异常，收藏没有保存,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.js:669,toast (toggleFav),网络异常，收藏没有保存,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.js:671,toast (toggleFav),网络异常，收藏没有保存,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.js:756,toast (startPrepPlay),网络异常，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.js:760,toast (startPrepPlay),网络异常，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.js:1218,toast (submitComment),请选择评分,dismiss,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.publicHome.selectRating),DONE
+pages/topic/index/index.js:1223,toast (submitComment),请输入评价内容,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1242,toast (success),评价成功,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1265,toast (lockedTip),该主题立项待审，暂未开售,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.js:1273,toast (bmClick),商家用户不可报名主题,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1276,toast (bmClick),商家暂停营业，暂不可报名,dismiss,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:topic.availability.merchantClosed),DONE
+pages/topic/index/index.js:1291,toast (bmClick),暂无可参加的场次,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1317,wx.showModal,转为正式主题 — 转正后不再显示 Beta 标记。主题内容、已售出的票和进行中的行程都不受影响。,确认转正 / 取消,App/TopicDetailView.swift,matched zh-Hans string (Resources/MerchantAuthoring.xcstrings:merchantAuthoring.theme.approved),DONE
+pages/topic/index/index.js:1354,wx.showActionSheet,"/* 2026-09-02:原来这里弹 wx.showActionSheet(系统弹层,设计体系外)。",select / cancel,App/TopicDetailView.swift,gap: not on App/TopicDetailView.swift,MISSING
+pages/topic/index/index.js:1375,wx.showModal,"移交给俱乐部承接 — 将复制一份新的城市定向主题(有人带),挂到「",确认移交 / 取消,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:publisherPricing.guided),DONE
+pages/topic/index/index.js:1393,wx.showModal,已移交 — 已生成新的城市定向草稿，去配置票种并邀请该俱乐部承接?,去配置 / 稍后,App/TopicDetailView.swift,gap: not on App/TopicDetailView.swift,MISSING
+pages/topic/index/index.js:1553,toast (selfPlayBuy),商家暂停营业，暂不可报名,dismiss,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:topic.availability.merchantClosed),DONE
+pages/topic/index/index.js:1558,toast (selfPlayBuy),商家用户不可购买,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1727,wx.showModal,还差姓名和手机号 — 建单要用你的真实姓名和手机号，补一次就好，之后不用再填。,去补全 / 稍后再说,App/TopicDetailView.swift,gap: not on App/TopicDetailView.swift,MISSING
+pages/topic/index/index.js:1758,toast (onOrderFail),下单失败,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1776,toast (onPayCancel),已取消支付,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1781,toast (onPayFail),支付失败,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1787,wx.showModal,支付结果待确认 — 暂不要重复支付，请稍后从订单或主题页查看通行证状态。,confirm / cancel,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:orderLifecycle.payment.pending),DONE
+pages/topic/index/index.js:1801,wx.showModal,支付结果待确认 — 这笔付款还在确认中，请勿重复支付。稍后可到「我的-订单」查看通行证状态。,confirm / cancel,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:orderLifecycle.payment.pending),DONE
+pages/topic/index/index.js:1838,toast (onOrderFail),支付信息不完整，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.js:1840,toast (onPayCancel),已取消支付,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1841,toast (onPayFail),支付失败,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1844,toast (onPayFail),支付失败,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.js:1848,toast (onPayFail),网络错误，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE
+pages/topic/index/index.js:2167,toast (onNodeTap),toast(m.callout.content);,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/index/index.wxml:463,cy-sheet,开局前准备,close / select,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/index/index.wxml:473,cy-sheet,评价路线,close / select,App/TopicDetailView.swift,gap: not on App/TopicDetailView.swift,MISSING
+pages/topic/index/index.wxml:554,cy-option-sheet,选择承接俱乐部,close / select,App/TopicDetailView.swift,gap: not on App/TopicDetailView.swift,MISSING
+pages/topic/index/index.wxml:556,cy-option-sheet,选择举报原因,close / select,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:squareReport.chooseReason),DONE
+pages/topic/index/index.wxml:570,cy-result-sheet,{{resultSheet.title}},confirm / cancel,App/TopicDetailView.swift,gap: not on App/TopicDetailView.swift,MISSING
+pages/topic/merchantapply/index.js:437,toast (onSheetRequestClose),正在提交，请稍候,dismiss,App/MerchantContentEditor.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/merchantapply/index.js:441,wx.showModal,放弃这次报名? — 已填写的承接地点、时间等信息不会保存,放弃 / 继续填写,App/MerchantContentEditor.swift,App/MerchantContentEditor.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantapply/index.js:471,toast (onPick),地点选择成功,dismiss,App/MerchantContentEditor.swift,gap: App/MerchantContentEditor.swift inline error/status surface,MISSING
+pages/topic/merchantapply/index.js:499,toast (uploadPic),最多9张,dismiss,App/MerchantContentEditor.swift,gap: App/MerchantContentEditor.swift inline error/status surface,MISSING
+pages/topic/merchantapply/index.js:588,toast (handleTimePopup),结束时间必须晚于开始时间,dismiss,App/MerchantContentEditor.swift,matched zh-Hans string (Resources/NativeConditionAuthor.xcstrings:nativeCondition.issue.timeWindow),DONE
+pages/topic/merchantapply/index.wxml:17,cy-sheet,{{phase === ,close / select,App/MerchantContentEditor.swift,App/MerchantContentEditor.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantapply/index.wxml:220,cy-sheet,可配合时间,close / select,App/MerchantContentEditor.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.content.field.cooperateDate),DONE
+pages/topic/merchantinfo/merchantinfo.js:768,cy-modal,填写退出原因,下一步 / 取消,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.offerWithdrawal.reason.placeholder),DONE
+pages/topic/merchantinfo/merchantinfo.js:782,cy-modal,确认退出供给？ — 必选章节退出后会暂停新增报名；原订单和履约记录保留，由主办处理补位或取消退款。\n退出原因：,destructive 确认退出 / 取消,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.offerWithdrawal.field.serverReason),DONE
+pages/topic/merchantinfo/merchantinfo.js:783,validate,确认退出供给？ — 必选章节退出后会暂停新增报名；原订单和履约记录保留，由主办处理补位或取消退款。\n退出原因：,destructive 确认退出 / 取消,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:merchant.offerWithdrawal.field.serverReason),DONE
+pages/topic/merchantinfo/merchantinfo.js:803,toast (validate),已退出供给,dismiss,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:chapterReplacement.intro),DONE
+pages/topic/merchantinfo/merchantinfo.js:830,toast (success),已重新确认,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:840,cy-modal,暂停这份供给？ — 暂停后不会再进入新的圈层探索；历史记录不会删除。,确认暂停 / 取消,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:857,toast (success),供给已暂停,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1016,toast (bmClick2),报名时间信息不完整,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1020,toast (bmClick2),商家报名还没有开始哦,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1024,toast (action),商家报名已结束,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1028,toast (action),当前不接受商家报名,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1037,toast (action),不可报名您发布的主题,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1191,toast (goSettlement),您已报名此主题，请勿重复报名,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1195,toast (goSettlement),请选择承接章节,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1199,toast (goSettlement),请选择节点,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1304,toast (onChapterNodeFormSubmit),网络错误，请重试,dismiss,App/MerchantContentViews.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE
+pages/topic/merchantinfo/merchantinfo.js:1356,toast (openChapterOfferForm),申请通过后才能填写实际供给,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1361,toast (openChapterOfferForm),补位状态已变化，请刷新承接进度,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1365,toast (openChapterOfferForm),供给已生效，修改需先撤回,dismiss,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:cooperation.list.chapter.status.offerActive),DONE
+pages/topic/merchantinfo/merchantinfo.js:1369,toast (openChapterOfferForm),章节供给档位暂未读取，请稍后重试,dismiss,App/MerchantContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/merchantinfo/merchantinfo.js:1389,cy-danger-confirm (respondChapterInvitation),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:1397,toast (respondChapterInvitation),已接受邀请,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1399,toast (respondChapterInvitation),邀请未处理，请重试,dismiss,App/MerchantContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/merchantinfo/merchantinfo.js:1401,toast (respondChapterInvitation),结果未确认，请刷新承接进度确认,dismiss,App/MerchantContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/merchantinfo/merchantinfo.js:1409,cy-danger-confirm (revokeChapterInvitation),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:1416,cy-danger-confirm (submitChapterInvitationRevoke),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:1423,toast (submitChapterInvitationRevoke),邀请未撤回，请重试,dismiss,App/MerchantContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/merchantinfo/merchantinfo.js:1424,toast (submitChapterInvitationRevoke),结果未确认，请刷新邀请列表确认,dismiss,App/MerchantContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/merchantinfo/merchantinfo.js:1440,cy-danger-confirm (withdrawChapterApplication),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:1455,cy-danger-confirm (submitChapterApplicationWithdraw),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:1516,toast (submitApprovedChapterOffer),供给已提交，等待审核,dismiss,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:bank.withdrawal.accepted),DONE
+pages/topic/merchantinfo/merchantinfo.js:1525,toast (submitApprovedChapterOffer),网络错误，请重试,dismiss,App/MerchantContentViews.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE
+pages/topic/merchantinfo/merchantinfo.js:1553,toast (submitChapterNodeDraft),节点已保存，请查看承接进度,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:1559,toast (submitChapterNodeDraft),网络错误，请重试,dismiss,App/MerchantContentViews.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE
+pages/topic/merchantinfo/merchantinfo.js:2065,toast (success),已通过申请,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:2078,cy-modal,通过章节申请 — 通过后商家即可按约定准备供给与节点；本次已提交的节点将一并通过审核。,确认通过 / 取消,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:2086,cy-modal,婉拒章节申请,确认婉拒 / 取消,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:2117,toast (success),节点已通过,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:2125,cy-modal,通过商家节点 — 仅表示内容已通过审核,确认通过 / 取消,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:2133,cy-modal,驳回商家节点,确认驳回 / 取消,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:2640,cy-modal,确认候选 — 确认「,确认 / 取消,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:2924,toast (success),供给复核已更新,dismiss,App/MerchantContentViews.swift,gap: App/MerchantContentViews.swift inline error/status surface,MISSING
+pages/topic/merchantinfo/merchantinfo.js:3860,cy-modal,开放商家承接 — 开放后，这一章要有商家承接成功才能开售。没有商家承接时，提交开售前请回到这里关闭。,开放 / 取消,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:club.ops.merchantUndertakeOpen),DONE
+pages/topic/merchantinfo/merchantinfo.js:3961,cy-modal,在「我的 → 帮助与客服」里发起，带上这条路线的名字，客服会确认后处理。,知道了 / 取消,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:profile.complaint.sourceEmptyHint),DONE
+pages/topic/merchantinfo/merchantinfo.js:3994,cy-danger-confirm (askFinishChapter),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:4022,cy-danger-confirm (doFinishChapter),const dc = this.selectComponent && this.selectComponent('#dc');,confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:4099,cy-modal,还没有可接待的场次 — 本站接待、服务时段和暂停都按场次配置。这条路线开出场次、且你这一站在场次里之后，这里才能进入。,知道了 / 取消,App/MerchantContentViews.swift,matched zh-Hans string (Resources/MerchantGameNode.xcstrings:merchantGameNode.entries.noneTitle),DONE
+pages/topic/merchantinfo/merchantinfo.js:4461,cy-modal,需要相册权限 — 在设置里允许保存到相册后重试。,去设置 / 取消,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.js:4547,cy-modal,确认取消 — 确定要取消参与吗？取消后不可恢复。,confirm / cancel,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:Confirm cancellation and refunds),DONE
+pages/topic/merchantinfo/merchantinfo.js:4560,toast (success),已取消,dismiss,App/MerchantContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/merchantinfo/merchantinfo.wxml:376,cy-sheet,选择承接节点,close / select,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.wxml:420,cy-sheet,路线模式介绍,close / select,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.wxml:484,cy-option-sheet,{{stationSheetTitle}},close / select,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/merchantinfo/merchantinfo.wxml:526,cy-sheet,分润明细,close / select,App/MerchantContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:cooperation.finance.title),DONE
+pages/topic/merchantinfo/merchantinfo.wxml:571,cy-danger-confirm,"<cy-danger-confirm id=""dc"" bind:confirm=""onDangerConfirm"" bind:alt=""onDangerAlt"" />",confirm / cancel,App/MerchantContentViews.swift,App/MerchantContentViews.swift (DesignSystem sheet/modal parity),DIFFERENT
+pages/topic/pricing/index.js:329,wx.showModal,终价已确认,知道了 / 取消,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:publisherPricing.confirmedAwaitingReview),DONE
+pages/topic/pricing/index.js:334,toast (complete),"toast.success(msg, { duration: 2500 });",dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/pricing/partner/index.js:255,toast (goFullProfile),商家资料还没加载好,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/utils/content-report.js:12,toast (action),网络异常，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/utils/content-report.js:32,wx.showModal,举报内容 — 确认举报这条内容？举报后将提交平台审核。,举报 / 取消,App/TopicDetailView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:club.channel.rules.body),DONE
+pages/topic/utils/content-report.js:43,toast (success),举报原因暂不可用,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/utils/content-report.js:51,toast (success),已提交举报,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/utils/content-report.js:52,toast (success),举报失败,dismiss,App/TopicDetailView.swift,gap: App/TopicDetailView.swift inline error/status surface,MISSING
+pages/topic/utils/content-report.js:57,toast (success),网络异常，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+pages/topic/utils/content-report.js:60,toast (fail),网络异常，请重试,dismiss,App/TopicDetailView.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:286,toast (fail),发布权限没能读取，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:460,toast (onCardLong),编辑资格加载失败，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:506,wx.showModal,另存为模板 — 「,另存为模板 / 取消,App/MerchantProjectsView.swift,App/TemplateAdoptionViews.swift:197 (CYConfirmSheet 另存为模板),DONE
+subpackageA/pages/myproject/index.js:529,toast (success),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:530,toast (success),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:532,toast (fail),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:535,toast (fail),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:566,toast (editActivity),已有人买票，不能再改这场活动,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,gap: App/MerchantProjectsView.swift / App/CreatorContentViews.swift inline error/status surface,MISSING
+subpackageA/pages/myproject/index.js:587,cy-danger-confirm (success),const dc = n === null ? null : that.selectComponent && that.selectComponent('#dcCancel');,confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.js:590,toast (fail),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:608,cy-danger-confirm (success),const dc = n === null ? null : that.selectComponent && that.selectComponent('#dcCancelTopic');,confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.js:614,toast (success),将查回上次取消结果，不取消新一轮,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,gap: App/MerchantProjectsView.swift / App/CreatorContentViews.swift inline error/status surface,MISSING
+subpackageA/pages/myproject/index.js:617,toast (success),将查回上次取消结果，不取消新一轮,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,gap: App/MerchantProjectsView.swift / App/CreatorContentViews.swift inline error/status surface,MISSING
+subpackageA/pages/myproject/index.js:620,toast (fail),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:662,toast (success),操作成功,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:666,toast (success),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:670,toast (fail),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:688,cy-danger-confirm (deleteItem),const dc = this.selectComponent && this.selectComponent(isActivity ? '#dcActivity' : '#dcRoute');,confirm / cancel,App/MerchantProjectsView.swift,App/MyProjectMutationViews.swift:66 (CYConfirmSheet),DONE
+subpackageA/pages/myproject/index.js:748,toast (openAudit),内容编号不完整，请刷新列表,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:d7.rowActions.mismatch),DONE
+subpackageA/pages/myproject/index.js:750,toast (openAudit),内容编号无效,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,gap: App/MerchantProjectsView.swift / App/CreatorContentViews.swift inline error/status surface,MISSING
+subpackageA/pages/myproject/index.js:755,toast (openAudit),申诉草稿无法读取，请稍后重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:781,toast (success),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:787,toast (fail),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:813,toast (saveAuditDraft),申诉草稿保存失败，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string (Resources/PlayCreatorTail.xcstrings:audit.note.storageFailed),DONE
+subpackageA/pages/myproject/index.js:885,wx.showModal,申诉,提交申诉 / 取消,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.js:891,toast (success),if (auditTimeline.validateReason(r.content)) { toast(auditTimeline.validateReason(r.content)); retur,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,gap: App/MerchantProjectsView.swift / App/CreatorContentViews.swift inline error/status surface,MISSING
+subpackageA/pages/myproject/index.js:903,toast (success),申诉已提交，正在核对结果,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:906,toast (success),申诉已提交，正在核对结果,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:916,toast (fail),网络异常，原申诉结果待确认,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:949,toast (tplSubmitMarket),已提交广场审核,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:950,toast (tplSubmitMarket),已提交广场审核,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:952,toast (tplSubmitMarket),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:955,toast (tplSubmitMarket),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:980,toast (success),操作成功,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:981,toast (success),操作成功,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:983,toast (fail),网络异常，请重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.js:990,cy-danger-confirm (tplDelete),const dc = this.selectComponent && this.selectComponent('#dcTpl');,confirm / cancel,App/TemplateAuthoringMineView.swift,App/TemplateAuthoringMineView.swift:136 (.sheet review delete),DONE
+subpackageA/pages/myproject/index.js:1007,cy-danger-confirm (onConfirmCancelActivity),const dc = this.selectComponent && this.selectComponent('#dcCancel');,confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.js:1028,cy-danger-confirm (onConfirmCancelTopic),const dc = this.selectComponent && this.selectComponent('#dcCancelTopic');,confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.js:1082,cy-danger-confirm (onConfirmDeleteTemplate),const dc = this.selectComponent && this.selectComponent('#dcTpl');,confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.js:1116,toast (onDeleteTemplateAlt),暂时算不出退款人数，请稍后重试,dismiss,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageA/pages/myproject/index.wxml:129,cy-sheet,"<cy-sheet show=""{{opsSheet.show}}"" inset bind:close=""closeOpsSheet"">",close / select,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.wxml:146,cy-sheet,审核记录,close / select,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,matched zh-Hans string (Resources/PlayCreatorTail.xcstrings:audit.title),DONE
+subpackageA/pages/myproject/index.wxml:185,cy-danger-confirm,"<cy-danger-confirm id=""dcActivity"" bind:confirm=""onConfirmDeleteActivity"" bind:alt=""onDeleteItemAlt""",confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.wxml:186,cy-danger-confirm,"<cy-danger-confirm id=""dcCancel"" bind:confirm=""onConfirmCancelActivity"" />",confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.wxml:187,cy-danger-confirm,"<cy-danger-confirm id=""dcCancelTopic"" bind:confirm=""onConfirmCancelTopic"" />",confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.wxml:188,cy-danger-confirm,"<cy-danger-confirm id=""dcRoute"" bind:confirm=""onConfirmDeleteRoute"" bind:alt=""onDeleteItemAlt"" />",confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageA/pages/myproject/index.wxml:189,cy-danger-confirm,"<cy-danger-confirm id=""dcTpl"" bind:confirm=""onConfirmDeleteTemplate"" bind:alt=""onDeleteTemplateAlt"" ",confirm / cancel,App/MerchantProjectsView.swift / App/CreatorContentViews.swift,App/MerchantProjectsView.swift (DesignSystem sheet/modal parity),DIFFERENT
+subpackageMember/mytemplate/mytemplate.js:106,wx.showModal,modal.show({,confirm / cancel,App/TemplateAuthoringMineView.swift,App/TemplateAuthoringMineView.swift:136 (.sheet review delete),DONE
+subpackageMember/mytemplate/mytemplate.js:107,deleteItem,"dangerKey: 'template.delete', dangerParams: { name: item.title },   // 三段式文案在 utils/danger-actions.j",confirm / cancel,App/TemplateAuthoringMineView.swift,gap: not on App/TemplateAuthoringMineView.swift,MISSING
+subpackageMember/mytemplate/mytemplate.js:134,toast (templateStatus),网络异常，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageMember/mytemplate/mytemplate.js:136,toast (templateStatus),网络异常，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageMember/mytemplate/mytemplate.js:138,toast (templateStatus),网络异常，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageMember/mytemplate/mytemplate.js:141,toast (templateStatus),网络异常，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageMember/mytemplate/mytemplate.js:343,toast (handleListError),刷新失败，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+subpackageMember/mytemplate/mytemplate.js:367,toast (success),删除成功,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
+subpackageMember/mytemplate/mytemplate.js:376,toast (success),网络错误，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE
+subpackageMember/mytemplate/mytemplate.js:380,toast (fail),网络错误，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE

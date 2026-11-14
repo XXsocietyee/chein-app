@@ -136,13 +136,17 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
 }
 
 @MainActor struct D4MeFixture: View {
-    enum Screen { case settings, growth, leaderboard, badges, badgesEmpty, badgesError, stamps, stampsEmpty }
+    enum Screen { case settings, growth, growthFailure, growthOffline, leaderboard, badges, badgesEmpty, badgesError, stamps, stampsEmpty }
     let screen: Screen
     @State private var growth = GrowthCenterFixtureReader(scenario: .content)
+    @State private var growthFailure = GrowthCenterFixtureReader(scenario: .failure)
+    @State private var growthOffline = GrowthCenterFixtureReader(scenario: .network)
     var body: some View {
         switch screen {
         case .settings: SettingsView().environmentObject(AppSession()).environmentObject(NativeOriginalUnreadBadgeState())
         case .growth: NavigationStack { GrowthCenterView(reader: growth) }
+        case .growthFailure: NavigationStack { GrowthCenterView(reader: growthFailure) }
+        case .growthOffline: NavigationStack { GrowthCenterView(reader: growthOffline) }
         case .leaderboard: NavigationStack { GrowthLeaderboardView(reader: growth) }
         case .badges: NavigationStack { ObjectBadgeWallView(reader: ProfileFixtureReader(.success)) }
         case .badgesEmpty: NavigationStack { ObjectBadgeWallView(reader: ProfileFixtureReader(.empty)) }

@@ -18,6 +18,8 @@ enum OrdersWalletFixtures {
             return wrap(NavigationStack { TicketWalletDetailView(id: 901, reader: TicketWalletFixtureReader(scenario: .content)) })
         case "coupons":
             return wrap(NavigationStack { AccountCollectionCouponsView(reader: AccountCollectionFixtureReader(scenario: .content)) })
+        case "coupons-empty":
+            return wrap(NavigationStack { AccountCollectionCouponsView(reader: AccountCollectionFixtureReader(scenario: .empty)) })
         case "wallet": return wrap(WalletCommerceFixtureHost(designHome: true))
         default: return nil
         }

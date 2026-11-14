@@ -45,6 +45,7 @@ import SwiftUI
             else { Task { await load() } }
         }
         .onDisappear { clear() }
+        .cyDomainScreen(.merchant)
     }
     private func clear() { generation += 1; authority = nil; selectedClub = nil; session.publisherLifecycleContext?.invalidate() }
     private func load() async {

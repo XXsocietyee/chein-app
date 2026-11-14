@@ -22,7 +22,9 @@ final class SearchMapFlowTests: XCTestCase {
     }
     func testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID() {
         launch(); search()
-        let merchantFilter = app.buttons["searchMap.kind.merchant"]; reveal(merchantFilter); merchantFilter.tap()
+        let kinds = app.descendants(matching: .any)["searchMap.resultKinds"]
+        XCTAssertTrue(kinds.waitForExistence(timeout: 5), app.debugDescription)
+        let merchantFilter = kinds.buttons["searchMap.kind.merchant"]; reveal(merchantFilter); merchantFilter.tap()
         let row = app.buttons["searchMap.result.merchant-71"]; reveal(row); row.tap()
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.merchant.detail"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Synthetic shop"].exists)

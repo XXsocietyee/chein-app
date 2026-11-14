@@ -107,17 +107,27 @@ import SwiftUI
         .cyGroupedSurface()
         .navigationTitle(locale.pick("入会欢迎语", "Welcome message"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(locale.pick("关闭", "Close")) { retire(); dismiss() } } }
-        .confirmationDialog(locale.pick("确认保存欢迎语？", "Save welcome message?"), isPresented: $confirming, titleVisibility: .visible) {
-            Button(flow.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? locale.pick("确认清空", "Confirm clear") : locale.pick("确认保存", "Confirm save")) {
-                guard visit.isCurrent, scenePhase == .active else { return }
-                Task {
-                    await flow.save()
-                    guard visit.isCurrent, scenePhase == .active, !Task.isCancelled else { return }
-                    if case .saved(let note) = flow.state { saved(note) }
+        .sheet(isPresented: $confirming) {
+            let trimmed = flow.draft.trimmingCharacters(in: .whitespacesAndNewlines)
+            CYConfirmSheet(
+                title: appLocalized("club.welcome.title", locale: locale),
+                message: appLocalized(trimmed.isEmpty ? "club.welcome.clearBody" : "club.welcome.saveBody", locale: locale),
+                confirmTitle: appLocalized(trimmed.isEmpty ? "club.welcome.clear" : "club.welcome.save", locale: locale),
+                cancelTitle: appLocalized("club.welcome.keep", locale: locale),
+                isDestructive: trimmed.isEmpty,
+                onCancel: { confirming = false },
+                onConfirm: {
+                    confirming = false
+                    guard visit.isCurrent, scenePhase == .active else { return }
+                    Task {
+                        await flow.save()
+                        guard visit.isCurrent, scenePhase == .active, !Task.isCancelled else { return }
+                        if case .saved(let note) = flow.state { saved(note) }
+                    }
                 }
-            }
-            Button(locale.pick("继续编辑", "Keep editing"), role: .cancel) {}
-        } message: { Text(flow.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? locale.pick("清空后，新成员仍会看到俱乐部功能说明，但不再显示主理人自定义欢迎语。", "After clearing, new members still see the club introduction but not a custom welcome message.") : locale.pick("文字将通过原接口检查并保存；以服务端回读结果为准。", "The text will be checked and saved by the service; the server read-back is authoritative.")) }
+            )
+            .cyDomainSheet(detents: [.peek, .half])
+        }
         .task { guard visit.isCurrent, scenePhase == .active else { return }; await flow.load() }
         .onDisappear { retire() }
         .onChange(of: visit.isCurrent) { _, current in if !current { retire(); dismiss() } }
@@ -187,6 +197,7 @@ import SwiftUI
         .onChange(of: access.welcomeNoteRevision) { _, _ in retire(); dismiss() }
         .onChange(of: access.welcomeNote.map(ObjectIdentifier.init)) { _, _ in retire(); dismiss() }
         .onChange(of: phase) { _, value in if value != .active { retire(); dismiss() } }
+        .cyDomainScreen(.player)
     }
     private func retire() { visit.retire(); active = false; generation = UUID(); rows = []; loadedIdentity = nil; message = nil; busy = false }
     private func load() async {

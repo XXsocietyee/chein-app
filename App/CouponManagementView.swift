@@ -27,8 +27,8 @@ import SwiftUI
     }
     var body: some View {
         Group {
-            if !isSourceVisible { ContentUnavailableView("couponManagement.unavailable", systemImage: "ticket") }
-            else if sessionKey == nil { ContentUnavailableView("couponManagement.signIn", systemImage: "person.crop.circle") }
+            if !isSourceVisible { CYEmptyState(systemImage: "ticket", "couponManagement.unavailable") }
+            else if sessionKey == nil { CYEmptyState(systemImage: "person.crop.circle", "couponManagement.signIn") }
             else {
                 List {
                     MerchantOpsWp03Panel(page: .coupon)
@@ -37,28 +37,41 @@ import SwiftUI
                         Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }
                             .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
                     }
-                    Text("couponManagement.chinaTime").font(.footnote).foregroundStyle(.secondary)
-                    if model.working || model.core.loading { ProgressView("couponManagement.loading") }
+                    Text("couponManagement.chinaTime").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    if model.working || model.core.loading { CYSkeleton(variant: .row) }
                     // A failed read is an error notice above, not an empty list.
                     else if model.core.rows.isEmpty, model.core.issue == nil {
-                        ContentUnavailableView("couponManagement.empty", systemImage: "ticket")
+                        CYEmptyState(systemImage: "ticket", "couponManagement.empty")
                             .listRowBackground(Color.clear)
                     }
                     ForEach(model.core.rows) { row in
                         NavigationLink {
                             CouponManagementDetailView(model: model, id: row.id)
                         } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.headline)
-                                Text(LocalizedStringKey(row.typeKey)).font(.subheadline)
+                            VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+                                Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale))
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                Text(LocalizedStringKey(row.typeKey))
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textSecondary)
                                 // Mini-program coupon list row: description (fallback copy) and remaining stock.
-                                if let text = row.description, !text.isEmpty { Text(verbatim: text).font(.caption) }
-                                else { Text("couponManagement.noDescription").font(.caption).foregroundStyle(.secondary) }
+                                if let text = row.description, !text.isEmpty {
+                                    Text(verbatim: text).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                                } else {
+                                    Text("couponManagement.noDescription").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                }
                                 // Unknown remaining stock is an em dash; a literal 0 stays 0.
-                                LabeledContent("couponManagement.remaining", value: CouponInfoCount.display(row.remaining)).font(.caption)
-                                if row.state != .active { Text(LocalizedStringKey(row.state.key)).font(.caption) }
-                                Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")").font(.caption).foregroundStyle(.secondary)
-                            }.padding(.vertical, 4)
+                                LabeledContent("couponManagement.remaining", value: CouponInfoCount.display(row.remaining))
+                                    .font(CYTypography.caption.monospacedDigit())
+                                if row.state != .active {
+                                    CYStatusChip(LocalizedStringKey(row.state.key), tone: .neutral)
+                                }
+                                Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")")
+                                    .font(CYTypography.caption)
+                                    .monospacedDigit()
+                                    .foregroundStyle(CYColor.textSecondary)
+                            }.padding(.vertical, CYSpacing.xs)
                         }.accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
                     }
                 }
@@ -84,7 +97,9 @@ import SwiftUI
         }
         .sheet(isPresented: $creating) {
             NavigationStack { CouponManagementEditor(model: model) }
-                .cyPlayerSheetGlass()
+                .themeDomain(.topicEditor)
+                .presentationCornerRadius(CYRadius.sheet)
+                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
         }
         .onChange(of: sessionKey) { _, _ in creating = false; model.synchronize() }
         .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }
@@ -149,7 +164,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     }
                 }
                 if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
-            } else if model.working { ProgressView("couponManagement.loading") }
+            } else if model.working { CYSkeleton(variant: .detail).accessibilityLabel(Text("couponManagement.loading")) }
             else { Text("couponManagement.unavailable") }
         }
         .merchantM02Page()
@@ -162,6 +177,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         }
         .task { await model.core.load(); model.revision += 1 }
         .onDisappear { model.cancelReview() }
+        .cyDomainScreen(.merchant)
     }
     private func count(_ key: LocalizedStringKey, _ value: Int?) -> some View { LabeledContent(key, value: CouponInfoCount.display(value)) }
 }
@@ -169,6 +185,8 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     @ObservedObject var model: CouponManagementScreenModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var discard = false
     @State private var rangeEditor: CouponValidityRangeEditorModel?
     @State private var rangeBaseline: [Date?]?
@@ -191,6 +209,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     var body: some View {
         let page = self.page
         Form {
+            Section { CYHeroHeader("couponManagement.create") }.e1HeroRow()
             CouponManagementNotice(model: model, surface: .editor)
             switch page.phase {
             case .ready:
@@ -199,31 +218,75 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                 // Unknown publish outcome: show the dash-filled form read-only and offer recovery, never a resend.
                 CouponInfoSettingsStateSection(page: page)
                 if model.core.canRecoverCommands, let key = page.recoveryKey {
-                    Button(LocalizedStringKey(key)) { model.run { await model.core.recoverPendingCommands() } }
-                        .disabled(model.working).accessibilityIdentifier("couponManagement.editor.recover")
+                    Section {
+                        Button(LocalizedStringKey(key)) { model.run { await model.core.recoverPendingCommands() } }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true, compact: true))
+                            .disabled(model.working).accessibilityIdentifier("couponManagement.editor.recover")
+                    }
+                    .listRowBackground(Color.clear)
                 }
                 if let form = page.form { CouponInfoSettingsReadOnlySection(form: form) }
             case .error, .empty, .loading:
                 CouponInfoSettingsStateSection(page: page)
                 if let key = page.retryKey {
-                    Button(LocalizedStringKey(key)) { model.run { await model.core.load() } }
-                        .disabled(model.working).accessibilityIdentifier("couponManagement.editor.retry")
+                    Section {
+                        Button(LocalizedStringKey(key)) { model.run { await model.core.load() } }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true, compact: true))
+                            .disabled(model.working).accessibilityIdentifier("couponManagement.editor.retry")
+                    }
+                    .listRowBackground(Color.clear)
                 }
             case nil:
-                Text("couponManagement.unavailable").foregroundStyle(.secondary)
-                    .accessibilityIdentifier("couponManagement.editor.hidden")
+                Section {
+                    CYEmptyState(systemImage: "ticket", "couponManagement.unavailable", messageIdentifier: "couponManagement.editor.hidden")
+                        .listRowBackground(Color.clear)
+                }
             }
         }
         .environment(\.timeZone, CouponValidityTime.timeZone)
         .environment(\.calendar, CouponValidityTime.calendar)
-        .merchantM02Page()
+        .formStyle(.grouped)
+        .cyGroupedSurface()
+        .cyHeroScreen()
+        .cyDomainScreen(.topicEditor)
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("couponManagement.create")
         .interactiveDismissDisabled(model.core.draft.dirty || model.working)
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("couponManagement.cancel") { if model.core.draft.dirty { discard = true } else { dismiss() } }.disabled(model.working) } }
-        .confirmationDialog("couponManagement.discardTitle", isPresented: $discard, titleVisibility: .visible) {
-            Button("couponManagement.discard", role: .destructive) { model.core.discardDraft(); model.revision += 1; dismiss() }
-            Button("couponManagement.keepEditing", role: .cancel) {}
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("couponManagement.cancel") { if model.core.draft.dirty { discard = true } else { dismiss() } }
+                    .disabled(model.working)
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if page.phase == .ready, model.core.review == nil {
+                CYFooterBar {
+                    let isAX = dynamicTypeSize.isAccessibilitySize
+                    let layout = isAX ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+                    layout {
+                        Button("couponManagement.cancel") {
+                            if model.core.draft.dirty { discard = true } else { dismiss() }
+                        }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: isAX, compact: true))
+                        .disabled(model.working)
+
+                        if page.publishGranted, page.editingID == nil {
+                            Button("couponManagement.reviewPublish") { model.run { await model.core.preparePublish() } }
+                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
+                                .disabled(model.working || !page.showsPublishAction)
+                                .accessibilityIdentifier("couponManagement.publish.review")
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $discard) {
+            MemberCouponDiscardConfirmSheet {
+                discard = false
+                model.core.discardDraft()
+                model.revision += 1
+                dismiss()
+            }
         }
         .sheet(item: $rangeEditor, onDismiss: {
             // Mini-program toast 时间设置完成 after a confirmed range, shown inline instead of a toast.
@@ -231,28 +294,39 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { rangeCompleted = true }
             }
             rangeBaseline = nil
-        }) { editor in NavigationStack { CouponValidityRangeEditor(model: editor) } }
+        }) { editor in
+            NavigationStack { CouponValidityRangeEditor(model: editor) }
+                .themeDomain(.topicEditor)
+                .cyDomainSheet(detents: [.half, .full])
+        }
         .onChange(of: model.core.session) { _, _ in closeRangeEditor() }
         .onChange(of: model.revision) { _, _ in closeRangeEditor() }
         .onDisappear { closeRangeEditor(); model.cancelReview() }
     }
     @ViewBuilder private func fields(_ page: CouponInfoSettingsPage) -> some View {
+        // Mini-program couponInfo order: Name -> Date range -> Quantity + Type -> Description.
         Section("couponManagement.details") {
-            TextField("couponManagement.name", text: binding(\.name)).accessibilityIdentifier("couponManagement.name")
-            TextField("couponManagement.description", text: binding(\.description), axis: .vertical).lineLimit(2...6)
-            Picker("couponManagement.type", selection: binding(\.couponType)) {
-                Text("couponManagement.chooseType").tag(Int?.none)
-                ForEach(0..<4) { type in Text(LocalizedStringKey(CouponManagementDraft.typeKey(type))).tag(Optional(type)) }
-            }.accessibilityIdentifier("couponManagement.type")
-            TextField("couponManagement.quantity", text: binding(\.quantity)).keyboardType(.numberPad).accessibilityIdentifier("couponManagement.quantity")
+            TextField("couponManagement.name", text: binding(\.name))
+                .font(CYTypography.bodyCompact)
+                .accessibilityIdentifier("couponManagement.name")
         }.disabled(model.working)
         Section("couponManagement.dates") {
-            Text("couponManagement.chinaTime").font(.footnote)
+            Text("couponManagement.chinaTime")
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
             if let start = model.core.draft.startTime {
-                LabeledContent("couponManagement.start", value: CouponValidityTime.display(start))
+                LabeledContent("couponManagement.start") {
+                    Text(verbatim: CouponValidityTime.display(start))
+                        .font(CYTypography.bodyCompact.monospacedDigit())
+                        .foregroundStyle(palette.textPrimary)
+                }
             }
             if let end = model.core.draft.endTime {
-                LabeledContent("couponManagement.end", value: CouponValidityTime.display(end))
+                LabeledContent("couponManagement.end") {
+                    Text(verbatim: CouponValidityTime.display(end))
+                        .font(CYTypography.bodyCompact.monospacedDigit())
+                        .foregroundStyle(palette.textPrimary)
+                }
             }
             // PORT-5: mini-program shows the validity span next to the picked range, not only inside the sheet.
             if let span = CouponValiditySpan.make(start: model.core.draft.startTime, end: model.core.draft.endTime) {
@@ -260,7 +334,8 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             }
             if rangeCompleted {
                 Label("couponManagement.range.completed", systemImage: "checkmark.circle.fill")
-                    .font(.footnote).foregroundStyle(CYColor.successText)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.success)
                     .transition(.opacity)
                     .accessibilityIdentifier("couponManagement.range.completed")
             }
@@ -269,11 +344,25 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                 rangeEditor = CouponValidityRangeEditorModel.make(screen: model)
             }.disabled(model.core.session == nil).accessibilityIdentifier("couponManagement.range.open")
         }.disabled(model.working)
-        if let blocker = model.core.draft.blocker { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary) }
-        // Shown only with the existing publish grant on a new definition; an edit never publishes and nothing saves.
-        if page.publishGranted, page.editingID == nil {
-            Button("couponManagement.reviewPublish") { model.run { await model.core.preparePublish() } }
-                .disabled(model.working || !page.showsPublishAction).accessibilityIdentifier("couponManagement.publish.review")
+        Section {
+            TextField("couponManagement.quantity", text: binding(\.quantity))
+                .keyboardType(.numberPad)
+                .font(CYTypography.bodyCompact.monospacedDigit())
+                .accessibilityIdentifier("couponManagement.quantity")
+            Picker("couponManagement.type", selection: binding(\.couponType)) {
+                Text("couponManagement.chooseType").tag(Int?.none)
+                ForEach(0..<4) { type in Text(LocalizedStringKey(CouponManagementDraft.typeKey(type))).tag(Optional(type)) }
+            }.accessibilityIdentifier("couponManagement.type")
+            TextField("couponManagement.description", text: binding(\.description), axis: .vertical)
+                .lineLimit(2...6)
+                .font(CYTypography.bodyCompact)
+        }.disabled(model.working)
+        if let blocker = model.core.draft.blocker {
+            Section {
+                Label(LocalizedStringKey(blocker), systemImage: "exclamationmark.circle")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.danger)
+            }
         }
         if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
     }
@@ -281,11 +370,19 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
 /// Loading / empty / error / unknown copy straight from `CouponInfoSettingsPage.stateKey`.
 private struct CouponInfoSettingsStateSection: View {
     let page: CouponInfoSettingsPage
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         if let key = page.stateKey {
             Section {
-                if case .loading = page.phase { ProgressView(LocalizedStringKey(key)) }
-                else { Text(LocalizedStringKey(key)).foregroundStyle(.secondary) }
+                if case .loading = page.phase {
+                    CYSkeleton(variant: .row)
+                        .accessibilityLabel(Text(LocalizedStringKey(key)))
+                } else {
+                    Text(LocalizedStringKey(key))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }.accessibilityIdentifier("couponManagement.editor.state")
         }
     }
@@ -339,8 +436,7 @@ private struct CouponInfoSettingsReadOnlySection: View {
                             bizID: MiniProgramAnalytics.bizID(id.value), pagePath: "/subpackageMember/couponInfo/couponInfo", properties: properties)
                     }
                 }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
                     .listRowBackground(Color.clear)
                     .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             case .stop(let row):

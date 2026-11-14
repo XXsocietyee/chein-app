@@ -21,16 +21,16 @@ import SwiftUI
                 if let record = flow.detail {
                     // Source report-detail head card: 「对象 · 原因」 with the stage on the right, then 编号 N · 提交于 time.
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                            HStack(spacing: 4) {
-                                Text(verbatim: copy("report.target.\(record.targetKey)"))
-                                Text(verbatim: "·").accessibilityHidden(true)
-                                if let label = flow.reasonLabel(for: record) { Text(verbatim: shown(label)) }
-                                else { Text(verbatim: copy("report.reason.fallback")) }
-                            }.font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            Spacer(minLength: CYSpacing.sm)
-                            CYStatusChip(verbatim: copy("report.stage.\(record.stageKey)"), tone: stageTone(record.stage))
+                        CYStatusChip(verbatim: copy("report.stage.\(record.stageKey)"), tone: stageTone(record.stage))
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(verbatim: copy("report.target.\(record.targetKey)"))
+                            Text(verbatim: "·").accessibilityHidden(true)
+                            if let label = flow.reasonLabel(for: record) { Text(verbatim: shown(label)) }
+                            else { Text(verbatim: copy("report.reason.fallback")) }
                         }
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 4) {
                             Text("u9cde.report.number \(String(original.id))")
                             Text(verbatim: "·").accessibilityHidden(true)
@@ -127,6 +127,7 @@ import SwiftUI
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberReportProgressIdentity) { _, _ in retire() }
         .onChange(of: selection.reader.isCurrent) { _, valid in if !valid { retire() } }
+        .cyDomainScreen(.player)
     }
     private func timelineRow(_ event: MemberReportProgressEvent) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {

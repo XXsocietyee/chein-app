@@ -52,6 +52,7 @@ extension AppSession {
                     imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
                     .id(visit)
             }
+        .cyDomainScreen(.topicEditor)
     }
 }
 

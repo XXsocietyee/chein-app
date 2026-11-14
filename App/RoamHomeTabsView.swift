@@ -352,6 +352,7 @@ struct RoamToolUnavailableView: View {
         }
         .appNavigationTitle(key: titleKey)
         .accessibilityIdentifier("roam.home.tool.unavailable")
+        .cyDomainScreen(.player)
     }
 }
 
@@ -409,6 +410,7 @@ struct RoamToolUnavailableView: View {
         }
         .background { RoamHostedAccessibilityGroup(items: passportAccessibilityItems) }
         .accessibilityIdentifier("roam.home.passport")
+        .cyDomainScreen(.player)
     }
     private var passportAccessibilityItems: [RoamHostedAccessibilityItem] {
         guard isPassportVisible, openedTile == nil else { return [] }

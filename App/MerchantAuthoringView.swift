@@ -78,6 +78,7 @@ struct MerchantAuthoringView: View {
         .navigationTitle(Text("本店 AI 草稿"))
         .task { coordinator.restore(owner) }
         .onChange(of: owner) { _, new in coordinator.adopt(new) }
+        .cyDomainScreen(.merchant)
     }
 
     @ViewBuilder private var fields: some View {

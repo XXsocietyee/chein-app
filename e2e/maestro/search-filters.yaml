@@ -68,6 +68,7 @@ env:
 - tapOn:
     id: "searchMap.submit"
 
+# Result kinds are chips inside `searchMap.resultKinds`. The chip id is still `searchMap.kind.activity`.
 - extendedWaitUntil:
     visible:
       id: "searchMap.resultKinds"

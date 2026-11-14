@@ -140,7 +140,7 @@ import SwiftUI
             Picker(title, selection: selection) { ForEach(options, id: \.self) { Text(LocalizedStringKey("publishModes.filter." + $0)).tag($0) } }
         } label: {
             HStack(spacing: CYSpacing.xs) {
-                (Text(title) + Text(verbatim: " · ") + Text(LocalizedStringKey("publishModes.filter." + selection.wrappedValue))).font(CYTypography.label).lineLimit(1)
+                (Text(title) + Text(verbatim: " · ") + Text(LocalizedStringKey("publishModes.filter." + selection.wrappedValue))).font(CYTypography.label).cyWrapText()
                 Image(systemName: "chevron.down").font(.caption.weight(.semibold))
             }
             .foregroundStyle(palette.textPrimary)

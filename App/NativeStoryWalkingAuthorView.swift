@@ -116,6 +116,7 @@ private func storyWalkingAuthorText(_ key: String, locale: Locale) -> String {
         .onAppear { open() }
         .onChange(of:current) { _,value in if !value { retire() } }
         .onDisappear { retire() }
+        .cyDomainScreen(.topicEditor)
     }
     @ViewBuilder private func nodeSection(_ node: NativeStoryWalkingAuthorDraft.Node, issues: [NativeStoryWalkingAuthorValidation.Issue]) -> some View {
         let token = editToken

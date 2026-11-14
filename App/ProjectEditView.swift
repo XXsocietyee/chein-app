@@ -287,7 +287,11 @@ import SwiftUI
     @StateObject private var approvedRelease: ApprovedReleaseAuthorPresentation
     @StateObject private var reviewRequest: ApprovedTopicReviewPresentation
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var discardConfirmation = false
+    @State private var expandedChapterIDs: Set<String> = []
     @State private var copiedCoordinator: ProjectEditCoordinator?
     @State private var showingCopy = false
     @State private var modeCopyFailed = false
@@ -314,17 +318,51 @@ import SwiftUI
         let presentedSubmission = submission
         let submissionIncarnation = model.editorIncarnation
         let copiedTarget = copiedCoordinator
+        ScrollViewReader { scrollProxy in
         Form {
-            CYHeroHeader("projectEdit.title")
+            CYHeroHeader("projectEdit.title", subtitle: model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore")
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            if model.coordinator.snapshot != nil {
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        CYPublishStatusBar(
+                            stepTitles: studioStepTitles,
+                            currentStep: studioStep,
+                            saveState: studioSaveState,
+                            issues: studioIssues,
+                            isSubmittingReview: model.busy,
+                            onSelectStep: { step in
+                                withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
+                                    scrollProxy.scrollTo(scrollAnchor(for: step), anchor: .top)
+                                }
+                            },
+                            onSubmitReview: {
+                                focusedField = nil
+                                if model.coordinator.canSubmitServerDraft {
+                                    model.review(intent: .submitServerDraft)
+                                } else {
+                                    model.review()
+                                }
+                            }
+                        )
+                        creatorStudioOverviewCards
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            }
             if model.coordinator.isReadOnly {
                 Section {
                     Label("projectEdit.viewOnly", systemImage: "lock.fill")
+                        .foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("projectRemote.readOnly")
                 }
             }
             if model.coordinator.session == nil {
-                Section { Text("projectEdit.signIn").accessibilityIdentifier("projectEdit.signIn") }
+                Section {
+                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "projectEdit.signIn", messageIdentifier: "projectEdit.signIn")
+                        .listRowBackground(Color.clear)
+                }
             } else if model.coordinator.snapshot == nil, !model.busy, !model.coordinator.isLocked,
                       model.coordinator.state != .blocked, model.coordinator.messageKey == nil,
                       model.coordinator.acknowledgedContinuation == nil {
@@ -481,8 +519,23 @@ import SwiftUI
             if let key = model.coordinator.messageKey {
                 Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectEdit.status") }
             }
-            if model.coordinator.state == .blocked || (model.coordinator.isReadOnly && model.coordinator.acknowledgedContinuation == nil) { Button("projectEdit.reload") { Task { await model.load(force: true) } }.accessibilityIdentifier("projectEdit.reload") }
-            if model.busy { CYSkeleton().accessibilityIdentifier("projectEdit.loading") }
+            if model.coordinator.state == .blocked || (model.coordinator.isReadOnly && model.coordinator.acknowledgedContinuation == nil) {
+                Section {
+                    CYErrorState("projectEdit.reload", retryTitle: "projectEdit.reload") {
+                        Task { await model.load(force: true) }
+                    }
+                    .listRowBackground(Color.clear)
+                    Button("projectEdit.reload") { Task { await model.load(force: true) } }
+                        .accessibilityIdentifier("projectEdit.reload")
+                }
+            }
+            if model.busy {
+                Section {
+                    CYSkeleton().accessibilityIdentifier("projectEdit.loading")
+                }
+                .listRowBackground(Color.clear)
+            }
+        }
         }
         .disabled(model.busy)
         .cyHeroScreen()
@@ -491,20 +544,34 @@ import SwiftUI
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom, spacing: 0) { CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
-                HStack {
-                    Button("projectEdit.saveLocal") { focusedField = nil; model.saveLocal() }
-                        .buttonStyle(.bordered).disabled(!model.canSaveLocal).accessibilityIdentifier("projectEdit.saveLocal")
+                let isAX = dynamicTypeSize.isAccessibilitySize
+                let rowLayout = isAX ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+                rowLayout {
+                    Button { focusedField = nil; model.saveLocal() } label: {
+                        Text("projectEdit.saveLocal")
+                    }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: isAX, compact: true))
+                        .disabled(!model.canSaveLocal)
+                        .accessibilityIdentifier("projectEdit.saveLocal")
                     if model.coordinator.canSubmitServerDraft {
-                        Button { focusedField = nil; model.review(intent: .submitServerDraft) } label: { Text("action.submitDraft", tableName: "ProjectCloudDraftReceipt") }
-                            .buttonStyle(.questifyPrimary).disabled(!model.canReview).accessibilityIdentifier("projectEdit.submitServerDraft")
+                        Button { focusedField = nil; model.review(intent: .submitServerDraft) } label: {
+                            Text("action.submitDraft", tableName: "ProjectCloudDraftReceipt")
+                        }
+                            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
+                            .disabled(!model.canReview)
+                            .accessibilityIdentifier("projectEdit.submitServerDraft")
                     } else {
                         Button("projectEdit.review") { focusedField = nil; model.review() }
                             .buttonStyle(.questifyPrimary).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
                     }
                 }
                 if model.coordinator.canSaveCloudDraft {
-                    Button { focusedField = nil; model.review(intent: .saveCloudDraft) } label: { Text("action.saveCloud", tableName: "ProjectCloudDraftReceipt") }
-                        .buttonStyle(.bordered).disabled(!model.canReview).accessibilityIdentifier("projectEdit.saveCloudDraft")
+                    Button { focusedField = nil; model.review(intent: .saveCloudDraft) } label: {
+                        Text("action.saveCloud", tableName: "ProjectCloudDraftReceipt")
+                    }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true, compact: true))
+                        .disabled(!model.canReview)
+                        .accessibilityIdentifier("projectEdit.saveCloudDraft")
                 }
             }
         } }
@@ -538,37 +605,48 @@ import SwiftUI
             ProjectEditModeReviewSheet(controller: modeReview, original: original, finished: { created in
                 copiedCoordinator = created; showingCopy = true; modeCopyFailed = false
             }, failed: { modeCopyFailed = true })
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.topicEditor)
         }
         .sheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in
             submissionResult(receipt: receipt, submissionIncarnation: submissionIncarnation)
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.topicEditor)
         }
         .sheet(item: ownedCover.binding(coverPresentation)) { original in
             OwnedTopicCoverAuthorView(original: original, mayChange: { ownedCover.mayChange(original.opening) },
                 selected: { ownedCover.acceptedSelection($0); reviewRequest.retire(); approvedRelease.retire() }, close: { ownedCover.close(original) }, picker: ownedCoverPicker?())
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.topicEditor)
         }
         .sheet(item: approvedRelease.binding(releasePresentation)) { original in
             if approvedRelease.isPresented(original) {
                 ApprovedReleasePreparationView(original: original) { approvedRelease.close(original) }
-                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.topicEditor)
             }
         }
         .sheet(item: reviewRequest.binding(reviewRequestPresentation)) { original in
             Group {
                 if reviewRequest.isPresented(original) { ApprovedTopicReviewRequestView(original: original) { reviewRequest.close(original) } }
-            }.cyPlayerSheetGlass()
+            }.cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.topicEditor)
         }
         .modifier(ProjectEditStarterPresentation(model: model, controller: starter))
         .modifier(ProjectEditPendingPresentation(model: model, controller: pending))
         .modifier(ProjectChapterRemovalPresentation(model: model, controller: chapterRemoval))
         .onDisappear { if let coverPresentation { ownedCover.close(coverPresentation) }; reviewRequest.retire(); approvedRelease.retire(); chapterRemoval.retire(); starter.retire(); pending.retire(); model.leave() }
         .modifier(ProjectEditPreparedReviewPresentation(model: model))
-        .alert("projectEdit.discardTitle", isPresented: $discardConfirmation) {
-            Button("projectEdit.discardLocal", role: .destructive) { model.discard() }
-            Button("action.cancel", role: .cancel) {}
-        } message: { Text("projectEdit.discardHint") }
+        .cyModalConfirm(
+            isPresented: $discardConfirmation,
+            title: appLocalized("projectEdit.discardTitle", locale: locale),
+            message: appLocalized("projectEdit.discardHint", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("projectEdit.discardLocal", locale),
+            isDestructive: true,
+            onCancel: { discardConfirmation = false },
+            onConfirm: { discardConfirmation = false; model.discard() }
+        )
     }
     private func submissionBinding(presentedSubmission: PublishingSubmissionHandoff?, submissionIncarnation: UUID) -> Binding<PublishingSubmissionHandoff?> {
         Binding<PublishingSubmissionHandoff?>(get: { () -> PublishingSubmissionHandoff? in
@@ -602,13 +680,94 @@ import SwiftUI
             if chapterRemoval.saveUnconfirmed {
                 ProjectChapterRemovalStatus(controller: chapterRemoval)
             }
+            if model.draft.chapters.isEmpty {
+                CYEmptyState(systemImage: "map", "projectEdit.nodes.empty", messageIdentifier: "projectEdit.chapters.empty")
+                    .listRowBackground(Color.clear)
+            }
             ForEach(model.draft.chapters) { chapter in
-                NavigationLink {
-                    ProjectEditChapterView(model: model, chapterID: chapter.id)
-                } label: {
-                    chapterLabel(chapter)
-                }.accessibilityIdentifier("projectEdit.chapter." + chapter.id)
-                    .deleteDisabled(removalCapture == nil)
+                let isExpanded = expandedChapterIDs.contains(chapter.id)
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    HStack(spacing: CYSpacing.sm) {
+                        NavigationLink {
+                            ProjectEditChapterView(model: model, chapterID: chapter.id)
+                        } label: {
+                            chapterLabel(chapter)
+                        }
+                        .accessibilityIdentifier("projectEdit.chapter." + chapter.id)
+
+                        Button {
+                            withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
+                                if isExpanded { expandedChapterIDs.remove(chapter.id) }
+                                else { expandedChapterIDs.insert(chapter.id) }
+                            }
+                        } label: {
+                            Label(
+                                isChinese ? (isExpanded ? "收起节点" : "展开节点") : (isExpanded ? "Collapse nodes" : "Expand nodes"),
+                                systemImage: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle"
+                            )
+                            .labelStyle(.iconOnly)
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(palette.textSecondary)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("projectEdit.chapter.toggle." + chapter.id)
+                    }
+
+                    if isExpanded {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            if chapter.nodes.isEmpty {
+                                HStack(spacing: CYSpacing.xs) {
+                                    Image(systemName: "mappin.slash")
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(palette.textTertiary)
+                                        .accessibilityHidden(true)
+                                    Text("projectEdit.nodes.empty")
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(palette.textSecondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                .padding(.vertical, CYSpacing.xs)
+                                .padding(.horizontal, CYSpacing.sm)
+                            } else {
+                                ForEach(Array(chapter.nodes.enumerated()), id: \.element.id) { nodeIndex, node in
+                                    NavigationLink {
+                                        ProjectEditNodeView(model: model, chapterID: chapter.id, nodeID: node.id)
+                                    } label: {
+                                        HStack(spacing: CYSpacing.sm) {
+                                            Text(verbatim: "\(nodeIndex + 1)")
+                                                .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                                                .foregroundStyle(palette.actionPrimaryFg)
+                                                .frame(width: 22, height: 22)
+                                                .background(Circle().fill(palette.actionPrimaryBg))
+                                                .accessibilityHidden(true)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                ProjectEditName(value: node.name, fallback: "projectEdit.untitledNode")
+                                                    .font(CYTypography.label)
+                                                    .foregroundStyle(palette.textPrimary)
+                                                    .fixedSize(horizontal: false, vertical: true)
+                                                if !node.address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                                    Text(verbatim: node.address)
+                                                        .font(CYTypography.meta)
+                                                        .foregroundStyle(palette.textSecondary)
+                                                        .fixedSize(horizontal: false, vertical: true)
+                                                }
+                                            }
+                                            Spacer(minLength: 0)
+                                        }
+                                        .padding(.vertical, CYSpacing.xs)
+                                        .padding(.horizontal, CYSpacing.sm)
+                                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgPage))
+                                    }
+                                    .accessibilityIdentifier("projectEdit.chapter.\(chapter.id).node.\(node.id)")
+                                }
+                            }
+                        }
+                        .padding(.leading, CYSpacing.sm)
+                    }
+                }
+                .padding(.vertical, CYSpacing.xs)
+                .deleteDisabled(removalCapture == nil)
             }
             .onDelete { chapterRemoval.open(offsets: $0, captured: removalCapture) }
             .onMove { if model.fullEdit { model.draft.chapters.move(fromOffsets: $0, toOffset: $1) } }
@@ -621,13 +780,34 @@ import SwiftUI
         }
     }
     private func chapterLabel(_ chapter: ProjectEditChapter) -> some View {
+        let ordinal = (model.draft.chapters.firstIndex(where: { $0.id == chapter.id }) ?? 0) + 1
         let nodeCount = chapter.nodes.count
         let nodeCountLabel: Text = Text("projectEdit.nodeCount") + Text(verbatim: ": \(nodeCount)")
-        return HStack {
-            ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
-            Spacer()
-            Text("projectEdit.nodeCountValue \(nodeCount)").foregroundStyle(.secondary)
-                .accessibilityLabel(nodeCountLabel)
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                Text(verbatim: String(format: "%02d", ordinal))
+                    .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(palette.textTertiary)
+                    .accessibilityHidden(true)
+                ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: CYSpacing.xs)
+                Text("projectEdit.nodeCountValue \(nodeCount)").foregroundStyle(.secondary)
+                    .font(CYTypography.micro.weight(.semibold))
+                    .padding(.horizontal, CYSpacing.sm)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(palette.bgPage))
+                    .accessibilityLabel(nodeCountLabel)
+            }
+            if let blocks = chapter.blocks, !blocks.isEmpty {
+                CYStatusChip(
+                    verbatim: isChinese ? "故事流 · \(blocks.count) 块" : "Story flow · \(blocks.count)",
+                    tone: .info,
+                    systemImage: "sparkles"
+                )
+            }
         }
     }
     private var basicFields: some View {
@@ -662,6 +842,88 @@ import SwiftUI
                     ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline").dateEditing(.init(model: model, field: .deadline)).id("project-issue-anchor-deadline")
                 }
             }.disabled(!model.fullEdit)
+        }
+    }
+
+    private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
+
+    private var studioStepTitles: [String] {
+        isChinese ? ["详情", "章节", "节点", "发布"] : ["Basics", "Chapters", "Nodes", "Publish"]
+    }
+
+    private var studioStep: Int {
+        if !model.coordinator.issues.isEmpty {
+            return model.draft.chapters.isEmpty ? 1 : 2
+        }
+        return model.draft.chapters.isEmpty ? 0 : 3
+    }
+
+    private var studioSaveState: CYPublishSaveState {
+        if model.coordinator.state == .blocked {
+            let reason = model.coordinator.messageKey.map { appLocalized(String.LocalizationValue($0), locale: locale) }
+                ?? (isChinese ? "加载失败" : "Load failed")
+            return .saveFailed(reason: reason) { Task { await model.load(force: true) } }
+        }
+        if model.draftMutationRevision > 0 && !model.coordinator.savedCloudDraft && model.canSaveLocal {
+            return .unsavedChanges
+        }
+        return .savedDraft(updatedAt: isChinese ? "本地草稿" : "Local draft")
+    }
+
+    private var studioIssues: [CYPublishValidationIssue] {
+        model.coordinator.issues.prefix(6).map { issue in
+            CYPublishValidationIssue(
+                id: issue.id,
+                stepIndex: studioIssueStep(issue.id),
+                message: appLocalized(String.LocalizationValue(issue.key), locale: locale)
+            )
+        }
+    }
+
+    private func studioIssueStep(_ issueID: String) -> Int {
+        if issueID.contains("chapter") { return 1 }
+        if issueID.contains("node") || issueID.contains("story") { return 2 }
+        if issueID.contains("completion") || issueID.contains("reward") || issueID.contains("ticket") { return 3 }
+        return 0
+    }
+
+    private func scrollAnchor(for step: Int) -> String {
+        switch step {
+        case 1, 2: return "project-issue-anchor-chapters"
+        case 3: return "project-issue-anchor-completionRules"
+        default: return "project-issue-anchor-name"
+        }
+    }
+
+    private var creatorStudioOverviewCards: some View {
+        let totalNodes = model.draft.chapters.reduce(0) { $0 + $1.nodes.count }
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+        return layout {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text("projectEdit.mode")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textTertiary)
+                Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .cyDomainCard()
+
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(verbatim: isChinese ? "章节 · 节点 · 票务" : "Chapters · Nodes · Tickets")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textTertiary)
+                Text(verbatim: "\(model.draft.chapters.count) · \(totalNodes) · \(model.draft.tickets.count)")
+                    .font(CYTypography.cardTitle.monospacedDigit())
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .cyDomainCard()
         }
     }
 }
@@ -762,5 +1024,14 @@ struct ProjectEditorField<Content: View>: View {
             Text(title).font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)
             content
         }.padding(.vertical, 4)
+    }
+}
+
+private extension View {
+    func cyCreatorLightSheet() -> some View {
+        self
+            .themeDomain(.topicEditor)
+            .presentationCornerRadius(CYRadius.sheet)
+            .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
     }
 }

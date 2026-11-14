@@ -16,6 +16,7 @@ import SwiftUI
     @State private var retryConfirmation = false
     @State private var invalidDraft = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     var body: some View {
         Group {
             if let flow, flow.isCurrent {
@@ -112,9 +113,17 @@ import SwiftUI
                     }
                 }
                 .refreshable { await flow.refresh() }
-                .confirmationDialog("d7.channelModeration.retryTitle",isPresented:$retryConfirmation,titleVisibility:.visible) {
-                    Button("d7.channelModeration.retry",role:.destructive) { Task { await flow.retryOriginal() } }
-                    Button("d7.channelModeration.cancel",role:.cancel) { }
+                .sheet(isPresented: $retryConfirmation) {
+                    CYConfirmSheet(
+                        title: appLocalized("d7.channelModeration.retryTitle", locale: locale),
+                        message: "",
+                        confirmTitle: appLocalized("d7.channelModeration.retry", locale: locale),
+                        cancelTitle: appLocalized("d7.channelModeration.cancel", locale: locale),
+                        isDestructive: true
+                    ) {
+                        Task { await flow.retryOriginal() }
+                    }
+                    .cyDomainSheet(detents: [.peek, .half])
                 }
             } else if unavailable {
                 ContentUnavailableView {

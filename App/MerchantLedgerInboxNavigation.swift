@@ -122,6 +122,7 @@ extension EnvironmentValues {
         .onDisappear { isVisible = false; gate.deactivate() }
         .onChange(of: session.messagingViewIdentity) { _, _ in scheduleOpen() }
         .onChange(of: scenePhase) { _, _ in scheduleOpen() }
+        .cyDomainScreen(.merchant)
     }
     private func scheduleOpen() {
         guard isVisible, scenePhase == .active, ownsSource else { gate.deactivate(); return }

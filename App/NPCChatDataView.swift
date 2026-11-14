@@ -232,14 +232,15 @@ struct NPCChatDataPresentation: Identifiable {
                 ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } }
                 ToolbarItem(placement: .primaryAction) { NPCChatDataExportButton(data: coordinator.data) }
             }
-            .confirmationDialog(Text("npcLogDelete.confirmTitle", tableName: "NPCChatLogDeletion"), isPresented: Binding(
+            .sheet(isPresented: Binding(
                 get: { coordinator.deletion == .confirming && model.deletionIntent == nil },
                 set: { if !$0 { model.cancelDeletion() } }
-            ), titleVisibility: .visible) {
-                Button(role: .destructive) { model.confirmDeletion() } label: { Text("npcLogDelete.confirm", tableName: "NPCChatLogDeletion") }
-                    .accessibilityIdentifier("npcLogDelete.confirm")
-                Button(role: .cancel) { model.cancelDeletion() } label: { Text("npcLogDelete.cancel", tableName: "NPCChatLogDeletion") }
-            } message: { Text("npcLogDelete.confirmMessage", tableName: "NPCChatLogDeletion") }
+            )) {
+                MemberNPCLogDeleteConfirmSheet {
+                    model.confirmDeletion()
+                }
+                .themeDomain(.player)
+            }
         }
         .privacySensitive()
         .accessibilityIdentifier("npcData.screen")

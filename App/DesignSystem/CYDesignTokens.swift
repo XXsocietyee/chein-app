@@ -312,6 +312,15 @@ public enum CYTypography {
     }
 }
 
+extension View {
+    /// Titles and button labels grow downward. Long Chinese wraps instead of clipping.
+    func cyWrapText(alignment: TextAlignment = .leading) -> some View {
+        multilineTextAlignment(alignment)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 // MARK: - 4pt Grid Spacing Scale (CYSpacing -> Theme.Space)
 
 /// Spatial grid delegating to `Theme.Space` (generated from `tokens.wxss`), including 6/10/14pt half-steps.

@@ -43,9 +43,11 @@ struct SettingsView: View {
                     Text(LocalizedStringKey(homeFacts.copyKey), tableName: "MemberProfile")
                 } icon: {
                     Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
+                        .accessibilityHidden(true)
                 }
                 .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .padding(.horizontal, CYSpacing.lg)
+                .accessibilityAddTraits(homeFacts.phase == .loading ? .updatesFrequently : .isStaticText)
                 .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
             case .empty, .ready:
                 EmptyView()
@@ -114,8 +116,8 @@ struct SettingsView: View {
                     Text("settings.languageNotice")
                 }
                 .environment(\.settingsTileTint, SettingsTint.blue)
-                MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
-                SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.purple)
+                MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 Section {
                     NavigationLink {
                         BeGapMerchantHubView()
@@ -141,6 +143,7 @@ struct SettingsView: View {
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")
+            .navigationBarTitleDisplayMode(.large)
             .cyHideTabBar()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -185,14 +188,13 @@ struct SettingsGuideHandoff {
 }
 
 
-/// Night-city tile colours: one muted hue per group. Lantern stays off chrome; violet stays off these tiles.
+/// Night-city tile colours: one muted hue per group. Lantern stays off chrome; CYColor.tabSelected stays off these tiles.
 enum SettingsTint {
     static let blue = CYNight.tileBlue
     static let green = CYNight.tileGreen
     static let orange = CYNight.tileOrange
     static let red = CYNight.tileRed
     static let pink = CYNight.tilePink
-    static let purple = CYNight.indigo
     static let indigo = CYNight.indigo
     static let teal = CYNight.tileTeal
     static let gray = CYNight.ink2
@@ -210,30 +212,35 @@ struct SettingsAccountCard: View {
     let nickname: String
     let level: Int
     let tappable: Bool
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.themeDomain) private var themeDomain
+    @Environment(\.locale) private var locale
     var body: some View {
-        HStack(spacing: CYSpacing.lg) {
+        HStack(alignment: .center, spacing: CYSpacing.lg) {
             Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
-                .font(.system(.title, design: .rounded, weight: .bold)).foregroundStyle(.white)
+                .font(.system(.title, design: .rounded, weight: .bold)).foregroundStyle(palette.textPrimary)
                 .frame(width: 60, height: 60)
-                .background(Circle().fill(CYNight.glassFill))
-                .overlay(Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1.5))
+                .background(Circle().fill(palette.bgRaised))
+                .overlay {
+                    if themeDomain == .player {
+                        Circle().strokeBorder(palette.avatarRing, lineWidth: 3)
+                    }
+                }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
-                    .lineLimit(2)
-                Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(.white.opacity(0.85))
+                Text(PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale)).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
+                    .cyWrapText()
+                Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(palette.textSecondary)
+                    .cyWrapText()
             }
             Spacer(minLength: 0)
-            if tappable { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.8)).accessibilityHidden(true) }
+            if tappable { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }
         }
         .padding(CYSpacing.lg)
-        .background {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(CYNight.ink2)
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-        }
+        .background(palette.cardFill, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
         .cyPressTracking()
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(tappable ? .isButton : .isStaticText)
     }
 }
 

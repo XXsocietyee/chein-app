@@ -156,6 +156,7 @@ import SwiftUI
                 CoopFlowReadView(reader: session.cooperationFlowReader, resource: .finance, title: "coopflow.finance")
             } else { Text("merchant.personalIncome.changed") }
         }
+        .cyDomainScreen(.merchant)
     }
     private func open() async {
         guard sourceBelongsToSession else { source.retire(); owner.retire(); return }
@@ -302,6 +303,7 @@ extension EnvironmentValues {
         .task(id: session.walletHistoryViewIdentity) { await open() }
         .onChange(of: source.active) { _, active in if !active { owner.retire() } }
         // Do not retire on a child push: the enclosing sheet owns final dismissal.
+        .cyDomainScreen(.merchant)
     }
     private func open() async {
         guard current else { owner.retire(); return }

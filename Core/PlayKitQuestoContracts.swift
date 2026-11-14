@@ -38,6 +38,8 @@ public struct PlayKitHangmanProjection: Equatable {
     public let solved: Bool
     /// Shown only after the server says solved.
     public let display: String
+    /// Server feedback on the kit. Empty unless solved. Station `passText` is a separate fallback.
+    public let feedback: String
 
     public init(segment: PlayWireValue) {
         title = segment["title"].text ?? ""
@@ -48,6 +50,24 @@ public struct PlayKitHangmanProjection: Equatable {
         }
         solved = segment["solved"].bool == true
         display = solved ? (segment["display"].text ?? "") : ""
+        let rawFeedback = segment["feedback"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        feedback = solved ? rawFeedback : ""
+    }
+
+    /// `hangmanStationText`: kit title, else the station question, else the place name. Empty stays empty.
+    public func stationTitle(question: String?, placeName: String?) -> String {
+        let kit = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !kit.isEmpty { return kit }
+        let asked = question?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !asked.isEmpty { return asked }
+        return placeName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    /// Solved feedback: kit text, else the station pass line. Unsolved stays blank. The server still judges.
+    public func stationFeedback(passText: String?) -> String {
+        guard solved else { return "" }
+        if !feedback.isEmpty { return feedback }
+        return passText?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
     public var editable: [PlayKitHangmanSlot] { slots.filter(\.isEditable) }
@@ -344,6 +364,25 @@ public struct PlayKitImageOption: Equatable, Identifiable {
 
     static let keys = ["A", "B", "C", "D"]
 
+    /// Row letter. Past D the mini-program uses the 1-based index, which is not stripped.
+    public static func letter(at index: Int) -> String {
+        index >= 0 && index < keys.count ? keys[index] : String(index + 1)
+    }
+
+    /// `stripOptionKey`: the row already draws this letter, so a matching author prefix is not drawn twice.
+    /// A strip that would leave no words keeps the original text.
+    public static func stripDuplicateKey(_ text: String, key: String) -> String {
+        let k = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard k.range(of: "^[A-Za-z]$", options: .regularExpression) != nil else { return text }
+        let pattern = "^\\s*[(（]?" + NSRegularExpression.escapedPattern(for: k) + "(?:[)）.．、:：]\\s*|\\s+)"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return text }
+        let ns = text as NSString
+        let whole = NSRange(location: 0, length: ns.length)
+        guard let match = regex.firstMatch(in: text, options: [], range: whole), match.range.location == 0 else { return text }
+        let rest = ns.substring(from: match.range.length)
+        return rest.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? text : rest
+    }
+
     /// Nil unless at least one option has a picture this build can show: text-only questions keep the plain rows.
     public static func read(_ segment: PlayWireValue) -> [PlayKitImageOption]? {
         var seen = Set<String>()
@@ -351,7 +390,8 @@ public struct PlayKitImageOption: Equatable, Identifiable {
             guard let id = row["id"].text, !id.isEmpty, seen.insert(id).inserted else { return nil }
             let image = PlayKitAccusationProjection.displayable(row["img"].text)
             let key = offset < keys.count ? keys[offset] : String(offset + 1)
-            return PlayKitImageOption(id: id, key: key, label: row["label"].text ?? row["t"].text ?? id, image: image,
+            let rawLabel = row["label"].text ?? row["t"].text ?? id
+            return PlayKitImageOption(id: id, key: key, label: stripDuplicateKey(rawLabel, key: key), image: image,
                                       alt: image == nil ? "" : (row["alt"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
         }
         return rows.contains { $0.image != nil } ? rows : nil

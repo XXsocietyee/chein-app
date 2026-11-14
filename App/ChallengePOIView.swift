@@ -17,7 +17,10 @@ import QuestifyCore
     var submitFeedback: String? = nil
     /// True when the last attempt passed local validation but could not be sent.
     var readyButBlocked: Bool = false
+    /// Optional action to open the city-slip / stamp flow after completing the challenge.
+    var onWriteCitySlip: (() -> Void)? = nil
     @Environment(\.cyPalette) private var palette
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -91,8 +94,19 @@ import QuestifyCore
                     .font(CYTypography.caption)
                     .foregroundStyle(coordinator.withinRange ? palette.success : palette.warning)
                     .fixedSize(horizontal: false, vertical: true)
+                    if !coordinator.withinRange, let url = Self.navigationURL(for: node) {
+                        Spacer(minLength: 0)
+                        Button {
+                            openURL(url)
+                        } label: {
+                            Label("playx.poi.navigate", systemImage: "arrow.triangle.turn.up.right.diamond")
+                                .font(CYTypography.caption.weight(.semibold))
+                                .foregroundStyle(palette.accent)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("playx.poi.navigate")
+                    }
                 }
-                .accessibilityElement(children: .combine)
             }
         }
     }
@@ -234,15 +248,37 @@ import QuestifyCore
                 .accessibilityAddTraits(.isHeader)
 
             if let medal = coordinator.medal {
+                // A3.5: prefer the landmark cover image; fall back to medal icon / key icon.
+                let coverURL = coordinator.node.flatMap { Self.validImageURL($0.coverUrl) } ?? Self.validImageURL(medal.iconUrl)
                 CYImageCard(
                     verbatim: isRawKey(medal.name) ? "" : medal.name,
                     fallback: "playx.poi.completed",
                     meta: medal.description.isEmpty || isRawKey(medal.description) ? nil : medal.description,
-                    imageURL: URL(string: medal.iconUrl)
+                    imageURL: coverURL
                 )
+            }
+            if let onWriteCitySlip {
+                CYPillButton("playx.poi.writeCitySlip", style: .secondary, systemImage: "camera", action: onWriteCitySlip)
+                    .accessibilityIdentifier("playx.poi.writeCitySlip")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private static func validImageURL(_ raw: String) -> URL? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let url = URL(string: trimmed), url.host != nil else { return nil }
+        return url
+    }
+
+    private static func navigationURL(for node: ChallengePOINode) -> URL? {
+        guard let lat = node.latitude, let lng = node.longitude, lat.isFinite, lng.isFinite else { return nil }
+        var components = URLComponents(string: "https://maps.apple.com/")
+        components?.queryItems = [
+            URLQueryItem(name: "daddr", value: "\(lat),\(lng)"),
+            URLQueryItem(name: "q", value: node.title.isEmpty ? node.name : node.title),
+        ]
+        return components?.url
     }
 
     private func note(_ text: String, symbol: String, tone: CYStatusTone) -> some View {
@@ -285,6 +321,7 @@ import QuestifyCore
     @State private var coordinator: ChallengePOICoordinator?
     @State private var feedback: String?
     @State private var readyButBlocked = false
+    @State private var showingStampCamera = false
     @StateObject private var submitModel = ChallengePOISubmitModel(writer: ChallengePOIWriterFactory.makeWriter())
 
     var body: some View {
@@ -310,7 +347,8 @@ import QuestifyCore
                             }
                         },
                         submitFeedback: feedback,
-                        readyButBlocked: readyButBlocked
+                        readyButBlocked: readyButBlocked,
+                        onWriteCitySlip: { showingStampCamera = true }
                     )
                 } else {
                     CYSkeleton()
@@ -326,6 +364,12 @@ import QuestifyCore
         .cyDomainPageBackground()
         .themeDomain(.player)
         .cyHeroScreen()
+        .sheet(isPresented: $showingStampCamera) {
+            NavigationStack {
+                RoamStampCameraView()
+            }
+            .cyPlayerSheetGlass()
+        }
         .task {
             guard coordinator == nil else { return }
             let model = ChallengePOICoordinator(nodeId: node.poiId)

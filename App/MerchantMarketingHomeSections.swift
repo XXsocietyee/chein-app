@@ -24,7 +24,7 @@ import SwiftUI
         hero
         // Source tiles: up to four round tools under the hero.
         Section {
-            HStack(alignment: .top, spacing: Theme.Space.s2) {
+            HStack(alignment: .top, spacing: CYSpacing.sm) {
                 if access.canReadMarketing {
                     QuestifyRoundAction(title: tool("merchantOps.marketing.tool.insight"), systemImage: "chart.bar.xaxis", action: onInsight)
                         .accessibilityIdentifier("merchantOps.marketing.tool.insight")
@@ -38,7 +38,7 @@ import SwiftUI
                 QuestifyRoundAction(title: tool("merchantOps.marketing.tool.activity"), systemImage: "calendar.badge.plus") { onRoute(.topicCooperation) }
                     .accessibilityIdentifier("merchantOps.marketing.tool.activity")
             }
-            .padding(.vertical, Theme.Space.s1)
+            .padding(.vertical, CYSpacing.xs)
         }
         // Source `.mine`: three number tiles, the number is the graphic, label underneath.
         Section(MerchantOpsCopy.text("merchantOps.marketing.myContent")) {
@@ -77,7 +77,10 @@ import SwiftUI
             Button { onRoute(.topicCooperation) } label: {
                 LabeledContent {
                     if home.recruiting.count > 0 {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count)).font(CYTypography.numericBody).foregroundStyle(CYColor.brand)
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count))
+                            .font(CYTypography.numericBody)
+                            .monospacedDigit()
+                            .foregroundStyle(CYColor.textPrimary)
                     }
                 } label: {
                     Text("merchant.marketing.enterCoop").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
@@ -89,9 +92,12 @@ import SwiftUI
     private func tool(_ key: String) -> LocalizedStringKey { LocalizedStringKey(MerchantOpsCopy.text(key)) }
     private func mineTile(_ key: String, _ count: Int) -> some View {
         VStack(spacing: CYSpacing.xs) {
-            Text(verbatim: String(count)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                .minimumScaleFactor(0.6).lineLimit(1)
-            Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: String(count))
+                .font(CYTypography.dataXL)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary)
+                .cyWrapText(alignment: .center)
+            Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
@@ -110,7 +116,7 @@ import SwiftUI
                     .font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: heroDisplay)
                     .font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
-                    .minimumScaleFactor(0.6).lineLimit(1)
+                    .cyWrapText(alignment: .center)
                     .accessibilityIdentifier("merchantOps.marketing.hero.value")
                 Group {
                     if home.analytics == nil {

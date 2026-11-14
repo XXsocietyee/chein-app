@@ -18,9 +18,13 @@ import SwiftUI
     private var rowLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm)) }
     enum Phase: Equatable { case loading, ready(MemberIdentitySnapshot), failed(signedOut: Bool) }
     @State private var phase: Phase = .loading
+    @State private var failureOffline = false
     @State private var level: Int?
     @State private var streakDays: Int?
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.themeDomain) private var themeDomain
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.locale) private var locale
 
     var body: some View {
         Section {
@@ -28,31 +32,36 @@ import SwiftUI
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))) {
                 avatar
                 VStack(alignment: .leading, spacing: 6) {
-                    name.font(.system(.title2, design: .rounded).weight(.heavy)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
+                    name.font(.system(.title2, design: .rounded).weight(.heavy)).foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("member.card.name")
                     HStack(spacing: 6) {
                         Text(verbatim: levelText).monospacedDigit()
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(levelText, locale: locale))
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
-                    .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    .font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                    .background(CYColor.bgRaised, in: Capsule(style: .continuous))
+                    .background(palette.bgRaised, in: Capsule(style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
                     (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
-                        Label { city } icon: { Image(systemName: "location") }
+                        Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
                             HStack(spacing: 2) {
                                 Image(systemName: "flame.fill")
-                                    .foregroundStyle(CYNight.lantern)
+                                    .foregroundStyle(CYColor.warningText)
+                                    .accessibilityHidden(true)
                                     .symbolEffect(.pulse, options: .nonRepeating, value: reduceMotion ? 0 : streakDays)
                                 Text("member.card.streak", tableName: "MemberProfile")
                                 Text(verbatim: "\(streakDays)").monospacedDigit()
                                 Text("member.card.days", tableName: "MemberProfile")
                             }.accessibilityElement(children: .combine).accessibilityIdentifier("member.card.streak")
                         }
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    }.font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
             }
@@ -65,13 +74,9 @@ import SwiftUI
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
-                        .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-                        .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }
-                .buttonStyle(CYPressScaleStyle())
+                .buttonStyle(CYDomainPrimaryButtonStyle())
+                .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
             // Balance preview (read-only, em dash when unknown). The mini-program shows it under 我的资产.
@@ -79,36 +84,15 @@ import SwiftUI
                 tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
                     Text(verbatim: snapshot?.balancePreviewText ?? "—")
                         .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .accessibilityLabel(PageTemplateVoiceOver.spoken(snapshot?.balancePreviewText ?? "—", locale: locale))
                         .accessibilityIdentifier("member.card.balanceValue")
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("member.card.balance")
             }
-            switch phase {
-            case .loading:
-                HStack { ProgressView(); Text("member.card.loading", tableName: "MemberProfile").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                    .accessibilityIdentifier("member.card.loading")
-            case .failed(let signedOut):
-                VStack(alignment: .leading, spacing: 6) {
-                    Group {
-                        if signedOut { Text("member.card.signedOut", tableName: "MemberProfile") }
-                        else if reader.isConfigured { Text("member.card.failed", tableName: "MemberProfile") }
-                        else { Text("member.card.unavailable", tableName: "MemberProfile") }
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    if reader.isConfigured, !signedOut {
-                        Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile").frame(minHeight: CYSpacing.minTouchTarget) }
-                            .accessibilityIdentifier("member.card.retry")
-                    }
-                }.accessibilityIdentifier("member.card.failed")
-            case .ready: EmptyView()
+            identityState
             }
-            }
-            .padding(CYSpacing.lg)
-            .background {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(CYNight.ink2)
-                    .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-            }
+            .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
         }
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
@@ -133,18 +117,43 @@ import SwiftUI
         guard let knownLevel else { return MemberHomePageModel.unknownDisplay }
         return "Lv.\(knownLevel)"
     }
-    /// Glass ring. A known level fills an indigo arc. Lantern stays off this chrome.
-    private var levelRing: some View {
-        let fill = knownLevel.map { min(1, CGFloat($0) / 30) } ?? 0
-        return ZStack {
-            Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 3)
-            Circle()
-                .trim(from: 0, to: fill)
-                .stroke(CYNight.indigo, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .padding(1.5)
+    /// Player profile avatar ring. The reserved ring tint is allowed only here, on the selected tab, and on the result spinner.
+    @ViewBuilder private var levelRing: some View {
+        if themeDomain == .player {
+            Circle().strokeBorder(palette.avatarRing, lineWidth: 3).accessibilityHidden(true)
         }
-        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var identityState: some View {
+        switch phase {
+        case .loading:
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                CYSkeleton()
+                Text("member.card.loading", tableName: "MemberProfile")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityIdentifier("member.card.loading")
+        case .failed(let signedOut) where failureOffline && !signedOut:
+            CYOfflineBanner { Task { await load() } }
+                .accessibilityIdentifier("member.card.offline")
+        case .failed(let signedOut):
+            VStack(alignment: .leading, spacing: 6) {
+                Group {
+                    if signedOut { Text("member.card.signedOut", tableName: "MemberProfile") }
+                    else if reader.isConfigured { Text("member.card.failed", tableName: "MemberProfile") }
+                    else { Text("member.card.unavailable", tableName: "MemberProfile") }
+                }.font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if reader.isConfigured, !signedOut {
+                    Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile").frame(minHeight: CYSpacing.minTouchTarget) }
+                        .accessibilityIdentifier("member.card.retry")
+                }
+            }.accessibilityIdentifier("member.card.failed")
+        case .ready:
+            EmptyView()
+        }
     }
 
     @ViewBuilder private var name: some View {
@@ -152,7 +161,8 @@ import SwiftUI
         if nickname.isEmpty { Text("member.card.defaultName", tableName: "MemberProfile") } else { Text(verbatim: nickname) }
     }
     @ViewBuilder private var city: some View {
-        if let value = snapshot?.city, !value.isEmpty { Text(verbatim: value) } else { Text(verbatim: "—") }
+        if let value = snapshot?.city, !value.isEmpty { Text(verbatim: value) }
+        else { Text(verbatim: "—").accessibilityLabel(Text("curA11y.unknown", tableName: "CurA11y")) }
     }
     /// Remote avatar comes only from the already-loaded user-info `avatar` URL (https only);
     /// anything else, or a load failure, keeps the lettermark.
@@ -164,9 +174,9 @@ import SwiftUI
     private var lettermark: some View {
         let nickname = snapshot?.nickname ?? account.nickname
         return ZStack {
-            Circle().fill(CYColor.brandSoft)
-            if let initial = nickname.first { Text(verbatim: String(initial)).font(CYTypography.sheetTitle).foregroundStyle(CYColor.brand) }
-            else { Image(systemName: "person.fill").font(CYTypography.sheetTitle).foregroundStyle(CYColor.brand) }
+            Circle().fill(palette.bgRaised)
+            if let initial = nickname.first { Text(verbatim: String(initial)).font(CYTypography.sheetTitle).foregroundStyle(palette.textPrimary) }
+            else { Image(systemName: "person.fill").font(CYTypography.sheetTitle).foregroundStyle(palette.textPrimary) }
         }
         // The lettermark sits in a fixed 56pt avatar; cap its growth so large Dynamic Type cannot overflow the circle.
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
@@ -180,32 +190,31 @@ import SwiftUI
             }
         }.frame(width: 72, height: 72).clipShape(Circle())
         .overlay { levelRing }
-        .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
         .accessibilityHidden(true)
     }
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
     private func stat(_ value: String?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
+            Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody.weight(.bold)).monospacedDigit().foregroundStyle(palette.textPrimary)
+                .accessibilityLabel(PageTemplateVoiceOver.spoken(value ?? MemberHomePageModel.unknownDisplay, locale: locale))
+            label().font(CYTypography.meta).foregroundStyle(palette.textSecondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 64)
-        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+        .padding(.horizontal, CYSpacing.xs)
+        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("member.card.\(id)")
     }
     private func tile<Title: View, Value: View>(symbol: String, @ViewBuilder title: () -> Title, @ViewBuilder value: () -> Value) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Image(systemName: symbol).font(.title3).foregroundStyle(CYColor.textPrimary)
-            title().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            value().foregroundStyle(CYColor.textPrimary)
+            Image(systemName: symbol).font(.title3).foregroundStyle(palette.textPrimary).accessibilityHidden(true)
+            title().font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            value().foregroundStyle(palette.textPrimary)
         }
         .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
         .padding(CYSpacing.md)
-        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-        .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
     }
 
     private func load() async {
@@ -216,6 +225,7 @@ import SwiftUI
         guard reader.isSignedIn else { phase = .failed(signedOut: true); return }
         guard reader.isConfigured else { phase = .failed(signedOut: false); return }
         if snapshot == nil { phase = .loading }
+        failureOffline = false
         do {
             let value = try await reader.identity()
             guard !Task.isCancelled, scope == reader.scope, readOwner.accepts(run, scope: reader.scope) else { return }
@@ -233,6 +243,7 @@ import SwiftUI
         } catch {
             guard !Task.isCancelled, scope == reader.scope, readOwner.accepts(run, scope: reader.scope) else { return }
             readOwner.invalidate(run)
+            failureOffline = error is URLError
             phase = .failed(signedOut: error as? APIError == .unauthorized)
         }
     }
@@ -296,7 +307,7 @@ struct MemberBenefitRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: benefit.unlocked ? "checkmark.circle.fill" : "lock.fill")
-                .foregroundStyle(benefit.unlocked ? CYColor.brand : CYColor.textTertiary)
+                .foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textTertiary)
             label.font(CYTypography.body).foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)

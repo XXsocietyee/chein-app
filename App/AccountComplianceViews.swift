@@ -112,6 +112,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     let legalReader: any SettingsLegalReading
     let showsCloseButton: Bool
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var agreement = false
     @State private var document: SettingsLegalDocument?
     @State private var phone = ""
@@ -119,6 +120,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @State private var cancelReview = false
     @State private var cancelIntent: AccountDeregistrationIntent?
     @State private var marketingChange: ComplianceMarketingReview?
+    @State private var toastMessage: LocalizedStringKey?
+    @State private var toastTone: CYToastTone = .info
     init(coordinator: AccountComplianceCoordinator, destination: ComplianceDestination, market: RegionalMarket?, legalReader: any SettingsLegalReading, showsCloseButton: Bool = true) {
         _model = StateObject(wrappedValue: ComplianceViewModel(coordinator, isDeregistration: destination == .cancellation, isMarketing: destination == .marketing)); self.destination = destination; self.market = market; self.legalReader = legalReader
         self.showsCloseButton = showsCloseButton
@@ -197,12 +200,18 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if phase != .active { model.pauseCancellation() }
             else if let intent = model.cancellationIntent(resume: true) { Task { await loadCancellation(intent) } }
         }
-        .confirmationDialog("compliance.cancelReview", isPresented: $cancelReview) {
-            Button("compliance.cancelApplication", role: .destructive) {
-                guard let intent = cancelIntent else { return }; cancelIntent = nil
-                Task { await model.coordinator.cancel(explicitlyConfirmed: true, intent: intent) }
+        .sheet(isPresented: $cancelReview) {
+            if let intent = cancelIntent {
+                MemberDeregistrationCancelConfirmSheet {
+                    cancelReview = false
+                    cancelIntent = nil
+                    Task { await model.coordinator.cancel(explicitlyConfirmed: true, intent: intent) }
+                }
+                .themeDomain(.player)
             }
         }
+        .onChange(of: cancelReview) { _, visible in if !visible { cancelIntent = nil } }
+        .cyToast(message: $toastMessage, tone: toastTone)
     }
     private var designModeAllowsToggles: Bool {
 #if DEBUG
@@ -403,12 +412,39 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }
                 Text(LocalizedStringKey("compliance.cleanup." + String(describing: model.state.roamCleanup)))
                 Button("compliance.revoke", role: .destructive) {
+                    let previous = model.state.roamCleanup
                     Task {
                         await SessionOfflineSyncModel.shared.performWriteOptIn(
                             environmentSession: offlineWriteSession.session,
                             routes: ["/api/compliance/consents"]
                         ) {
                             await model.coordinator.revokeRoam(explicitlyConfirmed: true)
+                        }
+                        switch RoamConsentWithdrawalFeedback.evaluate(
+                            previous: previous,
+                            current: model.state.roamCleanup,
+                            error: model.state.error
+                        ) {
+                        case .withdrawn:
+                            toastTone = .success
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "已撤回漫游定位同意",
+                                "Roam location consent withdrawn",
+                                locale: locale))
+                        case .partialLocalPending:
+                            toastTone = .warning
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "已撤回平台授权，但本机清理未完成",
+                                "Platform consent revoked; local cleanup pending",
+                                locale: locale))
+                        case .failed:
+                            toastTone = .error
+                            toastMessage = LocalizedStringKey(MemberPopupCopy.text(
+                                "撤回漫游定位同意失败，请稍后再试",
+                                "Failed to withdraw roam consent",
+                                locale: locale))
+                        case .idle:
+                            break
                         }
                     }
                 }
@@ -485,29 +521,27 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Task { await model.coordinator.loadMarketing(intent: intent) }
             }.accessibilityIdentifier("compliance.marketing.refresh")
         }
-        .confirmationDialog(Text("compliance.marketing.review", tableName: "MarketingConsentOriginalPresentation"), isPresented: Binding(
-            get: { marketingChange != nil }, set: { if !$0 { marketingChange = nil } }), titleVisibility: .visible) {
-            if let change = marketingChange {
-                Button {
-                    guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
-                    marketingChange = nil
-                    Task {
-                        await SessionOfflineSyncModel.shared.performWriteOptIn(
-                            environmentSession: offlineWriteSession.session,
-                            routes: ["/api/compliance/consents"]
-                        ) {
-                            await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
-                        }
+        .sheet(item: Binding(
+            get: { marketingChange },
+            set: { if $0 == nil { marketingChange = nil } }
+        )) { change in
+            MemberMarketingConsentConfirmSheet(
+                merchantName: change.row.merchantName,
+                channelKey: String.LocalizationValue(stringLiteral: "compliance.channel." + change.channel.rawValue),
+                optedIn: change.optedIn
+            ) {
+                guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
+                marketingChange = nil
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/compliance/consents"]
+                    ) {
+                        await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
                     }
-                } label: { Text(change.optedIn ? "compliance.marketing.confirmOptIn" : "compliance.marketing.confirmOptOut", tableName: "MarketingConsentOriginalPresentation") }
-                    .accessibilityIdentifier("compliance.marketing.confirm")
-                Button("compliance.close", role: .cancel) { marketingChange = nil }
+                }
             }
-        } message: {
-            if let change = marketingChange {
-                Text(verbatim: change.row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
-                Text(LocalizedStringKey("compliance.channel." + change.channel.rawValue))
-            }
+            .themeDomain(.player)
         }
     }
 }
@@ -593,9 +627,7 @@ struct ComplianceHeader: View {
     private var symbol: String {
         switch destination { case .cancellation: return "person.crop.circle.badge.minus"; case .marketing: return "megaphone.fill"; case .roam: return "location.fill" }
     }
-    private var tint: Color {
-        switch destination { case .cancellation: return CYColor.warningText; case .marketing: return SettingsTint.orange; case .roam: return SettingsTint.green }
-    }
+    private var tint: Color { CYColor.textPrimary }
     private var intro: LocalizedStringKey {
         switch destination {
         case .cancellation: return "compliance.cancellation.intro"
@@ -608,9 +640,9 @@ struct ComplianceHeader: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Image(systemName: symbol).font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: symbol).font(.title2.weight(.semibold)).foregroundStyle(tint)
                 .frame(width: 52, height: 52)
-                .background(tint.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
                 .accessibilityHidden(true)
             Text(LocalizedStringKey(destination.title))
                 .font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)

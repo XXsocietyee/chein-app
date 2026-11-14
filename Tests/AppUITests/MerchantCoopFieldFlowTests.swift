@@ -55,7 +55,6 @@ final class MerchantCoopFieldFlowTests: XCTestCase {
         runningApp = app; app.launch(); tap("merchant.operations.entry.merchant.operations.cooperation", app); return app
     }
     private func tap(_ id: String, _ app: XCUIApplication) {
-        if id == "merchant.coopField.keepEditing" || id == "merchant.coopField.discard" { alertAction(id, in: app); return }
         let button = app.buttons[id]
         for _ in 0..<14 { if button.isHittable { break }; app.swipeUp() }
         for _ in 0..<18 { if button.isHittable { break }; app.swipeDown() }

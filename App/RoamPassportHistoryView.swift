@@ -159,6 +159,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
             }
         }
         .privacySensitive().accessibilityIdentifier("roam.serverHistory.page")
+        .cyDomainScreen(.player)
     }
     private func metric(_ key: String, _ value: String) -> some View { LabeledContent { Text(verbatim: value) } label: { passportText(key) } }
 }
@@ -217,6 +218,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
         .onChange(of: RoamPassportHistoryOwner(reader)) { _, _ in model.suspend() }
         .onDisappear { model.suspend() }
         .privacySensitive().accessibilityIdentifier("roam.serverHistory.detail")
+        .cyDomainScreen(.player)
     }
 }
 private func passportDate(_ timestamp: Int64) -> Date? {

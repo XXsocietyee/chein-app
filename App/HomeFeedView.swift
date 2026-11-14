@@ -66,6 +66,12 @@ import UIKit
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                    // Template 1 order: featured hero, then city context, then rails, then the tabbed feed.
+                    if model.bannerFailed || !model.banners.isEmpty {
+                        bannerSection
+                            .padding(.horizontal, -CYSpacing.pageHorizontal)
+                            .cySectionReveal(order: 0, gate: reveal)
+                    }
                     if hasHeroHeader {
                         HomeHeroHeaderSectionView(
                             nickname: viewerNickname,
@@ -83,22 +89,69 @@ import UIKit
                             if banner.id == "activity_list" { kind = .activities }
                             onActionBanner?(banner)
                         }
-                        .cySectionReveal(order: 0, gate: reveal)
+                        .cySectionReveal(order: 1, gate: reveal)
+                        .pageTemplateReadingOrder(80)
                     }
                     if let consent = cityLocationConsent {
                         HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
                             .transition(.opacity.combined(with: .move(edge: .top)))
+                            .pageTemplateReadingOrder(70)
                     }
                     CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
-                    // Mini-program order: 编辑精选, 附近活动, 即将上线, then the feed.
-                    // Today sits after those rails so it cannot push 编辑精选 below the fold.
-                    feedSection(.recommended, order: 1)
-                    feedSection(.nearby, order: 2)
-                    feedSection(.upcoming, order: 3)
-                    todayCard.cySectionReveal(order: 4, gate: reveal)
-                    if model.bannerFailed || !model.banners.isEmpty { bannerSection.cySectionReveal(order: 5, gate: reveal) }
+                    // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
+                    feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
+                    feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
+                    feedSection(.upcoming, order: 4).pageTemplateReadingOrder(40)
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        // Source pages/index feed tabs are 主题 / 活动. The indicator uses textPrimary.
+                        CYTabs(
+                            items: [
+                                CYTabItem(id: HomeFeedKind.topics, title: appLocalized("homeFeed.topics", locale: locale)),
+                                CYTabItem(id: HomeFeedKind.activities, title: appLocalized("homeFeed.activities", locale: locale))
+                            ],
+                            selection: $kind,
+                            variant: .underline
+                        )
+                        .accessibilityIdentifier("homeFeed.kind")
+                        .accessibilityLabel(Text("homeFeed.content"))
+                        ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
+                            row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger)
+                        }
+                        if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
+                        if model.loadingPage {
+                            if model.pagination.items.isEmpty {
+                                if streamSkeleton {
+                                    CYLoadingStateView(rows: 3)
+                                        .accessibilityLabel(Text("homeFeed.loading"))
+                                        .transition(.opacity)
+                                }
+                            } else { ProgressView("homeFeed.loading") }
+                        }
+                        else if !model.pageFailed && model.pagination.items.isEmpty && !streamSkeleton {
+                            // Source empty titles: 暂时没有主题 / 暂时没有活动. The keyword hint stays only after a search.
+                            CYEmptyState(systemImage: "magnifyingglass",
+                                         kind == .topics ? "homeFeed.topicsEmpty" : "homeFeed.activitiesEmpty",
+                                         detail: submittedKeyword.isEmpty ? nil : "homeFeed.emptyHint",
+                                         messageIdentifier: "homeFeed.empty")
+                        }
+                        if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
+                            Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
+                                .buttonStyle(.cySecondary)
+                                .frame(minHeight: 44)
+                                .accessibilityIdentifier("homeFeed.loadMore")
+                        } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
+                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textTertiary)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .accessibilityIdentifier("homeFeed.noMoreFooter")
+                        }
+                    }
+                    .cySectionReveal(order: 5, gate: reveal)
+                    .pageTemplateReadingOrder(30)
+                    todayCard.cySectionReveal(order: 6, gate: reveal).pageTemplateReadingOrder(20)
                     // Mini-program store card (city pass entry): one feed card, never a paywall.
-                    MPPassExploreCard()
+                    MPPassExploreCard().pageTemplateReadingOrder(15)
                     if !continuationCards.isEmpty {
                         PlayContinuationBannerView(
                             cards: continuationCards,
@@ -116,45 +169,8 @@ import UIKit
                             },
                             onRetry: onRetryContinuation
                         )
-                        .cySectionReveal(order: 6, gate: reveal)
-                    }
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        // Source pages/index feed tabs are 主题 / 活动 with no section title and no category picker.
-                        Picker("homeFeed.content", selection: $kind) {
-                            Text("homeFeed.topics").tag(HomeFeedKind.topics)
-                            Text("homeFeed.activities").tag(HomeFeedKind.activities)
-                        }.pickerStyle(.segmented).accessibilityIdentifier("homeFeed.kind")
-                        ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
-                            row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger)
-                        }
-                        if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
-                        if model.loadingPage {
-                            if model.pagination.items.isEmpty {
-                                if streamSkeleton {
-                                    CYLoadingStateView(rows: 3)
-                                        .accessibilityLabel(Text("homeFeed.loading"))
-                                        .transition(.opacity)
-                                }
-                            } else { ProgressView("homeFeed.loading") }
-                        }
-                        else if !model.pageFailed && model.pagination.items.isEmpty && !streamSkeleton {
-                            // Source empty titles: 暂时没有主题 / 暂时没有活动. The keyword hint stays only after a search.
-                            CYEmptyStateView(systemImage: "magnifyingglass",
-                                             title: kind == .topics ? "homeFeed.topicsEmpty" : "homeFeed.activitiesEmpty",
-                                             description: submittedKeyword.isEmpty ? nil : "homeFeed.emptyHint")
-                                .accessibilityIdentifier("homeFeed.empty")
-                        }
-                        if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
-                            Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
-                                .frame(minHeight: 44)
-                                .accessibilityIdentifier("homeFeed.loadMore")
-                        } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
-                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
-                                .font(CYTypography.meta)
-                                .foregroundStyle(CYColor.textTertiary)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .accessibilityIdentifier("homeFeed.noMoreFooter")
-                        }
+                        .cySectionReveal(order: 7, gate: reveal)
+                        .pageTemplateReadingOrder(10)
                     }
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -182,12 +198,14 @@ import UIKit
             }
         }
         .appNavigationTitle("homeFeed.title")
+        .navigationBarTitleDisplayMode(hasHeroHeader ? .inline : .large)
         // The greeting block is the title (mini-program home): no second large nav title above it.
         // Hiding the bar lets the scroll view run under the status bar; HomeHeroStatusBarClearance
         // puts the greeting fully below that band.
         .toolbar(hasHeroHeader ? .hidden : .automatic, for: .navigationBar)
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var bannerSection: some View {
         let permit = model.permit(reader)
@@ -342,11 +360,33 @@ import UIKit
             .cyHeroSourceInherited(item.id, isEnabled: heroNamespace != nil && !heroOwned(by: section == "stream" ? nil : section).contains(item.id))
         }
             .buttonStyle(QuestifyCardButtonStyle())
+            .pageTemplateGroupedCard(label: feedCardLabel(item), traits: .isButton)
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
+    }
+    /// One label for the grouped feed card: name, then the price, time, and place lines already on the card.
+    private func feedCardLabel(_ item: HomeFeedItem) -> Text {
+        let price: Text
+        if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
+            price = Text("playx.finishRoute.priceFrom \(amount)")
+        } else {
+            price = PageTemplateVoiceOver.spoken(HomeFeedSurfaceState.unknownText, locale: locale)
+        }
+        let time: Text
+        if let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone) {
+            time = Text(verbatim: date)
+        } else {
+            time = Text("homeFeed.openEnded")
+        }
+        let place = item.place?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let placeText = PageTemplateVoiceOver.spoken((place?.isEmpty == false ? place! : HomeFeedSurfaceState.unknownText), locale: locale)
+        return Text(verbatim: item.name) + Text(verbatim: ", ")
+            + Text("homeFeed.status.price") + Text(verbatim: " ") + price + Text(verbatim: ", ")
+            + Text("homeFeed.status.time") + Text(verbatim: " ") + time + Text(verbatim: ", ")
+            + Text("homeFeed.place") + Text(verbatim: " ") + placeText
     }
     private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Label { message } icon: { Image(systemName: "exclamationmark.triangle") }
+            Label { message } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
                 .font(CYTypography.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
@@ -356,8 +396,7 @@ import UIKit
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.lg)
-        .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .cyNightCardDepth(radius: CYRadius.lg)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .transition(.opacity)
     }
     private func submitFeedSearch() {
@@ -482,7 +521,7 @@ struct HomeFeedCard: View {
         }
     }
     private var priceRow: some View {
-        statusRow("homeFeed.status.price") {
+        statusRow("homeFeed.status.price", tabular: true) {
             if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
                 Text("playx.finishRoute.priceFrom \(amount)")
             } else {
@@ -508,16 +547,28 @@ struct HomeFeedCard: View {
             }
         }
     }
-    private func statusRow<Value: View>(_ label: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Text(label)
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
-            Spacer(minLength: CYSpacing.sm)
-            value()
-                .font(CYTypography.bodyCompact)
-                .foregroundStyle(CYColor.textPrimary)
-                .multilineTextAlignment(.trailing)
+    private func statusRow<Value: View>(_ label: LocalizedStringKey, tabular: Bool = false, @ViewBuilder value: () -> Value) -> some View {
+        let valueLabel = value()
+            .font(tabular ? CYTypography.bodyCompact.monospacedDigit() : CYTypography.bodyCompact)
+            .foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+        let name = Text(label)
+            .font(CYTypography.meta)
+            .foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+        return Group {
+            if dynamicTypeSize >= .xxLarge {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    name
+                    valueLabel.frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    name
+                    Spacer(minLength: CYSpacing.sm)
+                    valueLabel.multilineTextAlignment(.trailing)
+                }
+            }
         }
         .accessibilityElement(children: .combine)
     }
@@ -666,8 +717,17 @@ struct HomeTodayCard: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
         .cyNightCardDepth(radius: CYRadius.xl)
         .cyPressWave(wave, onTap: c.action)
-        .accessibilityElement(children: .contain)
+        .pageTemplateGroupedCard(label: todayLabel(c), traits: c.action == nil ? .isStaticText : .isButton)
         .accessibilityIdentifier("homeFeed.today.\(c.id)")
+    }
+
+    private func todayLabel(_ c: Content) -> Text {
+        var label = Text(verbatim: c.eyebrow) + Text(verbatim: ", ") + Text(verbatim: c.title)
+        if let meta = c.meta {
+            label = label + Text(verbatim: ", ") + PageTemplateVoiceOver.spoken(meta, locale: locale)
+        }
+        label = label + Text(verbatim: ", ") + Text(verbatim: c.pill)
+        return label
     }
 
     private func backdrop(_ c: Content) -> some View {

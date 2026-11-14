@@ -1216,6 +1216,38 @@
           }
         }
       }
+    },
+    "clubOpsEvent.cancel.consequence1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stops new registrations for this occurrence and removes it from listings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下架本场次并停止新增报名。"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.cancel.consequence2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends waiting list promotions and processes eligible refunds; checked-in items are not refunded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终止候补队列并处理退款；已核销的部分不退。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

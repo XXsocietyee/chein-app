@@ -23,6 +23,8 @@ struct RegistrationSheetView: View {
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
+    @State private var showingNonRefundable = false
+    @State private var nonRefundableConfirmed = false
     @State private var showingWaitlistCancellation = false
     @State private var showingAddParticipant = false
     @State private var orderDestination: RegistrationWaitlistOrderVisit?
@@ -138,8 +140,10 @@ struct RegistrationSheetView: View {
             .modifier(G6PromotionCatalogLoader(activityID: flow.activity.summary.id))
             .task { await reloadCoupons() }
             .safeAreaInset(edge: .bottom, spacing: 0) { if showsCheckoutBar { checkoutBar } }
+            .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
-            .background(CYColor.bgPage)
+            .themeDomain(.player)
+            .cyDomainPageBackground()
             .appNavigationTitle("registration.form.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -148,42 +152,7 @@ struct RegistrationSheetView: View {
                         .accessibilityIdentifier("registration.form.close")
                 }
             }
-            .alert(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"), isPresented: $showingConfirmation) {
-                Button(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate")) {
-                    let isPaidRegistration = (flow.confirmation?.quote.payAmount ?? 0) > 0
-                    Task {
-                        if isPaidRegistration {
-                            await flow.confirmAndReadBack()
-                        } else {
-                            await SessionOfflineSyncModel.shared.performWriteOptIn(
-                                environmentSession: offlineWriteSession.session,
-                                routes: ["/api/registration/create", "/api/compliance/consents"]
-                            ) {
-                                await flow.confirmAndReadBack()
-                            }
-                        }
-                    }
-                }
-                .accessibilityIdentifier("registration.form.confirm")
-                Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
-            } message: {
-                if let review = flow.confirmation {
-                    let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
-                    let amountText = RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—"
-                    let nonRefundableSuffix = review.quote.requiresNonRefundableConfirmation
-                        ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
-                        : ""
-                    Text(verbatim: base + amountText + nonRefundableSuffix)
-                }
-            }
-            .alert("registration.waitlist.cancelTitle", isPresented: $showingWaitlistCancellation) {
-                Button("registration.waitlist.confirmCancel", role: .destructive) { Task { await flow.cancelWaitlist() } }
-                Button("action.cancel", role: .cancel) { flow.dismissWaitlistCancellation() }
-            } message: {
-                Text(LocalizedStringKey(flow.waitlistCancellation?.status.state == .offered
-                    ? "registration.waitlist.cancelOfferHint" : "registration.waitlist.cancelQueueHint"))
-                + Text(verbatim: "\n\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")")
-            }
+            .overlay { registrationPopups }
             .onChange(of: flow.waitlistCancellation) { _, value in
                 if value == nil { showingWaitlistCancellation = false }
             }
@@ -251,12 +220,14 @@ struct RegistrationSheetView: View {
                 Task { await flow.loadParticipants() }
             }
             .onChange(of: flow.confirmation) { _, value in
-                if value == nil { showingConfirmation = false }
+                if value == nil { showingConfirmation = false; showingNonRefundable = false }
             }
+            .onChange(of: flow.quoteState) { _, _ in nonRefundableConfirmed = false }
             .onDisappear { flow.leave() }
         }
         .cyPlayerSheetGlass()
         .accessibilityIdentifier("registration.form.sheet")
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var recoveredOrderSection: some View {
         if let destination = flow.recoveredOrderDestination, let orderReader {
@@ -343,36 +314,99 @@ struct RegistrationSheetView: View {
                 }
                 .padding(CYSpacing.lg)
                 E1Perforation()
-                HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                        }
+                        Spacer(minLength: CYSpacing.sm)
+                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .cyWrapText().layoutPriority(1)
                     }
-                    Spacer(minLength: CYSpacing.sm)
-                    Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                        .minimumScaleFactor(0.7).lineLimit(1).layoutPriority(1)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary).cyWrapText()
+                    }
                 }
                 .padding(CYSpacing.lg)
                 .accessibilityElement(children: .combine)
             }
-            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYColor.bgElevated))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
-            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)).listRowBackground(Color.clear)
+            .cyDomainCard(radius: CYRadius.lg, padding: 0)
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0)).listRowBackground(Color.clear)
         } header: { E1IconHeader(systemImage: "calendar", title: copy.t("活动信息", "Activity")) }
     }
     private func ticketPriceText(_ copy: CoreLoopCopy) -> String {
         guard let ticket = flow.selectedTicket else { return "—" }
         if ticket.price == 0 { return copy.t("免费", "Free") }
+        guard PlayAreaPopupCopy.paymentsOpen else { return "—" }
         return E1Money.yuan(ticket.price, locale: locale) ?? "—"
     }
     /// Total shown in the pinned summary bar: the server quote when present, else the listed ticket price.
     private var summaryTotalText: String {
         let copy = CoreLoopCopy(locale: locale)
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState {
-            if let text = E1Money.yuan(quote.payAmount, locale: locale) { return text }
-            return "—"
+            return gatedPayAmount(quote.payAmount)
         }
         return ticketPriceText(copy)
+    }
+    private func gatedPayAmount(_ amount: Decimal?) -> String {
+        guard let amount else { return "—" }
+        if amount > .zero, !PlayAreaPopupCopy.paymentsOpen { return "—" }
+        if amount == .zero { return CoreLoopCopy(locale: locale).t("免费", "Free") }
+        return RegistrationUIMoney.display(amount, locale: locale) ?? "—"
+    }
+    @ViewBuilder private var registrationPopups: some View {
+        if showingNonRefundable, PlayAreaPopupCopy.paymentsOpen {
+            PlayAreaNonRefundableModal(onConfirm: {
+                nonRefundableConfirmed = true
+                showingNonRefundable = false
+                showingConfirmation = true
+            }, onCancel: {
+                showingNonRefundable = false
+                flow.cancelConfirmation()
+            })
+        } else if showingConfirmation, let review = flow.confirmation {
+            let titleKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"
+            let confirmKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate"
+            let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
+            let nonRefundableSuffix = (!PlayAreaPopupCopy.paymentsOpen && review.quote.requiresNonRefundableConfirmation)
+                ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
+                : ""
+            CYModal(
+                title: appLocalized(String.LocalizationValue(stringLiteral: titleKey), locale: locale),
+                message: base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix,
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                confirmTitle: appLocalized(String.LocalizationValue(stringLiteral: confirmKey), locale: locale),
+                confirmIdentifier: "registration.form.confirm",
+                onCancel: { showingConfirmation = false; flow.cancelConfirmation() },
+                onConfirm: {
+                    let isPaidRegistration = review.quote.payAmount > 0
+                    showingConfirmation = false
+                    Task {
+                        if isPaidRegistration {
+                            await flow.confirmAndReadBack()
+                        } else {
+                            await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                environmentSession: offlineWriteSession.session,
+                                routes: ["/api/registration/create", "/api/compliance/consents"]
+                            ) {
+                                await flow.confirmAndReadBack()
+                            }
+                        }
+                    }
+                }
+            )
+        } else if showingWaitlistCancellation {
+            PlayAreaWaitlistQuitModal(onConfirm: {
+                showingWaitlistCancellation = false
+                Task { await flow.cancelWaitlist() }
+            }, onCancel: {
+                showingWaitlistCancellation = false
+                flow.dismissWaitlistCancellation()
+            })
+        }
     }
     private var showsCheckoutBar: Bool {
         if !flow.hasCurrentSession || flow.hasRetainedIntent { return false }
@@ -398,24 +432,39 @@ struct RegistrationSheetView: View {
         let copy = CoreLoopCopy(locale: locale)
         return CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
-                HStack(spacing: CYSpacing.md) {
+                CurA11yActions {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                            .lineLimit(1).minimumScaleFactor(0.6).layoutPriority(1)
+                            .cyWrapText().layoutPriority(1)
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(summaryTotalText, locale: locale))
+                            .pageTemplateReadingOrder(2)
                     }
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let blocked = flow.confirmationBlock != nil
                         Button {
                             focusedField = nil
                             if blocked { blockedTaps += 1; return }
-                            if flow.prepareConfirmation() { showingConfirmation = true }
+                            if flow.prepareConfirmation() {
+                                if PlayAreaPopupCopy.paymentsOpen,
+                                   flow.confirmation?.quote.requiresNonRefundableConfirmation == true,
+                                   !nonRefundableConfirmed {
+                                    showingNonRefundable = true
+                                } else {
+                                    showingConfirmation = true
+                                }
+                            }
                         } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
                         .buttonStyle(.cyPrimary)
                         // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
                         .cyHaptic(.warning, trigger: blockedTaps)
-                        .accessibilityAddTraits(blocked ? .isButton : [])
                         .accessibilityHint(blockReason(copy) ?? "")
+                        .pageTemplateControl(
+                            label: Text("registration.form.review"),
+                            hint: blockReason(copy).map { Text(verbatim: $0) },
+                            traits: .isButton
+                        )
+                        .pageTemplateReadingOrder(1)
                         .accessibilityIdentifier("registration.form.review")
                     }
                 }
@@ -429,7 +478,6 @@ struct RegistrationSheetView: View {
                 }
             }
         }
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
     private var participantSection: some View {
         Section {
@@ -730,13 +778,15 @@ private struct RegistrationAmountRow: View {
     var currencyCode: String? = nil
     var body: some View {
         LabeledContent {
-            if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
+            if let amount, amount > .zero, !PlayAreaPopupCopy.paymentsOpen {
+                Text(verbatim: "—").foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
+            } else if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: deduction && amount != .zero ? "−\(text)" : text)
                         .monospacedDigit().foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
                     if currencyCode == nil { Text("registration.form.currencyUnknown").font(.caption).foregroundStyle(.primary) }
                 }
-            } else { Text("registration.form.unknownAmount").foregroundStyle(Color.primary) }
+            } else { Text(verbatim: "—").foregroundStyle(Color.primary).accessibilityIdentifier(key + ".amount") }
         } label: { Text(LocalizedStringKey(key)) }
     }
 }

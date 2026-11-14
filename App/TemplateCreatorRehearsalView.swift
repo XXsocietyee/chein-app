@@ -33,6 +33,7 @@ import SwiftUI
             }
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .accessibilityIdentifier("creator.rehearsal." + family.rawValue)
+        .cyDomainScreen(.topicEditor)
     }
     @ViewBuilder private var interaction: some View {
         switch family {

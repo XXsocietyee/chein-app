@@ -361,7 +361,10 @@ import SwiftUI
                 if phase == .active { let value = model.permit; Task { await model.loadInitial(value) } }
             }
             .onDisappear { model.disappear() }
-            .sheet(isPresented: $showEditor) { NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) } }
+            .sheet(isPresented: $showEditor) {
+                NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
+                    .cyDomainSheet(detents: [.half, .full])
+            }
     }
 }
 
@@ -376,7 +379,7 @@ import SwiftUI
     @State private var generation = 0
     var body: some View {
         List {
-            if busy { ProgressView("cooperation.loading") }
+            if busy { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
             Section("coopflow.credit") {
                 if creditFailed { Text("coopflow.read.failed"); Button("action.retry") { Task { await load() } } }
                 else if let credit {
@@ -397,6 +400,7 @@ import SwiftUI
             .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") { await load() }
             .onChange(of: reader.session) { _, _ in generation += 1; credit = nil; summary = nil; busy = false }
             .onDisappear { generation += 1; busy = false }
+        .cyDomainScreen(.merchant)
     }
     private func load() async {
         generation += 1; let request = generation, session = reader.session
@@ -500,9 +504,12 @@ import SwiftUI
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }
             }
             .interactiveDismissDisabled(dirty)
-            .confirmationDialog("coopflow.invite.discardPrompt", isPresented: $discard) {
-                Button("coopflow.invite.discard", role: .destructive) { dismiss() }
-                Button("action.cancel", role: .cancel) { }
+            .sheet(isPresented: $discard) {
+                MemberCoopInviteDiscardConfirmSheet {
+                    discard = false
+                    dismiss()
+                }
+                .cyDomainSheet(detents: [.half])
             }
             .onChange(of: reader.session) { _, _ in message = ""; fee = ""; fixed = false; dismiss() }
     }

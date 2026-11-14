@@ -27,7 +27,7 @@ class MerchantCustomerNoteDraftContract(unittest.TestCase):
    if '.onChange(of: reader.scope)' in line or '.onChange(of: reader.authorizationGeneration)' in line:self.assertIn('noteDrafts.discard()',line)
   self.assertIn('noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }',self.host)
  def test_clear_close_and_cancelled_mode_are_explicit(self):
-  self.assertIn('.confirmationDialog("merchant.noteDraft.clearTitle"',self.editor)
+  self.assertIn('appLocalized("merchant.noteDraft.clearTitle"',self.editor)
   self.assertIn('saveNoteDraft(); noteDrafts?.close(editorID: context.id)',self.editor)
   self.assertIn('noteCorrectionCancelled = value.correctionCancelled',self.editor)
   self.assertIn('discard(ifGeneration: generation)',self.host)

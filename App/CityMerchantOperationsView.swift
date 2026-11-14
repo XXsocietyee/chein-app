@@ -18,6 +18,7 @@ extension EnvironmentValues {
     @State private var work: Task<Void, Never>?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @Environment(\.playGapAPIHost) private var playGapAPIHost
     private let table = "CityMerchantOperations"
     var body: some View {
@@ -118,23 +119,31 @@ extension EnvironmentValues {
             guard visit.visible, active else { return }
             perform { controller.activate(); await controller.load() }
         }
-        .alert(Text("cityMerchant.confirm.title", tableName: table), isPresented: Binding(get: { controller.confirmation != nil }, set: { if !$0 { controller.dismissConfirmation() } })) {
-            Button(role: .cancel) { controller.dismissConfirmation() } label: { Text("cityMerchant.cancel", tableName: table) }
-            Button {
+        .cyModalConfirm(
+            isPresented: controller.confirmation != nil,
+            title: String(localized: LocalizedStringResource("cityMerchant.confirm.title", table: "CityMerchantOperations", locale: locale)),
+            message: {
+                if ReviewedAreaSwitch.merchantWritesBlocked(host: playGapAPIHost) {
+                    return String(localized: LocalizedStringResource("cityMerchant.status.writesClosed", table: "CityMerchantOperations", locale: locale))
+                } else if let value = controller.confirmation {
+                    let kindLine = value.kind == .pause
+                        ? String(localized: LocalizedStringResource("cityMerchant.confirm.pause", table: "CityMerchantOperations", locale: locale))
+                        : String(localized: LocalizedStringResource("cityMerchant.confirm.restore", table: "CityMerchantOperations", locale: locale))
+                    let detailLine = String(localized: LocalizedStringResource("cityMerchant.confirm.detail \(value.merchantID) \(String(value.version)) \(value.reason)", table: "CityMerchantOperations", locale: locale))
+                    let boundaryLine = String(localized: LocalizedStringResource("cityMerchant.confirm.boundary", table: "CityMerchantOperations", locale: locale))
+                    return "\(kindLine)\n\(detailLine)\n\(boundaryLine)"
+                }
+                return ""
+            }(),
+            cancelTitle: String(localized: LocalizedStringResource("cityMerchant.cancel", table: "CityMerchantOperations", locale: locale)),
+            confirmTitle: String(localized: LocalizedStringResource("cityMerchant.confirm.submit", table: "CityMerchantOperations", locale: locale)),
+            isDestructive: controller.confirmation?.kind == .pause,
+            onCancel: { controller.dismissConfirmation() },
+            onConfirm: {
                 guard !ReviewedAreaSwitch.merchantWritesBlocked(host: playGapAPIHost) else { return }
                 if let captured = controller.confirmation, controller.admitConfirmation(captured) { perform { await controller.confirm(captured) } }
-            } label: { Text("cityMerchant.confirm.submit", tableName: table) }
-        } message: {
-            if ReviewedAreaSwitch.merchantWritesBlocked(host: playGapAPIHost) {
-                Text("cityMerchant.status.writesClosed", tableName: table)
-            } else if let value = controller.confirmation {
-                Text(LocalizedStringKey(value.kind == .pause ? "cityMerchant.confirm.pause" : "cityMerchant.confirm.restore"), tableName: table)
-                + Text(verbatim: "\n")
-                + Text("cityMerchant.confirm.detail \(value.merchantID) \(String(value.version)) \(value.reason)", tableName: table)
-                + Text(verbatim: "\n")
-                + Text("cityMerchant.confirm.boundary", tableName: table)
             }
-        }
+        )
     }
     private func actionLabel(_ key: String) -> some View {
         Text(LocalizedStringKey(key), tableName: table)

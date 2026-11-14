@@ -177,7 +177,7 @@ struct TopicXcxLineup: View {
                     UGCBlockedFilterContainer(authorName: member.name) {
                         VStack(spacing: CYSpacing.xs) {
                             CYAvatarView(name: member.name, size: .lg)
-                            Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                            Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
                             Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
                         }
                         .frame(width: 88)
@@ -226,20 +226,27 @@ struct TopicXcxActionBar: View {
                     case .locked(let lifecycle):
                         if TopicXcxFacts.opensPricing(topic), let openPricing {
                             Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .pageTemplateControl(label: Text("topicXcx.cta.confirmPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.pricing")
                         } else {
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                         }
                     case .selfPlay(let price):
-                        Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
+                        Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }
+                            .buttonStyle(.bordered).frame(minHeight: 44)
+                            .pageTemplateControl(label: Text("topicXcx.cta.sessions"), traits: .isButton)
+                            .pageTemplateReadingOrder(2)
                             .accessibilityIdentifier("topic.cta.sessions")
                         Button(action: openSelfPlay) {
                             if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                             else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
                         }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                            .accessibilityAddTraits(.isButton)
+                            .pageTemplateReadingOrder(1)
                             .accessibilityIdentifier("topic.cta.selfPlay")
                     case .signUp:
                         Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                            .pageTemplateControl(label: Text("topicXcx.cta.signUp"), traits: .isButton)
                             .disabled(topic.merchantClosed)
                             .accessibilityIdentifier("topic.cta.signUp")
                     }
@@ -345,7 +352,7 @@ struct TopicXcxTemplatesSection: View {
                                 Text(verbatim: template.title)
                                     .font(CYTypography.cardTitle)
                                     .foregroundStyle(palette.textPrimary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .cyWrapText()
                                 if let players = template.players {
                                     Text(verbatim: players)
                                         .font(CYTypography.caption)

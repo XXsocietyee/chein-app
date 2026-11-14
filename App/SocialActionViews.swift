@@ -12,6 +12,7 @@ public enum SocialEditorPurpose: String, Identifiable {
     var contentGeneration: SquareContentGeneration = .legacySquare
     var initialEnabled = true
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var text = ""
     @State private var enabled = true
     @State private var legacyReportReason: String?
@@ -107,12 +108,24 @@ public enum SocialEditorPurpose: String, Identifiable {
             }
         }
         .interactiveDismissDisabled(hasDraft || preparing)
-        .confirmationDialog("social.editor.discardTitle", isPresented: $confirmsDiscard, titleVisibility: .visible) {
-            Button("social.editor.discard", role: .destructive) { text = ""; dismiss() }
-                .accessibilityIdentifier("social.editor.discard")
-            Button("social.editor.keepEditing", role: .cancel) {}
-                .accessibilityIdentifier("social.editor.keepEditing")
-        } message: { Text("social.editor.discardMessage") }
+        .sheet(isPresented: $confirmsDiscard) {
+            CYConfirmSheet(
+                title: appLocalized("social.editor.discardTitle", locale: locale),
+                message: appLocalized("social.editor.discardMessage", locale: locale),
+                confirmTitle: appLocalized("social.editor.discard", locale: locale),
+                cancelTitle: appLocalized("social.editor.keepEditing", locale: locale),
+                isDestructive: true,
+                confirmIdentifier: "social.editor.discard",
+                cancelIdentifier: "social.editor.keepEditing",
+                onCancel: { confirmsDiscard = false },
+                onConfirm: {
+                    confirmsDiscard = false
+                    text = ""
+                    dismiss()
+                }
+            )
+            .cyDomainSheet(detents: [.peek, .half])
+        }
         .onAppear {
             sessionIdentity = coordinator.identity
             if !initialized { text = initialText; enabled = initialEnabled; initialized = true }
@@ -133,6 +146,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             }
         }
         .accessibilityIdentifier("social.editor")
+        .cyDomainScreen(.player)
     }
     private func command() -> SocialActionCommand {
         switch purpose {
@@ -234,6 +248,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             .interactiveDismissDisabled(busy)
             .onChange(of: coordinator.identity) { _, _ in coordinator.synchronizeSession(); revision += 1 }
             .privacySensitive().accessibilityIdentifier("social.review")
+        .cyDomainScreen(.player)
     }
 }
 #if DEBUG

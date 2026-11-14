@@ -49,6 +49,7 @@ import SwiftUI
                 TeamInvitationDestination(route: item.route, makeCoordinator: makeCoordinator, onLogin: onLogin)
             }
             .privacySensitive()
+        .cyDomainScreen(.player)
     }
 }
 private struct TeamInvitationPresentation: Hashable {

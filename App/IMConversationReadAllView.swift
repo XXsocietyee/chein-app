@@ -110,6 +110,7 @@ struct IMConversationReadAllButtonToken: Equatable {
         .accessibilityIdentifier("im.readAll.reviewSheet")
         .onAppear { model.observe() }
         .onDisappear { model.dismiss() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func phaseContent(_ appearance: UUID?) -> some View {
         switch model.phase {

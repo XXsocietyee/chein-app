@@ -65,15 +65,23 @@ struct MerchantOperationsHomeView: View {
                         }
                     }
                 }
-                if !access.identity.active { Text("merchant.access.inactive").foregroundStyle(CYColor.textTertiary) }
+                if !access.identity.active { Text("merchant.access.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             } else if let issue, loadedScope == reader.scope {
-                ContentUnavailableView {
-                    Label { MerchantOperationsIssueView(issue: issue) } icon: { Image(systemName: "exclamationmark.triangle") }
-                } actions: {
-                    Button("action.retry") { Task { await load(readPermit) } }.accessibilityIdentifier("merchant.operations.retry")
+                VStack(spacing: CYSpacing.md) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(CYTypography.display)
+                        .foregroundStyle(CYColor.textSecondary)
+                    MerchantOperationsIssueView(issue: issue)
+                    CYPillButton("action.retry", style: .primary) { Task { await load(readPermit) } }
+                        .accessibilityIdentifier("merchant.operations.retry")
                 }
-            } else { ProgressView("merchant.loading").frame(maxWidth: .infinity) }
+                .padding(CYSpacing.lg)
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
+            } else { CYSkeleton(variant: .formSection).listRowBackground(Color.clear) }
         }
+        .scrollContentBackground(.hidden)
+        .cyDomainScreen(.merchant)
         .appNavigationTitle("merchant.operations.title")
         .refreshable { await load(readPermit) }
         .task(id: readPermit) { await load(readPermit) }
@@ -213,6 +221,7 @@ struct MerchantOperationsDocumentView: View {
     var themeDraftRequestRead: MerchantNPCThemeDraftRequestRead? = nil
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @StateObject private var model: MerchantOperationsViewModel
     @State private var confirmDiscard = false
     @State private var confirmReload = false
@@ -245,12 +254,21 @@ struct MerchantOperationsDocumentView: View {
                 case .assets(let resources): MerchantOperationsAssetsView(resources: resources)
                 }
             } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
-                VStack(spacing: 20) {
+                VStack(spacing: CYSpacing.md) {
                     MerchantOperationsIssueView(issue: issue)
-                    Button("action.retry") { Task { await model.load() } }.accessibilityIdentifier("merchant.operations.retry")
-                }.padding()
-            } else { ProgressView("merchant.loading") }
+                    CYPillButton("action.retry", style: .primary) { Task { await model.load() } }
+                        .accessibilityIdentifier("merchant.operations.retry")
+                }
+                .padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                CYSkeleton(variant: .formSection)
+                    .padding(CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
         }
+        .cyDomainPageBackground()
+        .themeDomain(.merchant)
         .appNavigationTitle(key: destination.titleKey)
         .safeAreaInset(edge: .bottom) {
             if let templateReturn { MerchantCityTemplateReturnFooter(coordinator: coordinator, action: templateReturn) }
@@ -293,19 +311,40 @@ struct MerchantOperationsDocumentView: View {
             }
         }
         .interactiveDismissDisabled(coordinator.isDirty || coordinator.isBusy)
-        .alert("merchant.operations.discardTitle", isPresented: $confirmDiscard) {
-            Button("merchant.operations.discard", role: .destructive) { model.discard(); dismiss() }
-            Button("merchant.operations.keepEditing", role: .cancel) { }
-                .accessibilityIdentifier("merchant.operations.keepEditing")
-        } message: { Text("merchant.operations.discardBody") }
-        .alert("merchant.operations.discardTitle", isPresented: $confirmReload) {
-            Button("merchant.operations.discardReload", role: .destructive) { model.discard(); Task { await model.load() } }
-                .accessibilityIdentifier("merchant.operations.discardReload")
-            Button("merchant.operations.keepEditing", role: .cancel) { }
-                .accessibilityIdentifier("merchant.operations.keepEditing")
-        } message: { Text("merchant.operations.discardBody") }
+        .cyModalConfirm(
+            isPresented: confirmDiscard,
+            title: appLocalized("merchant.operations.discardTitle", locale: locale),
+            message: appLocalized("merchant.operations.discardBody", locale: locale),
+            cancelTitle: appLocalized("merchant.operations.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.operations.discard", locale: locale),
+            isDestructive: true,
+            cancelIdentifier: "merchant.operations.keepEditing",
+            onCancel: { confirmDiscard = false },
+            onConfirm: {
+                confirmDiscard = false
+                model.discard()
+                dismiss()
+            }
+        )
+        .cyModalConfirm(
+            isPresented: confirmReload,
+            title: appLocalized("merchant.operations.discardTitle", locale: locale),
+            message: appLocalized("merchant.operations.discardBody", locale: locale),
+            cancelTitle: appLocalized("merchant.operations.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchant.operations.discardReload", locale: locale),
+            isDestructive: true,
+            cancelIdentifier: "merchant.operations.keepEditing",
+            confirmIdentifier: "merchant.operations.discardReload",
+            onCancel: { confirmReload = false },
+            onConfirm: {
+                confirmReload = false
+                model.discard(); Task { await model.load() }
+            }
+        )
         .sheet(item: Binding(get: { coordinator.isCurrent ? coordinator.confirmation : nil }, set: { if $0 == nil { model.cancel() } })) { confirmation in
             MerchantOperationsConfirmationView(model: model, confirmation: confirmation)
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
         }
         .task(id: reader.scope) { await model.loadForAppearance() }
         .onChange(of: reader.scope) { _, _ in model.invalidate() }

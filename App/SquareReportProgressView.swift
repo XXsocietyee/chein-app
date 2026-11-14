@@ -33,24 +33,32 @@ struct MemberReportProgressTimeView: View {
                         selection = selected
                     } label: {
                         // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」, stage and chevron on the right.
-                        HStack(alignment: .center, spacing: CYSpacing.md) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack(spacing: 4) {
-                                    memberReportProgressText("report.target.\(record.targetKey)")
-                                    Text(verbatim: "·").accessibilityHidden(true)
-                                    if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
-                                    else { memberReportProgressText("report.reason.fallback") }
-                                }.foregroundStyle(CYColor.textPrimary)
-                                HStack(spacing: 4) {
-                                    Text("u9cde.report.number \(String(record.id))")
-                                    Text(verbatim: "·").accessibilityHidden(true)
-                                    MemberReportProgressTimeView(value: record.createTime)
-                                }.font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            memberReportProgressText("report.stage.\(record.stageKey)")
+                                .font(CYTypography.micro.weight(.semibold))
+                                .foregroundStyle(CYColor.textSecondary)
+                                .padding(.horizontal, CYSpacing.sm)
+                                .frame(minHeight: 20)
+                                .background(Capsule(style: .continuous).fill(CYColor.bgSurfaceSubtle))
+                            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                                memberReportProgressText("report.target.\(record.targetKey)")
+                                Text(verbatim: "·").accessibilityHidden(true)
+                                if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
+                                else { memberReportProgressText("report.reason.fallback") }
                             }
-                            Spacer(minLength: CYSpacing.sm)
-                            memberReportProgressText("report.stage.\(record.stageKey)").font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityHidden(true)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            MemberReportProgressTimeView(value: record.createTime)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
+                            Text("u9cde.report.number \(String(record.id))")
+                                .font(CYTypography.meta)
+                                .monospacedDigit()
+                                .foregroundStyle(CYColor.textTertiary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }.disabled(flow.busy || !flow.reader.allows(.detail))
                     .accessibilityIdentifier("report.progress.row.\(record.id)")
                 }
@@ -84,6 +92,7 @@ struct MemberReportProgressTimeView: View {
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberReportProgressIdentity) { _, _ in selection = nil; retire(); start() }
         .refreshable { guard let (original, intent) = rendered else { return }; await original.loadHistory(intent: intent) }
+        .cyDomainScreen(.player)
     }
     private func start() {
         guard visible, scene == .active else { return }; retire()

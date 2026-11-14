@@ -84,6 +84,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.board.title")
+        .navigationBarTitleDisplayMode(.large)
         .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -217,6 +218,8 @@ private struct GrowthLeaderboardPodiumView: View {
     @Environment(\.cyPalette) private var palette
     let entries: [GrowthLeaderboardEntry]
     let metric: GrowthBoardMetric
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         HStack(alignment: .bottom, spacing: CYSpacing.md) {
             ForEach([1, 0, 2], id: \.self) { index in
@@ -228,29 +231,28 @@ private struct GrowthLeaderboardPodiumView: View {
     }
     private func column(_ entry: GrowthLeaderboardEntry, place: Int) -> some View {
         let side: CGFloat = place == 1 ? 96 : 76
-        let tint: Color = place == 1 ? CYNight.lantern : place == 2 ? CYNight.lanternHot : CYNight.ember
+        let ring = place == 1 && themeDomain == .player ? palette.avatarRing : palette.borderStrong
         let name = GrowthCenterFormatting.nonempty(entry.nickname)
         return VStack(spacing: CYSpacing.sm) {
-            if place == 1 { Image(systemName: "star").foregroundStyle(CYNight.lantern).accessibilityHidden(true) }
             ZStack(alignment: .bottom) {
                 Text(verbatim: name.map { String($0.prefix(1)) } ?? "—")
-                    .font(place == 1 ? .largeTitle.weight(.heavy) : .title.weight(.heavy)).foregroundStyle(.white)
+                    .font(place == 1 ? .largeTitle.weight(.heavy) : .title.weight(.heavy)).foregroundStyle(palette.textPrimary)
                     .frame(width: side, height: side)
-                    .background(CYNight.indigo, in: Circle())
-                    .overlay(Circle().strokeBorder(tint, lineWidth: 3))
-                Text(place, format: .number).font(CYTypography.label.weight(.bold)).foregroundStyle(CYNight.ink0)
-                    .frame(width: 28, height: 28).background(tint, in: Circle())
+                    .background(palette.bgRaised, in: Circle())
+                    .overlay(Circle().strokeBorder(ring, lineWidth: 3))
+                Text(place, format: .number).font(CYTypography.label.weight(.bold)).foregroundStyle(palette.textInverse)
+                    .frame(width: 28, height: 28).background(palette.textPrimary, in: Circle())
                     .offset(y: 12)
                     .accessibilityHidden(true)
             }
             .padding(.bottom, 12)
             GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").font(CYTypography.label.weight(.semibold))
-                .foregroundStyle(palette.textPrimary).lineLimit(1)
+                .foregroundStyle(palette.textPrimary).cyWrapText(alignment: .center)
             HStack(spacing: 4) {
-                Circle().fill(tint).frame(width: 10, height: 10).accessibilityHidden(true)
-                GrowthCenterInteger(value: entry.score).font(.subheadline.weight(.bold)).monospacedDigit()
-                    .foregroundStyle(place == 1 ? CYNight.lantern : palette.textPrimary)
-                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
+                GrowthCenterInteger(value: entry.score).font(CYTypography.dataXL)
+                    .foregroundStyle(palette.textPrimary)
+                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity)

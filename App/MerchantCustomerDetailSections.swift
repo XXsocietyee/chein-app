@@ -41,11 +41,14 @@ import SwiftUI
                         switch paidCardState {
                         case .amount(let text):
                             Text(verbatim: text).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                                .monospacedDigit()
                         case .unknown:
                             Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")
-                                .foregroundStyle(CYColor.textTertiary)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
                         case .permissionHidden:
                             Text("merchant.business.sensitiveUnavailable").foregroundStyle(CYColor.textTertiary)
+                                .font(CYTypography.meta)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
                     Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")
@@ -70,10 +73,10 @@ import SwiftUI
                                 Text(LocalizedStringKey(latest.kind.titleKey))
                                 LabeledContent("merchant.customerDetail.recordTime") { timestamp(latest.occurredAt) }
                                 if latest.kind == .refunded {
-                                    Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(CYColor.textTertiary)
+                                    Text("merchant.customerDetail.refundTimeBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                                 }
                             } else {
-                                Text("merchant.customerDetail.orderUncertain").foregroundStyle(CYColor.textTertiary)
+                                Text("merchant.customerDetail.orderUncertain").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             }
                             if group.events.count > 1 || group.latest == nil {
                                 DisclosureGroup("merchant.customerDetail.sourceEvents") {
@@ -129,16 +132,16 @@ import SwiftUI
     @ViewBuilder private func timestamp(_ date: Date?) -> some View {
         if let date {
             Text(verbatim: MerchantCustomerDetailTime.display(date, phoneTimeZone: phoneTimeZone))
-                .font(CYTypography.meta).monospacedDigit()
-        } else { Text("merchant.customerDetail.timeUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+        } else { Text("merchant.customerDetail.timeUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
     }
     private func eventFacts(_ event: MerchantCustomerDetailPresentation.Event) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(LocalizedStringKey(event.kind.titleKey))
-            if let description = event.description { Text(verbatim: description) }
+        VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+            Text(LocalizedStringKey(event.kind.titleKey)).font(CYTypography.body)
+            if let description = event.description { Text(verbatim: description).font(CYTypography.body) }
             LabeledContent("merchant.customerDetail.recordTime") { timestamp(event.occurredAt) }
             if event.kind == .refunded {
-                Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(CYColor.textTertiary)
+                Text("merchant.customerDetail.refundTimeBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }
             if let corrects = event.record.fields["correctsNoteId"]?.integer, corrects > 0 {
                 LabeledContent("merchant.business.field.correctsNoteId", value: "#\(corrects)")

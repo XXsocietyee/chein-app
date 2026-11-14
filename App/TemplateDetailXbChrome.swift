@@ -145,9 +145,9 @@ struct TemplateCapabilityRows: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if rows.isEmpty {
-                // V-11: the 能力 tab always exists; with no rows it shows a dash, never a blank page.
-                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
-                    .padding(CYSpacing.lg).accessibilityIdentifier("template.cap.empty")
+                // V-11 & #838: the 能力 tab always exists; with no rows it shows CYEmptyState instead of a blank page.
+                CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
+                    .padding(CYSpacing.md)
             }
             ForEach(Array(rows.enumerated()), id: \.element.key) { index, row in
                 if index > 0 { Rectangle().fill(CYNight.glassEdgeBottom).frame(height: 1).padding(.leading, CYSpacing.lg) }

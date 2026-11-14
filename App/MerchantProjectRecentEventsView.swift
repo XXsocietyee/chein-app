@@ -103,6 +103,7 @@ import SwiftUI
         .refreshable { await reload() }
         .onDisappear { model.retire() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.retire() } }
+        .cyDomainScreen(.merchant)
     }
     private func reload() async {
         guard key.current && key.configured && key.signedIn && key.active else { model.retire(); return }

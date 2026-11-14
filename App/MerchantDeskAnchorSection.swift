@@ -25,6 +25,7 @@ struct MerchantDeskAnchorAcceptance:Equatable {
 }
 @MainActor struct MerchantDeskAnchorSection:View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @ObservedObject var flow:MerchantDeskAnchorFlow
     @State private var position:MapCameraPosition = .automatic
     @State private var picked:CLLocationCoordinate2D?
@@ -91,23 +92,28 @@ struct MerchantDeskAnchorAcceptance:Equatable {
             visit.invalidate();clear();flow.suspend()
             if visit.visible,phase == .active{let captured=visit.revision;Task{await reload(captured)}}
         }
-        .confirmationDialog(Text("merchant.desk.anchor.confirm",tableName:"MerchantDeskSkuSupply"),isPresented:$confirm){
-            Button{
-                let captured=visit.revision
-                guard admitted(captured),let draft=frozen,acknowledged,flow.canSave,flow.version==draft.version,flow.configured==draft.configured else{clear();return}
-                clear();let g=editorGeneration
-                Task{
-                    guard admitted(captured),g==editorGeneration,flow.canSave,flow.version==draft.version,flow.configured==draft.configured else{return}
-                    await flow.save(latitude:draft.latitude,longitude:draft.longitude,radius:draft.radius)
-                    populate(g,visit:captured)
+        .sheet(isPresented:$confirm,onDismiss:{frozen=nil}){
+            CYConfirmSheet(
+                title:String(localized:LocalizedStringResource("merchant.desk.anchor.confirm",table:"MerchantDeskSkuSupply",locale:locale)),
+                message:{
+                    let base=String(localized:LocalizedStringResource("confirmation.anchor",table:"MerchantAnchorReadRecovery",locale:locale))
+                    if let draft=frozen{return "\(base)\n\(draft.latitude), \(draft.longitude) · \(draft.radius) m"}
+                    return base
+                }(),
+                confirmTitle:String(localized:LocalizedStringResource("merchant.desk.anchor.save",table:"MerchantDeskSkuSupply",locale:locale)),
+                onConfirm:{
+                    let captured=visit.revision
+                    guard admitted(captured),let draft=frozen,acknowledged,flow.canSave,flow.version==draft.version,flow.configured==draft.configured else{clear();return}
+                    clear();let g=editorGeneration
+                    Task{
+                        guard admitted(captured),g==editorGeneration,flow.canSave,flow.version==draft.version,flow.configured==draft.configured else{return}
+                        await flow.save(latitude:draft.latitude,longitude:draft.longitude,radius:draft.radius)
+                        populate(g,visit:captured)
+                    }
                 }
-            }label:{Text("merchant.desk.anchor.save",tableName:"MerchantDeskSkuSupply")}
-            Button(role:.cancel){frozen=nil}label:{Text("cancel",tableName:"MerchantAnchorReadRecovery")}
-        } message:{
-            if let draft=frozen {
-                Text("confirmation.anchor",tableName:"MerchantAnchorReadRecovery")
-                Text(verbatim:"\(draft.latitude), \(draft.longitude) · \(draft.radius) m")
-            }
+            )
+            .cyDomainSheet(detents:[.half])
+            .themeDomain(.merchant)
         }
         .onChange(of:confirm){_,shown in if !shown{frozen=nil}}
         .onChange(of:radius){_,_ in frozen=nil;confirm=false}
@@ -153,5 +159,6 @@ extension EnvironmentValues {
             flow = session.makeMerchantDeskAnchorFlow(access: access)
         }
         .onDisappear { flow?.suspend() }
+        .cyDomainScreen(.merchant)
     }
 }

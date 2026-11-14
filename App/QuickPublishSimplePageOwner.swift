@@ -32,31 +32,63 @@ import SwiftUI
 
 struct QuickPublishSimplePageStatus: View {
     @ObservedObject var owner: QuickPublishSimplePageOwner
+    @Environment(\.cyPalette) private var palette
     private let table = "WP06PartialPages"
 
     var body: some View {
         switch owner.phase {
         case .loading:
-            ProgressView()
-                .accessibilityIdentifier("publishModes.quick.loading")
-            Text("wp06.publish.loading", tableName: table)
+            HStack(spacing: CYSpacing.sm) {
+                ProgressView()
+                    .accessibilityIdentifier("publishModes.quick.loading")
+                Text("wp06.publish.loading", tableName: table)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+            }
         case .error:
-            Text("wp06.publish.error", tableName: table)
-                .accessibilityIdentifier("publishModes.quick.error")
+            Label {
+                Text("wp06.publish.error", tableName: table)
+                    .font(CYTypography.meta)
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .accessibilityHidden(true)
+            }
+            .foregroundStyle(palette.danger)
+            .accessibilityIdentifier("publishModes.quick.error")
         case .empty, .hidden:
-            Text("wp06.publish.empty", tableName: table)
-                .accessibilityIdentifier("publishModes.quick.empty")
-            Text(verbatim: owner.quotaText)
-                .accessibilityIdentifier("publishModes.quick.quota")
+            LabeledContent {
+                Text(verbatim: owner.quotaText)
+                    .font(CYTypography.label.monospacedDigit())
+                    .foregroundStyle(palette.textTertiary)
+                    .accessibilityIdentifier("publishModes.quick.quota")
+            } label: {
+                Text("wp06.publish.empty", tableName: table)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("publishModes.quick.empty")
+            }
         case .unknown:
-            Text("wp06.publish.unknown", tableName: table)
-                .accessibilityIdentifier("publishModes.quick.unknown")
-            Text(verbatim: owner.quotaText)
-                .accessibilityIdentifier("publishModes.quick.quota")
+            LabeledContent {
+                Text(verbatim: owner.quotaText)
+                    .font(CYTypography.label.monospacedDigit())
+                    .foregroundStyle(palette.textTertiary)
+                    .accessibilityIdentifier("publishModes.quick.quota")
+            } label: {
+                Text("wp06.publish.unknown", tableName: table)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("publishModes.quick.unknown")
+            }
         case .ready:
-            Text("wp06.publish.quotaRemaining", tableName: table)
-            Text(verbatim: owner.quotaText)
-                .accessibilityIdentifier("publishModes.quick.quota")
+            LabeledContent {
+                CYStatusChip(verbatim: owner.quotaText, tone: .info, systemImage: "sparkles")
+                    .accessibilityIdentifier("publishModes.quick.quota")
+            } label: {
+                Text("wp06.publish.quotaRemaining", tableName: table)
+                    .font(CYTypography.label)
+                    .foregroundStyle(palette.textPrimary)
+            }
         }
     }
 }

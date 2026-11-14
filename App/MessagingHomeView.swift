@@ -57,9 +57,9 @@ private struct MessagingConversationListView: View {
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
+                    .accessibilityLabel(Text("messaging.scope"))
                     .padding(.horizontal, CYSpacing.sm)
                     .padding(.vertical, CYSpacing.xs)
-                    .background(Capsule().fill(CYNight.glassFill).overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1)))
                     .accessibilityIdentifier("messaging.list.scope")
                 }
                 .listRowInsets(EdgeInsets())
@@ -79,7 +79,7 @@ private struct MessagingConversationListView: View {
                             Section {
                                 ForEach(section.rows) { conversation in conversationRow(conversation) }
                             } header: {
-                                if let title = section.title { Text(title) }
+                                if let title = section.title { Text(title).accessibilityAddTraits(.isHeader) }
                             }
                         }
                     } else {
@@ -89,6 +89,7 @@ private struct MessagingConversationListView: View {
                                 ForEach(section.rows) { conversation in conversationRow(conversation) }
                             } header: {
                                 Text(verbatim: section.title).font(CYTypography.meta.weight(.semibold)).textCase(nil)
+                                    .accessibilityAddTraits(.isHeader)
                             }
                         }
                     }
@@ -163,6 +164,7 @@ private struct MessagingConversationListView: View {
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: Text("messaging.searchPrompt"))
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: selectedTab) { _, _ in displayLimit = 30 }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func conversationRow(_ conversation: MessagingConversation) -> some View {
         UGCBlockedFilterContainer(
@@ -174,6 +176,7 @@ private struct MessagingConversationListView: View {
                     directory: messagingHistoryDirectoryRequest(reader: reader, conversation: conversation),
                     onConversationMutationAccepted: conversationInvalidation(for: conversation.id))
             } label: { IMInboxRow(conversation: conversation) }
+            .accessibilityAddTraits(.isButton)
             .accessibilityIdentifier("messaging.conversation.\(conversation.id)")
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                 rowActions(for: conversation)

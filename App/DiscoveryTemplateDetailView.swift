@@ -47,7 +47,7 @@ struct DiscoveryTemplateDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured {
-                ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYEmptyState(systemImage: "network.slash", "discovery.unavailable", detail: "auth.notConfigured", kind: .offline)
             } else if detail.isLoading || loadedKey != requestKey {
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
             } else if let error = detail.error {
@@ -151,7 +151,8 @@ struct DiscoveryTemplateDetailView: View {
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
         .sheet(item: $capabilityPreview) { state in
             TemplateNodePreviewSheet(state: state) { capabilityPreview = nil }
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.player)
         }
         .navigationDestination(item: $adoption) { selected in
             if let authoringFactory {
@@ -385,7 +386,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                             .frame(width: 22, height: 22).background(CYNight.ink0, in: Circle())
                                         stop.name.map { Text(verbatim: $0) } ?? Text("u10.template.stopNo \(stop.number)")
                                     }
-                                    .font(CYTypography.meta).foregroundStyle(palette.textPrimary).lineLimit(1)
+                                    .font(CYTypography.meta).foregroundStyle(palette.textPrimary).cyWrapText()
                                     .padding(.trailing, CYSpacing.sm).padding(CYSpacing.xxs)
                                     .background(CYNight.ink2, in: Capsule())
                                 }
@@ -427,9 +428,9 @@ struct DiscoveryTopicTemplatePreview: View {
                                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                                     .accessibilityHidden(true)
                                 (nonempty(node.name).map { Text(verbatim: $0) } ?? Text("u10.template.nodeNo \(index + 1)"))
-                                    .font(CYTypography.label).foregroundStyle(palette.textPrimary).lineLimit(1)
+                                    .font(CYTypography.label).foregroundStyle(palette.textPrimary).cyWrapText()
                                 if let teaser = nonempty(node.hookTeaser) {
-                                    Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary).lineLimit(1)
+                                    Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary).cyWrapText()
                                 }
                                 // U02-05: credit for the first 8 node images only (mini _loadCredits).
                                 if index < 8, let reference = nonempty(node.imgUrl), TopicTemplateAdoptionFactory.attributionIsLive {
@@ -479,15 +480,14 @@ struct DiscoveryTopicTemplatePreview: View {
             }
             .accessibilityIdentifier("discovery.topicDetail.summary")
             if stops.isEmpty {
-                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(palette.textTertiary)
-                    .accessibilityIdentifier("template.cap.empty")
+                CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
             }
             ForEach(stops, id: \.number) { stop in
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     Text(verbatim: String(stop.number)).font(CYTypography.label.monospacedDigit())
                         .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        if let name = stop.name { Text(verbatim: name).font(CYTypography.label).lineLimit(1) }
+                        if let name = stop.name { Text(verbatim: name).font(CYTypography.label).cyWrapText() }
                         if let play = nonempty(stop.node.interactionType) {
                             Text(verbatim: play).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
                         }

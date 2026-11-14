@@ -145,6 +145,7 @@ struct IMConversationRowButtonToken: Equatable {
         .accessibilityIdentifier("im.row.review")
         .onAppear { model.observe() }
         .onDisappear { model.dismiss() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func phaseContent(_ appearance: UUID?) -> some View {
         switch model.state {

@@ -36,6 +36,7 @@ import SwiftUI
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("journey.cancel") { model.cancelReview() }.disabled(model.busy) } }
             }.interactiveDismissDisabled(model.busy)
         }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func content(_ document: JourneyNarrativeDocument) -> some View {
         switch document {

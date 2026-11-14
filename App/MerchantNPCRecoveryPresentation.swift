@@ -58,6 +58,7 @@ import SwiftUI
     @State private var presentation = MerchantNPCRecoveryPresentation()
     @State private var showsConfirmation = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
@@ -78,14 +79,19 @@ import SwiftUI
                 }
             }
         }
-        .confirmationDialog("merchantNPCRecovery.confirmTitle", isPresented: $showsConfirmation,
-                            titleVisibility: .visible, presenting: presentation.confirmation) { confirmation in
-            Button("merchantNPCRecovery.confirmAbandon", role: .destructive) {
-                presentation.confirm(confirmation, coordinator: coordinator, revision: currentRevision(), sceneActive: scenePhase == .active)
+        .sheet(isPresented: $showsConfirmation, onDismiss: { presentation.cancel() }) {
+            CYConfirmSheet(
+                title: appLocalized("merchantNPCRecovery.confirmTitle", locale: locale),
+                message: appLocalized("merchantNPCRecovery.abandonConsequences", locale: locale),
+                confirmTitle: appLocalized("merchantNPCRecovery.confirmAbandon", locale: locale),
+                isDestructive: true
+            ) {
+                if let confirmation = presentation.confirmation {
+                    presentation.confirm(confirmation, coordinator: coordinator, revision: currentRevision(), sceneActive: scenePhase == .active)
+                }
             }
-            Button("action.cancel", role: .cancel) { presentation.cancel() }
-        } message: { _ in
-            Text("merchantNPCRecovery.abandonConsequences")
+            .cyDomainSheet(detents: [.half])
+            .themeDomain(.merchant)
         }
         .onAppear { presentation.appear(active: scenePhase == .active) }
         .onDisappear { presentation.disappear(); showsConfirmation = false }

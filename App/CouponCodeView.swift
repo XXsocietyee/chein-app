@@ -33,8 +33,8 @@ extension EnvironmentValues {
                             if let description = model.couponDescription { Text(verbatim: description).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(CYSpacing.lg)
-                        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
                         .accessibilityElement(children: .combine)
                     }
                     // Source parity: validity is shown on the expired result only.
@@ -43,21 +43,23 @@ extension EnvironmentValues {
                     }
                 }
                 if model.historyID <= 0 {
-                    ContentUnavailableView("couponCode.missing", systemImage: "ticket", description: Text("couponCode.missing.detail"))
-                        .accessibilityIdentifier("couponCode.missing")
+                    CYEmptyState(systemImage: "ticket", "couponCode.missing", detail: "couponCode.missing.detail",
+                                 messageIdentifier: "couponCode.missing", kind: .orders)
                 } else { content(presentation: presentation, appearance: appearance) }
                 if model.pollDelayed { Text("couponCode.pollDelayed").font(.footnote) }
                 Text("couponCode.authority").font(.footnote).foregroundStyle(.secondary)
             }.padding().frame(maxWidth: .infinity)
-        }.navigationTitle("couponCode.title").navigationBarTitleDisplayMode(.inline)
+        }.navigationTitle("couponCode.title").navigationBarTitleDisplayMode(.large)
+            .cyDomainPageBackground()
             .privacySensitive().accessibilityIdentifier("couponCode.view")
-            .confirmationDialog("couponCode.review", isPresented: $review, titleVisibility: .visible) {
-                Button("couponCode.show") {
+            .sheet(isPresented: $review) {
+                MemberCouponShowConfirmSheet {
+                    review = false
                     guard let offer = model.offerConfirmation(presentation: presentation) else { return }
                     appearance.actionTask?.cancel()
                     appearance.actionTask = Task { await model.confirmPresentation(permit: offer) }
                 }
-            } message: { Text("couponCode.review.detail") }
+            }
             .onAppear {
                 guard let permit = appearance.begin(model: model) else { return }
                 if scenePhase == .active { resume(presentation: permit, appearance: appearance) } else { model.pause(presentation: permit) }
@@ -116,7 +118,7 @@ extension EnvironmentValues {
                 retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
                     .buttonStyle(.bordered).buttonBorderShape(.capsule)
             }
-        case .loading: ProgressView("couponCode.loading")
+        case .loading: CYLoadingState("couponCode.loading", messageIdentifier: "couponCode.loading")
         case .waiting:
             Label("couponCode.waiting", systemImage: "clock")
             if let start = AccountCollectionCoupon.calendarDay(model.receipt?.startTime) {
@@ -127,20 +129,23 @@ extension EnvironmentValues {
         case .paused: Label("couponCode.paused", systemImage: "pause.circle")
         case .failed:
             // Source: 二维码暂时没能生成，请稍后重试 with one 重试 pill.
-            ContentUnavailableView("u9cde.coupon.failed", systemImage: "exclamationmark.triangle")
-            Button("action.retry") {
+            CYEmptyState(systemImage: "exclamationmark.triangle", "u9cde.coupon.failed",
+                         messageIdentifier: "couponCode.failed",
+                         actionTitle: "action.retry",
+                         actionIdentifier: "couponCode.retry",
+                         kind: .failure) {
                 guard let offer = model.offerRetry(presentation: presentation) else { return }
                 appearance.actionTask?.cancel()
                 appearance.actionTask = Task { await model.retry(permit: offer) }
-            }.buttonStyle(.questifyPrimary)
+            }
         case .used:
             // Source used state: a large success disc, 已核销, then the redemption time.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "checkmark.circle")
                     .font(.title.weight(.semibold))
-                    .foregroundStyle(CYNight.ink0)
+                    .foregroundStyle(CYColor.successText)
                     .frame(width: 64, height: 64)
-                    .background(Circle().fill(CYNight.verify))
+                    .background(Circle().fill(CYColor.successSoft))
                     .accessibilityHidden(true)
                 Text("u9cde.coupon.used").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 if let time = model.useTime { Text(verbatim: time).font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary) }

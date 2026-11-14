@@ -22,7 +22,7 @@ struct ProfileOrderFilterSection: View {
             if isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("profile.orderFilter.empty").accessibilityIdentifier("profile.orderFilter.empty")
-                    Text("profile.orderParity.filterEmptyHint").font(.subheadline).foregroundStyle(.secondary)
+                    Text("profile.orderParity.filterEmptyHint").font(CYTypography.subheadline).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("profile.orderFilter.emptyHint")
                 }
                 Button("profile.orderFilter.clear") { selection = .all }

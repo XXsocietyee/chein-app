@@ -41,8 +41,7 @@ struct HomeHeroHeaderSectionView: View {
                                 Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
                                     .font(CYTypography.bodyCompact)
                                     .foregroundStyle(CYColor.textSecondary)
-                                    .lineLimit(1) // one line at every size; truncates instead of wrapping
-                                    .truncationMode(.tail)
+                                    .cyWrapText()
                                 Spacer(minLength: 0)
                             }
                             .padding(.leading, CYSpacing.md)
@@ -51,6 +50,11 @@ struct HomeHeroHeaderSectionView: View {
                         }
                         .buttonStyle(CYPressScaleStyle(scale: 0.98))
                         .accessibilityAddTraits(.isSearchField)
+                        .pageTemplateControl(
+                            label: Text("searchMap.placeholder.player"),
+                            hint: Text("homeFeed.search"),
+                            traits: .isButton
+                        )
                         .accessibilityIdentifier("homeIndex.hero.searchEntry")
 
                         Button {
@@ -63,12 +67,14 @@ struct HomeHeroHeaderSectionView: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)))
+                        .pageTemplateControl(
+                            label: Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)),
+                            hint: Text("searchMap.citySearch"),
+                            traits: .isButton
+                        )
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
                     }
                     .background(CYColor.bgElevated, in: Capsule())
-                    .overlay { Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1) }
-                    .shadow(color: CYNight.ink0.opacity(0.25), radius: 10, y: 4)
                 }
                 // Mini-program `v3-hero-greet-row`: name on its own line, then `玩家 · 城市`, avatar trailing.
                 HStack(alignment: .top, spacing: 12) {
@@ -138,7 +144,7 @@ struct HomeHeroHeaderSectionView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
-                            .lineLimit(1).minimumScaleFactor(0.7)
+                            .cyWrapText()
                         Image(systemName: "chevron.down").font(.caption2.weight(.bold))
                     }
                     .font(CYTypography.label)
@@ -201,9 +207,7 @@ struct PlayContinuationBannerView: View {
                     Spacer()
                     if readAvailability == .failed, let onRetry {
                         Button("homeFeed.retry", action: onRetry)
-                            .font(.caption.weight(.semibold))
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                            .buttonStyle(.cySecondary)
                             .accessibilityIdentifier("homeIndex.continuation.retry")
                     }
                 }
@@ -237,9 +241,10 @@ struct PlayContinuationBannerView: View {
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "play.circle.fill")
-                                .font(.system(size: 40))
+                                .font(CYTypography.dataXL)
                                 .foregroundStyle(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
+                                .accessibilityHidden(true)
                         }
                         .padding(CYSpacing.lg)
                     }
@@ -248,12 +253,22 @@ struct PlayContinuationBannerView: View {
                     .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
                 }
                 .buttonStyle(CYPressScaleStyle(scale: 0.98))
+                .pageTemplateGroupedCard(label: continuationLabel(card), traits: .isButton)
                 .accessibilityIdentifier("homeIndex.continuation.\(card.id)")
                 .questifyCardListRow()
             }
         } header: {
             Text(verbatim: HomeIndexParityPresentation.continuationSectionTitle(locale: locale))
+                .accessibilityAddTraits(.isHeader)
         }
+    }
+
+    private func continuationLabel(_ card: HomeIndexParityPresentation.ContinuationCard) -> Text {
+        var label = Text(verbatim: card.kind.badgeTitle(locale: locale)) + Text(verbatim: ", ") + Text(verbatim: card.localizedTitle(locale: locale))
+        if let subtitle = card.localizedSubtitle(locale: locale) {
+            label = label + Text(verbatim: ", ") + Text(verbatim: subtitle)
+        }
+        return label
     }
 }
 
@@ -339,7 +354,9 @@ struct HomeIndexEmptyStateView: View {
             switch phase {
             case .loading:
                 ProgressView()
+                    .accessibilityHidden(true)
                 Text(verbatim: HomeIndexParityPresentation.loadingCopy(locale: locale))
+                    .accessibilityAddTraits(.updatesFrequently)
                     .font(CYTypography.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("homeIndex.state.loading")
@@ -347,6 +364,7 @@ struct HomeIndexEmptyStateView: View {
                 Image(systemName: "tray")
                     .font(.title2)
                     .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityHidden(true)
                 Text(verbatim: HomeIndexParityPresentation.emptyStateTitle(locale: locale))
                     .font(CYTypography.cardTitle)
                 Text(verbatim: HomeIndexParityPresentation.emptyStateHint(locale: locale))
@@ -357,6 +375,7 @@ struct HomeIndexEmptyStateView: View {
                 Image(systemName: "exclamationmark.triangle")
                     .font(.title2)
                     .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityHidden(true)
                 Text(verbatim: HomeIndexParityPresentation.errorCopy(locale: locale))
                     .font(CYTypography.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
@@ -1449,6 +1468,7 @@ struct PublishTabFloatingSheetView: View {
             }
         }
         .cyPlayerSheetGlass()
+        .cyDomainScreen(.topicEditor)
     }
 }
 

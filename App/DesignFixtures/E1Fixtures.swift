@@ -12,7 +12,7 @@ struct E1Fixture: View {
         case official, officialDetail, officialInbox
         case registration(RegistrationFixtureScenario)
         case participants(ParticipantFixtureScenario)
-        case discovery, routes, routeDetail
+        case discovery, routes, routesEmpty, routeDetail
     }
     let screen: Screen
     var body: some View {
@@ -34,6 +34,7 @@ struct E1Fixture: View {
         case .registration(let s): RegistrationFixtureHostView(scenario: s)
         case .participants(let s): ParticipantFixtureHostView(scenario: s)
         case .routes: NavigationStack { OfficialRouteListView(reader: E1Fixture.routeReader) }
+        case .routesEmpty: NavigationStack { OfficialRouteListView(reader: E1Fixture.emptyRouteReader) }
         case .routeDetail: NavigationStack { OfficialRouteDetailView(reader: E1Fixture.routeReader, routeID: "1") }
         case .discovery: DiscoveryHomeView(reader: DiscoveryFixtureReader(), topicBrowsingEnabled: true)
         }
@@ -56,6 +57,11 @@ struct E1Fixture: View {
         return OfficialRouteReader(list: { routes }, detail: { _ in OfficialRouteDetail(route: routes[0], nodes: nodes) })
     }
 
+    /// Offline empty shelf. No network call; the list renders the empty state.
+    static var emptyRouteReader: OfficialRouteReader {
+        OfficialRouteReader(list: { [] }, detail: { _ in throw OfficialRouteReader.Failure.notFound })
+    }
+
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
         case "e1-topics": return AnyView(E1Fixture(screen: .topics))
@@ -69,6 +75,8 @@ struct E1Fixture: View {
         case "e1-participants": return AnyView(E1Fixture(screen: .participants(.success)))
         case "e1-participants-empty": return AnyView(E1Fixture(screen: .participants(.empty)))
         case "e1-routes": return AnyView(E1Fixture(screen: .routes))
+        case "e1-routes-empty": return AnyView(E1Fixture(screen: .routesEmpty))
+        case "e1-official-empty": return AnyView(NavigationStack { OfficialEventsBrowserView(reader: OfficialFixtureReader(scenario: .empty)) }.themeDomain(.player).cyDomainPageBackground())
         case "e1-route-detail": return AnyView(E1Fixture(screen: .routeDetail))
         case "e1-discovery": return AnyView(E1Fixture(screen: .discovery))
         case "e1-motion-hero": return AnyView(E1MotionLabFixture(mode: .hero))

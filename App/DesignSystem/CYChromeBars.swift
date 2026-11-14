@@ -8,6 +8,69 @@ public enum CYNavBarMode: Sendable, Hashable {
     case overlayHero
 }
 
+public enum CYNavBarTokens {
+    public struct Resolved {
+        public let titleColor: Color
+        public let backForeground: Color
+        public let backBadgeFill: Color?
+        public let backgroundColor: Color
+        public let dividerColor: Color?
+    }
+
+    static func resolve(
+        mode: CYNavBarMode,
+        colorScheme: ColorScheme,
+        in palette: CYDomainPalette
+    ) -> Resolved {
+        switch mode {
+        case .plain:
+            return Resolved(
+                titleColor: palette.textPrimary,
+                backForeground: palette.textPrimary,
+                backBadgeFill: nil,
+                backgroundColor: Color.clear,
+                dividerColor: nil
+            )
+        case .solid:
+            return Resolved(
+                titleColor: palette.textPrimary,
+                backForeground: palette.textPrimary,
+                backBadgeFill: nil,
+                backgroundColor: palette.bgPage,
+                dividerColor: colorScheme == .light ? palette.borderSubtle : nil
+            )
+        case .overlayHero:
+            return Resolved(
+                titleColor: palette.onCoverFg,
+                backForeground: palette.onCoverFg,
+                backBadgeFill: palette.bgGlass,
+                backgroundColor: Color.clear,
+                dividerColor: nil
+            )
+        }
+    }
+}
+
+public enum CYFooterBarTokens {
+    public struct Resolved {
+        public let divider: Color
+        public let background: Color
+        public let primaryVariant: CYButtonVariant
+        public let secondaryVariant: CYButtonVariant
+        public let usesStackedDualLayout: Bool
+    }
+
+    static func resolve(isAccessibilitySize: Bool, in palette: CYDomainPalette) -> Resolved {
+        Resolved(
+            divider: palette.borderSubtle,
+            background: palette.bgPage,
+            primaryVariant: .primary,
+            secondaryVariant: .secondary,
+            usesStackedDualLayout: isAccessibilitySize
+        )
+    }
+}
+
 /// Top navigation bar (`44pt` bar + safe-area top option, centered `18pt` title with `48pt` horizontal clearance).
 public struct CYNavBar<Trailing: View>: View {
     private let title: String
@@ -19,6 +82,7 @@ public struct CYNavBar<Trailing: View>: View {
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     public init(
         title: String,
@@ -37,54 +101,74 @@ public struct CYNavBar<Trailing: View>: View {
     }
 
     public var body: some View {
-        ZStack {
-            Text(verbatim: title)
-                .font(CYTypography.pageTitle)
-                .foregroundStyle(titleColor)
-                .lineLimit(1)
-                .padding(.horizontal, 48)
-
-            HStack {
-                if showsBack {
-                    Button(action: { onBack?() }) {
-                        backGlyph
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("action.back"))
-                } else {
-                    Color.clear.frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+        VStack(spacing: CYSpacing.xs) {
+            ZStack {
+                if !typeSize.isAccessibilitySize {
+                    titleLabel
+                        .padding(.horizontal, 48)
+                        .pageTemplateReadingOrder(1)
                 }
+                HStack {
+                    if showsBack {
+                        Button(action: { onBack?() }) {
+                            backGlyph
+                        }
+                        .buttonStyle(.plain)
+                        .pageTemplateControl(label: Text("action.back"), traits: .isButton)
+                        .pageTemplateReadingOrder(2)
+                    } else {
+                        Color.clear.frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                    }
 
-                Spacer()
+                    Spacer()
 
-                trailing
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    trailing
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                }
+                .padding(.horizontal, CYSpacing.xs)
             }
-            .padding(.horizontal, CYSpacing.xs)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            if typeSize.isAccessibilitySize {
+                titleLabel
+                    .padding(.horizontal, CYSpacing.lg)
+                    .padding(.bottom, CYSpacing.xs)
+            }
         }
-        .frame(height: CYSpacing.minTouchTarget)
         .padding(.top, includesTopSafeArea ? 44 : 0)
         .background(backgroundSurface)
     }
 
+    private var titleLabel: some View {
+        Text(verbatim: title)
+            .font(CYTypography.pageTitle)
+            .foregroundStyle(titleColor)
+            .cyWrapText(alignment: .center)
+            .frame(maxWidth: .infinity)
+    }
+
+    private var navTokens: CYNavBarTokens.Resolved {
+        CYNavBarTokens.resolve(mode: mode, colorScheme: colorScheme, in: palette)
+    }
+
     private var titleColor: Color {
-        mode == .overlayHero ? palette.onCoverFg : palette.textPrimary
+        navTokens.titleColor
     }
 
     @ViewBuilder
     private var backGlyph: some View {
-        if mode == .overlayHero {
+        let tokens = navTokens
+        if let badgeFill = tokens.backBadgeFill {
             Image(systemName: "chevron.left")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(palette.onCoverFg)
+                .foregroundStyle(tokens.backForeground)
                 .frame(width: 32, height: 32)
-                .background(Circle().fill(palette.bgGlass))
+                .background(Circle().fill(badgeFill))
                 .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
                 .contentShape(Rectangle())
         } else {
             Image(systemName: "chevron.left")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(palette.textPrimary)
+                .foregroundStyle(tokens.backForeground)
                 .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
                 .contentShape(Rectangle())
         }
@@ -92,19 +176,15 @@ public struct CYNavBar<Trailing: View>: View {
 
     @ViewBuilder
     private var backgroundSurface: some View {
-        switch mode {
-        case .plain, .overlayHero:
-            Color.clear
-        case .solid:
-            palette.bgPage
-                .overlay(alignment: .bottom) {
-                    if colorScheme == .light {
-                        Rectangle()
-                            .fill(palette.borderSubtle)
-                            .frame(height: 0.5)
-                    }
+        let tokens = navTokens
+        tokens.backgroundColor
+            .overlay(alignment: .bottom) {
+                if let dividerColor = tokens.dividerColor {
+                    Rectangle()
+                        .fill(dividerColor)
+                        .frame(height: 0.5)
                 }
-        }
+            }
     }
 }
 
@@ -134,20 +214,22 @@ struct CYFooterActionButtons: View {
     let primary: CYFooterAction
     let secondary: CYFooterAction?
 
+    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
+        let tokens = CYFooterBarTokens.resolve(isAccessibilitySize: typeSize.isAccessibilitySize, in: palette)
         Group {
             if let secondary {
-                if typeSize.isAccessibilitySize {
+                if tokens.usesStackedDualLayout {
                     VStack(spacing: CYSpacing.md) {
-                        primaryButton(primary)
-                        secondaryButton(secondary)
+                        primaryButton(primary).pageTemplateReadingOrder(2)
+                        secondaryButton(secondary).pageTemplateReadingOrder(1)
                     }
                 } else {
                     CYFooterDualRatioLayout(gap: CYSpacing.md) {
-                        secondaryButton(secondary)
-                        primaryButton(primary)
+                        secondaryButton(secondary).pageTemplateReadingOrder(2)
+                        primaryButton(primary).pageTemplateReadingOrder(1)
                     }
                 }
             } else {
@@ -162,6 +244,7 @@ struct CYFooterActionButtons: View {
         }
         .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .md, isLoading: spec.isLoading, isPill: true))
         .disabled(spec.isDisabled || spec.isLoading)
+        .pageTemplateControl(label: Text(verbatim: spec.title), traits: .isButton)
     }
 
     private func secondaryButton(_ spec: CYFooterAction) -> some View {
@@ -170,6 +253,7 @@ struct CYFooterActionButtons: View {
         }
         .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .md, isLoading: spec.isLoading, isPill: true))
         .disabled(spec.isDisabled || spec.isLoading)
+        .pageTemplateControl(label: Text(verbatim: spec.title), traits: .isButton)
     }
 }
 

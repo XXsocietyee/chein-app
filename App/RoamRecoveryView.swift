@@ -61,6 +61,7 @@ import Observation
             .onChange(of: reader.identity) { _, _ in presentation.reset() }
             .onDisappear { presentation.setVisible(false) }
             .accessibilityIdentifier("roam.experience.recovery")
+        .cyDomainScreen(.player)
     }
 }
 

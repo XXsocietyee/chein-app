@@ -5,7 +5,7 @@ import SwiftUI
 /// through the existing module fixture hosts and apply the player (dark) role theme the way the real tabs do.
 /// `--design-fixture d2-home | d2-search | d2-square | d2-roam`.
 struct D2Fixture: View {
-    enum Screen { case home, search, searchResults, square, roam, play, city, npc, inbox, me }
+    enum Screen { case home, homeOffline, search, searchResults, searchOffline, square, squareEmpty, roam, play, city, npc, inbox, inboxEmpty, me }
     let screen: Screen
 
     var body: some View {
@@ -18,18 +18,28 @@ struct D2Fixture: View {
     @ViewBuilder private var host: some View {
         switch screen {
         case .home: HomeFeedFixtureHostView(forceHero: true)
+        case .homeOffline: HomeFeedFixtureHostView(scenario: "empty", unavailableMessageKey: "auth.notConfigured")
         case .search: SearchMapFixtureHostView()
         case .searchResults:
             NavigationStack {
                 GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: GlobalSearchRecommendedKeywords.china) { _ in Color.clear }
             }
+        case .searchOffline:
+            NavigationStack {
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .unconfigured), recommendedKeywords: GlobalSearchRecommendedKeywords.china) { _ in Color.clear }
+            }
         case .square: SquareFixtureHostView()
+        case .squareEmpty: SquareFixtureHostView(scenario: .empty)
         case .play: PlayExperienceFixtureHostView()
         case .city: CityGameFixtureHost()
         case .npc: ShopNPCFixtureView(enabled: true)
         case .inbox:
             NavigationStack {
                 MessagingHomeView(reader: MessagingFixtureReader(.success), expanded: nil, squareDestination: { _ in AnyView(EmptyView()) })
+            }
+        case .inboxEmpty:
+            NavigationStack {
+                MessagingHomeView(reader: MessagingFixtureReader(.empty), expanded: nil, squareDestination: { _ in AnyView(EmptyView()) })
             }
         case .me:
             AccountView(account: try! JSONDecoder().decode(Account.self, from: Data(#"{"id":81,"nickname":"Mia","role":"player","levelId":2}"#.utf8)))

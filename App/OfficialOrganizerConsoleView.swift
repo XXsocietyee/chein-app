@@ -150,8 +150,10 @@ struct OfficialOrganizerConsoleView: View {
         Group {
             switch model.phase {
             case .loading:
-                ProgressView(c.t("正在读取主办权限…", "Checking organizer access…"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                CYSkeleton(variant: .detail)
+                    .padding(CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text(c.t("正在读取主办权限…", "Checking organizer access…")))
                     .accessibilityIdentifier("official.organizer.loading")
             case .denied(let reason):
                 CYEmptyStateView(systemImage: "lock", title: LocalizedStringKey(c.t("无权管理这场活动", "You can't manage this event")),
@@ -159,24 +161,34 @@ struct OfficialOrganizerConsoleView: View {
                     .accessibilityIdentifier("official.organizer.denied")
             case .error:
                 CYErrorStateView(title: LocalizedStringKey(c.t("没有读到主办状态", "Couldn't load organizer status")),
-                                 message: LocalizedStringKey(c.t("网络没连上，请重试", "The network is unavailable. Try again.")),
+                                 message: LocalizedStringKey(c.t("检查网络后再试一次", "Check your connection and try again.")),
                                  retryTitle: LocalizedStringKey(c.t("重试", "Retry")), onRetry: { Task { await model.load() } })
                     .accessibilityIdentifier("official.organizer.error")
             case .ready: content
             }
         }
+        .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .navigationTitle(c.t("主办控制台", "Organizer console"))
         .navigationBarTitleDisplayMode(.inline)
         .task { await model.load() }
         .refreshable { await model.load() }
-        .confirmationDialog(confirmTitle, isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } }),
-                            titleVisibility: .visible, presenting: confirming) { action in
-            Button(confirmButton(action), role: action == .schedule ? .destructive : nil) {
-                confirming = nil; Task { await model.start(action) }
-            }
-            Button(c.t("取消", "Cancel"), role: .cancel) { confirming = nil }
-        } message: { action in Text(confirmMessage(action)) }
+        .sheet(item: $confirming) { action in
+            CYConfirmSheet(
+                title: confirmTitle(for: action),
+                message: confirmMessage(action),
+                confirmTitle: confirmButton(action),
+                cancelTitle: appLocalized("action.cancel", locale: locale),
+                isDestructive: action == .schedule || action == .pause,
+                consequences: confirmConsequences(for: action),
+                onCancel: { confirming = nil },
+                onConfirm: {
+                    confirming = nil
+                    Task { await model.start(action) }
+                }
+            )
+            .cyDomainSheet(detents: [.half, .full])
+        }
     }
 
     private var content: some View {
@@ -196,18 +208,18 @@ struct OfficialOrganizerConsoleView: View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: model.state?.title.isEmpty == false ? model.state!.title : c.t("未命名官方活动", "Untitled official event"))
-                    .font(.headline)
+                    .font(CYTypography.cardTitle)
                 HStack(spacing: CYSpacing.sm) {
                     Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(model.state?.status)))
                     Text(verbatim: "·")
                     Text(verbatim: controlText)
-                }.font(.subheadline).foregroundStyle(.secondary)
+                }.font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary)
                 if model.state?.control == .paused {
                     if let r = model.state?.pausedReason, !r.isEmpty {
-                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).font(.footnote)
+                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).font(CYTypography.footnote)
                     }
                     if let n = model.state?.resumeNote, !n.isEmpty {
-                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).font(.footnote)
+                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).font(CYTypography.footnote)
                     }
                 }
             }
@@ -322,7 +334,7 @@ struct OfficialOrganizerConsoleView: View {
         let presets = OfficialOrganizerRules.pausePresets[field] ?? []
         let binding = Binding(get: { model.pause[field] ?? OfficialOrganizerPauseEntry() }, set: { model.pause[field] = $0 })
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(fieldLabel(field)).font(.subheadline.weight(.semibold))
+            Text(fieldLabel(field)).font(CYTypography.subhead.weight(.semibold))
             Picker(fieldLabel(field), selection: binding.preset) {
                 Text(c.t("不选预设", "No preset")).tag("")
                 ForEach(Array(presets.enumerated()), id: \.offset) { i, zh in Text(presetLabel(field, i, zh)).tag(zh) }
@@ -348,12 +360,12 @@ struct OfficialOrganizerConsoleView: View {
     }
     @ViewBuilder private func hintText(_ action: OfficialOrganizerAction) -> some View {
         if let hint = model.availability[action]?.hint {
-            Text(hintCopy(hint)).font(.footnote).foregroundStyle(.secondary)
+            Text(hintCopy(hint)).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
         }
     }
     @ViewBuilder private func formErrorText(_ action: OfficialOrganizerAction) -> some View {
         if let (a, e) = model.formError, a == action {
-            Text(formErrorCopy(e)).font(.footnote).foregroundStyle(CYColor.dangerText)
+            Text(formErrorCopy(e)).font(CYTypography.footnote).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("official.organizer.formError")
         }
     }
@@ -373,13 +385,33 @@ struct OfficialOrganizerConsoleView: View {
         case .resume: return c.t("活动已恢复", "Event resumed")
         }
     }
-    private var confirmTitle: String {
+    private func confirmTitle(for action: OfficialOrganizerAction) -> String {
         let name = model.state?.title.isEmpty == false ? model.state!.title : c.t("这场活动", "this event")
-        switch confirming {
-        case .schedule?: return c.t("发布「\(name)」?", "Publish “\(name)”?")
-        case .pause?: return c.t("暂停「\(name)」?", "Pause “\(name)”?")
-        case .resume?: return c.t("恢复「\(name)」?", "Resume “\(name)”?")
-        case nil: return ""
+        switch action {
+        case .schedule: return c.t("发布「\(name)」?", "Publish “\(name)”?")
+        case .pause: return c.t("暂停「\(name)」?", "Pause “\(name)”?")
+        case .resume: return c.t("恢复「\(name)」?", "Resume “\(name)”?")
+        }
+    }
+    private func confirmConsequences(for action: OfficialOrganizerAction) -> [CYConfirmConsequence] {
+        switch action {
+        case .schedule:
+            return [
+                CYConfirmConsequence(systemImage: "calendar.badge.clock", text: appLocalized("official.organizer.schedule.c1", locale: locale)),
+                CYConfirmConsequence(systemImage: "arrow.uturn.backward.circle", text: appLocalized("official.organizer.schedule.c2", locale: locale)),
+                CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: appLocalized("official.organizer.schedule.c3", locale: locale))
+            ]
+        case .pause:
+            return [
+                CYConfirmConsequence(systemImage: "person.crop.circle.badge.xmark", text: appLocalized("official.organizer.pause.c1", locale: locale)),
+                CYConfirmConsequence(systemImage: "megaphone", text: appLocalized("official.organizer.pause.c2", locale: locale)),
+                CYConfirmConsequence(systemImage: "clock", text: appLocalized("official.organizer.pause.c3", locale: locale))
+            ]
+        case .resume:
+            return [
+                CYConfirmConsequence(systemImage: "checkmark.shield", text: appLocalized("official.organizer.resume.c1", locale: locale)),
+                CYConfirmConsequence(systemImage: "hourglass", text: appLocalized("official.organizer.resume.c2", locale: locale))
+            ]
         }
     }
     private func confirmButton(_ a: OfficialOrganizerAction) -> String { actionName(a) }
@@ -482,13 +514,13 @@ struct OfficialOrganizerEntryRow: View {
                 } label: {
                     Label {
                         Text(LocalizedStringKey(cta.key))
-                            .font(.headline)
+                            .font(CYTypography.cardTitle)
                     } icon: {
                         Image(systemName: "map.fill")
                     }
                     .frame(maxWidth: .infinity, minHeight: 44)
                 }
-                .buttonStyle(.questifyPrimary)
+                .buttonStyle(CYPillButtonStyle(style: .primary))
                 .accessibilityIdentifier("official.detail.cta.roam")
             }
         }

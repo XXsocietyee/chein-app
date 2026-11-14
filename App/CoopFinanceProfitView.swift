@@ -42,7 +42,6 @@ extension EnvironmentValues {
         .cyGroupedSurface()
         .cyHeroScreen()
         .themeDomain(.merchant)
-        .tint(CYDomainPalette(.merchant).brand)
         .cyHideTabBar(true)
         .modifier(CoopOperationListPresentation())
         .labeledContentStyle(CoopFinancialRowStyle())
@@ -53,7 +52,8 @@ extension EnvironmentValues {
         .onChange(of: reader.session) { _, _ in showsSupport = false }
         .sheet(isPresented: $showsSupport) {
             WithdrawalSupportContactView()
-                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
         }
         .accessibilityIdentifier("cooperation.finance")
     }

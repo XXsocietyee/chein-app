@@ -20,6 +20,10 @@ struct MessagingMessageDetailView: View {
     @State private var selectedTopicID: Int?
     @State private var selectedReview: MessagingCardResult?
     var body: some View {
+        cyDomainBody.cyDomainScreen(.player)
+    }
+
+    @ViewBuilder private var cyDomainBody: some View {
         Group {
             if identity != nil, reader.identity == identity, let message = currentSnapshot {
                 List {

@@ -32,5 +32,6 @@ import SwiftUI
         }
         .onChange(of: reader.scope) { _, _ in model.invalidate() }
         .onDisappear { model.invalidate() }
+        .cyDomainScreen(.merchant)
     }
 }

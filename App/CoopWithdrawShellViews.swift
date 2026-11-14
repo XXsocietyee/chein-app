@@ -21,6 +21,7 @@ import SwiftUI
         .cyGroupedSurface()
         .cyMiniListScreen()
         .cyHeroScreen()
+        .themeDomain(.merchant)
         .questifyBottomAction {
             if isSignedIn {
                 // Opens support. It does not submit a withdrawal.
@@ -30,7 +31,11 @@ import SwiftUI
             }
         }
         .onChange(of: isSignedIn) { _, signedIn in if !signedIn { showsSupport = false } }
-        .sheet(isPresented: $showsSupport) { WithdrawalSupportContactView() }
+        .sheet(isPresented: $showsSupport) {
+            WithdrawalSupportContactView()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
+        }
         .accessibilityIdentifier("cooperation.withdraw")
     }
 }
@@ -58,6 +63,7 @@ import SwiftUI
                 }
                 .cyGroupedSurface()
                 .cyMiniListScreen()
+                .themeDomain(.merchant)
             }
         }
         .id(attempt)

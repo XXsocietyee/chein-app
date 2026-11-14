@@ -23,6 +23,7 @@ import SwiftUI
     @State private var latitude = ""
     @State private var longitude = ""
     @State private var radius = 3000
+    @State private var showingRange = false
     @State private var tab = 0
     @State private var viewMode = NearbyTeamViewMode.map
     @State private var focusedTeamID: NearbyTeamID?
@@ -121,7 +122,15 @@ import SwiftUI
             }
             .sheet(item: model.review) { review in
                 NearbyTeamReviewView(model: model, snapshot: review)
-                    .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.hidden)
+                    .presentationBackground(.clear)
+            }
+            .sheet(isPresented: $showingRange) {
+                PlayAreaNearbyRangeSheet(radii: NearbyQueryContext.radii, selected: radius, onSelect: { picked in
+                    radius = picked
+                    showingRange = false
+                }, onClose: { showingRange = false })
             }
             .task {
                 coordinator.resume()
@@ -214,8 +223,9 @@ import SwiftUI
                     Text(LocalizedStringKey(key)).accessibilityIdentifier("nearby.message")
                 }
                 if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
-            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true).padding()
-                .frame(maxWidth: .infinity, alignment: .leading).background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         }
     }
     /// Mini-program 范围 control. Coordinates are only typed in when the host gave no map point.
@@ -227,8 +237,13 @@ import SwiftUI
                 TextField("nearby.longitude", text: $longitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.longitude")
             }
             HStack {
-                Picker("nearby.radius", selection: $radius) { ForEach(NearbyQueryContext.radii, id: \.self) { radius in Text(verbatim: "\(radius / 1000) km").tag(radius) } }
-                    .accessibilityIdentifier("nearby.radius")
+                Button { showingRange = true } label: {
+                    Text(verbatim: "\(radius / 1000) km")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                }
+                .accessibilityIdentifier("nearby.radius")
+                .accessibilityLabel(Text(verbatim: PlayAreaPopupCopy.text("范围", "Range", locale: locale)))
                 Spacer(minLength: 8)
                 CYPillButton("nearby.search", style: .secondary, systemImage: "magnifyingglass", fullWidth: false) { Task { await refresh() } }
                     .disabled(model.running).accessibilityIdentifier("nearby.search")
@@ -281,7 +296,7 @@ import SwiftUI
     private func teamCard(_ team: NearbyTeam) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
+                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 Spacer(minLength: 8)
                 NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode))
             }
@@ -308,8 +323,8 @@ import SwiftUI
             default: EmptyView()
             }
             NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
-        }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
     }
     @ViewBuilder private var applicantSection: some View {
@@ -324,7 +339,7 @@ import SwiftUI
                     expiry(applicant.applyExpireTime)
                     if !applicant.message.isEmpty { Text(verbatim: "“\(applicant.message)”").fixedSize(horizontal: false, vertical: true) }
                     actionButton(.handle(team: teamID, applicant: applicant.id, approved: true))
-                    actionButton(.handle(team: teamID, applicant: applicant.id, approved: false))
+                    actionButton(.handle(team: teamID, applicant: applicant.id, approved: false), style: .secondary)
                 }.padding().accessibilityIdentifier("nearby.applicant.\(applicant.id.rawValue)")
             }
         }
@@ -418,9 +433,9 @@ import SwiftUI
         }
     }
     /// Hidden when this build cannot send team actions, instead of a button that leads nowhere.
-    @ViewBuilder private func actionButton(_ action: NearbyTeamAction) -> some View {
+    @ViewBuilder private func actionButton(_ action: NearbyTeamAction, style: CYPillStyle = .primary) -> some View {
         if coordinator.canSubmit {
-            CYPillButton(LocalizedStringKey(action.key)) { model.prepare(action) }
+            CYPillButton(LocalizedStringKey(action.key), style: style) { model.prepare(action) }
                 .disabled(model.running || !coordinator.allowed(action)).accessibilityIdentifier("nearby.\(action.operation).\(action.teamID.rawValue)")
         }
     }
@@ -436,24 +451,91 @@ import SwiftUI
 @MainActor private struct NearbyTeamReviewView: View {
     @ObservedObject var model: NearbyTeamScreenModel
     let snapshot: NearbyTeamReview
+    @Environment(\.locale) private var locale
+
+    private var isDestructiveAction: Bool {
+        switch snapshot.action {
+        case .withdrawApplication, .reject: return true
+        default: return false
+        }
+    }
+
+    private var consequenceKeys: [String] {
+        switch snapshot.action {
+        case .reject:
+            return ["nearby.consequence.reject.1", "nearby.consequence.reject.2"]
+        default:
+            return []
+        }
+    }
+
     var body: some View {
-        NavigationStack {
+        CYSheetContainer(
+            title: appLocalized(String.LocalizationValue(stringLiteral: snapshot.action.key), locale: locale),
+            onClose: model.running ? nil : { model.cancel() }
+        ) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    CYHeroHeader(LocalizedStringKey(snapshot.action.key))
-                    let reviewTitle = (snapshot.team?.title ?? snapshot.application?.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                    if reviewTitle.isEmpty { Text("nearby.w208.mine.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                    else { Text(verbatim: reviewTitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "")
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let applicant = snapshot.applicant, !applicant.name.isEmpty {
-                        Label { Text(verbatim: applicant.name) } icon: { Image(systemName: "person.crop.circle") }
+                        Label {
+                            Text(verbatim: applicant.name)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: "person.crop.circle")
+                        }
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
                     }
                     Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence")
-                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                    CYPillButton(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") { Task { await model.run { await model.coordinator.confirm(snapshot) } } }
-                        .disabled(model.running || !model.coordinator.canSubmit).accessibilityIdentifier("nearby.confirm")
-                    CYPillButton("nearby.cancel", style: .tertiary) { model.cancel() }.accessibilityIdentifier("nearby.cancel")
-                }.padding()
-            }.cyHeroScreen()
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if !consequenceKeys.isEmpty {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
+                                HStack(alignment: .top, spacing: CYSpacing.sm) {
+                                    Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
+                                        .accessibilityHidden(true)
+                                    Text(LocalizedStringKey(key))
+                                        .font(CYTypography.bodyCompact)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(CYSpacing.md)
+                        .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    }
+                    confirmActionButton
+                    Button("nearby.cancel") { model.cancel() }
+                        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                        .disabled(model.running)
+                        .accessibilityIdentifier("nearby.cancel")
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .interactiveDismissDisabled(model.running)
+        .cyDomainSheet(detents: [.half, .full])
+    }
+
+    @ViewBuilder private var confirmActionButton: some View {
+        let button = Button(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") {
+            Task { await model.run { await model.coordinator.confirm(snapshot) } }
+        }
+        .disabled(model.running || !model.coordinator.canSubmit)
+        .accessibilityIdentifier("nearby.confirm")
+        if isDestructiveAction {
+            button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+        } else {
+            button.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
         }
     }
 }

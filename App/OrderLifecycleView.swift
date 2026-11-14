@@ -312,7 +312,7 @@ struct OrderLifecycleField: View {
                 Section {
                     VStack(spacing: CYSpacing.md) {
                         Image(systemName: review.action == .payment ? "creditcard" : review.action == .refund ? "arrow.uturn.backward.circle" : "xmark.circle")
-                            .font(.system(size: 34, weight: .regular)).foregroundStyle(CYColor.textPrimary)
+                            .font(CYTypography.display.weight(.regular)).foregroundStyle(CYColor.textPrimary)
                             .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
                         Text(LocalizedStringKey("orderLifecycle.question." + review.action.rawValue))
                             .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
@@ -356,8 +356,8 @@ struct OrderLifecycleField: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("orderLifecycle.review.close", action: close).accessibilityIdentifier("orderLifecycle.review.close") } }
             .accessibilityIdentifier("orderLifecycle.review.sheet")
         }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
+        .cyDomainSheet(detents: [.full])
+        .cyDomainScreen(.player)
     }
 }
 

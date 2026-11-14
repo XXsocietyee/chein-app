@@ -280,16 +280,15 @@ private struct CYBalanceHeroLocal: View {
     let delta: String
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
             Text(verbatim: amount)
                 .font(CYTypography.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+                .cyWrapText()
             Text(verbatim: delta)
                 .font(CYTypography.caption)
                 .foregroundStyle(CYColor.textSecondary)
-                .lineLimit(1)
+                .cyWrapText()
                 .padding(.horizontal, CYSpacing.sm)
                 .padding(.vertical, CYSpacing.xxs)
                 .background(CYColor.bgSurfaceSubtle, in: Capsule())
@@ -307,16 +306,16 @@ private struct CYMoneyRowLocal: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
                 if !detail.isEmpty {
-                    Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                    Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
                 }
             }
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: amount)
                 .font(CYTypography.numericBody)
                 .foregroundStyle(incoming ? CYColor.successText : CYColor.textPrimary)
-                .lineLimit(1)
+                .cyWrapText(alignment: .trailing)
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         .accessibilityElement(children: .combine)

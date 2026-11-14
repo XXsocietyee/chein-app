@@ -62,6 +62,7 @@ extension EnvironmentValues {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cityNodeReceiptFactory) private var receiptFactory
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     @StateObject private var model: CityNodeRedeemModel
     @State private var raw = ""
     @State private var showsScanner = false
@@ -234,21 +235,22 @@ extension EnvironmentValues {
         .safeAreaInset(edge: .bottom, spacing: 0) { primaryBar }
         .cyHaptic(.impactMedium, trigger: preparing) { old, new in !old && new }
         .cyHaptic(.impactMedium, trigger: confirming) { old, new in !old && new }
-        .confirmationDialog("merchant.cityRedeem.confirmTitle", isPresented: Binding(
-            get: { model.coordinator.review != nil },
-            set: { if !$0 && !confirming { model.cancel() } }
-        ), titleVisibility: .visible) {
-            if let review = model.coordinator.review {
-                Button("merchant.cityRedeem.confirm") {
-                    guard !busy, visible, model.isAvailable, !model.blocksAllTargets, scenePhase == .active else { return }
-                    confirming = true
-                    Task { await model.confirm(review.id); confirming = false }
-                }.accessibilityIdentifier("merchant.cityRedeem.confirm")
-                Button("action.cancel", role: .cancel) { model.cancel() }
+        .cyModalConfirm(
+            isPresented: model.coordinator.review != nil,
+            title: appLocalized("merchant.cityRedeem.confirmTitle", locale: locale),
+            message: appLocalized("merchant.cityRedeem.confirmHint", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.cityRedeem.confirm", locale: locale),
+            isConfirmLoading: confirming,
+            confirmIdentifier: "merchant.cityRedeem.confirm",
+            onCancel: { if !confirming { model.cancel() } },
+            onConfirm: {
+                guard let review = model.coordinator.review,
+                      !busy, visible, model.isAvailable, !model.blocksAllTargets, scenePhase == .active else { return }
+                confirming = true
+                Task { await model.confirm(review.id); confirming = false }
             }
-        } message: {
-            Text("merchant.cityRedeem.confirmHint")
-        }
+        )
         .sheet(isPresented: $showsScanner, onDismiss: {
             // Wait for scanner dismissal before presenting the short confirmation dialog.
             guard let payload = scannedCode else { return }
@@ -260,6 +262,8 @@ extension EnvironmentValues {
                 guard visible, model.isAvailable, !model.blocksAllTargets, scenePhase == .active, !busy else { return }
                 scannedCode = payload
             }
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
         }
         .onAppear { visible = true; model.resolveReceipt(receiptFactory); model.restore() }
         .onChange(of: model.coordinator.scope) { _, _ in clear() }

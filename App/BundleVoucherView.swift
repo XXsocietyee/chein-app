@@ -28,6 +28,7 @@ import SwiftUI
         .navigationTitle(Text("bundle.voucher.title", tableName: table))
         .task { await model.appear() }
         .onDisappear { model.disappear() }
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private func content(_ voucher: BundleVoucher) -> some View {

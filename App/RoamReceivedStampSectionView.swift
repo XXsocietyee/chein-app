@@ -91,6 +91,7 @@ import SwiftUI
             model.cancelPending()
         }
         .accessibilityIdentifier("roam.receivedStamp.section")
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private var readyContent: some View {

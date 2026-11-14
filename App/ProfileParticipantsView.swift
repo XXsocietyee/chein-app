@@ -18,6 +18,7 @@ struct ProfileParticipantsView: View {
     /// WIRE-2: mini-program pages/address "select" mode. When a sign-up caller supplies this, a row tap hands back
     /// the participant id instead of opening the detail. Nil (every current call site) keeps the list as before.
     private let onSelect: ((Int) -> Void)?
+    @Environment(\.locale) private var locale
     init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil, onSelect: ((Int) -> Void)? = nil) {
         self.reader = reader; self.coordinator = coordinator; self.onSelect = onSelect
     }
@@ -76,6 +77,7 @@ struct ProfileParticipantsView: View {
                                 else { Text(verbatim: card.fullName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                                 // Blank phone shows the model's em dash, never an empty line.
                                 Text(verbatim: card.phoneText).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                                    .accessibilityLabel(PageTemplateVoiceOver.spoken(card.phoneText, locale: locale))
                                 // Mini-program pages/address row caption: 用于报名联系和到场核验.
                                 Text("profile.participants.rowPurpose").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                             }
@@ -84,6 +86,8 @@ struct ProfileParticipantsView: View {
                             if onSelect != nil { Image(systemName: "circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true) }
                         }
                         .padding(.vertical, 4)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isButton)
                         HStack(spacing: CYSpacing.sm) {
                             Group {
                                 if let onSelect {
@@ -99,13 +103,14 @@ struct ProfileParticipantsView: View {
                                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                                 }
                                 .buttonStyle(.borderless)
+                                .pageTemplateControl(label: Text("participant.list.editShort"), traits: .isButton)
                                 .accessibilityIdentifier("participant.list.editInline.\(card.id)")
                                 Button { deleting = ParticipantRowTarget(id: card.id) } label: {
                                     Image(systemName: "xmark").foregroundStyle(CYColor.textTertiary)
                                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                                 }
                                 .buttonStyle(.borderless)
-                                .accessibilityLabel(Text("participant.form.delete"))
+                                .pageTemplateControl(label: Text("participant.form.delete"), traits: .isButton)
                                 .accessibilityIdentifier("participant.list.deleteInline.\(card.id)")
                             }
                         }
@@ -169,6 +174,7 @@ struct ProfileParticipantsView: View {
                 NavigationStack { ParticipantListDeleteView(id: target.id, reader: reader, coordinator: coordinator) { deletedNotice = UUID() } }
             }
         }
+        .cyDomainScreen(.player)
     }
 }
 
@@ -350,18 +356,18 @@ struct ParticipantListDeleteView: View {
         }
         .interactiveDismissDisabled(model.busy)
         // Mini-program cy-danger-confirm (utils/danger-actions.js): what, why, irreversible, what stays.
-        .alert("participant.list.deleteTitle", isPresented: $model.showConfirmation) {
-            Button("participant.list.deleteConfirm", role: .destructive) {
+        .sheet(isPresented: $model.showConfirmation) {
+            MemberParticipantDeleteConfirmSheet(
+                summary: model.confirmationSummary,
+                onCancel: { model.cancelConfirmation() }
+            ) {
                 Task { if await model.confirmMutation() { onDeleted?(); dismiss() } }
             }
-            .accessibilityIdentifier("participant.list.delete.confirm")
-            Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
-        } message: {
-            Text(verbatim: model.confirmationSummary + "\n\n") + Text("participant.list.deleteBody") + Text(verbatim: "\n")
-                + Text("participant.list.deleteIrreversible") + Text(verbatim: "\n") + Text("participant.list.deleteKeepsRegistration")
+            .themeDomain(.player)
         }
         .task(id: model.reader.identity) { await model.load() }
         .onDisappear { model.disappear() }
+        .cyDomainScreen(.player)
     }
 }
 
@@ -404,5 +410,6 @@ struct ProfileParticipantDetailView: View {
         .appNavigationTitle("profile.participants.detail")
         .navigationBarTitleDisplayMode(.inline)
         }
+        .cyDomainScreen(.player)
     }
 }

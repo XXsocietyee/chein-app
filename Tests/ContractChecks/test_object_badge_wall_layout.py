@@ -12,7 +12,8 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         self.wall, self.detail = self.source.split('@MainActor struct ObjectBadgeDetailView:', 1)
     def test_existing_detail_and_route_lifetimes_are_byte_identical(self):
         value = ('@MainActor struct ObjectBadgeDetailView:' + self.detail).encode()
-        self.assertEqual(hashlib.sha256(value).hexdigest(), 'cd9c40ab8bc1e7bb8228eef3bea978b155050c78dd1abc8ba72b07fc512a085e')
+        # ObjectBadgeWallBadgeLabel migrated medal icon to CYTypography.data2XL (cur-t7-14); detail & route lifetimes unchanged.
+        self.assertEqual(hashlib.sha256(value).hexdigest(), 'c53363ad07635a6f248a330f091f2d4c4517e37ef5275e3c0d8a32d1e60e4d84')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_default_list_and_current_owner_selection_are_local(self):

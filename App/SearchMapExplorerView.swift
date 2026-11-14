@@ -301,10 +301,10 @@ import SwiftUI
     }
     @ViewBuilder private var filterControls: some View {
         Button { showsArea = true } label: { Label("searchMap.chooseArea", systemImage: "mappin.and.ellipse") }
-            .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("searchMap.chooseArea")
+            .buttonStyle(.cySecondary(fullWidth: false)).frame(minHeight: 44).accessibilityIdentifier("searchMap.chooseArea")
         if mode == .city {
             Button { showsFilters = true } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
-                .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("searchMap.filters")
+                .buttonStyle(.cySecondary(fullWidth: false)).frame(minHeight: 44).accessibilityIdentifier("searchMap.filters")
             Picker("searchMap.sort", selection: $sortType) {
                 Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
             }.pickerStyle(.menu).frame(minHeight: 44).accessibilityIdentifier("searchMap.sortPicker")
@@ -321,7 +321,7 @@ import SwiftUI
             }.frame(minHeight: 44)
                 .accessibilityIdentifier("searchMap.selection.clear")
         }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .id("selected-place-summary")
     }
     private func selectPlace(_ id: String, title: String) -> some View {

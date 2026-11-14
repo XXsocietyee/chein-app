@@ -59,6 +59,7 @@ import SwiftUI
         .task(id: service.scope) { await model.load() }
         .onDisappear { model.suspend(); onReturn?() }
         .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
+        .cyDomainScreen(.merchant)
     }
     private func prepare(_ invitation: MerchantChapterInvitation, accepted: Bool) {
         model.prepare(.respondChapterInvitation(applicationID: invitation.applicationID, accepted: accepted, chapterID: invitation.chapterID, topicID: invitation.topicID))

@@ -215,21 +215,44 @@ public struct ClubChannelMessagingView: View {
             }
         }
         .background(palette.bgPage)
-        .confirmationDialog(
-            copy("举报频道「#\(selectedChannel?.name ?? "")」", "Report Channel #\(selectedChannel?.name ?? "")"),
-            isPresented: $showReportChannelDialog,
-            titleVisibility: .visible
-        ) {
-            Button(copy("垃圾广告或诈骗信息", "Spam or scam"), role: .destructive) {
-                submitChannelReport(reasonCode: "SPAM_SCAM", detail: "Spam or scam content in channel")
-            }
-            Button(copy("骚扰、辱骂或不当言论", "Harassment or abusive content"), role: .destructive) {
-                submitChannelReport(reasonCode: "HARASSMENT", detail: "Harassment or abusive content in channel")
-            }
-            Button(copy("违法违规或色情低俗", "Illegal or objectionable content"), role: .destructive) {
-                submitChannelReport(reasonCode: "OBJECT_CONTENT", detail: "Illegal or objectionable content in channel")
-            }
-            Button(copy("取消", "Cancel"), role: .cancel) {}
+        .sheet(isPresented: $showReportChannelDialog) {
+            let channelName = selectedChannel?.name ?? ""
+            CYOptionSheet(
+                title: copy("举报频道「#\(channelName)」", "Report Channel #\(channelName)"),
+                items: [
+                    CYOptionSheetItem(
+                        id: "SPAM_SCAM",
+                        title: appLocalized("club.channel.report.spam", locale: locale),
+                        systemImage: "exclamationmark.bubble",
+                        isDanger: true
+                    ),
+                    CYOptionSheetItem(
+                        id: "HARASSMENT",
+                        title: appLocalized("club.channel.report.harassment", locale: locale),
+                        systemImage: "hand.raised",
+                        isDanger: true
+                    ),
+                    CYOptionSheetItem(
+                        id: "OBJECT_CONTENT",
+                        title: appLocalized("club.channel.report.illegal", locale: locale),
+                        systemImage: "exclamationmark.triangle",
+                        isDanger: true
+                    )
+                ],
+                onSelect: { reason in
+                    showReportChannelDialog = false
+                    switch reason {
+                    case "SPAM_SCAM":
+                        submitChannelReport(reasonCode: "SPAM_SCAM", detail: "Spam or scam content in channel")
+                    case "HARASSMENT":
+                        submitChannelReport(reasonCode: "HARASSMENT", detail: "Harassment or abusive content in channel")
+                    default:
+                        submitChannelReport(reasonCode: "OBJECT_CONTENT", detail: "Illegal or objectionable content in channel")
+                    }
+                },
+                onClose: { showReportChannelDialog = false }
+            )
+            .cyDomainSheet(detents: [.half])
         }
         .sheet(isPresented: $showRulesSheet) {
             CYConfirmSheet(
@@ -319,7 +342,7 @@ public struct ClubChannelMessagingView: View {
         let button = Button {
             showRulesSheet = true
         } label: {
-            Text(copy("查看公约", "Review rules")).lineLimit(1)
+            Text(copy("查看公约", "Review rules")).cyWrapText(alignment: .center)
         }
         .buttonStyle(.cyDomainPrimary(fullWidth: !horizontal))
         .accessibilityIdentifier("club.channel.rulesGate.review")
@@ -358,8 +381,7 @@ public struct ClubChannelMessagingView: View {
                         Text(channel.name)
                             .font(CYTypography.cardTitle)
                             .foregroundStyle(palette.textPrimary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .cyWrapText()
                     }
                     if channel.isReadOnlyAnnouncement {
                         Text(copy("公告 · 只读", "Announcement · read only"))
@@ -370,7 +392,7 @@ public struct ClubChannelMessagingView: View {
                         Text(copy("已开启免打扰", "Muted"))
                             .font(CYTypography.caption)
                             .foregroundStyle(palette.textTertiary)
-                            .lineLimit(1)
+                            .cyWrapText()
                     }
                 }
             }
@@ -471,8 +493,7 @@ public struct ClubChannelMessagingView: View {
                 Text(channel.name)
                     .font((channel.unreadCount ?? 0) > 0 && !channel.isMuted ? CYTypography.label : CYTypography.bodyCompact)
                     .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .cyWrapText()
                 Spacer()
                 if let mentionBadge = channel.mentionBadgeText {
                     Text(mentionBadge)
@@ -888,6 +909,7 @@ private struct ChannelBurstGroupCard: View {
                     Text(group.senderName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let badge = group.senderRoleBadge, !badge.isEmpty {
                         Text(badge)
                             .font(.caption2.weight(.semibold))
@@ -899,7 +921,7 @@ private struct ChannelBurstGroupCard: View {
                     Text(group.headerTimestampText)
                         .font(.caption2)
                         .foregroundStyle(palette.textSecondary)
-                        .lineLimit(1)
+                        .cyWrapText()
                 }
 
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -929,6 +951,7 @@ private struct ChannelBurstGroupCard: View {
                             Text(item.displayBody)
                                 .font(.body)
                                 .foregroundStyle(item.message.isPayloadVisible ? palette.textPrimary : palette.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             ForEach(Array(item.attachments.enumerated()), id: \.offset) { _, attachment in
                                 HStack(spacing: 6) {
@@ -938,6 +961,7 @@ private struct ChannelBurstGroupCard: View {
                                     Text(attachment.title)
                                         .font(.caption.weight(.medium))
                                         .foregroundStyle(palette.textPrimary)
+                                        .cyWrapText()
                                     if let sub = attachment.subtitle, !sub.isEmpty {
                                         Text(sub)
                                             .font(.caption2)
@@ -1332,6 +1356,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
         .task(id: reloadRevision) {
             await loadChannelContext()
         }
+        .cyDomainScreen(.player)
     }
 
     private func loadChannelContext() async {

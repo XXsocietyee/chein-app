@@ -61,9 +61,12 @@ import SwiftUI
                 if hasInput || showReview { confirmDiscard = true } else { clear(); dismiss() }
             }.disabled(busy) }
         }
-        .confirmationDialog("bank.withdrawal.discardQuestion", isPresented: $confirmDiscard, titleVisibility: .visible) {
-            Button("bank.withdrawal.discard", role: .destructive) { clear(); dismiss() }
-            Button("action.cancel", role: .cancel) {}
+        .sheet(isPresented: $confirmDiscard) {
+            MemberBankWithdrawalDiscardConfirmSheet {
+                confirmDiscard = false
+                clear()
+                dismiss()
+            }
         }
         .sheet(isPresented: $showReview, onDismiss: { snapshot = nil; review = nil; proof = nil }) {
             reviewSheet
@@ -105,7 +108,7 @@ import SwiftUI
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: CYSpacing.sm)
                         Image(systemName: "arrow.up.right")
-                            .font(.footnote.weight(.semibold))
+                            .font(CYTypography.footnote.weight(.semibold))
                             .foregroundStyle(palette.textTertiary)
                             .accessibilityHidden(true)
                     }
@@ -117,11 +120,6 @@ import SwiftUI
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                .allowsHitTesting(false)
-        }
     }
 
     private var destinationFields: some View {
@@ -238,11 +236,6 @@ import SwiftUI
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                .allowsHitTesting(false)
-        }
     }
 
     private var reviewSheet: some View {

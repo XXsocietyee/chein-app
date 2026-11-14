@@ -156,6 +156,7 @@ import SwiftUI
             NavigationStack {
                 CoopPoolApplicationEditor(model: model, session: session, reader: reader, currentContext: currentContext)
             }
+            .cyDomainSheet(detents: [.half, .full])
         }
     }
 }
@@ -165,6 +166,7 @@ import SwiftUI
     let session: CoopPoolApplicationModel.Session
     let reader: any CoopFlowReading
     let currentContext: () -> CoopPoolApplicationModel.Context?
+    @Environment(\.locale) private var locale
     @State private var message = ""
     @State private var review: CoopPoolApplicationModel.Review?
     @State private var showReview = false
@@ -207,10 +209,18 @@ import SwiftUI
             }
         } }
         .interactiveDismissDisabled(!message.isEmpty)
-        .confirmationDialog("coopflow.poolMessage.discardTitle", isPresented: $confirmDiscard, titleVisibility: .visible) {
-            Button("coopflow.poolMessage.discard", role: .destructive) { model.cancel(id: session.id) }
-            Button("coopflow.poolMessage.keep", role: .cancel) {}
-        }
+        .cyModalConfirm(
+            isPresented: confirmDiscard,
+            title: appLocalized("coopflow.poolMessage.discardTitle", locale: locale),
+            cancelTitle: appLocalized("coopflow.poolMessage.keep", locale: locale),
+            confirmTitle: appLocalized("coopflow.poolMessage.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { confirmDiscard = false },
+            onConfirm: {
+                confirmDiscard = false
+                model.cancel(id: session.id)
+            }
+        )
         .navigationDestination(isPresented: $showReview) {
             if let review, model.allows(review, session: session, message: message, context: currentContext(), reader: reader) {
                 CoopFlowRequestPreview(operation: review.operation)

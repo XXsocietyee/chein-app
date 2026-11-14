@@ -45,5 +45,6 @@ enum SettingsSupportSafetyCopy {
         }
         .navigationTitle(Text("settings.supportSafety.title"))
         .navigationBarTitleDisplayMode(.inline)
+        .cyDomainScreen(.player)
     }
 }

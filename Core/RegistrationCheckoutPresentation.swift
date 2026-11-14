@@ -612,7 +612,7 @@ public enum CheckoutOrderRebuildRule: Equatable {
 public enum NonRefundable24hNotice: Equatable {
     public static var badgeTitle: String { W8Text.t("本单不可退", "Non-refundable") }
     public static var modalTitle: String { W8Text.t("本单不可退", "Non-refundable") }
-    public static var modalContent: String { W8Text.t("该场次已过「集合前 24 小时」退款截止时间，支付后不可退款。确认继续下单？", "This session is past the refund deadline (24 hours before meeting), so payment can’t be refunded. Continue with the order?") }
+    public static var modalContent: String { W8Text.t("该场次已开始，支付后不可退款。确认继续下单？", "This session has started. You can't get a refund after you pay. Continue with the order?") }
     public static var confirmButtonTitle: String { W8Text.t("继续下单", "Continue") }
     public static var cancelButtonTitle: String { W8Text.t("再想想", "Not now") }
 

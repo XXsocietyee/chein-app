@@ -43,9 +43,23 @@ import SwiftUI
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
-                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "ticket")
+                            CYEmptyState(
+                                systemImage: "ticket",
+                                "accountCollection.coupons.empty",
+                                detail: "accountCollection.coupons.empty.detail",
+                                messageIdentifier: "accountCollection.coupons.empty",
+                                kind: .orders
+                            )
+                            .listRowBackground(Color.clear)
                         } else {
-                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "line.3.horizontal.decrease.circle")
+                            CYEmptyState(
+                                systemImage: "line.3.horizontal.decrease.circle",
+                                "accountCollection.coupons.filteredEmpty",
+                                detail: "accountCollection.coupons.filteredEmpty.detail",
+                                messageIdentifier: "accountCollection.coupons.filteredEmpty",
+                                kind: .search
+                            )
+                            .listRowBackground(Color.clear)
                         }
                     }
                     let selections = model.selections(for: offeredRequest, filter: filter)
@@ -64,6 +78,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
+        .cyDomainScreen(.player)
         .appNavigationTitle("accountCollection.coupons.title")
         .cyHideTabBar()
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
@@ -110,6 +125,7 @@ import SwiftUI
             appearance.end(model: model)
             if viewPresentation === appearance { viewPresentation = OwnedCouponReadViewPresentation() }
         }
+        .cyDomainScreen(.player)
     }
 }
 
@@ -138,7 +154,8 @@ struct AccountCollectionCouponRow: View {
             if coupon.shopName != nil || coupon.shopAddress != nil {
                 AccountCollectionCouponShopLine(coupon: coupon)
             }
-        }.orderCardSurface()
+        }
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
     }
 }
 

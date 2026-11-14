@@ -518,15 +518,18 @@ struct JourneySeatsView: View {
                 ready(content)
             }
         }
-        .background { MPNightGround() }
+        .cyPushedChrome(domain: .player)
         .navigationTitle(Text("mp.seats.title"))
         .navigationBarTitleDisplayMode(.large)
-        .confirmationDialog(Text("mp.seats.cancel.title"), isPresented: Binding(get: { cancelTarget != nil }, set: { if !$0 { cancelTarget = nil } }), titleVisibility: .visible) {
-            Button("mp.seats.cancel", role: .destructive) { if let target = cancelTarget { onCancel(target.invitationID) } }
-            Button("action.cancel", role: .cancel) {}
-        } message: {
-            if let target = cancelTarget { Text("mp.seats.cancel.message \(target.no)") }
+        .overlay {
+            if let target = cancelTarget {
+                PlayAreaSeatCancelModal(seatNo: target.no, onConfirm: {
+                    onCancel(target.invitationID)
+                    cancelTarget = nil
+                }, onCancel: { cancelTarget = nil })
+            }
         }
+        .cyDomainScreen(.player)
     }
 
     private func ready(_ content: JourneySeatsContent) -> some View {
@@ -628,7 +631,7 @@ struct JourneySeatsView: View {
                     MPAvatar(url: circle.avatarURL, initial: circle.initial ?? "", size: 56)
                         .overlay(Circle().strokeBorder(CYColor.textPrimary, lineWidth: 2).padding(-3))
                 } else {
-                    Circle().fill(CYNight.ink2).frame(width: 56, height: 56)
+                    Circle().fill(CYColor.bgElevated).frame(width: 56, height: 56)
                         .overlay(Text(verbatim: String(circle.no)).font(CYTypography.cardTitle).monospacedDigit())
                 }
                 if circle.kind == .me {
@@ -666,7 +669,7 @@ private struct JourneyInviteSheet: View {
             }
             .padding(CYSpacing.xl)
             .frame(maxWidth: .infinity)
-            .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
             if let url = content.inviteShareURL {
                 ShareLink(item: url, subject: Text("mp.seats.invite.fallbackTitle")) {
                     Label("mp.seats.invite.send", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
@@ -778,6 +781,7 @@ struct JourneyPromoView: View {
         .background { MPNightGround() }
         .navigationTitle(Text("mp.promo.title"))
         .navigationBarTitleDisplayMode(.large)
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private func ready(_ content: JourneyPromoContent) -> some View {

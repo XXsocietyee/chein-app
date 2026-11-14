@@ -89,16 +89,22 @@ struct ParticipationIssueView: View {
     let issue: ParticipationLoadIssue
     let retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s3) {
-            Label(LocalizedStringKey(issue.titleKey), systemImage: issue.kind == .signIn ? "lock" : "exclamationmark.circle")
-                .font(.headline).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("playerJourney.issue")
-            if issue.kind == .failed {
-                if let message = issue.serverMessage { Text(verbatim: message) }
-                else { Text(LocalizedStringKey(issue.fallbackKey)) }
+        let kind: CYStateKind = {
+            switch issue.kind {
+            case .notConfigured: return .offline
+            case .signIn: return .generic
+            case .failed: return .failure
             }
-            CYPillButton("action.retry", style: .secondary, action: retry)
-        }
-        .fixedSize(horizontal: false, vertical: true)
-        .padding(.vertical, Theme.Space.s3)
+        }()
+        let detail: Text? = issue.kind == .failed
+            ? (issue.serverMessage.map { Text(verbatim: $0) } ?? Text(LocalizedStringKey(issue.fallbackKey)))
+            : (issue.kind == .notConfigured ? Text(LocalizedStringKey(issue.fallbackKey)) : nil)
+        return CYStateLayout(
+            kind: kind,
+            title: Text(LocalizedStringKey(issue.titleKey)),
+            detail: detail,
+            primary: ("action.retry", retry)
+        )
+        .accessibilityIdentifier("playerJourney.issue")
     }
 }

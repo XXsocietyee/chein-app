@@ -98,7 +98,7 @@ import UIKit
         let cover = Binding<MerchantLedgerBatchCover?>(get: { model.state.cover }, set: { model.childPopped($0 == nil ? model.state.cover : nil) })
         List {
             if reader.isOfflineExample {
-                Text("merchant.business.synthetic").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }
             section(.overview)
             section(.entries)
@@ -132,12 +132,19 @@ import UIKit
         Section {
             switch slot.phase {
             case .idle, .loading:
-                ProgressView("merchant.loading").accessibilityIdentifier("merchant.ledgerSettlement.loading." + id.rawValue)
+                CYSkeleton(variant: id == .overview ? .merchantMetric : .row)
+                    .accessibilityIdentifier("merchant.ledgerSettlement.loading." + id.rawValue)
             case .failed:
-                if let key = slot.failureKey { Text(LocalizedStringKey(key)) }
+                if let key = slot.failureKey {
+                    Text(LocalizedStringKey(key))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                }
                 Button { model.load(id, page: slot.page) } label: {
                     Text("merchant.ledgerSettlement.retrySection", tableName: "MerchantLedgerSettlement")
-                }.accessibilityIdentifier("merchant.ledgerSettlement.retry." + id.rawValue)
+                }
+                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+                .accessibilityIdentifier("merchant.ledgerSettlement.retry." + id.rawValue)
             case .loaded:
                 loaded(id, slot)
             }
@@ -155,7 +162,7 @@ import UIKit
             switch id {
             case .overview:
                 let summary = snapshot.document.summary
-                if summary.isEmpty { Text("merchant.business.empty").foregroundStyle(.secondary) }
+                if summary.isEmpty { Text("merchant.business.empty").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
                 if let strip = MerchantLedgerParity.summary(summary, canReadFinance: snapshot.access.allows("merchant:finance:read")) {
                     MerchantLedgerSummaryStrip(summary: strip, usesKit: false)
                 }
@@ -168,7 +175,7 @@ import UIKit
                 }
             case .entries:
                 if snapshot.document.rows.isEmpty {
-                    Text("merchant.ledgerSettlement.emptyEntries", tableName: "MerchantLedgerSettlement").foregroundStyle(.secondary)
+                    CYEmptyState(systemImage: "list.bullet.rectangle", LocalizedStringKey("merchant.ledgerSettlement.emptyEntries"), tableName: "MerchantLedgerSettlement")
                 }
                 ForEach(snapshot.document.rows) { row in
                     MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchant.ledgerSettlement.entry." + row.id)
@@ -176,7 +183,7 @@ import UIKit
                 pages(id, slot)
             case .batches:
                 if snapshot.document.rows.isEmpty {
-                    Text("merchant.ledgerSettlement.emptyBatches", tableName: "MerchantLedgerSettlement").foregroundStyle(.secondary)
+                    CYEmptyState(systemImage: "tray", LocalizedStringKey("merchant.ledgerSettlement.emptyBatches"), tableName: "MerchantLedgerSettlement")
                 }
                 ForEach(snapshot.document.rows) { row in
                     Button { if let batchID = Int(row.id) { model.openBatch(batchID) } } label: {
@@ -272,13 +279,15 @@ import UIKit
     var body: some View {
         let slot = model.state.slot
         List {
-            if slot.isLoading { ProgressView("merchant.loading") }
+            if slot.isLoading {
+                Section { CYSkeleton(variant: .detail) }.listRowBackground(Color.clear)
+            }
             if let key = slot.failureKey {
-                ContentUnavailableView {
-                    Label(LocalizedStringKey(key), systemImage: "exclamationmark.triangle")
-                } actions: {
-                    Button("action.retry") { model.appear() }.disabled(slot.isLoading)
+                Section {
+                    CYErrorState(kind: .server, message: LocalizedStringKey(key)) { model.appear() }
+                        .disabled(slot.isLoading)
                 }
+                .listRowBackground(Color.clear)
             }
             if let snapshot = slot.snapshot, let batch = snapshot.document.sections.first(where: { $0.id == "batch" })?.rows.first {
                 let count = detailCount(snapshot.document)
@@ -291,12 +300,13 @@ import UIKit
             }
         }
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .cyDomainScreen(.merchant)
         .navigationTitle(Text("merchant.business.batch"))
         .onAppear { model.appear() }
         .onDisappear { model.disappear() }
         .onChange(of: reader.scope) { _, _ in model.appear() }
         .onChange(of: reader.authorizationGeneration) { _, _ in model.appear() }
+        .cyDomainScreen(.merchant)
     }
     private func detailCount(_ document: MerchantBusinessDocument) -> Int {
         document.sections.reduce(0) { count, section in

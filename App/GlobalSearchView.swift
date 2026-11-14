@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct GlobalSearchView<Destination: View>: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.themeDomain) private var themeDomain
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// Player-first: shops/merchants are not a player search target (no chip, no wording, no rows).
     private var hidesMerchants: Bool { themeDomain == .player }
     private var searchKinds: [GlobalSearchKind] { GlobalSearchKind.allCases.filter { !(hidesMerchants && $0 == .merchant) } }
@@ -68,7 +69,7 @@ import SwiftUI
                         .frame(minHeight: 44)
                     // Mini-program field: 搜索中 spinner while a search runs, clear (x) once there is text.
                     if loading {
-                        ProgressView().controlSize(.small).accessibilityLabel(Text("searchMap.loading"))
+                        ProgressView().controlSize(.small).tint(CYColor.resultSpinner).accessibilityLabel(Text("searchMap.loading"))
                     }
                     if !filter.keyword.isEmpty {
                         Button { setKeyword("") } label: {
@@ -93,6 +94,7 @@ import SwiftUI
                             .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }
                     .buttonStyle(.plain).fixedSize()
+                    .pageTemplateControl(label: Text("searchMap.filters"), traits: .isButton)
                     .accessibilityIdentifier("searchMap.filters")
                 }
                 .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
@@ -220,7 +222,7 @@ import SwiftUI
                     ForEach(history, id: \.self) { keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                                .lineLimit(1).minimumScaleFactor(0.85)
+                                .cyWrapText(alignment: .center)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
                                 .contentShape(Capsule())
@@ -246,7 +248,7 @@ import SwiftUI
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                                .lineLimit(1).minimumScaleFactor(0.85)
+                                .cyWrapText(alignment: .center)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
                                 .contentShape(Capsule())
@@ -317,6 +319,7 @@ import SwiftUI
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
+            .pageTemplateControl(label: Text("searchMap.citySearch"), traits: .isButton)
             .accessibilityIdentifier("searchMap.citySearch")
             Menu {
                 Button { mapRoute = .nearby } label: { Label("searchMap.nearby", systemImage: "location") }
@@ -336,6 +339,10 @@ import SwiftUI
                 .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
+            .pageTemplateControl(
+                label: Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find")),
+                traits: .isButton
+            )
             .accessibilityIdentifier("searchMap.more")
         }
         .listRowBackground(Color.clear)
@@ -381,17 +388,32 @@ import SwiftUI
                     if let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
                 }
                 if !value.failedKinds.isEmpty {
-                    // Mini-program info banner: one line of copy with 重试本页 trailing.
-                    HStack(spacing: CYSpacing.md) {
-                        Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
-                        Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
-                            .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: CYSpacing.sm)
-                        Button("searchMap.retryPage") { Task { await search() } }
-                            .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                    // Mini-program info banner: one line of copy with 重试本页 trailing, stacking vertically at >= .xxLarge.
+                    Group {
+                        if dynamicTypeSize >= .xxLarge {
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                HStack(alignment: .top, spacing: CYSpacing.md) {
+                                    Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                                    Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
+                                        .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Button("searchMap.retryPage") { Task { await search() } }
+                                    .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                            }
+                        } else {
+                            HStack(spacing: CYSpacing.md) {
+                                Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                                Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
+                                    .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: CYSpacing.sm)
+                                Button("searchMap.retryPage") { Task { await search() } }
+                                    .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                            }
+                        }
                     }
-                    .listRowBackground(CYNight.indigo)
+                    .listRowBackground(CYColor.bgElevated)
                     .accessibilityIdentifier("searchMap.partialFailure")
                 }
             }
@@ -437,27 +459,21 @@ import SwiftUI
     private func countText(_ value: GlobalSearchResults, _ kind: GlobalSearchKind) -> String {
         GlobalSearchEntryReadiness.countText(value, kind: kind) ?? String(value.count(kind))
     }
-    private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
+    @ViewBuilder private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind
-        return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
-            title.font(CYTypography.bodyMedium).lineLimit(1)
+        let pill = Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
+            title.font(CYTypography.bodyMedium).cyWrapText(alignment: .center).monospacedDigit()
                 .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .searchNightPill(selected: selected)
         }
         .buttonStyle(.plain).cyHaptic(.selection, trigger: selectedKind)
         .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-    private func kindPicker(_ value: GlobalSearchResults) -> some View {
-        Picker("searchMap.resultKinds", selection: $selectedKind) {
-            Text("searchMap.all").tag(GlobalSearchKind?.none)
-            ForEach(searchKinds, id: \.self) { kind in
-                (Text(kind.titleKey) + Text(verbatim: " \(countText(value, kind))"))
-                    .tag(Optional(kind))
-                    .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
-            }
+        if let kind {
+            pill.accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
+        } else {
+            pill
         }
-        .labelsHidden()
     }
     private func applyFilter(_ next: GlobalSearchQuery) {
         // Invalidate synchronously, including category-only searches cleared to an empty query.

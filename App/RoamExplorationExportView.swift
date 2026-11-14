@@ -31,6 +31,7 @@ import UniformTypeIdentifiers
                     .accessibilityIdentifier("roam.export.screen")
             }
         }.appNavigationTitle("roam.export.title").navigationBarTitleDisplayMode(.inline)
+        .cyDomainScreen(.player)
     }
 }
 

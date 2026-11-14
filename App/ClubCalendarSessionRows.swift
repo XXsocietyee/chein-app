@@ -99,6 +99,7 @@ import SwiftUI
         .onAppear { visible = true }
         .onDisappear { visible = false; model.suspend(); model.invalidate() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.suspend(); model.invalidate() } }
+        .cyDomainScreen(.player)
     }
     private func reload() async {
         guard loadKey.active else { return }

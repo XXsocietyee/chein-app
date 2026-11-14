@@ -30,6 +30,7 @@ import SwiftUI
     let current: () -> Bool
     @Environment(\.scenePhase) private var scene
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     @State private var title = ""
     @State private var maxSlots = "0"
     @State private var hasDeadline = false
@@ -81,9 +82,16 @@ import SwiftUI
         .onChange(of: current()) { _, valid in if !valid { retireScreen() } }
         .onChange(of: scene) { _, phase in if phase != .active { retireScreen() } }
         .onDisappear { retireScreen() }
-        .confirmationDialog("d7.chain.retry.title", isPresented: $retryPresented, titleVisibility: .visible) {
-            Button("d7.channelActivity.retry") { run { current in await flow.retryOriginal(); guard current() else { return }; await refreshAfterSettlement() } }
-            Button("d7.channelActivity.cancel", role: .cancel) {}
+        .sheet(isPresented: $retryPresented) {
+            CYConfirmSheet(
+                title: appLocalized("d7.chain.retry.title", locale: locale),
+                message: "",
+                confirmTitle: appLocalized("d7.channelActivity.retry", locale: locale),
+                cancelTitle: appLocalized("d7.channelActivity.cancel", locale: locale)
+            ) {
+                run { current in await flow.retryOriginal(); guard current() else { return }; await refreshAfterSettlement() }
+            }
+            .cyDomainSheet(detents: [.peek, .half])
         }
     }
     @ViewBuilder private func chainPage(_ page: NativeChannelChainPage) -> some View {

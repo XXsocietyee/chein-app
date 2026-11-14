@@ -156,6 +156,7 @@ struct VideoBountyView: View {
         .cyAnimation(value: tab)
         .refreshable { onLoad() }
         .background { MPNightGround() }
+        .cyDomainScreen(.player)
         .navigationTitle(Text("mp.vb.title"))
         .navigationBarTitleDisplayMode(.large)
         .onChange(of: state.submitRevision) { _, _ in
@@ -171,6 +172,7 @@ struct VideoBountyView: View {
             Button("mp.vb.cancel.confirm", role: .destructive) { if let target = cancelTarget { onCancel(target.id) } }
             Button("mp.vb.cancel.keep", role: .cancel) {}
         } message: { Text("mp.vb.cancel.message") }
+        .cyDomainScreen(.player)
     }
 
     // MARK: Form (ops link only)
@@ -242,12 +244,12 @@ struct VideoBountyView: View {
 
     private func submissionRow(_ row: VideoBountySubmissionRow) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            CYStatusChip(row.status.label, tone: .neutral, systemImage: "film")
             HStack(spacing: CYSpacing.xs) {
                 if let platform = row.platform { Text(verbatim: platform.label) } else { Text("mp.vb.video") }
-                Text(verbatim: "·")
-                Text(row.status.label)
             }
             .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
             if let url = row.sourceURL, !url.isEmpty {
                 Text(verbatim: url).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).truncationMode(.middle)
             }

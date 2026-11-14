@@ -12,6 +12,7 @@ import SwiftUI
     @State private var replaceExample = false
     @State private var validationTask: Task<Void, Never>?
     @FocusState private var sourceFocused: Bool
+    @Environment(\.locale) private var locale
     private var raw: String { model.draft.preferenceJson ?? "" }
     private var editable: Bool { model.canEdit && model.draft.id == nil && model.draft.validationMethod == .preference }
     private var currentReport: TemplatePreferenceDraftCheck? {
@@ -73,13 +74,20 @@ import SwiftUI
         .onChange(of: model.coordinator.identity) { _, _ in invalidate(); replaceExample = false }
         .onChange(of: model.coordinator.session) { _, _ in invalidate(); replaceExample = false }
         .onDisappear { sourceFocused = false; invalidate(); replaceExample = false }
-        .confirmationDialog("templateAuthor.preference.replaceQuestion", isPresented: $replaceExample, titleVisibility: .visible) {
-            Button("templateAuthor.preference.replace", role: .destructive) {
-                guard editable else { return }
-                invalidate()
-                model.draft.preferenceJson = TemplatePreferenceDraftCheck.example; model.changed()
-            }
-            Button("templateAuthor.cancel", role: .cancel) {}
+        .sheet(isPresented: $replaceExample) {
+            CYConfirmSheet(
+                title: appLocalized("templateAuthor.preference.replaceQuestion", locale: locale),
+                confirmTitle: appLocalized("templateAuthor.preference.replace", locale: locale),
+                isDestructive: true,
+                onConfirm: {
+                    guard editable else { return }
+                    invalidate()
+                    model.draft.preferenceJson = TemplatePreferenceDraftCheck.example
+                    model.changed()
+                }
+            )
+            .cyDomainSheet(detents: [.half])
+            .themeDomain(.topicEditor)
         }
     }
     private func invalidate() {

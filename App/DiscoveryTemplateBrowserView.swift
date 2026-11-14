@@ -10,6 +10,9 @@ struct DiscoveryTemplateBrowserView: View {
     let imageReader: (any RetainedPublicImageReading)?
     /// Mini-program merchant scope; staff without project management only browse.
     let templateTabScope: TemplateTabScope
+    /// True when merchant access failed to load (show retry banner rather than asserting readonly).
+    let merchantAccessError: Bool
+    let onRetryMerchantAccess: (() -> Void)?
     /// Mini-program template tab: the "+" opens the publish menu. Hidden for staff who only browse.
     let publishDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
@@ -37,33 +40,61 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, keyword: appliedKeyword) }
     private var hasGameKeyword: Bool { !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false) {
         _tab = State(initialValue: startOnGames ? .games : .topics)
         self.publishDestination = publishDestination
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
-        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion; self.templateTabScope = templateTabScope
+        self.imageReader = imageReader; self.authoringCompletion = authoringCompletion
+        self.templateTabScope = templateTabScope
+        self.merchantAccessError = merchantAccessError
+        self.onRetryMerchantAccess = onRetryMerchantAccess
     }
 
     var body: some View {
         Group {
             if !reader.isConfigured {
-                ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYEmptyState(
+                    systemImage: "network.slash",
+                    "discovery.unavailable",
+                    detail: "auth.notConfigured",
+                    messageIdentifier: "discovery.unavailable",
+                    kind: .offline
+                )
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                         GameplayPresetSection(canDraft: !templateTabScope.isStaffReadOnly)
-                        if templateTabScope == .merchant(canManageProjects: false) {
-                            Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
-                                .foregroundStyle(palette.textSecondary)
-                                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
-                                .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+                            .pageTemplateReadingOrder(10)
+                        if merchantAccessError || (templateTabScope == .merchant(canManageProjects: nil) && onRetryMerchantAccess != nil) {
+                            if let onRetryMerchantAccess {
+                                Button(action: onRetryMerchantAccess) {
+                                    CYNoteBanner(text: Text("discovery.templateTab.accessRetry"), symbol: "arrow.clockwise", tone: .warning)
+                                }
+                                .cyPressable()
+                                .accessibilityIdentifier("discovery.templateTab.retryAccess")
+                            } else {
+                                CYNoteBanner(text: Text("discovery.templateTab.accessRetry"), symbol: "exclamationmark.triangle", tone: .warning)
+                                    .accessibilityIdentifier("discovery.templateTab.retryAccess")
+                            }
+                        } else if templateTabScope == .merchant(canManageProjects: false) {
+                            HStack(alignment: .top, spacing: CYSpacing.sm) {
+                                Image(systemName: "lock.fill").foregroundStyle(palette.warning).accessibilityHidden(true)
+                                Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
+                                    .foregroundStyle(palette.textSecondary)
+                                    .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                            .accessibilityAddTraits(.isStaticText)
+                            .pageTemplateReadingOrder(40)
                         }
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)
                             Text("discovery.games").tag(Shelf.games)
                         }.pickerStyle(.segmented).accessibilityIdentifier("discovery.shelf")
-                        if tab == .topics { topicShelf }
-                        else { gameShelf }
+                            .pageTemplateReadingOrder(30)
+                        if tab == .topics { topicShelf.pageTemplateReadingOrder(20) }
+                        else { gameShelf.pageTemplateReadingOrder(20) }
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.vertical, CYSpacing.lg)
@@ -71,12 +102,14 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
         .appNavigationTitle("discovery.templateTab.title")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {
                     NavigationLink { publishDestination() } label: {
                         Label("discovery.templateTab.publish", systemImage: "plus")
-                    }.accessibilityIdentifier("discovery.templateTab.publish")
+                    }.pageTemplateControl(label: Text("discovery.templateTab.publish"), traits: .isButton)
+                        .accessibilityIdentifier("discovery.templateTab.publish")
                 }
             }
         }
@@ -147,12 +180,14 @@ struct DiscoveryTemplateBrowserView: View {
             TextField(prompt, text: text)
                 .submitLabel(.search)
                 .onSubmit(submit)
+                .accessibilityLabel(Text(prompt))
                 .accessibilityIdentifier(field)
                 .accessibilityLabel(Text(prompt))
                 .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
                 .accessibilityHint(Text("discovery.searchAction"))
             Button("discovery.searchAction", action: submit)
                 .font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                .pageTemplateControl(label: Text("discovery.searchAction"), traits: .isButton)
                 .accessibilityIdentifier(submitID ?? "\(field).submit")
                 .accessibilityLabel(Text("discovery.searchAction"))
                 .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
@@ -161,22 +196,20 @@ struct DiscoveryTemplateBrowserView: View {
         .padding(.horizontal, CYSpacing.lg)
         .frame(minHeight: CYSpacing.minTouchTarget)
         .background(palette.bgElevated, in: Capsule(style: .continuous))
-        .overlay { Capsule(style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1).allowsHitTesting(false) }
     }
 
     private func filterChip(_ title: Text, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            title.font(CYTypography.meta.weight(.semibold)).lineLimit(1)
+            title.font(CYTypography.meta.weight(.semibold)).cyWrapText(alignment: .center)
                 .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textSecondary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: CYSpacing.minTouchTarget)
                 .background(selected ? palette.actionPrimaryBg : Color.clear, in: Capsule(style: .continuous))
                 .overlay { Capsule(style: .continuous).strokeBorder(selected ? Color.clear : palette.borderStrong, lineWidth: 1) }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
+        .pageTemplateControl(label: title, traits: selected ? [.isButton, .isSelected] : .isButton)
         .accessibilityValue(title)
         .accessibilityHint(title)
-        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     @ViewBuilder private var topicShelf: some View {
@@ -201,7 +234,7 @@ struct DiscoveryTemplateBrowserView: View {
         }
         shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
         if let error = topics.error {
-            DiscoveryErrorView(error: error) { Task { await loadTopics() } }
+            shelfIssue(error) { Task { await loadTopics() } }
         }
         if topics.isLoading {
             if topics.value == nil { CYSkeleton() } else { DiscoveryTemplateSyncingRow(hasLoadedRows: true) }
@@ -256,7 +289,7 @@ struct DiscoveryTemplateBrowserView: View {
         if hasGameKeyword {
             if games.isLoading { CYSkeleton() }
             if let error = games.error {
-                DiscoveryErrorView(error: error) { Task { await loadGames() } }
+                shelfIssue(error) { Task { await loadGames() } }
             }
             if let rows = games.value {
                 let matched = keywordGames(rows)
@@ -275,7 +308,7 @@ struct DiscoveryTemplateBrowserView: View {
         } else {
             if home.isLoading { CYSkeleton() }
             if let error = home.error {
-                DiscoveryErrorView(error: error) { Task { await loadHome() } }
+                shelfIssue(error) { Task { await loadHome() } }
             }
             if let value = home.value {
                 if value.isEmpty { CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames") }
@@ -312,7 +345,8 @@ struct DiscoveryTemplateBrowserView: View {
                                     DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle)
                                         .foregroundStyle(palette.textPrimary)
                                     if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary).lineLimit(2)
+                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                                            .fixedSize(horizontal: false, vertical: true)
                                     }
                                     DiscoveryTopicMetadata(item: item)
                                 }
@@ -320,6 +354,7 @@ struct DiscoveryTemplateBrowserView: View {
                             }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         }
                     }.buttonStyle(.plain).allowsHitTesting(topics.canOpen(reader: reader))
+                        .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
                         .accessibilityIdentifier("discovery.topic.\(item.id)")
                 }
             }
@@ -343,11 +378,60 @@ struct DiscoveryTemplateBrowserView: View {
                             DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         }
                     }.buttonStyle(.plain)
+                    .pageTemplateGroupedCard(label: gameCardLabel(item), traits: .isButton)
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }
             }
         }
     }
+    @ViewBuilder private func shelfIssue(_ error: Error, retry: @escaping () -> Void) -> some View {
+        let reason = error as? DiscoveryTemplateUnavailable
+        let unauthorized = (error as? APIError) == .unauthorized
+        let offline = reason == .offline || (error as? URLError)?.code == .notConnectedToInternet
+        let title: LocalizedStringKey
+        let detail: LocalizedStringKey?
+        if unauthorized {
+            title = "discovery.signInRequired"
+            detail = "discovery.signInHint"
+        } else if reason == .notFound || reason == .deleted {
+            title = "discovery.templateMissing"
+            detail = "discovery.templateMissingHint"
+        } else if reason == .underReview {
+            title = "discovery.templateReview"
+            detail = "discovery.templateReviewHint"
+        } else if reason == .offline {
+            title = "discovery.templateOffline"
+            detail = "discovery.templateOfflineHint"
+        } else {
+            title = "discovery.loadFailed"
+            detail = nil
+        }
+        let canRetry = !unauthorized && (reason?.retryable ?? true)
+        CYStateLayout(
+            kind: offline ? .offline : .failure,
+            title: Text(title),
+            detail: detail.map { Text($0) },
+            primary: canRetry ? (title: "action.retry", action: retry) : nil,
+            primaryIdentifier: canRetry ? "discovery.retry" : nil
+        )
+    }
+
+    private func topicCardLabel(_ item: DiscoveryTopicTemplate) -> Text {
+        let name = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: name)
+        let subtitle = item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if subtitle.isEmpty { return title }
+        return title + Text(verbatim: ", ") + Text(verbatim: subtitle)
+    }
+
+    private func gameCardLabel(_ item: DiscoveryPlayTemplate) -> Text {
+        let name = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = name.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: name)
+        let detail = item.description?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if detail.isEmpty { return title }
+        return title + Text(verbatim: ", ") + Text(verbatim: detail)
+    }
+
     private func applyTopicSearch() {
         appliedTopicSearch = DiscoveryTopicTemplateNameSearch(topicKeyword)
         topicSearchFocused = false

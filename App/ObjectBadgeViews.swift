@@ -99,7 +99,9 @@ struct ObjectBadgeWallLayoutSelection {
                     }
                 }
             }
-        }.scrollContentBackground(.hidden).cyDomainPageBackground().appNavigationTitle("profile.badges.title").cyHideTabBar()
+        }.scrollContentBackground(.hidden).cyDomainPageBackground().appNavigationTitle("profile.badges.title")
+            .navigationBarTitleDisplayMode(.large)
+            .cyHideTabBar()
             // The typed internal badge-path entry is not a player feature and is not offered here.
             .onChange(of: layoutOwner) { _, _ in layoutSelection.retire() }
     }
@@ -417,7 +419,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                 if media == nil || badge.image.isEmpty {
                     ZStack {
                         LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Image(systemName: "medal.fill").font(.system(size: 76, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
+                        Image(systemName: "medal.fill").font(CYTypography.data2XL).foregroundStyle(.white.opacity(0.92))
                             .symbolEffect(.bounce, value: celebrate && !reduceMotion)
                     }
                 } else {

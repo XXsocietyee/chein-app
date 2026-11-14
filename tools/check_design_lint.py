@@ -21,36 +21,7 @@ KINDS = (RAW_HEX, FIXED_FONT, VIOLET)
 
 # Files that already violate the rule on this tree, with the hit count of
 # each kind. Keyed by file so a clean file stays clean and a new hit fails.
-ALLOWLIST = {
-    'App/AccountComplianceViews.swift': {FIXED_FONT: 1},
-    'App/AuthChannelView.swift': {FIXED_FONT: 1},
-    'App/TicketWalletView.swift': {FIXED_FONT: 2, VIOLET: 1},
-    'App/ChatMessageBubble.swift': {VIOLET: 1},
-    'App/CityArrivalEvidenceView.swift': {FIXED_FONT: 1},
-    'App/ClubComponents.swift': {RAW_HEX: 1, FIXED_FONT: 1},
-    'App/ClubPostDiscussion.swift': {FIXED_FONT: 1},
-    'App/CoopSettlementDetailView.swift': {FIXED_FONT: 1},
-    'App/CreatorApplicationView.swift': {FIXED_FONT: 1, VIOLET: 1},
-    'App/DesignFixtures/E3Fixtures.swift': {VIOLET: 1},
-    'App/DiceD20View.swift': {FIXED_FONT: 1},
-    'App/E1CommerceComponents.swift': {FIXED_FONT: 2},
-    'App/HomeSearchTabParityViews.swift': {FIXED_FONT: 1},
-    'App/IMInboxViews.swift': {FIXED_FONT: 1},
-    'App/MerchantBusinessEditor.swift': {RAW_HEX: 1},
-    'App/ObjectBadgeViews.swift': {FIXED_FONT: 1},
-    'App/OrderLifecycleView.swift': {FIXED_FONT: 1},
-    'App/PlayJourneyContentViews.swift': {FIXED_FONT: 1},
-    'App/PlayKitTimedChallengeView.swift': {FIXED_FONT: 5},
-    'App/ProfileComplaintPreparationView.swift': {FIXED_FONT: 1},
-    'App/PublishingContextHandoffViews.swift': {RAW_HEX: 1, VIOLET: 1},
-    'App/PushNotificationAndLiveActivitySectionView.swift': {VIOLET: 1},
-    'App/RoamPassportToolsViews.swift': {FIXED_FONT: 1},
-    'App/SettingsView.swift': {VIOLET: 4},
-    'App/ShopNPCView.swift': {FIXED_FONT: 2},
-    'App/SocialGuideViews.swift': {FIXED_FONT: 1},
-    'App/WalletCommerceViews.swift': {FIXED_FONT: 2},
-    'App/WelcomeView.swift': {FIXED_FONT: 1},
-}
+ALLOWLIST = {}
 
 HEX_COLOR = re.compile(
     r'(?<![\w])(?:"#[0-9A-Fa-f]{8}"|"#[0-9A-Fa-f]{6}"|"#[0-9A-Fa-f]{3}"'
@@ -319,10 +290,20 @@ def check_rules():
     if not problems({'App/New.swift': [Finding(1, FIXED_FONT, '.system(size:')]}, {'App/New.swift'}):
         raise SystemExit('design-lint allowed a new fixed font size')
     welcome = [Finding(1, FIXED_FONT, '.system(size:')]
-    if not problems({'App/WelcomeView.swift': welcome * 2}, {'App/WelcomeView.swift'}):
-        raise SystemExit('design-lint allowed an extra fixed font size in an allowlisted file')
-    if not problems({}, {'App/WelcomeView.swift'}):
-        raise SystemExit('design-lint kept a stale allowlist entry')
+    # The production allowlist is empty. These two checks still prove a listed
+    # file cannot grow a hit or keep an entry after the hit is gone.
+    previous = ALLOWLIST.get('App/WelcomeView.swift')
+    ALLOWLIST['App/WelcomeView.swift'] = {FIXED_FONT: 1}
+    try:
+        if not problems({'App/WelcomeView.swift': welcome * 2}, {'App/WelcomeView.swift'}):
+            raise SystemExit('design-lint allowed an extra fixed font size in an allowlisted file')
+        if not problems({}, {'App/WelcomeView.swift'}):
+            raise SystemExit('design-lint kept a stale allowlist entry')
+    finally:
+        if previous is None:
+            ALLOWLIST.pop('App/WelcomeView.swift', None)
+        else:
+            ALLOWLIST['App/WelcomeView.swift'] = previous
 
 
 def main():

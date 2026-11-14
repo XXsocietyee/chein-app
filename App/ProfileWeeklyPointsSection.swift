@@ -99,15 +99,13 @@ import Observation
             // One stable child owns the lifecycle, including loading and unavailable states.
             VStack(alignment: .leading, spacing: 10) {
                 switch model.state {
-                case .loading: ProgressView("profile.loading").accessibilityIdentifier("profile.weekly.loading")
+                case .loading: CYLoadingState("profile.loading", messageIdentifier: "profile.weekly.loading")
                 case .unavailable:
-                    Text("profile.weekly.unavailable").foregroundStyle(.secondary)
-                        .accessibilityIdentifier("profile.weekly.unavailable")
-                case .signIn: Text("profile.signInRequired").accessibilityIdentifier("profile.weekly.signIn")
-                case .changed: Text("social.changed").accessibilityIdentifier("profile.weekly.changed")
+                    CYEmptyState(systemImage: "wifi.slash", "profile.weekly.unavailable", messageIdentifier: "profile.weekly.unavailable", kind: .offline)
+                case .signIn: CYEmptyState(systemImage: "person.crop.circle", "profile.signInRequired", messageIdentifier: "profile.weekly.signIn")
+                case .changed: CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "social.changed", messageIdentifier: "profile.weekly.changed")
                 case .failed:
-                    Text("profile.loadFailed").accessibilityIdentifier("profile.weekly.error")
-                    Button("action.retry") { model.refresh() }.accessibilityIdentifier("profile.weekly.retry")
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "profile.loadFailed", messageIdentifier: "profile.weekly.error", actionTitle: "action.retry", actionIdentifier: "profile.weekly.retry", kind: .failure) { model.refresh() }
                 case .content(let value):
                     LabeledContent("profile.weekly.points", value: String(value.weekPoints))
                         .accessibilityIdentifier("profile.weekly.points")

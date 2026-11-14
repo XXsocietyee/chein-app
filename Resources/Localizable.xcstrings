@@ -4,113 +4,273 @@
     "requestReference.label": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Request reference (for support)"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "请求编号（反馈问题时提供）"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request reference (for support)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求编号（反馈问题时提供）"
+          }
+        }
       }
     },
     "requestReference.copy": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Copy"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "复制"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制"
+          }
+        }
       }
     },
     "requestReference.copied": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Copied"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已复制"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制"
+          }
+        }
       }
     },
     "privacy.location.holds.title": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Location in use now"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "正在使用定位"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location in use now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在使用定位"
+          }
+        }
       }
     },
     "privacy.location.holds.roam": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This device is collecting location for roam"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机正在为漫游采集位置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device is collecting location for roam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机正在为漫游采集位置"
+          }
+        }
       }
     },
     "privacy.location.holds.play": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This device is using location for a play run (only while it is open)"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机正在为游玩使用定位（仅前台）"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device is using location for a play run (only while it is open)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机正在为游玩使用定位（仅前台）"
+          }
+        }
       }
     },
     "privacy.location.holds.background": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Also when the screen is locked"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "锁屏后仍在记录"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also when the screen is locked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁屏后仍在记录"
+          }
+        }
       }
     },
     "privacy.location.holds.none": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This device is not collecting location for roam or play"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机未在为漫游或游玩采集位置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device is not collecting location for roam or play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机未在为漫游或游玩采集位置"
+          }
+        }
       }
     },
     "privacy.location.holds.stop": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Stop"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "停止"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
+          }
+        }
       }
     },
     "privacy.location.holds.footer": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Stop ends that session's location on this device now. Your location is never shared with other players."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "停止后本机立即结束该行程的定位。你的位置不会分享给其他玩家。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop ends that session's location on this device now. Your location is never shared with other players."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止后本机立即结束该行程的定位。你的位置不会分享给其他玩家。"
+          }
+        }
       }
     },
     "roam.live.backgroundLocationOn": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Recording your route, also when the screen is locked"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "锁屏后仍在记录轨迹"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording your route, also when the screen is locked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁屏后仍在记录轨迹"
+          }
+        }
       }
     },
     "roam.live.backgroundLocationHint": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Pause or finish the walk to stop location."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂停或结束漫游即停止定位"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause or finish the walk to stop location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停或结束漫游即停止定位"
+          }
+        }
       }
     },
     "wallet.points.spendRules": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Points spending"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "积分消耗"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points spending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分消耗"
+          }
+        }
       }
     },
     "wallet.points.spendUsedCount": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Times used"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已用次数"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Times used"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用次数"
+          }
+        }
       }
     },
     "registration.form.points.noPoints": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No points available"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂无可用积分"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可用积分"
+          }
+        }
       }
     },
     "registration.form.points.ticketRefuses": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This ticket doesn’t support points"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该票不支持积分抵扣"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ticket doesn’t support points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该票不支持积分抵扣"
+          }
+        }
       }
     },
     "beGapIm.entry": {
@@ -4909,13 +5069,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Service unavailable"
+            "value": "Service is not ready yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "服务不可用"
+            "value": "当前服务暂未就绪"
           }
         }
       }
@@ -43072,13 +43232,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon codes are unavailable"
+            "value": "Coupon codes are not open yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券出示码暂不可用"
+            "value": "优惠券出示码暂未开放"
           }
         }
       }
@@ -43089,13 +43249,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon code display is currently unavailable. Contact the administrator."
+            "value": "Coupon code display is not open right now. Check with the organizer or administrator."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券出示码暂不可用，请联系管理员"
+            "value": "优惠券出示码暂未开放，请联系管理员"
           }
         }
       }
@@ -51470,13 +51630,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your map and lit tiles are here; new content waits for the network."
+            "value": "Saved content is still here; new updates wait for the network."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地图和已点亮的格子还在；新内容等网络回来"
+            "value": "已缓存的内容还在；新内容等网络回来后再更新"
           }
         }
       }
@@ -67003,13 +67163,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not available"
+            "value": "Unknown"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无数据"
+            "value": "未知"
           }
         }
       }
@@ -113898,13 +114058,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request failed"
+            "value": "Did not go through. Try sending again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求失败"
+            "value": "没发出去，再试一次"
           }
         }
       }
@@ -122531,7 +122691,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "— joined"
+            "value": "Group size —"
           }
         },
         "zh-Hans": {
@@ -237631,13 +237791,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unable to load content right now"
+            "value": "Could not load this right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法加载内容"
+            "value": "内容没加载出来"
           }
         }
       }
@@ -239263,13 +239423,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please check your network connection and try again"
+            "value": "Check your connection and try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请检查网络连接后重试"
+            "value": "检查网络后再试一次"
           }
         }
       }
@@ -275650,6 +275810,1206 @@
           "stringUnit": {
             "state": "translated",
             "value": "已离线保存，将于联网后自动发送"
+          }
+        }
+      }
+    },
+    "cy.progress.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read progress. Node status is unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度没读出来，暂时无法确认当前节点状态"
+          }
+        }
+      }
+    },
+    "accountCollection.coupons.empty.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join an activity or claim a coupon and it will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参加活动或领券后，可用优惠券会显示在这里"
+          }
+        }
+      }
+    },
+    "accountCollection.coupons.filteredEmpty.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try another status filter or clear your search."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换上方筛选状态，或清空搜索关键词再看看"
+          }
+        }
+      }
+    },
+    "searchMap.w208.sheet.failed.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your connection and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查网络后再试一次"
+          }
+        }
+      }
+    },
+    "citySnapshot.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snapshot expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图快照已过期"
+          }
+        }
+      }
+    },
+    "citySnapshot.unloaded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图没加载出来"
+          }
+        }
+      }
+    },
+    "nearby.w208.mine.membersUnknownCap %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—/%lld joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已组 —/%lld"
+          }
+        }
+      }
+    },
+    "discovery.templateTab.accessRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load role permissions. Tap to retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "岗位权限没加载出来，点此重试"
+          }
+        }
+      }
+    },
+    "template.cap.emptyState": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No activity stops arranged yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无玩法安排"
+          }
+        }
+      }
+    },
+    "playx.poi.navigate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Directions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导航"
+          }
+        }
+      }
+    },
+    "playx.poi.writeCitySlip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a city slip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写一张城市签"
+          }
+        }
+      }
+    },
+    "playkit.photo.judging": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核中…"
+          }
+        }
+      }
+    },
+    "playkit.photo.uploadFailedRetake": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload failed. Please retake."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传失败，请重拍"
+          }
+        }
+      }
+    },
+    "playkit.photo.submitFailedKept": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission failed. Your photo is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交失败，照片已保留"
+          }
+        }
+      }
+    },
+    "playkit.photo.resubmit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resubmit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新提交"
+          }
+        }
+      }
+    },
+    "playkit.media.openSettings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去设置"
+          }
+        }
+      }
+    },
+    "team.consequence.disband.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All teammates are removed and the team chat closes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部队员会被移出队伍，队伍群聊同时关闭"
+          }
+        }
+      }
+    },
+    "team.consequence.disband.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No refunds are triggered; everyone's tickets stay valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会触发任何退款；队员各自的票仍然有效，需要自己去核销"
+          }
+        }
+      }
+    },
+    "team.consequence.disband.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; team and chat history cannot be restored"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，队伍与聊天记录无法恢复"
+          }
+        }
+      }
+    },
+    "team.consequence.leave.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You lose team-chat access"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你会失去队伍群聊入口"
+          }
+        }
+      }
+    },
+    "team.consequence.leave.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you are the captain, leadership passes to the earliest-joined teammate; if only you remain, the team disbands"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你是队长的话，队长会移交给最早加入的队员；只剩你一人时队伍直接解散"
+          }
+        }
+      }
+    },
+    "team.consequence.leave.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; you need a new invitation to rejoin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，需要重新被邀请才能回到这支队伍"
+          }
+        }
+      }
+    },
+    "team.consequence.remove.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They lose team-chat access and receive an inbox notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会收到站内通知，并失去队伍群聊入口"
+          }
+        }
+      }
+    },
+    "team.consequence.remove.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removal does not refund tickets; their ticket stays valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移出不同步退票，对方的票仍然有效"
+          }
+        }
+      }
+    },
+    "team.consequence.remove.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; they cannot rejoin with an invite code or apply again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销；被移出的人不能用邀请码回来，也不能再次申请加入"
+          }
+        }
+      }
+    },
+    "team.leaveInsteadHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leadership passes to the earliest-joined teammate and the team stays"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长会移交给最早加入的队员，队伍留着"
+          }
+        }
+      }
+    },
+    "nearby.consequence.reject.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The applicant sees Not Approved in My Teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会在「我的队伍」里看到「未通过」"
+          }
+        }
+      }
+    },
+    "nearby.consequence.reject.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; they cannot apply to this team again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销；对方不能再申请加入这支队伍"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish this event?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布这场活动？"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After passing publish checks, the event becomes visible to players and progresses on the configured schedule."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过发布检查后对报名可见，按设定的报名与开始时间自动推进。"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missions, bound locations, and fulfillment rules take effect together."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务、绑定点位与履约需求一并生效，按报名/开始时间自动推进"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event details become visible once scheduled; stopping later requires Pause."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排期后活动详情对玩家可见；之后需要停下只能用暂停"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.c3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; it cannot return to draft after publishing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，发布后无法退回草稿"
+          }
+        }
+      }
+    },
+    "official.organizer.schedule.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布活动"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause this event?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停这场活动？"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players see the event as paused and your notice policy is recorded as pending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停后玩家侧显示活动已暂停，通知策略记为待执行。"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New registrations, arrival evidence, and fulfillment changes are blocked; the end time stays unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停期间不能报名、到达证据不计入、承接方不能变更履约；原定结束时间不变"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The notice policy is recorded as pending and does not auto-broadcast."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写的通知策略不会自动群发，状态记为「待执行」"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.c3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resuming re-runs publish checks; if the end time passes while paused, it moves to awaiting settlement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复前平台会重新检查主办与履约；到结束时间仍未恢复会直接转入待结算"
+          }
+        }
+      }
+    },
+    "official.organizer.pause.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停活动"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume this event?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复这场活动？"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform re-runs publish checks and rejects with reasons if checks fail."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台会先重新做发布检查，不通过会拒绝恢复并给出原因。"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumed events return to the phase matching the current time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复后活动按当前时间回到对应阶段（已排期/报名中/进行中）"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If the end time has already passed, it moves to awaiting settlement instead."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果活动已过结束时间，会转入待结算而不是恢复运行"
+          }
+        }
+      }
+    },
+    "official.organizer.resume.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复活动"
+          }
+        }
+      }
+    },
+    "im.safety.hide.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The conversation disappears from your message list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话从你的列表消失"
+          }
+        }
+      }
+    },
+    "im.safety.hide.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If they send another message, the conversation and history reappear."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方再发消息时，会话和历史消息会重新显示"
+          }
+        }
+      }
+    },
+    "im.safety.report.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform safety team will review the reported message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台安全团队将核查被举报消息"
+          }
+        }
+      }
+    },
+    "im.safety.unblock.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New messages from them will be delivered again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方的新消息会重新送达"
+          }
+        }
+      }
+    },
+    "im.safety.unblock.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The other person is not notified when you unblock."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方不会收到解除提示"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this post?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除这条动态？"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comments and likes on this post will also be removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条动态下的全部评论和点赞会一起删掉"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; the post cannot be recovered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，动态内容无法找回"
+          }
+        }
+      }
+    },
+    "square.cloud.delete.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete post"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除动态"
+          }
+        }
+      }
+    },
+    "square.delete.c1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comments and likes on this content will also be removed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部关联评论与点赞会一并删除"
+          }
+        }
+      }
+    },
+    "square.delete.c2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; deleted content cannot be recovered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，内容无法找回"
+          }
+        }
+      }
+    },
+    "club.welcome.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save welcome message?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认保存欢迎语？"
+          }
+        }
+      }
+    },
+    "club.welcome.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认保存"
+          }
+        }
+      }
+    },
+    "club.welcome.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm clear"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认清空"
+          }
+        }
+      }
+    },
+    "club.welcome.keep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "club.welcome.saveBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The text will be checked and saved by the service; the server read-back is authoritative."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字将通过原接口检查并保存；以服务端回读结果为准。"
+          }
+        }
+      }
+    },
+    "club.welcome.clearBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After clearing, new members still see the club introduction but not a custom welcome message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空后，新成员仍会看到俱乐部功能说明，但不再显示主理人自定义欢迎语。"
+          }
+        }
+      }
+    },
+    "club.community.pin.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Announcement pinned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已置顶公告"
+          }
+        }
+      }
+    },
+    "club.community.unpin.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Announcement unpinned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消置顶"
+          }
+        }
+      }
+    },
+    "club.community.delete.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除"
+          }
+        }
+      }
+    },
+    "topic.unlike.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unliked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消点赞"
+          }
+        }
+      }
+    },
+    "square.workspace.draftDeleted.toast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft deleted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已删除"
+          }
+        }
+      }
+    },
+    "club.channel.report.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report this channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报此频道"
+          }
+        }
+      }
+    },
+    "club.channel.report.spam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spam or scam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "垃圾广告或诈骗信息"
+          }
+        }
+      }
+    },
+    "club.channel.report.harassment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harassment or abusive content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骚扰、辱骂或不当言论"
+          }
+        }
+      }
+    },
+    "club.channel.report.illegal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illegal or objectionable content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "违法违规或色情低俗"
+          }
+        }
+      }
+    },
+    "club.refund.consequence1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cash refund and points return follow actual payment records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现金退款、积分返还以实际支付记录和查询结果为准"
+          }
+        }
+      }
+    },
+    "club.refund.consequence2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The player is removed from this roster and their group code becomes invalid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方从本团名册移出，群码失效"
+          }
+        }
+      }
+    },
+    "club.refund.consequence3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action cannot be undone; they must register again if needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，清退后需要对方重新报名"
           }
         }
       }

@@ -63,6 +63,7 @@ struct AuthChannelView: View {
             .onChange(of: sessionSnapshot) { _, _ in model.clear(); dismiss() }
             .onDisappear { model.clear() }
         }
+        .cyDomainScreen(.player)
     }
 }
 
@@ -145,7 +146,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
             Image(systemName: "message.badge.filled.fill")
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(CYColor.actionPrimaryFg, CYColor.actionPrimaryBg)
-                .font(.system(size: 26, weight: .semibold))
+                .font(CYTypography.display)
                 .frame(width: 56, height: 56)
                 .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.12), lineWidth: 1))
@@ -205,7 +206,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     if cooldown > 0 { Text("auth.phone.resendIn \(cooldown)").monospacedDigit() }
                     else { Text(hasSentBefore ? "auth.channels.resendCode" : "auth.channels.sendCode") }
                 }
-                .font(.system(.subheadline, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                .font(.system(.subheadline, weight: .semibold)).cyWrapText()
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .background(canSend ? CYColor.brandSoft : CYColor.bgRaised, in: Capsule())
             }

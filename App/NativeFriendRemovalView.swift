@@ -107,27 +107,43 @@ import SwiftUI
         .onChange(of: flow.isCurrent) { _, current in
             if !current { cancelOperation() }
         }
-        // The dialog only presents the flow's own review; dismissing it without a choice keeps that review open.
-        .confirmationDialog(localized("d7.friendRemoval.confirmTitle"), isPresented: $confirmingRemoval, titleVisibility: .visible) {
-            Button(role: .destructive) {
+        // The sheet only presents the flow's own review; swipe-dismissing keeps the review open while Cancel clears it.
+        .sheet(isPresented: $confirmingRemoval) {
+            CYConfirmSheet(
+                title: localized("d7.friendRemoval.confirmTitle"),
+                message: localized("friendRemoval.impact"),
+                confirmTitle: localized("friendRemoval.confirm"),
+                cancelTitle: localized("friendRemoval.cancel"),
+                isDestructive: true,
+                confirmDisabled: !flow.canConfirm,
+                confirmIdentifier: "friendRemoval.confirm",
+                cancelIdentifier: "friendRemoval.cancel",
+                consequences: [
+                    CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: localized("friendRemoval.impact"))
+                ],
+                onCancel: { flow.cancelReview() }
+            ) {
                 guard let confirmed = flow.review else { return }
                 perform { await flow.confirm(confirmed: confirmed) }
-            } label: { text("friendRemoval.confirm") }
-                .disabled(!flow.canConfirm).accessibilityIdentifier("friendRemoval.confirm")
-            Button(role: .cancel) { flow.cancelReview() } label: { text("friendRemoval.cancel") }
-                .accessibilityIdentifier("friendRemoval.cancel")
-        } message: {
-            text("friendRemoval.impact")
+            }
+            .cyDomainSheet(detents: [.half, .full])
         }
-        .confirmationDialog(localized("friendRemoval.retryTitle"), isPresented: $confirmingRetry, titleVisibility: .visible) {
-            Button(localized("friendRemoval.retryConfirm"), role: .destructive) {
+        .sheet(isPresented: $confirmingRetry, onDismiss: { retryCommand = nil }) {
+            CYConfirmSheet(
+                title: localized("friendRemoval.retryTitle"),
+                message: localized("friendRemoval.retryImpact"),
+                confirmTitle: localized("friendRemoval.retryConfirm"),
+                cancelTitle: localized("friendRemoval.keepPending"),
+                isDestructive: true,
+                consequences: [
+                    CYConfirmConsequence(systemImage: "arrow.clockwise", text: localized("friendRemoval.retryImpact"))
+                ]
+            ) {
                 guard let confirmed = retryCommand else { return }
                 retryCommand = nil
                 perform { await flow.retryOriginal(confirmed: confirmed) }
             }
-            Button(localized("friendRemoval.keepPending"), role: .cancel) { retryCommand = nil }
-        } message: {
-            text("friendRemoval.retryImpact")
+            .cyDomainSheet(detents: [.half, .full])
         }
         .tint(palette.brand)
     }

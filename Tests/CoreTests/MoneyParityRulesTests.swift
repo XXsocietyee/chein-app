@@ -104,8 +104,10 @@ final class MoneyParityRulesTests: XCTestCase {
         let now = Int64(1_794_065_400_000) // 2026-11-07 23:30 CST
         XCTAssertEqual(MoneyPassExpiry.daysLeft(until: "2026-11-08 00:30:00", nowMs: now), 1)
         XCTAssertEqual(MoneyPassExpiry.text(until: "2026-11-08 00:30:00", nowMs: now), "1 天内过期")
+        // China midnight is the previous playable day, same as 「可玩至」.
         XCTAssertEqual(MoneyPassExpiry.daysLeft(until: "2026-11-08 00:00:00", nowMs: now), 0)
         XCTAssertEqual(MoneyPassExpiry.text(until: "2026-11-08 00:00:00", nowMs: now), "今天过期")
+        XCTAssertEqual(MoneyPassExpiry.daysLeft(until: "2026-11-08 00:00:01", nowMs: now), 1)
         XCTAssertEqual(MoneyPassExpiry.text(until: "2026-11-07 23:59:00", nowMs: now), "今天过期")
         XCTAssertEqual(MoneyPassExpiry.text(until: "2026-11-07 23:30:00", nowMs: now), "今天过期")
         XCTAssertEqual(MoneyPassExpiry.text(until: "2026-11-07 23:29:59", nowMs: now), "")

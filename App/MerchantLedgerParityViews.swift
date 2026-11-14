@@ -154,20 +154,24 @@ struct MerchantLedgerBatchHero: View {
 struct MerchantLedgerBatchStatementCard: View {
     let statement: MerchantLedgerParity.BatchStatementSummary
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview").font(CYTypography.cardTitle)
+        VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+            Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview")
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
             if let total = statement.totalText {
                 LabeledContent {
-                    Text(verbatim: total).monospacedDigit()
+                    Text(verbatim: total).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 } label: {
                     Text("merchant.settlementOverview.serverTotal", tableName: "MerchantSettlementOverview")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
             } else if statement.emptyText != nil {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }
             ForEach(Array(statement.stepTimestamps.enumerated()), id: \.offset) { _, stamp in
-                Text(verbatim: stamp).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: stamp).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
             }
         }
         .accessibilityElement(children: .combine)
@@ -181,25 +185,30 @@ struct MerchantLedgerBatchStatementCard: View {
 struct MerchantSettlementStatementCard: View {
     let statement: MerchantSettlementStatement
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview").font(.headline)
+        VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+            Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview")
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
             LabeledContent {
                 if let total = statement.serverTotalDisplay {
-                    Text(verbatim: total).monospacedDigit()
+                    Text(verbatim: total).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 } else {
                     Text("merchant.settlementOverview.totalUnknown", tableName: "MerchantSettlementOverview")
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
             } label: {
                 Text("merchant.settlementOverview.serverTotal", tableName: "MerchantSettlementOverview")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
             }
             if statement.returnedDetailCount == 0 {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }
             if !statement.hasCompleteDetailContract {
                 Text("merchant.settlementOverview.detailIncomplete", tableName: "MerchantSettlementOverview")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }
         }
         .accessibilityElement(children: .contain)
@@ -223,20 +232,25 @@ struct MerchantSettlementStatementCard: View {
 
     var body: some View {
         List {
-            if loading { ProgressView("merchant.loading") }
+            if loading {
+                Section { CYSkeleton(variant: .detail) }.listRowBackground(Color.clear)
+            }
             if let failureKey {
                 Section {
-                    Text(LocalizedStringKey(failureKey))
-                    Button("action.retry") { Task { await load() } }.disabled(loading)
-                        .accessibilityIdentifier("merchant.settlementOverview.batchDetail.retry")
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text(LocalizedStringKey(failureKey)).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        CYPillButton("action.retry", style: .secondary) { Task { await load() } }
+                            .disabled(loading)
+                            .accessibilityIdentifier("merchant.settlementOverview.batchDetail.retry")
+                    }
                 }
             }
             if let snapshot {
                 let document = snapshot.document
                 if let batch = document.sections.first(where: { $0.id == "batch" })?.rows.first {
                     Section("merchant.business.section.batch") {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(batch.title).font(.headline)
+                        VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
+                            Text(batch.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                             MerchantBusinessRecordFields(row: batch, access: snapshot.access, compact: false,
                                                          settlementReader: reader, settlementSnapshot: { self.snapshot })
                         }
@@ -251,6 +265,8 @@ struct MerchantSettlementStatementCard: View {
                 detailSection(document, id: "adjustments", title: "merchant.settlementOverview.adjustments", access: snapshot.access)
             }
         }
+        .scrollContentBackground(.hidden)
+        .cyDomainScreen(.merchant)
         .appNavigationTitle("merchant.business.batch")
         .task { visible = true; await load() }
         .onAppear { visible = true }
@@ -264,6 +280,7 @@ struct MerchantSettlementStatementCard: View {
         }
         .onChange(of: reader.scope) { _, _ in generation += 1; snapshot = nil; Task { await load() } }
         .onChange(of: reader.authorizationGeneration) { _, _ in generation += 1; snapshot = nil; Task { await load() } }
+        .cyDomainScreen(.merchant)
     }
 
     @ViewBuilder private func detailSection(_ document: MerchantBusinessDocument, id: String,
@@ -271,8 +288,8 @@ struct MerchantSettlementStatementCard: View {
         if let rows = document.sections.first(where: { $0.id == id })?.rows, !rows.isEmpty {
             Section {
                 ForEach(rows) { row in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(row.title).font(.headline)
+                    VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
+                        Text(row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                         MerchantBusinessRecordFields(row: row, access: access, compact: false, settlementEntries: true)
                     }
                 }

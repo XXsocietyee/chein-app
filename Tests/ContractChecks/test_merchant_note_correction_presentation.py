@@ -17,10 +17,11 @@ class MerchantNoteCorrectionPresentationContracts(unittest.TestCase):
     def test_only_explicit_destructive_confirmation_clears_text_and_local_target(self):
         source = self.read('App/MerchantBusinessEditor.swift')
         self.assertIn('Button("merchant.noteCorrection.cancel") { confirmCancelCorrection = true }', source)
-        block = source.split('.confirmationDialog("merchant.noteCorrection.cancelTitle"', 1)[1].split('.onAppear', 1)[0]
-        self.assertIn('Button("merchant.noteCorrection.confirmCancel", role: .destructive)', block)
+        block = source.split('title: appLocalized("merchant.noteCorrection.cancelTitle"', 1)[1].split('.onAppear', 1)[0]
+        self.assertIn('confirmTitle: appLocalized("merchant.noteCorrection.confirmCancel"', block)
+        self.assertIn('isDestructive: true', block)
         self.assertIn('noteCorrectionCancelled = true; content = ""; issue = nil', block)
-        self.assertIn('Button("merchant.noteCorrection.keep", role: .cancel) { }', block)
+        self.assertIn('cancelTitle: appLocalized("merchant.noteCorrection.keep"', block)
         self.assertIn('merchant.noteCorrection.cancelBody', block)
         for forbidden in ['requestID', 'journal', 'Task {', 'onReview(', 'prepare(', 'save(', 'execute(']: self.assertNotIn(forbidden, block)
         # onAppear only restores a previously saved local draft (initializeNoteDraft), never sets cancellation itself.

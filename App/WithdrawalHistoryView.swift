@@ -15,7 +15,7 @@ import SwiftUI
             Section { CYHeroHeader("wallet.withdrawals").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             switch model.phase {
             case .idle, .loading:
-                CYLoadingStateView(rows: 3).accessibilityIdentifier("withdrawal.history.loading")
+                CYSkeleton(variant: .row).accessibilityIdentifier("withdrawal.history.loading")
             case .ready:
                 // Revolut-style: rows grouped by China calendar day, tap opens a read-only detail sheet.
                 ForEach(Array(WithdrawalHistoryGrouping.groups(model.rows).enumerated()), id: \.offset) { _, group in
@@ -32,7 +32,7 @@ import SwiftUI
                     }
                 }
                 if model.page?.mayHaveMore == true {
-                    Text("wallet.sourceLimited").font(.footnote).foregroundStyle(.secondary)
+                    Text("wallet.sourceLimited").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                 }
             case .empty:
                 CYEmptyState(systemImage: "tray", "wallet.withdrawals.emptyTitle", messageIdentifier: "withdrawal.history.empty")
@@ -67,12 +67,12 @@ struct WithdrawalHistoryRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("wallet.withdrawal.rowTitle").font(.headline)
-                Text(verbatim: row.createTime ?? "—").font(.footnote).foregroundStyle(.secondary)
+                Text("wallet.withdrawal.rowTitle").font(CYTypography.cardTitle)
+                Text(verbatim: row.createTime ?? "—").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 4) {
-                Text(verbatim: row.amountText ?? "—").font(.headline.monospacedDigit())
+                Text(verbatim: row.amountText ?? "—").font(CYTypography.cardTitle.monospacedDigit())
                 CYStatusChip(LocalizedStringKey(row.statusKey), tone: tone)
             }
         }

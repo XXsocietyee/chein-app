@@ -99,6 +99,7 @@ import SwiftUI
             }
         }
         .themeDomain(domain)
+        .cyDomainScreen(.player)
     }
     private func selectionBinding(_ selected: ProfileFollowListSelection) -> Binding<ProfileFollowListSelection?> {
         Binding(get: { flow.selection == selected ? selected : nil }, set: { value in

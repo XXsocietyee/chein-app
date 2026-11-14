@@ -24,8 +24,8 @@ struct QuickPublishingInterest: Identifiable {
 
 enum QuickPublishingPalette {
     static func selection(in domain: ThemeDomain) -> Color {
-        // Existing topic-editor info blue is exactly c6's local #2F6DF0.
-        // The global brand token is charcoal and the old AI token is purple.
+        // Topic-editor selection reads CYColor.infoText for this domain.
+        // CYColor.brand stays neutral. CYColor.tabSelected stays on the selected tab.
         Theme.Generated.color("--cy-color-status-info", in: domain) ?? Theme.Color.accent(in: domain)
     }
 }
@@ -107,6 +107,7 @@ struct PublishingField<Content: View>: View {
     var required = false
     @Environment(\.locale) private var locale
     @Environment(\.themeDomain) private var domain
+    @Environment(\.cyPalette) private var palette
     init(_ key: LocalizedStringKey, required: Bool = false, @ViewBuilder content: () -> Content) {
         title = Text(key); self.required = required; self.content = content()
     }
@@ -116,7 +117,7 @@ struct PublishingField<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s1) {
-                title.font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                title.font(CYTypography.label).foregroundStyle(palette.textSecondary)
                 if required {
                     Text(verbatim: "*").foregroundStyle(Theme.Color.danger(in: domain))
                         .accessibilityHidden(true)
@@ -175,13 +176,14 @@ struct PublishingFormSurface: ViewModifier {
                     Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore)
                 }.pickerStyle(.inline)
                 Text("contextPublish.mode.cityDetail")
-                    .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .font(CYTypography.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
                 Text("contextPublish.mode.exploreDetail")
-                    .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .font(CYTypography.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
             }.modifier(PublishingFormSurface()).font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
                 .cyHeroScreen()
+                .cyDomainScreen(.topicEditor)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) { Button("contextPublish.mode.use") { confirm(selection) } }
@@ -215,9 +217,10 @@ struct PublishingFormSurface: ViewModifier {
         if let acknowledgment = receipt.bundleAcknowledgment {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Space.s4) {
-                    Text("contextPublish.result.acknowledged").font(Theme.Font.sheetTitle)
+                    CYStatusChip("contextPublish.result.acknowledged", tone: .success, systemImage: "checkmark.circle.fill")
+                    Text("contextPublish.result.acknowledged").font(CYTypography.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                    Text(verbatim: receipt.title).font(Theme.Font.sectionTitle)
+                    Text(verbatim: receipt.title).font(CYTypography.cardTitle)
                         .fixedSize(horizontal: false, vertical: true)
                     if let statusLoader {
                         TopicPublicationStatusPanel(topicID: acknowledgment.topicID, load: statusLoader)
@@ -228,18 +231,24 @@ struct PublishingFormSurface: ViewModifier {
                         .accessibilityIdentifier("projectSubmission.done")
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)
                     .font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
-            }.accessibilityIdentifier("projectSubmission.receipt")
-                .interactiveDismissDisabled()
+            }
+            .cyDomainScreen(.topicEditor)
+            .accessibilityIdentifier("projectSubmission.receipt")
+            .interactiveDismissDisabled()
         } else { legacyResult(capture: capture) }
     }
     private func legacyResult(capture: UUID?) -> some View {
         ScrollView {
         VStack(alignment: .leading, spacing: Theme.Space.s4) {
-            Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle").font(Theme.Font.sheetTitle)
+            CYStatusChip("contextPublish.result.acknowledged", tone: .success, systemImage: "checkmark.circle.fill")
+            Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle").font(CYTypography.sectionTitle)
                 .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-            Text(verbatim: receipt.title).font(Theme.Font.sectionTitle)
+            Text(verbatim: receipt.title).font(CYTypography.cardTitle)
                 .fixedSize(horizontal: false, vertical: true)
-            LabeledContent("contextPublish.result.chapters", value: String(receipt.chapterCount))
+            LabeledContent("contextPublish.result.chapters") {
+                Text(verbatim: String(receipt.chapterCount)).font(CYTypography.bodyCompact.monospacedDigit())
+            }
+            .cyDomainCard()
             Text("contextPublish.result.readStatus").font(Theme.Font.body)
                 .foregroundStyle(Theme.Color.textSecondary(in: domain)).fixedSize(horizontal: false, vertical: true)
             if !canNavigate {
@@ -248,7 +257,9 @@ struct PublishingFormSurface: ViewModifier {
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)
             .font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
-        }.interactiveDismissDisabled()
+        }
+        .cyDomainScreen(.topicEditor)
+        .interactiveDismissDisabled()
     }
 }
 

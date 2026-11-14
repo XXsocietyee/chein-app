@@ -101,6 +101,7 @@ import SwiftUI
         .onDisappear { model.invalidate() }
         .onChange(of: phase) { _, next in if next == .active { if payoutOpen { Task { await model.refresh() } } } else { model.invalidate() } }
         .onChange(of: selection?.id) { _, id in if id == nil, payoutOpen { Task { await model.refresh() } } }
+        .cyDomainScreen(.topicEditor)
     }
 
     private func incomeRow(_ fact: ModCreatorIncomeFact) -> some View {
@@ -247,6 +248,7 @@ import SwiftUI
         .refreshable { if payoutOpen { await model.refresh() } }
         .onDisappear { model.invalidate() }
         .onChange(of: phase) { _, next in if next == .active { if payoutOpen { Task { await model.refresh() } } } else { model.invalidate() } }
+        .cyDomainScreen(.topicEditor)
     }
 }
 

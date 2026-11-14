@@ -17,8 +17,8 @@ final class TopicUnlikeFlowTests: XCTestCase {
         openTopics("ready", language: "zh-Hans")
         let heart = app.buttons["member.unlike.301"]
         XCTAssertTrue(heart.waitForExistence(timeout: 10)); heart.tap()
-        XCTAssertTrue(app.alerts.staticTexts["确定要取消点赞吗？"].waitForExistence(timeout: 5))
-        app.alerts.buttons["确定"].tap()
+        XCTAssertTrue(app.staticTexts["确定要取消点赞吗？"].waitForExistence(timeout: 5))
+        app.buttons["确定"].tap()
         XCTAssertTrue(app.staticTexts["取消点赞成功"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["accountCollection.favorite.301"].exists)
     }
@@ -26,14 +26,14 @@ final class TopicUnlikeFlowTests: XCTestCase {
         openTopics("ready")
         let heart = app.buttons["member.unlike.301"]
         XCTAssertTrue(heart.waitForExistence(timeout: 10)); heart.tap()
-        app.alerts.buttons["Cancel"].tap()
+        app.buttons["Cancel"].tap()
         XCTAssertTrue(app.buttons["accountCollection.favorite.301"].exists)
     }
     func testLostResponseRequiresCheckBeforeAnyRetry() {
         openTopics("unknown")
         let heart = app.buttons["member.unlike.302"]
         XCTAssertTrue(heart.waitForExistence(timeout: 10)); heart.tap()
-        app.alerts.buttons["Confirm"].tap()
+        app.buttons["Confirm"].tap()
         let check = app.buttons["member.unlike.check"]
         XCTAssertTrue(check.waitForExistence(timeout: 5)); check.tap()
         XCTAssertTrue(app.staticTexts["Couldn't unlike. Please try again."].waitForExistence(timeout: 5))

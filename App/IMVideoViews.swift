@@ -30,6 +30,7 @@ import CryptoKit
         .onDisappear { owner.invalidate(); owner.onChange = nil; owner.expanded.onChange = nil; picking = false }
         .onChange(of: available) { _, value in if !value { picking = false; owner.invalidate() } }
         .onChange(of: scenePhase) { _, value in if value != .active { picking = false; owner.invalidate() } }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var videoSections: some View {
             Section { IMScreenTitle(title: "d7.imVideo.title") }
@@ -132,6 +133,7 @@ import CryptoKit
         .onReceive(NotificationCenter.default.publisher(for: IMVideoCoordinator.consumptionRetiredNotification)) { event in
             if let retired = event.object as? IMVideoCoordinator, retired === owner { stop() }
         }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var playbackSections: some View {
             Section { IMScreenTitle(title: "d7.imVideo.message") }

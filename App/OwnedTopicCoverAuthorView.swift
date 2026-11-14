@@ -199,6 +199,7 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
         .task(id:original.id) { await model.load() }
         .sheet(item:model.binding(selection)) { captured in selectionConfirmation(captured) }
         .onDisappear { model.close();close() }
+        .cyDomainScreen(.topicEditor)
     }
     @ViewBuilder private func assetFields(_ asset:OwnedTopicCoverAsset,prefix:String) -> some View {
         Text(verbatim:asset.assetID).textSelection(.enabled).accessibilityIdentifier(prefix + ".asset")

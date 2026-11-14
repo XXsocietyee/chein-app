@@ -33,11 +33,12 @@ enum ClubOpsGovernanceCopy {
 
 private struct ClubOpsTag: View {
     let label: Text
-    var tint: Color = CYColor.brand
+    var isDanger: Bool = false
     var body: some View {
-        label.font(.caption.weight(.semibold)).foregroundStyle(tint)
-            .padding(.horizontal, 8).padding(.vertical, 3)
-            .background(tint.opacity(0.12), in: Capsule())
+        label.font(CYTypography.caption.weight(.semibold))
+            .foregroundStyle(isDanger ? CYColor.dangerText : CYColor.textSecondary)
+            .padding(.horizontal, CYSpacing.xs).padding(.vertical, 3)
+            .background(isDanger ? CYColor.dangerSoft : CYColor.bgSurfaceElevated, in: Capsule())
     }
 }
 
@@ -60,21 +61,21 @@ struct ClubOpsBanSection: View {
         let list = (page?.hidden == false ? page?.bans : nil) ?? self.list
         if page?.hidden != true, capability?.manageMembers != false {
         Section {
-            if let text = countText { Text(verbatim: text).font(.footnote).foregroundStyle(.secondary) }
+            if let text = countText { Text(verbatim: text).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
             if list.rows.isEmpty {
-                ClubOpsGovernanceCopy.text("clubOpsGov.bans.empty").foregroundStyle(.secondary).accessibilityIdentifier("clubOpsGov.bans.empty")
+                ClubOpsGovernanceCopy.text("clubOpsGov.bans.empty").font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("clubOpsGov.bans.empty")
             }
             ForEach(list.rows) { row in
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text("clubOpsGov.banTarget \(ClubOpsGovernanceCopy.member(row.nickname, id: row.targetMemberID))", tableName: "ClubOpsGovernance").font(.headline)
+                        Text("clubOpsGov.banTarget \(ClubOpsGovernanceCopy.member(row.nickname, id: row.targetMemberID))", tableName: "ClubOpsGovernance").font(CYTypography.cardTitle)
                         Spacer()
-                        ClubOpsTag(label: ClubOpsGovernanceCopy.text("clubOpsGov.banStatus." + row.status.rawValue), tint: row.status == .active ? CYColor.dangerText : CYColor.textTertiary)
+                        ClubOpsTag(label: ClubOpsGovernanceCopy.text("clubOpsGov.banStatus." + row.status.rawValue), isDanger: row.status == .active)
                     }
                     ClubOpsGovernanceCopy.banLine(source: row.source, bannedAt: row.bannedAt, expiry: row.expiry, platformOnly: row.platformOnly)
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                     if let note = row.unbanReason {
-                        Text("clubOpsGov.unbanNote \(note)", tableName: "ClubOpsGovernance").font(.footnote).foregroundStyle(.secondary)
+                        Text("clubOpsGov.unbanNote \(note)", tableName: "ClubOpsGovernance").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                     }
                     if row.unbanSeed != nil { unban(row) }
                 }.accessibilityIdentifier("clubOpsGov.ban.\(row.id)")
@@ -102,21 +103,20 @@ struct ClubOpsGovernanceMembersSection: View {
     var body: some View {
         Section {
             if let text = countText {
-                Text(verbatim: text).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
+                Text(verbatim: text).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
             }
             if roster.members.isEmpty {
-                ContentUnavailableView {
-                    Label { ClubOpsGovernanceCopy.text("clubOpsGov.members.empty") } icon: { Image(systemName: "person.2") }
-                }.accessibilityIdentifier("clubOpsGov.members.empty")
+                CYEmptyState(systemImage: "person.2", "clubOpsGov.members.empty", tableName: "ClubOpsGovernance", messageIdentifier: "clubOpsGov.members.empty")
+                    .listRowBackground(Color.clear)
             }
             // One row per member: name, then its actions side by side (ban, and transfer for the owner).
             ForEach(roster.members) { member in
-                VStack(alignment: .leading, spacing: 8) {
-                    ClubOpsGovernanceCopy.member(member.nickname, id: member.id).font(.headline)
-                    HStack(spacing: Theme.Space.s3) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    ClubOpsGovernanceCopy.member(member.nickname, id: member.id).font(CYTypography.cardTitle)
+                    HStack(spacing: CYSpacing.sm) {
                         ban(member).foregroundStyle(CYColor.dangerText)
                         if roster.viewerIsOwner { transfer(member) }
-                    }.buttonStyle(.bordered).controlSize(.small)
+                    }.buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false)).controlSize(.small)
                 }.accessibilityIdentifier("clubOpsGov.member.\(member.id)")
             }
         } header: { ClubOpsGovernanceCopy.text("clubOpsGov.members.title") } footer: {
@@ -146,51 +146,51 @@ struct ClubOpsCaseSection: View {
         if list.appealMode {
             // Mini governance `mode=appeal` page title, reached by a viewer this club has banned.
             Section {
-                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.mode").font(.title3.weight(.semibold))
+                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.mode").font(CYTypography.section)
                     .accessibilityAddTraits(.isHeader).accessibilityIdentifier("clubOpsGov.appeal.mode")
             }
         }
         if list.canReport, let report {
             Section {
-                ClubOpsGovernanceCopy.text("clubOpsGov.report.note").font(.footnote).foregroundStyle(.secondary)
+                ClubOpsGovernanceCopy.text("clubOpsGov.report.note").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                 report
             } header: { ClubOpsGovernanceCopy.text("clubOpsGov.report.title") }
         }
         switch list.appeal {
         case .none:
             Section {
-                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.empty").foregroundStyle(.secondary)
+                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.empty").font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("clubOpsGov.appeal.empty")
             } header: { ClubOpsGovernanceCopy.text("clubOpsGov.appeal.title") }
         case .ban(let ban):
             Section {
                 VStack(alignment: .leading, spacing: 4) {
-                    ClubOpsGovernanceCopy.text("clubOpsGov.appeal.current").font(.headline)
-                    ClubOpsGovernanceCopy.banLine(source: ban.source, bannedAt: ban.bannedAt, expiry: ban.expiry).font(.footnote).foregroundStyle(.secondary)
+                    ClubOpsGovernanceCopy.text("clubOpsGov.appeal.current").font(CYTypography.cardTitle)
+                    ClubOpsGovernanceCopy.banLine(source: ban.source, bannedAt: ban.bannedAt, expiry: ban.expiry).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                     if let reason = ban.reason {
-                        Text("clubOpsGov.banReason \(reason)", tableName: "ClubOpsGovernance").font(.footnote).foregroundStyle(.secondary)
+                        Text("clubOpsGov.banReason \(reason)", tableName: "ClubOpsGovernance").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                     }
                 }.accessibilityIdentifier("clubOpsGov.appeal.ban")
-                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.note").font(.footnote).foregroundStyle(.secondary)
+                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.note").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                 if let appeal { appeal }
             } header: { ClubOpsGovernanceCopy.text("clubOpsGov.appeal.title") }
         case .unknown: EmptyView()
         }
         Section {
             if let text = countText {
-                Text(verbatim: text).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.caseCount)
+                Text(verbatim: text).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.caseCount)
             }
             if list.rows.isEmpty {
-                ClubOpsGovernanceCopy.text("clubOpsGov.cases.empty").foregroundStyle(.secondary).accessibilityIdentifier("clubOpsGov.cases.empty")
+                ClubOpsGovernanceCopy.text("clubOpsGov.cases.empty").font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("clubOpsGov.cases.empty")
             }
             ForEach(list.rows) { row in
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Self.type(row.kind).font(.headline)
-                        if let reason = row.reason { Text(verbatim: reason).font(.subheadline) }
-                        Text("clubOpsGov.submittedAt \(ClubOpsGovernanceCopy.time(row.submittedAt))", tableName: "ClubOpsGovernance").font(.footnote).foregroundStyle(.secondary)
+                        Self.type(row.kind).font(CYTypography.cardTitle)
+                        if let reason = row.reason { Text(verbatim: reason).font(CYTypography.subhead) }
+                        Text("clubOpsGov.submittedAt \(ClubOpsGovernanceCopy.time(row.submittedAt))", tableName: "ClubOpsGovernance").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                         if let decision = row.decisionReason {
-                            Text("clubOpsGov.decision \(decision)", tableName: "ClubOpsGovernance").font(.footnote).foregroundStyle(.secondary)
+                            Text("clubOpsGov.decision \(decision)", tableName: "ClubOpsGovernance").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                     Spacer()
@@ -252,9 +252,9 @@ struct ClubOpsRoleSection: View {
         Section {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    if let owner = roster.ownerName { Text(verbatim: owner).font(.headline) }
-                    else { Text("club.gov.role.CLUB_OWNER").font(.headline) }
-                    ClubOpsGovernanceCopy.text("clubOpsGov.roles.ownerSummary").font(.footnote).foregroundStyle(.secondary)
+                    if let owner = roster.ownerName { Text(verbatim: owner).font(CYTypography.cardTitle) }
+                    else { Text("club.gov.role.CLUB_OWNER").font(CYTypography.cardTitle) }
+                    ClubOpsGovernanceCopy.text("clubOpsGov.roles.ownerSummary").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                 }
                 Spacer()
                 ClubOpsTag(label: Text("club.gov.role.CLUB_OWNER"))
@@ -262,11 +262,11 @@ struct ClubOpsRoleSection: View {
             ForEach(roster.assignments) { row in
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(alignment: .firstTextBaseline) {
-                        ClubOpsGovernanceCopy.member(row.memberName, id: row.targetMemberID).font(.headline)
+                        ClubOpsGovernanceCopy.member(row.memberName, id: row.targetMemberID).font(CYTypography.cardTitle)
                         Spacer()
                         ClubOpsTag(label: row.roleName.map { Text(verbatim: $0) } ?? ClubOpsGovernanceCopy.text("clubOpsGov.roles.roleFallback"))
                     }
-                    Self.summary(row).font(.footnote).foregroundStyle(.secondary)
+                    Self.summary(row).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
                     revoke(row)
                 }.accessibilityIdentifier("clubOpsGov.roles.assignment.\(row.id)")
             }
@@ -276,7 +276,7 @@ struct ClubOpsRoleSection: View {
         }
         Section {
             if roster.delegableMemberCount == 0 {
-                ClubOpsGovernanceCopy.text("clubOpsGov.roles.empty").foregroundStyle(.secondary)
+                ClubOpsGovernanceCopy.text("clubOpsGov.roles.empty").font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("clubOpsGov.roles.empty")
             } else {
                 assign
@@ -298,16 +298,26 @@ struct ClubOpsGovernanceDeniedNote: View {
         case .audienceCounts:
             Section { ClubOpsNotifyDeniedText() }
         case .access:
-            if let cases { Section { ClubOpsGovernanceCopy.text("clubOpsGov.appeal.entry").font(.footnote); cases } }
+            if let cases { Section { ClubOpsGovernanceCopy.text("clubOpsGov.appeal.entry").font(CYTypography.footnote); cases } }
         default: EmptyView()
         }
     }
     private func note(_ title: String, _ body: String) -> some View {
         Section {
-            ContentUnavailableView {
-                Label { ClubOpsGovernanceCopy.text(title) } icon: { Image(systemName: "lock") }
-            } description: { ClubOpsGovernanceCopy.text(body) }
-                .accessibilityIdentifier("clubOpsGov.denied." + operation.rawValue)
+            VStack(spacing: CYSpacing.sm) {
+                Image(systemName: "lock")
+                    .font(CYTypography.section)
+                    .foregroundStyle(CYColor.textSecondary)
+                ClubOpsGovernanceCopy.text(title)
+                    .font(CYTypography.cardTitle)
+                ClubOpsGovernanceCopy.text(body)
+                    .font(CYTypography.subhead)
+                    .foregroundStyle(CYColor.textSecondary)
+            }
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, CYSpacing.md)
+            .accessibilityIdentifier("clubOpsGov.denied." + operation.rawValue)
         }
     }
 }
@@ -321,15 +331,15 @@ struct ClubOpsGovernanceFormNotes: View {
         let nickname = seed["targetNickname"]?.string
         switch operation {
         case .ban:
-            if let nickname { Text("clubOpsGov.ban.title \(nickname)", tableName: "ClubOpsGovernance").font(.headline) }
+            if let nickname { Text("clubOpsGov.ban.title \(nickname)", tableName: "ClubOpsGovernance").font(CYTypography.cardTitle) }
             ClubOpsGovernanceCopy.text("clubOpsGov.ban.consequence")
-            ClubOpsGovernanceCopy.text("clubOpsGov.ban.reasonHint").font(.footnote).foregroundStyle(.secondary)
+            ClubOpsGovernanceCopy.text("clubOpsGov.ban.reasonHint").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
         case .unban:
-            ClubOpsGovernanceCopy.text("clubOpsGov.unban.reasonHint").font(.footnote).foregroundStyle(.secondary)
+            ClubOpsGovernanceCopy.text("clubOpsGov.unban.reasonHint").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
         case .transferOwner:
-            if let nickname { Text("clubOpsGov.transfer.title \(nickname)", tableName: "ClubOpsGovernance").font(.headline) }
+            if let nickname { Text("clubOpsGov.transfer.title \(nickname)", tableName: "ClubOpsGovernance").font(CYTypography.cardTitle) }
             ClubOpsGovernanceCopy.text("clubOpsGov.transfer.hint")
-            ClubOpsGovernanceCopy.text("clubOpsGov.transfer.reasonHint").font(.footnote).foregroundStyle(.secondary)
+            ClubOpsGovernanceCopy.text("clubOpsGov.transfer.reasonHint").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
         case .report:
             // Mini 举报目标 card: type plus the optional entry-supplied name, never an internal id.
             LabeledContent {
@@ -343,10 +353,10 @@ struct ClubOpsGovernanceFormNotes: View {
         case .appeal:
             ClubOpsGovernanceCopy.text("clubOpsGov.appeal.note")
         case .revokeRole:
-            if let role = seed["roleName"]?.string { Text("clubOpsGov.roles.revoke.title \(role)", tableName: "ClubOpsGovernance").font(.headline) }
+            if let role = seed["roleName"]?.string { Text("clubOpsGov.roles.revoke.title \(role)", tableName: "ClubOpsGovernance").font(CYTypography.cardTitle) }
             ClubOpsGovernanceCopy.text("clubOpsGov.roles.revoke.body")
             ForEach(["clubOpsGov.roles.revoke.consequence1", "clubOpsGov.roles.revoke.consequence2", "clubOpsGov.roles.revoke.consequence3"], id: \.self) { key in
-                Label { ClubOpsGovernanceCopy.text(key).font(.footnote) } icon: { Image(systemName: "exclamationmark.triangle") }
+                Label { ClubOpsGovernanceCopy.text(key).font(CYTypography.footnote) } icon: { Image(systemName: "exclamationmark.triangle") }
             }
         default: EmptyView()
         }

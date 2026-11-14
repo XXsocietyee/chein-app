@@ -52,6 +52,7 @@ import SwiftUI
     @ObservedObject var model: MerchantNPCKnowledgeDraftModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var dismissal = MerchantNPCKnowledgeDismissal()
     @State private var showsDiscardReview = false
     private var coordinator: MerchantNPCKnowledgeDraftCoordinator { model.coordinator }
@@ -100,13 +101,22 @@ import SwiftUI
         }
         .accessibilityIdentifier("merchantKnowledge.editor")
         .interactiveDismissDisabled(MerchantNPCKnowledgeDismissal.blocksInteractiveDismissal(model))
-        .alert("merchantKnowledgeDismiss.title", isPresented: $showsDiscardReview, presenting: dismissal.review) { review in
-            Button("merchantKnowledgeDismiss.discard", role: .destructive) {
-                if dismissal.discard(review, model: model, isActive: scenePhase == .active) { dismiss() }
+        .cyModalConfirm(
+            isPresented: showsDiscardReview && dismissal.review != nil,
+            title: appLocalized("merchantKnowledgeDismiss.title", locale: locale),
+            message: appLocalized("merchantKnowledgeDismiss.warning", locale: locale),
+            cancelTitle: appLocalized("merchantKnowledgeDismiss.keepEditing", locale: locale),
+            confirmTitle: appLocalized("merchantKnowledgeDismiss.discard", locale: locale),
+            isDestructive: true,
+            onCancel: { clearDiscardReview() },
+            onConfirm: {
+                if let review = dismissal.review,
+                   dismissal.discard(review, model: model, isActive: scenePhase == .active) {
+                    dismiss()
+                }
                 showsDiscardReview = false
             }
-            Button("merchantKnowledgeDismiss.keepEditing", role: .cancel) { clearDiscardReview() }
-        } message: { _ in Text("merchantKnowledgeDismiss.warning") }
+        )
         .task { await model.open() }
         .onChange(of: model.revision) { _, _ in clearDiscardReview() }
         .onChange(of: coordinator.scope) { _, _ in clearDiscardReview() }

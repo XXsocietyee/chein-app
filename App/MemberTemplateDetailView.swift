@@ -128,6 +128,7 @@ import SwiftUI
         .task(id: reader.scope) { detail = nil; await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID(); detail = nil }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func textSection(_ label: LocalizedStringKey, value: String?) -> some View {
         if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

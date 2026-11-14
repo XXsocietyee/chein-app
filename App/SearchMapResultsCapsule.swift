@@ -10,7 +10,7 @@ struct SearchMapResultsCapsuleView: View {
             if state.opensSheet { open() } else if state == .failed { retry() }
         } label: {
             HStack(spacing: 8) {
-                if state == .loading { ProgressView().accessibilityHidden(true) }
+                if state == .loading { ProgressView().tint(CYColor.resultSpinner).accessibilityHidden(true) }
                 switch state {
                 case .results(let total, let listOnly) where listOnly == total:
                     // Mini-program: nothing mappable here, the rows still open in the list.
@@ -24,7 +24,7 @@ struct SearchMapResultsCapsuleView: View {
                 }
             }.font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 16).padding(.vertical, 10).frame(minHeight: 44)
-                .background(.regularMaterial, in: Capsule())
+                .background(CYColor.bgGlass, in: Capsule())
         }.buttonStyle(.plain).disabled(state == .loading || state == .empty)
             .accessibilityIdentifier("searchMap.w208.capsule")
     }
@@ -61,15 +61,21 @@ struct SearchMapAllResultsSheet: View {
                             RoundedRectangle(cornerRadius: 18).fill(.secondary.opacity(0.1)).frame(height: 96).accessibilityHidden(true)
                         }
                     } else if failed && rows.isEmpty {
-                        ContentUnavailableView {
-                            Label("searchMap.w208.sheet.failed", systemImage: "exclamationmark.triangle")
-                        } actions: {
-                            Button("searchMap.retry", action: retry).frame(minHeight: 44)
-                        }.accessibilityIdentifier("searchMap.w208.sheet.failed")
+                        CYErrorStateView(
+                            systemImage: "exclamationmark.triangle",
+                            title: "searchMap.w208.sheet.failed",
+                            message: "searchMap.w208.sheet.failed.detail",
+                            retryTitle: "searchMap.retry",
+                            onRetry: retry
+                        )
+                        .accessibilityIdentifier("searchMap.w208.sheet.failed")
                     } else if rows.isEmpty {
-                        ContentUnavailableView("searchMap.w208.capsule.empty", systemImage: "mappin.slash",
-                                               description: Text("searchMap.w208.sheet.emptyHint"))
-                            .accessibilityIdentifier("searchMap.w208.sheet.empty")
+                        CYEmptyStateView(
+                            systemImage: "mappin.slash",
+                            title: "searchMap.w208.capsule.empty",
+                            description: "searchMap.w208.sheet.emptyHint"
+                        )
+                        .accessibilityIdentifier("searchMap.w208.sheet.empty")
                     }
                     let listOnly = rows.filter { !$0.hasValidCoordinates }.count
                     if listOnly > 0 {

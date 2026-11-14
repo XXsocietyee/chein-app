@@ -41,6 +41,7 @@ struct PrivacyProtectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(.subheadline.weight(.medium))
                         Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -52,7 +53,8 @@ struct PrivacyProtectionView: View {
                     .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
                     .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
                 if !isPrivacyPolicyBundled {
-                    Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                    CYEmptyState(systemImage: "doc.questionmark", "authEntry.privacy.guideUnavailable", tableName: "AuthEntry",
+                                 messageIdentifier: "authEntry.privacy.guideUnavailable")
                 }
                 Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.agreement")

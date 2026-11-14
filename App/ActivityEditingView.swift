@@ -260,6 +260,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active); owner.setActive(phase == .active) }
         .background { ActivityCoverLifetime(owner: cover, departure: { owner.disappear() }).frame(width: 0, height: 0) }
         .background { RetainedImagePresenterHost(host: cover.pickerHost).frame(width: 0, height: 0) }
+        .cyDomainScreen(.player)
     }
     private func label(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "ActivityEditing") }
 

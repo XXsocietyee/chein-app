@@ -45,6 +45,7 @@ import ImageIO
         .onChange(of: reader.identity) { _, _ in clear() }
         .onDisappear { clear() }
         .accessibilityIdentifier("social.media")
+        .cyDomainScreen(.player)
     }
     private func load(_ media: SocialMessageMedia) async {
         guard !loading, isMessageCurrent(), reader.identity == expectedIdentity else { return }

@@ -83,6 +83,7 @@ import SwiftUI
 
 @MainActor struct NativeChannelProgressPrivacyView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @Bindable var model: NativeChannelProgressCoordinator
     var loadsOnAppear = true
     @State private var draft: NativeChannelProgressPrivacyValues?
@@ -185,9 +186,17 @@ import SwiftUI
             if phase != .active { confirmation.leave(); actions.retire(); draft = nil; showsConfirmation = false }
         }
         .refreshable { confirmation.invalidate(); showsConfirmation = false; await model.loadPrivacy() }
-        .confirmationDialog(Text("d7.channelProgress.confirmPrivacy", tableName: "NativeChannelProgress"), isPresented: $showsConfirmation, titleVisibility: .visible) {
-            Button { confirmSave() } label: { Text("d7.channelProgress.save", tableName: "NativeChannelProgress") }
-            Button(role: .cancel) { confirmation.invalidate() } label: { Text("cancel", tableName: "NativeChannelProgress") }
+        .sheet(isPresented: $showsConfirmation) {
+            CYConfirmSheet(
+                title: String(localized: LocalizedStringResource("d7.channelProgress.confirmPrivacy", table: "NativeChannelProgress", locale: locale)),
+                message: "",
+                confirmTitle: String(localized: LocalizedStringResource("d7.channelProgress.save", table: "NativeChannelProgress", locale: locale)),
+                cancelTitle: String(localized: LocalizedStringResource("cancel", table: "NativeChannelProgress", locale: locale)),
+                onCancel: { confirmation.invalidate() }
+            ) {
+                confirmSave()
+            }
+            .cyDomainSheet(detents: [.peek, .half])
         }
     }
     private func synchronizeDraft() {

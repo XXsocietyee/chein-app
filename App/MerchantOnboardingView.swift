@@ -7,10 +7,14 @@ import UIKit
 struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.deepLinkDirtyTracker) private var dirtyTracker
     @ObservedObject var session: Session
     @StateObject private var model: MerchantOnboardingModel
     let openMerchant: (() -> Void)?
     @State private var loadedRevision: UInt64?
+    @State private var baselineDraft: MerchantOnboardingDraft?
+    @State private var showsDiscardModal = false
     @State private var photo: PhotosPickerItem?
     @State private var showBrandPhotos = false
     @State private var showBrandUploadConfirmation = false
@@ -24,6 +28,9 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     init(session: Session, coordinator: MerchantOnboardingCoordinator, openMerchant: (() -> Void)? = nil) {
         self.session = session; _model = StateObject(wrappedValue: MerchantOnboardingModel(coordinator: coordinator))
         self.openMerchant = openMerchant
+    }
+    private var hasUnsavedChanges: Bool {
+        model.isEditing && baselineDraft != nil && model.draft != baselineDraft && model.coordinator.submission != .acknowledged
     }
     var body: some View {
         ZStack {
@@ -42,11 +49,39 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             } else {
                 content
             }
+            if showsDiscardModal {
+                MemberSettingsSceneDiscardModal(
+                    onCancel: { showsDiscardModal = false },
+                    onConfirm: {
+                        showsDiscardModal = false
+                        baselineDraft = nil
+                        dirtyTracker?.isDirty = false
+                        model.leave()
+                        dismiss()
+                    }
+                )
+            }
         }
         .cyDomainScreen(.merchant)
         .cyHideTabBar(true)
         .appNavigationTitle("merchant.onboarding.title")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(hasUnsavedChanges)
+        .toolbar {
+            if hasUnsavedChanges {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showsDiscardModal = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.backward")
+                            Text(verbatim: MemberPopupCopy.text("返回", "Back", locale: locale))
+                        }
+                    }
+                    .accessibilityIdentifier("merchant.onboarding.back")
+                }
+            }
+        }
         .task(id: session.sessionRevision) {
             // Returning from a transient sheet may restart .task without a new account.
             guard loadedRevision != session.sessionRevision else { return }
@@ -55,13 +90,23 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             showBrandPhotos = false; showBrandUploadConfirmation = false
             showUploadConfirmation = false; showSubmitConfirmation = false
             showLicenseRemoval = false; licenseRemoval = nil; model.cancelLicenseRemoval()
+            showsDiscardModal = false; baselineDraft = nil
             model.reset(); await model.load()
+            if model.isEditing { baselineDraft = model.draft }
+        }
+        .onChange(of: model.isEditing) { _, editing in
+            if editing, baselineDraft == nil { baselineDraft = model.draft }
+            if !editing { baselineDraft = nil; showsDiscardModal = false }
+            dirtyTracker?.isDirty = hasUnsavedChanges
+        }
+        .onChange(of: hasUnsavedChanges) { _, dirty in
+            dirtyTracker?.isDirty = dirty
         }
         .onDisappear {
             // Presenting a child surface is not leaving the application. Keep the draft
             // and selected item through picker/sheet/confirmation transitions.
             guard !showPhotos, !showHours, !showUploadConfirmation, !showSubmitConfirmation, !showBrandPhotos, !showBrandUploadConfirmation, !showLicenseRemoval else { return }
-            loadedRevision = nil; model.leave(); photo = nil
+            loadedRevision = nil; baselineDraft = nil; dirtyTracker?.isDirty = false; model.leave(); photo = nil
         }
         .photosPicker(isPresented: $showPhotos, selection: $photo, matching: .images, preferredItemEncoding: .compatible)
         .onChange(of: photo) { _, value in
@@ -71,26 +116,59 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         .sheet(isPresented: $showHours) {
             if let hoursEditor {
                 MerchantOnboardingHoursEditor(editor: hoursEditor) { hoursEditor.cancel(); showHours = false }
-                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.merchant)
             }
         }
         .onChange(of: showHours) { _, shown in if !shown { hoursEditor?.cancel(); hoursEditor = nil } }
-        .confirmationDialog("merchant.onboarding.uploadConfirm.title", isPresented: $showUploadConfirmation, titleVisibility: .visible) {
-            Button("merchant.onboarding.uploadConfirm.action") { Task { await model.uploadSelected() } }
-            Button("action.cancel", role: .cancel) { }
-        } message: { Text("merchant.onboarding.uploadConfirm.message") }
-        .confirmationDialog("merchant.onboardingLicenseRemoval.title", isPresented: $showLicenseRemoval,
-                            titleVisibility: .visible, presenting: licenseRemoval) { request in
-            Button("merchant.onboardingLicenseRemoval.action", role: .destructive) { model.removeLicense(request) }
-            Button("action.cancel", role: .cancel) { model.cancelLicenseRemoval(request) }
-        } message: { _ in Text("merchant.onboardingLicenseRemoval.message") }
+        .cyModalConfirm(
+            isPresented: showUploadConfirmation,
+            title: appLocalized("merchant.onboarding.uploadConfirm.title", locale: locale),
+            message: appLocalized("merchant.onboarding.uploadConfirm.message", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.onboarding.uploadConfirm.action", locale: locale),
+            onCancel: { showUploadConfirmation = false },
+            onConfirm: {
+                showUploadConfirmation = false
+                Task { await model.uploadSelected() }
+            }
+        )
+        .cyModalConfirm(
+            isPresented: showLicenseRemoval && licenseRemoval != nil,
+            title: appLocalized("merchant.onboardingLicenseRemoval.title", locale: locale),
+            message: appLocalized("merchant.onboardingLicenseRemoval.message", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.onboardingLicenseRemoval.action", locale: locale),
+            isDestructive: true,
+            onCancel: {
+                showLicenseRemoval = false
+                if let request = licenseRemoval { model.cancelLicenseRemoval(request) }
+                licenseRemoval = nil
+            },
+            onConfirm: {
+                showLicenseRemoval = false
+                if let request = licenseRemoval { model.removeLicense(request) }
+                licenseRemoval = nil
+            }
+        )
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.cancelLicenseRemoval(); showLicenseRemoval = false; licenseRemoval = nil }
         }
-        .alert("merchant.onboarding.submitConfirm.title", isPresented: $showSubmitConfirmation) {
-            Button("merchant.onboarding.submitConfirm.action") { model.submitConfirmed() }
-            Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
-        } message: { Text("merchant.onboarding.submitConfirm.message") }
+        .cyModalConfirm(
+            isPresented: showSubmitConfirmation,
+            title: appLocalized("merchant.onboarding.submitConfirm.title", locale: locale),
+            message: appLocalized("merchant.onboarding.submitConfirm.message", locale: locale),
+            cancelTitle: appLocalized("action.cancel", locale: locale),
+            confirmTitle: appLocalized("merchant.onboarding.submitConfirm.action", locale: locale),
+            onCancel: {
+                showSubmitConfirmation = false
+                model.cancelConfirmation()
+            },
+            onConfirm: {
+                showSubmitConfirmation = false
+                model.submitConfirmed()
+            }
+        )
         .onChange(of: showSubmitConfirmation) { _, shown in
             if !shown, model.confirmation != nil, !model.isBusy { model.cancelConfirmation() }
         }

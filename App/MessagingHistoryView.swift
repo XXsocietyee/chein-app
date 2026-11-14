@@ -113,6 +113,7 @@ struct MessagingHistoryView: View {
             && !isLoading && issue == nil
     }
     @Environment(\.imRecipientPreviewLeases) private var previewLeases
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// E2E-20261113b N1. The lease's conversation is server-provided only: the decoded conversation record, else the
     /// decoded messages' own conversation. The route's `conversationID` is never used; `issue` re-checks each message.
     private var recipientPreviewInput: IMRecipientPreviewInput {
@@ -228,7 +229,9 @@ struct MessagingHistoryView: View {
                     HStack(spacing: CYSpacing.sm) {
                         CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
                             .frame(width: 28, height: 28).clipShape(Circle())
-                        MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
+                        if !dynamicTypeSize.isAccessibilitySize {
+                            MessagingConversationName(conversation: conversation).font(.headline).cyWrapText()
+                        }
                     }
                     .accessibilityElement(children: .combine)
                 } else { Text("messaging.history.title").font(.headline) }
@@ -262,7 +265,7 @@ struct MessagingHistoryView: View {
                 if conversation != nil {
                     MessagingConversationName(conversation: conversation)
                         .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                        .lineLimit(2).padding(.bottom, CYSpacing.xs)
+                        .cyWrapText().padding(.bottom, CYSpacing.xs)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("messaging.history.hero")
                 }
@@ -491,28 +494,77 @@ private struct MessagingBubble: View {
     let messages: [MessagingMessage]
     var createPoll: (() -> Void)? = nil
     let present: () -> Void
+    @Environment(\.locale) private var locale
+    @State private var showMoreSheet = false
+    @State private var pendingSelection: Choice?
+
+    private enum Choice: Hashable {
+        case poll
+        case safety(IMSafetyMenu.Item)
+    }
+
     private var conversationID: Int { owner.scope.conversationID }
+
     var body: some View {
         let items = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe).items.filter(granted)
         if !items.isEmpty || createPoll != nil {
-            Menu {
-                if let createPoll {
-                    Button("poll.create", systemImage: "chart.bar.xaxis", action: createPoll)
-                        .accessibilityIdentifier("poll.createEntry")
-                    if !items.isEmpty { Divider() }
-                }
-                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    Button(role: item == .hide || item == .block ? .destructive : nil) { select(item) } label: {
-                        Label(title(item), systemImage: symbol(item))
-                    }
-                    .accessibilityLabel(Text(title(item)))
-                    .accessibilityIdentifier("im.chat.more.\(identifier(item))")
-                }
-            } label: { Label("im.chat.more", systemImage: "ellipsis") }
+            Button {
+                showMoreSheet = true
+            } label: {
+                Label("im.chat.more", systemImage: "ellipsis")
+            }
             .accessibilityLabel(Text("im.chat.more"))
             .accessibilityIdentifier("im.chat.more")
+            .sheet(isPresented: $showMoreSheet, onDismiss: performPendingSelection) {
+                CYOptionSheet(
+                    title: appLocalized("im.chat.more", locale: locale),
+                    items: buildOptionItems(from: items),
+                    onSelect: { choice in
+                        pendingSelection = choice
+                        showMoreSheet = false
+                    },
+                    onClose: {
+                        showMoreSheet = false
+                    }
+                )
+                .cyDomainSheet(detents: [.half, .full])
+            }
         }
     }
+
+    private func buildOptionItems(from items: [IMSafetyMenu.Item]) -> [CYOptionSheetItem<Choice>] {
+        var result: [CYOptionSheetItem<Choice>] = []
+        if createPoll != nil {
+            result.append(CYOptionSheetItem(
+                id: .poll,
+                title: appLocalized("poll.create", locale: locale),
+                systemImage: "chart.bar.xaxis",
+                identifier: "poll.createEntry"
+            ))
+        }
+        for item in items {
+            result.append(CYOptionSheetItem(
+                id: .safety(item),
+                title: titleString(item),
+                systemImage: symbol(item),
+                isDanger: item == .hide || item == .block,
+                identifier: "im.chat.more.\(identifier(item))"
+            ))
+        }
+        return result
+    }
+
+    private func performPendingSelection() {
+        guard let choice = pendingSelection else { return }
+        pendingSelection = nil
+        switch choice {
+        case .poll:
+            createPoll?()
+        case .safety(let item):
+            select(item)
+        }
+    }
+
     private func granted(_ item: IMSafetyMenu.Item) -> Bool {
         switch item {
         case .report: return owner.permits(.report(conversationID: conversationID, messageID: 1))
@@ -531,8 +583,13 @@ private struct MessagingBubble: View {
             Task { await owner.reviewBlock(unblock: item == .unblock) }
         }
     }
-    private func title(_ item: IMSafetyMenu.Item) -> LocalizedStringKey {
-        switch item { case .report: return "im.chat.more.report"; case .block: return "im.chat.more.block"; case .unblock: return "im.chat.more.unblock"; case .hide: return "im.chat.more.hide" }
+    private func titleString(_ item: IMSafetyMenu.Item) -> String {
+        switch item {
+        case .report: return appLocalized("im.chat.more.report", locale: locale)
+        case .block: return appLocalized("im.chat.more.block", locale: locale)
+        case .unblock: return appLocalized("im.chat.more.unblock", locale: locale)
+        case .hide: return appLocalized("im.chat.more.hide", locale: locale)
+        }
     }
     private func symbol(_ item: IMSafetyMenu.Item) -> String {
         switch item { case .report: return "exclamationmark.bubble"; case .block: return "hand.raised"; case .unblock: return "hand.raised.slash"; case .hide: return "eye.slash" }
@@ -687,27 +744,30 @@ private struct ChatHistoryStatus: View {
 
     private func reviewing(_ action: IMSafetyAction) -> some View {
         let copy = IMSafetyCopy(action)
-        return NavigationStack {
-            CYConfirmSheet(
-                title: appLocalized(String.LocalizationValue(copy.titleKey), locale: locale),
-                message: confirmationMessage(copy),
-                confirmTitle: appLocalized(String.LocalizationValue(copy.confirmKey), locale: locale),
-                isDestructive: confirmsDestructively(action),
-                confirmIdentifier: "im.safety." + "confirm",
-                cancelIdentifier: "im.safety." + "cancel",
-                titleIdentifier: "im.safety." + "reviewTitle"
-            ) {
-                run { await model.owner.confirm() }
-            }
-            .navigationTitle(Text("im.safety.title"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { dismiss() }
-                        .disabled(isInFlight)
-                        .accessibilityIdentifier("im.safety.close")
-                }
-            }
+        let extraKeys: [String] = switch action {
+        case .unblock: ["im.safety.unblock.c1", "im.safety.unblock.c2"]
+        case .report, .reportWithReason: ["im.safety.report.c1"]
+        default: []
+        }
+        let allKeys = copy.consequenceKeys + extraKeys
+        let consequences = Array(allKeys.enumerated()).map { index, key in
+            CYConfirmConsequence(
+                systemImage: (confirmsDestructively(action) && index == allKeys.count - 1) ? "exclamationmark.triangle" : "info.circle",
+                text: appLocalized(String.LocalizationValue(key), locale: locale)
+            )
+        }
+        return CYConfirmSheet(
+            title: appLocalized(String.LocalizationValue(copy.titleKey), locale: locale),
+            message: confirmationMessage(copy),
+            confirmTitle: appLocalized(String.LocalizationValue(copy.confirmKey), locale: locale),
+            isDestructive: confirmsDestructively(action),
+            confirmIdentifier: "im.safety." + "confirm",
+            cancelIdentifier: "im.safety." + "cancel",
+            titleIdentifier: "im.safety." + "reviewTitle",
+            consequences: consequences,
+            onCancel: { dismiss() }
+        ) {
+            run { await model.owner.confirm() }
         }
     }
 

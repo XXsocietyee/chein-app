@@ -89,13 +89,32 @@ import SwiftUI
             }
         }
         .refreshable { await coordinator.pins.reload() }
-        .confirmationDialog(copy.text("p23.confirm.title"), isPresented: Binding(
-            get: { pinSelection != nil }, set: { if !$0 { pinSelection = nil } }), titleVisibility: .visible, presenting: pinSelection) { selection in
-            Button(copy.text("p23.confirm.action"), role: .destructive) { confirmRemoval(selection) }
-                .disabled(!coordinator.canStart || !selectionIsCurrent(selection))
-            Button(copy.text("p23.cancel"), role: .cancel) { pinSelection = nil }
+        .sheet(item: $pinSelection) { selection in
+            CYConfirmSheet(
+                title: copy.text("p23.confirm.title"),
+                message: "",
+                confirmTitle: copy.text("p23.confirm.action"),
+                cancelTitle: copy.text("p23.cancel"),
+                isDestructive: true,
+                confirmDisabled: !coordinator.canStart || !selectionIsCurrent(selection),
+                onCancel: { pinSelection = nil }
+            ) {
+                confirmRemoval(selection)
+            }
+            .cyDomainSheet(detents: [.peek, .half])
         }
-        .alert(copy.text("p23.changed"), isPresented: $localIssue) { Button(copy.text("p23.ok"), role: .cancel) {} }
+        .overlay {
+            if localIssue {
+                CYModal(
+                    title: copy.text("p23.changed"),
+                    message: "",
+                    cancelTitle: nil,
+                    confirmTitle: copy.text("p23.ok"),
+                    onCancel: { localIssue = false },
+                    onConfirm: { localIssue = false }
+                )
+            }
+        }
         .onChange(of: coordinator.pins.isCurrent) { _, current in if !current { retireRead() } }
         .onChange(of: coordinator.client.allows(.receipt)) { _, allowed in
             if !allowed {

@@ -9,7 +9,7 @@ class ExitGuardSourceContracts(unittest.TestCase):
     def test_normal_root_host_has_one_additive_entry(self):
         self.assertEqual(HOST.count('.modifier(TemplateAuthoringExitGuard('),1)
         self.assertIn('overlaysOpen: { preview || discard || media.review != nil }',HOST)
-        self.assertIn('.confirmationDialog("templateAuthor.discardQuestion"',HOST)
+        self.assertIn('title: appLocalized("templateAuthor.discardQuestion", locale: locale)',HOST)
         self.assertIn('CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }',HOST)
     def test_exact_checkpoint_comparison_not_unicode_equatable(self):
         for value in ['.sortedKeys','.withoutEscapingSlashes','encoder.encode(draft)','current == persisted','Self.snapshot(TemplateAuthoringDraft())']:
@@ -43,13 +43,13 @@ class ExitGuardSourceContracts(unittest.TestCase):
         for token in ['.onDisappear { controller.retire() }','phase == .active { controller.activate() } else { controller.retire() }','let original = review','self.cancelAction(original)()']:
             self.assertIn(token,APP)
     def test_real_normal_navigation_and_confirmation_are_present(self):
-        for token in ['.navigationBarBackButtonHidden(true)','.interactiveDismissDisabled(true)','.topBarLeading','.confirmationDialog','controller.backAction','controller.leaveAction','controller.cancelAction','controller.retryAction']:
+        for token in ['.navigationBarBackButtonHidden(true)','.interactiveDismissDisabled(true)','.topBarLeading','.cyModalConfirm','controller.backAction','controller.leaveAction','controller.cancelAction','controller.retryAction']:
             self.assertIn(token,APP)
     def test_compiled_catalog_has_exact_bilingual_keys(self):
         keys=set(re.findall(r'"(templateAuthorExit\.[A-Za-z]+)"',APP));self.assertEqual(keys,set(LOC));self.assertEqual(len(LOC),7)
         self.assertTrue(all(set(x['localizations'])=={'en','zh-Hans'} for x in LOC.values()))
         self.assertTrue(all(v['stringUnit']['value'] for x in LOC.values() for v in x['localizations'].values()))
-        self.assertEqual(APP.count('tableName: "CreatorExitGuard"'),6)
+        self.assertEqual(APP.count('"CreatorExitGuard"'),7)
         self.assertEqual(REG['localization_table'],'CreatorExitGuard')
     def test_native_tests_and_actual_registration_declared(self):
         self.assertEqual(len(re.findall(r'func test\w+\(',CT)),12);self.assertEqual(len(re.findall(r'func test\w+\(',AT)),18)

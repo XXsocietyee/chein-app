@@ -40,6 +40,10 @@ private func nativeAttributeText(_ key: String) -> String {
     @Environment(\.dismiss) private var dismiss
     private var saveIsPrimary: Bool { coordinator.phase != .review }
     var body: some View {
+        cyDomainBody.cyDomainScreen(.topicEditor)
+    }
+
+    @ViewBuilder private var cyDomainBody: some View {
         List {
             Section {
                 CYHeroHeader(verbatim: nativeAttributeText("nativeAttribute.title")) {

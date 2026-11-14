@@ -88,7 +88,7 @@ import SwiftUI
                 Label(success ? "journey.success" : "journey.failure", systemImage: success ? "checkmark.circle.fill" : "xmark.circle.fill")
                     .font(CYTypography.cardTitle).foregroundStyle(tone)
             }
-            Text(verbatim: receipt.total.map(String.init) ?? "—").font(.system(size: 56, weight: .bold, design: .rounded)).monospacedDigit()
+            Text(verbatim: receipt.total.map(String.init) ?? "—").font(CYTypography.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
             HStack(spacing: CYSpacing.md) {
                 number("journey.kept", receipt.kept); number("journey.dc", receipt.dc)

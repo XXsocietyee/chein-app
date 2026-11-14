@@ -41,12 +41,41 @@ public struct CYActivityFeedCard: View {
         self.onSecondary = onSecondary
     }
 
+    struct Tokens {
+        let coverFallback: Color
+        let onCoverFgDim: Color
+        let photoCardFg: Color
+        let photoCardMuted: Color
+        let photoCardGlass: Color
+        let photoCardAction: Color
+        let rare: Color
+        let cardShadowColor: Color
+        let cornerRadius: CGFloat
+        let minHeight: CGFloat
+    }
+
+    static func tokens(in palette: CYDomainPalette) -> Tokens {
+        Tokens(
+            coverFallback: palette.coverFallback,
+            onCoverFgDim: palette.onCoverFgDim,
+            photoCardFg: palette.photoCardFg,
+            photoCardMuted: palette.photoCardMuted,
+            photoCardGlass: palette.photoCardGlass,
+            photoCardAction: palette.photoCardAction,
+            rare: palette.rare,
+            cardShadowColor: palette.cardShadowColor,
+            cornerRadius: CYRadius.xxl,
+            minHeight: 248
+        )
+    }
+
     public var body: some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.xxl, style: .continuous)
+        let tokens = Self.tokens(in: palette)
+        let shape = RoundedRectangle(cornerRadius: tokens.cornerRadius, style: .continuous)
         ZStack(alignment: .bottomLeading) {
             coverLayer
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: typeSize.isAccessibilitySize ? 280 : 248, maxHeight: typeSize.isAccessibilitySize ? nil : 248)
+                .frame(minHeight: typeSize.isAccessibilitySize ? 280 : tokens.minHeight, maxHeight: typeSize.isAccessibilitySize ? nil : tokens.minHeight)
 
             scrimOverlay
 
@@ -58,9 +87,9 @@ public struct CYActivityFeedCard: View {
             .padding(CYSpacing.lg)
         }
         .frame(maxWidth: .infinity)
-        .frame(minHeight: 248)
+        .frame(minHeight: tokens.minHeight)
         .clipShape(shape)
-        .shadow(color: palette.cardShadowColor, radius: 10, x: 0, y: 4)
+        .shadow(color: tokens.cardShadowColor, radius: 10, x: 0, y: 4)
         .accessibilityElement(children: .contain)
     }
 
@@ -247,6 +276,7 @@ public struct CYRouteNodeRow: View {
     }
 
     public var body: some View {
+        let tokens = Self.tokens(for: completion, in: palette)
         HStack(alignment: .top, spacing: CYSpacing.md) {
             railColumn
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -254,7 +284,7 @@ public struct CYRouteNodeRow: View {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: title)
                             .font(CYTypography.cardTitle)
-                            .foregroundStyle(completion == .locked ? palette.textDisabled : palette.textPrimary)
+                            .foregroundStyle(tokens.titleColor)
                         if let distanceAndETA {
                             Text(verbatim: distanceAndETA)
                                 .font(CYTypography.meta.monospacedDigit())
@@ -264,7 +294,7 @@ public struct CYRouteNodeRow: View {
                     Spacer(minLength: CYSpacing.sm)
                     CYStatusChip(
                         verbatim: requirement.label,
-                        tone: badgeTone,
+                        tone: tokens.badgeTone,
                         systemImage: requirement.systemImage
                     )
                 }
@@ -283,7 +313,7 @@ public struct CYRouteNodeRow: View {
                             Button(action: onPerkTap) {
                                 Text(verbatim: perkActionTitle)
                                     .font(CYTypography.caption.weight(.semibold))
-                                    .foregroundStyle(palette.actionPrimaryBg)
+                                    .foregroundStyle(tokens.perkActionColor)
                                     .padding(.horizontal, CYSpacing.md)
                                     .frame(minHeight: CYSpacing.minTouchTarget)
                                     .contentShape(Rectangle())
@@ -293,58 +323,83 @@ public struct CYRouteNodeRow: View {
                     }
                     .padding(.horizontal, CYSpacing.md)
                     .padding(.vertical, CYSpacing.xs)
-                    .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgRaised))
+                    .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(tokens.perkBackground))
                 }
             }
             .padding(.bottom, isLast ? 0 : CYSpacing.lg)
         }
     }
 
-    private var badgeTone: CYStatusTone {
-        switch completion {
-        case .completed: return .success
-        case .current: return .info
-        case .upcoming, .locked: return .neutral
-        }
+    struct Tokens {
+        let titleColor: Color
+        let badgeTone: CYStatusTone
+        let nodeFill: Color
+        let nodeGlyphColor: Color
+        let railColor: Color
+        let perkBackground: Color
+        let perkActionColor: Color
     }
 
+    static func tokens(for completion: CYRouteNodeCompletion, in palette: CYDomainPalette) -> Tokens {
+        let badgeTone: CYStatusTone = switch completion {
+        case .completed: .success
+        case .current: .info
+        case .upcoming, .locked: .neutral
+        }
+        let nodeFill: Color = switch completion {
+        case .completed, .current: palette.actionPrimaryBg
+        case .upcoming, .locked: palette.bgRaised
+        }
+        let nodeGlyphColor: Color = switch completion {
+        case .completed: palette.textInverse
+        case .locked: palette.textDisabled
+        case .current: palette.actionPrimaryFg
+        case .upcoming: palette.textPrimary
+        }
+        return Tokens(
+            titleColor: completion == .locked ? palette.textDisabled : palette.textPrimary,
+            badgeTone: badgeTone,
+            nodeFill: nodeFill,
+            nodeGlyphColor: nodeGlyphColor,
+            railColor: completion == .completed ? palette.textPrimary : palette.borderStrong,
+            perkBackground: palette.bgRaised,
+            perkActionColor: palette.actionPrimaryBg
+        )
+    }
+
+    private var badgeTone: CYStatusTone { Self.tokens(for: completion, in: palette).badgeTone }
+
     private var railColumn: some View {
-        VStack(spacing: 0) {
+        let tokens = Self.tokens(for: completion, in: palette)
+        return VStack(spacing: 0) {
             Rectangle()
-                .fill(isFirst ? Color.clear : (completion == .completed ? palette.textPrimary : palette.borderStrong))
+                .fill(isFirst ? Color.clear : tokens.railColor)
                 .frame(width: 2, height: 8)
             ZStack {
                 Circle()
-                    .fill(nodeFill)
+                    .fill(tokens.nodeFill)
                     .frame(width: 28, height: 28)
                 switch completion {
                 case .completed:
                     Image(systemName: "checkmark")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(palette.textInverse)
+                        .foregroundStyle(tokens.nodeGlyphColor)
                 case .locked:
                     Image(systemName: "lock.fill")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(palette.textDisabled)
+                        .foregroundStyle(tokens.nodeGlyphColor)
                 case .current, .upcoming:
                     Text(verbatim: "\(index)")
                         .font(CYTypography.caption.weight(.bold).monospacedDigit())
-                        .foregroundStyle(completion == .current ? palette.actionPrimaryFg : palette.textPrimary)
+                        .foregroundStyle(tokens.nodeGlyphColor)
                 }
             }
             Rectangle()
-                .fill(isLast ? Color.clear : (completion == .completed ? palette.textPrimary : palette.borderStrong))
+                .fill(isLast ? Color.clear : tokens.railColor)
                 .frame(width: 2)
                 .frame(maxHeight: .infinity)
         }
         .frame(width: 28)
-    }
-
-    private var nodeFill: Color {
-        switch completion {
-        case .completed, .current: return palette.actionPrimaryBg
-        case .upcoming, .locked: return palette.bgRaised
-        }
     }
 }
 
@@ -391,11 +446,80 @@ public struct CYTaskStatusCard: View {
         .cyDomainCard()
     }
 
+    public struct Tokens {
+        public let iconName: String
+        public let iconColor: Color
+        public let detailForeground: Color
+        public let badgeTitle: String
+        public let badgeTone: CYStatusTone
+        public let badgeIcon: String
+    }
+
+    public static func tokens(for state: CYTaskStatusState, in palette: CYDomainPalette) -> Tokens {
+        switch state {
+        case .locked:
+            return Tokens(
+                iconName: "lock.fill",
+                iconColor: palette.textDisabled,
+                detailForeground: palette.textTertiary,
+                badgeTitle: "未解锁",
+                badgeTone: .neutral,
+                badgeIcon: "lock"
+            )
+        case .available:
+            return Tokens(
+                iconName: "location.circle.fill",
+                iconColor: palette.textPrimary,
+                detailForeground: palette.textSecondary,
+                badgeTitle: "可打卡",
+                badgeTone: .info,
+                badgeIcon: "sparkles"
+            )
+        case .submitting:
+            return Tokens(
+                iconName: "arrow.triangle.2.circlepath.circle.fill",
+                iconColor: palette.info,
+                detailForeground: palette.textSecondary,
+                badgeTitle: "提交中",
+                badgeTone: .info,
+                badgeIcon: "clock"
+            )
+        case .completed:
+            return Tokens(
+                iconName: "checkmark.seal.fill",
+                iconColor: palette.success,
+                detailForeground: palette.textSecondary,
+                badgeTitle: "已完成",
+                badgeTone: .success,
+                badgeIcon: "checkmark"
+            )
+        case .retryableFailure:
+            return Tokens(
+                iconName: "exclamationmark.triangle.fill",
+                iconColor: palette.danger,
+                detailForeground: palette.danger,
+                badgeTitle: "失败可重试",
+                badgeTone: .danger,
+                badgeIcon: "arrow.clockwise"
+            )
+        case .offlineAwaitingSync:
+            return Tokens(
+                iconName: "icloud.and.arrow.up.fill",
+                iconColor: palette.warning,
+                detailForeground: palette.warning,
+                badgeTitle: "待同步",
+                badgeTone: .warning,
+                badgeIcon: "wifi.slash"
+            )
+        }
+    }
+
     private var header: some View {
-        HStack(spacing: CYSpacing.sm) {
-            Image(systemName: iconName)
+        let tokens = Self.tokens(for: state, in: palette)
+        return HStack(spacing: CYSpacing.sm) {
+            Image(systemName: tokens.iconName)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(iconColor)
+                .foregroundStyle(tokens.iconColor)
                 .accessibilityHidden(true)
 
             Text(verbatim: title)
@@ -403,33 +527,34 @@ public struct CYTaskStatusCard: View {
                 .foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            CYStatusChip(verbatim: badgeTitle, tone: badgeTone, systemImage: badgeIcon)
+            CYStatusChip(verbatim: tokens.badgeTitle, tone: tokens.badgeTone, systemImage: tokens.badgeIcon)
         }
     }
 
     @ViewBuilder
     private var detailBody: some View {
+        let tokens = Self.tokens(for: state, in: palette)
         switch state {
         case .locked(let requirement, _, _):
             Text(verbatim: requirement)
                 .font(CYTypography.meta)
-                .foregroundStyle(palette.textTertiary)
+                .foregroundStyle(tokens.detailForeground)
         case .available(let methodLabel, _, _):
             Text(verbatim: "核验方式：\(methodLabel)")
                 .font(CYTypography.meta)
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(tokens.detailForeground)
         case .submitting(let requestId):
             HStack(spacing: CYSpacing.sm) {
                 CYButtonSpinner(tint: palette.info)
                 Text(verbatim: "正在上传凭证并防重锁定 · 请求号 \(requestId)")
                     .font(CYTypography.meta.monospacedDigit())
-                    .foregroundStyle(palette.textSecondary)
+                    .foregroundStyle(tokens.detailForeground)
             }
         case .completed(let receiptNo, let completedAt, _):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: "核验通过 · \(completedAt)")
                     .font(CYTypography.meta.monospacedDigit())
-                    .foregroundStyle(palette.textSecondary)
+                    .foregroundStyle(tokens.detailForeground)
                 Text(verbatim: "回执编号 \(receiptNo)")
                     .font(CYTypography.caption.monospacedDigit())
                     .foregroundStyle(palette.textTertiary)
@@ -438,7 +563,7 @@ public struct CYTaskStatusCard: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: detail)
                     .font(CYTypography.meta)
-                    .foregroundStyle(palette.danger)
+                    .foregroundStyle(tokens.detailForeground)
                 Text(verbatim: "保留幂等号 \(requestId)，请先查询原回执或安全重试。")
                     .font(CYTypography.caption.monospacedDigit())
                     .foregroundStyle(palette.textTertiary)
@@ -447,7 +572,7 @@ public struct CYTaskStatusCard: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: "网络离线，答案未丢失（保存于 \(savedAt)），切勿显示为已完成。")
                     .font(CYTypography.meta)
-                    .foregroundStyle(palette.warning)
+                    .foregroundStyle(tokens.detailForeground)
                 Text(verbatim: "本地草稿 \(draftId)")
                     .font(CYTypography.caption.monospacedDigit())
                     .foregroundStyle(palette.textTertiary)
@@ -510,59 +635,6 @@ public struct CYTaskStatusCard: View {
         }
     }
 
-    private var iconName: String {
-        switch state {
-        case .locked: return "lock.fill"
-        case .available: return "location.circle.fill"
-        case .submitting: return "arrow.triangle.2.circlepath.circle.fill"
-        case .completed: return "checkmark.seal.fill"
-        case .retryableFailure: return "exclamationmark.triangle.fill"
-        case .offlineAwaitingSync: return "icloud.and.arrow.up.fill"
-        }
-    }
-
-    private var iconColor: Color {
-        switch state {
-        case .locked: return palette.textDisabled
-        case .available: return palette.textPrimary
-        case .submitting: return palette.info
-        case .completed: return palette.success
-        case .retryableFailure: return palette.danger
-        case .offlineAwaitingSync: return palette.warning
-        }
-    }
-
-    private var badgeTitle: String {
-        switch state {
-        case .locked: return "未解锁"
-        case .available: return "可打卡"
-        case .submitting: return "提交中"
-        case .completed: return "已完成"
-        case .retryableFailure: return "失败可重试"
-        case .offlineAwaitingSync: return "待同步"
-        }
-    }
-
-    private var badgeTone: CYStatusTone {
-        switch state {
-        case .locked: return .neutral
-        case .available, .submitting: return .info
-        case .completed: return .success
-        case .retryableFailure: return .danger
-        case .offlineAwaitingSync: return .warning
-        }
-    }
-
-    private var badgeIcon: String {
-        switch state {
-        case .locked: return "lock"
-        case .available: return "sparkles"
-        case .submitting: return "clock"
-        case .completed: return "checkmark"
-        case .retryableFailure: return "arrow.clockwise"
-        case .offlineAwaitingSync: return "wifi.slash"
-        }
-    }
 }
 
 // MARK: - 4. Story Clue (`hintLadder` + free hint pool + explicit points-cost confirmation)
@@ -708,6 +780,7 @@ public struct CYProgressBar: View {
     private let onRetry: (() -> Void)?
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(
         title: String,
@@ -725,18 +798,21 @@ public struct CYProgressBar: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack {
-                Text(verbatim: title)
-                    .font(CYTypography.label.weight(.semibold))
-                    .foregroundStyle(palette.textPrimary)
-                Spacer(minLength: CYSpacing.sm)
-                Text(verbatim: counterText)
-                    .font(CYTypography.meta.weight(.semibold).monospacedDigit())
-                    .foregroundStyle(loadFailed ? palette.danger : palette.textSecondary)
+            if dynamicTypeSize >= .xxLarge {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    progressTitle
+                    progressCounter
+                }
+            } else {
+                HStack {
+                    progressTitle
+                    Spacer(minLength: CYSpacing.sm)
+                    progressCounter
+                }
             }
 
             if loadFailed {
-                CYInlineError(verbatim: "进度读取失败，未能确认当前节点状态。", onRetry: onRetry)
+                CYInlineError("cy.progress.loadFailed", retryTitle: "cy.state.offline.retry", onRetry: onRetry)
             } else if let total, total > 0 {
                 HStack(spacing: CYSpacing.xs) {
                     ForEach(0..<total, id: \.self) { index in
@@ -754,6 +830,20 @@ public struct CYProgressBar: View {
         }
         .cyDomainCard()
         .accessibilityElement(children: .combine)
+    }
+
+    private var progressTitle: some View {
+        Text(verbatim: title)
+            .font(CYTypography.label.weight(.semibold))
+            .foregroundStyle(palette.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var progressCounter: some View {
+        Text(verbatim: counterText)
+            .font(CYTypography.meta.weight(.semibold).monospacedDigit())
+            .foregroundStyle(loadFailed ? palette.danger : palette.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var counterText: String {
@@ -1090,6 +1180,7 @@ public struct CYPublishStatusBar: View {
     private let onSubmitReview: () -> Void
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     public init(
         stepTitles: [String] = CYPublishStatusBar.defaultStepTitles,
@@ -1109,6 +1200,44 @@ public struct CYPublishStatusBar: View {
         self.onSubmitReview = onSubmitReview
     }
 
+    private var publishTitle: some View {
+        Text(verbatim: "发布状态")
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(palette.textPrimary)
+            .cyWrapText()
+    }
+
+    private var stepButtons: some View {
+        ForEach(Array(stepTitles.enumerated()), id: \.offset) { index, title in
+            let hasIssue = issues.contains { $0.stepIndex == index }
+            let isActive = index == currentStep
+            Button {
+                onSelectStep(index)
+            } label: {
+                HStack(spacing: CYSpacing.xs) {
+                    Text(verbatim: "\(index + 1).\(title)")
+                        .font(CYTypography.caption.weight(isActive ? .bold : .medium))
+                        .cyWrapText(alignment: .center)
+                    if hasIssue {
+                        Circle()
+                            .fill(palette.danger)
+                            .frame(width: 6, height: 6)
+                    }
+                }
+                .foregroundStyle(isActive ? palette.actionPrimaryFg : palette.textSecondary)
+                .padding(.horizontal, CYSpacing.md)
+                .frame(maxWidth: .infinity, minHeight: 36)
+                .background(
+                    RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+                        .fill(isActive ? palette.actionPrimaryBg : palette.bgSurfaceSubtle)
+                )
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
     private var canSubmitReview: Bool {
         if case .savedDraft = saveState {
             return issues.isEmpty && !isSubmittingReview
@@ -1118,42 +1247,19 @@ public struct CYPublishStatusBar: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack(spacing: CYSpacing.sm) {
-                Text(verbatim: "发布状态")
-                    .font(CYTypography.sectionTitle)
-                    .foregroundStyle(palette.textPrimary)
-                Spacer()
-                saveBadge
+            Group {
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) { publishTitle; saveBadge }
+                } else {
+                    HStack(spacing: CYSpacing.sm) { publishTitle; Spacer(); saveBadge }
+                }
             }
 
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(Array(stepTitles.enumerated()), id: \.offset) { index, title in
-                    let hasIssue = issues.contains { $0.stepIndex == index }
-                    let isActive = index == currentStep
-                    Button {
-                        onSelectStep(index)
-                    } label: {
-                        HStack(spacing: CYSpacing.xs) {
-                            Text(verbatim: "\(index + 1).\(title)")
-                                .font(CYTypography.caption.weight(isActive ? .bold : .medium))
-                                .lineLimit(1)
-                            if hasIssue {
-                                Circle()
-                                    .fill(palette.danger)
-                                    .frame(width: 6, height: 6)
-                            }
-                        }
-                        .foregroundStyle(isActive ? palette.actionPrimaryFg : palette.textSecondary)
-                        .padding(.horizontal, CYSpacing.md)
-                        .frame(maxWidth: .infinity, minHeight: 36)
-                        .background(
-                            RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-                                .fill(isActive ? palette.actionPrimaryBg : palette.bgSurfaceSubtle)
-                        )
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+            Group {
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) { stepButtons }
+                } else {
+                    HStack(spacing: CYSpacing.sm) { stepButtons }
                 }
             }
 

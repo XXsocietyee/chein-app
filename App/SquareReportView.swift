@@ -104,32 +104,71 @@ extension EnvironmentValues {
             }
         }
         .interactiveDismissDisabled(hasDraft || busy)
-        .confirmationDialog("social.editor.discardTitle", isPresented: $confirmsDiscard, titleVisibility: .visible) {
-            Button("social.editor.discard", role: .destructive) { dismiss() }.accessibilityIdentifier("squareReport.discard")
-            Button("social.editor.keepEditing", role: .cancel) {}.accessibilityIdentifier("squareReport.keepEditing")
-        } message: { Text("social.editor.discardMessage") }
+        .sheet(isPresented: $confirmsDiscard) {
+            CYConfirmSheet(
+                title: appLocalized("social.editor.discardTitle", locale: locale),
+                message: appLocalized("social.editor.discardMessage", locale: locale),
+                confirmTitle: appLocalized("social.editor.discard", locale: locale),
+                cancelTitle: appLocalized("social.editor.keepEditing", locale: locale),
+                isDestructive: true,
+                confirmIdentifier: "squareReport.discard",
+                cancelIdentifier: "squareReport.keepEditing",
+                onCancel: { confirmsDiscard = false },
+                onConfirm: {
+                    confirmsDiscard = false
+                    dismiss()
+                }
+            )
+            .cyDomainSheet(detents: [.peek, .half])
+        }
         .sheet(isPresented: $showsReasons) {
             if let snapshot {
-                NavigationStack {
-                    List {
+                CYSheetContainer(
+                    title: appLocalized("squareReport.reason", locale: locale),
+                    closeIdentifier: "squareReport.reasonCancel",
+                    onClose: { showsReasons = false }
+                ) {
+                    VStack(spacing: CYSpacing.sm) {
                         ForEach(snapshot.policy.reasons) { reason in
                             Button {
                                 guard snapshot.identity == context?.access.identity else { showsReasons = false; return }
-                                reasonCode = reason.id; showsReasons = false
+                                reasonCode = reason.id
+                                showsReasons = false
                             } label: {
-                                HStack {
-                                    reasonLabel(reason).fixedSize(horizontal: false, vertical: true)
-                                    Spacer()
-                                    if reasonCode == reason.id { Image(systemName: "checkmark").accessibilityHidden(true) }
-                                }.frame(minHeight: 44)
-                            }.accessibilityAddTraits(reasonCode == reason.id ? .isSelected : [])
-                                .accessibilityIdentifier("squareReport.reason." + reason.id)
+                                HStack(spacing: CYSpacing.md) {
+                                    reasonLabel(reason)
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .multilineTextAlignment(.leading)
+                                    Spacer(minLength: CYSpacing.sm)
+                                    if reasonCode == reason.id {
+                                        Image(systemName: "checkmark")
+                                            .font(CYTypography.label)
+                                            .foregroundStyle(CYColor.brand)
+                                            .accessibilityHidden(true)
+                                    }
+                                }
+                                .padding(.horizontal, CYSpacing.md)
+                                .padding(.vertical, CYSpacing.sm)
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .background(
+                                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                                        .fill(reasonCode == reason.id ? CYColor.bgTint : CYColor.bgSurface)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                                        .stroke(reasonCode == reason.id ? CYColor.brand : CYColor.border, lineWidth: reasonCode == reason.id ? 1.5 : 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityAddTraits(reasonCode == reason.id ? .isSelected : [])
+                            .accessibilityIdentifier("squareReport.reason." + reason.id)
                         }
-                    }.navigationTitle("squareReport.reason").navigationBarTitleDisplayMode(.inline)
-                        .toolbar { ToolbarItem(placement: .cancellationAction) {
-                            Button("action.cancel") { showsReasons = false }.accessibilityIdentifier("squareReport.reasonCancel")
-                        } }
-                }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+                    }
+                    .padding(.vertical, CYSpacing.sm)
+                }
+                .cyDomainSheet(detents: [.half, .full])
             }
         }
         .sheet(item: $review) { item in
@@ -165,6 +204,7 @@ extension EnvironmentValues {
             generation += 1; actionTask?.cancel(); descriptionFocused = false
         }
         .accessibilityIdentifier("squareReport.editor")
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func reasonLabel(_ reason: SquareReportReason) -> some View {
         // The policy's exact source label remains visible; no guessed translated

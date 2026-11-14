@@ -35,7 +35,9 @@ import SwiftUI
             }
             ForEach(facts.rows, id: \.id) { title in
                 Section {
-                    LabeledContent { invoiceText(title.typeKey == InvoiceLaunchTitlesPage.unknownDisplay ? "unknown" : title.typeKey) } label: { Text(verbatim: title.titleName) }
+                    LabeledContent { invoiceText(title.typeKey == InvoiceLaunchTitlesPage.unknownDisplay ? "unknown" : title.typeKey) } label: {
+                        Text(verbatim: title.titleName.isEmpty ? "—" : title.titleName).fixedSize(horizontal: false, vertical: true)
+                    }
                     if let tax = title.taxText { Text(verbatim: tax) }
                     if title.showsDefault { invoiceText("defaultTitle") }
                     if title.canEdit, let source = model.overview?.titles.first(where: { $0.id == title.id }) {
@@ -55,13 +57,13 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).navigationTitle(invoiceText("titles"))
         .task { await model.refresh() }.refreshable { await model.refresh() }
-        .confirmationDialog(invoiceText("deleteConfirm"), isPresented: Binding(
-            get: { deleteID != nil }, set: { if !$0 { deleteID = nil } }), titleVisibility: .visible) {
-            Button(role: .destructive) {
+        .sheet(isPresented: Binding(
+            get: { deleteID != nil }, set: { if !$0 { deleteID = nil } })) {
+            MemberInvoiceTitleDeleteConfirmSheet {
                 if let id = deleteID { Task { _ = await model.delete(id) } }
                 deleteID = nil
-            } label: { invoiceText("delete") }
-            Button(role: .cancel) { deleteID = nil } label: { invoiceText("keep") }
+            }
         }
+        .cyDomainScreen(.player)
     }
 }

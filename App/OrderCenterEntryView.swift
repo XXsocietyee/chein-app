@@ -60,7 +60,7 @@ import QuestifyCore
             }
             switch model.phase {
             case .idle: EmptyView()
-            case .loading: Section { ProgressView() }
+            case .loading: Section { CYLoadingStateView(rows: 2).listRowBackground(CYColor.bgElevated) }
             case .failed(let key):
                 Section {
                     Text(LocalizedStringKey(key), tableName: "CreatorEditorUI")
@@ -74,7 +74,7 @@ import QuestifyCore
                         LabeledContent { Text(verbatim: summary.title) } label: { Text("orderCenter.title", tableName: "CreatorEditorUI") }
                         LabeledContent { Text(verbatim: summary.orderNo) } label: { Text("orderCenter.orderNo", tableName: "CreatorEditorUI") }
                         LabeledContent { Text(verbatim: summary.statusText) } label: { Text("orderCenter.status", tableName: "CreatorEditorUI") }
-                        LabeledContent { Text(verbatim: summary.amountText) } label: { Text("orderCenter.amount", tableName: "CreatorEditorUI") }
+                        LabeledContent { Text(verbatim: summary.amountText).monospacedDigit() } label: { Text("orderCenter.amount", tableName: "CreatorEditorUI") }
                         if let created = summary.createdAtText {
                             LabeledContent { Text(verbatim: created) } label: { Text("orderCenter.created", tableName: "CreatorEditorUI") }
                         }
@@ -82,11 +82,15 @@ import QuestifyCore
                 }
             }
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .cyPushedChrome(domain: .player)
         .navigationTitle(Text("orderCenter.navigation", tableName: "CreatorEditorUI"))
         .task {
             guard !initialOutTradeNo.isEmpty, number.isEmpty else { return }
             number = initialOutTradeNo
             await model.load(initialOutTradeNo)
         }
+        .cyDomainScreen(.player)
     }
 }

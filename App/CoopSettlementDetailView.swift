@@ -85,13 +85,12 @@ import SwiftUI
                 }
                 content(detail)
             } else if let issue, !loading { failure(issue) }
-            else { ProgressView("cooperation.loading").accessibilityIdentifier("cooperation.settlement.loading") }
+            else { CYSkeleton(variant: .detail).accessibilityIdentifier("cooperation.settlement.loading") }
         }
         .cyGroupedSurface()
         .cyMiniListScreen()
         .cyHeroScreen()
         .themeDomain(.merchant)
-        .tint(CYDomainPalette(.merchant).brand)
         .cyHideTabBar(true)
         .task(id: ReadTask(reader: ObjectIdentifier(reader), account: reader.session?.accountID, epoch: reader.session?.epoch, source: source.rawValue, recordID: id, refresh: refresh)) { await load() }
         .refreshable { await load() }
@@ -118,7 +117,7 @@ import SwiftUI
                 }
                 Text("cooperation.settlement.line.income").font(CYTypography.label).foregroundStyle(CYColor.textSecondary).padding(.top, CYSpacing.md)
                 Text(verbatim: detail.amount.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—").font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                    .minimumScaleFactor(0.6).lineLimit(1)
+                    .cyWrapText()
                     .accessibilityLabel(detail.amount.map { Text(verbatim: "¥" + CoopFinanceProfit.plainText($0)) } ?? Text("coopflow.amount.unknown"))
                     .accessibilityIdentifier("cooperation.settlement.amount")
             }.padding(.vertical, CYSpacing.xs)
@@ -132,9 +131,17 @@ import SwiftUI
         }
         Section("cooperation.settlement.progress") {
             ForEach(Array(detail.timeline.enumerated()), id: \.offset) { _, step in
-                LabeledContent { Text(verbatim: valueText(step.value)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) } label: {
+                LabeledContent { Text(verbatim: valueText(step.value)).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary) } label: {
                     // Mini `.sd__timeline`: dot + label (600) with the time beneath on the trailing side.
-                    Label { Text(LocalizedStringKey("cooperation.settlement.step." + step.key)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.textPrimary) } icon: { Image(systemName: "circle.fill").font(.system(size: 7)).foregroundStyle(CYColor.textPrimary) }
+                    HStack(spacing: CYSpacing.sm) {
+                        Circle()
+                            .fill(CYColor.textPrimary)
+                            .frame(width: 7, height: 7)
+                            .accessibilityHidden(true)
+                        Text(LocalizedStringKey("cooperation.settlement.step." + step.key))
+                            .font(CYTypography.label.weight(.semibold))
+                            .foregroundStyle(CYColor.textPrimary)
+                    }
                 }.accessibilityIdentifier("cooperation.settlement.step.\(step.key)")
             }
         }

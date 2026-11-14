@@ -158,7 +158,7 @@ struct ClubManagementView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .cyDomainPageBackground()
+        .cyDomainScreen(.player)
         .cyHeroScreen()
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {
@@ -175,6 +175,7 @@ struct ClubManagementView: View {
             else if detailHostVisible { reviewOwner.appear(reviewContext) }
         }
         .onDisappear { if selection == nil { leaveScreen() } }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func detail(_ selected: DetailSelection) -> some View {
         let presentedAttachment = reviewOwner.attachment

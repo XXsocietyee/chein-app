@@ -65,7 +65,7 @@ import SwiftUI
                     TextField(text("publisherPricing.totalLeadCostForThisGroup"), text: $cost).keyboardType(.decimalPad)
                     TextField(text("publisherPricing.groupSize"), text: $team).keyboardType(.numberPad)
                     if (Int(team) ?? 0) <= 0 {
-                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).font(.caption).foregroundStyle(.red)
+                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
                     }
                 }
             }
@@ -77,10 +77,11 @@ import SwiftUI
             if let preview {
                 Section(text("publisherPricing.costFloor")) {
                     // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
-                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).font(.title2.bold()).monospacedDigit()
+                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).font(CYTypography.dataXL).monospacedDigit()
+                        .foregroundStyle(CYColor.textPrimary)
                         .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
-                    Text("publisherPricing.floorIncludes").font(.caption).foregroundStyle(.secondary)
-                    Text("publisherPricing.marginNote").font(.caption).foregroundStyle(.secondary)
+                    Text("publisherPricing.floorIncludes").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("publisherPricing.marginNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 Section(text("publisherPricing.yourFinalPrice")) {
                     TextField(text("publisherPricing.finalPrice"), text: $price).keyboardType(.decimalPad).accessibilityIdentifier("publisher.finalPrice")
@@ -100,8 +101,8 @@ import SwiftUI
                         Text("publisherPricing.reference \(area) \(average) \(count)").font(.caption)
                     } else { Text(text("publisherPricing.notEnoughSamplesNoReferencePrice")).font(.caption) }
                     switch TopicPricingXcx.delta(price: Decimal(string: price) ?? preview.minimum, reference: preview.reference, sampleSize: preview.sampleSize) {
-                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").font(.caption).foregroundStyle(.orange)
-                    case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(.caption)
+                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                    case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     case nil: EmptyView()
                     }
                 }
@@ -111,10 +112,10 @@ import SwiftUI
                             NavigationLink {
                                 PublisherPartnerView(topicID: topicID, row: row, client: client)
                             } label: {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    if let name = partnerNames[row.id] { Text(verbatim: name) }
-                                    else { Text(row.type == "club" ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")) }
-                                    Text(verbatim: termsText(row)).font(.caption).foregroundStyle(.secondary)
+                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                    if let name = partnerNames[row.id] { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
+                                    else { Text(row.type == "club" ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
+                                    Text(verbatim: termsText(row)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                             }
                         }
@@ -124,7 +125,7 @@ import SwiftUI
                 }
                 Section {
                     if preview.canConfirm == false {
-                        Text("publisherPricing.phaseBlockedDetail").font(.caption).foregroundStyle(.orange)
+                        Text("publisherPricing.phaseBlockedDetail").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("publisher.phaseBlocked")
                     }
                     if showsConfirm {
@@ -143,7 +144,10 @@ import SwiftUI
             }
             if !message.isEmpty { Text(message).accessibilityIdentifier("publisher.message") }
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
         .cyHeroScreen()
+        .cyPushedChrome(domain: .merchant)
         .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
         // Mini-program pages/topic/pricing calls preview() in onLoad: load the floor without a manual tap.
         .task { if preview == nil, !busy, subtype == .selfPlay { await load() } }
@@ -213,14 +217,14 @@ import SwiftUI
                         Label("publisherPricing.loadFailed", systemImage: "exclamationmark.triangle")
                             .foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("publisher.partner.error")
                     case .unknown:
-                        Text(verbatim: TopicPricingXcx.unknownMoney).foregroundStyle(.secondary)
+                        Text(verbatim: TopicPricingXcx.unknownMoney).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("publisher.partner.unknown")
                     case .empty(let inspection), .ready(let inspection):
                         let profile = inspection.profile.object ?? [:]
-                        Text(profile["name"]?.text ?? "—").font(.headline)
-                        if let description = profile["description"]?.text, !description.isEmpty { Text(description) }
+                        Text(profile["name"]?.text ?? "—").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        if let description = profile["description"]?.text, !description.isEmpty { Text(description).foregroundStyle(CYColor.textSecondary) }
                         let rows = profileRows(profile)
-                        if rows.isEmpty { Text(text("publisherPricing.noProfileYet")).foregroundStyle(.secondary) }
+                        if rows.isEmpty { Text(text("publisherPricing.noProfileYet")).foregroundStyle(CYColor.textSecondary) }
                         ForEach(rows, id: \.0) { key, value in LabeledContent(key, value: value) }
                     }
                 } header: { Text(isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")) }
@@ -240,7 +244,10 @@ import SwiftUI
                 }
             }
             if !message.isEmpty { Text(message) }
-        }.accessibilityIdentifier("publisher.partner")
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .accessibilityIdentifier("publisher.partner")
         .cyHeroScreen()
         .cyPushedChrome(domain: .merchant)
         .task {
@@ -318,6 +325,7 @@ import SwiftUI
         }.cyHeroScreen()
         .onChange(of: reason) { _, _ in clear() }.onDisappear { clear() }
         .onChange(of: phase) { _, value in if value != .active { clear() } }
+        .cyDomainScreen(.merchant)
     }
     private func clear() { review = nil; coordinator.invalidate() }
 }
@@ -341,6 +349,7 @@ import SwiftUI
             Text(message)
         }.onDisappear { coordinator.invalidate(); review = nil }
         .onChange(of: phase) { _, value in if value != .active { coordinator.invalidate(); review = nil } }
+        .cyDomainScreen(.merchant)
     }
 }
 @MainActor struct PublisherXPBudgetSection: View {

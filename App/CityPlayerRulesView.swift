@@ -39,6 +39,7 @@ import SwiftUI
             }
             .onDisappear { visible = false; flow.cancel() }
         }
+        .cyDomainScreen(.player)
     }
 }
 

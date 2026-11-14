@@ -4,6 +4,7 @@ import SwiftUI
     let reader: any SearchMapReading
     var publicMerchant = PublicMerchantHomeContext()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var isVisible = false
     @State private var presentation = MerchantDiscoveryPresentation()
     @State private var tag = MerchantDiscoveryTag.all
@@ -84,8 +85,18 @@ import SwiftUI
                 }
             }
             .onAppear { presentation.didAppear(expectedID: selected.id) }
+            .cyDomainSheet(detents: [.half, .full])
+            .themeDomain(.merchant)
         }
-        .alert("merchant.discover.unavailable", isPresented: $unavailable) { Button("action.close", role: .cancel) {} }
+        .cyModalConfirm(
+            isPresented: unavailable,
+            title: appLocalized("merchant.discover.unavailable", locale: locale),
+            confirmTitle: appLocalized("action.close", locale: locale),
+            showCancel: false,
+            onCancel: { unavailable = false },
+            onConfirm: { unavailable = false }
+        )
+        .cyDomainScreen(.merchant)
     }
     private func card(_ row: MerchantDiscoveryRow) -> some View {
         HStack(alignment: .top) {

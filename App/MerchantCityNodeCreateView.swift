@@ -65,19 +65,38 @@ import SwiftUI
             Button { back() } label: { MerchantCityNodeCopy.text("merchantCityNode.create.back") }.accessibilityIdentifier("cityNodeCreate.back")
         } } }
         .interactiveDismissDisabled(dirty || submitting)
-        .confirmationDialog(MerchantCityNodeCopy.string("merchantCityNode.create.leaveTitle"), isPresented: $leave, titleVisibility: .visible) {
-            Button(MerchantCityNodeCopy.string("merchantCityNode.create.leaveConfirm"), role: .destructive) { dirty = false; model.invalidate(); dismiss() }
-                .accessibilityIdentifier("cityNodeCreate.leave.confirm")
-            Button(MerchantCityNodeCopy.string("merchantCityNode.create.leaveCancel"), role: .cancel) { }
-        } message: { MerchantCityNodeCopy.text("merchantCityNode.create.leaveBody") }
-        .confirmationDialog(MerchantCityNodeCopy.string("merchantCityNode.confirm.placeTitle"), isPresented: Binding(
-            get: { c.isCurrent && c.review != nil }, set: { if !$0 && !confirming { model.cancel() } }), titleVisibility: .visible) {
-            if let review = c.review {
-                Button(MerchantCityNodeCopy.string("merchantCityNode.create.submit")) { confirming = true; Task { await confirm(review) } }
-                    .accessibilityIdentifier("cityNodeCreate.confirm")
-                Button(MerchantCityNodeCopy.string("merchantCityNode.action.cancel"), role: .cancel) { model.cancel() }
+        .cyModalConfirm(
+            isPresented: leave,
+            title: MerchantCityNodeCopy.string("merchantCityNode.create.leaveTitle"),
+            message: MerchantCityNodeCopy.string("merchantCityNode.create.leaveBody"),
+            cancelTitle: MerchantCityNodeCopy.string("merchantCityNode.create.leaveCancel"),
+            confirmTitle: MerchantCityNodeCopy.string("merchantCityNode.create.leaveConfirm"),
+            isDestructive: true,
+            confirmIdentifier: "cityNodeCreate.leave.confirm",
+            onCancel: { leave = false },
+            onConfirm: {
+                leave = false
+                dirty = false
+                model.invalidate()
+                dismiss()
             }
-        } message: { MerchantCityNodeCopy.text("merchantCityNode.confirm.placeBody") }
+        )
+        .cyModalConfirm(
+            isPresented: c.isCurrent && c.review != nil,
+            title: MerchantCityNodeCopy.string("merchantCityNode.confirm.placeTitle"),
+            message: MerchantCityNodeCopy.string("merchantCityNode.confirm.placeBody"),
+            cancelTitle: MerchantCityNodeCopy.string("merchantCityNode.action.cancel"),
+            confirmTitle: MerchantCityNodeCopy.string("merchantCityNode.create.submit"),
+            isConfirmLoading: confirming,
+            confirmIdentifier: "cityNodeCreate.confirm",
+            onCancel: { if !confirming { model.cancel() } },
+            onConfirm: {
+                if let review = c.review {
+                    confirming = true
+                    Task { await confirm(review) }
+                }
+            }
+        )
         .modifier(MerchantCityTemplateHandoffPresentation(model: handoff, binding: templateBinding))
         .background {
             if let attachment = addressChoice.attachment {
@@ -87,12 +106,7 @@ import SwiftUI
                 MerchantCityAddressChoicePresentation(owner: addressChoice, original: original, current: { addressSource }, apply: applyPlace).id(original.id)
             }
         }
-        .overlay(alignment: .bottom) {
-            if let toast {
-                Text(verbatim: toast).font(.subheadline).padding(.horizontal, 16).padding(.vertical, 10)
-                    .background(.thinMaterial, in: Capsule()).padding(.bottom, 90).accessibilityIdentifier("cityNodeCreate.toast")
-            }
-        }
+        .cyToast(verbatimMessage: $toast, tone: .info)
         .task(id: toast) { if toast != nil { try? await Task.sleep(nanoseconds: 4_000_000_000); toast = nil } }
     }
 

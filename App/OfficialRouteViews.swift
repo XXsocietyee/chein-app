@@ -10,9 +10,9 @@ import SwiftUI
     @State private var state: LoadState = .loading
     @Namespace private var hero
     @State private var stagger = CYStaggerGate()
-    private enum LoadState { case loading, ready([OfficialRoute]), empty, failed }
+    private enum LoadState { case loading, ready([OfficialRoute]), empty, failed, offline }
     private var stateKey: Int {
-        switch state { case .loading: return 0; case .ready: return 1; case .empty: return 2; case .failed: return 3 }
+        switch state { case .loading: return 0; case .ready: return 1; case .empty: return 2; case .failed: return 3; case .offline: return 4 }
     }
     var body: some View {
         Group {
@@ -22,6 +22,8 @@ import SwiftUI
                     .accessibilityLabel(Text("officialRoute.loading"))
             case .failed:
                 CYErrorStateView(title: "officialRoute.list.error", message: "officialRoute.error.message", retryTitle: "officialRoute.retry") { Task { await load() } }
+            case .offline:
+                CYStateLayout(kind: .offline, title: Text("officialRoute.list.error"), detail: Text("cy.kit.offline.body"), primary: ("officialRoute.retry", { Task { await load() } }))
             case .empty:
                 CYEmptyStateView(systemImage: "point.topleft.down.to.point.bottomright.curvepath", title: "officialRoute.list.empty")
             case .ready(let routes):
@@ -42,6 +44,7 @@ import SwiftUI
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.standard), value: stateKey)
         .navigationTitle(Text("officialRoute.title"))
         .navigationBarTitleDisplayMode(.large)
+        .cyDomainScreen(.player)
         .task { await load() }
         .cyRefreshable { await load(refreshing: true) }
         .accessibilityIdentifier("officialRoute.list")
@@ -52,7 +55,10 @@ import SwiftUI
         do {
             let routes = try await reader.list()
             state = routes.isEmpty ? .empty : .ready(routes)
-        } catch is CancellationError { return } catch { state = .failed }
+        } catch is CancellationError { return }
+        catch let error as URLError where error.code == .notConnectedToInternet || error.code == .networkConnectionLost {
+            state = .offline
+        } catch { state = .failed }
     }
 }
 
@@ -80,6 +86,7 @@ import SwiftUI
         }
         .navigationTitle(navTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .cyDomainScreen(.player)
         .toolbar {
             if case .ready = state {
                 ToolbarItem(placement: .topBarTrailing) {

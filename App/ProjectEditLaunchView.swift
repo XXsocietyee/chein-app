@@ -31,5 +31,6 @@ import SwiftUI
                     .accessibilityIdentifier("projectRemote.myProjects")
             }
         }.cyHeroScreen()
+        .cyDomainScreen(.topicEditor)
     }
 }

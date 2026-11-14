@@ -55,6 +55,7 @@ import SwiftUI
         .cyEdgeGlow(trigger: glowTick)
         .cyHaptic(.impactMedium, trigger: appeared)
         .accessibilityIdentifier("ticketWallet.present")
+        .cyDomainScreen(.player)
     }
 
     private var closeBar: some View {

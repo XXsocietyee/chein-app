@@ -19,6 +19,7 @@ public enum CYSheetDetent: Sendable, Hashable {
 /// 24pt top radius, 36×4pt handle (`sheetHandle`), player glass `rgba(44,44,46,.98)`, sheet card `#3A3A3C` / `#F8F9FA`.
 public struct CYSheetContainer<Content: View>: View {
     private let title: String?
+    private let closeIdentifier: String?
     private let onClose: (() -> Void)?
     private let content: Content
 
@@ -27,10 +28,12 @@ public struct CYSheetContainer<Content: View>: View {
 
     public init(
         title: String? = nil,
+        closeIdentifier: String? = nil,
         onClose: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
+        self.closeIdentifier = closeIdentifier
         self.onClose = onClose
         self.content = content()
     }
@@ -54,6 +57,7 @@ public struct CYSheetContainer<Content: View>: View {
                             .font(CYTypography.sheetTitle)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityAddTraits(.isHeader)
+                            .pageTemplateReadingOrder(2)
                     }
                     Spacer(minLength: CYSpacing.sm)
                     if let onClose {
@@ -68,6 +72,9 @@ public struct CYSheetContainer<Content: View>: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text("action.close"))
+                        .modifier(CYOptionalAccessibilityIdentifier(identifier: closeIdentifier))
+                        .pageTemplateControl(label: Text("action.close"), traits: .isButton)
+                        .pageTemplateReadingOrder(1)
                     }
                 }
                 .padding(.horizontal, CYSpacing.lg)
@@ -123,6 +130,53 @@ private struct CYDomainSheetDetentsModifier: ViewModifier {
     }
 }
 
+public enum CYSheetModalTokens {
+    public struct SheetResolved {
+        public let background: Color
+        public let handle: Color
+        public let title: Color
+        public let card: Color
+        public let divider: Color
+    }
+
+    public struct ModalResolved {
+        public let overlay: Color
+        public let panel: Color
+        public let consequenceBackground: Color
+        public let consequenceIcon: Color
+        public let confirmVariant: CYButtonVariant
+        public let shadow: Color
+    }
+
+    static func sheet(in palette: CYDomainPalette) -> SheetResolved {
+        SheetResolved(
+            background: palette.sheetGlass,
+            handle: palette.sheetHandle,
+            title: palette.textPrimary,
+            card: palette.sheetCard,
+            divider: palette.borderSubtle
+        )
+    }
+
+    static func optionRowForeground(isDanger: Bool, in palette: CYDomainPalette) -> Color {
+        isDanger ? palette.danger : palette.textPrimary
+    }
+
+    static func modal(isDestructive: Bool, in palette: CYDomainPalette) -> ModalResolved {
+        ModalResolved(
+            overlay: palette.overlay,
+            panel: palette.modalPanel,
+            consequenceBackground: palette.sheetCard,
+            consequenceIcon: isDestructive ? palette.danger : palette.textSecondary,
+            confirmVariant: isDestructive ? .danger : .primary,
+            shadow: palette.floatShadowColor
+        )
+    }
+}
+
+/// Returns a raw accessibility identifier without altering its value.
+public func cyAccessibilityID(id: String) -> String { id }
+
 /// Option row item for `CYOptionSheet` (`56pt` tall row, 0.5pt divider, radio/check/danger).
 public struct CYOptionSheetItem<ID: Hashable>: Identifiable {
     public let id: ID
@@ -130,19 +184,22 @@ public struct CYOptionSheetItem<ID: Hashable>: Identifiable {
     public let subtitle: String?
     public let systemImage: String?
     public let isDanger: Bool
+    public let identifier: String?
 
     public init(
         id: ID,
         title: String,
         subtitle: String? = nil,
         systemImage: String? = nil,
-        isDanger: Bool = false
+        isDanger: Bool = false,
+        identifier: String? = nil
     ) {
         self.id = id
         self.title = title
         self.subtitle = subtitle
         self.systemImage = systemImage
         self.isDanger = isDanger
+        self.identifier = identifier
     }
 }
 
@@ -153,6 +210,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
     private let selectedID: ID?
     private let onSelect: (ID) -> Void
     private let onClose: () -> Void
+    private let closeIdentifier: String?
 
     @Environment(\.cyPalette) private var palette
 
@@ -160,21 +218,25 @@ public struct CYOptionSheet<ID: Hashable>: View {
         title: String,
         items: [CYOptionSheetItem<ID>],
         selectedID: ID? = nil,
+        closeIdentifier: String? = nil,
         onSelect: @escaping (ID) -> Void,
         onClose: @escaping () -> Void
     ) {
         self.title = title
         self.items = items
         self.selectedID = selectedID
+        self.closeIdentifier = closeIdentifier
         self.onSelect = onSelect
         self.onClose = onClose
     }
 
     public var body: some View {
-        CYSheetContainer(title: title, onClose: onClose) {
+        CYSheetContainer(title: title, closeIdentifier: closeIdentifier, onClose: onClose) {
+            let sheetTokens = CYSheetModalTokens.sheet(in: palette)
             VStack(spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     let isSelected = item.id == selectedID
+                    let rowColor = CYSheetModalTokens.optionRowForeground(isDanger: item.isDanger, in: palette)
                     Button {
                         onSelect(item.id)
                     } label: {
@@ -182,17 +244,20 @@ public struct CYOptionSheet<ID: Hashable>: View {
                             if let systemImage = item.systemImage {
                                 Image(systemName: systemImage)
                                     .font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(item.isDanger ? palette.danger : palette.textPrimary)
+                                    .foregroundStyle(rowColor)
                                     .frame(width: 24)
+                                    .accessibilityHidden(true)
                             }
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: item.title)
                                     .font(CYTypography.cardTitle)
-                                    .foregroundStyle(item.isDanger ? palette.danger : palette.textPrimary)
+                                    .foregroundStyle(rowColor)
+                                    .fixedSize(horizontal: false, vertical: true)
                                 if let subtitle = item.subtitle {
                                     Text(verbatim: subtitle)
                                         .font(CYTypography.meta)
                                         .foregroundStyle(palette.textTertiary)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
                             Spacer(minLength: CYSpacing.sm)
@@ -200,6 +265,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundStyle(palette.textPrimary)
+                                    .accessibilityHidden(true)
                             }
                         }
                         .padding(.horizontal, CYSpacing.lg)
@@ -207,16 +273,21 @@ public struct CYOptionSheet<ID: Hashable>: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(CYListRowButtonStyle())
+                    .pageTemplateControl(
+                        label: item.subtitle.map { Text(verbatim: item.title) + Text(verbatim: ", ") + Text(verbatim: $0) } ?? Text(verbatim: item.title),
+                        traits: isSelected ? [.isButton, .isSelected] : .isButton
+                    )
+                    .cyOptionalAccessibilityIdentifier(item.identifier)
 
                     if index < items.count - 1 {
                         Rectangle()
-                            .fill(palette.borderSubtle)
+                            .fill(sheetTokens.divider)
                             .frame(height: 0.5)
                             .padding(.leading, CYSpacing.lg)
                     }
                 }
             }
-            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.sheetCard))
+            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(sheetTokens.card))
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         }
     }
@@ -228,27 +299,38 @@ public struct CYModal: View {
     private let title: String
     private let message: String
     private let consequences: [CYConfirmConsequence]
-    private let cancelTitle: String
+    private let cancelTitle: String?
     private let confirmTitle: String
     private let lighterAlternativeTitle: String?
+    private let showCancel: Bool
     private let isDestructive: Bool
     private let isConfirmLoading: Bool
+    private let confirmIdentifier: String?
+    private let cancelIdentifier: String?
+    private let titleIdentifier: String?
+    private let lighterAlternativeIdentifier: String?
     private let onCancel: () -> Void
     private let onLighterAlternative: (() -> Void)?
     private let onConfirm: () -> Void
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(
         title: String,
         message: String,
         consequences: [CYConfirmConsequence] = [],
-        cancelTitle: String = "取消",
+        cancelTitle: String? = "取消",
         confirmTitle: String = "确认",
         lighterAlternativeTitle: String? = nil,
+        showCancel: Bool = true,
         isDestructive: Bool = false,
         isConfirmLoading: Bool = false,
+        confirmIdentifier: String? = nil,
+        cancelIdentifier: String? = nil,
+        titleIdentifier: String? = nil,
+        lighterAlternativeIdentifier: String? = nil,
         onCancel: @escaping () -> Void,
         onLighterAlternative: (() -> Void)? = nil,
         onConfirm: @escaping () -> Void
@@ -259,10 +341,218 @@ public struct CYModal: View {
         self.cancelTitle = cancelTitle
         self.confirmTitle = confirmTitle
         self.lighterAlternativeTitle = lighterAlternativeTitle
+        self.showCancel = showCancel
         self.isDestructive = isDestructive
         self.isConfirmLoading = isConfirmLoading
+        self.confirmIdentifier = confirmIdentifier
+        self.cancelIdentifier = cancelIdentifier
+        self.titleIdentifier = titleIdentifier
+        self.lighterAlternativeIdentifier = lighterAlternativeIdentifier
         self.onCancel = onCancel
         self.onLighterAlternative = onLighterAlternative
+        self.onConfirm = onConfirm
+    }
+
+    public var body: some View {
+        let modalTokens = CYSheetModalTokens.modal(isDestructive: isDestructive, in: palette)
+        ZStack {
+            modalTokens.overlay
+                .ignoresSafeArea()
+                .onTapGesture(perform: onCancel)
+
+            panelCard
+                .padding(.horizontal, CYSpacing.xxxl)
+                .transition(reduceMotion ? .opacity : .scale(scale: 0.96).combined(with: .opacity))
+        }
+    }
+
+    /// Standalone modal panel (also directly embeddable in side-by-side Design Kit fixtures).
+    public var panelCard: some View {
+        let modalTokens = CYSheetModalTokens.modal(isDestructive: isDestructive, in: palette)
+        return VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            HStack(alignment: .top, spacing: CYSpacing.sm) {
+                Text(verbatim: title)
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+                    .cyOptionalAccessibilityIdentifier(titleIdentifier)
+                    .pageTemplateReadingOrder(2)
+                Spacer(minLength: CYSpacing.sm)
+                Button(action: onCancel) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(palette.textSecondary)
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(palette.bgSurfaceSubtle))
+                        .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .offset(x: 8, y: -8)
+                .pageTemplateControl(label: Text("action.close"), traits: .isButton)
+                .pageTemplateReadingOrder(1)
+            }
+
+            if !message.isEmpty {
+                Text(verbatim: message)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if !consequences.isEmpty {
+                VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
+                    ForEach(consequences) { item in
+                        HStack(alignment: .top, spacing: CYSpacing.sm) {
+                            Image(systemName: item.systemImage)
+                                .font(CYTypography.caption.weight(.semibold))
+                                .foregroundStyle(modalTokens.consequenceIcon)
+                                .frame(width: 20, alignment: .center)
+                                .accessibilityHidden(true)
+                            Text(verbatim: item.text)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(palette.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .padding(CYSpacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(modalTokens.consequenceBackground))
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isStaticText)
+            }
+
+            if let lighterAlternativeTitle, let onLighterAlternative {
+                Button(action: onLighterAlternative) {
+                    Text(verbatim: lighterAlternativeTitle)
+                        .font(CYTypography.label.weight(.semibold))
+                        .foregroundStyle(palette.info)
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .buttonStyle(CYGhostButtonStyle(isFullWidth: true, size: .sm))
+                .cyOptionalAccessibilityIdentifier(lighterAlternativeIdentifier)
+            }
+
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: CYSpacing.sm) {
+                    modalConfirmButton
+                    if showCancel, let cancelTitle {
+                        modalCancelButton(cancelTitle)
+                    }
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.md) {
+                        if showCancel, let cancelTitle {
+                            modalCancelButton(cancelTitle)
+                        }
+                        modalConfirmButton
+                    }
+                    VStack(spacing: CYSpacing.sm) {
+                        modalConfirmButton
+                        if showCancel, let cancelTitle {
+                            modalCancelButton(cancelTitle)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(CYSpacing.xl)
+        .frame(maxWidth: 320, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(modalTokens.panel))
+        .shadow(color: modalTokens.shadow, radius: 20, x: 0, y: 10)
+    }
+
+    @ViewBuilder private func identified<V: View>(_ identifier: String?, @ViewBuilder content: () -> V) -> some View {
+        if let identifier { content().accessibilityIdentifier(identifier) } else { content() }
+    }
+
+    @ViewBuilder private func modalCancelButton(_ cancelTitle: String) -> some View {
+        identified(cancelIdentifier) {
+            Button(action: onCancel) {
+                Text(verbatim: cancelTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+        }
+        .pageTemplateControl(label: Text(verbatim: cancelTitle), traits: .isButton)
+        .pageTemplateReadingOrder(2)
+    }
+
+    @ViewBuilder private var modalConfirmButton: some View {
+        if isDestructive {
+            identified(confirmIdentifier) {
+                Button(role: .destructive, action: onConfirm) {
+                    Text(verbatim: confirmTitle)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            }
+            .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
+            .pageTemplateReadingOrder(1)
+        } else {
+            identified(confirmIdentifier) {
+                Button(action: onConfirm) {
+                    Text(verbatim: confirmTitle)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            }
+            .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
+            .pageTemplateReadingOrder(1)
+        }
+    }
+}
+
+/// Centered prompt modal matching `utils/modal.js` editable input dialogs (`overlay`, `modalPanel`, inline validation).
+public struct CYPromptModal: View {
+    private let title: String
+    private let message: String?
+    @Binding private var text: String
+    private let placeholder: String
+    private let validationMessage: String?
+    private let cancelTitle: String
+    private let confirmTitle: String
+    private let isDestructive: Bool
+    private let isConfirmLoading: Bool
+    private let cancelIdentifier: String?
+    private let confirmIdentifier: String?
+    private let onCancel: () -> Void
+    private let onConfirm: () -> Void
+
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    public init(
+        title: String,
+        message: String? = nil,
+        text: Binding<String>,
+        placeholder: String = "",
+        validationMessage: String? = nil,
+        cancelTitle: String = "取消",
+        confirmTitle: String = "确认",
+        isDestructive: Bool = false,
+        isConfirmLoading: Bool = false,
+        cancelIdentifier: String? = nil,
+        confirmIdentifier: String? = nil,
+        onCancel: @escaping () -> Void,
+        onConfirm: @escaping () -> Void
+    ) {
+        self.title = title
+        self.message = message
+        self._text = text
+        self.placeholder = placeholder
+        self.validationMessage = validationMessage
+        self.cancelTitle = cancelTitle
+        self.confirmTitle = confirmTitle
+        self.isDestructive = isDestructive
+        self.isConfirmLoading = isConfirmLoading
+        self.cancelIdentifier = cancelIdentifier
+        self.confirmIdentifier = confirmIdentifier
+        self.onCancel = onCancel
         self.onConfirm = onConfirm
     }
 
@@ -278,7 +568,6 @@ public struct CYModal: View {
         }
     }
 
-    /// Standalone modal panel (also directly embeddable in side-by-side Design Kit fixtures).
     public var panelCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack(alignment: .top, spacing: CYSpacing.sm) {
@@ -290,7 +579,7 @@ public struct CYModal: View {
                 Spacer(minLength: CYSpacing.sm)
                 Button(action: onCancel) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(CYTypography.caption.weight(.semibold))
                         .foregroundStyle(palette.textSecondary)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(palette.bgSurfaceSubtle))
@@ -302,58 +591,40 @@ public struct CYModal: View {
                 .accessibilityLabel(Text("action.close"))
             }
 
-            Text(verbatim: message)
+            if let message, !message.isEmpty {
+                Text(verbatim: message)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                TextField(text: $text, prompt: Text(verbatim: placeholder).foregroundStyle(palette.textSecondary)) {
+                    Text(verbatim: title)
+                }
                 .font(CYTypography.bodyCompact)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if !consequences.isEmpty {
-                VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
-                    ForEach(consequences) { item in
-                        HStack(alignment: .top, spacing: CYSpacing.sm) {
-                            Image(systemName: item.systemImage)
-                                .font(CYTypography.caption.weight(.semibold))
-                                .foregroundStyle(isDestructive ? palette.danger : palette.textSecondary)
-                                .frame(width: 20, alignment: .center)
-                                .accessibilityHidden(true)
-                            Text(verbatim: item.text)
-                                .font(CYTypography.meta)
-                                .foregroundStyle(palette.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-                .padding(CYSpacing.md)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundStyle(palette.textPrimary)
+                .padding(.horizontal, CYSpacing.md)
+                .padding(.vertical, CYSpacing.s2_5)
+                .frame(minHeight: CYSpacing.minTouchTarget)
                 .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.sheetCard))
+
+                if let validationMessage, !validationMessage.isEmpty {
+                    Text(verbatim: validationMessage)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.danger)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
-            if let lighterAlternativeTitle, let onLighterAlternative {
-                Button(action: onLighterAlternative) {
-                    Text(verbatim: lighterAlternativeTitle)
-                        .font(CYTypography.label.weight(.semibold))
-                        .foregroundStyle(palette.info)
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.md) {
+                    cancelButton
+                    confirmButton
                 }
-                .buttonStyle(CYGhostButtonStyle(isFullWidth: true, size: .sm))
-            }
-
-            HStack(spacing: CYSpacing.md) {
-                Button(action: onCancel) {
-                    Text(verbatim: cancelTitle)
-                }
-                .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
-
-                if isDestructive {
-                    Button(role: .destructive, action: onConfirm) {
-                        Text(verbatim: confirmTitle)
-                    }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
-                } else {
-                    Button(action: onConfirm) {
-                        Text(verbatim: confirmTitle)
-                    }
-                    .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+                VStack(spacing: CYSpacing.sm) {
+                    confirmButton
+                    cancelButton
                 }
             }
         }
@@ -361,5 +632,70 @@ public struct CYModal: View {
         .frame(maxWidth: 320, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.modalPanel))
         .shadow(color: palette.floatShadowColor, radius: 20, x: 0, y: 10)
+    }
+
+    private var cancelButton: some View {
+        Button(action: onCancel) {
+            Text(verbatim: cancelTitle)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+        .cyOptionalAccessibilityIdentifier(cancelIdentifier)
+    }
+
+    @ViewBuilder
+    private var confirmButton: some View {
+        if isDestructive {
+            Button(role: .destructive, action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        } else {
+            Button(action: onConfirm) {
+                Text(verbatim: confirmTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            .cyOptionalAccessibilityIdentifier(confirmIdentifier)
+        }
+    }
+}
+
+private struct CYModalOverlayModifier<ModalContent: View>: ViewModifier {
+    let isPresented: Bool
+    let modalContent: () -> ModalContent
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if isPresented {
+                    modalContent()
+                }
+            }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: isPresented)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func cyOptionalAccessibilityIdentifier(_ identifier: String?) -> some View {
+        if let identifier {
+            accessibilityIdentifier(identifier)
+        } else {
+            self
+        }
+    }
+}
+
+public extension View {
+    /// Presents a DesignSystem modal panel (`CYModal`, `CYPromptModal`) over the view with reduced-motion support.
+    func cyModalOverlay<ModalContent: View>(
+        isPresented: Bool,
+        @ViewBuilder content: @escaping () -> ModalContent
+    ) -> some View {
+        modifier(CYModalOverlayModifier(isPresented: isPresented, modalContent: content))
     }
 }
