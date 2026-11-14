@@ -77,6 +77,7 @@ struct ActivityDetailView: View {
 }
 
 @MainActor private struct ActivityDetailContentView: View {
+    @Environment(\.analyticsEventClient) private var analytics
     let id: Int
     let reader: any ActivityReading
     var playReaderForActivity: ((Int)->PlaySessionReader)? = nil
@@ -157,7 +158,10 @@ struct ActivityDetailView: View {
         .toolbar {
             if let access, case .allowed = access {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showsShare = true } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
+                    Button {
+                        showsShare = true
+                        MiniProgramAnalytics.track(analytics, "content_share", bizType: "activity", bizID: MiniProgramAnalytics.bizID(id), pagePath: "/pages/activity/detail/index")
+                    } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
                         .accessibilityIdentifier("activity.share")
                 }
             }

@@ -36,6 +36,7 @@ import Combine
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.analyticsEventClient) private var analytics
     /// Location-purpose consent is asked once, on the first GO, by the inline card; the stored answer seeds this state and
     /// still feeds `owner.start(purposeAccepted:)`, which stays the source of truth.
     @AppStorage("roamLivePurposeAcceptedV1") private var storedPurposeAccepted = false
@@ -151,6 +152,9 @@ import Combine
                         RoamPlaceMemorySection(placeName: memory.placeName, text: memory.text) {
                             owner.dismissPlaceMemory(id: memory.id)
                         }
+                        .onAppear {
+                            MiniProgramAnalytics.track(analytics, "roam_poi_meaning_shown", bizType: "roam", pagePath: "/pages/roam/index")
+                        }
                     }
                     nearby
                     trace
@@ -257,13 +261,19 @@ import Combine
             }
         }
         // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
+        if id != nil {
+            let result = owner.settlement?.result
+            MiniProgramAnalytics.track(analytics, "roam_finish", bizType: "roam",
+                bizID: MiniProgramAnalytics.bizID(owner.completedHistory?.serverSessionID), pagePath: "/pages/roam/index",
+                properties: ["shops": .integer(Int64(result?.sessionShops ?? 0)), "pois": .integer(Int64(result?.newPois ?? 0))])
+        }
         guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
         celebrations.enqueue(.roamSummary(payload))
     }
     var body: some View {
         sessionObservers
         .task(id: owner.phase) { await pulseWhileActive() }
-        .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count))
+        .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0))
         .cyCelebrations(celebrations)
         .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in settledSessionChanged(id) }
         .overlay(alignment: .top) {
@@ -534,7 +544,16 @@ import Combine
             if owner.actionUnresolved(place, shop: shop) { Text("roam.live.unknownVisit").font(.caption) }
             else if owner.actionConfirmed(place, shop: shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
             else {
-                Button(shop ? "roam.live.visitShop" : "roam.live.discover") { Task { if shop { await owner.visitShop(place) } else { await owner.discover(place) } } }
+                Button(shop ? "roam.live.visitShop" : "roam.live.discover") {
+                    Task {
+                        let before = owner.actionConfirmed(place, shop: false)
+                        if shop { await owner.visitShop(place) } else { await owner.discover(place) }
+                        if !shop, !before, owner.actionConfirmed(place, shop: false) {
+                            MiniProgramAnalytics.track(analytics, "roam_poi_found", bizType: "roam",
+                                bizID: MiniProgramAnalytics.bizID(place.id), pagePath: "/pages/roam/index")
+                        }
+                    }
+                }
                     .disabled(owner.busy || owner.gapMeters(place, shop: shop) != 0)
                 if let gap = owner.gapMeters(place, shop: shop), gap > 0 {
                     Text("roam.live.walkCloser \(gap)").font(.caption).foregroundStyle(.secondary)

@@ -52,6 +52,7 @@ extension AppCompositionRoot {
     let onCopied: (Int) -> Void
     @StateObject private var model: TopicTemplateUseModel
     @Environment(\.cyPalette) private var palette
+    @Environment(\.analyticsEventClient) private var analytics
 
     init(templateID: Int, scope: String?, readOnly: Bool, plan: TopicTemplateAdoptionPlan = .init(delivery: nil),
          onCopied: @escaping (Int) -> Void) {
@@ -86,6 +87,9 @@ extension AppCompositionRoot {
                     .accessibilityIdentifier("topicTemplate.useIntent")
             }
             Button {
+                if scope != "my" {
+                    MiniProgramAnalytics.track(analytics, "template_reuse", bizType: "template", bizID: MiniProgramAnalytics.bizID(templateID), pagePath: "/pages/templatedetail/templatedetail")
+                }
                 Task { await model.use(id: templateID, scope: scope, plan: plan) }
             } label: {
                 Text(buttonTitle).frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
