@@ -40,7 +40,7 @@ import XCTest
         XCTAssertEqual(ReleaseMoneyWriteSwitch.kind(for: "/api/marketing/product/activate"), .payment)
         XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: "/api/marketing/group-checkout/quote"))
         XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
-        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 204)
+        XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)
         XCTAssertFalse(MPCommerceGate.purchasesEnabled)
         XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(host: "www.chengyinhub.com"))
     }
