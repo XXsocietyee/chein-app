@@ -513,9 +513,7 @@ struct MPParityRegistrationOrder: View {
             if Task.isCancelled { return }
             switch envelope.map(G6MarketingProduct.outcome) ?? .failed(reasonCode: nil) {
             case .ready(let product):
-                state.product = .ready(MPParityBindings.productCard(product))
-                state.checkout = Self.checkout(product)
-                state.buy = Self.buy(product)
+                await apply(product)
             case .failed(let reasonCode):
                 state.product = .failed(G6Copy.productReason(reasonCode))
                 state.buy = .unavailable(reason: nil)
@@ -529,13 +527,44 @@ struct MPParityRegistrationOrder: View {
                 state.buy = .unavailable(reason: nil)
                 return
             }
-            state.product = .ready(MPParityBindings.productCard(product))
-            state.checkout = Self.checkout(product)
-            state.buy = Self.buy(product)
+            await apply(product)
         } catch is CancellationError {
             return
         } catch {
             state.product = .failed(nil)
+            state.buy = .unavailable(reason: nil)
+        }
+    }
+
+    /// Group and school products quote `/api/marketing/group-checkout/quote`. The catalog cash price is not the total.
+    private func apply(_ product: PlatformPassProduct) async {
+        let card = MPParityBindings.productCard(product)
+        state.product = .ready(card)
+        state.activateTopicID = product.topicIDs.first
+        guard card.kind == .group || card.kind == .schoolGroup else {
+            state.groupQuote = nil
+            state.checkout = Self.checkout(product)
+            state.buy = Self.buy(product)
+            return
+        }
+        state.checkout = []
+        state.buy = .loading
+        state.groupQuote = .loading
+        guard let session, let client = WP07CommerceSession.client(session),
+              let productID = Int(product.id), productID > 0 else {
+            state.groupQuote = .failed(nil)
+            state.buy = .unavailable(reason: nil)
+            return
+        }
+        do {
+            let display = try await client.quote(productID: productID)
+            if Task.isCancelled { return }
+            state.groupQuote = .ready(display)
+            state.buy = .checkout(activityID: display.activityID, ticketID: display.ticketID)
+        } catch is CancellationError {
+            return
+        } catch {
+            state.groupQuote = .failed(nil)
             state.buy = .unavailable(reason: nil)
         }
     }

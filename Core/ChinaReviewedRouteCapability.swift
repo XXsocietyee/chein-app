@@ -62,8 +62,24 @@ public enum ChinaReviewedRouteCapability {
         if merchantOpsWp03OwnerGrant.contains(key), admitsMerchantOpsWp03(key) { return true }
         if externalGameOwnerGrant.contains(key) || externalGameOwnerGrant.contains(externalGameGrantKey(key)) { return true }
         if wp04OwnerGrant.contains(key) { return true }
+        if wp07CommerceOwnerGrant.contains(key) {
+            // Quote and coupon usability are reads. Create and activate are payment writes:
+            // ReleaseMoneyWriteSwitch.blocks already returned false above when money is off,
+            // and a payment kind stays closed on www.chengyinhub.com even if this set lists it.
+            return ReleaseMoneyWriteSwitch.kind(for: key) == nil
+        }
         return g6OwnerGrant.contains(key)
     }
+
+    /// HANDOVER 36, WP-07. Group/school quote and coupon usability are reads.
+    /// Create and activate are listed and stay closed: they are payment kinds, so
+    /// `ReleaseMoneyWriteSwitch` refuses them while money is off, including www.chengyinhub.com.
+    public static let wp07CommerceOwnerGrant: Set<String> = [
+        "/api/marketing/group-checkout/quote",
+        "/api/marketing/group-checkout/create",
+        "/api/marketing/product/activate",
+        "/api/coupon/usability"
+    ]
 
     /// WP-04 owner grant. Player content: coop invite receipts and the author's own square post.
     /// Marks stay as catalogued. Money and merchant writes are not in this set.
@@ -2473,7 +2489,8 @@ public enum ReleaseMoneyWriteSwitch {
         let key = ChinaReviewedRouteCapability.normalized(rawPath)
         switch key {
         case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create",
-            "/api/merchant/commerce/order", "/api/merchant/commerce/order/status":
+            "/api/merchant/commerce/order", "/api/merchant/commerce/order/status",
+            "/api/marketing/group-checkout/create", "/api/marketing/product/activate":
             return .payment
         case "/api/club/settlement/withdraw":
             return .payout

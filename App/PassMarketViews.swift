@@ -438,6 +438,10 @@ struct PassDetailState: Equatable {
     var unlockSteps: [PassUnlockStep] = []
     /// Gift bought: the claim link from the order reply (shown once in the 礼品已买好 sheet). Never set while the gate is OFF.
     var giftShare: PassGiftShare? = nil
+    /// Group/school quote from `/api/marketing/group-checkout/quote`. Nil for other kinds.
+    var groupQuote: MPLoad<GroupCheckoutDisplay>? = nil
+    /// First topic on the product, for the activation panel. Nil shows the empty state.
+    var activateTopicID: String? = nil
 }
 
 /// pass-unlock-view.js `unlockSteps`: one step per server fact (已到账 / 可玩主题 / 有效期 / 同行); no fact, no step.
@@ -551,7 +555,9 @@ struct PassDetailView: View {
                                identifier: { "passDetail.for.\($0.rawValue)" })
                         .padding(.horizontal, -CYSpacing.pageHorizontal)
                 }
-                if !state.checkout.isEmpty {
+                if let groupQuote = state.groupQuote {
+                    GroupCheckoutPanel(phase: groupQuote, onRetry: onRetry)
+                } else if !state.checkout.isEmpty {
                     MPSectionHeader(title: "mp.pass.detail.checkout")
                     MPCard {
                         ForEach(Array(state.checkout.enumerated()), id: \.element.id) { index, row in
@@ -561,6 +567,7 @@ struct PassDetailView: View {
                         }
                     }
                 }
+                PassActivatePanel(topicID: state.activateTopicID)
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.bottom, CYSpacing.jumbo)
