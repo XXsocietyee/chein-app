@@ -5,7 +5,7 @@ Version in the tree: `0.1.0` (`1`). Not submitted. What's New draft for App Stor
 ```text
 First release. Hold Go, walk, and light up the city. Collect stamps and badges, keep them in your passport, join clubs, and open your tickets at the door.
 
-Location is used only while the app is open, and only when you choose it. The app does not use location in the background and does not track you.
+Location is precise and is not used to track you. This commit does not run location in the background. A roam that keeps recording after you leave the app is on ui/wp-11 and is not in this build. A sold product id is —.
 
 This version does not take payment, does not sell a digital good, and does not offer password sign-in. A demo account is —.
 ```

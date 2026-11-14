@@ -47,7 +47,7 @@ For API host `www.chengyinhub.com`, this note does not turn any switch on. `App/
 
 Virtual goods stay off. `releaseMoneyDerivation` returns false for `.virtualGoods`. Digital goods, if a later approval sells one, go through StoreKit. See `docs/release/storekit-sandbox.md`. This note does not add a card charge. `Config/QuestifySandbox.storekit` is a local sandbox file with an empty product list. Product ids are —.
 
-Location is when-in-use only. There is no background location mode.
+Location on this branch is when-in-use. `ui/wp-11` `1e48434` also keeps a roam you started updating in the background until you pause, finish, sign out, or stop it from Privacy, still without an Always prompt. That tracker is not in this commit. Precise Location in `Resources/PrivacyInfo.xcprivacy` is the collected type. No separate background API was added.
 
 ## 简体中文
 
@@ -92,4 +92,4 @@ Location is when-in-use only. There is no background location mode.
 
 虚拟商品保持关闭。`releaseMoneyDerivation` 对 `.virtualGoods` 返回 false。数字商品若在以后的批准中出售，走 StoreKit。见 `docs/release/storekit-sandbox.md`。本说明不增加银行卡扣款。`Config/QuestifySandbox.storekit` 是本地沙盒文件，产品列表为空。产品 ID 为 —。
 
-定位仅在使用期间。没有后台定位模式。
+本分支的定位是使用期间。`ui/wp-11` `1e48434` 还会在你开始的漫游结束前于后台继续更新，直到暂停、结束、退出登录或在隐私页停止，仍然没有「始终」提示。那个追踪器不在这次提交里。`Resources/PrivacyInfo.xcprivacy` 中的精确位置是收集类型。没有单独新增后台 API。

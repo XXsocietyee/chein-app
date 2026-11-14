@@ -6,7 +6,7 @@ It does not turn on `moneyPayments`, `payout`, `merchantWrites`, or `passwordLog
 
 `Core/WorkshopStoreKitLauncher.swift` still requires `storeKitEnvironment == "PRODUCTION"` and `transaction.environment == .production` before it can purchase. This file does not change that gate. `ReleaseMoneyWriteSwitch` virtual goods stay off: `ReviewedAreaSwitch.releaseMoneyDerivation` returns false for `.virtualGoods`.
 
-The product array is empty. No digital good in this tree has a StoreKit product id the app sells.
+The product array is empty. Checked again on `origin/ui/main` `9209d33` and `ui/wp-11` `1e48434`. No digital good in either tree has a StoreKit product id the app sells. `mod.release` remains a unit-test fixture and was not added. Prices were not invented.
 
 ## English
 

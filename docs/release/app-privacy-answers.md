@@ -4,7 +4,7 @@ Not filed in App Store Connect. Not a privacy-policy URL. Tracking is none.
 
 Source of the manifest: `Resources/PrivacyInfo.xcprivacy`. This pass grepped `App/` and `Core/` and did not add or remove a row. `NSPrivacyTracking` is false. `NSPrivacyTrackingDomains` is empty. Every declared type is linked to the person, is not used for tracking, and lists App Functionality as its only purpose.
 
-The China market in `Config/Base.xcconfig` is `CN`. Background location is not collected.
+The China market in `Config/Base.xcconfig` is `CN`. Background location on `ui/wp-11` is the same Precise Location row. 后台位置在 `ui/wp-11` 上与精确位置是同一行。This branch does not call that tracker. 本分支不调用那个追踪器。
 
 ## English
 
@@ -27,7 +27,7 @@ The China market in `Config/Base.xcconfig` is `CN`. Background location is not c
 | Contact Info > Contacts | No | — | No | — | No `import Contacts`, `CNContact`, or address-book read in `App/` or `Core/`. Not declared. |
 | Location > Precise Location | Yes | Yes | No | App Functionality | When-in-use location. `NSLocationWhenInUseUsageDescription` is set. `App/PersonalLocationShareHost.swift` sets `allowsBackgroundLocationUpdates = false` and requests when-in-use authorization. |
 | Location > Coarse Location | No | — | No | — | No separate coarse fix is sent. Not declared. |
-| Location, background | No | — | No | — | No `requestAlwaysAuthorization`, no `NSLocationAlwaysUsageDescription`, no `NSLocationAlwaysAndWhenInUseUsageDescription`, and no `UIBackgroundModes` in `Config/Base.xcconfig`, `Config/Info.plist`, `Resources/InfoPlist.xcstrings`, or `Resources/PrivacyInfo.xcprivacy`. Background location is not a collected type. |
+| Location, background | Same Precise Location row | Yes | No | App Functionality | `ui/wp-11` `1e48434` `App/SessionBackgroundLocationTracker.swift` sets `allowsBackgroundLocationUpdates = true` and `showsBackgroundLocationIndicator = true` only while a roam hold is active and the location background mode is present. Authorization stays when-in-use. It does not call `requestAlwaysAuthorization`. Play holds stay foreground-only. That file is not in `origin/ui/main` `9209d33`, so this branch's binary does not call it. Apple's manifest has no separate background-location type. The declared type stays Precise Location. No required-reason API was added. |
 | User Content > Photos or Videos | Yes | Yes | No | App Functionality | Image uploads, including `api/common/uploadOSS`. Picks use `PHPickerViewController`. Saving a card uses `PHPhotoLibrary` add-only in `App/RoamSharePhotoSaveModel.swift`. |
 | User Content > Audio Data | Yes | Yes | No | App Functionality | `NSMicrophoneUsageDescription`. IM voice and NPC voice can upload after confirmation. A sound-peak play path measures amplitude on device. |
 | User Content > Other User Content | Yes | Yes | No | App Functionality | Club and IM messages, including `api/im/message/edit`. |
@@ -84,7 +84,7 @@ Left out, because the code does not use them:
 | 联系信息 > 通讯录 | 否 | — | 否 | — | `App/` 与 `Core/` 没有 `import Contacts`、`CNContact` 或通讯录读取。不声明。 |
 | 位置 > 精确位置 | 是 | 是 | 否 | App 功能 | 仅在使用期间。已设置 `NSLocationWhenInUseUsageDescription`。`App/PersonalLocationShareHost.swift` 将 `allowsBackgroundLocationUpdates` 设为 false，并只请求使用期间授权。 |
 | 位置 > 粗略位置 | 否 | — | 否 | — | 没有单独发送的粗略定位。不声明。 |
-| 位置，后台 | 否 | — | 否 | — | 没有 `requestAlwaysAuthorization`，没有 `NSLocationAlwaysUsageDescription`，没有 `NSLocationAlwaysAndWhenInUseUsageDescription`，`Config/Base.xcconfig`、`Config/Info.plist`、`Resources/InfoPlist.xcstrings` 和 `Resources/PrivacyInfo.xcprivacy` 中也没有 `UIBackgroundModes`。后台位置不是一项已收集的数据类型。 |
+| 位置，后台 | 与精确位置同一行 | 是 | 否 | App 功能 | `ui/wp-11` `1e48434` 的 `App/SessionBackgroundLocationTracker.swift` 只在漫游占用存在且已声明定位后台模式时，把 `allowsBackgroundLocationUpdates` 和 `showsBackgroundLocationIndicator` 设为 true。授权仍是使用期间。它不调用 `requestAlwaysAuthorization`。游玩占用保持仅前台。该文件不在 `origin/ui/main` `9209d33`，所以本分支的二进制不会调用它。Apple 的清单没有单独的后台位置类型。声明的类型仍是精确位置。没有新增需说明原因的 API。 |
 | 用户内容 > 照片或视频 | 是 | 是 | 否 | App 功能 | 图片上传，包括 `api/common/uploadOSS`。选取使用 `PHPickerViewController`。保存卡片时，`App/RoamSharePhotoSaveModel.swift` 以仅添加方式调用 `PHPhotoLibrary`。 |
 | 用户内容 > 音频数据 | 是 | 是 | 否 | App 功能 | 已设置 `NSMicrophoneUsageDescription`。即时消息语音和 NPC 语音可在确认后上传。声音峰值玩法在设备上测量振幅。 |
 | 用户内容 > 其他用户内容 | 是 | 是 | 否 | App 功能 | 俱乐部与即时消息，包括 `api/im/message/edit`。 |
