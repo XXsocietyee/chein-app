@@ -4,25 +4,25 @@
   "files": {
     "WorkshopCreatorConsentNormalFlowTests.swift": {
       "before_sha256": "11cb6d485e53167c50be40330523c3b843152bdd6a993a315bd3329ea194c93e",
-      "after_sha256": "804426e74bc26affab84ec0e9efca8f557d05b332a5da6fe4bd5b15ab75629cb",
+      "after_sha256": "5f05695d1626710e7d6e8442ec59c1188f59764ebb53f299b05152da6a5e878c",
       "hunks": [
         {
-          "before": "        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=UIWindow(frame:UIScreen.main.bounds)\n        window.rootViewController=navigation;window.makeKeyAndVisible();defer{window.isHidden=true}",
-          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=sceneWindow.window\n        window.rootViewController=navigation;window.makeKeyAndVisible();defer{sceneWindow.retire()}"
+          "before": "        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=UIWindow(frame:UIScreen.main.bounds)\n        window.rootViewController=navigation;window.makeKeyAndVisible();defer{window.isHidden=true}\n        let host=WorkshopHostedLifecycleHost(rootView:WorkshopCreatorConsentView(controller:c,appearance:selection.appearance));navigation.pushViewController(host,animated:false)",
+          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=sceneWindow.window\n        window.rootViewController=navigation;window.makeKeyAndVisible();defer{sceneWindow.retire()}\n        let host=WorkshopHostedLifecycleHost(rootView:WorkshopCreatorConsentView(controller:c,appearance:selection.appearance).environment(\\.scenePhase,.active));navigation.pushViewController(host,animated:false)"
         }
       ]
     },
     "WorkshopCreatorPendingNormalFlowTests.swift": {
       "before_sha256": "d5d52d316d8ae4c068506c2dae88a813a5f9b7db506358f620fb29a5e5adbcea",
-      "after_sha256": "e753524a57497d96c2763bf3130fa89d6b5b6ffc4f9b130818ddaaae3a64ab13",
+      "after_sha256": "8acdc3c7ebac8c9761e109f3b1e421ab1135ce211abb19959bae4195ef3f6caa",
       "hunks": [
         {
-          "before": "        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }",
-          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window; window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }"
+          "before": "        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }\n        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)",
+          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window; window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }\n        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a).environment(\\.scenePhase, .active)); navigation.pushViewController(host, animated: false)"
         },
         {
-          "before": "        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds)\n        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }",
-          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window\n        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }"
+          "before": "        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds)\n        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }\n        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)",
+          "after": "        let sceneWindow = try WorkshopHostedSceneWindow()\n        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window\n        window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }\n        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a).environment(\\.scenePhase, .active)); navigation.pushViewController(host, animated: false)"
         }
       ]
     }

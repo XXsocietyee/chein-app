@@ -2,6 +2,7 @@ import SwiftUI
 
 @MainActor
 struct TopicDetailView: View {
+    @Environment(\.cyPalette) private var palette
     let id: Int
     let reader: any TopicReading
     var activityDestination: ((Int) -> AnyView)? = nil
@@ -102,7 +103,7 @@ struct TopicDetailView: View {
                         LinearGradient(
                             stops: [
                                 .init(color: .clear, location: 0.35),
-                                .init(color: CYColor.scrimBottom.opacity(0.88), location: 1)
+                                .init(color: Color.black.opacity(0.88), location: 1)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
@@ -111,10 +112,10 @@ struct TopicDetailView: View {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                                 .font(CYTypography.label.weight(.semibold))
-                                .foregroundStyle(CYColor.onCoverDim)
+                                .foregroundStyle(palette.onCoverFgDim)
                             Text(verbatim: value.name)
                                 .font(CYTypography.pageTitle)
-                                .foregroundStyle(CYColor.onCoverFg)
+                                .foregroundStyle(palette.onCoverFg)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .padding(CYSpacing.lg)

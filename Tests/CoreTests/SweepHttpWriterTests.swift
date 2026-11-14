@@ -34,7 +34,7 @@ import XCTest
                   let nameEnd = header[nameStart.upperBound...].range(of: "\"") else { continue }
             let key = String(header[nameStart.upperBound..<nameEnd.lowerBound])
             var value = String(chunk[headerEnd.upperBound...])
-            if value.hasSuffix("\r\n") { value.removeLast(2) }
+            if value.hasSuffix("\r\n") { value.removeLast() }  // "\r\n" is one Character
             out[key] = value
         }
         return out

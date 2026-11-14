@@ -129,6 +129,36 @@ extension View {
     }
 }
 
+extension View {
+    /// Binding forms used by the editor restyles; dismissal stays with the caller's onCancel/onConfirm.
+    func cyModalConfirm(
+        isPresented: Binding<Bool>, title: String, message: String = "", consequences: [CYConfirmConsequence] = [],
+        cancelTitle: String = "取消", confirmTitle: String = "确认", lighterAlternativeTitle: String? = nil,
+        showCancel: Bool = true, isDestructive: Bool = false, isConfirmLoading: Bool = false,
+        cancelIdentifier: String? = nil, confirmIdentifier: String? = nil,
+        onCancel: @escaping () -> Void, onLighterAlternative: (() -> Void)? = nil, onConfirm: @escaping () -> Void
+    ) -> some View {
+        cyModalConfirm(isPresented: isPresented.wrappedValue, title: title, message: message, consequences: consequences,
+                       cancelTitle: cancelTitle, confirmTitle: confirmTitle, lighterAlternativeTitle: lighterAlternativeTitle,
+                       showCancel: showCancel, isDestructive: isDestructive, isConfirmLoading: isConfirmLoading,
+                       cancelIdentifier: cancelIdentifier, confirmIdentifier: confirmIdentifier,
+                       onCancel: onCancel, onLighterAlternative: onLighterAlternative, onConfirm: onConfirm)
+    }
+
+    func cyPromptModalOverlay(
+        isPresented: Binding<Bool>, title: String, message: String? = nil, text: Binding<String>, placeholder: String = "",
+        validationMessage: String? = nil, cancelTitle: String = "取消", confirmTitle: String = "确认",
+        isDestructive: Bool = false, isConfirmLoading: Bool = false, cancelIdentifier: String? = nil,
+        confirmIdentifier: String? = nil, onCancel: @escaping () -> Void, onConfirm: @escaping () -> Void
+    ) -> some View {
+        cyPromptModalOverlay(isPresented: isPresented.wrappedValue, title: title, message: message, text: text,
+                             placeholder: placeholder, validationMessage: validationMessage, cancelTitle: cancelTitle,
+                             confirmTitle: confirmTitle, isDestructive: isDestructive, isConfirmLoading: isConfirmLoading,
+                             cancelIdentifier: cancelIdentifier, confirmIdentifier: confirmIdentifier,
+                             onCancel: onCancel, onConfirm: onConfirm)
+    }
+}
+
 /// Option item backed by DesignSystem `CYOptionSheet`, supporting merchant light or player dark domain.
 struct MerchantChoiceOption: Identifiable, Hashable {
     let id: String
@@ -155,7 +185,7 @@ struct MerchantChoiceOption: Identifiable, Hashable {
 struct MerchantChoiceOptionSheet: View {
     let title: String
     let options: [MerchantChoiceOption]
-    let domain: CYThemeDomain
+    let domain: ThemeDomain
     @Binding var selectedID: String?
     let onSelect: (MerchantChoiceOption) -> Void
     let onClose: () -> Void
@@ -163,7 +193,7 @@ struct MerchantChoiceOptionSheet: View {
     init(
         title: String,
         options: [MerchantChoiceOption],
-        domain: CYThemeDomain = .merchant,
+        domain: ThemeDomain = .merchant,
         selectedID: Binding<String?> = .constant(nil),
         onSelect: @escaping (MerchantChoiceOption) -> Void,
         onClose: @escaping () -> Void

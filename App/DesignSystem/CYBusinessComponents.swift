@@ -451,11 +451,11 @@ public struct CYTaskStatusCard: View {
         public let iconColor: Color
         public let detailForeground: Color
         public let badgeTitle: String
-        public let badgeTone: CYStatusTone
+        let badgeTone: CYStatusTone
         public let badgeIcon: String
     }
 
-    public static func tokens(for state: CYTaskStatusState, in palette: CYDomainPalette) -> Tokens {
+    static func tokens(for state: CYTaskStatusState, in palette: CYDomainPalette) -> Tokens {
         switch state {
         case .locked:
             return Tokens(

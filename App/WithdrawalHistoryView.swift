@@ -32,7 +32,7 @@ import SwiftUI
                     }
                 }
                 if model.page?.mayHaveMore == true {
-                    Text("wallet.sourceLimited").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
+                    Text("wallet.sourceLimited").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
             case .empty:
                 CYEmptyState(systemImage: "tray", "wallet.withdrawals.emptyTitle", messageIdentifier: "withdrawal.history.empty")
@@ -68,7 +68,7 @@ struct WithdrawalHistoryRowView: View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("wallet.withdrawal.rowTitle").font(CYTypography.cardTitle)
-                Text(verbatim: row.createTime ?? "—").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: row.createTime ?? "—").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 4) {

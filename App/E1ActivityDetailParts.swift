@@ -46,7 +46,7 @@ struct E1ActivityHero: View {
                             Image(systemName: "mappin.and.ellipse").accessibilityHidden(true)
                         }
                         .font(CYTypography.meta)
-                        .foregroundStyle(palette.onCoverDim)
+                        .foregroundStyle(palette.onCoverFgDim)
                     }
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, dynamicTypeSize.isAccessibilitySize ? CYSpacing.lg : 84)
@@ -55,8 +55,8 @@ struct E1ActivityHero: View {
                     LinearGradient(
                         stops: [
                             .init(color: .clear, location: 0),
-                            .init(color: CYColor.scrimTop.opacity(0.65), location: 0.45),
-                            .init(color: CYColor.scrimBottom, location: 1)
+                            .init(color: Color.black.opacity(0.65), location: 0.45),
+                            .init(color: Color.black, location: 1)
                         ],
                         startPoint: .top,
                         endPoint: .bottom

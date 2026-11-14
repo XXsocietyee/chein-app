@@ -161,7 +161,7 @@ import UIKit
         let p = WorkshopPaidProfessionalPresentation(), reference = try WorkshopPaidTextAppFixture.reference()
         let factory: WorkshopPaidProfessionalControllerFactory = { h.session.makeWorkshopPaidProfessionalController(reference:$0) }
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; defer { sceneWindow.retire() }
-        let host = hostedMount(window, root: NavigationStack { Form { WorkshopPaidProfessionalEntry(makeReference:{reference},makeController:factory,presentation:p) } })
+        let host = hostedMount(window, root: NavigationStack { Form { WorkshopPaidProfessionalEntry(makeReference:{reference},makeController:factory,presentation:p) } }.environment(\.scenePhase, .active))
         p.open(makeReference:{reference},makeController:factory); let old = try XCTUnwrap(p.selection)
         await hostedWait { old.controller.phase == .history }
         XCTAssertEqual(old.controller.phase,.history); XCTAssertNotNil(host.presentedViewController)

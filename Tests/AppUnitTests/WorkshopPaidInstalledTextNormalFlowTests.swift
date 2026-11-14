@@ -136,7 +136,7 @@ import UIKit
         await (try XCTUnwrap(parent.appear(a)))(); let receipt = try XCTUnwrap(parent.history.first), p = WorkshopPaidInstalledTextPresentation()
         let reference = { parent.installedTextReference(receipt,appearance:a) }, factory: WorkshopPaidInstalledTextControllerFactory = { h.session.makeWorkshopPaidInstalledTextController(reference:$0) }
         let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; defer { sceneWindow.retire() }
-        let host = hostedMount(window, root: NavigationStack { Form { WorkshopPaidInstalledTextEntry(makeReference:reference,makeController:factory,presentation:p) } })
+        let host = hostedMount(window, root: NavigationStack { Form { WorkshopPaidInstalledTextEntry(makeReference:reference,makeController:factory,presentation:p) } }.environment(\.scenePhase, .active))
         p.open(makeReference:reference,makeController:factory); let old = try XCTUnwrap(p.selection)
         await hostedWait { old.controller.phase == .loaded }
         XCTAssertEqual(old.controller.phase,.loaded); XCTAssertNotNil(host.presentedViewController)

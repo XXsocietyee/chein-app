@@ -287,7 +287,7 @@ struct MerchantContentFields: View {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     if case .query(.recruiting) = kind, let focusedTopicID, row["id"].integer == focusedTopicID {
                         Label("merchant.insightNavigation.located", systemImage: "scope")
-                            .font(CYTypography.footnote.weight(.medium))
+                            .font(CYTypography.meta.weight(.medium))
                             .accessibilityIdentifier("merchant.insightNavigation.located." + String(focusedTopicID))
                     }
                     Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").font(CYTypography.cardTitle)
@@ -411,7 +411,7 @@ struct MerchantContentFields: View {
                     Text(verbatim: row["name"].text ?? "—").font(.headline)
                     MerchantContentFields(value: row, names: ["description", "category", "required"])
                     MerchantContentFields(value: row["recruitStatus"], names: ["termsMode", "perkMinValue", "allowedValidationMethods", "maxNodeXp", "maxMerchant", "remainingMerchantCount", "state"])
-                    if row["recruitStatus"]["remainingMerchantCount"] == .null { Text("merchant.content.unlimitedSlots").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary) }
+                    if row["recruitStatus"]["remainingMerchantCount"] == .null { Text("merchant.content.unlimitedSlots").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                     if let id = row["id"].integer, id > 0 { NavigationLink("merchant.content.apply") { MerchantContentEditView(service: service, query: snapshot.query, kind: .apply(id)) }.accessibilityIdentifier("merchant.content.apply") }
                 }.cyDomainCard()
             }
@@ -496,7 +496,7 @@ struct MerchantContentRowLinkStyle: ButtonStyle {
         HStack(spacing: CYSpacing.xs) {
             configuration.label.foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: CYSpacing.xs)
-            Image(systemName: "chevron.right").font(CYTypography.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+            Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
         }
         .padding(.horizontal, CYSpacing.md)
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)

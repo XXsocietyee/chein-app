@@ -205,7 +205,7 @@ struct WalletStatusMessage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("wallet.earnings.finance.separate", tableName: "WalletEarningsOverview")
-                .font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("wallet.earnings.finance.separate")
             if WalletOrganizerFinanceAdmission.showReader(allowsRead: access.allowsRead(), hasSession: access.reader.session != nil, mounted: mounted) {

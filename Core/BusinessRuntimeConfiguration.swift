@@ -32,6 +32,7 @@ public struct BusinessRuntimeRoute: Hashable {
         self.method = method; self.path = path
     }
     public static func post(_ path: String) throws -> Self { try .init(method: "POST", path: path) }
+    public static func get(_ path: String) throws -> Self { try .init(method: "GET", path: path) }
     /// The original role mutations are the only non-GET/POST routes this catalog
     /// can construct. Construction is not issuance: configuration must still grant
     /// the exact route under imChannelRoleWrite, and the consumer must select it.
