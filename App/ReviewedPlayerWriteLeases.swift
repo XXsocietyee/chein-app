@@ -644,7 +644,10 @@ enum ReviewedPlayerReadRoute {
         "api/coop/supply-stations",
         "api/creativesquare/delete",
         // OWN-21.1 / OWN-21.2. Preset list and info are reads. Draft is a personal template id, not a payment.
-        "api/preset/gameplay/list", "api/preset/gameplay/info", "api/preset/gameplay/draft"
+        "api/preset/gameplay/list", "api/preset/gameplay/info", "api/preset/gameplay/draft",
+        // Final sweep: non-money creator project list mutations (`api/activity/cancel` stays behind ReviewedAreaSwitch.moneyPayments).
+        "api/activity/update_publish_status", "api/topic/update_user_status",
+        "api/activity/delete", "api/topic/delete", "api/template/delete", "api/template/updateLibraryStatus"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
@@ -1462,5 +1465,65 @@ enum MerchantOpsWp03Lease {
         if MerchantOpsWp03Catalog.money.contains(relative) { return ReviewedAreaSwitch.moneyPayments(apiHost: host) }
         if MerchantOpsWp03Catalog.writes.contains(relative) { return ReviewedAreaSwitch.merchantWrites(apiHost: host) }
         return true
+    }
+}
+
+extension ReviewedProductionFormMutationRoute {
+    /// Admits my-project list mutations (`MyProjectHTTPMutator`). Canceling an activity refunds paid
+    /// registrations and goes through `ReviewedAreaSwitch.moneyPayments`; merchant-scoped actions go
+    /// through `ReviewedAreaSwitch.merchantWrites`.
+    static func acceptsMyProjectMutation(_ request: URLRequest, baseURL: URL, token: String) -> Bool {
+        guard let url = request.url,
+              let type = request.value(forHTTPHeaderField: "Content-Type"),
+              type.hasPrefix("multipart/form-data; boundary="),
+              let body = request.httpBody, body.count <= 1024,
+              let text = String(data: body, encoding: .utf8) else { return false }
+        let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+        let requiredKeys: Set<String>
+        let positiveKey: String
+        var expectedStatus: Set<String>?
+        var isActivityCancel = false
+        switch url.absoluteString {
+        case baseURL.appendingPathComponent("api/activity/update_publish_status").absoluteString,
+             baseURL.appendingPathComponent("api/activity/delete").absoluteString,
+             baseURL.appendingPathComponent("api/topic/delete").absoluteString:
+            requiredKeys = ["id", "scope"]; positiveKey = "id"
+        case baseURL.appendingPathComponent("api/topic/update_user_status").absoluteString:
+            requiredKeys = ["id", "scope", "expectedUserStatus"]; positiveKey = "id"; expectedStatus = ["0", "1"]
+        case baseURL.appendingPathComponent("api/activity/cancel").absoluteString:
+            requiredKeys = ["id", "reason", "scope"]; positiveKey = "id"; isActivityCancel = true
+        case baseURL.appendingPathComponent("api/template/delete").absoluteString:
+            requiredKeys = ["template_id", "scope"]; positiveKey = "template_id"
+        case baseURL.appendingPathComponent("api/template/updateLibraryStatus").absoluteString:
+            requiredKeys = ["template_id", "status", "scope"]; positiveKey = "template_id"; expectedStatus = ["1", "3"]
+        default:
+            return false
+        }
+        var fields: [String: String] = [:]
+        for key in requiredKeys {
+            let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+            guard let range = text.range(of: marker),
+                  let end = text[range.upperBound...].range(of: "\r\n") else { return false }
+            fields[key] = String(text[range.upperBound..<end.lowerBound])
+        }
+        guard let rawID = fields[positiveKey], let id = Int(rawID), id > 0, String(id) == rawID else { return false }
+        let scope = fields["scope"] ?? ""
+        guard scope.isEmpty || scope == "MERCHANT" else { return false }
+        if scope == "MERCHANT" {
+            guard ReviewedAreaSwitch.merchantWrites(apiHost: url.host) else { return false }
+        }
+        if isActivityCancel {
+            guard ReviewedAreaSwitch.moneyPayments(apiHost: url.host),
+                  let reason = fields["reason"], !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  reason.count <= 200 else { return false }
+        }
+        if let expectedStatus {
+            let actual = (fields["expectedUserStatus"] ?? fields["status"]) ?? ""
+            guard expectedStatus.contains(actual) else { return false }
+        }
+        guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else {
+            return false
+        }
+        return canonical.httpBody == body
     }
 }

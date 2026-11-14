@@ -3,8 +3,8 @@ import SwiftUI
 import QuestifyCore
 #endif
 
-/// Seam for my-project list writes. Production is gated: nothing is sent and the banner says
-/// "Not available yet". Composition replaces `makeMutator` once the endpoint allowlist is approved.
+/// Seam for my-project list writes. Defaults to `GatedMyProjectMutator` until root composition
+/// installs the live mutator backed by the signed-in China session.
 @MainActor enum MyProjectMutationFactory {
     static var makeMutator: () -> MyProjectMutating = { GatedMyProjectMutator() }
 

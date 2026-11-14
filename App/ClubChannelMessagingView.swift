@@ -681,18 +681,6 @@ public struct ClubChannelMessagingView: View {
                 .padding(.vertical, 10)
             } else {
                 HStack(spacing: 8) {
-                    // Visual placeholder: attachments are not wired yet, so both entries are disabled.
-                    Menu {
-                        Button { } label: { Label(copy("图片", "Photo"), systemImage: "photo") }.disabled(true)
-                        Button { } label: { Label(copy("链接", "Link"), systemImage: "link") }.disabled(true)
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .frame(minWidth: 44, minHeight: 44)
-                    }
-                    .accessibilityLabel(copy("添加附件", "Add attachment"))
-                    .accessibilityIdentifier("club.channel.composer.attachments")
                     TextField(copy("在 #\(selectedChannel?.name ?? "频道") 发送消息…", "Message #\(selectedChannel?.name ?? "channel")…"), text: $composerText)
                         .padding(.horizontal, 16).frame(minHeight: 44)
                         .background(CYColor.bgElevated, in: Capsule())

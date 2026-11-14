@@ -122,7 +122,7 @@ enum ReviewedProductionFormMutationRoute {
              baseURL.appendingPathComponent("api/im/start").absoluteString:
             requiredKeys = ["target_member_id"]; positiveKey = "target_member_id"; requiredTypeField = nil
         default:
-            return false
+            return acceptsMyProjectMutation(request, baseURL: baseURL, token: token)
         }
         var fields: [String: String] = [:]
         for key in requiredKeys {
