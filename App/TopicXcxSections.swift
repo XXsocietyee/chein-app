@@ -5,6 +5,14 @@ enum TopicXcxTab: Int, CaseIterable, Identifiable {
     case details, nodes, route
     var id: Int { rawValue }
     /// Free exploration names the third tab 地点; city orienteering keeps 路线.
+    /// Same keys as `titleKey`, for `appLocalized` (CYTabs takes resolved titles).
+    func titleKeyString(productType: Int) -> String {
+        switch self {
+        case .details: return "topicXcx.tab.details"
+        case .nodes: return "topicXcx.tab.nodes"
+        case .route: return productType == 2 ? "topicXcx.tab.places" : "topicXcx.tab.route"
+        }
+    }
     func titleKey(productType: Int) -> LocalizedStringKey {
         switch self {
         case .details: return "topicXcx.tab.details"
@@ -26,7 +34,7 @@ struct TopicXcxTabs: View {
 
     var body: some View {
         let items = TopicXcxTab.allCases.map { tab in
-            CYTabItem(id: tab, title: appLocalized(tab.titleKey(productType: productType), locale: locale))
+            CYTabItem(id: tab, title: appLocalized(String.LocalizationValue(tab.titleKeyString(productType: productType)), locale: locale))
         }
         CYTabs(items: items, selection: $selection, variant: .sticky)
             .accessibilityIdentifier("topic.tabs")
