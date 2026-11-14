@@ -206,8 +206,6 @@ import Combine
     @State private var step: Step = .intro
     @State private var preview = false
     @State private var discard = false
-    @State private var toolInfoTitle: String?
-    @State private var showResultSheet = false
     @State private var toastMessage: String?
     let sessionRevision: UInt64
     let metadataReader: (any DiscoveryReading)?
@@ -320,28 +318,6 @@ import Combine
             onCancel: { discard = false },
             onConfirm: { discard = false; model.discard() }
         )
-        .cyModalOverlay(isPresented: Binding(get: { toolInfoTitle != nil }, set: { if !$0 { toolInfoTitle = nil } })) {
-            if let toolInfoTitle {
-                CYModal(
-                    title: toolInfoTitle,
-                    message: MerchantCloseCopy.text("工具参数将应用到当前互动模板配置中。", "Tool settings will be applied to this interactive template.", locale),
-                    cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                    confirmTitle: MerchantCloseCopy.text("确定", "OK", locale),
-                    onCancel: { self.toolInfoTitle = nil },
-                    onConfirm: { self.toolInfoTitle = nil; toastMessage = toolInfoTitle }
-                )
-            }
-        }
-        .sheet(isPresented: $showResultSheet) {
-            PlayCloseResultSheet(
-                title: MerchantCloseCopy.text("模板已保存", "Template Saved", locale),
-                message: MerchantCloseCopy.text("可在我的模板列表查看审核状态或上架配置。", "View review and shelf status in My Templates.", locale),
-                detail: nil,
-                closeIdentifier: cyAccessibilityID(id: "popupClose.templateAuthorResult"),
-                onClose: { showResultSheet = false }
-            )
-            .themeDomain(.topicEditor)
-        }
         .onChange(of: model.coordinator.messageKey) { _, key in
             if let key { toastMessage = appLocalized(key, locale: locale) }
         }

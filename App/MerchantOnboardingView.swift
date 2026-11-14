@@ -168,9 +168,23 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             onConfirm: {
                 showSubmitConfirmation = false
                 model.submitConfirmed()
-                toastMessage = MerchantCloseCopy.text("已提交入驻资料", "Onboarding submitted", locale)
             }
         )
+        .onChange(of: model.coordinator.submission) { _, submission in
+            switch submission {
+            case .acknowledged:
+                toastMessage = MerchantCloseCopy.text("已提交入驻资料", "Onboarding submitted", locale)
+            case .outcomeUnknown:
+                toastMessage = MerchantCloseCopy.text("提交结果待确认，请刷新核对", "Submission status unknown, please check again", locale)
+            case .rejected(let failure):
+                let detail = failure.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                toastMessage = detail.isEmpty
+                    ? MerchantCloseCopy.text("提交失败，请重试", "Submission failed, please retry", locale)
+                    : detail
+            default:
+                break
+            }
+        }
         .cyToast(verbatimMessage: $toastMessage)
         .onChange(of: showSubmitConfirmation) { _, shown in
             if !shown, model.confirmation != nil, !model.isBusy { model.cancelConfirmation() }

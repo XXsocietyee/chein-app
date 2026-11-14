@@ -34,7 +34,11 @@ extension EnvironmentValues {
     @Published private(set) var categories: [DiscoveryCategory] = []
     @Published private(set) var retainedIDs: [Int] = []
     @Published private(set) var selection = TemplateMetadataCategorySelection(raw: nil)
-    init(model: ProjectEditModel, reader: (any DiscoveryReading)?) { self.model = model; self.reader = reader }
+    let maxSelection: Int
+    @Published private(set) var limitToastMessage: String?
+    init(model: ProjectEditModel, reader: (any DiscoveryReading)?, maxSelection: Int = 0) {
+        self.model = model; self.reader = reader; self.maxSelection = maxSelection
+    }
     func isCurrent(_ value: Presentation) -> Bool {
         presentation?.id == value.id && value.generation == generation && model.canEdit &&
         model.editorIncarnation == value.incarnation && model.coordinator.session == value.session &&
@@ -54,11 +58,19 @@ extension EnvironmentValues {
     }
     func toggle(_ id: Int, in value: Presentation) {
         guard canSave(value), categories.contains(where: { $0.id == id }) || retainedIDs.contains(id) else { return }
+        if maxSelection > 0, !selection.selectedIDs.contains(id), selection.selectedIDs.count >= maxSelection {
+            limitToastMessage = MerchantCloseCopy.text("最多只能选择 \(maxSelection) 个分类", "Select up to \(maxSelection) categories", Locale.current)
+            return
+        }
         selection.toggle(id)
         if selection.selectedIDs.contains(id), !retainedIDs.contains(id) { retainedIDs.append(id) }
     }
     func save(_ value: Presentation) {
         guard canSave(value) else { return }
+        if maxSelection > 0, selection.selectedIDs.count > maxSelection {
+            limitToastMessage = MerchantCloseCopy.text("最多只能选择 \(maxSelection) 个分类", "Select up to \(maxSelection) categories", Locale.current)
+            return
+        }
         if selection.hasChanges { model.draft.categoryIDs = selection.selectedIDs }
         close(value)
     }
@@ -189,5 +201,6 @@ extension EnvironmentValues {
         }
         .task(id: original.id) { await controller.load(original) }
         .onReceive(controller.reader?.discoveryPresentationChanges ?? Empty<Void, Never>().eraseToAnyPublisher()) { _ in readerRevision += 1 }
+        .cyToast(verbatimMessage: Binding(get: { controller.limitToastMessage }, set: { controller.limitToastMessage = $0 }))
     }
 }

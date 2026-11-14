@@ -35,7 +35,6 @@ import SwiftUI
                                     imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
                                     .id(session.templateAuthoringViewIdentity))
                             })
-            .modifier(MerchantQuickPublishingPopupCompanionModifier())
             .navigationDestination(isPresented: $showEditor) {
                 if let seed {
                     ProjectEditView(coordinator: session.projectEditor(product: seed.product, owner: seed.owner), sessionRevision: session.sessionRevision, seed: seed, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }, cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) })

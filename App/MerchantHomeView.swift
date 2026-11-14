@@ -437,7 +437,6 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                 { AnyView(MerchantPerkTemplatesHost(reader: flowReader)) }
                             })
                             .id(operationsReader.scope)
-                            .modifier(MerchantOperationsPopupCompanionModifier())
                             .onDisappear(perform: onChildReturn)
                             .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
@@ -464,7 +463,6 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         })
                         .environment(\.merchantChapterReplacementContext, chapterReplacementContext(access: access))
                         .id(contentService.scope)
-                        .modifier(MerchantContentPopupCompanionModifier())
                         .onDisappear(perform: onChildReturn)
                         .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.content.title", systemImage: "map") }
