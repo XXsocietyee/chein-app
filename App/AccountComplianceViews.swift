@@ -247,7 +247,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             Section("compliance.serverStatus") {
                 statusMark(status.status).accessibilityIdentifier("compliance.serverStatus")
                 ForEach(Array(status.blockers.enumerated()), id: \.offset) { _, blocker in Text(blocker) }
-                if status.executeAfter != nil || status.pending { DeregistrationExecuteAfterRow(raw: status.executeAfter) }
+                if status.executeAfter != nil || status.pending {
+                    DeregistrationExecuteAfterRow(raw: status.executeAfter, coolingOffEnded: model.coordinator.coolingOffHasPassed(now: Date()))
+                }
             }
         }
         switch model.state.step {
@@ -329,8 +331,10 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 .buttonStyle(CYPillButtonStyle(style: .tertiary))
             }
         case .pending:
-            Text("compliance.pending")
-            Button("compliance.cancelApplication", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }.accessibilityIdentifier("compliance.cancelApplication")
+            Text("compliance.pending.submitted").font(CYTypography.cardTitle).accessibilityIdentifier("compliance.pending.submitted")
+            pendingCoolingOffCopy.accessibilityIdentifier("compliance.pending")
+            Button("compliance.withdrawCancellation", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }
+                .accessibilityIdentifier("compliance.cancelApplication")
         case .completed: Text("compliance.completed", tableName: "AccountDeregistrationPresentation").accessibilityIdentifier("compliance.completed")
         case .freshLogin: Text("compliance.freshLogin").accessibilityIdentifier("compliance.freshLogin")
         case .unknown: Text("compliance.unknown").accessibilityIdentifier("compliance.unknown")
@@ -349,6 +353,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             Text("cancellationConsent.title", tableName: "AccountDeregistrationConsent")
         }
         .accessibilityElement(children: .combine)
+    }
+    @ViewBuilder private var pendingCoolingOffCopy: some View {
+        if model.coordinator.coolingOffHasPassed(now: Date()) {
+            Text("compliance.pending.afterCoolingOff")
+        } else {
+            Text("compliance.pending.duringCoolingOff")
+        }
     }
     /// Server status codes (PENDING / ELIGIBLE / BLOCKED) read as plain words, as the mini-program titles them.
     @ViewBuilder private func statusMark(_ raw: String) -> some View {

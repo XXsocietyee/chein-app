@@ -30484,6 +30484,70 @@
         }
       }
     },
+    "compliance.pending.submitted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancellation request submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注销申请已提交"
+          }
+        }
+      }
+    },
+    "compliance.pending.duringCoolingOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account features are paused. You can withdraw the request before the cooling-off period ends."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号功能已暂停，冷静期结束前可撤销申请"
+          }
+        }
+      }
+    },
+    "compliance.pending.afterCoolingOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cooling-off period has ended. The account will be cancelled in the next early-morning batch. You can still withdraw before that finishes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冷静期已结束，账号将在随后的凌晨批次中完成注销；完成前仍可撤销。"
+          }
+        }
+      }
+    },
+    "compliance.withdrawCancellation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw cancellation request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销注销申请"
+          }
+        }
+      }
+    },
     "compliance.phone": {
       "localizations": {
         "en": {
@@ -252107,13 +252171,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copy chat records"
+            "value": "Export my chat records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导出对话记录"
+            "value": "导出我的对话记录"
           }
         }
       }

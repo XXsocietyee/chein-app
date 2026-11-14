@@ -48,8 +48,6 @@ struct UsageConsentGateView: View {
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader(
         privacyPolicyApproved: RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true
     )
-    @State private var checked = false
-    @State private var showsCheckRequired = false
     @State private var agreeTaps = 0
     @State private var document: AuthEntryLegalSheet?
 
@@ -57,92 +55,40 @@ struct UsageConsentGateView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    Image(systemName: checked ? "checkmark.shield.fill" : "shield.lefthalf.filled")
-                        .font(.system(size: 30, weight: .semibold))
-                        .foregroundStyle(checked ? CYColor.successText : CYColor.textPrimary)
-                        .frame(width: 64, height: 64)
-                        .background(CYColor.bgElevated, in: Circle())
-                        .contentTransition(.symbolEffect(.replace))
-                        .symbolEffect(.bounce, options: .nonRepeating, value: checked)
-                        .accessibilityHidden(true)
                     Text("authEntry.gate.title", tableName: "AuthEntry")
-                        .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                        .font(CYTypography.pageTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text("authEntry.gate.summary", tableName: "AuthEntry")
+                    Text("authEntry.gate.lead", tableName: "AuthEntry")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("authEntry.gate.lead")
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text("authEntry.gate.continueMeans", tableName: "AuthEntry")
                             .font(CYTypography.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        // Full disclosure stays one tap away; the identifier keeps the original body text addressable.
-                        DisclosureGroup {
-                            Text("authEntry.gate.body", tableName: "AuthEntry")
-                                .font(CYTypography.bodyCompact)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.top, CYSpacing.sm)
-                                .accessibilityIdentifier("authEntry.gate.body")
-                            Text("authEntry.gate.localOnly", tableName: "AuthEntry")
-                                .font(.footnote).foregroundStyle(CYColor.textTertiary)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.top, CYSpacing.sm)
-                        } label: {
-                            Text("authEntry.gate.details", tableName: "AuthEntry")
-                                .font(CYTypography.bodyCompact.weight(.semibold))
-                                .foregroundStyle(CYColor.textPrimary)
-                        }
-                        .tint(CYColor.textSecondary)
-                        .accessibilityIdentifier("authEntry.gate.details")
-                    }
-                    VStack(spacing: 0) {
-                        documentRow("authEntry.gate.openPrivacyGuide", id: "authEntry.gate.privacyGuide", type: .privacyPolicy)
-                        Divider().overlay(CYColor.borderSubtle)
+                            .foregroundStyle(CYColor.textSecondary)
                         documentRow("authEntry.gate.openAgreement", id: "authEntry.gate.agreement", type: .userAgreement)
+                        documentRow("authEntry.gate.openPrivacyGuide", id: "authEntry.gate.privacyGuide", type: .privacyPolicy)
                     }
-                    .padding(.horizontal, CYSpacing.lg)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                    .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
                 }
                 .padding(CYSpacing.xxl)
             }
             .safeAreaInset(edge: .bottom) {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary) }
-                        .toggleStyle(.switch)
-                        .tint(CYColor.accent)
-                        .padding(.horizontal, CYSpacing.lg)
-                        .padding(.vertical, CYSpacing.md)
-                        .frame(minHeight: 64)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        .sensoryFeedback(.selection, trigger: checked)
-                        .accessibilityIdentifier("authEntry.gate.checkbox")
-                    if showsCheckRequired && !checked {
-                        Label { Text("authEntry.gate.checkRequired", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }
-                            .font(CYTypography.bodyCompact)
-                            .foregroundStyle(CYColor.dangerText)
-                            .accessibilityIdentifier("authEntry.gate.checkRequired")
-                    }
-                }
                 VStack(spacing: CYSpacing.sm) {
-                    // One primary action; declining is a quiet text button (guest browsing continues).
+                    // One confirm button agrees to both documents. Declining stays a text button.
                     Button {
-                        guard checked else { showsCheckRequired = true; return }
                         agreeTaps += 1
                         onAgree()
                     } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
                         .buttonStyle(.cyPrimary)
-                        .disabled(!checked)
                         .cyHaptic(.success, trigger: agreeTaps)
                         .accessibilityIdentifier("authEntry.gate.agree")
                     Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
                         .font(CYTypography.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("authEntry.gate.decline")
-                }
-    
                 }
                 .padding(.horizontal, CYSpacing.xxl)
                 .padding(.top, CYSpacing.md)
