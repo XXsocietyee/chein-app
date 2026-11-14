@@ -75,7 +75,7 @@ extension EnvironmentValues {
     }
 }
 
-private enum MerchantOpsWp03Phase: Equatable {
+enum MerchantOpsWp03Phase: Equatable {
     case loading, ready, empty, failed, withheld, signedOut
 }
 
