@@ -22,6 +22,7 @@ extension MPParityRoute {
         Group {
             if let route = MPParityRoute(link: link) {
                 MPParityDestination(route: route)
+                    .environmentObject(session)
                     .modifier(MPParityPassEnvironment(session: session))
             } else {
                 NativeRouteErrorView(failure: .unsupported, goHome: { session.dismissNativeEntry(); goHome() })

@@ -107,6 +107,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case journeyPromo
     case journeyReport(JourneyRunScope)
     case journeySettle(JourneyRunScope)
+    /// A page-map path whose native screen already exists. The query is the one `MiniProgramPageLink` accepted.
+    case screen(page: String, query: [String: String])
 
     var id: Self { self }
 
@@ -148,7 +150,8 @@ enum MPParityRoute: Hashable, Identifiable {
                                         teamID: nonEmpty("teamId"))
             self = page.hasSuffix("report/index") ? .journeyReport(scope) : .journeySettle(scope)
         default:
-            return nil
+            guard MiniProgramPageLink.reviewedPages[page] != nil else { return nil }
+            self = .screen(page: page, query: query)
         }
     }
 }
@@ -184,6 +187,8 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.journeyReport { JourneyReportHost(binding: make(scope), scope: scope) } else { unavailable }
         case .journeySettle(let scope):
             if let make = bindings.journeySettle { JourneySettleHost(binding: make(scope), scope: scope) } else { unavailable }
+        case .screen(let page, let query):
+            MPReviewedPageScreen(page: page, query: query)
         }
     }
 

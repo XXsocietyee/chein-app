@@ -5,12 +5,15 @@ import XCTest
 /// native router cannot open.
 @MainActor final class MPParityDeepLinkRouteTests: XCTestCase {
     func testEveryReviewedPageMapsToARoute() {
-        let samples: [String: [String: String]] = [
+        var samples: [String: [String: String]] = [
             "subpackageMember/market/pass/index": ["id": "p-1"],
             "subpackageMember/market/gift/index": ["token": "gift-token"],
             "subpackageJourney/pages/landing/index": ["k": "g", "t": "tok"],
             "subpackageJourney/pages/seats/index": ["registrationId": "9"],
         ]
+        for (page, rule) in MiniProgramPageLink.reviewedPages where rule.required.contains("id") {
+            samples[page] = ["id": "7"]
+        }
         for page in MiniProgramPageLink.reviewedPages.keys {
             guard let link = MiniProgramPageLink(path: page, query: samples[page] ?? [:]) else { XCTFail(page); continue }
             XCTAssertNotNil(MPParityRoute(link: link), page)
@@ -26,6 +29,15 @@ import XCTest
         XCTAssertEqual(value.token, "ref")
         XCTAssertEqual(value.activityID, "4")
         XCTAssertNil(value.topicID)
+    }
+
+    func testPageMapScreensUseTheScreenRoute() {
+        let home = MiniProgramPageLink(path: "/pages/index/index", query: [:])!
+        XCTAssertEqual(MPParityRoute(link: home), .screen(page: "pages/index/index", query: [:]))
+        let order = MiniProgramPageLink(path: "subpackageMember/orderinfo/orderinfo", query: ["id": "7"])!
+        XCTAssertEqual(MPParityRoute(link: order), .screen(page: "subpackageMember/orderinfo/orderinfo", query: ["id": "7"]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "pages/club/governance/index", query: [:]))
+        XCTAssertNil(MPParityRoute(miniProgramPath: "pages/merchant/customer/detail/index", query: [:]))
     }
 
     func testRevealFromALinkCarriesNoPaidFacts() {
