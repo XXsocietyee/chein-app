@@ -142,6 +142,7 @@ struct CYStatusRibbon: View {
         case .warning: return palette.warning
         case .danger: return palette.danger
         case .neutral, .info: return palette.bgRaised
+        case .rare: return palette.rare
         }
     }
     private var foreground: Color {
