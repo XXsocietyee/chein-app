@@ -1,12 +1,13 @@
 import SwiftUI
 
-/// Mini-program scene-settings-deregister: executeAfter is shown as a time, or 执行时间待确认.
+/// Mini-program scene-settings-deregister: a known `executeAfter` is a time. A missing or
+/// unreadable value is an em dash. After the cooling-off clock the label is 冷静期结束时间.
 /// Reform plan v9 U03: display follows the phone's zone; the Beijing wall time is added when
 /// the zones differ, and the cooling-off deadline itself is decided by the server.
 struct DeregistrationExecuteAfterRow: View {
     let raw: String?
+    var coolingOffEnded = false
     var phoneTimeZone: TimeZone = .current
-    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
@@ -42,8 +43,13 @@ struct DeregistrationExecuteAfterRow: View {
         }
     }
 
+    private var executeAfterTitle: LocalizedStringKey {
+        if coolingOffEnded { return "authEntry.deregister.coolingOffEndedAt" }
+        return "authEntry.deregister.executeAfter"
+    }
+
     private var label: some View {
-        Text("authEntry.deregister.executeAfter", tableName: "AuthEntry")
+        Text(executeAfterTitle, tableName: "AuthEntry")
             .font(CYTypography.cardTitle)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
@@ -58,13 +64,11 @@ struct DeregistrationExecuteAfterRow: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("authEntry.deregister.executeAfter")
         } else {
-            CYStatusChip(verbatim: pendingCopy, tone: .warning, systemImage: "clock")
+            Text(verbatim: "—")
+                .font(CYTypography.numericBody)
+                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("authEntry.deregister.timePending")
         }
-    }
-
-    private var pendingCopy: String {
-        String(localized: LocalizedStringResource("authEntry.deregister.timePending", table: "AuthEntry", locale: locale))
     }
 }
 
