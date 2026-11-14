@@ -58,7 +58,11 @@ import SwiftUI
                             postActions(post, actions: actions)
                         }
                         if post.memberID == 0 {
-                            Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("square.author.unknown")
+                            Text(verbatim: "—")
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("square.author.unknown")
                         } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
                             CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
                         }
@@ -429,41 +433,63 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
     let load: () async throws -> [Int]
     let remove: (Int) async throws -> [Int]
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var phase = Phase.loading
     @State private var ids: [Int] = []
     @State private var removing = false
     private enum Phase { case loading, empty, ready, failed }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: locale.pick("我的广场", "My square posts")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: locale.pick("我的广场", "My square posts"))
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
             if !signedIn {
-                Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             } else {
                 switch phase {
                 case .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
                 case .empty:
-                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 case .failed:
-                    Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
-                    CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await reload() } }
+                    Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await reload() } }
                 case .ready:
                     if let highlightedPostID, !ids.contains(highlightedPostID) {
-                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(ids, id: \.self) { id in
-                        HStack(alignment: .center, spacing: CYSpacing.sm) {
-                            Text(verbatim: "#\(id)").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
-                            Spacer(minLength: CYSpacing.sm)
-                            CYPillButton(verbatim: locale.pick("删除", "Delete"), style: .secondary, fullWidth: false, compact: true) {
-                                Task { await delete(id) }
-                            }.disabled(removing)
-                        }
+                        authorRow(id)
                     }
                 }
             }
         }
         .accessibilityIdentifier("square.authorDelete")
         .task { await reload() }
+    }
+    private func authorRow(_ id: Int) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
+        return layout {
+            Text(verbatim: "#\(id)")
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            if !dynamicTypeSize.isAccessibilitySize {
+                Spacer(minLength: CYSpacing.sm)
+            }
+            CYPillButton(
+                verbatim: locale.pick("删除", "Delete"),
+                style: .secondary,
+                fullWidth: dynamicTypeSize.isAccessibilitySize,
+                compact: !dynamicTypeSize.isAccessibilitySize
+            ) {
+                Task { await delete(id) }
+            }
+            .disabled(removing)
+        }
     }
     private func reload() async {
         guard signedIn else { return }
