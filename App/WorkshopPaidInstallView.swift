@@ -50,10 +50,17 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
     @State private var isVisible = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.wp09APIHost) private var apiHost
     var body: some View {
         let displayed = appearance
+        let moneyOpen = WorkshopPaidInstallAuthority.confirmSends(host: apiHost)
         NavigationStack {
             Form {
+                Section {
+                    Text(verbatim: WorkshopPaidInstallAuthority.notice(chinese: W8Text.isChinese))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("workshopPaidInstall.authority")
+                }
                 Section { installText("scope").fixedSize(horizontal: false, vertical: true) }
                 if controller.phase == .invalidated {
                     installText("sessionChanged")
@@ -66,7 +73,11 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     commandFacts(command)
                     Section {
                         installText("confirmNote").fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(LocalizedStringKey("workshopPaidInstall.confirm"), style: .primary, tableName: "WorkshopPaidInstall") { schedule(controller.offerSubmit(displayed, command: command)) }
+                        CYPillButton(LocalizedStringKey("workshopPaidInstall.confirm"), style: .primary, tableName: "WorkshopPaidInstall") {
+                            guard WorkshopPaidInstallAuthority.confirmSends(host: apiHost) else { return }
+                            schedule(controller.offerSubmit(displayed, command: command))
+                        }
+                            .disabled(!moneyOpen)
                             .accessibilityIdentifier("workshopPaidInstall.confirm")
                         Button(role: .cancel) { controller.cancelReview(appearance: displayed) } label: { installText("cancelReview") }
                     }

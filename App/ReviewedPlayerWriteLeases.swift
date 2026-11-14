@@ -114,6 +114,12 @@ extension ReviewedProductionFormMutationRoute {
         if relative == "api/game/session/view" || relative == "api/game/session/receipt" {
             return false
         }
+        if relative == "api/preset/gameplay/draft" {
+            return covers(relative, grant.play) && gameplayPresetDraftBody(request)
+        }
+        if relative == "api/preset/gameplay/list" || relative == "api/preset/gameplay/info" {
+            return false
+        }
         if ClubGapProductionLease.allows(relative: relative, method: method, body: request.httpBody) { return true }
         return covers(relative, grant.clubCommunity) || covers(relative, grant.profile)
             || covers(relative, grant.team) || covers(relative, grant.play) || covers(relative, grant.roamExtras)
@@ -229,6 +235,14 @@ extension ReviewedProductionFormMutationRoute {
     }
 
     private struct ThemeReplayBody: Decodable { let sessionId: Int }
+
+    /// OWN-21.1. The preset draft body. A payment field is not this write and is not sent.
+    static func gameplayPresetDraftBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        return GameplayPresetDraftBody.allows(object)
+    }
 
     /// Replay is `{sessionId}` only. A price, channel, or extra field is not this write.
     static func themeReplayBody(_ request: URLRequest) -> Bool {
@@ -507,7 +521,9 @@ enum ReviewedPlayerReadRoute {
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
         "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
         "api/external-game/catalog", "api/external-game/catalog/{}", "api/external-game/catalog/{}/package",
-        "api/external-game/signing-key", "api/external-game/reports"
+        "api/external-game/signing-key", "api/external-game/reports",
+        // OWN-21.1 / OWN-21.2. Preset list and info are reads. Draft is a personal template id, not a payment.
+        "api/preset/gameplay/list", "api/preset/gameplay/info", "api/preset/gameplay/draft"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.

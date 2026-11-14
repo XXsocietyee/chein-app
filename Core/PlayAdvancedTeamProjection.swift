@@ -7,8 +7,12 @@ public struct PlayAdvancedTeamProjection: Equatable {
     public struct Role: Equatable, Identifiable { public let id: String; public let label: String; public let maximum: Int }
     public let members: [Member]; public let roles: [Role]
     public let assignment: String; public let myRole: String?
-    /// Server `myRoleLabel` (U06-02). Non-leaders never receive the role table, so this is their only label.
+    /// Server `myRoleLabel` (OWN-U06-02). Non-leaders never receive the role table, so this is their only label.
     public let myRoleLabel: String?
+    /// OWN-U06-02. Only the viewer's task, evidence and private clues. Another role's `privateClues` object is never stored.
+    public let myTask: String?
+    public let myEvidence: [String]
+    public let myPrivateClues: [String]
     public let turnIndex: Int; public let completedUnits: Int; public let requiredTurns: Int
     public let isLeader: Bool
     /// U06 turn block; nil when the backend does not send one.
@@ -45,8 +49,42 @@ public struct PlayAdvancedTeamProjection: Equatable {
         let label = value["myRoleLabel"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.myRole = mine
         self.myRoleLabel = mine == nil ? nil : label.flatMap { $0.isEmpty || $0.utf16.count > 256 ? nil : $0 }
+        self.myTask = Self.shortText(value["myTask"].text)
+        self.myEvidence = Self.shortList(value["myEvidence"])
+        self.myPrivateClues = Self.shortList(value["myPrivateClues"])
         self.turn = PlayAdvancedTurn(multiplayer: value, isLeader: isLeader)
         self.turnIndex = index; completedUnits = Set(units.compactMap(\.text)).count; requiredTurns = required
+    }
+    /// OWN-U06-02. A non-leader never receives another member's role name. No turn block is an em dash, not a guess.
+    public func waitingOn(chinese: Bool) -> String {
+        guard let turn else { return WP09Copy.unknown }
+        if turn.finished { return WP09Copy.text("本轮已结束", "This round is finished", chinese: chinese) }
+        if turn.myTurn { return myRoleDisplay ?? WP09Copy.text("轮到我", "My turn", chinese: chinese) }
+        if isLeader, let slot = turn.currentSlot { return slot.display }
+        if let wait = turn.turnsUntilMine, wait > 0 {
+            return WP09Copy.text("还有 \(wait) 轮到我", "My turn in \(wait)", chinese: chinese)
+        }
+        return WP09Copy.unknown
+    }
+    /// True when a foreign private-clue string was kept. The projection must not keep one.
+    public func exposes(_ needle: String) -> Bool {
+        guard !needle.isEmpty else { return false }
+        let stored = ([myTask, myRoleLabel].compactMap { $0 } + myEvidence + myPrivateClues).joined(separator: "\n")
+        return stored.contains(needle)
+    }
+    private static func shortText(_ text: String?) -> String? {
+        let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !trimmed.isEmpty, trimmed.utf16.count <= 256 else { return nil }
+        return trimmed
+    }
+    private static func shortList(_ value: PlayWireValue) -> [String] {
+        let rows = value.array ?? []
+        var out: [String] = []
+        for item in rows.prefix(32) {
+            guard let text = shortText(item.text ?? item["text"].text) else { continue }
+            out.append(text)
+        }
+        return out
     }
     public var canRequestUnit: Bool { myRole != nil && completedUnits < requiredTurns }
     public func canAssign(memberID: Int, roleID: String) -> Bool {

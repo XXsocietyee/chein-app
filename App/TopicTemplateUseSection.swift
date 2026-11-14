@@ -93,6 +93,7 @@ extension AppCompositionRoot {
             .buttonStyle(.cyPrimary(fullWidth: true))
             .disabled(model.state == .using)
             .accessibilityIdentifier("topicTemplate.use")
+            SourceLineageSection(revisionID: model.copiedReceipt?.sourceContentRevisionId ?? plan.sourceContentRevisionId)
             if let message = TopicTemplateUseModel.message(for: model.state) {
                 Label(message, systemImage: model.copiedReceipt == nil ? "exclamationmark.circle" : "checkmark.circle")
                     .font(CYTypography.bodyCompact)

@@ -75,7 +75,11 @@ public struct TeamDetail: Decodable, Equatable {
     public let seats: TeamSeatFacts?
     public let invite: TeamInviteFacts?
     public let viewer: TeamViewerFacts?
-    enum CodingKeys: String, CodingKey { case team, members, joined, leader, seats, invite, viewer }
+    /// OWN-U06-02. The viewer's own role facts from the team read. Nil when the server did not send them.
+    public let roleFacts: TeamPlayRoleFacts?
+    /// OWN-U06-04. Organizer and shared-result facts. Nil when the server did not send them.
+    public let sharedOutcome: TeamSharedOutcome?
+    enum CodingKeys: String, CodingKey { case team, members, joined, leader, seats, invite, viewer, roleFacts, sharedOutcome }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         if c.contains(.team) { team = try c.decode(OwnedTeam.self, forKey: .team) }
@@ -93,6 +97,8 @@ public struct TeamDetail: Decodable, Equatable {
         seats = try? c.decodeIfPresent(TeamSeatFacts.self, forKey: .seats)
         invite = try? c.decodeIfPresent(TeamInviteFacts.self, forKey: .invite)
         viewer = try? c.decodeIfPresent(TeamViewerFacts.self, forKey: .viewer)
+        roleFacts = try? c.decodeIfPresent(TeamPlayRoleFacts.self, forKey: .roleFacts)
+        sharedOutcome = try? c.decodeIfPresent(TeamSharedOutcome.self, forKey: .sharedOutcome)
     }
 }
 public enum TeamLookup: Equatable {

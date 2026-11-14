@@ -650,6 +650,7 @@
         "UsageConsentHistoryHostTests",
         "VerificationPresentationAppTests",
         "WP07ShopNPCDisclosureTests",
+        "WP09PresetsTeamAfterSaleTests",
         "WP12QmodImportMountTests",
         "WP14NPCChatDataRevokeTests",
         "WalkingCheckpointReadRetryTests",

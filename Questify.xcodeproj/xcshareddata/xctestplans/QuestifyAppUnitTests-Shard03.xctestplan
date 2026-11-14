@@ -631,6 +631,7 @@
         "VerificationPresentationAppTests",
         "WP01SeenAckRefreshTests",
         "WP08ReceiveNativeURLAuditTests",
+        "WP09PresetsTeamAfterSaleTests",
         "WP12QmodImportMountTests",
         "WP14NPCChatDataRevokeTests",
         "WalkingCheckpointReadRetryTests",

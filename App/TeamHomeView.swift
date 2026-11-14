@@ -101,6 +101,7 @@ import SwiftUI
                         .accessibilityIdentifier("team.detail.card")
                     // U06-01: seats, applications and the invitation deadline, separate from the member list.
                     TeamSeatFactsCard(detail: detail)
+                    TeamRoleAndSharedSection(role: detail.roleFacts, shared: detail.sharedOutcome)
                     TeamViewerRelationshipLine(detail: detail, invitation: invitationCode != nil)
                     if let channelManagementHooks,
                        let source = NativeTeamChannelManagementSource(coordinator: model.coordinator, lookup: lookup, readOnly: readOnly) {
