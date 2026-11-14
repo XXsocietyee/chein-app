@@ -49,6 +49,7 @@ struct DiscoveryTemplateBrowserView: View {
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
+                        GameplayPresetSection(canDraft: !templateTabScope.isStaffReadOnly)
                         if templateTabScope == .merchant(canManageProjects: false) {
                             Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
                                 .foregroundStyle(palette.textSecondary)

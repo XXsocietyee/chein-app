@@ -30,11 +30,18 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
     public let refundApplication: OrderLifecycleRefund?
     public let manualRefundCaseStatus: String?
     public let entitlements: [TicketWalletEntitlement]
+    /// OWN-U07-01. Nil when the server did not send `delivery`.
+    public let delivery: OrderDeliveryFacts?
+    /// OWN-U07-04. Nil when the server did not send `settlementSummary`.
+    public let settlement: OrderSettlementFacts?
+    /// OWN-U07-02. Channel names only. A WeChat flag is not an in-app purchase approval.
+    public let paymentChannels: [String]?
 
     enum CodingKeys: String, CodingKey {
         case id, memberId, ownerType, ownerId, registrationNo, registrationStatus, paymentStatus, verificationStatus
         case payableAmount, ticketName, purchaseKind, createTime, paymentTime, verificationTime, payExpireTime
         case cmsActivity, cmsTopic, refundInfo, refundApplication, manualRefundCaseStatus, entitlements
+        case delivery, settlementSummary, paymentChannels
     }
     private struct Owner: Decodable {
         let name: String?
@@ -77,6 +84,9 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
         refundApplication = try c.decodeIfPresent(OrderLifecycleRefund.self, forKey: .refundApplication)
         manualRefundCaseStatus = try c.decodeIfPresent(String.self, forKey: .manualRefundCaseStatus)
         entitlements = try c.decodeIfPresent([TicketWalletEntitlement].self, forKey: .entitlements) ?? []
+        delivery = try? c.decodeIfPresent(OrderDeliveryFacts.self, forKey: .delivery)
+        settlement = try? c.decodeIfPresent(OrderSettlementFacts.self, forKey: .settlementSummary)
+        paymentChannels = try? c.decodeIfPresent([String].self, forKey: .paymentChannels)
     }
 }
 

@@ -189,7 +189,8 @@ struct RoamMapWeather: ViewModifier {
     }
 }
 
-/// Topic editor: U02-03/U02-04 地点待办 for a saved topic. The read runs from `TemplateLocationTodosHost` on the editor form.
+/// Topic editor: U02-03/OWN-U02-04 地点待办 for a saved topic. The read runs from `TemplateLocationTodosHost` on the editor form.
+/// Source version and adoption updates are `SourceLineageSection` on the use row.
 @MainActor struct TemplateLocationTodosEntry: View {
     let topicID: Int
     /// `ProjectEditOwner.rawValue`: '' (personal) or 'MERCHANT', the mini-program `operationScope`.

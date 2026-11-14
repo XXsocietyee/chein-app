@@ -643,6 +643,7 @@
         "WP07ShopNPCDisclosureTests",
         "WP08HostTipLeaseTests",
         "WP08ReceiveNativeURLAuditTests",
+        "WP09PresetsTeamAfterSaleTests",
         "WP12QmodImportMountTests",
         "WP14NPCChatDataRevokeTests",
         "WalkingLowPowerPresentationTests",

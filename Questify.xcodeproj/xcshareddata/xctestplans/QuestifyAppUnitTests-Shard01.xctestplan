@@ -654,6 +654,7 @@
         "WP06PartialPageHostTests",
         "WP07ShopNPCDisclosureTests",
         "WP08HostTipLeaseTests",
+        "WP09PresetsTeamAfterSaleTests",
         "WP12QmodImportMountTests",
         "WP14NPCChatDataRevokeTests",
         "WalkingCheckpointReadRetryTests",

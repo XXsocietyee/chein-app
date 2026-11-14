@@ -70,6 +70,14 @@ import SwiftUI
                     .accessibilityLabel(Text("orderLifecycle.amount"))
                     .accessibilityIdentifier(OrderInfoPageModel.unknownIdentifier)
             }
+            Section {
+                OrderDeliverySection(delivery: coordinator.detail?.id == id ? coordinator.detail?.delivery : nil)
+                OrderPaymentReturnSection(loading: coordinator.isLoading,
+                                           payment: coordinator.detail?.id == id ? coordinator.detail?.paymentStatus : nil,
+                                           registration: coordinator.detail?.id == id ? coordinator.detail?.registrationStatus : nil,
+                                           channels: coordinator.detail?.id == id ? coordinator.detail?.paymentChannels : nil)
+                OrderPartialRefundSection(settlement: coordinator.detail?.id == id ? coordinator.detail?.settlement : nil)
+            }
             Section { Text("orderLifecycle.production.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .listStyle(.insetGrouped)

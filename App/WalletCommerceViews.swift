@@ -109,6 +109,7 @@ enum WalletPayoutCapability { static let isOn = false }
     var organizerFinance: WalletOrganizerFinanceAccess? = nil
     var body: some View {
         List {
+            Section { CreatorAccrualSection(projection: .unknown(reason: nil)) }
             if visibility.income {
                 Section {
                     if earnings.loading {

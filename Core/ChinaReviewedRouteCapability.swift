@@ -49,6 +49,7 @@ public enum ChinaReviewedRouteCapability {
         if creatorEditorAndOrderCenterOwnerGrant.contains(key) { return true }
         if key.hasPrefix("/api/topic/state-keys/"), isTopicStateKey(String(key.dropFirst("/api/topic/state-keys/".count))) { return true }
         if socialRoamOwnerGrant.contains(key) { return true }
+        if wp09PresetGrant.contains(key) { return true }
         if playRuntimeOwnerGrant.contains(key) { return true }
         if videoBountyOwnerGrant.contains(key) { return true }
         if hostTipSurfaceGrant.contains(key) { return true }
@@ -216,6 +217,13 @@ public enum ChinaReviewedRouteCapability {
     public static func isTopicStateKey(_ segment: String) -> Bool {
         segment.range(of: "^(clue|relation|tag|counter)\\.[a-z][a-z0-9_]{0,47}$", options: .regularExpression) != nil
     }
+
+    /// OWN-21.1 / OWN-21.2. Gameplay preset list, info and the personal draft write. Not a money path.
+    public static let wp09PresetGrant: Set<String> = [
+        "/api/preset/gameplay/list",
+        "/api/preset/gameplay/info",
+        "/api/preset/gameplay/draft"
+    ]
 
     /// Capability gaps G4/G5 (capability-graph section 1), owner approval: non-money player reads and writes for
     /// community trust, community "mine" lists and undo actions, roam extras, template adoption/binding, map/search.

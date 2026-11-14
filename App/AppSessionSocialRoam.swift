@@ -42,6 +42,9 @@ struct SocialRoamCapabilityRoot: ViewModifier {
     @ObservedObject var session: AppSession
 
     func body(content: Content) -> some View {
-        content.environment(\.socialRoamCapabilities, session.socialRoamCapabilities())
+        content
+            .environment(\.socialRoamCapabilities, session.socialRoamCapabilities())
+            .environment(\.gameplayPresetClient, session.gameplayPresetClient())
+            .environment(\.wp09APIHost, session.regionalConfiguration?.apiConfiguration?.baseURL.host)
     }
 }

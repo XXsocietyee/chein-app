@@ -17,6 +17,15 @@ import SwiftUI
                     if let role = team.myRoleDisplay { Text(verbatim: role) }
                     else { Text("advancedTeam.unassigned") }
                 }
+                LabeledContent { Text(verbatim: team.myTask ?? WP09Copy.unknown) } label: { Text(verbatim: W8Text.t("我的任务", "My task")) }
+                LabeledContent { Text(verbatim: team.myEvidence.isEmpty ? WP09Copy.unknown : team.myEvidence.joined(separator: "\n")) } label: {
+                    Text(verbatim: W8Text.t("我能贡献的证据", "Evidence I can contribute"))
+                }
+                LabeledContent { Text(verbatim: team.waitingOn(chinese: W8Text.isChinese)) } label: { Text(verbatim: W8Text.t("当前等谁", "Who is waited on")) }
+                LabeledContent { Text(verbatim: team.myPrivateClues.isEmpty ? WP09Copy.unknown : team.myPrivateClues.joined(separator: "\n")) } label: {
+                    Text(verbatim: W8Text.t("只属于我的线索", "Clues that are only mine"))
+                }
+                .privacySensitive()
                 Text(team.assignment == "AUTO" ? "advancedTeam.auto" : team.isLeader ? "advancedTeam.leader" : "advancedTeam.leaderOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 ForEach(team.members) { member in
                     VStack(alignment: .leading, spacing: 8) {
