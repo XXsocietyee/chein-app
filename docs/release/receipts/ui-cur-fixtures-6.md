@@ -1,8 +1,10 @@
 # ui-cur-fixtures-6
 
+Rebased onto `origin/ui/main` `3ac970ec20191014b4b9a8779a3a94b961e99c9c`. The four commits below were replayed, so their SHAs on this branch differ from the original branches. Those original branches were not moved. The exclusion list and the Xcode project keep both `Cur4Fixtures.swift` and `CurFixtures6.swift`.
+
 Task 65. Branch `ui/cur-fixtures-6` from `origin/ui/main` `6feee423adc8962d7613f8ba93b77ffdc93ea1c4`.
 
-This branch contains those four commits, merged with the octopus strategy. They were not rebased. None of those branches was pushed.
+This branch contains those four commits, merged with the octopus strategy. None of those branches was pushed.
 
 | Handover | Branch | Commit |
 |---|---|---|
