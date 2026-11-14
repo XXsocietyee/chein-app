@@ -2,11 +2,17 @@ import CoreLocation
 import SwiftUI
 import UIKit
 import Combine
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
 
 @MainActor private final class RoamLiveViewModel: ObservableObject {
     let controller: RoamLiveSessionController
     let finishedHistory: RoamFinishedHistoryReader
     @Published private var revision = 0
+    /// Port of `utils/roam-sync-status.js`: 2 consecutive transport errors or offline path shows sync banner.
+    private(set) var syncStatus = RoamSyncStatusTracker()
+    private var lastObservedPresenceError = false
     /// Frozen when the walk finishes. The settle chip reads this; a later clear of places does not erase it.
     var finishAddress = RoamFinishAddress.Snapshot()
     init(_ controller: RoamLiveSessionController, offlineExample: Bool) {
@@ -14,8 +20,26 @@ import Combine
         finishedHistory = controller.makeFinishedHistoryReader(offlineExample: offlineExample)
         controller.onChange = { [weak self] in
             self?.captureFinishAddress()
+            self?.updateSyncStatus()
             self?.revision &+= 1
         }
+    }
+    func updateSyncStatus() {
+        let transportOffline = controller.presenceError || isTransportError(controller.placesReadError) || isTransportError(controller.error)
+        if transportOffline {
+            if !lastObservedPresenceError { syncStatus.recordOutcome(netFail: true) }
+        } else if controller.phase == .active && controller.error == nil {
+            syncStatus.recordOutcome(netFail: false, code: 200)
+        }
+        lastObservedPresenceError = controller.presenceError
+    }
+    func syncReachability(isOffline: Bool) {
+        syncStatus.recordSystemConnectivity(isConnected: !isOffline)
+        revision &+= 1
+    }
+    private func isTransportError(_ error: Error?) -> Bool {
+        guard let urlError = error as? URLError else { return false }
+        return HTTPRequestRetrySupport.isTransientTransportError(urlError)
     }
     func captureFinishAddress() {
         guard controller.phase != .finished else { return }
@@ -71,6 +95,21 @@ import Combine
     private var sessionContent: some View {
         List {
             if offlineExample { RoamExperienceNotice(offline: true) }
+            if model.syncStatus.isOffline {
+                Section {
+                    CYStatusOfflineBanner(
+                        messageKey: RoamSyncStatusTracker.offlineKey,
+                        serious: true,
+                        onRetry: {
+                            if owner.canRetryNearbyRead {
+                                Task { await owner.retryNearbyRead() }
+                            }
+                        }
+                    )
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+            }
             // Mini-program pcard: goal line, then 用时 / 地盘 / 距离 (公里).
             Section { hud }
                 .listRowBackground(Color.clear)
