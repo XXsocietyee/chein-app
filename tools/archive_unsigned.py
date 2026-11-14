@@ -44,9 +44,10 @@ ATS_FORBIDDEN = (
 LOCATION_FORBIDDEN = (
     "NSLocationAlwaysUsageDescription",
     "NSLocationAlwaysAndWhenInUseUsageDescription",
-    "UIBackgroundModes",
     "INFOPLIST_KEY_UIBackgroundModes",
 )
+# OWN-D-07: the only background mode is session-scoped location (Config/Info.plist).
+ALLOWED_BACKGROUND_MODES = ["location"]
 REQUIRED_REASON_APIS = {
     "NSPrivacyAccessedAPICategoryUserDefaults": ["CA92.1"],
     "NSPrivacyAccessedAPICategoryFileTimestamp": ["C617.1", "3B52.1"],
@@ -166,6 +167,9 @@ def check_ats(failures):
     for token in LOCATION_FORBIDDEN:
         if token in blob:
             failures.append(token + " is present")
+    info = plistlib.loads((ROOT / "Config/Info.plist").read_bytes())
+    if info.get("UIBackgroundModes", ALLOWED_BACKGROUND_MODES) != ALLOWED_BACKGROUND_MODES:
+        failures.append("UIBackgroundModes must be exactly " + str(ALLOWED_BACKGROUND_MODES))
 
 
 def check_apple_entitlement(failures):

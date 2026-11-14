@@ -39,13 +39,18 @@ struct RegistrationSheetView: View {
          currentIdentity: @escaping () -> ProfileReadIdentity?, quoteEnabled: Bool = false,
          creationPolicy: RegistrationUICreationPolicy = .disabled,
          waitlistService: (any RegistrationWaitlistServing)? = nil,
+         availablePoints: (() -> Int?)? = nil,
          onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
         self.orderReader = orderReader
         self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
-        _model = StateObject(wrappedValue: RegistrationSheetModel(flow: RegistrationUIFlow(
-            activity: activity, coordinator: coordinator, participantReader: participantReader,
-            currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
-            creationPolicy: creationPolicy, waitlistService: waitlistService, onReadback: onReadback)))
+        _model = StateObject(wrappedValue: RegistrationSheetModel(flow: {
+            let flow = RegistrationUIFlow(
+                activity: activity, coordinator: coordinator, participantReader: participantReader,
+                currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
+                creationPolicy: creationPolicy, waitlistService: waitlistService, onReadback: onReadback)
+            flow.availablePoints = availablePoints
+            return flow
+        }()))
     }
     #if DEBUG
     /// Offline fixture-only injection keeps the real view/controller clock and guards intact.
@@ -563,9 +568,11 @@ struct RegistrationSheetView: View {
                             get: { flow.usePoints },
                             set: { if flow.setUsePoints($0) { Task { await flow.requestQuote() } } }
                         )).disabled(!flow.canEdit).accessibilityIdentifier("registration.form.usePoints")
-                        if flow.usePoints, quote.pointsDeductYuan == .zero {
-                            Text("registration.form.insufficientPoints").font(.caption).foregroundStyle(.secondary)
-                        }
+                    }
+                    // OWN-D-01.b: the server quoted no deduction, so the toggle went off. Say which of the two reasons applies.
+                    if let refusal = flow.pointsRefusal {
+                        Text(LocalizedStringKey(refusal.localizationKey)).font(.caption).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("registration.form.pointsRefusal")
                     }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
                         .font(CYTypography.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")

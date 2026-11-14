@@ -282,10 +282,14 @@ private final class WalletRecordingTransport: HTTPTransport {
         do { _ = try await adapter.execute(review, token: "fake"); XCTFail() } catch {}
         XCTAssertThrowsError(try adapter.review(.delete(cartID: 1)))
     }
-    func testSyntheticSourceTasksExcludeSpendRules() async throws {
+    /// OWN-D-01.a: eventType 14 is listed as 「积分消耗」, not dropped; delFlag≠0 rows are dropped.
+    func testSyntheticSourceTasksSplitEarnAndSpendRules() async throws {
         let service = WalletCommerceService(configuration: try config(), transport: WalletCommerceSyntheticTransport())
         let tasks = try await service.pointsTasks(token: "fake")
-        XCTAssertEqual(tasks.map(\.id), [50])
+        XCTAssertEqual(tasks.map(\.id), [50, 51])
+        let rules = WalletPointsRules(tasks)
+        XCTAssertEqual(rules.earn.map(\.id), [50])
+        XCTAssertEqual(rules.spend.map(\.id), [51])
     }
     func testLedgerDeniedAndUnauthorizedAreNotRetryableEmptySuccess() async throws {
         let active = scope()

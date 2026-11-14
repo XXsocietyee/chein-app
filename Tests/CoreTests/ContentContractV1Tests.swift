@@ -24,6 +24,19 @@ final class ContentContractV1Tests: XCTestCase {
         XCTAssertEqual(root["vectors"]["sections"].array?.count, Optional(72))
     }
 
+    /// OWN-10.3.c: the schema stays a test resource that registers `outcomeRules` as an open author section, and an
+    /// author's pass/fail feedback round-trips through the wire value unchanged (the client never rewrites it).
+    func testOutcomeRulesPassFailFeedbackRoundTrips() throws {
+        let schema = try schemaDocument()
+        XCTAssertNotNil(schema["$defs"]["outcomeRulesSection"].object)
+        let raw = #"{"outcomeRules":{"version":1,"pass":{"feedback":"答对了，去下一站"},"fail":{"feedback":"差一点，再看看线索"}}}"#
+        let value = try JSONDecoder().decode(PlayWireValue.self, from: Data(raw.utf8))
+        let again = try JSONDecoder().decode(PlayWireValue.self, from: JSONEncoder().encode(value))
+        XCTAssertEqual(again, value)
+        XCTAssertEqual(text(again["outcomeRules"]["pass"]["feedback"]), "答对了，去下一站")
+        XCTAssertEqual(text(again["outcomeRules"]["fail"]["feedback"]), "差一点，再看看线索")
+    }
+
     func testSaveVectors() throws {
         for item in try vectors()["vectors"]["save"].array ?? [] {
             let id = text(item["id"]) ?? "?"

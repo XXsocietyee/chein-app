@@ -97,6 +97,11 @@ public struct RoamDeviceFix: Equatable {
 @MainActor public protocol RoamDeviceLocationProviding: AnyObject {
     func currentFix() async throws -> RoamDeviceFix
     func stop()
+    /// OWN-D-07.c: true only while this provider holds a session background hold (`SessionLocationHoldLedger`).
+    var continuesInBackground: Bool { get }
+}
+public extension RoamDeviceLocationProviding {
+    var continuesInBackground: Bool { false }
 }
 @MainActor public final class RoamLiveCoordinator {
     public enum Phase: Equatable { case ready, unavailable }

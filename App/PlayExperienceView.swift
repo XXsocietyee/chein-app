@@ -155,6 +155,8 @@ import SwiftUI
             report.load()
         }
         .onChange(of: model.hasCurrentMediaSnapshot) { _, current in if !current { invalidateShopNPC?() } }
+        .modifier(PlaySessionLocationHold(identity: model.identity, running: model.clock.phase == .running,
+                                          currentIdentity: { [model] in model.identity }))
         .onChange(of: scenePhase) { _, next in
             if model.gameplayMode == .cityOrientation, next != .active, model.clock.phase == .running {
                 Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
@@ -862,12 +864,20 @@ struct PlayCompatibilitySection: View {
 
 struct PlayExperienceIssueView: View {
     let issue: PlayExperienceError
+    static func showsReference(_ issue: PlayExperienceError) -> Bool {
+        switch issue {
+        case .unknownResult, .malformed, .rejected: return true
+        default: return false
+        }
+    }
     var body: some View {
         VStack(alignment: .leading) {
             if case .rejected(let code, let message) = issue {
                 Label("playx.rejected", systemImage: "exclamationmark.circle").font(.headline)
                 Text(verbatim: message ?? String(code)).fixedSize(horizontal: false, vertical: true)
             } else { Text(LocalizedStringKey(issue == .disabled ? "playx.disabled" : issue == .staleSession ? "playx.session.changed" : issue == .unsupported ? "playx.unsupported" : "playx.error")) }
+            // OWN-OPT-072: unknown result or server error carries the server request reference for support.
+            if Self.showsReference(issue), let row = RequestReferenceRow(pathFragment: "/api/play/") { row }
         }.foregroundStyle(.secondary).accessibilityIdentifier("playx.issue")
     }
 }

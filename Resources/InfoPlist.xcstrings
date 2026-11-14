@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use your location only while the app is open and when you choose to roam, play a location-based activity, find nearby places, or explicitly start personal location sharing with a selected person. Personal sharing uploads your location to the service for that person until you stop or the approved sharing period ends. Location is never used in the background."
+            "value": "Use your location when you choose to roam, play a location-based activity or find nearby places. While a roam walk you started is running, your route keeps recording in the background, also when the screen is locked, and the system shows the location indicator; it stops when you pause or finish the walk, sign out, or withdraw roam location in Privacy. Your location is never shared with other players."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在应用使用期间，且你主动选择漫游、参与基于位置的玩法、查找附近地点或明确向指定对象开启个人位置分享时使用你的位置。个人分享会将位置上传至服务端并展示给该对象，直到你停止或获准的分享期限结束。不会在后台使用位置。"
+            "value": "仅在你主动选择漫游、参与基于位置的玩法或查找附近地点时使用你的位置。你开启的漫游进行中，锁屏后仍会记录轨迹，系统会显示定位指示；暂停或结束漫游、退出登录或在隐私页撤回漫游定位后即停止。不会把你的位置分享给其他玩家。"
           }
         }
       }

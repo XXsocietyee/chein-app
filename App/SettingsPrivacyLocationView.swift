@@ -51,6 +51,7 @@ import SwiftUI
                         .accessibilityIdentifier("member.privacy.roam.withdraw")
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
+            SessionLocationHoldsSection()
             Section {
                 NavigationLink { OwnMediaReviewView(reader: mediaReader, imagePreview: imagePreview, approvedLink: approvedLink, audioPreview: audioPreview, modelPreview: modelPreview) } label: {
                     Text("member.privacy.media.open", tableName: "MemberProfile")

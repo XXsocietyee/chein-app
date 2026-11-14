@@ -29,3 +29,32 @@ public enum PlatformAudioLifecyclePolicy {
         }
     }
 }
+
+/// OWN-OPT-042.a: a call or alarm pauses only audio that was playing, and its end resumes only that audio
+/// (`mp:pages/play/utils/audio-session.js:18-42`). A user pause cancels the pending resume. Going to the
+/// background still stops and releases; nothing resumes on return from the background.
+public struct PlatformAudioInterruptionResume: Equatable, Sendable {
+    public enum Decision: Equatable, Sendable { case ignore, stop, pauseForInterruption, resume }
+    public private(set) var interrupted = false
+    public init() {}
+    /// `playing` is nil when nothing is loaded yet (a download in flight), true while audible, false when paused.
+    public mutating func decide(_ signal: PlatformAudioLifecycleSignal, playing: Bool?, ownsConfiguration: Bool) -> Decision {
+        switch signal {
+        case .interruptionBegan:
+            guard let playing else { interrupted = false; return .stop }
+            guard playing else { return .ignore } // Already paused by the player: nothing to resume later.
+            interrupted = true
+            return .pauseForInterruption
+        case .interruptionEnded:
+            guard interrupted else { return .ignore }
+            interrupted = false
+            return .resume
+        default:
+            let action = PlatformAudioLifecyclePolicy.action(for: signal, ownsConfiguration: ownsConfiguration)
+            if action == .stop { interrupted = false; return .stop }
+            return .ignore
+        }
+    }
+    /// An explicit pause, resume or stop by the player always wins over a pending interruption resume.
+    public mutating func userActed() { interrupted = false }
+}

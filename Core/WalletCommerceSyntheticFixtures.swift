@@ -62,7 +62,7 @@ public struct WalletCommerceSyntheticTransport: HTTPTransport {
         case "/api/cart/list": payload = #"{"rows":[{"id":20,"productId":10,"skuId":11,"quantity":1,"productName":"Synthetic postcard","price":8}],"total":1}"#
         case "/api/cart/settlement": payload = #"{"productAmount":8,"deliveryFee":0,"taxFee":0,"totalAmount":"8.1","pointBalance":40,"productList":[{"id":20,"productId":10,"skuId":11,"quantity":1,"price":8}],"address":{"id":30,"mobilePhone":"TEST-0000"}}"#
         case "/api/withdrawal/list": payload = #"{"rows":[{"id":40,"amount":5,"status":1,"bankAccount":"SYNTHETIC-1234"},{"id":41,"amount":6,"status":2}],"total":2}"#
-        case "/api/points/result_list": payload = #"[{"id":50,"status":1,"eventType":1,"title":"Synthetic rule","description":"Offline fixture only","value":5,"pointsNum":2},{"id":51,"status":1,"eventType":14,"title":"Excluded spend rule"}]"#
+        case "/api/points/result_list": payload = #"[{"id":50,"status":1,"eventType":1,"title":"Synthetic rule","description":"Offline fixture only","value":5,"pointsNum":2},{"id":51,"status":1,"eventType":14,"title":"Synthetic spend rule"},{"id":52,"status":1,"eventType":2,"title":"Deleted rule","delFlag":"2"}]"#
         default: throw APIError.invalidRequest // No mutation success is fabricated by UI fixtures.
         }
         return (Data(("{\"code\":200,\"data\":" + payload + "}").utf8), 200)

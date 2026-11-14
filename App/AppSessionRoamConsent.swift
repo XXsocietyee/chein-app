@@ -18,6 +18,8 @@ extension AppSession {
     init(session: AppSession) { self.session = session }
     func stopTracking() async throws {
         session?.invalidatePersonalLocationShare()
+        // OWN-D-07.e: a withdrawn roam consent also ends the roam session-location hold.
+        SessionBackgroundLocationTracker.shared.ledger.revoke(.roam)
     }
     func clearMapPrivacy() async throws {
         session?.invalidatePersonalLocationShare()

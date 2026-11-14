@@ -57,6 +57,19 @@ public struct PlayContentCompatibility: Equatable, Sendable {
         return supported ? .supported : .unsupported(missing)
     }
 
+    /// OWN-10.3 (C2): only a compared declaration with missing capabilities refuses a start, and only for this
+    /// content. Unconfirmed (no or malformed declaration) never blocks, as `mp:pages/play/index.js:4431` plays
+    /// with no declaration. There is no fallback content: the reason is the missing keys, never "degraded".
+    public var blocksStart: Bool {
+        if case .unsupported = verdict { return true }
+        return false
+    }
+    /// The refusal reason shown to the player: the missing capability keys, in server order.
+    public var missingKeys: [String] {
+        if case .unsupported(let rows) = verdict { return rows.map(\.key) }
+        return []
+    }
+
     /// Start/first-entry refusal for a declared client lacking a required capability.
     /// orient/advanced start answer 409 `CONTENT_CAPABILITY_UNSUPPORTED`; the implicit run
     /// creation inside `/api/play/nodes` answers the same server sentence without a code.

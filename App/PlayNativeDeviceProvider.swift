@@ -73,6 +73,9 @@ import PhotosUI
         case .location:
             guard locationReply == nil else { throw PlayExperienceError.invalidAction }
             try Task.checkCancellation()
+            // OWN-D-07.b: a running play hold already streams fixes; a fresh one answers without a second manager.
+            if let held = SessionBackgroundLocationTracker.shared.freshFix(),
+               let output = try? Self.locationOutput(held) { return output }
             locationGeneration &+= 1; let generation = locationGeneration
             return try await withTaskCancellationHandler(operation: {
                 try await withCheckedThrowingContinuation { reply in
@@ -145,13 +148,16 @@ import PhotosUI
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let reply = takeLocationReply(manager) else { return }
         do {
-            guard let location = locations.last,
-                  location.coordinate.longitude.isFinite, location.coordinate.latitude.isFinite,
-                  abs(location.coordinate.longitude) <= 180, abs(location.coordinate.latitude) <= 90 else { throw PlayExperienceError.invalidAction }
-            try PlayLocationMeasurement.validate(accuracyMeters: location.horizontalAccuracy, measuredAt: location.timestamp)
-            // CoreLocation is WGS84. Never relabel it GCJ02 or award local arrival.
-            reply.resume(returning: .location(location.coordinate.longitude, location.coordinate.latitude, coordinateSystem: "WGS84", accuracyMeters: location.horizontalAccuracy, measuredAt: location.timestamp))
+            guard let location = locations.last else { throw PlayExperienceError.invalidAction }
+            reply.resume(returning: try Self.locationOutput(location))
         } catch { reply.resume(throwing: error) }
+    }
+    private static func locationOutput(_ location: CLLocation) throws -> PlayDeviceOutput {
+        guard location.coordinate.longitude.isFinite, location.coordinate.latitude.isFinite,
+              abs(location.coordinate.longitude) <= 180, abs(location.coordinate.latitude) <= 90 else { throw PlayExperienceError.invalidAction }
+        try PlayLocationMeasurement.validate(accuracyMeters: location.horizontalAccuracy, measuredAt: location.timestamp)
+        // CoreLocation is WGS84. Never relabel it GCJ02 or award local arrival.
+        return .location(location.coordinate.longitude, location.coordinate.latitude, coordinateSystem: "WGS84", accuracyMeters: location.horizontalAccuracy, measuredAt: location.timestamp)
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         takeLocationReply(manager)?.resume(throwing: error)

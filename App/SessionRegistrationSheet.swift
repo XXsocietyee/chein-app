@@ -12,7 +12,9 @@ import SwiftUI
                               currentIdentity:{ session.profileReader.identity },
                               quoteEnabled:session.isConfigured,
                               creationPolicy:Self.freeWhenUnapproved(session.registrationCreationPolicy(activityID:activity.summary.id)),
-                              waitlistService:session.registrationWaitlistService(activityID:activity.summary.id))
+                              waitlistService:session.registrationWaitlistService(activityID:activity.summary.id),
+                              // `Account.xp` decodes `userInfo.point`, the balance `baoming.js:1240` reads.
+                              availablePoints:{ session.account?.xp })
     }
 
     /// The integrator button opens this sheet. An unapproved session still cannot pay.
