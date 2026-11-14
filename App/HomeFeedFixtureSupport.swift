@@ -48,18 +48,22 @@ import SwiftUI
     private let continuity: Bool
     /// `--design-today ticket|club|activity` seeds the Today card (`activity`: a club event that opens the activity detail); anything else shows the start-a-roam prompt.
     private let todayState: String?
-    init(forceHero: Bool = false) {
+    /// Design fixture override. Nil keeps the UI-test argument.
+    private let unavailableKey: String?
+    init(forceHero: Bool = false, scenario: String? = nil, unavailableMessageKey: String? = nil) {
         let todayIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "--design-today")
         todayState = todayIndex.flatMap { ProcessInfo.processInfo.arguments.indices.contains($0 + 1) ? ProcessInfo.processInfo.arguments[$0 + 1] : nil }
         continuity = forceHero
         hero = forceHero || ProcessInfo.processInfo.arguments.contains("--design-hero")
+        unavailableKey = unavailableMessageKey
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-home-feed-scenario")
-        _reader = State(initialValue: HomeFeedFixtureReader(scenario: index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "content", showsBanners: forceHero))
+        let chosen = scenario ?? (index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "content")
+        _reader = State(initialValue: HomeFeedFixtureReader(scenario: chosen, showsBanners: forceHero && unavailableMessageKey == nil))
     }
     var body: some View {
         NavigationStack(path: $path) {
-            HomeFeedView(reader: reader, viewerNickname: hero ? "Mia" : nil,
+            HomeFeedView(reader: reader, unavailableMessageKey: unavailableKey, viewerNickname: hero ? "Mia" : nil,
                          selectedCity: hero ? "Shanghai" : nil,
                          showsHeroBanners: hero,
                          continuationCards: hero ? [.init(id: "fx-continue", kind: .continueExploration, destination: .topic(7), title: "Old Town: ten hidden spots", subtitle: "Stop 4 of 10 · 18 min in")] : [],

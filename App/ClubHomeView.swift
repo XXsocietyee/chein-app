@@ -41,15 +41,20 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.top, CYSpacing.sm)
-            Picker("club.title", selection: $topTab) {
-                ForEach(ClubTabPresentation.TopTab.allCases, id: \.self) { Text(LocalizedStringKey($0.key)).tag($0) }
-            }.pickerStyle(.segmented)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.sm)
-                .background(CYColor.bgPage)
-                .zIndex(1)
-                .accessibilityIdentifier("clubTab.topTabs")
-                .cyHaptic(.selection, trigger: topTab)
+            CYTabs(
+                items: ClubTabPresentation.TopTab.allCases.map { tab in
+                    CYTabItem(id: tab, title: Bundle.main.localizedString(forKey: tab.key, value: tab.key, table: nil))
+                },
+                selection: $topTab,
+                variant: .segmented
+            )
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.sm)
+            .background(CYColor.bgPage)
+            .zIndex(1)
+            .accessibilityIdentifier("clubTab.topTabs")
+            .accessibilityLabel(Text("club.title"))
+            .cyHaptic(.selection, trigger: topTab)
         }
         if topTab == .feed, let community {
             // 帖文: the existing community feed (like / comment / repost / share / follow). Not rebuilt.
@@ -386,15 +391,14 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     }
 }
 
-/// Night glass plate for list chrome (events, empty, offline). Join cards keep their own face.
+/// Flat elevated plate for list chrome (events, empty, offline). No perimeter stroke. Join cards keep their own face.
 private struct ClubNightGlass: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(CYSpacing.sm)
             .background {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(CYNight.glassFill)
-                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                    .fill(CYColor.bgElevated)
             }
     }
 }

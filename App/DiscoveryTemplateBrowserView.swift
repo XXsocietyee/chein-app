@@ -47,7 +47,12 @@ struct DiscoveryTemplateBrowserView: View {
     var body: some View {
         Group {
             if !reader.isConfigured {
-                ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYStateLayout(
+                    kind: .offline,
+                    title: Text("discovery.unavailable"),
+                    detail: Text("auth.notConfigured")
+                )
+                .accessibilityIdentifier("discovery.unavailable")
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -71,6 +76,7 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
         .appNavigationTitle("discovery.templateTab.title")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if let publishDestination, templateTabScope != .merchant(canManageProjects: false) {
@@ -161,7 +167,6 @@ struct DiscoveryTemplateBrowserView: View {
         .padding(.horizontal, CYSpacing.lg)
         .frame(minHeight: CYSpacing.minTouchTarget)
         .background(palette.bgElevated, in: Capsule(style: .continuous))
-        .overlay { Capsule(style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1).allowsHitTesting(false) }
     }
 
     private func filterChip(_ title: Text, selected: Bool, action: @escaping () -> Void) -> some View {
@@ -201,7 +206,7 @@ struct DiscoveryTemplateBrowserView: View {
         }
         shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
         if let error = topics.error {
-            DiscoveryErrorView(error: error) { Task { await loadTopics() } }
+            shelfIssue(error) { Task { await loadTopics() } }
         }
         if topics.isLoading {
             if topics.value == nil { CYSkeleton() } else { DiscoveryTemplateSyncingRow(hasLoadedRows: true) }
@@ -256,7 +261,7 @@ struct DiscoveryTemplateBrowserView: View {
         if hasGameKeyword {
             if games.isLoading { CYSkeleton() }
             if let error = games.error {
-                DiscoveryErrorView(error: error) { Task { await loadGames() } }
+                shelfIssue(error) { Task { await loadGames() } }
             }
             if let rows = games.value {
                 let matched = keywordGames(rows)
@@ -275,7 +280,7 @@ struct DiscoveryTemplateBrowserView: View {
         } else {
             if home.isLoading { CYSkeleton() }
             if let error = home.error {
-                DiscoveryErrorView(error: error) { Task { await loadHome() } }
+                shelfIssue(error) { Task { await loadHome() } }
             }
             if let value = home.value {
                 if value.isEmpty { CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames") }
@@ -312,7 +317,8 @@ struct DiscoveryTemplateBrowserView: View {
                                     DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle)
                                         .foregroundStyle(palette.textPrimary)
                                     if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary).lineLimit(2)
+                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                                            .fixedSize(horizontal: false, vertical: true)
                                     }
                                     DiscoveryTopicMetadata(item: item)
                                 }
@@ -348,6 +354,38 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
+    @ViewBuilder private func shelfIssue(_ error: Error, retry: @escaping () -> Void) -> some View {
+        let reason = error as? DiscoveryTemplateUnavailable
+        let unauthorized = (error as? APIError) == .unauthorized
+        let offline = reason == .offline || (error as? URLError)?.code == .notConnectedToInternet
+        let title: LocalizedStringKey
+        let detail: LocalizedStringKey?
+        if unauthorized {
+            title = "discovery.signInRequired"
+            detail = "discovery.signInHint"
+        } else if reason == .notFound || reason == .deleted {
+            title = "discovery.templateMissing"
+            detail = "discovery.templateMissingHint"
+        } else if reason == .underReview {
+            title = "discovery.templateReview"
+            detail = "discovery.templateReviewHint"
+        } else if reason == .offline {
+            title = "discovery.templateOffline"
+            detail = "discovery.templateOfflineHint"
+        } else {
+            title = "discovery.loadFailed"
+            detail = nil
+        }
+        let canRetry = !unauthorized && (reason?.retryable ?? true)
+        CYStateLayout(
+            kind: offline ? .offline : .failure,
+            title: Text(title),
+            detail: detail.map { Text($0) },
+            primary: canRetry ? (title: "action.retry", action: retry) : nil,
+            primaryIdentifier: canRetry ? "discovery.retry" : nil
+        )
+    }
+
     private func applyTopicSearch() {
         appliedTopicSearch = DiscoveryTopicTemplateNameSearch(topicKeyword)
         topicSearchFocused = false

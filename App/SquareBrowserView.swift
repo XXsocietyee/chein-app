@@ -60,29 +60,28 @@ import SwiftUI
                     filters
                 }
                 if let upcomingReader, reader.isConfigured { SquareXcxUpcomingStrip(reader: upcomingReader, destination: upcomingDestination) }
-                if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
-                else if gatePending { CYSkeleton() }
+                if !reader.isConfigured { squareState(APIError.notConfigured, retry: nil) }
+                else if gatePending { CYLoadingStateView(rows: 3).accessibilityIdentifier("square.loading") }
                 else if communityClosed {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("square.xcx.closedTitle").font(CYTypography.cardTitle).accessibilityIdentifier("square.communityClosed")
-                        Text("square.xcx.closedDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        CYPillButton("square.retry", style: .secondary, fullWidth: false) { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
-                    }
-                    .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
+                    CYStateLayout(
+                        kind: .generic,
+                        title: Text("square.xcx.closedTitle"),
+                        detail: Text("square.xcx.closedDetail"),
+                        primary: (title: "square.retry", action: { gateScope = nil; Task { await loadGate(); await load(reset: true) } }),
+                        primaryIdentifier: "square.retry"
+                    )
+                    .accessibilityIdentifier("square.communityClosed")
                 }
-                else if query.mode.requiresAccount && !reader.isSignedIn { SquareIssueView(error: SquareReadFailure.signInRequired) }
-                else if loadedKey != key { CYSkeleton() }
+                else if query.mode.requiresAccount && !reader.isSignedIn { squareState(SquareReadFailure.signInRequired, retry: nil) }
+                else if loadedKey != key { CYLoadingStateView(rows: 3).accessibilityIdentifier("square.loading") }
                 else {
-                    if let issue { SquareIssueView(error: issue) { Task { await load(reset: !pagination.hasLoadedPage) } } }
+                    if let issue { squareState(issue, retry: { Task { await load(reset: !pagination.hasLoadedPage) } }) }
                     if pagination.items.isEmpty && !loading && issue == nil {
-                        if query.keyword != nil { Text("square.empty").accessibilityIdentifier("square.empty") }
-                        else {
+                        if query.keyword != nil {
+                            CYEmptyState(systemImage: "magnifyingglass", "square.empty", messageIdentifier: "square.empty")
+                        } else {
                             // Source empty feed: 广场还很安静 / 成为第一个发布创意路线的人吧.
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("square.xcx.emptyTitle").font(CYTypography.cardTitle).accessibilityIdentifier("square.empty")
-                                Text("square.xcx.emptyDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            }
-                            .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
+                            CYEmptyState(systemImage: "square.and.pencil", "square.xcx.emptyTitle", detail: "square.xcx.emptyDetail", messageIdentifier: "square.empty")
                         }
                     }
                     ForEach(pagination.items) { post in
@@ -107,13 +106,14 @@ import SwiftUI
                         }
                     }
                     if pagination.continuationInvalid { Text("square.invalidCursor").accessibilityIdentifier("square.invalidCursor") }
-                    if loading { CYSkeleton() }
+                    if loading { CYLoadingStateView(rows: 2).accessibilityIdentifier("square.loading") }
                     else if pagination.hasMore && issue == nil {
                         CYPillButton("square.loadMore", style: .secondary) { Task { await load(reset: false) } }.accessibilityIdentifier("square.loadMore")
                     }
                 }
             }
             .appNavigationTitle("square.xcx.navTitle")
+            .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
             .navigationDestination(item: $profileMember) { member in
                 if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions) }
@@ -181,6 +181,38 @@ import SwiftUI
             openPost: { id in guard reader.isConfigured, id > 0 else { return }; path.append(id) },
             openDrafts: { if workspace != nil { showsWorkspace = true } }, signIn: { onSignIn?() })
     }
+    @ViewBuilder private func squareState(_ error: Error, retry: (() -> Void)?) -> some View {
+        let offline = (error as? APIError) == .notConfigured
+            || (error as? URLError)?.code == .notConnectedToInternet
+            || (error as? SquareReadFailure) == .unavailable
+        let message: String? = {
+            guard let failure = error as? SquareReadFailure, case let .server(_, text) = failure else { return nil }
+            let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return trimmed.isEmpty ? nil : trimmed
+        }()
+        CYStateLayout(
+            kind: offline ? .offline : .failure,
+            title: Text(squareIssueKey(error)),
+            detail: message.map { Text(verbatim: $0) },
+            primary: retry.map { action in (title: "square.retry", action: action) },
+            primaryIdentifier: retry == nil ? nil : "square.retry"
+        )
+        .accessibilityIdentifier("square.error")
+    }
+
+    private func squareIssueKey(_ error: Error) -> LocalizedStringKey {
+        if error as? APIError == .notConfigured { return "square.notConfigured" }
+        if error as? APIError == .unauthorized { return "square.unauthorized" }
+        switch error as? SquareReadFailure {
+        case .signInRequired: return "square.signInRequired"
+        case .cityRequired: return "square.cityRequired"
+        case .topicRequired: return "square.topicRequired"
+        case .communityRequired: return "square.communityRequired"
+        case .unavailable: return "square.unavailable"
+        default: return "square.failed"
+        }
+    }
+
     @ViewBuilder private var filters: some View {
         if query.mode == .nearby {
             TextField("square.cityCode", text: $cityCode).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("square.cityCode")

@@ -51,6 +51,7 @@ enum PublishDesignFixtures {
         case "t11-coupon-unknown":
             return wrapCreator(NavigationStack { CouponManagementView(coordinator: CouponManagementCoordinator(adapter: .init(transport: nil, syntheticWritesEnabled: false), authorizer: nil, locks: nil, currentSession: { nil }), sessionKey: nil, isSourceVisible: true) })
         case "template-topics": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader()) })
+        case "template-topics-offline": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(scenario: .unconfigured)) })
         case "template-games": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(), startOnGames: true) })
         case "template-detail":
             return wrap(NavigationStack { DiscoveryTemplateDetailView(id: 7, reader: TemplateDetailParityFixtureReader(scenario: "public")) })
