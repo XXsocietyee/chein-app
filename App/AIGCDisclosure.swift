@@ -4,8 +4,7 @@ import SwiftUI
 /// - `AIGCLabel`: the mono 「AI 生成」 tag, shown where the content's `publishMode == ai_simple`
 ///   (topic story header, play title card kicker).
 /// - Filing number: `/api/config/features → aigcFilingNo` (≤ 64 chars), shown in About and under the AI draft
-///   tool; empty ⇒ nothing rendered. BINDING STUB for Cursor: the features reader does not decode
-///   `aigcFilingNo` yet; inject it with `.environment(\.aigcFilingNumber, …)` at the app root.
+///   tool; empty ⇒ nothing rendered. Injected from root composition via `.environment(\.aigcFilingNumber, …)`.
 enum AIGCDisclosure {
     /// Mirrors `isAiGenerated(publishMode)`.
     static func isAIGenerated(publishMode: String?) -> Bool {

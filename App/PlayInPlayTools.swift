@@ -4,8 +4,8 @@ import UIKit
 // MARK: - Emergency help (紧急求助)
 
 /// One-shot, foreground location for 「复制我的位置」. Taken only after the player taps that row;
-/// never starts continuous updates. BINDING STUB for Cursor: inject via
-/// `.environment(\.playEmergencyLocationProvider, …)`. Nil ⇒ the copy row is hidden.
+/// never starts continuous updates; injected via `.environment(\.playEmergencyLocationProvider, …)`.
+/// Nil ⇒ the copy row is hidden.
 @MainActor protocol PlayEmergencyLocationProviding {
     /// WGS-84 coordinate (CoreLocation), or nil when it could not be taken.
     func currentCoordinate() async -> (latitude: Double, longitude: Double)?
