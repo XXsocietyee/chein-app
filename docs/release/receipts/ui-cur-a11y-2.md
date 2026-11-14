@@ -2,6 +2,8 @@
 
 Accessibility only, on the screens handovers 59–64 added. Those screens were not on `origin/ui/main` `3ac970ec20191014b4b9a8779a3a94b961e99c9c`. This branch merged them in, then labeled the player-visible controls with the copy already on each screen.
 
+Rebased onto `origin/ui/main` `501efe8b616d0eb594ce0cdcdfdb2cbb3beacd3d` after PR 1227 and the batch-8 merges. `CurFixtures2.swift`, `CurFixtures3.swift`, `CurFixtures6.swift`, and `Cur7Fixtures.swift` all stay on the Release exclusion list. `OwnerDecisionFixtureHost.swift` stays removed. The my-project matrix row stays the `ui/wp-02` DONE evidence and keeps the `ui/h-sweep` mutation note. The search hash pin now matches the files on this tip. `docs/release/contract-failing-baseline.txt` was not changed.
+
 ## Merged
 
 | Branch | SHA |
