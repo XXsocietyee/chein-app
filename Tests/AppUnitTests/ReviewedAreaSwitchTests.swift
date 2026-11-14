@@ -1,5 +1,7 @@
 import XCTest
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 @testable import Questify
 
 final class ReviewedAreaSwitchTests: XCTestCase {
