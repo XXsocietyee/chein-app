@@ -52,6 +52,7 @@ import SwiftUI
             summaryDetent = dynamicTypeSize.isAccessibilitySize ? .large : compactDetent
             if presentsSummaryOnAppear { summaryOpen = true }
         }
+        .cyDomainScreen(.player)
     }
 
     /// Hero art with the bundle name on it: the one visible title. Stretches when pulled, parallaxes when scrolled.

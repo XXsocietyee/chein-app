@@ -297,6 +297,7 @@ import UIKit
         .onDisappear { model.disappear() }
         .onChange(of: reader.scope) { _, _ in model.appear() }
         .onChange(of: reader.authorizationGeneration) { _, _ in model.appear() }
+        .cyDomainScreen(.merchant)
     }
     private func detailCount(_ document: MerchantBusinessDocument) -> Int {
         document.sections.reduce(0) { count, section in

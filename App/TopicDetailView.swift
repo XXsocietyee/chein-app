@@ -356,6 +356,7 @@ struct TopicChapterView: View {
                 }
             }
         }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)
+        .cyDomainScreen(.player)
     }
 }
 

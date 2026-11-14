@@ -63,5 +63,6 @@ import SwiftUI
         .task(id: reads.request?.id) {
             if let ticket = reads.request { await reads.read(ticket, service: service) }
         }
+        .cyDomainScreen(.merchant)
     }
 }

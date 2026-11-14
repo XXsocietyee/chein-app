@@ -162,6 +162,7 @@ private struct MessagingConversationListView: View {
         .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: Text("messaging.searchPrompt"))
         .onChange(of: query) { _, _ in displayLimit = 30 }
         .onChange(of: selectedTab) { _, _ in displayLimit = 30 }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func conversationRow(_ conversation: MessagingConversation) -> some View {
         NavigationLink {

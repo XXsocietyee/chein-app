@@ -55,6 +55,7 @@ import SwiftUI
             else if visible { Task { await load() } }
         }
         .accessibilityIdentifier("wallet.analysis")
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func content(_ slice: WalletIncomeAnalysisSlice) -> some View {
         let currencies = WalletIncomeAnalysisPresentation.currencies(slice.rows)

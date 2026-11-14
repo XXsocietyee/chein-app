@@ -101,6 +101,7 @@ import SwiftUI
             }
         }
         .appNavigationTitle("merchant.officialRecruitment.title")
+        .cyDomainScreen(.merchant)
     }
 }
 

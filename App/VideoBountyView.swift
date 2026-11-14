@@ -171,6 +171,7 @@ struct VideoBountyView: View {
             Button("mp.vb.cancel.confirm", role: .destructive) { if let target = cancelTarget { onCancel(target.id) } }
             Button("mp.vb.cancel.keep", role: .cancel) {}
         } message: { Text("mp.vb.cancel.message") }
+        .cyDomainScreen(.player)
     }
 
     // MARK: Form (ops link only)

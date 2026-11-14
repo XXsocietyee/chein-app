@@ -162,6 +162,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         }
         .task { await model.core.load(); model.revision += 1 }
         .onDisappear { model.cancelReview() }
+        .cyDomainScreen(.merchant)
     }
     private func count(_ key: LocalizedStringKey, _ value: Int?) -> some View { LabeledContent(key, value: CouponInfoCount.display(value)) }
 }

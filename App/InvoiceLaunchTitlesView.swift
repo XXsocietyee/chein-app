@@ -63,5 +63,6 @@ import SwiftUI
             } label: { invoiceText("delete") }
             Button(role: .cancel) { deleteID = nil } label: { invoiceText("keep") }
         }
+        .cyDomainScreen(.player)
     }
 }

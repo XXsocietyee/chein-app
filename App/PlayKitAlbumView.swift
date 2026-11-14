@@ -45,6 +45,7 @@ import SwiftUI
         .frame(maxWidth: .infinity)
         .background(CYNight.glow(radius: 180).opacity(0.18).accessibilityHidden(true))
         .accessibilityIdentifier("playkit.album.view")
+        .cyDomainScreen(.game)
     }
 
     @ViewBuilder private var ring: some View {

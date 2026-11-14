@@ -142,6 +142,7 @@ import QuestifyCore
             CreatorTicketComposeSheet(model: model) { ticket in composing = false; openedID = ticket.ticketId; tab = .tickets }
         }
         .navigationDestination(item: $openedID) { id in CreatorTicketDetailView(model: model, ticketID: id) }
+        .cyDomainScreen(.topicEditor)
     }
 
     @ViewBuilder private var feedbackSections: some View {
@@ -331,6 +332,7 @@ struct CreatorStudioWriteIssueText: View {
                 }
             }
         }
+        .cyDomainScreen(.topicEditor)
     }
 
     private func load() async {

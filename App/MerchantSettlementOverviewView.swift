@@ -107,6 +107,7 @@ import SwiftUI
         }
         .onChange(of: reader.scope) { _, _ in model.ownerChanged() }
         .onChange(of: reader.authorizationGeneration) { _, _ in model.ownerChanged() }
+        .cyDomainScreen(.merchant)
     }
 
     @ViewBuilder private func sectionView(_ section: MerchantSettlementOverviewSection) -> some View {

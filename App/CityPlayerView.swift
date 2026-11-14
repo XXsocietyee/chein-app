@@ -190,6 +190,7 @@ struct CityPlayerView: View {
         }
         .onChange(of: reader.pointMapContext) { _, _ in selection = nil }
         .onDisappear { visible = false; rulesSheet?.flow.cancel(); selection = nil; reader.cancel() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func pointContent(_ context: CityPointMapContext) -> some View {
         let selected = selection?.point(in: reader.pointMapContext)

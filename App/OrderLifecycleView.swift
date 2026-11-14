@@ -343,6 +343,7 @@ struct OrderLifecycleField: View {
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
+        .cyDomainScreen(.player)
     }
 }
 

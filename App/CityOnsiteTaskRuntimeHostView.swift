@@ -20,6 +20,7 @@ import SwiftUI
         .onChange(of: session.currentRuntimeDependencyContext) { _, _ in owner.synchronize() }
         .onChange(of: revision) { _, _ in owner.synchronize() }
         // Child handles foreground/disappearance. Retiring here would incorrectly destroy original-result navigation.
+        .cyDomainScreen(.game)
     }
 
     /// Approval is missing. One hero title, the existing disabled copy, no second bar title.

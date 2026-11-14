@@ -108,6 +108,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { destination = nil; opening = nil; selectedUnavailable = false; model.retire() }
         }
+        .cyDomainScreen(.player)
     }
     private func refresh() async {
         guard visible, scenePhase == .active, let source, let scope else { return }

@@ -108,6 +108,7 @@ import SwiftUI
         // Pushing the editor must not delete the NavigationLink that owns it.
         // loadedKey == key still hides every retained row after a target/session change.
         .onDisappear { generation += 1; loading = false }
+        .cyDomainScreen(.merchant)
     }
     private func load(page: Int) async {
         guard reader.isConfigured else { return }

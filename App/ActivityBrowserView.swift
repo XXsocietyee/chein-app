@@ -82,6 +82,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
         }
         .onReceive(reader.activityPresentationChanges) { readerChange &+= 1 }
         .onChange(of: ObjectIdentifier(reader)) { _, _ in path = [] }
+        .cyDomainScreen(.player)
     }
 }
 

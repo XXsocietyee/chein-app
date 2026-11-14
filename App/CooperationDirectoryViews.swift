@@ -66,6 +66,7 @@ import SwiftUI
                     .accessibilityHidden(true)
             }
         }
+        .cyDomainScreen(.merchant)
     }
 
     private func poolSeed(_ row: CooperationPoolItem) -> String {

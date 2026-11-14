@@ -76,6 +76,7 @@ struct RoamFinishReport: Equatable {
             if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } }
         }
         .accessibilityIdentifier("roam.finishReport")
+        .cyDomainScreen(.player)
     }
 
     private var head: some View {

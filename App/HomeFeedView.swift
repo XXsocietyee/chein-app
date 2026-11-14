@@ -186,6 +186,7 @@ import UIKit
         .toolbar(hasHeroHeader ? .hidden : .automatic, for: .navigationBar)
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var bannerSection: some View {
         let permit = model.permit(reader)

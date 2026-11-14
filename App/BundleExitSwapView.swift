@@ -105,6 +105,7 @@ struct BundleExitSwapView: View {
             Text(verbatim: "改选" + (confirming?.merchantName ?? "") + "，有效期不变。")
         }
         .task { await start() }
+        .cyDomainScreen(.player)
     }
 
     private func start() async {

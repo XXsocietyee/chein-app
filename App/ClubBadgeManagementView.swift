@@ -58,6 +58,7 @@ import SwiftUI
                     Text(verbatim: (review.member.trimmedNickname ?? String(review.member.memberId)) + " · " + (review.badge.badgeName ?? review.badge.badgeCode))
                 }
             }
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private func badgeContent(_ flow: ClubBadgeManagementFlow) -> some View {

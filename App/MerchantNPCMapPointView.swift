@@ -141,6 +141,7 @@ import SwiftUI
             else { _ = model.resume() }
         }
         .onDisappear { model.disappear() }
+        .cyDomainScreen(.merchant)
     }
 }
 
@@ -265,6 +266,7 @@ import SwiftUI
                     ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }
                 }
         }.privacySensitive().onDisappear { model.cancel() }
+        .cyDomainScreen(.merchant)
     }
 }
 

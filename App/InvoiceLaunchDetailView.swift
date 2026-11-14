@@ -61,5 +61,6 @@ import SwiftUI
             } label: { invoiceText("withdraw") }
             Button(role: .cancel) {} label: { invoiceText("keep") }
         }
+        .cyDomainScreen(.player)
     }
 }

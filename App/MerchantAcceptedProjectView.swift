@@ -114,6 +114,7 @@ import SwiftUI
         }
         .onChange(of: session.sessionRevision) { _, _ in gate.retire() }
         .onDisappear { gate.retire() }
+        .cyDomainScreen(.merchant)
     }
 }
 private struct MerchantAcceptedProjectDestinationKey: EnvironmentKey {

@@ -127,6 +127,7 @@ import SwiftUI
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberReportProgressIdentity) { _, _ in retire() }
         .onChange(of: selection.reader.isCurrent) { _, valid in if !valid { retire() } }
+        .cyDomainScreen(.player)
     }
     private func timelineRow(_ event: MemberReportProgressEvent) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {

@@ -1362,6 +1362,7 @@ struct PublishTabFloatingSheetView: View {
             }
         }
         .cyPlayerSheetGlass()
+        .cyDomainScreen(.topicEditor)
     }
 }
 

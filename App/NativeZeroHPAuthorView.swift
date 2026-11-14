@@ -210,6 +210,7 @@ import SwiftUI
         .onDisappear { editor.setSceneActive(false) }
         .onChange(of: scenePhase) { _, value in editor.setSceneActive(value == .active) }
         .onChange(of: editor.current) { _, valid in if !valid { editor.retireIfInvalid() } }
+        .cyDomainScreen(.topicEditor)
     }
     private func policySection(_ staged: NativeZeroHPAuthorDraft, inputs: NativeRuntimeStructureAuthorInputs) -> some View {
         let token = editor.editToken

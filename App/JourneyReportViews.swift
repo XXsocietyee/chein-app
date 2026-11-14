@@ -236,6 +236,7 @@ struct JourneyRankBoardView: View {
             }
             .presentationDetents([.medium])
         }
+        .cyDomainScreen(.player)
     }
 
     /// Laurel hero: wreath springs from 0.6 to 1, the number rolls up, then "top N%" rises.
@@ -474,6 +475,7 @@ struct JourneyReportView: View {
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
         }
+        .cyDomainScreen(.player)
     }
 
     private func ready(_ report: JourneyReport) -> some View {
@@ -749,6 +751,7 @@ struct JourneySettleView: View {
                 }
             }
         }
+        .cyDomainScreen(.player)
     }
 
     private func flow(_ report: JourneyReport) -> some View {

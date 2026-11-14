@@ -35,6 +35,7 @@ struct SquareDeletionConfirmView: View {
                 CYPillButton("action.cancel", style: .secondary) { coordinator.cancel() }.disabled(coordinator.isBusy)
             }
         }.accessibilityIdentifier("square.delete.sheet")
+        .cyDomainScreen(.player)
     }
     /// Source excerpt: first 12 characters plus "…", or nil for an image-only post.
     static func excerpt(_ contents: String?) -> String? {

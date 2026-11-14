@@ -158,6 +158,7 @@ import SwiftUI
             .onDisappear { generation += 1; settleLoading() }
             .accessibilityIdentifier("square.browser")
         }
+        .cyDomainScreen(.player)
     }
     private func governanceContext(postID: Int?) -> SquareGovernanceContext? {
         guard let governance, let governanceAccess else { return nil }

@@ -224,6 +224,7 @@ struct RegistrationSheetView: View {
         }
         .cyPlayerSheetGlass()
         .accessibilityIdentifier("registration.form.sheet")
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var recoveredOrderSection: some View {
         if let destination = flow.recoveredOrderDestination, let orderReader {

@@ -255,6 +255,7 @@ struct RoamPrivatePageScope: Hashable {
                     .accessibilityIdentifier("roam.capsule.screen")
             }
         }.appNavigationTitle("roam.capsule.title")
+        .cyDomainScreen(.player)
     }
 }
 
@@ -554,6 +555,7 @@ struct RoamPrivatePageScope: Hashable {
                     .accessibilityIdentifier("roam.goals.screen")
             }
         }.appNavigationTitle("roam.goals.title")
+        .cyDomainScreen(.player)
     }
 }
 

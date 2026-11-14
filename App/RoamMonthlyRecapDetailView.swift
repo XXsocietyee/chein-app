@@ -51,6 +51,7 @@ import SwiftUI
             .privacySensitive()
             .accessibilityIdentifier("roam.tools.recap.detail")
         }
+        .cyDomainScreen(.player)
     }
     /// Resolve both the lookup language and formatting from the current app locale.
     private func localized(_ key: String) -> String {

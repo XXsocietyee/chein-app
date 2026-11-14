@@ -165,6 +165,7 @@ extension EnvironmentValues {
             generation += 1; actionTask?.cancel(); descriptionFocused = false
         }
         .accessibilityIdentifier("squareReport.editor")
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func reasonLabel(_ reason: SquareReportReason) -> some View {
         // The policy's exact source label remains visible; no guessed translated

@@ -91,6 +91,7 @@ import SwiftUI
                 CityMerchantValueBenefitView(model: model, fact: fact)
             }
             .onDisappear { stop() }.onChange(of: phase) { _, value in if value != .active { stop() } }
+        .cyDomainScreen(.merchant)
     }
     @ViewBuilder private func metric(_ title: String, _ value: CityMerchantValueMetric?) -> some View {
         LabeledContent {
@@ -146,5 +147,6 @@ import SwiftUI
             .task { guard phase == .active else { return }; await model.readBenefit(fact) }
             .onDisappear { retry?.cancel(); model.closeBenefit() }
             .onChange(of: phase) { _, value in if value != .active { retry?.cancel(); model.closeBenefit() } }
+        .cyDomainScreen(.merchant)
     }
 }

@@ -25,6 +25,7 @@ import SwiftUI
             }
         }.cyGroupedSurface().navigationTitle("roam.experience.voucher")
             .accessibilityIdentifier("roam.experience.voucher")
+        .cyDomainScreen(.player)
     }
 }
 struct RoamHangoutUnavailableView: View {
@@ -32,5 +33,6 @@ struct RoamHangoutUnavailableView: View {
         CYEmptyState(systemImage: "person.3", "roam.experience.hangoutUnavailable", detail: "roam.experience.hangoutHint")
             .navigationTitle("roam.experience.hangout")
             .accessibilityIdentifier("roam.experience.hangout.unavailable")
+        .cyDomainScreen(.player)
     }
 }

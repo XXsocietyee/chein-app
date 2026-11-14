@@ -476,6 +476,7 @@ private struct RoamStampImage: View {
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.navigationTitle("roam.experience.cityStamp")
+        .cyDomainScreen(.player)
     }
 }
 struct RoamCityStampDraftView: View {
@@ -514,6 +515,7 @@ struct RoamCityStampDraftView: View {
         }.navigationTitle("roam.experience.cityStamp")
             .onChange(of: draft.caption) { _, _ in review = false }
             .accessibilityIdentifier("roam.experience.stamp.draft")
+        .cyDomainScreen(.player)
     }
 }
 

@@ -123,6 +123,7 @@ func playerFactOrDash(_ raw: String?) -> String {
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberScoreReadIdentity) { _, _ in selection = nil; retire(); start() }
         .refreshable { guard let (original, intent) = rendered else { return }; await original.loadList(intent: intent) }
+        .cyDomainScreen(.player)
     }
     private func start() {
         guard visible, scene == .active else { return }; retire()

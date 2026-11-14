@@ -62,6 +62,7 @@ import SwiftUI
             }
             .onAppear { readOwner.activate() }
             .onDisappear { readOwner.deactivate(); gate.invalidate(); loading = false }
+        .cyDomainScreen(.player)
     }
     private func startLoad() {
         readOwner.start { await performLoad() }
@@ -119,6 +120,7 @@ import SwiftUI
         }.cyHeroScreen()
             .task(id: reader.scope) { await load() }
             .onDisappear { gate.invalidate(); loading = false }
+        .cyDomainScreen(.merchant)
     }
     private func load() async {
         let ticket = gate.begin(scope: reader.scope)

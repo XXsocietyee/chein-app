@@ -1202,6 +1202,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             guard let entry, entry.current()?.read == true, !model.awardsLoaded else { return }
             await model.loadAwards(entry: entry)
         }
+        .cyDomainScreen(.player)
     }
 }
 

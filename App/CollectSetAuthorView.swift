@@ -154,6 +154,7 @@ import SwiftUI
         .onChange(of: isCurrent) { _, current in if !current { retire() } }
         .onChange(of: phase) { _, phase in if phase != .active { retire() } }
         .onDisappear { retire() }
+        .cyDomainScreen(.topicEditor)
     }
     private func read(_ token: UUID) {
         guard editToken == token, capture == nil else { return }

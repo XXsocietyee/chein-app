@@ -67,6 +67,7 @@ import SwiftUI
                 }
             }
         }
+        .cyDomainScreen(.player)
     }
 }
 

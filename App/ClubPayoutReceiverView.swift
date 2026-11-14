@@ -46,6 +46,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             Button(role: .destructive) { Task { await unbind() } } label: { Text("payoutReceiver.unbind", tableName: "PayoutReceiver") }
                 .accessibilityIdentifier("payoutReceiver.unbind.confirm")
         } message: { Text("payoutReceiver.unbind.detail", tableName: "PayoutReceiver") }
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private var content: some View {
@@ -187,6 +188,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .navigationTitle(Text("clubSettlement.title", tableName: "PayoutReceiver"))
         .refreshable { await load() }
         .task { await load() }
+        .cyDomainScreen(.player)
     }
     private func load() async {
         guard PayoutReceiverBridge.payoutOpen(session) else { return }
@@ -228,6 +230,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .navigationTitle(Text("clubSettlement.title", tableName: "PayoutReceiver"))
         .refreshable { await load() }
         .task { await load() }
+        .cyDomainScreen(.player)
     }
 
     @ViewBuilder private func ready(_ summary: ClubSettlementSummaryView) -> some View {

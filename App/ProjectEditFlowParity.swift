@@ -196,6 +196,7 @@ extension EnvironmentValues {
             Button("chapterStory.keepEditing", role: .cancel) {}
         }
         .task { await load() }
+        .cyDomainScreen(.topicEditor)
     }
     private func load() async {
         phase = .loading

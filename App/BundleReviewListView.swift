@@ -33,5 +33,6 @@ import SwiftUI
             }
         }
         .task { await model.load() }
+        .cyDomainScreen(.player)
     }
 }

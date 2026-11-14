@@ -122,6 +122,7 @@ extension EnvironmentValues {
             .onChange(of: purposeAccepted) { _, accepted in if !accepted { cancel() } }
             .onChange(of: scenePhase) { _, phase in if phase == .background { cancel() } }
             .onChange(of: model.available) { _, available in if !available { cancel() } }
+        .cyDomainScreen(.merchant)
     }
     private func cancel() {
         operation?.cancel(); operation = nil; publicHomeSelection = nil

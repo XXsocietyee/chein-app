@@ -318,6 +318,7 @@ import SwiftUI
         }.cyHeroScreen()
         .onChange(of: reason) { _, _ in clear() }.onDisappear { clear() }
         .onChange(of: phase) { _, value in if value != .active { clear() } }
+        .cyDomainScreen(.merchant)
     }
     private func clear() { review = nil; coordinator.invalidate() }
 }
@@ -341,6 +342,7 @@ import SwiftUI
             Text(message)
         }.onDisappear { coordinator.invalidate(); review = nil }
         .onChange(of: phase) { _, value in if value != .active { coordinator.invalidate(); review = nil } }
+        .cyDomainScreen(.merchant)
     }
 }
 @MainActor struct PublisherXPBudgetSection: View {

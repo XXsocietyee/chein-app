@@ -296,6 +296,7 @@ struct SquareMineListView: View {
                                         : PlayerCapabilityCopy.text("我的收藏", "Bookmarks", locale))
         .refreshable { await load(reset: true) }
         .task { await load(reset: true) }
+        .cyDomainScreen(.player)
     }
 
     private func load(reset: Bool) async {

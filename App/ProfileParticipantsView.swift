@@ -169,6 +169,7 @@ struct ProfileParticipantsView: View {
                 NavigationStack { ParticipantListDeleteView(id: target.id, reader: reader, coordinator: coordinator) { deletedNotice = UUID() } }
             }
         }
+        .cyDomainScreen(.player)
     }
 }
 
@@ -362,6 +363,7 @@ struct ParticipantListDeleteView: View {
         }
         .task(id: model.reader.identity) { await model.load() }
         .onDisappear { model.disappear() }
+        .cyDomainScreen(.player)
     }
 }
 
@@ -404,5 +406,6 @@ struct ProfileParticipantDetailView: View {
         .appNavigationTitle("profile.participants.detail")
         .navigationBarTitleDisplayMode(.inline)
         }
+        .cyDomainScreen(.player)
     }
 }

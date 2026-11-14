@@ -92,6 +92,7 @@ struct IMSafetyCopy {
             if case .acknowledged(let action) = model.state { onSettled(action) }
             model.owner.cancelReview()
         }
+        .cyDomainScreen(.player)
     }
     private var isInFlight: Bool {
         switch model.state { case .submitting, .verifying, .resolving: return true; default: return false }

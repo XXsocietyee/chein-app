@@ -47,6 +47,7 @@ struct ClubOperatingRulesView: View {
         }
         .cyDomainPageBackground()
         .accessibilityIdentifier("club.context.rules")
+        .cyDomainScreen(.player)
     }
 }
 
@@ -135,6 +136,7 @@ struct ClubOperatingRulesView: View {
         .onChange(of: owner?.service.session) { _, _ in review = nil; captured = nil; serverDate = nil; revision += 1 }
         .cyHaptic(.success, trigger: state) { _, new in new == .acknowledged }
         .cyHaptic(.warning, trigger: state) { _, new in new == .rejected }
+        .cyDomainScreen(.player)
     }
     private func save() async {
         guard let owner, let review, let captured, owner.service.session == captured else { return }

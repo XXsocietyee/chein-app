@@ -78,6 +78,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in if phase != .active { retire() } }
         .onChange(of: current()) { _, valid in if !valid { retire() } }
         .onDisappear { visible = false; retire() }
+        .cyDomainScreen(.merchant)
     }
     private func retire() {
         activeFlow?.invalidate(); activeFlow = nil; records = []; issue = nil; generation = UUID()

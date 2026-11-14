@@ -29,6 +29,7 @@ import CryptoKit
         .onDisappear { owner.invalidate(); owner.onChange = nil; owner.expanded.onChange = nil; picking = false }
         .onChange(of: available) { _, value in if !value { picking = false; owner.invalidate() } }
         .onChange(of: scenePhase) { _, value in if value != .active { picking = false; owner.invalidate() } }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private var fileSections: some View {
             Section { IMScreenTitle(title: "d7.imFile.title") }

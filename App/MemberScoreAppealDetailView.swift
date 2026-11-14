@@ -94,6 +94,7 @@ import SwiftUI
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberScoreReadIdentity) { _, _ in retire() }
         .onChange(of: selection.client.isCurrent) { _, valid in if !valid { retire() } }
+        .cyDomainScreen(.player)
     }
     private func sessionLine(_ row: MemberScoreAppealRow) -> String {
         let session = row.sessionID.map { "#\($0)" } ?? "—"

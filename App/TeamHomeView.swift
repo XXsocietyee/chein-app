@@ -40,6 +40,7 @@ import SwiftUI
             .toolbar { if let nearbyDestination { NavigationLink("nearby.title") { nearbyDestination(model.coordinator.teams) } } }
             .task { await reload() }.refreshable { await reload() }
             .onDisappear { model.leave() }
+        .cyDomainScreen(.player)
     }
     private func reload(permit: TeamScreenModel.RunPermit? = nil) async {
         await model.run(permit: permit) { await model.coordinator.loadTeams() }
@@ -218,6 +219,7 @@ import SwiftUI
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
             .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
             .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); Task { await reload(permit: permit) } }) { sheet in if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }
+        .cyDomainScreen(.player)
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {

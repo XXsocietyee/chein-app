@@ -61,6 +61,7 @@ struct DiscoveryHomeView: View {
             .cyHeroScreen()
             .task { if reader.isConfigured { await reload() } }
         }
+        .cyDomainScreen(.player)
     }
 
     private var entrySection: some View {

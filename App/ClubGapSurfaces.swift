@@ -14,6 +14,7 @@ struct ClubGapBoardView: View {
                               merchantReply: replies[ClubGapPaths.merchantCooperationWrite],
                               send: submit)
         }
+        .cyDomainScreen(.player)
     }
 
     private var payoutOpen: Bool { ReviewedAreaSwitch.payout(apiHost: apiHost) }
