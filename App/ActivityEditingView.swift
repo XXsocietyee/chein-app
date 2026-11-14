@@ -287,7 +287,7 @@ import SwiftUI
         case .success: return "checkmark.circle"
         case .danger: return "exclamationmark.triangle"
         case .warning: return "questionmark.circle"
-        case .neutral, .info: return "circle"
+        case .neutral, .info, .rare: return "circle"
         }
     }
 }
