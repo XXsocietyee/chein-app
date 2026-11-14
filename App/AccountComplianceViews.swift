@@ -112,7 +112,6 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     let legalReader: any SettingsLegalReading
     let showsCloseButton: Bool
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.locale) private var locale
     @State private var agreement = false
     @State private var document: SettingsLegalDocument?
     @State private var phone = ""

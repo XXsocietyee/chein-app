@@ -342,13 +342,9 @@ private struct CoopRelationContextLabel: View {
                 return AnyView(CoopRelationClubProfileHost(id: id, base: session, isCurrent: { current() && selectionCurrent() }))
             }
         }, image: home.image, identityChanges: session.objectWillChange.eraseToAnyPublisher())
+        // Audit 2026-11-14: the general club community feed is not this relation's posts (it showed the player
+        // feed on the merchant relation page). Without a relation-scoped source the Posts segment stays hidden.
         CoopRelationDiscoveryView(reader: reader, profiles: profiles, squareReader: session.squareReader)
-            .environment(\.cooperationRelationPostFeed, CoopRelationPostFeedFactory.make(
-                community: session.clubCommunityContext,
-                identity: {
-                    if session.account == nil { return nil }
-                    return session.clubIdentity
-                }))
     }
 }
 

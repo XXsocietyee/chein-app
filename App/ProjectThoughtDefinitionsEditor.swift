@@ -180,7 +180,7 @@ import SwiftUI
             .scrollDismissesKeyboard(.interactively)
         }
         .cyModalConfirm(
-            isPresented: controller.removalBinding(removal, original: original),
+            isPresented: controller.removalBinding(removal, original: original).wrappedValue,
             title: String(localized: LocalizedStringResource("projectThoughts.removeTitle", table: "ProjectThoughtDefinitions", locale: locale)),
             message: String(localized: LocalizedStringResource("projectThoughts.removeImpact", table: "ProjectThoughtDefinitions", locale: locale))
                 + "\n"

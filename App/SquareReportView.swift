@@ -154,11 +154,11 @@ extension EnvironmentValues {
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                                 .background(
                                     RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                                        .fill(reasonCode == reason.id ? CYColor.bgTint : CYColor.bgSurface)
+                                        .fill(reasonCode == reason.id ? CYColor.bgSurfaceSubtle : CYColor.bgSurface)
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                                        .stroke(reasonCode == reason.id ? CYColor.brand : CYColor.border, lineWidth: reasonCode == reason.id ? 1.5 : 1)
+                                        .stroke(reasonCode == reason.id ? CYColor.brand : CYColor.borderSubtle, lineWidth: reasonCode == reason.id ? 1.5 : 1)
                                 )
                             }
                             .buttonStyle(.plain)

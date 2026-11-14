@@ -8,10 +8,10 @@ import SwiftUI
     var body: some View {
         if operation == .updateSeries {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").font(CYTypography.footnote)
+                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").font(CYTypography.meta)
                     .accessibilityIdentifier("clubOpsEvent.edit.locked")
-                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
-                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
+                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
         } else if operation == .createSeries {
             VStack(alignment: .leading, spacing: 6) {

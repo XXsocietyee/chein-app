@@ -171,7 +171,7 @@ import SwiftUI
             .onDisappear { controller.close(original) }
         }
         .cyModalConfirm(
-            isPresented: removalBinding(intent),
+            isPresented: removalBinding(intent).wrappedValue,
             title: String(localized: LocalizedStringResource("projectInitialAttributes.removeTitle", table: "ProjectInitialAttributes", locale: locale)),
             message: (intent.map { "\($0.label) (\($0.key))\n" } ?? "")
                 + String(localized: LocalizedStringResource("projectInitialAttributes.removeHint", table: "ProjectInitialAttributes", locale: locale)),

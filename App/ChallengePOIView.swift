@@ -101,7 +101,7 @@ import QuestifyCore
                         } label: {
                             Label("playx.poi.navigate", systemImage: "arrow.triangle.turn.up.right.diamond")
                                 .font(CYTypography.caption.weight(.semibold))
-                                .foregroundStyle(palette.accent)
+                                .foregroundStyle(palette.brand)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("playx.poi.navigate")

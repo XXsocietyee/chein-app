@@ -638,11 +638,11 @@ import SwiftUI
         .onDisappear { if let coverPresentation { ownedCover.close(coverPresentation) }; reviewRequest.retire(); approvedRelease.retire(); chapterRemoval.retire(); starter.retire(); pending.retire(); model.leave() }
         .modifier(ProjectEditPreparedReviewPresentation(model: model))
         .cyModalConfirm(
-            isPresented: $discardConfirmation,
+            isPresented: discardConfirmation,
             title: appLocalized("projectEdit.discardTitle", locale: locale),
             message: appLocalized("projectEdit.discardHint", locale: locale),
             cancelTitle: appLocalized("action.cancel", locale: locale),
-            confirmTitle: appLocalized("projectEdit.discardLocal", locale),
+            confirmTitle: appLocalized("projectEdit.discardLocal", locale: locale),
             isDestructive: true,
             onCancel: { discardConfirmation = false },
             onConfirm: { discardConfirmation = false; model.discard() }

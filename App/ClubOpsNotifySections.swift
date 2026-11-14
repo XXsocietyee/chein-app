@@ -42,7 +42,7 @@ struct ClubOpsNotifyContentFields: View {
             Spacer()
             Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count)/\(limit)")
                 .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-        }.font(CYTypography.subhead)
+        }.font(CYTypography.bodyCompact)
     }
 }
 

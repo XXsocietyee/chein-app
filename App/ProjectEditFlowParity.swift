@@ -192,7 +192,7 @@ extension EnvironmentValues {
         }
         .interactiveDismissDisabled(dirty)
         .cyModalConfirm(
-            isPresented: $confirmLeave,
+            isPresented: confirmLeave,
             title: appLocalized("chapterStory.discardQuestion", locale: locale),
             cancelTitle: appLocalized("chapterStory.keepEditing", locale: locale),
             confirmTitle: appLocalized("chapterStory.discard", locale: locale),
