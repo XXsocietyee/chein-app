@@ -48,7 +48,8 @@ import SwiftUI
                     AuditedContentEntry(target: target, session: session, goHome: goHome)
                 case .publicCatalog(let link):
                     PublicCatalogViews(link: link, host: PublicCatalogHostWiring.host,
-                                       scope: { PublicCatalogHostWiring.scope }, token: { PublicCatalogHostWiring.token })
+                                       scope: { PublicCatalogHostWiring.scope }, token: { PublicCatalogHostWiring.token },
+                                       session: session)
                         .id(session.sessionRevision)
                 case .miniProgramPage(let link):
                     MPParityPageEntry(link: link, session: session, goHome: goHome)

@@ -87,6 +87,9 @@ extension ReviewedProductionFormMutationRoute {
         if relative.hasPrefix("api/external-game/") {
             return admitsExternalGame(method: method, relative: relative, request: request, grant: grant)
         }
+        if let surface = hostTipSurfaceDecision(method: method, relative: relative, request: request, paths: grant.play.paths) {
+            return surface
+        }
         if method == "GET" {
             let emptyBody = request.httpBody?.isEmpty ?? true
             // Admission receipts use the client's own `adm-<uuid>` request ids (contract §0.3 management form).
@@ -228,6 +231,24 @@ extension ReviewedProductionFormMutationRoute {
         return ReviewedProductionGateLeases.rewardPledgePaths.contains { root in
             root != "api/coupon" && relative.hasPrefix(root + "/")
         }
+    }
+
+    /// Nil when the path is not a WP-08 surface. False refuses a payment field or a missing grant.
+    static func hostTipSurfaceDecision(method: String, relative: String, request: URLRequest, paths: Set<String>) -> Bool? {
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        guard ChinaReviewedRouteCapability.hostTipSurfaceGrant.contains(key) else { return nil }
+        guard paths.contains(where: { ChinaReviewedRouteCapability.normalized("/" + $0) == key }) else { return false }
+        if method == "GET" { return request.httpBody == nil || request.httpBody?.isEmpty == true }
+        guard method == "POST" else { return false }
+        if key == "/api/host-tip/intent/{}/cancel" { return true }
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let body = request.httpBody, !body.isEmpty,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        let money = ["payChannel", "payAmount", "price", "payableAmount", "hostSharePercent"]
+        if object.keys.contains(where: { money.contains($0) }) { return false }
+        if key != "/api/host-tip/prepare", object["amount"] != nil { return false }
+        if (object["status"] as? String) == "APPROVED" { return false }
+        return true
     }
 
     static func covers(_ relative: String, _ approval: OperationEndpointApproval) -> Bool {
@@ -506,6 +527,9 @@ enum ReviewedPlayerReadRoute {
     static let teamCommandPaths: Set<String> = ["api/team/command", "api/team/command/query", "api/team/command/cancel"]
     /// `POST api/team/create` for an owned activity registration. Not a command receipt.
     static let teamCreatePaths: Set<String> = ["api/team/create"]
+    /// HANDOVER 37 WP-08. Same paths as `ChinaReviewedRouteCapability.hostTipSurfaceGrant`.
+    /// Host-tip prepare may name an amount. It does not name a pay channel, and it is not a payout.
+    static let wp08Paths: Set<String> = Set(ChinaReviewedRouteCapability.hostTipSurfaceGrant.map { String($0.dropFirst()) })
     static let playPaths: Set<String> = Set<String>([
         "api/play/arrive", "api/play/answer", "api/play/checkin", "api/play/photo", "api/play/sensor-result",
         "api/play/puzzle/reveal", "api/play/action-context", "api/play/action-receipt", "api/play/help",
@@ -572,7 +596,7 @@ enum ReviewedPlayerReadRoute {
         "api/coop/invite/requests",
         "api/coop/supply-stations",
         "api/creativesquare/delete"
-    ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths)
+    ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.
     static func isPlayGrantPath(_ relative: String) -> Bool {

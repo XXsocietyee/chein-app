@@ -174,9 +174,9 @@ final class VideoBountySourceTests: XCTestCase {
         }
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/video-bounty/submission/44/appeal"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/video-bounty/submission/44/cancel"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/video-bounty/submission/44/attribution"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/video-bounty/campaign/9/attribution"))
         for path in [
-            "/api/video-bounty/submission/44/attribution",
-            "/api/video-bounty/campaign/9/attribution",
             "/api/video-bounty/payout",
             "/api/video-bounty/withdraw",
             "/api/video-bounty/redeem",
@@ -190,8 +190,9 @@ final class VideoBountySourceTests: XCTestCase {
         // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution (owner-approved 2026-11-13).
         XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
         XCTAssertFalse(VideoBountySource.paths.contains { path in
-            ["payout", "withdraw", "redeem", "wallet", "attribution"].contains { path.contains($0) }
+            ["payout", "withdraw", "redeem", "wallet"].contains { path.contains($0) }
         })
+        XCTAssertTrue(VideoBountySource.paths.contains("/api/video-bounty/submission/{}/attribution"))
     }
 
     func testChinaHostSendsTheCampaignList() async throws {
