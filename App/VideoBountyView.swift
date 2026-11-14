@@ -328,15 +328,17 @@ private struct VideoBountyAttributionSheet: View {
 
     private func attributionBody(_ fact: VideoBountyAttributionFact) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            switch fact.status {
-            case "UNBOUND":
-                Text("mp.vb.attribution.unbound")
-            case "OWNER_NOT_SET":
-                Text("mp.vb.attribution.ownerMissing")
-            case "UNKNOWN":
-                Text(verbatim: "UNKNOWN")
-            default:
-                Text(verbatim: fact.status)
+            Group {
+                switch fact.status {
+                case "UNBOUND":
+                    Text("mp.vb.attribution.unbound")
+                case "OWNER_NOT_SET":
+                    Text("mp.vb.attribution.ownerMissing")
+                case "UNKNOWN":
+                    Text(verbatim: "UNKNOWN")
+                default:
+                    Text(verbatim: fact.status)
+                }
             }
             .font(CYTypography.bodyMedium)
             .accessibilityIdentifier("videoBounty.attribution.status")
