@@ -309,4 +309,106 @@ final class OPTTriageClosureTests: XCTestCase {
         let hits = try sourceHits("api/club/membership|会费|duesPlan|membershipFee|ClubDues", excluding: .unifiedOPTAndLegacy52)
         XCTAssertEqual(hits.map(\.location), [])
     }
+
+    func testCouponStockCitesOWNOPT014() throws {
+        assertCites("OWN-OPT-014")
+        let soldOut = try JSONDecoder().decode(CouponDefinition.self, from: Data(#"{"id":1,"name":"Gift","status":1,"publishCount":2,"receiveCount":2,"useCount":0,"perLimit":0}"#.utf8))
+        let form = CouponInfoSettingsForm(soldOut)
+        XCTAssertEqual(soldOut.remaining, 0)
+        XCTAssertEqual(form.remainingText, "0")
+        XCTAssertEqual(form.receivedText, "2")
+        XCTAssertEqual(form.perLimitText, "0")
+        XCTAssertEqual(CouponInfoCount.display(0), "0")
+        XCTAssertEqual(CouponInfoCount.display(nil), "—")
+        XCTAssertEqual(MerchantOpsWp03Call.couponSummary().path, MerchantOpsWp03Catalog.couponSummary)
+        let coupon = try source("App/CouponManagementView.swift")
+        XCTAssertTrue(coupon.contains("struct CouponManagementView"))
+        let info = try source("Core/CouponManagementDomain.swift")
+        XCTAssertTrue(info.contains("struct CouponInfoSettingsPage"))
+    }
+
+    func testAuditAppealCitesOWNOPT022() throws {
+        assertCites("OWN-OPT-022")
+        let routes = try source("Core/PlayCreatorTailRoutes.swift")
+        XCTAssertTrue(routes.contains("func submitAuditAppeal"))
+        XCTAssertTrue(routes.contains("\"api/audit/appeal\""))
+        XCTAssertTrue(routes.contains("func guardAppealReceipt"))
+        XCTAssertTrue(routes.contains("api/audit/guard/appeal"))
+        let flow = try source("Core/PlayCreatorTailFlows.swift")
+        XCTAssertTrue(flow.contains("class CreatorAuditAppealFlow"))
+        let grant = try source("Core/ChinaReviewedRouteCapability.swift")
+        XCTAssertTrue(grant.contains("\"/api/audit/appeal\""))
+        XCTAssertTrue(grant.contains("\"/api/audit/guard/appeal\""))
+    }
+
+    func testGameplayPresetCitesOWNOPT032() throws {
+        assertCites("OWN-OPT-032")
+        XCTAssertEqual(GameplayPresetPath.list, "/api/preset/gameplay/list")
+        XCTAssertEqual(GameplayPresetPath.info, "/api/preset/gameplay/info")
+        XCTAssertEqual(GameplayPresetPath.draft, "/api/preset/gameplay/draft")
+        let pending = SourceLineagePresentation(sourceContentRevisionId: nil)
+        XCTAssertEqual(pending.identity, WP09Copy.unknown)
+        XCTAssertEqual(pending.identity, "—")
+        XCTAssertEqual(pending.historyLine(chinese: true), "历史来源待核对")
+        XCTAssertEqual(pending.historyLine(chinese: false), "Source history still needs checking")
+        let known = SourceLineagePresentation(sourceContentRevisionId: "rev-1")
+        XCTAssertEqual(known.identity, "rev-1")
+        XCTAssertFalse(known.viewDiff)
+        XCTAssertFalse(known.saveAsNew)
+        let section = try source("App/GameplayPresetSection.swift")
+        XCTAssertTrue(section.contains("struct GameplayPresetSection"))
+    }
+
+    func testStampPagesCitesOWNOPT043() throws {
+        assertCites("OWN-OPT-043")
+        let camera = try source("App/RoamStampCameraView.swift")
+        XCTAssertTrue(camera.contains("struct RoamStampCameraView"))
+        let album = try source("App/RoamStampViews.swift")
+        XCTAssertTrue(album.contains("struct RoamStampAlbum") || album.contains("RoamStamp"))
+        let city = try source("App/RoamSubpageParityViews.swift")
+        XCTAssertTrue(city.contains("struct RoamCityStampFlowView"))
+        XCTAssertTrue(city.contains("subpackageRoam/citystamp"))
+        XCTAssertEqual(RoamStampSlipSavePolicy.decide(torn: true, pictureURL: nil), .noPicture)
+    }
+
+    func testMerchantClaimsCitesOWNOPT060() throws {
+        assertCites("OWN-OPT-060")
+        XCTAssertEqual(MerchantOpsWp03Call.claimsStatus().path, "api/merchant/claims/status")
+        XCTAssertEqual(MerchantOpsWp03Call.claimsStatus().kind, .read)
+        let order = MerchantOpsWp03Call.commerceOrder(bizType: "premium_template", requestID: "rm01-order")
+        XCTAssertEqual(order.path, "api/merchant/commerce/order")
+        XCTAssertEqual(order.kind, .money)
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/commerce/order"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/claims/status"))
+        let home = try source("App/MerchantBusinessViews.swift")
+        XCTAssertTrue(home.contains("MerchantOpsWp03Panel(page: .team)"))
+    }
+
+    func testChapterInviteRevokeCitesOWNOPT062() throws {
+        assertCites("OWN-OPT-062")
+        let call = MerchantOpsWp03Call.inviteRevoke(applicationID: 7)
+        XCTAssertEqual(call.path, "api/merchant/chapter-application/invite/revoke")
+        XCTAssertEqual(call.kind, .merchantWrite)
+        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/chapter-application/invite/revoke"))
+        let content = try source("App/MerchantContentViews.swift")
+        XCTAssertTrue(content.contains("MerchantOpsWp03Panel(page: .chapter)"))
+        let team = try source("App/MerchantBusinessViews.swift")
+        XCTAssertTrue(team.contains("struct MerchantBusinessHomeView") || team.contains("MerchantOpsWp03Panel(page: .team)"))
+    }
+
+    func testSimplePublishAIDraftCitesOWNOPT082() throws {
+        assertCites("OWN-OPT-082")
+        XCTAssertEqual(QuickPublishSimpleCount.parse(.number(0)), .value(0))
+        XCTAssertEqual(QuickPublishSimpleCount.parse(.number(0)).text, "0")
+        XCTAssertEqual(QuickPublishSimpleCount.parse(nil), .unknown)
+        XCTAssertEqual(QuickPublishSimpleCount.parse(nil).text, "—")
+        XCTAssertEqual(OwnerDecisionGuards.assistedMark, "[AI 辅助生成]")
+        let journey = try source("Core/QuickPublishValidation.swift")
+        XCTAssertTrue(journey.contains("enum QuickPublishSimpleJourneyService"))
+        XCTAssertTrue(journey.contains("func confirmAndSeed"))
+        let modes = try source("Core/PublishModesDomain.swift")
+        XCTAssertTrue(modes.contains("aiTraceId"))
+        let page = try source("App/PublishingModesViews.swift")
+        XCTAssertTrue(page.contains("QuickPublishingView") || page.contains("PublishingAIDraftSheet"))
+    }
 }

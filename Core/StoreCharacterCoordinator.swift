@@ -47,6 +47,7 @@ import Foundation
     private let writer: (any StoreCharacterWriting)?
     public let gates: MerchantCityNPCParityGates
     private let syntheticRecording: StoreCharacterRecordedSample?
+    private let syntheticPhoto: String?
     private let syntheticPoint: StoreCharacterMapPointWrite?
     public var onChange: (() -> Void)?
 
@@ -82,9 +83,9 @@ import Foundation
     private var generation = 0
 
     public init(reader: any StoreCharacterReading, writer: (any StoreCharacterWriting)? = nil, gates: MerchantCityNPCParityGates = .disabled,
-                syntheticRecording: StoreCharacterRecordedSample? = nil, syntheticPoint: StoreCharacterMapPointWrite? = nil) {
+                syntheticRecording: StoreCharacterRecordedSample? = nil, syntheticPhoto: String? = nil, syntheticPoint: StoreCharacterMapPointWrite? = nil) {
         self.reader = reader; self.writer = writer; self.gates = gates
-        self.syntheticRecording = syntheticRecording; self.syntheticPoint = syntheticPoint
+        self.syntheticRecording = syntheticRecording; self.syntheticPhoto = syntheticPhoto; self.syntheticPoint = syntheticPoint
     }
 
     public var canSave: Bool { writer != nil && gates.storeCharacterSaves }
@@ -166,8 +167,19 @@ import Foundation
         guard let id = presetPick else { return }
         selection = .preset(id); presetPick = nil; changed()
     }
-    /// The source crops and pixelates a photo on-device before upload. Not executed in this build.
-    public func choosePhoto() { guard !saving else { return }; notice = .photoUnavailable; changed() }
+    /// Camera capture stays out of this build. A supplied https or site-path reference is selected
+    /// only when store-character saves are on. Otherwise the notice is photoUnavailable and nothing is sent.
+    public func choosePhoto() {
+        guard !saving else { return }
+        guard canSave, let reference = syntheticPhoto, let avatar = StoreCharacterAvatar(code: reference) else {
+            notice = .photoUnavailable
+            changed()
+            return
+        }
+        selection = avatar
+        notice = nil
+        changed()
+    }
     public func saveAvatar() {
         guard !saving, !saveLocked else { return }
         guard !StoreCharacterText.trim(home.name).isEmpty else { editField(.name); return }
