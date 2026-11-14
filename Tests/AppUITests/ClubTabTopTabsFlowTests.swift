@@ -10,7 +10,9 @@ final class ClubTabTopTabsFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN",
                                "--uitesting-club-fixture", "owner", "--uitesting-club-top-tabs"]
         app.launch()
-        let clubs = app.buttons["俱乐部"], posts = app.buttons["帖文"]
+        let tabs = app.descendants(matching: .any)["clubTab.topTabs"]
+        XCTAssertTrue(tabs.waitForExistence(timeout: 10), app.debugDescription)
+        let clubs = tabs.buttons["俱乐部"], posts = tabs.buttons["帖文"]
         XCTAssertTrue(clubs.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertTrue(clubs.isSelected)
         XCTAssertTrue(app.buttons["club.openDirectory"].waitForExistence(timeout: 10))
@@ -25,6 +27,6 @@ final class ClubTabTopTabsFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-club-fixture", "owner"]
         app.launch()
         XCTAssertTrue(app.buttons["club.openDirectory"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.segmentedControls["clubTab.topTabs"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["clubTab.topTabs"].exists)
     }
 }

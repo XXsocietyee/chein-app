@@ -12,12 +12,18 @@ env:
     arguments:
       "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
 
-# Open Mini Games / External Games sheet from Home banner (`homeIndex.actionBanner.mini_games`).
-- scrollUntilVisible:
-    element:
-      id: "homeIndex.actionBanner.mini_games"
-    direction: DOWN
+# Mini games is a menu item under the home hero (`homeIndex.actionBanner.menu`).
+# The item id stays `homeIndex.actionBanner.mini_games`.
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.actionBanner.menu"
     timeout: 15000
+- tapOn:
+    id: "homeIndex.actionBanner.menu"
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.actionBanner.mini_games"
+    timeout: 8000
 - tapOn:
     id: "homeIndex.actionBanner.mini_games"
 

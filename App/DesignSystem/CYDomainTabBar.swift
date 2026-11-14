@@ -153,7 +153,6 @@ extension View {
     func cyTabBarAccessibilityIdentifiers(_ identifiers: [String]) -> some View {
         modifier(CYTabBarAccessibilityModifier(identifiers: identifiers))
     }
-
     /// Hide both the system tab bar and the floating player pill overlay on pushed routes.
     func cyHideTabBar(_ hidden: Bool = true) -> some View {
         modifier(CYHideTabBarModifier(hidden: hidden))
