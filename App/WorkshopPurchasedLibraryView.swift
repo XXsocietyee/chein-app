@@ -28,7 +28,7 @@ struct WorkshopPurchasedAccountLink: View {
     init(browser: WorkshopPurchasedBrowser, navigation: WorkshopPurchasedNavigationState? = nil, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }, makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }) {
         self.browser = browser; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional; self.makeUpgrade = makeUpgrade;         _navigation = State(initialValue: navigation ?? WorkshopPurchasedNavigationState(browser: browser))
     }
-    private var paymentsOpen: Bool { ReviewedAreaSwitch.paymentsOpen(session: session) }
+    private var paymentsOpen: Bool { ReviewedAreaSwitch.moneyPayments(apiHost: session.regionalConfiguration?.apiConfiguration?.baseURL.host) }
     private var closedCopy: String {
         locale.language.languageCode?.identifier == "zh"
             ? "购买读取未开启。列表仍在，本次不请求已购接口。"
@@ -97,7 +97,7 @@ struct WorkshopPurchasedAccountLink: View {
     init(browser: WorkshopPurchasedBrowser, licenseId: String, navigation: WorkshopPurchasedNavigationState, makeInstall: @escaping WorkshopPaidInstallControllerFactory = { _ in nil }, makeText: @escaping WorkshopPaidInstalledTextControllerFactory = { _ in nil }, makeProfessional: @escaping WorkshopPaidProfessionalControllerFactory = { _ in nil }, makeUpgrade: @escaping WorkshopPurchasedUpgradeFactory = { nil }) {
         self.browser = browser; self.licenseId = licenseId; self.navigation = navigation; self.makeInstall = makeInstall; self.makeText = makeText; self.makeProfessional = makeProfessional;         self.makeUpgrade = makeUpgrade
     }
-    private var paymentsOpen: Bool { ReviewedAreaSwitch.paymentsOpen(session: session) }
+    private var paymentsOpen: Bool { ReviewedAreaSwitch.moneyPayments(apiHost: session.regionalConfiguration?.apiConfiguration?.baseURL.host) }
     var body: some View {
         let displayed = navigation.detailAppearance
         let rendered = displayed.permit

@@ -27,7 +27,7 @@ import FoundationNetworking
         init() throws { context = try WorkshopOwnedTestData.context(); approval = try .init(context: context, expiresAt: .distantFuture) }
         func first() async throws -> WorkshopPurchasedPresentationPermit {
             var rows: [[String: Any]] = []
-            for id in 100...149 { var row = WorkshopPurchasedTestData.item; row["licenseId"] = "w18-paid-\(id)"; rows.append(row) }
+            for id in 100...149 { var row = WorkshopPurchasedTestData.item; row["licenseId"] = String(format: "WKO_%032x", id); rows.append(row) }
             wire.response = (try WorkshopPurchasedTestData.envelope(WorkshopPurchasedTestData.page(rows, next: 100)), 200)
             let permit = try XCTUnwrap(browser.presentList())
             await browser.load(action: try XCTUnwrap(permit.offer()))
@@ -48,7 +48,7 @@ import FoundationNetworking
         await f.browser.load(before: 100, action: try XCTUnwrap(permit.offer()))
         XCTAssertEqual(f.wire.requests.suffix(2).map { String(data: $0.httpBody ?? Data(), encoding: .utf8) }, ["before_order_line_id=100", "before_order_line_id=100"])
         XCTAssertEqual(f.browser.rows.count, 1) // original next-page replacement, not appended history
-        XCTAssertEqual(f.browser.rows.first?.licenseId, "w18-paid-11")
+        XCTAssertEqual(f.browser.rows.first?.licenseId, "WKO_0000000000000000000000000000000b")
         XCTAssertNil(f.browser.nextCursor); XCTAssertNil(f.browser.issue)
     }
     func test401RetiresInsteadOfRestoringOldPage() async throws {

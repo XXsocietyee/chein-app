@@ -57,7 +57,7 @@ public struct WorkshopPaidInstallApproval {
 }
 @MainActor public protocol WorkshopPaidInstallServing {
     func targets(licenseId: String, before: Int64?, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallTargets
-    func history(licenseId: String, before: String?, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallHistory
+    func history(licenseId: String, before: Int64?, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallHistory
     func status(command: WorkshopPaidInstallCommand, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallOutcome
     func submit(_ confirmation: WorkshopPaidInstallConfirmation) async throws -> WorkshopPaidInstallOutcome
 }
@@ -83,12 +83,12 @@ public struct WorkshopPaidInstallApproval {
     public func targets(licenseId: String, before: Int64?, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallTargets {
         let body = try WorkshopPaidInstallRequest.readBody(.targets, licenseId: licenseId, beforeDraftId: before)
         let value: WorkshopPaidInstallTargets = try await read(.targets, body: body, lifetime: lifetime)
-        guard value.licenseId == licenseId, before == nil || value.items.allSatisfy({ $0.id < before! }) else { throw WorkshopPaidInstallIssue.malformed }; return value
+        guard before == nil || value.items.allSatisfy({ $0.id < before! }) else { throw WorkshopPaidInstallIssue.malformed }; return value
     }
-    public func history(licenseId: String, before: String?, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallHistory {
+    public func history(licenseId: String, before: Int64?, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallHistory {
         let body = try WorkshopPaidInstallRequest.readBody(.history, licenseId: licenseId, beforeCommandKey: before)
         let value: WorkshopPaidInstallHistory = try await read(.history, body: body, lifetime: lifetime)
-        guard value.licenseId == licenseId, before == nil || value.nextBeforeCommandKey == nil || value.nextBeforeCommandKey! < before! else { throw WorkshopPaidInstallIssue.malformed }; return value
+        guard value.items.allSatisfy({ $0.command?.licenseId == licenseId }), before == nil || value.nextBeforeCommandKey == nil || value.nextBeforeCommandKey! < before! else { throw WorkshopPaidInstallIssue.malformed }; return value
     }
     public func status(command: WorkshopPaidInstallCommand, lifetime: WorkshopPaidInstallLifetime) async throws -> WorkshopPaidInstallOutcome {
         let value: WorkshopPaidInstallOutcome = try await read(.status, body: WorkshopPaidInstallRequest.readBody(.status, requestId: command.requestId), lifetime: lifetime)
@@ -126,8 +126,9 @@ public struct WorkshopPaidInstallApproval {
         catch { try check(lifetime); throw (error as? WorkshopPaidInstallIssue) ?? .unavailable }
     }
     private func make(_ path: WorkshopPaidInstallRequest.Path, body: Data) throws -> URLRequest {
-        var request = try AuthRequestBuilder.makeFormRequest(url: api.baseURL.appendingPathComponent("api/workshop/purchased/install/" + path.rawValue), fields: [:], token: lease.context.session.token, includesBody: false)
-        request.httpBody = body; request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        var request = try AuthRequestBuilder.makeFormRequest(url: api.baseURL.appendingPathComponent("api/workshop/v2/purchased/install/" + path.rawValue), fields: [:], token: lease.context.session.token, includesBody: false)
+        request.httpBody = body
+        request.setValue(path == .submit ? "application/json; charset=utf-8" : "application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.setValue(String(body.count), forHTTPHeaderField: "Content-Length"); request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control"); request.setValue("no-cache", forHTTPHeaderField: "Pragma")
         guard WorkshopPaidInstallRequest.accepts(request, baseURL: api.baseURL) == path else { throw WorkshopPaidInstallIssue.invalid }; return request
@@ -147,33 +148,61 @@ public struct WorkshopPaidInstallApproval {
 /// Canonical shape shared by builder and normal transport. No owner, payment or arbitrary JSON.
 public enum WorkshopPaidInstallRequest {
     public enum Path: String { case targets, history, status, submit }
-    private struct ReadBody: Codable {
-        let licenseId: String?, beforeDraftId: Int64?, beforeCommandKey: String?, requestId: String?
-        func valid(_ path: Path) -> Bool {
-            switch path {
-            case .targets: return licenseId.map(WorkshopPurchasedWire.license) == true && beforeDraftId.map({ $0 > 0 }) != false && beforeCommandKey == nil && requestId == nil
-            case .history: return licenseId.map(WorkshopPurchasedWire.license) == true && beforeCommandKey.map(WorkshopPurchasedWire.hash) != false && beforeDraftId == nil && requestId == nil
-            case .status: return requestId.map(WorkshopPaidInstallWire.requestID) == true && licenseId == nil && beforeDraftId == nil && beforeCommandKey == nil
-            case .submit: return false
-            }
+    static func readBody(_ path: Path, licenseId: String? = nil, beforeDraftId: Int64? = nil, beforeCommandKey: Int64? = nil, requestId: String? = nil) throws -> Data {
+        switch path {
+        case .targets:
+            guard let licenseId, WorkshopPurchasedWire.license(licenseId), beforeDraftId.map({ $0 > 0 }) != false, beforeCommandKey == nil, requestId == nil else { throw WorkshopPaidInstallIssue.invalid }
+            var text = "license_id=\(licenseId)"
+            if let beforeDraftId { text += "&before_draft_id=\(beforeDraftId)" }
+            return Data(text.utf8)
+        case .history:
+            guard let licenseId, WorkshopPurchasedWire.license(licenseId), beforeCommandKey.map({ $0 > 0 }) != false, beforeDraftId == nil, requestId == nil else { throw WorkshopPaidInstallIssue.invalid }
+            var text = "license_id=\(licenseId)"
+            if let beforeCommandKey { text += "&before_command_key=\(beforeCommandKey)" }
+            return Data(text.utf8)
+        case .status:
+            guard let requestId, WorkshopPaidInstallWire.requestID(requestId), licenseId == nil, beforeDraftId == nil, beforeCommandKey == nil else { throw WorkshopPaidInstallIssue.invalid }
+            return Data("request_id=\(requestId)".utf8)
+        case .submit:
+            throw WorkshopPaidInstallIssue.invalid
         }
-        func data() throws -> Data { let e = JSONEncoder(); e.outputFormatting = [.sortedKeys]; return try e.encode(self) }
-    }
-    static func readBody(_ path: Path, licenseId: String? = nil, beforeDraftId: Int64? = nil, beforeCommandKey: String? = nil, requestId: String? = nil) throws -> Data {
-        let body = ReadBody(licenseId: licenseId, beforeDraftId: beforeDraftId, beforeCommandKey: beforeCommandKey, requestId: requestId)
-        guard body.valid(path) else { throw WorkshopPaidInstallIssue.invalid }; return try body.data()
     }
     public static func accepts(_ request: URLRequest, baseURL: URL) -> Path? {
         guard let url = request.url, url.query == nil, url.fragment == nil, request.httpMethod == "POST", request.httpBodyStream == nil,
-              request.value(forHTTPHeaderField: "Transfer-Encoding") == nil, request.value(forHTTPHeaderField: "Content-Type") == "application/json; charset=utf-8",
+              request.value(forHTTPHeaderField: "Transfer-Encoding") == nil,
               let data = request.httpBody, (2...4096).contains(data.count), request.value(forHTTPHeaderField: "Content-Length") == String(data.count),
               request.cachePolicy == .reloadIgnoringLocalCacheData, request.value(forHTTPHeaderField: "Cache-Control") == "no-store", request.value(forHTTPHeaderField: "Pragma") == "no-cache",
-              let path = [Path.targets, .history, .status, .submit].first(where: { url.absoluteString == baseURL.appendingPathComponent("api/workshop/purchased/install/" + $0.rawValue).absoluteString }) else { return nil }
+              let path = [Path.targets, .history, .status, .submit].first(where: { url.absoluteString == baseURL.appendingPathComponent("api/workshop/v2/purchased/install/" + $0.rawValue).absoluteString }) else { return nil }
+        let type = request.value(forHTTPHeaderField: "Content-Type")
         if path == .submit {
-            guard let command = try? WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self, data: data, maximum: 4096), (try? command.wireData()) == data else { return nil }
+            guard type == "application/json; charset=utf-8",
+                  let command = try? WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self, data: data, maximum: 4096), (try? command.wireData()) == data else { return nil }
         } else {
-            guard let body = try? WorkshopPaidInstallWire.decode(ReadBody.self, data: data, maximum: 4096), body.valid(path), (try? body.data()) == data else { return nil }
+            guard type == "application/x-www-form-urlencoded; charset=utf-8",
+                  let text = String(data: data, encoding: .utf8), text.utf8.elementsEqual(data) else { return nil }
+            switch path {
+            case .targets:
+                guard (try? readBody(.targets, licenseId: form(text, "license_id"), beforeDraftId: formInt(text, "before_draft_id"))) == data else { return nil }
+            case .history:
+                guard (try? readBody(.history, licenseId: form(text, "license_id"), beforeCommandKey: formInt(text, "before_command_key"))) == data else { return nil }
+            case .status:
+                guard (try? readBody(.status, requestId: form(text, "request_id"))) == data else { return nil }
+            case .submit: return nil
+            }
         }
         return path
+    }
+    private static func form(_ text: String, _ key: String) -> String? {
+        let parts = text.split(separator: "&", omittingEmptySubsequences: false).map(String.init)
+        let hits = parts.compactMap { part -> String? in
+            guard part.hasPrefix(key + "=") else { return nil }
+            return String(part.dropFirst(key.count + 1))
+        }
+        return hits.count == 1 ? hits[0] : nil
+    }
+    private static func formInt(_ text: String, _ key: String) -> Int64? {
+        guard text.contains(key + "=") else { return nil }
+        guard let raw = form(text, key), let value = Int64(raw), value > 0, String(value) == raw else { return nil }
+        return value
     }
 }

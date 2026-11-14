@@ -16,8 +16,8 @@ final class StoryWalkingFogAndWorkshopUpgradeViewTests: XCTestCase {
     private let fixedNow = Date(timeIntervalSince1970: 4_000_000)
 
     private func makePurchasedItem(
-        licenseId: String = "w18-paid-53",
-        moduleId: String = "synthetic-module",
+        licenseId: String = "WKO_00000000000000000000000000000035",
+        moduleId: Int64 = 11,
         versionId: String = "v1-0-0",
         status: String = "ACTIVE"
     ) throws -> WorkshopPurchasedItem {
@@ -35,15 +35,15 @@ final class StoryWalkingFogAndWorkshopUpgradeViewTests: XCTestCase {
             "translation": "PROHIBITED",
             "updates": "EXACT_PURCHASED_VERSION",
             "redistribution": "PROHIBITED",
-            "allowedRegions": ["synthetic-region"],
+            "allowedRegions": ["110101"],
             "themeLimit": ["unlimited": false, "maximum": 1],
             "merchantLimit": ["unlimited": false, "maximum": 0],
-            "runLimit": ["unlimited": false, "maximum": 10],
+            "runLimit": ["unlimited": false, "maximum": 0],
             "acquisition": "PAID",
             "buyerKind": "INDIVIDUAL",
             "useDuration": "PERPETUAL_PURCHASED_VERSION",
-            "contentUseStatus": "PAID_INSTALL_AUTHORITY_UNAVAILABLE",
-            "purchaseActionStatus": "CHANNEL_APPROVAL_REQUIRED"
+            "contentUseStatus": "PRIVATE_DRAFT_INSTALL_AVAILABLE",
+            "purchaseActionStatus": "EXACT_VERSION_PURCHASED"
         ]
         return try JSONDecoder().decode(
             WorkshopPurchasedItem.self,
@@ -52,7 +52,7 @@ final class StoryWalkingFogAndWorkshopUpgradeViewTests: XCTestCase {
     }
 
     private func makeVersion(
-        moduleId: String = "synthetic-module",
+        moduleId: String = "11",
         versionId: String,
         semver: String,
         hashChar: Character,

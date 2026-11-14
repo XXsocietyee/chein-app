@@ -14,14 +14,14 @@ import XCTest
     func testFreeOwnedApprovalCannotReadPurchasedLibrary()async throws{
         let d=try deployment(),wire=Wire(),free=try WorkshopOwnedReadApproval(context:context(d),expiresAt:.distantFuture)
         let t=CompositionHTTPTransport(deployment:d,underlying:wire,workshopOwnedReadApproval:{_ in free});bind(t)
-        await rejects(t,request());await rejects(t,request(path:"detail",body:"license_id=w18-paid-11"));XCTAssertEqual(wire.calls,0)
+        await rejects(t,request());await rejects(t,request(path:"detail",body:"license_id=WKO_0000000000000000000000000000000b"));XCTAssertEqual(wire.calls,0)
     }
     func testExactPaidListDetailAndCursorOnlyWithCanonicalFullContext()async throws{
         let d=try deployment()
         for role in ["player","merchant","club"]{
             let wire=Wire(),expected=try context(d,role:role),grant=try WorkshopPurchasedReadApproval(context:expected,expiresAt:.distantFuture);var seen=0
             let t=CompositionHTTPTransport(deployment:d,underlying:wire,workshopPurchasedReadApproval:{actual in seen += 1;XCTAssertEqual(actual,expected);return actual==expected ? grant:nil});bind(t,role:role)
-            _=try await t.send(request());_=try await t.send(request(body:"before_order_line_id=50"));_=try await t.send(request(path:"detail",body:"license_id=w18-paid-11"));XCTAssertEqual(wire.calls,3);XCTAssertGreaterThanOrEqual(seen,6)
+            _=try await t.send(request());_=try await t.send(request(body:"before_order_line_id=50"));_=try await t.send(request(path:"detail",body:"license_id=WKO_0000000000000000000000000000000b"));XCTAssertEqual(wire.calls,3);XCTAssertGreaterThanOrEqual(seen,6)
         }
     }
     func testReadApprovalCannotExpandIntoCheckoutInstallFreeOrProtectedContent()async throws{
@@ -32,7 +32,7 @@ import XCTest
     }
     func testForgedOwnersAmbiguousFormsAndIncorrectHeadersCannotDispatch()async throws{
         let d=try deployment(),wire=Wire(),grant=try WorkshopPurchasedReadApproval(context:context(d),expiresAt:.distantFuture),t=CompositionHTTPTransport(deployment:d,underlying:wire,workshopPurchasedReadApproval:{_ in grant});bind(t)
-        var invalid=[request(body:"owner=7"),request(body:"before_order_line_id=0"),request(body:"before_order_line_id=01"),request(body:"before_order_line_id=9223372036854775808"),request(path:"detail",body:"license_id=w18-paid-11&owner=7"),request(path:"detail",body:"license_id=%77%31%38-paid-11"),request(path:"detail",body:"license_id=w18-paid-11&license_id=w18-paid-11")]
+        var invalid=[request(body:"owner=7"),request(body:"before_order_line_id=0"),request(body:"before_order_line_id=01"),request(body:"before_order_line_id=9223372036854775808"),request(path:"detail",body:"license_id=WKO_0000000000000000000000000000000b&owner=7"),request(path:"detail",body:"license_id=%77%31%38-paid-11"),request(path:"detail",body:"license_id=WKO_0000000000000000000000000000000b&license_id=WKO_0000000000000000000000000000000b")]
         var r=request();r.setValue(nil,forHTTPHeaderField:"Content-Length");invalid.append(r)
         r=request();r.httpBodyStream=InputStream(data:Data());invalid.append(r)
         r=request();r.url=URL(string:r.url!.absoluteString+"?owner=7");invalid.append(r)

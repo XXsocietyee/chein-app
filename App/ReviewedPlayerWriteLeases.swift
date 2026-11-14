@@ -720,10 +720,10 @@ enum ReviewedPlayerReadRoute {
     /// E2E R5: club post lists, feed, comment lists and history for signed-in China players and clubs. Read-only; cached per
     /// context and reissued when the hour-long lease lapses or is revoked.
     /// Owner 2026-11-13 (money ON for TEST/DEBUG only): the signed-in account's own purchased packages. Open only where
-    /// `ReviewedAreaSwitch.moneyPayments(host:)` opens, so the production host stays closed.
+    /// `ReviewedAreaSwitch.moneyPayments(apiHost:)` opens, so www.chengyinhub.com stays closed.
     func workshopPurchasedRead(_ context: RuntimeDependencyContext) -> WorkshopPurchasedReadApproval? {
         guard playerWritesEnabled, context.market == .china, ["player", "club", "merchant"].contains(context.role),
-              ReviewedAreaSwitch.moneyPayments(host: context.baseURL.host) else { return nil }
+              ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host) else { return nil }
         let key = contextKey(context)
         if let existing = workshopPurchasedByContext[key], existing.matches(context) { return existing }
         guard let issued = try? WorkshopPurchasedReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }

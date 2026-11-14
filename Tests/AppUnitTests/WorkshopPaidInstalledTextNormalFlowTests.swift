@@ -11,32 +11,23 @@ import UIKit
     static func decode<T: Decodable>(_ type: T.Type, _ value: [String: Any]) throws -> T { try WorkshopPaidInstallWire.decode(type, data: data(value), maximum: 2_097_152) }
     static func item() throws -> WorkshopPurchasedItem { var value = WorkshopPurchasedAppFixture.item; value["contentHash"] = ContentDraftRecord.hash(source); return try decode(WorkshopPurchasedItem.self, value) }
     static func command() throws -> WorkshopPaidInstallCommand {
-        try .init(requestId: requestID, licenseId: "w18-paid-11", moduleId: item().moduleId, purchasedVersionId: item().purchasedVersionId,
+        try .init(requestId: requestID, licenseId: "WKO_0000000000000000000000000000000b", moduleId: Int64(item().moduleId)!, purchasedVersionId: item().purchasedVersionId,
             contentHash: ContentDraftRecord.hash(source), termsHash: item().termsHash, targetDraftId: 91, targetRevision: 1,
-            businessType: "TOPIC", targetPayloadHash: String(repeating: "c", count: 64), planningRegion: "synthetic-region", commercialUse: false)
+            businessType: "MEMBER_TEMPLATE", targetPayloadHash: String(repeating: "c", count: 64), planningRegion: "110101", commercialUse: false)
     }
     static func receipt() throws -> WorkshopPaidInstallOutcome {
         var value = try JSONSerialization.jsonObject(with: command().wireData()) as! [String: Any]
-        value["schema"] = "w18-paid-install-outcome-v1"; value["state"] = "INSTALLED_PRIVATE_DRAFT"; value["mode"] = "UNRESOLVED"
+        value["schema"] = "workshop-private-draft-install-outcome-v2"; value["state"] = "INSTALLED_PRIVATE_DRAFT"; value["mode"] = "PRIVATE_COPY"
         value["holdDeadline"] = "2026-10-05T00:05:00Z"; value["ownedDraftId"] = 101; value["installedAt"] = "2026-10-05T00:00:01Z"
         value["professionalTemplateStatus"] = "MATERIALIZATION_REQUIRED"; value["published"] = false; value["executable"] = false
         return try decode(WorkshopPaidInstallOutcome.self, value)
     }
     static func reference() throws -> WorkshopPaidInstalledTextReference { try .init(item: item(), receipt: receipt()) }
-    static func body() throws -> [String: Any] {
-        let item = try item(), c = try command(); var component = try JSONSerialization.jsonObject(with: Data(source.utf8)) as! [String: Any]
-        component["validationMethod"] = 1; let componentJSON = String(data: try data(component), encoding: .utf8)!
-        let policy = WorkshopPurchasedAppFixture.item
-        var rights: [String: Any] = ["useDuration":"PERPETUAL_PURCHASED_VERSION", "updates":"EXACT_PURCHASED_VERSION", "redistribution":"PROHIBITED"]
-        for key in ["commercialUse","adaptation","translation","allowedRegions","themeLimit","merchantLimit","runLimit"] { rights[key] = policy[key] }
-        return ["schema":"w18-paid-installed-text-v1", "scope":"OWNER_PAID_INSTALLED_TEXT_PROTECTED_READ_ONLY", "requestId":requestID,
-            "licenseId":item.licenseId,"moduleId":item.moduleId,"purchasedVersionId":item.purchasedVersionId,"version":"v1", "contentHash":item.contentHash,
-            "componentHash":ContentDraftRecord.hash(componentJSON),"ownedDraftId":101,"ownedDraftRevision":1,"installedAt":"2026-10-05T00:00:01Z","checkedAt":"2026-10-05T00:00:02Z",
-            "originalTargetDraftId":91,"originalTargetRevision":1,"originalTargetPayloadHash":c.targetPayloadHash,"originalBusinessType":"TOPIC","mode":"UNRESOLVED",
-            "sourceJson":source,"componentJson":componentJSON,"termsVersion":item.termsVersion,"termsHash":item.termsHash,"termsDocumentHash":ContentDraftRecord.hash(String(data:terms,encoding:.utf8)!),"termsDocumentBase64":terms.base64EncodedString(),
-            "rights":rights,"professionalTemplateStatus":"MATERIALIZATION_REQUIRED","published":false,"executable":false]
+    static func member() throws -> [String: Any] { try JSONSerialization.jsonObject(with: Data(source.utf8)) as! [String: Any] }
+    static func text() throws -> WorkshopPaidInstalledText {
+        WorkshopPaidInstalledText(reference: try reference(), fields: try WorkshopPaidInstalledTextFields.decode(source, component: false), sourceJSON: source)
     }
-    static func envelope() throws -> Data { try data(["code":200,"data":body()]) }
+    static func envelope() throws -> Data { try data(["code":200,"data":member()]) }
 }
 @MainActor final class WorkshopPaidInstalledTextNormalFlowTests: XCTestCase {
     @MainActor private final class Vault: AppTokenStorage {
@@ -60,10 +51,10 @@ import UIKit
                 let value: [String: Any]
                 if request.url?.lastPathComponent == "history" {
                     var receipt = try JSONSerialization.jsonObject(with: WorkshopPaidTextAppFixture.command().wireData()) as! [String: Any]
-                    receipt["schema"] = "w18-paid-install-outcome-v1"; receipt["state"] = "INSTALLED_PRIVATE_DRAFT"; receipt["mode"] = "UNRESOLVED"; receipt["holdDeadline"] = "2026-10-05T00:05:00Z"; receipt["ownedDraftId"] = 101; receipt["installedAt"] = "2026-10-05T00:00:01Z"; receipt["professionalTemplateStatus"] = "MATERIALIZATION_REQUIRED"; receipt["published"] = false; receipt["executable"] = false
-                    value = ["schema":"w18-paid-install-history-v1","scope":"OWNER_COMMAND_RECEIPTS_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":[receipt],"hasMore":false,"nextBeforeCommandKey":NSNull()]
+                    receipt["schema"] = "workshop-private-draft-install-outcome-v2"; receipt["state"] = "INSTALLED_PRIVATE_DRAFT"; receipt["mode"] = "PRIVATE_COPY"; receipt["holdDeadline"] = "2026-10-05T00:05:00Z"; receipt["ownedDraftId"] = 101; receipt["installedAt"] = "2026-10-05T00:00:01Z"; receipt["professionalTemplateStatus"] = "MATERIALIZATION_REQUIRED"; receipt["published"] = false; receipt["executable"] = false
+                    value = ["schema":"workshop-install-history-v2","scope":"INDIVIDUAL","checkedAt":"2026-10-05T00:00:00Z","items":[receipt],"hasMore":false]
                 } else if request.url?.lastPathComponent == "targets" {
-                    value = ["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":[],"hasMore":false,"nextBeforeDraftId":NSNull()]
+                    value = ["schema":"workshop-targets-v2","scope":"INDIVIDUAL","checkedAt":"2026-10-05T00:00:00Z","items":[],"hasMore":false]
                 } else { throw APIError.invalidRequest }
                 return (try WorkshopPaidTextAppFixture.data(["code":200,"data":value]),200)
             }

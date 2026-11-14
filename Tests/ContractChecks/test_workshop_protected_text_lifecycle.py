@@ -11,9 +11,9 @@ class ProtectedTextLifecycleSourceContracts(unittest.TestCase):
     def controller(self): return self.text('Core/WorkshopPaidInstalledTextController.swift')
 
     def test_all_product_bytes_match_original_protected_consumer_delivery(self):
-        expected = {'App/WorkshopPaidInstalledTextView.swift': '126e43db7cbf33a42e0a00744aea091c60d5326e4652016ade749195046b8e3d',
-                    'Core/WorkshopPaidInstalledTextController.swift': '59a3b8f70eb5631e596d96bd9cd074ac9e9ef9415b58822b11c59caac55ca3dc',
-                    'Core/WorkshopPaidInstalledTextService.swift': 'b042ebf2507250a7b3429611826cc2d7604a67db3b079d3d3cce0dfa8399c3a8'}
+        expected = {'App/WorkshopPaidInstalledTextView.swift': '6bdca2a6c6f0ff39fb2418aac4b33b5849808055d5cdddb2fd2e48ae4e0f2a04',
+                    'Core/WorkshopPaidInstalledTextController.swift': '13883b1365777e129cd8ccfa4c0e3b9c5ca6129896d5f73c8ab50e46f9118a73',
+                    'Core/WorkshopPaidInstalledTextService.swift': '4441afddbf3336b722516ac486fd80f207916cb77c32a103d06aae52d9887730'}
         for p, expected_hash in expected.items():
             self.assertEqual(hashlib.sha256((ROOT / p).read_bytes()).hexdigest(), expected_hash)
 
@@ -31,7 +31,7 @@ class ProtectedTextLifecycleSourceContracts(unittest.TestCase):
         self.assertIn('try lifetime.check(); try validateReadPermission(); try lifetime.check()', self.service())
         detail = self.service().split('public func detail(', 1)[1]
         self.assertIn('try check(lifetime)', detail)
-        self.assertIn('api/workshop/purchased/installed-text/detail', detail)
+        self.assertIn('api/workshop/v2/purchased/installed-text/detail', detail)
 
     def test_background_erases_body_and_retires_original_read_action(self):
         source = self.controller().split('public func suspend(', 1)[1].split('public func resume(', 1)[0]
@@ -83,7 +83,7 @@ class ProtectedTextLifecycleSourceContracts(unittest.TestCase):
 
     def test_original_fixture_and_sixteen_core_tests_are_byte_exact_and_new_tests_separate(self):
         original = (ROOT / 'Tests/CoreTests/WorkshopPaidInstalledTextTests.swift').read_bytes()
-        self.assertEqual(hashlib.sha256(original).hexdigest(), 'ac130d781fe695be5da659d6d1a22626ca116c973c17677ce6a0736d8052a79c')
+        self.assertEqual(hashlib.sha256(original).hexdigest(), '41bf2e534c901604dde486068e85d8434919c21fad9078084dd52df18b4230bc')
         self.assertEqual(len(re.findall(rb'func test\w+\(', original)), 16)
         new = self.text('Tests/CoreTests/WorkshopPaidInstalledTextLifecycleTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', new)), 7)

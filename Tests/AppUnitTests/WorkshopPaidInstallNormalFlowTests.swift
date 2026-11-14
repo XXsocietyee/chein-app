@@ -6,7 +6,7 @@ import UIKit
 @MainActor final class WorkshopPaidInstallNormalFlowTests: XCTestCase {
     override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private static func item()throws->WorkshopPurchasedItem{try JSONDecoder().decode(WorkshopPurchasedItem.self,from:JSONSerialization.data(withJSONObject:WorkshopPurchasedAppFixture.item))}
-    private static let target:[String:Any]=["targetDraftId":91,"targetRevision":1,"businessType":"TOPIC","targetPayloadHash":String(repeating:"c",count:64),"mode":"UNRESOLVED","destinationKind":"W18_PRIVATE_COMPONENT_ONLY"]
+    private static let target:[String:Any]=["targetDraftId":91,"targetRevision":1,"businessType":"MEMBER_TEMPLATE","targetPayloadHash":String(repeating:"c",count:64),"title":"Synthetic target"]
     @MainActor private final class Vault:AppTokenStorage{var token:String?;func read()throws->String?{token};func write(_ value:String)throws{token=value};func clear()throws{token=nil}}
     @MainActor private final class Wire:HTTPTransport{
         var role="player",requests:[URLRequest]=[],delayNext=false
@@ -22,12 +22,14 @@ import UIKit
                 if delayNext{delayNext=false;return await withCheckedContinuation{suspended=$0}}
                 let value:[String:Any]
                 switch request.url!.lastPathComponent{
-                case "history":value=["schema":"w18-paid-install-history-v1","scope":"OWNER_COMMAND_RECEIPTS_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":[],"hasMore":false,"nextBeforeCommandKey":NSNull()]
-                case "targets":value=["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":"2026-10-05T00:00:00Z","items":[WorkshopPaidInstallNormalFlowTests.target],"hasMore":false,"nextBeforeDraftId":NSNull()]
+                case "history":value=["schema":"workshop-install-history-v2","scope":"INDIVIDUAL","checkedAt":"2026-10-05T00:00:00Z","items":[],"hasMore":false]
+                case "targets":value=["schema":"workshop-targets-v2","scope":"INDIVIDUAL","checkedAt":"2026-10-05T00:00:00Z","items":[WorkshopPaidInstallNormalFlowTests.target],"hasMore":false]
                 case "submit":
                     let q=try WorkshopPaidInstallWire.decode(WorkshopPaidInstallCommand.self,data:request.httpBody!);command=q
-                    var body=try JSONSerialization.jsonObject(with:q.wireData()) as! [String:Any];body["schema"]="w18-paid-install-outcome-v1";body["state"]="INSTALLED_PRIVATE_DRAFT";body["mode"]="UNRESOLVED";body["holdDeadline"]="2026-10-05T00:05:00Z";body["ownedDraftId"]=101;body["installedAt"]="2026-10-05T00:00:01Z";body["professionalTemplateStatus"]="MATERIALIZATION_REQUIRED";body["published"]=false;body["executable"]=false;value=body
-                case "status":let body=try JSONSerialization.jsonObject(with:request.httpBody!) as! [String:Any];value=["schema":"w18-paid-install-outcome-v1","state":"NOT_FOUND","requestId":body["requestId"]!]
+                    var body=try JSONSerialization.jsonObject(with:q.wireData()) as! [String:Any];body["schema"]="workshop-private-draft-install-outcome-v2";body["state"]="INSTALLED_PRIVATE_DRAFT";body["mode"]="PRIVATE_COPY";body["holdDeadline"]="2026-10-05T00:05:00Z";body["ownedDraftId"]=101;body["installedAt"]="2026-10-05T00:00:01Z";body["professionalTemplateStatus"]="MATERIALIZATION_REQUIRED";body["published"]=false;body["executable"]=false;value=body
+                case "status":
+                    let text = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+                    value=["schema":"workshop-private-draft-install-outcome-v2","state":"NOT_FOUND","requestId":String(text.dropFirst("request_id=".count))]
                 default:throw APIError.invalidRequest
                 }
                 return(try WorkshopPurchasedAppFixture.envelope(value),200)
@@ -72,7 +74,7 @@ import UIKit
     }
     func testNormalControllerConfirmationReachesDedicatedTransportAndOnePrivateReceipt()async throws{
         let h=try Harness();defer{h.clean()};await h.login();try h.approve();let c=try h.controller(),a=WorkshopPaidInstallAppearance();await (try XCTUnwrap(c.appear(a)))()
-        c.select(try XCTUnwrap(c.targets.first),appearance:a);c.chooseRegion("synthetic-region",appearance:a);c.review(appearance:a);let q=try XCTUnwrap(c.confirmation)
+        c.select(try XCTUnwrap(c.targets.first),appearance:a);c.chooseRegion("110101",appearance:a);c.review(appearance:a);let q=try XCTUnwrap(c.confirmation)
         let action=try XCTUnwrap(c.offerSubmit(a,command:q));XCTAssertTrue(h.wire.writes.isEmpty);await action()
         XCTAssertEqual(h.wire.writes.count,1);XCTAssertEqual(c.phase,.installed);XCTAssertEqual(c.outcome?.ownedDraftId,101);XCTAssertNil(c.pending)
     }
@@ -101,7 +103,7 @@ import UIKit
     func testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval()async throws{
         let h=try Harness();defer{h.clean()};await h.login();let ctx=try h.context(),grant=try WorkshopPaidInstallApproval(context:ctx,expiresAt:.distantFuture),transport=CompositionHTTPTransport(deployment:h.deployment,underlying:h.wire,workshopPaidInstallApproval:{actual in XCTAssertEqual(actual,ctx);return actual==ctx ? grant:nil})
         transport.current={.init(epoch:ctx.session.epoch,accountID:7,role:"player",token:"synthetic-7")}
-        let target=try WorkshopPaidInstallWire.decode(WorkshopPaidInstallTarget.self,data:JSONSerialization.data(withJSONObject:Self.target)),command=try WorkshopPaidInstallCommand(item:Self.item(),target:target,region:"synthetic-region",commercialUse:false)
+        let target=try WorkshopPaidInstallWire.decode(WorkshopPaidInstallTarget.self,data:JSONSerialization.data(withJSONObject:Self.target)),command=try WorkshopPaidInstallCommand(item:Self.item(),target:target,region:"110101",commercialUse:false)
         let request=try mutationRequest(command,context:ctx);do{_=try await transport.send(request);XCTFail("General send accepted installation")}catch{}
         XCTAssertTrue(h.wire.installs.isEmpty)
         let lifetime=WorkshopPaidInstallLifetime{true},authorization=WorkshopPaidInstallDispatchAuthorization(context:ctx,revision:grant.revision,body:try command.wireData(),lifetime:lifetime,checkCurrent:{})
@@ -112,11 +114,11 @@ import UIKit
         let h=try Harness();defer{h.clean()};await h.login();let ctx=try h.context(),grant=try WorkshopPaidInstallApproval(context:ctx,expiresAt:.distantFuture),transport=CompositionHTTPTransport(deployment:h.deployment,underlying:h.wire,workshopPaidInstallApproval:{actual in actual==ctx ? grant:nil})
         transport.current={.init(epoch:ctx.session.epoch,accountID:7,role:"player",token:"synthetic-7")};let lifetime=WorkshopPaidInstallLifetime{true}
         transport.workshopPaidInstallBeforeForward={lifetime.revoke()};let clone=transport.replacingUnderlying(h.wire)
-        let target=try WorkshopPaidInstallWire.decode(WorkshopPaidInstallTarget.self,data:JSONSerialization.data(withJSONObject:Self.target)),command=try WorkshopPaidInstallCommand(item:Self.item(),target:target,region:"synthetic-region",commercialUse:false)
+        let target=try WorkshopPaidInstallWire.decode(WorkshopPaidInstallTarget.self,data:JSONSerialization.data(withJSONObject:Self.target)),command=try WorkshopPaidInstallCommand(item:Self.item(),target:target,region:"110101",commercialUse:false)
         let authorization=WorkshopPaidInstallDispatchAuthorization(context:ctx,revision:grant.revision,body:try command.wireData(),lifetime:lifetime,checkCurrent:{})
         do{_=try await clone.sendWorkshopPaidInstall(mutationRequest(command,context:ctx),authorization:authorization);XCTFail("Expired action forwarded")}catch{};XCTAssertTrue(h.wire.installs.isEmpty)
     }
     private func mutationRequest(_ command:WorkshopPaidInstallCommand,context:RuntimeDependencyContext)throws->URLRequest{
-        var r=URLRequest(url:context.baseURL.appendingPathComponent("api/workshop/purchased/install/submit"));r.httpMethod="POST";r.httpBody=try command.wireData();r.setValue("synthetic-7",forHTTPHeaderField:"Authorization");r.setValue(String(r.httpBody!.count),forHTTPHeaderField:"Content-Length");r.setValue("application/json; charset=utf-8",forHTTPHeaderField:"Content-Type");r.setValue("no-store",forHTTPHeaderField:"Cache-Control");r.setValue("no-cache",forHTTPHeaderField:"Pragma");r.cachePolicy = .reloadIgnoringLocalCacheData;return r
+        var r=URLRequest(url:context.baseURL.appendingPathComponent("api/workshop/v2/purchased/install/submit"));r.httpMethod="POST";r.httpBody=try command.wireData();r.setValue("synthetic-7",forHTTPHeaderField:"Authorization");r.setValue(String(r.httpBody!.count),forHTTPHeaderField:"Content-Length");r.setValue("application/json; charset=utf-8",forHTTPHeaderField:"Content-Type");r.setValue("no-store",forHTTPHeaderField:"Cache-Control");r.setValue("no-cache",forHTTPHeaderField:"Pragma");r.cachePolicy = .reloadIgnoringLocalCacheData;return r
     }
 }

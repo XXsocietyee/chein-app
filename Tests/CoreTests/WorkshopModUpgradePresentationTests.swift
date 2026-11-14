@@ -3,8 +3,8 @@ import XCTest
 
 final class WorkshopModUpgradePresentationTests: XCTestCase {
     private func makePurchasedItem(
-        licenseId: String = "w18-paid-29",
-        moduleId: String = "synthetic-module",
+        licenseId: String = "WKO_0000000000000000000000000000001d",
+        moduleId: Int64 = 11,
         versionId: String = "v1-0-0",
         status: String = "ACTIVE"
     ) throws -> WorkshopPurchasedItem {
@@ -22,15 +22,15 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
             "translation": "PROHIBITED",
             "updates": "EXACT_PURCHASED_VERSION",
             "redistribution": "PROHIBITED",
-            "allowedRegions": ["synthetic-region"],
+            "allowedRegions": ["110101"],
             "themeLimit": ["unlimited": false, "maximum": 1],
             "merchantLimit": ["unlimited": false, "maximum": 0],
-            "runLimit": ["unlimited": false, "maximum": 10],
+            "runLimit": ["unlimited": false, "maximum": 0],
             "acquisition": "PAID",
             "buyerKind": "INDIVIDUAL",
             "useDuration": "PERPETUAL_PURCHASED_VERSION",
-            "contentUseStatus": "PAID_INSTALL_AUTHORITY_UNAVAILABLE",
-            "purchaseActionStatus": "CHANNEL_APPROVAL_REQUIRED"
+            "contentUseStatus": "PRIVATE_DRAFT_INSTALL_AVAILABLE",
+            "purchaseActionStatus": "EXACT_VERSION_PURCHASED"
         ]
         return try JSONDecoder().decode(
             WorkshopPurchasedItem.self,
@@ -39,7 +39,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
     }
 
     private func makeVersion(
-        moduleId: String = "synthetic-module",
+        moduleId: String = "11",
         versionId: String,
         semver: String,
         hashChar: Character,
@@ -112,7 +112,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
         }
 
         let request = try coveredPresentation.makeUpgradeDraftRequest(confirmedByBuyer: true, requestId: "req-w18-0001")
-        XCTAssertEqual(request.licenseId, "w18-paid-29")
+        XCTAssertEqual(request.licenseId, "WKO_0000000000000000000000000000001d")
         XCTAssertEqual(request.fromVersionId, "v1-0-0")
         XCTAssertEqual(request.toVersionId, "v2-0-0")
         XCTAssertEqual(request.requestId, "req-w18-0001")
@@ -131,13 +131,13 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
         XCTAssertThrowsError(try makePurchasedItem(licenseId: "lic-99")) {
             XCTAssertEqual($0 as? WorkshopPurchasedIssue, .malformed)
         }
-        let term = try WorkshopPurchasedUseTerm(makePurchasedItem(licenseId: "w18-paid-99", moduleId: "mod-city", versionId: "ver-1"))
+        let term = try WorkshopPurchasedUseTerm(makePurchasedItem(licenseId: "WKO_00000000000000000000000000000063", moduleId: 11, versionId: "ver-1"))
         let disclosure = WorkshopPurchasedUseTermPresentation(term: term, locale: Locale(identifier: "zh-Hans"))
 
         XCTAssertTrue(disclosure.term.survivesSubscriptionEnd)
         XCTAssertFalse(disclosure.term.permitsRedistribution)
-        XCTAssertTrue(disclosure.versionSummaryText.contains("w18-paid-99"))
-        XCTAssertTrue(disclosure.versionSummaryText.contains("mod-city"))
+        XCTAssertTrue(disclosure.versionSummaryText.contains("WKO_00000000000000000000000000000063"))
+        XCTAssertTrue(disclosure.versionSummaryText.contains("11"))
         XCTAssertTrue(disclosure.versionSummaryText.contains("ver-1"))
         XCTAssertTrue(disclosure.subscriptionSurvivalNotice.contains("不随会员或订阅到期而失效"))
         XCTAssertTrue(disclosure.redistributionNotice.contains("严禁转售"))
@@ -233,7 +233,7 @@ final class WorkshopModUpgradePresentationTests: XCTestCase {
                 XCTAssertFalse(value.canConfirmUpgrade(confirmedByBuyer: true))
                 XCTAssertThrowsError(try value.makeUpgradeDraftRequest(confirmedByBuyer: true))
             }
-            let mismatched = try WorkshopPurchasedUseTerm(makePurchasedItem(moduleId: "other-module"))
+            let mismatched = try WorkshopPurchasedUseTerm(makePurchasedItem(moduleId: 99))
             let preview = try WorkshopUpgradePreview(installed: installed, candidate: candidate, coverage: .covered)
             let value = WorkshopModUpgradePresentation(term: mismatched, preview: preview, locale: locale)
             XCTAssertFalse(value.isTermAlignedWithPreview); XCTAssertFalse(value.canConfirmUpgrade(confirmedByBuyer: true))

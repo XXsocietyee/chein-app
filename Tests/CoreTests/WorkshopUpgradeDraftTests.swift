@@ -23,8 +23,8 @@ import XCTest
 }
 
 @MainActor final class WorkshopUpgradeDraftTests: XCTestCase {
-    private func purchased(license: String = "w18-paid-53", module: String = "synthetic-module", version: String = "v1-0-0", hash: Character = "a", status: String = "ACTIVE") throws -> WorkshopPurchasedItem {
-        let payload: [String: Any] = ["licenseId": license, "moduleId": module, "purchasedVersionId": version, "contentHash": String(repeating: hash, count: 64), "status": status, "acquiredAt": "2026-10-19T00:00:00Z", "termsVersion": "terms-1", "termsHash": String(repeating: "b", count: 64), "commercialUse": "PROHIBITED", "adaptation": "LOCAL_ADAPTATION", "translation": "PROHIBITED", "updates": "EXACT_PURCHASED_VERSION", "redistribution": "PROHIBITED", "allowedRegions": ["synthetic-region"], "themeLimit": ["unlimited": false, "maximum": 1], "merchantLimit": ["unlimited": false, "maximum": 0], "runLimit": ["unlimited": false, "maximum": 10], "acquisition": "PAID", "buyerKind": "INDIVIDUAL", "useDuration": "PERPETUAL_PURCHASED_VERSION", "contentUseStatus": "PAID_INSTALL_AUTHORITY_UNAVAILABLE", "purchaseActionStatus": "CHANNEL_APPROVAL_REQUIRED"]
+    private func purchased(license: String = "WKO_00000000000000000000000000000035", module: Int64 = 11, version: String = "v1-0-0", hash: Character = "a", status: String = "ACTIVE") throws -> WorkshopPurchasedItem {
+        let payload: [String: Any] = ["licenseId": license, "moduleId": module, "purchasedVersionId": version, "contentHash": String(repeating: hash, count: 64), "status": status, "acquiredAt": "2026-10-19T00:00:00Z", "termsVersion": "terms-1", "termsHash": String(repeating: "b", count: 64), "commercialUse": "PROHIBITED", "adaptation": "LOCAL_ADAPTATION", "translation": "PROHIBITED", "updates": "EXACT_PURCHASED_VERSION", "redistribution": "PROHIBITED", "allowedRegions": ["110101"], "themeLimit": ["unlimited": false, "maximum": 1], "merchantLimit": ["unlimited": false, "maximum": 0], "runLimit": ["unlimited": false, "maximum": 0], "acquisition": "PAID", "buyerKind": "INDIVIDUAL", "useDuration": "PERPETUAL_PURCHASED_VERSION", "contentUseStatus": "PRIVATE_DRAFT_INSTALL_AVAILABLE", "purchaseActionStatus": "EXACT_VERSION_PURCHASED"]
         return try JSONDecoder().decode(WorkshopPurchasedItem.self, from: JSONSerialization.data(withJSONObject: payload))
     }
     private func lease(account: Int64 = 53, namespace: String = "player", realm: String = "local-realm", epoch: UInt64 = 7) throws -> WorkshopUpgradeAccountLease {
@@ -165,7 +165,7 @@ import XCTest
         _ = try flow.commit(item: item, presentation: try presentation(item), confirmedByBuyer: true, requestId: "upgrade-0001", generation: token)
         XCTAssertThrowsError(try flow.restore(item: try purchased(status: "REVOKED"))) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .revoked) }
         XCTAssertThrowsError(try flow.restore(item: try purchased(hash: "e"))) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .invalid) }
-        XCTAssertThrowsError(try flow.restore(item: try purchased(module: "other-module"))) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .invalid) }
+        XCTAssertThrowsError(try flow.restore(item: try purchased(module: 99))) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .invalid) }
         XCTAssertThrowsError(try flow.restore(item: try purchased(version: "v9-0-0"))) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .invalid) }
         gate.revoke()
         XCTAssertThrowsError(try flow.restore(item: item)) { XCTAssertEqual($0 as? WorkshopUpgradeDraftIssue, .staleLease) }

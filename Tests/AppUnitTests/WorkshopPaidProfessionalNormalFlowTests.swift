@@ -8,9 +8,9 @@ import UIKit
     static func data(_ value: [String: Any]) throws -> Data { try WorkshopPaidTextAppFixture.data(value) }
     static func decode<T: Decodable>(_ type: T.Type, _ value: [String: Any]) throws -> T { try WorkshopPaidTextAppFixture.decode(type, value) }
     static var target: [String: Any] { ["topicId":501,"name":"Synthetic city target","productType":1,"mode":"CITY_ORIENTATION","routeConfigVersion":4,"ownerModeFingerprint":String(repeating:"d",count:64),"fingerprintProfile":"W18_CONTENT_OWNER_MODE_V1","materializationStatus":"PROTECTED_TEMPLATE_ADAPTER_REQUIRED"] }
-    static var draft: [String: Any] { ["targetDraftId":91,"targetRevision":2,"businessType":"TOPIC","targetPayloadHash":String(repeating:"e",count:64),"mode":"UNRESOLVED","destinationKind":"W18_PRIVATE_COMPONENT_ONLY"] }
+    static var draft: [String: Any] { ["targetDraftId":91,"targetRevision":2,"businessType":"MEMBER_TEMPLATE","targetPayloadHash":String(repeating:"e",count:64),"title":"Synthetic target"] }
     static func command() throws -> WorkshopPaidProfessionalCommand {
-        try .init(reference: WorkshopPaidTextAppFixture.reference(), body: decode(WorkshopPaidInstalledText.self, WorkshopPaidTextAppFixture.body()),
+        try .init(reference: WorkshopPaidTextAppFixture.reference(), body: WorkshopPaidTextAppFixture.text(),
                   currentDraft: decode(WorkshopPaidInstallTarget.self, draft), target: decode(WorkshopPaidProfessionalTarget.self, target), confirmedMode: .city,
                   requestID: UUID(uuidString:"00000000-0000-4000-8000-000000000002")!)
     }
@@ -44,10 +44,10 @@ import UIKit
             func response(_ value: [String: Any]) throws -> (Data, Int) { (try F.data(["code":200,"data":value]),200) }
             if path.contains("professional-") && delay { delay = false; return await withCheckedContinuation { suspended = $0 } }
             if path.hasSuffix("/installed-text/detail") { return (try WorkshopPaidTextAppFixture.envelope(),200) }
-            if path.hasSuffix("/install/targets") { return try response(["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":F.instant,"items":[F.draft],"hasMore":false,"nextBeforeDraftId":NSNull()]) }
-            if path.hasSuffix("/professional-targets/list") { return try response(["schema":"w18-owned-professional-topic-targets-v1","scope":"INDIVIDUAL_CONTENT_OWNER_AND_PUBLISHER_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":F.instant,"items":[F.target],"hasMore":false,"nextBeforeTopicId":NSNull()]) }
+            if path.hasSuffix("/install/targets") { return try response(["schema":"workshop-targets-v2","scope":"INDIVIDUAL","checkedAt":F.instant,"items":[F.draft],"hasMore":false]) }
+            if path.hasSuffix("/professional-targets/list") { return try response(["schema":"w18-owned-professional-topic-targets-v1","scope":"INDIVIDUAL_CONTENT_OWNER_AND_PUBLISHER_METADATA_ONLY","licenseId":"WKO_0000000000000000000000000000000b","checkedAt":F.instant,"items":[F.target],"hasMore":false,"nextBeforeTopicId":NSNull()]) }
             if path.hasSuffix("/professional-targets/detail") { return try response(F.target) }
-            if path.hasSuffix("/professional-operations/history") { return try response(["schema":"w18-paid-professional-operation-history-v1","scope":"OWNER_OPERATION_INTENT_REFERENCES_ONLY","licenseId":"w18-paid-11","items":command.map { [try! F.record($0)] } ?? [],"scannedCount":command == nil ? 0 : 1,"hasMore":false,"nextBeforeOperationKey":NSNull()]) }
+            if path.hasSuffix("/professional-operations/history") { return try response(["schema":"w18-paid-professional-operation-history-v1","scope":"OWNER_OPERATION_INTENT_REFERENCES_ONLY","licenseId":"WKO_0000000000000000000000000000000b","items":command.map { [try! F.record($0)] } ?? [],"scannedCount":command == nil ? 0 : 1,"hasMore":false,"nextBeforeOperationKey":NSNull()]) }
             if path.hasSuffix("/professional-operations/status") {
                 if let command { return try response(F.operation(command,state:state)) }
                 let input = try JSONSerialization.jsonObject(with:request.httpBody!) as! [String:Any]

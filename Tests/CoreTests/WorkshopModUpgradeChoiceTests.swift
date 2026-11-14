@@ -3,12 +3,12 @@ import XCTest
 
 final class WorkshopModUpgradeChoiceTests: XCTestCase {
     private func purchased(status: String = "ACTIVE") throws -> WorkshopPurchasedItem {
-        var item: [String: Any] = ["licenseId": "w18-paid-11", "moduleId": "synthetic-module", "purchasedVersionId": "synthetic-version", "contentHash": String(repeating: "a", count: 64), "status": status, "acquiredAt": "2026-10-05T00:00:00Z", "termsVersion": "terms-1", "termsHash": String(repeating: "b", count: 64), "commercialUse": "PROHIBITED", "adaptation": "LOCAL_ADAPTATION", "translation": "PROHIBITED", "updates": "EXACT_PURCHASED_VERSION", "redistribution": "PROHIBITED", "allowedRegions": ["synthetic-region"], "themeLimit": ["unlimited": false, "maximum": 1], "merchantLimit": ["unlimited": false, "maximum": 0], "runLimit": ["unlimited": false, "maximum": 10], "acquisition": "PAID", "buyerKind": "INDIVIDUAL", "useDuration": "PERPETUAL_PURCHASED_VERSION", "contentUseStatus": "PAID_INSTALL_AUTHORITY_UNAVAILABLE", "purchaseActionStatus": "CHANNEL_APPROVAL_REQUIRED"]
+        var item: [String: Any] = ["licenseId": "WKO_0000000000000000000000000000000b", "moduleId": 11, "purchasedVersionId": "synthetic-version", "contentHash": String(repeating: "a", count: 64), "status": status, "acquiredAt": "2026-10-05T00:00:00Z", "termsVersion": "terms-1", "termsHash": String(repeating: "b", count: 64), "commercialUse": "PROHIBITED", "adaptation": "LOCAL_ADAPTATION", "translation": "PROHIBITED", "updates": "EXACT_PURCHASED_VERSION", "redistribution": "PROHIBITED", "allowedRegions": ["110101"], "themeLimit": ["unlimited": false, "maximum": 1], "merchantLimit": ["unlimited": false, "maximum": 0], "runLimit": ["unlimited": false, "maximum": 0], "acquisition": "PAID", "buyerKind": "INDIVIDUAL", "useDuration": "PERPETUAL_PURCHASED_VERSION", "contentUseStatus": "PRIVATE_DRAFT_INSTALL_AVAILABLE", "purchaseActionStatus": "EXACT_VERSION_PURCHASED"]
         item["status"] = status
         return try JSONDecoder().decode(WorkshopPurchasedItem.self, from: JSONSerialization.data(withJSONObject: item))
     }
     private func version(_ id: String, _ semver: String, hash: Character, caps: Set<String> = ["choice"]) throws -> WorkshopModVersionRef {
-        try WorkshopModVersionRef(moduleId: "synthetic-module", versionId: id, packageVersion: semver, contentHash: String(repeating: hash, count: 64), capabilities: caps)
+        try WorkshopModVersionRef(moduleId: "11", versionId: id, packageVersion: semver, contentHash: String(repeating: hash, count: 64), capabilities: caps)
     }
 
     func testPurchasedUseIsPersistentAndNotRedistributable() throws {

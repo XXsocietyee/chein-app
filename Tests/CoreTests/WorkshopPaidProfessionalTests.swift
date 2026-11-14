@@ -6,9 +6,9 @@ import XCTest
     static func data(_ value: [String: Any]) throws -> Data { try WorkshopPaidTextFixture.data(value) }
     static func decode<T: Decodable>(_ type: T.Type, _ value: [String: Any]) throws -> T { try WorkshopPaidTextFixture.decode(type, value) }
     static var target: [String: Any] { ["topicId":501,"name":"Synthetic city target","productType":1,"mode":"CITY_ORIENTATION","routeConfigVersion":4,"ownerModeFingerprint":String(repeating:"d",count:64),"fingerprintProfile":"W18_CONTENT_OWNER_MODE_V1","materializationStatus":"PROTECTED_TEMPLATE_ADAPTER_REQUIRED"] }
-    static var draft: [String: Any] { ["targetDraftId":91,"targetRevision":2,"businessType":"TOPIC","targetPayloadHash":String(repeating:"e",count:64),"mode":"UNRESOLVED","destinationKind":"W18_PRIVATE_COMPONENT_ONLY"] }
+    static var draft: [String: Any] { ["targetDraftId":91,"targetRevision":2,"businessType":"MEMBER_TEMPLATE","targetPayloadHash":String(repeating:"e",count:64),"title":"Synthetic target"] }
     static func command() throws -> WorkshopPaidProfessionalCommand {
-        try .init(reference: WorkshopPaidTextFixture.reference(), body: decode(WorkshopPaidInstalledText.self, WorkshopPaidTextFixture.body()),
+        try .init(reference: WorkshopPaidTextFixture.reference(), body: WorkshopPaidTextFixture.text(),
                   currentDraft: decode(WorkshopPaidInstallTarget.self, draft), target: decode(WorkshopPaidProfessionalTarget.self, target), confirmedMode: .city,
                   requestID: UUID(uuidString:"00000000-0000-4000-8000-000000000002")!)
     }
@@ -55,12 +55,12 @@ import XCTest
             if path.hasSuffix("/professional-targets/list"), !targetPages.isEmpty { return try envelope(targetPages.removeFirst()) }
             if path.hasSuffix("/professional-operations/history"), !historyPages.isEmpty { return try envelope(historyPages.removeFirst()) }
             if path.hasSuffix("/installed-text/detail") { return (try WorkshopPaidTextFixture.envelope(),200) }
-            if path.hasSuffix("/install/targets") { return try envelope(["schema":"w18-paid-install-targets-v1","scope":"OWNER_DRAFT_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":F.instant,"items":[F.draft],"hasMore":false,"nextBeforeDraftId":NSNull()]) }
-            if path.hasSuffix("/professional-targets/list") { return try envelope(["schema":"w18-owned-professional-topic-targets-v1","scope":"INDIVIDUAL_CONTENT_OWNER_AND_PUBLISHER_METADATA_ONLY","licenseId":"w18-paid-11","checkedAt":F.instant,"items":[target],"hasMore":false,"nextBeforeTopicId":NSNull()]) }
+            if path.hasSuffix("/install/targets") { return try envelope(["schema":"workshop-targets-v2","scope":"INDIVIDUAL","checkedAt":F.instant,"items":[F.draft],"hasMore":false]) }
+            if path.hasSuffix("/professional-targets/list") { return try envelope(["schema":"w18-owned-professional-topic-targets-v1","scope":"INDIVIDUAL_CONTENT_OWNER_AND_PUBLISHER_METADATA_ONLY","licenseId":"WKO_0000000000000000000000000000000b","checkedAt":F.instant,"items":[target],"hasMore":false,"nextBeforeTopicId":NSNull()]) }
             if path.hasSuffix("/professional-targets/detail") { return try envelope(detailTarget ?? target) }
             if path.hasSuffix("/professional-operations/history") {
                 let next = emptyNextPage && nextPages == 0; nextPages += 1
-                return try envelope(["schema":"w18-paid-professional-operation-history-v1","scope":"OWNER_OPERATION_INTENT_REFERENCES_ONLY","licenseId":"w18-paid-11","items":recorded.map { [try! F.record($0)] } ?? [],"scannedCount":next ? 50 : recorded == nil ? 0 : 1,"hasMore":next,"nextBeforeOperationKey":next ? String(repeating:"b",count:64) as Any : NSNull()])
+                return try envelope(["schema":"w18-paid-professional-operation-history-v1","scope":"OWNER_OPERATION_INTENT_REFERENCES_ONLY","licenseId":"WKO_0000000000000000000000000000000b","items":recorded.map { [try! F.record($0)] } ?? [],"scannedCount":next ? 50 : recorded == nil ? 0 : 1,"hasMore":next,"nextBeforeOperationKey":next ? String(repeating:"b",count:64) as Any : NSNull()])
             }
             if path.hasSuffix("/professional-operations/status") {
                 let value = try JSONSerialization.jsonObject(with: request.httpBody!) as! [String: Any]
@@ -345,13 +345,13 @@ import XCTest
     private func targetPage(_ ids: [Int], more: Bool = false) -> [String: Any] {
         let items = ids.map { id -> [String: Any] in var value = F.target; value["topicId"] = id; return value }
         return ["schema":"w18-owned-professional-topic-targets-v1", "scope":"INDIVIDUAL_CONTENT_OWNER_AND_PUBLISHER_METADATA_ONLY",
-                "licenseId":"w18-paid-11", "checkedAt":F.instant, "items":items, "hasMore":more,
+                "licenseId":"WKO_0000000000000000000000000000000b", "checkedAt":F.instant, "items":items, "hasMore":more,
                 "nextBeforeTopicId":more ? ids.last! as Any : NSNull()]
     }
     private func historyPage(key: String, next: String? = nil) throws -> [String: Any] {
         var record = try F.record(F.command()); record["operationKey"] = key
         return ["schema":"w18-paid-professional-operation-history-v1", "scope":"OWNER_OPERATION_INTENT_REFERENCES_ONLY",
-                "licenseId":"w18-paid-11", "items":[record], "scannedCount":next == nil ? 1 : 50,
+                "licenseId":"WKO_0000000000000000000000000000000b", "items":[record], "scannedCount":next == nil ? 1 : 50,
                 "hasMore":next != nil, "nextBeforeOperationKey":next.map { $0 as Any } ?? NSNull()]
     }
     private func cursors(_ h: Harness, field: String) throws -> [String] {

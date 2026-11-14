@@ -84,10 +84,10 @@ enum HostedAccessibilityRuntime {
 }
 
 @MainActor enum WorkshopPurchasedAppFixture {
-    static let item: [String: Any] = ["licenseId":"w18-paid-11","moduleId":"synthetic-module","purchasedVersionId":"synthetic-version","contentHash":String(repeating:"a",count:64),"status":"ACTIVE","acquiredAt":"2026-10-05T00:00:00Z","termsVersion":"terms-1","termsHash":String(repeating:"b",count:64),"commercialUse":"PROHIBITED","adaptation":"LOCAL_ADAPTATION","translation":"PROHIBITED","updates":"EXACT_PURCHASED_VERSION","redistribution":"PROHIBITED","allowedRegions":["synthetic-region"],"themeLimit":["unlimited":false,"maximum":1],"merchantLimit":["unlimited":false,"maximum":0],"runLimit":["unlimited":false,"maximum":10],"acquisition":"PAID","buyerKind":"INDIVIDUAL","useDuration":"PERPETUAL_PURCHASED_VERSION","contentUseStatus":"PAID_INSTALL_AUTHORITY_UNAVAILABLE","purchaseActionStatus":"CHANNEL_APPROVAL_REQUIRED"]
-    static let header: [String: Any] = ["schema":"workshop-purchased-owned-v1","scope":"PAID_INDIVIDUAL_PURCHASED_VERSION_METADATA_ONLY","checkedAt":"2026-10-05T00:00:00Z"]
-    static func page(_ rows: [[String:Any]] = [item], next: Int64? = nil) -> [String:Any] { var data=header;data["items"]=rows;data["hasMore"]=next != nil;data["nextBeforeOrderLineId"]=next.map{$0 as Any} ?? NSNull();return data }
-    static func detail(_ value:[String:Any] = item)->[String:Any]{var data=header;data["item"]=value;return data}
+    static let item: [String: Any] = ["licenseId":"WKO_0000000000000000000000000000000b","moduleId":11,"purchasedVersionId":"synthetic-version","contentHash":String(repeating:"a",count:64),"status":"ACTIVE","acquiredAt":"2026-10-05T00:00:00Z","termsVersion":"terms-1","termsHash":String(repeating:"b",count:64),"commercialUse":"PROHIBITED","adaptation":"LOCAL_ADAPTATION","translation":"PROHIBITED","updates":"EXACT_PURCHASED_VERSION","redistribution":"PROHIBITED","allowedRegions":["110101"],"themeLimit":["unlimited":false,"maximum":1],"merchantLimit":["unlimited":false,"maximum":0],"runLimit":["unlimited":false,"maximum":0],"acquisition":"PAID","buyerKind":"INDIVIDUAL","useDuration":"PERPETUAL_PURCHASED_VERSION","contentUseStatus":"PRIVATE_DRAFT_INSTALL_AVAILABLE","purchaseActionStatus":"EXACT_VERSION_PURCHASED"]
+    static let header: [String: Any] = ["schema":"workshop-purchased-v2","scope":"INDIVIDUAL","checkedAt":"2026-10-05T00:00:00Z"]
+    static func page(_ rows: [[String:Any]] = [item], next: Int64? = nil) -> [String:Any] { var data=header;data["items"]=rows;data["hasMore"]=next != nil;if let next { data["nextBeforeOrderLineId"]=next };return data }
+    static func detail(_ value:[String:Any] = item)->[String:Any]{ value }
     static func envelope(_ object:[String:Any]) throws -> Data {try JSONSerialization.data(withJSONObject:["code":200,"data":object])}
 }
 
@@ -172,10 +172,10 @@ enum HostedAccessibilityRuntime {
         let browser = try XCTUnwrap(h.session.workshopPurchasedBrowser)
         XCTAssertTrue(browser === h.session.workshopPurchasedBrowser); XCTAssertEqual(h.wire.owned.count, 0)
         await browser.load(action: try listAction(browser)); XCTAssertEqual(browser.phase, .ready)
-        await browser.open(licenseId: "w18-paid-11", action: try detailAction(browser)); XCTAssertEqual(browser.detail?.item.licenseId, "w18-paid-11")
+        await browser.open(licenseId: "WKO_0000000000000000000000000000000b", action: try detailAction(browser)); XCTAssertEqual(browser.detail?.item.licenseId, "WKO_0000000000000000000000000000000b")
         XCTAssertEqual(h.wire.owned.map { $0.url!.lastPathComponent }, ["list", "detail"])
         XCTAssertEqual(h.wire.owned[0].httpBody, Data())
-        XCTAssertEqual(h.wire.owned[1].httpBody, Data("license_id=w18-paid-11".utf8))
+        XCTAssertEqual(h.wire.owned[1].httpBody, Data("license_id=WKO_0000000000000000000000000000000b".utf8))
         XCTAssertTrue(h.wire.owned.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "synthetic-7" && WorkshopPurchasedReadRoute(request: $0, baseURL: h.base) != nil })
         browser.closeList(); XCTAssertNil(browser.detail); XCTAssertTrue(browser.rows.isEmpty)
         XCTAssertTrue(browser === h.session.workshopPurchasedBrowser)
@@ -227,7 +227,7 @@ enum HostedAccessibilityRuntime {
     }
     func testRootRemovalRetiresLoadedProjectionAndReentryDoesNotResurrectIt() async throws {
         let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
-        let old = try XCTUnwrap(h.session.workshopPurchasedBrowser); await old.load(action: try listAction(old)); await old.open(licenseId: "w18-paid-11", action: try detailAction(old))
+        let old = try XCTUnwrap(h.session.workshopPurchasedBrowser); await old.load(action: try listAction(old)); await old.open(licenseId: "WKO_0000000000000000000000000000000b", action: try detailAction(old))
         h.session.setWorkshopOwnedPresentationActive(false)
         XCTAssertEqual(old.phase, .invalidated); XCTAssertTrue(old.rows.isEmpty); XCTAssertNil(old.detail)
         XCTAssertNil(h.session.workshopPurchasedBrowser)
@@ -309,10 +309,10 @@ enum HostedAccessibilityRuntime {
         let oldListBox = navigation.listAppearance
         let list = try XCTUnwrap(navigation.listViewAppeared(oldListBox))
         await browser.load(action: list.offer()!)
-        navigation.select(licenseId: "w18-paid-11", presentation: list)
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: list)
         let oldDetailBox = navigation.detailAppearance
-        let detail = try XCTUnwrap(navigation.detailViewAppeared(oldDetailBox, licenseId: "w18-paid-11"))
-        await browser.open(licenseId: "w18-paid-11", action: detail.offer()!)
+        let detail = try XCTUnwrap(navigation.detailViewAppeared(oldDetailBox, licenseId: "WKO_0000000000000000000000000000000b"))
+        await browser.open(licenseId: "WKO_0000000000000000000000000000000b", action: detail.offer()!)
         // Back arrives before either departed View received onDisappear.
         navigation.selection = nil
         let newListBox = navigation.listAppearance
@@ -322,21 +322,21 @@ enum HostedAccessibilityRuntime {
         XCTAssertTrue(navigation.listPermit === fresh); XCTAssertTrue(fresh.isLive)
         XCTAssertNil(navigation.listViewAppeared(oldListBox))
         await browser.load(action: fresh.offer()!)
-        navigation.select(licenseId: "w18-paid-11", presentation: fresh)
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: fresh)
         let newDetailBox = navigation.detailAppearance
-        let next = try XCTUnwrap(navigation.detailViewAppeared(newDetailBox, licenseId: "w18-paid-11"))
+        let next = try XCTUnwrap(navigation.detailViewAppeared(newDetailBox, licenseId: "WKO_0000000000000000000000000000000b"))
         navigation.detailViewDisappeared(oldDetailBox)
         XCTAssertTrue(navigation.detailPermit === next); XCTAssertTrue(next.isLive)
-        XCTAssertNil(navigation.detailViewAppeared(oldDetailBox, licenseId: "w18-paid-11"))
-        await browser.open(licenseId: "w18-paid-11", action: next.offer()!)
-        XCTAssertEqual(browser.detail?.item.licenseId, "w18-paid-11")
+        XCTAssertNil(navigation.detailViewAppeared(oldDetailBox, licenseId: "WKO_0000000000000000000000000000000b"))
+        await browser.open(licenseId: "WKO_0000000000000000000000000000000b", action: next.offer()!)
+        XCTAssertEqual(browser.detail?.item.licenseId, "WKO_0000000000000000000000000000000b")
     }
     // Synthetic appearance callbacks issue permits synchronously, outside every queued Task.
     private func listAction(_ browser: WorkshopPurchasedBrowser) throws -> WorkshopPurchasedActionPermit {
         try XCTUnwrap(browser.presentList()?.offer())
     }
     private func detailAction(_ browser: WorkshopPurchasedBrowser) throws -> WorkshopPurchasedActionPermit {
-        try XCTUnwrap(browser.presentDetail(licenseId: "w18-paid-11")?.offer())
+        try XCTUnwrap(browser.presentDetail(licenseId: "WKO_0000000000000000000000000000000b")?.offer())
     }
     func testQueuedListAfterBackAndReopenCannotDispatchOrReplaceFreshRows() async throws {
         let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
@@ -351,7 +351,7 @@ enum HostedAccessibilityRuntime {
         let current = try XCTUnwrap(navigation.offerList(reopened)); await current()
         XCTAssertEqual(browser.phase, .ready); XCTAssertEqual(h.wire.owned.count, 1)
         await queued()
-        XCTAssertEqual(h.wire.owned.count, 1); XCTAssertEqual(browser.rows.first?.licenseId, "w18-paid-11")
+        XCTAssertEqual(h.wire.owned.count, 1); XCTAssertEqual(browser.rows.first?.licenseId, "WKO_0000000000000000000000000000000b")
         XCTAssertFalse(browser.rows.first?.permitsContentUse ?? true)
     }
     func testQueuedDetailAfterBackCannotDispatchAndFreshReopenUsesExactClaim() async throws {
@@ -360,20 +360,20 @@ enum HostedAccessibilityRuntime {
         let navigation = WorkshopPurchasedNavigationState(browser: browser)
         let list = try XCTUnwrap(navigation.listAppeared())
         let read = try XCTUnwrap(navigation.offerList(list)); await read()
-        navigation.select(licenseId: "w18-paid-11", presentation: list)
-        let detail = try XCTUnwrap(navigation.detailAppeared(licenseId: "w18-paid-11"))
-        let queued = try XCTUnwrap(navigation.offerDetail(detail, licenseId: "w18-paid-11"))
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: list)
+        let detail = try XCTUnwrap(navigation.detailAppeared(licenseId: "WKO_0000000000000000000000000000000b"))
+        let queued = try XCTUnwrap(navigation.offerDetail(detail, licenseId: "WKO_0000000000000000000000000000000b"))
         navigation.selection = nil; XCTAssertNil(detail.offer(), "Back binding synchronously retires queued detail"); navigation.detailDisappeared(detail)
         XCTAssertNil(detail.offer())
         let reopened = try XCTUnwrap(navigation.listAppeared())
         let refresh = try XCTUnwrap(navigation.offerList(reopened)); await refresh(); await queued()
         XCTAssertEqual(h.wire.owned.map { $0.url!.lastPathComponent }, ["list", "list"])
         XCTAssertNil(browser.detail)
-        navigation.select(licenseId: "w18-paid-11", presentation: reopened)
-        let fresh = try XCTUnwrap(navigation.detailAppeared(licenseId: "w18-paid-11"))
-        let open = try XCTUnwrap(navigation.offerDetail(fresh, licenseId: "w18-paid-11")); await open()
-        XCTAssertEqual(browser.detail?.item.licenseId, "w18-paid-11")
-        XCTAssertEqual(h.wire.owned.last?.httpBody, Data("license_id=w18-paid-11".utf8))
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: reopened)
+        let fresh = try XCTUnwrap(navigation.detailAppeared(licenseId: "WKO_0000000000000000000000000000000b"))
+        let open = try XCTUnwrap(navigation.offerDetail(fresh, licenseId: "WKO_0000000000000000000000000000000b")); await open()
+        XCTAssertEqual(browser.detail?.item.licenseId, "WKO_0000000000000000000000000000000b")
+        XCTAssertEqual(h.wire.owned.last?.httpBody, Data("license_id=WKO_0000000000000000000000000000000b".utf8))
         XCTAssertEqual(h.wire.owned.count, 3)
     }
     func testQueuedReadAcrossRoleOrApprovalABACannotBorrowRestoredAuthority() async throws {
@@ -437,7 +437,7 @@ enum HostedAccessibilityRuntime {
             try await wait("\(role) initial purchased list ready", diagnostics: diagnostic){browser.phase == .ready && navigation.listPermit != nil}
             XCTAssertTrue(host.view.window === window)
             XCTAssertEqual(window.windowScene?.activationState, .foregroundActive)
-            navigation.select(licenseId:"w18-paid-11",presentation:navigation.listPermit)
+            navigation.select(licenseId:"WKO_0000000000000000000000000000000b",presentation:navigation.listPermit)
             try await wait("\(role) purchased detail ready", diagnostics: diagnostic){browser.detail != nil && navigation.detailPermit != nil}
             XCTAssertEqual(browser.detail?.item.purchasedVersionId,"synthetic-version");XCTAssertFalse(browser.detail?.item.permitsPurchase ?? true)
             navigation.selection=nil
@@ -469,17 +469,17 @@ enum HostedAccessibilityRuntime {
         let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
         let browser = try XCTUnwrap(h.session.workshopPurchasedBrowser), navigation = WorkshopPurchasedNavigationState(browser: browser)
         let list = try XCTUnwrap(navigation.listAppeared()); await browser.load(action: try XCTUnwrap(list.offer()))
-        navigation.select(licenseId: "w18-paid-11", presentation: list)
-        let old = try XCTUnwrap(navigation.detailAppeared(licenseId: "w18-paid-11"))
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: list)
+        let old = try XCTUnwrap(navigation.detailAppeared(licenseId: "WKO_0000000000000000000000000000000b"))
         navigation.selection = nil
         let nextList = try XCTUnwrap(navigation.listAppeared()); await browser.load(action: try XCTUnwrap(nextList.offer()))
-        navigation.select(licenseId: "w18-paid-11", presentation: nextList)
-        let fresh = try XCTUnwrap(navigation.detailAppeared(licenseId: "w18-paid-11"))
-        h.wire.delaysOwned = true; navigation.scheduleDetail(fresh, licenseId: "w18-paid-11"); await h.wire.waitForPending()
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: nextList)
+        let fresh = try XCTUnwrap(navigation.detailAppeared(licenseId: "WKO_0000000000000000000000000000000b"))
+        h.wire.delaysOwned = true; navigation.scheduleDetail(fresh, licenseId: "WKO_0000000000000000000000000000000b"); await h.wire.waitForPending()
         navigation.detailDisappeared(old)
         XCTAssertTrue(navigation.detailPermit === fresh); XCTAssertTrue(fresh.isLive); XCTAssertTrue(browser.detailLoading)
         h.wire.resume(Wire.envelope(WorkshopPurchasedAppFixture.detail()))
-        try await wait { browser.detail?.item.id == "w18-paid-11" }
+        try await wait { browser.detail?.item.id == "WKO_0000000000000000000000000000000b" }
         XCTAssertTrue(h.session.isSignedIn); XCTAssertEqual(h.wire.owned.count, 3)
     }
     func testRealViewAppearanceBoxCapturesPermitBeforeFirstRedrawAndCannotReappearAfterClose() async throws {
@@ -500,7 +500,7 @@ enum HostedAccessibilityRuntime {
         let oldView = WorkshopPurchasedViewAppearance(), newView = WorkshopPurchasedViewAppearance()
         let old = try XCTUnwrap(oldView.appear { navigation.listAppeared() })
         await browser.load(action: try XCTUnwrap(old.offer()))
-        navigation.select(licenseId: "w18-paid-11", presentation: old); navigation.selection = nil
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: old); navigation.selection = nil
         let fresh = try XCTUnwrap(newView.appear { navigation.listAppeared() })
         let current = try XCTUnwrap(navigation.offerList(fresh)); await current()
         oldView.disappear { navigation.listDisappeared($0) }
@@ -511,17 +511,17 @@ enum HostedAccessibilityRuntime {
         let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
         let browser = try XCTUnwrap(h.session.workshopPurchasedBrowser), navigation = WorkshopPurchasedNavigationState(browser: browser)
         let list = try XCTUnwrap(navigation.listAppeared()); await browser.load(action: try XCTUnwrap(list.offer()))
-        navigation.select(licenseId: "w18-paid-11", presentation: list)
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: list)
         let oldView = WorkshopPurchasedViewAppearance(), newView = WorkshopPurchasedViewAppearance()
-        let old = try XCTUnwrap(oldView.appear { navigation.detailAppeared(licenseId: "w18-paid-11") })
+        let old = try XCTUnwrap(oldView.appear { navigation.detailAppeared(licenseId: "WKO_0000000000000000000000000000000b") })
         navigation.selection = nil
         let returned = try XCTUnwrap(navigation.listAppeared())
-        navigation.select(licenseId: "w18-paid-11", presentation: returned)
-        let fresh = try XCTUnwrap(newView.appear { navigation.detailAppeared(licenseId: "w18-paid-11") })
-        let queued = try XCTUnwrap(navigation.offerDetail(fresh, licenseId: "w18-paid-11"))
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: returned)
+        let fresh = try XCTUnwrap(newView.appear { navigation.detailAppeared(licenseId: "WKO_0000000000000000000000000000000b") })
+        let queued = try XCTUnwrap(navigation.offerDetail(fresh, licenseId: "WKO_0000000000000000000000000000000b"))
         oldView.disappear { navigation.detailDisappeared($0) }
         XCTAssertFalse(old.isLive); XCTAssertTrue(navigation.detailPermit === fresh); XCTAssertTrue(fresh.isLive)
-        await queued(); XCTAssertEqual(browser.detail?.item.id, "w18-paid-11")
+        await queued(); XCTAssertEqual(browser.detail?.item.id, "WKO_0000000000000000000000000000000b")
     }
     func testCurrentCapturedDisappearStillBlocksLate401ForListAndDetail() async throws {
         for detail in [false, true] {
@@ -531,11 +531,11 @@ enum HostedAccessibilityRuntime {
             let permit: WorkshopPurchasedPresentationPermit
             if detail {
                 await browser.load(action: try XCTUnwrap(list.offer()))
-                navigation.select(licenseId: "w18-paid-11", presentation: list)
-                permit = try XCTUnwrap(navigation.detailAppeared(licenseId: "w18-paid-11"))
+                navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: list)
+                permit = try XCTUnwrap(navigation.detailAppeared(licenseId: "WKO_0000000000000000000000000000000b"))
             } else { permit = list }
             h.wire.delaysOwned = true
-            if detail { navigation.scheduleDetail(permit, licenseId: "w18-paid-11") } else { navigation.scheduleList(permit) }
+            if detail { navigation.scheduleDetail(permit, licenseId: "WKO_0000000000000000000000000000000b") } else { navigation.scheduleList(permit) }
             await h.wire.waitForPending()
             if detail { navigation.detailDisappeared(permit) } else { navigation.listDisappeared(permit) }
             h.wire.resume((Data(), 401))
@@ -602,7 +602,7 @@ enum HostedAccessibilityRuntime {
             if request.url?.path.contains("/workshop/v2/purchased/") == true {
                 if delaysOwned { return await withCheckedContinuation { pending = $0 } }
                 if request.url?.lastPathComponent == "list" { return Self.listReply }
-                var detail = Self.header; detail["item"] = Self.item; return Self.envelope(detail)
+                return Self.envelope(Self.item)
             }
             let json: String
             switch request.url?.lastPathComponent {
@@ -626,10 +626,10 @@ extension WorkshopPurchasedNormalAccountTests {
         visibility.appear()
         let oldList = try XCTUnwrap(navigation.listViewAppeared(oldBox))
         await browser.load(action: try XCTUnwrap(oldList.offer()))
-        navigation.select(licenseId: "w18-paid-11", presentation: oldList)
+        navigation.select(licenseId: "WKO_0000000000000000000000000000000b", presentation: oldList)
         let detailBox = navigation.detailAppearance
-        let detail = try XCTUnwrap(navigation.detailViewAppeared(detailBox, licenseId: "w18-paid-11"))
-        await browser.open(licenseId: "w18-paid-11", action: try XCTUnwrap(detail.offer()))
+        let detail = try XCTUnwrap(navigation.detailViewAppeared(detailBox, licenseId: "WKO_0000000000000000000000000000000b"))
+        await browser.open(licenseId: "WKO_0000000000000000000000000000000b", action: try XCTUnwrap(detail.offer()))
         navigation.selection = nil
         let returningBox = navigation.listAppearance
         XCTAssertNil(returningBox.permit)
