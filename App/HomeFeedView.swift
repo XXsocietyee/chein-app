@@ -89,6 +89,7 @@ import UIKit
                         HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
+                    CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
                     // Mini-program order: 编辑精选, 附近活动, 即将上线, then the feed.
                     // Today sits after those rails so it cannot push 编辑精选 below the fold.
                     feedSection(.recommended, order: 1)

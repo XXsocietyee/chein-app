@@ -273744,6 +273744,160 @@
         "en": {"stringUnit": {"state": "translated", "value": "Edit landing page"}},
         "zh-Hans": {"stringUnit": {"state": "translated", "value": "编辑落地页"}}
       }
+    },
+    "cy.state.offline.accessibility.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Offline status notice"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "离线状态提示"}}
+      }
+    },
+    "cy.state.offline.banner.cachedAt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Cache updated at"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "缓存更新于"}}
+      }
+    },
+    "cy.state.offline.banner.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Retry connection"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "重试连接"}}
+      }
+    },
+    "cy.state.offline.banner.stillOffline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Still offline. Check your connection and try again."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "仍处于离线状态，请检查网络后重试"}}
+      }
+    },
+    "cy.state.offline.banner.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "You're offline. Content may not be up to date."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "当前离线，内容可能不是最新的"}}
+      }
+    },
+    "cy.state.offline.queue.lockedUnknown %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "%lld operation(s) have an unconfirmed outcome and stay locked without auto-retry."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "有 %lld 项结果未知的操作保持锁定，不会自动重放。"}}
+      }
+    },
+    "cy.state.offline.queue.moneyNoAutoReplay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Payment and payout actions are never queued or replayed automatically."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "资金、支付与提现操作绝不会离线排队或自动重放。"}}
+      }
+    },
+    "cy.state.offline.queue.pending %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "%lld offline write(s) queued to sync"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "有 %lld 项已保存的非资金操作等待联网同步"}}
+      }
+    },
+    "cy.state.offline.queue.syncNow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Sync now"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "立即同步"}}
+      }
+    },
+    "cy.state.offline.queue.syncing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Syncing saved requests…"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "正在同步已保存的操作…"}}
+      }
+    },
+    "cy.state.offline.write.chip.excluded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Not queued"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "不自动重放"}}
+      }
+    },
+    "cy.state.offline.write.chip.locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Needs confirmation"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "待确认"}}
+      }
+    },
+    "cy.state.offline.write.chip.queued": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Queued offline"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "待联网发送"}}
+      }
+    },
+    "cy.state.offline.write.chip.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Rejected"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已拒绝"}}
+      }
+    },
+    "cy.state.offline.write.chip.synced": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Synced"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已同步"}}
+      }
+    },
+    "cy.state.offline.write.chip.syncing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Syncing"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "同步中"}}
+      }
+    },
+    "cy.state.offline.write.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Dismiss"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "知道了"}}
+      }
+    },
+    "cy.state.offline.write.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Saved offline request was rejected by the server"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "离线保存的请求已被服务器拒绝"}}
+      }
+    },
+    "cy.state.offline.write.synced": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Synced automatically after coming online"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "联网后已自动同步完成"}}
+      }
+    },
+    "cy.state.offline.write.willSendCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Saved offline — %lld write(s) will send when online"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已离线保存 %lld 项，将于联网后自动发送"}}
+      }
+    },
+    "cy.state.offline.write.willSendWhenOnline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Saved offline — will send when online"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已离线保存，将于联网后自动发送"}}
+      }
+    },
+    "roam.sync.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Connection lost. Location sync is paused."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "网络断开，位置暂不同步"}}
+      }
     }
   },
   "version": "1.0"

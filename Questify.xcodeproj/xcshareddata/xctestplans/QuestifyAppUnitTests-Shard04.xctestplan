@@ -336,6 +336,7 @@
         "OfficialEventTimeSafetyViewTests",
         "OfficialPublicEventCompositionTests",
         "OfficialSourceInvalidationViewTests",
+        "OfflineBannerPackage63Tests",
         "OfflineDurableRecoverySectionViewTests",
         "OrientScoreModelLoadTests",
         "OwnAccountRefreshOrderingTests",

@@ -22,6 +22,7 @@ import SwiftUI
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
     private var sending: Bool { coordinator.busy }
     private var showsConversation: Bool { coordinator.active && !coordinator.isSuspended }
     private var canCompose: Bool {
@@ -103,6 +104,10 @@ import SwiftUI
                             }
                             if let review = coordinator.pending { reviewPanel(review).id("shopNPC.review") }
                         }
+                        CYScreenOfflineWriteBanner(
+                            routes: ["/api/ai/npc/chat"],
+                            session: offlineWriteSession.session
+                        )
                         if !coordinator.isSuspended, let error = localFailure ?? coordinator.failure {
                             Group {
                                 if case .server(_, let message) = error, let message, !message.isEmpty { Text(verbatim: message) }
@@ -235,7 +240,12 @@ import SwiftUI
                             let intent = try coordinator.prepareTransmission(reviewID: review.id)
                             Task {
                                 guard scenePhase == .active, showsConversation, coordinator.scope == review.scope else { return }
-                                await coordinator.transmit(reviewID: review.id, intent: intent)
+                                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                                    environmentSession: offlineWriteSession.session,
+                                    routes: ["/api/ai/npc/chat"]
+                                ) {
+                                    await coordinator.transmit(reviewID: review.id, intent: intent)
+                                }
                                 guard showsConversation, coordinator.scope == review.scope else { return }
                                 // Clear only this accepted draft, never on cancel, failure or an uncertain result.
                                 if coordinator.pending == nil, coordinator.failure == nil, review.replacing == nil,
