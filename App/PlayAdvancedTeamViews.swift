@@ -108,13 +108,30 @@ import SwiftUI
                     }
                 }
                 ForEach(Array(model.leaderboard.enumerated()), id: \.offset) { _, row in
+                    let rankText = row["rank"].integer.map(String.init) ?? "—"
+                    let rawValue = metric == .elapsed
+                        ? row["elapsedSeconds"].integer.map { "\($0) s" }
+                        : row[metric == .units ? "completedUnits" : "score"].integer.map(String.init)
                     HStack {
-                        Text(verbatim: String(row["rank"].integer ?? 0)).monospacedDigit()
+                        Group {
+                            if row["rank"].integer == nil {
+                                Text(verbatim: "—").accessibilityLabel(Text("growth.unknownValue"))
+                            } else {
+                                Text(verbatim: rankText)
+                            }
+                        }
+                        .monospacedDigit()
                         Text(verbatim: row["displayName"].text ?? "")
+                            .fixedSize(horizontal: false, vertical: true)
                         Spacer()
-                        if metric == .elapsed {
-                            Text("\(row["elapsedSeconds"].integer ?? 0) s").monospacedDigit()
-                        } else { Text(verbatim: String(row[metric == .units ? "completedUnits" : "score"].integer ?? 0)).monospacedDigit() }
+                        Group {
+                            if let rawValue {
+                                Text(verbatim: rawValue)
+                            } else {
+                                Text(verbatim: "—").accessibilityLabel(Text("growth.unknownValue"))
+                            }
+                        }
+                        .monospacedDigit()
                     }
                 }
                 CYPillButton("playx.refresh", style: .secondary, systemImage: "arrow.clockwise") { Task { await model.loadAdvancedLeaderboard(surfaceID: surfaceID) } }

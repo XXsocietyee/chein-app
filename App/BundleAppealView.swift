@@ -135,10 +135,10 @@ import SwiftUI
                 tone: .danger
             )
         case .unavailable:
-            CYStateLayout(kind: .offline, title: text("申诉功能暂不可用。", "Appeals aren't available yet."))
+            CYStateLayout(kind: .offline, title: text("申诉功能暂未开放。", "Appeals aren't open yet."))
         case .failed:
             CYNoteBanner(
-                text: text("内容不符合要求，请检查后重试。", "Please check the details and try again."),
+                text: text("内容不符合要求，请检查后重试。", "Check the details and try again."),
                 symbol: "exclamationmark.circle",
                 tone: .danger
             )

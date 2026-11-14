@@ -103,7 +103,7 @@ import SwiftUI
             .accessibilityLabel(Text(verbatim: phrase("刷新状态", "Refresh status")))
             }
         case .unavailable:
-            CYStateLayout(kind: .offline, title: Text(verbatim: phrase("暂未开放", "Not available yet")))
+            CYStateLayout(kind: .offline, title: Text(verbatim: phrase("暂未开放", "Not open yet")))
         }
     }
 

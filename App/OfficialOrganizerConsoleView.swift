@@ -159,7 +159,7 @@ struct OfficialOrganizerConsoleView: View {
                     .accessibilityIdentifier("official.organizer.denied")
             case .error:
                 CYErrorStateView(title: LocalizedStringKey(c.t("没有读到主办状态", "Couldn't load organizer status")),
-                                 message: LocalizedStringKey(c.t("网络没连上，请重试", "The network is unavailable. Try again.")),
+                                 message: LocalizedStringKey(c.t("检查网络后再试一次", "Check your connection and try again.")),
                                  retryTitle: LocalizedStringKey(c.t("重试", "Retry")), onRetry: { Task { await model.load() } })
                     .accessibilityIdentifier("official.organizer.error")
             case .ready: content

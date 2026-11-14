@@ -61,15 +61,21 @@ struct SearchMapAllResultsSheet: View {
                             RoundedRectangle(cornerRadius: 18).fill(.secondary.opacity(0.1)).frame(height: 96).accessibilityHidden(true)
                         }
                     } else if failed && rows.isEmpty {
-                        ContentUnavailableView {
-                            Label("searchMap.w208.sheet.failed", systemImage: "exclamationmark.triangle")
-                        } actions: {
-                            Button("searchMap.retry", action: retry).frame(minHeight: 44)
-                        }.accessibilityIdentifier("searchMap.w208.sheet.failed")
+                        CYErrorStateView(
+                            systemImage: "exclamationmark.triangle",
+                            title: "searchMap.w208.sheet.failed",
+                            message: "searchMap.w208.sheet.failed.detail",
+                            retryTitle: "searchMap.retry",
+                            onRetry: retry
+                        )
+                        .accessibilityIdentifier("searchMap.w208.sheet.failed")
                     } else if rows.isEmpty {
-                        ContentUnavailableView("searchMap.w208.capsule.empty", systemImage: "mappin.slash",
-                                               description: Text("searchMap.w208.sheet.emptyHint"))
-                            .accessibilityIdentifier("searchMap.w208.sheet.empty")
+                        CYEmptyStateView(
+                            systemImage: "mappin.slash",
+                            title: "searchMap.w208.capsule.empty",
+                            description: "searchMap.w208.sheet.emptyHint"
+                        )
+                        .accessibilityIdentifier("searchMap.w208.sheet.empty")
                     }
                     let listOnly = rows.filter { !$0.hasValidCoordinates }.count
                     if listOnly > 0 {

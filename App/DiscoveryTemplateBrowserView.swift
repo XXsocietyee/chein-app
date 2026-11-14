@@ -45,7 +45,7 @@ struct DiscoveryTemplateBrowserView: View {
     var body: some View {
         Group {
             if !reader.isConfigured {
-                ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYEmptyState(systemImage: "network.slash", "discovery.unavailable", detail: "auth.notConfigured", kind: .offline)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {

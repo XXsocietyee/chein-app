@@ -47,7 +47,7 @@ struct DiscoveryTemplateDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured {
-                ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYEmptyState(systemImage: "network.slash", "discovery.unavailable", detail: "auth.notConfigured", kind: .offline)
             } else if detail.isLoading || loadedKey != requestKey {
                 CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
             } else if let error = detail.error {

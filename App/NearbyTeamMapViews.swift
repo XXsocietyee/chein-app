@@ -223,8 +223,19 @@ struct NearbyMineMembersText: View {
     let joined: Int?
     let maximum: Int?
     var body: some View {
-        if let maximum { Text("nearby.w208.mine.members \(joined ?? 0) \(maximum)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-        else { Text("nearby.w208.mine.membersOnly \(joined ?? 0)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+        Group {
+            if let joined, let maximum {
+                Text("nearby.w208.mine.members \(joined) \(maximum)")
+            } else if let joined {
+                Text("nearby.w208.mine.membersOnly \(joined)")
+            } else if let maximum {
+                Text("nearby.w208.mine.membersUnknownCap \(maximum)")
+            } else {
+                Text("nearby.w208.mine.membersUnknown")
+            }
+        }
+        .font(CYTypography.meta)
+        .foregroundStyle(CYColor.textTertiary)
     }
 }
 
