@@ -53,9 +53,10 @@ import SwiftUI
             while mounted && active && running && !Task.isCancelled {
                 let now = ProcessInfo.processInfo.systemUptime
                 if kind == .reaction { reaction.tick(now: now) }
-                else {
+                else if kind == .countdown {
+                    // `seconds` is a duration, not a server instant. Do not finish from the device clock.
+                } else {
                     elapsed = timing.elapsed(now: now)
-                    if kind == .countdown, elapsed >= Int(max(0, seconds) * 1000) { timing.measure(now: now) }
                     if kind == .typeIn, seconds > 0, elapsed >= Int(seconds * 1000) { timing.measure(now: now); typingFocused = false; expired = true }
                     if kind == .stopwatch, elapsed > Int((max(0, seconds) + 30) * 1000) { interrupt(); expired = true }
                 }
@@ -144,14 +145,16 @@ import SwiftUI
         if kind == .typeIn { return seconds.isFinite && seconds >= 0 && seconds <= 3600 && !(segment["target"].text ?? "").isEmpty }
         return seconds.isFinite && seconds > 0 && seconds <= 3600
     }
-    /// Countdown ring drains; the other clocks show a full ring (no fake progress for an open-ended timer).
+    /// Type-in still drains from its local measurement. The countdown has no server instant, so its ring stays empty.
     private var clockProgress: CGFloat {
-        guard kind == .countdown || kind == .typeIn, seconds > 0 else { return 1 }
+        if kind == .countdown { return 0 }
+        guard kind == .typeIn, seconds > 0 else { return 1 }
         return CGFloat(max(0, min(1, 1 - Double(elapsed) / (seconds * 1000))))
     }
     private var clockLabel: String {
         if kind == .stopwatch && timing.phase == .running && elapsed >= 1000 { return "—.—" }
-        if kind == .countdown || kind == .typeIn {
+        if kind == .countdown { return "—" }
+        if kind == .typeIn {
             if seconds <= 0 { return PlayTimedDisplayLocalization.seconds(Double(elapsed) / 1000, locale: locale) }
             return PlayTimedDisplayLocalization.seconds(max(0, seconds - Double(elapsed) / 1000), precision: .tenths, locale: locale)
         }

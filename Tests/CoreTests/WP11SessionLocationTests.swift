@@ -170,4 +170,21 @@ import XCTest
         XCTAssertNil(RegistrationPointsRefusal(usePoints: true, quote: some, availablePoints: 300))
         XCTAssertEqual(RegistrationPointsRefusal.noPoints.localizationKey, "registration.form.points.noPoints")
     }
+
+    func testOwnD01cClientPriceDoesNotApplyAPointRate() {
+        let price = RegistrationCoreLoopRules.computeOrderPrice(
+            unitPrice: 100, quantity: 2, memberDiscountRate: Decimal(string: "0.9"), couponDeductYuan: 10)
+        XCTAssertEqual(price.pointsDeductYuan, 0)
+        XCTAssertEqual(price.pointsUsed, 0)
+        XCTAssertEqual(price.payAmount, 170)
+    }
+
+    func testOwnOPT042bCountdownUsesServerClockOrAnEmDash() throws {
+        let window = try NativeTimeWindow(nativeWindow())
+        XCTAssertEqual(window.countdownSeconds, 3_600)
+        let raw = try JSONDecoder().decode(PlayWireValue.self, from: Data(#"{"sessionId":601,"activityId":41,"topicId":71,"nodeId":701,"version":2,"status":"RUNNING","deadlineAt":1790938800000}"#.utf8))
+        let state = try PlayAdvancedState(raw)
+        XCTAssertNotNil(state.deadlineAt)
+        XCTAssertNil(state.remainingSeconds(nowMilliseconds: 1_790_935_200_000))
+    }
 }

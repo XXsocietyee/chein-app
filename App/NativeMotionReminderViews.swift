@@ -179,14 +179,14 @@ import SwiftUI
                     .accessibilityIdentifier("nativePlatform.reminder.range")
             }
             if let window = stage?.window, !window.openNow {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
-                    let left = max(0, Int(window.nextOpenAt.timeIntervalSince(context.date)))
-                    ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .lastTextBaseline, spacing: CYSpacing.sm) { countdown(left); afterLabel }
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) { countdown(left); afterLabel }
-                    }
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .lastTextBaseline, spacing: CYSpacing.sm) { countdown(window.countdownSeconds); afterLabel }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) { countdown(window.countdownSeconds); afterLabel }
                 }
                 .accessibilityIdentifier("nativePlatform.reminder.countdown")
+            } else if stage?.window == nil, readIssue != nil {
+                countdown(nil)
+                    .accessibilityIdentifier("nativePlatform.reminder.countdown")
             }
             Text("nativePlatform.reminder.boundary")
                 .font(CYTypography.meta)
@@ -282,8 +282,14 @@ import SwiftUI
         let shown = (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         return shown.isEmpty ? "—" : shown
     }
-    private func countdown(_ left: Int) -> some View {
-        Text(verbatim: String(format: "%02d:%02d:%02d", left / 3600, (left % 3600) / 60, left % 60))
+    private func countdown(_ left: Int?) -> some View {
+        let text: String
+        if let left, left >= 0 {
+            text = String(format: "%02d:%02d:%02d", left / 3600, (left % 3600) / 60, left % 60)
+        } else {
+            text = "—"
+        }
+        return Text(verbatim: text)
             .font(CYTypography.data2XL.italic()).monospacedDigit()
             .foregroundStyle(palette.textPrimary)
     }

@@ -375,18 +375,14 @@ public enum RegistrationCoreLoopRules {
         public let payAmount: Decimal
     }
 
-    /// Order-level price & points calculation matching `CmsRegistrationServiceImpl.computePrice`.
-    /// Points cap (`maxPointsDeductPerOrderYuan`, default 50 yuan) is applied once per order, never multiplied by quantity.
+    /// Order total, member discount and coupon only.
+    /// Points stay on the server quote (`RegistrationQuote.pointsDeductYuan` / `pointsUsed`).
+    /// This function does not apply a client point-to-yuan rate.
     public static func computeOrderPrice(
         unitPrice: Decimal,
         quantity: Int = 1,
         memberDiscountRate: Decimal? = nil,
-        couponDeductYuan: Decimal? = nil,
-        usePoints: Bool = false,
-        pointsUsableForProduct: Bool = true,
-        userAvailablePoints: Int = 0,
-        pointDeductRate: Decimal = Decimal(string: "0.01")!,
-        maxPointsDeductPerOrderYuan: Decimal = 50
+        couponDeductYuan: Decimal? = nil
     ) -> ComputedOrderPrice {
         let validQty = max(1, quantity)
         let rawTotal = max(.zero, unitPrice) * Decimal(validQty)
@@ -404,30 +400,13 @@ public enum RegistrationCoreLoopRules {
         }()
         let afterCoupon = max(.zero, afterMember - couponDeduct)
 
-        var pointsDeduct: Decimal = .zero
-        var pointsUsed = 0
-        if usePoints && pointsUsableForProduct && afterCoupon > .zero && userAvailablePoints > 0 && pointDeductRate > .zero {
-            let orderCap = min(max(.zero, maxPointsDeductPerOrderYuan), afterCoupon)
-            let maxByBalance = roundYuan(Decimal(userAvailablePoints) * pointDeductRate)
-            let deduct = min(orderCap, maxByBalance)
-            if deduct > .zero {
-                pointsDeduct = deduct
-                let needed = NSDecimalNumber(decimal: deduct).dividing(by: NSDecimalNumber(decimal: pointDeductRate))
-                var roundedNeeded = Decimal()
-                var neededDec = needed.decimalValue
-                NSDecimalRound(&roundedNeeded, &neededDec, 0, .up)
-                pointsUsed = max(0, NSDecimalNumber(decimal: roundedNeeded).intValue)
-            }
-        }
-
-        let payAmount = max(.zero, afterCoupon - pointsDeduct)
         return ComputedOrderPrice(
             orderTotalYuan: orderTotal,
             memberDiscountYuan: memberDiscount,
             couponDeductYuan: couponDeduct,
-            pointsDeductYuan: pointsDeduct,
-            pointsUsed: pointsUsed,
-            payAmount: payAmount
+            pointsDeductYuan: .zero,
+            pointsUsed: 0,
+            payAmount: afterCoupon
         )
     }
 

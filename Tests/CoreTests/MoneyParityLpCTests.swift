@@ -122,9 +122,9 @@ final class MoneyParityLpCRulesTests: XCTestCase {
     }
 
     func testPricingAdapterAgreesWithMoneyPricingOnFractionalRate() {
-        let out = MoneyPricingAdapter.compute(unitPrice: 69, usePoints: true, userAvailablePoints: 101,
-                                              pointDeductRate: Decimal(string: "0.005")!)
-        let direct = MoneyPricing.compute(unitMinor: 6_900, quantity: 1, userPoints: 101, usePoints: true, rateMicroYuan: 5_000)
+        let out = MoneyPricingAdapter.compute(unitPrice: 69, usePoints: true, userAvailablePoints: 101)
+        let direct = MoneyPricing.compute(unitMinor: 6_900, quantity: 1, userPoints: 101, usePoints: true,
+                                           rateMicroYuan: MoneyPricing.defaultRateMicroYuan)
         XCTAssertEqual(out.breakdown, direct)
         XCTAssertEqual(out.price.pointsUsed, Int(direct.pointUsed))
     }

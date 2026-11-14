@@ -58,9 +58,7 @@ import SwiftUI
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("playx.advanced.summary")
                     if state.deadlineAt != nil {
-                        TimelineView(.periodic(from: .now, by: 1)) { context in
-                            LabeledContent("playx.advanced.remaining") { Text(verbatim: String(state.remainingSeconds(nowMilliseconds: Int64(context.date.timeIntervalSince1970 * 1000)) ?? 0)) }
-                        }
+                        LabeledContent("playx.advanced.remaining") { Text(verbatim: "—") }
                     }
                     if state.readyForBase {
                         CYPillButton("playx.advanced.continue") {

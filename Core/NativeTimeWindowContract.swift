@@ -24,6 +24,13 @@ public struct NativeTimeWindow: Equatable {
         nextCloseAt = Date(timeIntervalSince1970: Double(closing) / 1000)
         openNow = open; windowVersion = version
     }
+    /// Whole seconds from the server clock (`nextOpenAt − serverNow`). Nil when that gap is not finite.
+    /// The device clock is not an input.
+    public var countdownSeconds: Int? {
+        let milliseconds = (nextOpenAt.timeIntervalSince1970 - serverNow.timeIntervalSince1970) * 1000
+        guard milliseconds.isFinite, milliseconds >= 0 else { return nil }
+        return Int((milliseconds / 1000).rounded(.down))
+    }
     public func reminder(identifier: String, owner: String, now: Date) throws -> NativeLocalReminder {
         guard nextOpenAt.timeIntervalSince(now) >= 1, abs(now.timeIntervalSince(serverNow)) <= 120 else { throw NativePlatformIssue.expired }
         return NativeLocalReminder(identifier: identifier, owner: owner, windowRevision: windowVersion, fireAt: Date(timeIntervalSince1970: floor(nextOpenAt.timeIntervalSince1970)), timeZone: timeZone)

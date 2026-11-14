@@ -392,24 +392,19 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
     }
 
     func testOrderLevelPointsCapAnd24hNonRefundableQuoteRules() throws {
-        // Order-level points cap is 50 yuan per order (never 50 * quantity)
+        // Member discount and coupon stay local. Points are not priced from a client rate.
         let computed = RegistrationCoreLoopRules.computeOrderPrice(
             unitPrice: Decimal(100),
             quantity: 2,
             memberDiscountRate: Decimal(string: "0.9"),
-            couponDeductYuan: Decimal(10),
-            usePoints: true,
-            pointsUsableForProduct: true,
-            userAvailablePoints: 10_000,
-            pointDeductRate: Decimal(string: "0.01")!,
-            maxPointsDeductPerOrderYuan: 50
+            couponDeductYuan: Decimal(10)
         )
         XCTAssertEqual(computed.orderTotalYuan, Decimal(200))
         XCTAssertEqual(computed.memberDiscountYuan, Decimal(20))
         XCTAssertEqual(computed.couponDeductYuan, Decimal(10))
-        XCTAssertEqual(computed.pointsDeductYuan, Decimal(50))
-        XCTAssertEqual(computed.pointsUsed, 5_000)
-        XCTAssertEqual(computed.payAmount, Decimal(120))
+        XCTAssertEqual(computed.pointsDeductYuan, Decimal(0))
+        XCTAssertEqual(computed.pointsUsed, 0)
+        XCTAssertEqual(computed.payAmount, Decimal(170))
 
         // 24h non-refundable quote decoding & confirmation requirement
         let nonRefundablePaid = try quote(#"{"payAmount":68,"pointsUsable":false,"refundableNow":false,"refundDeadline":"2026-11-08 14:00:00","quoteSign":"sig-1"}"#)
