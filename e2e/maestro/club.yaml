@@ -1,0 +1,94 @@
+appId: invalid.example.questify.ios
+name: Club Join / Chat / Channel
+tags:
+  - e2e
+  - club
+env:
+  E2E_CLUB_ID: ${E2E_CLUB_ID:-7001}
+  E2E_CLUB_MESSAGE: ${E2E_CLUB_MESSAGE:-"Hello from E2E flow"}
+---
+# Seeded TEST clubs: 7001 (approval) / 7002 (auto-join).
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Open Club tab and jump straight to seeded club detail via supported deep link.
+- openLink: "chein://club/${E2E_CLUB_ID}/join"
+
+- extendedWaitUntil:
+    visible:
+      id: "club.detail.name"
+    timeout: 15000
+
+# Join or apply if viewer is not yet a member (`club.action.join` or `club.action.apply`).
+- runFlow:
+    when:
+      visible:
+        id: "club.application.message"
+    commands:
+      - tapOn:
+          id: "club.application.message"
+      - inputText: ${E2E_CLUB_MESSAGE}
+- runFlow:
+    when:
+      visible:
+        id: "club.action.apply"
+    commands:
+      - tapOn:
+          id: "club.action.apply"
+      - extendedWaitUntil:
+          visible:
+            id: "club.action.confirm"
+          timeout: 10000
+      - tapOn:
+          id: "club.action.confirm"
+- runFlow:
+    when:
+      visible:
+        id: "club.action.join"
+    commands:
+      - tapOn:
+          id: "club.action.join"
+      - extendedWaitUntil:
+          visible:
+            id: "club.action.confirm"
+          timeout: 10000
+      - tapOn:
+          id: "club.action.confirm"
+
+# If member (`club.chat.entry` visible), verify Club Chat (`club.chat.entry`) and Discord-style Channels (`club.channels.discordEntry`).
+- runFlow:
+    when:
+      visible:
+        id: "club.chat.entry"
+    commands:
+      - tapOn:
+          id: "club.chat.entry"
+      - runFlow:
+          when:
+            visible:
+              id: "message.send.input"
+          commands:
+            - tapOn:
+                id: "message.send.input"
+            - inputText: ${E2E_CLUB_MESSAGE}
+            - tapOn:
+                id: "message.send.button"
+            - assertVisible:
+                id: "message.send.receipt"
+      - back
+
+- runFlow:
+    when:
+      visible:
+        id: "club.channels.discordEntry"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "club.channels.discordEntry"
+          direction: DOWN
+          timeout: 8000
+      - tapOn:
+          id: "club.channels.discordEntry"
+      - back

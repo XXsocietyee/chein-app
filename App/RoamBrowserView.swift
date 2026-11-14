@@ -288,9 +288,11 @@ struct RoamBrowserView: View {
             }
             if cityDestination != nil {
                 Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
+                    .accessibilityIdentifier("roam.more.city")
             }
             if nearbyTeamsDestination != nil {
                 Button { toolbarRoute = .nearbyTeams } label: { Label("nearby.title", systemImage: "person.3") }
+                    .accessibilityIdentifier("roam.more.nearbyTeams")
             }
             Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
                 .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)

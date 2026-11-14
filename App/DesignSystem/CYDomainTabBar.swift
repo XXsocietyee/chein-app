@@ -155,6 +155,11 @@ extension View {
             .preference(key: CYTabBarHiddenPreferenceKey.self, value: hidden)
             .environment(\.cyTabBarHidden, hidden)
     }
+
+    /// Assigns stable accessibility identifiers to the native `UITabBarItem`s of a `TabView`.
+    func cyTabBarAccessibilityIdentifiers(_ identifiers: [String]) -> some View {
+        modifier(CYTabBarAccessibilityModifier(identifiers: identifiers))
+    }
 }
 
 /// Custom-rendered root tab bar bar/strip faithful to spec (`top-fade`, unselected 0.6, selected `#7A5CFF` icon)
@@ -211,6 +216,84 @@ struct CYRootTabBarStrip: View {
         )
     }
 }
+
+private struct CYTabBarAccessibilityModifier: ViewModifier {
+    let identifiers: [String]
+
+    func body(content: Content) -> some View {
+        #if canImport(UIKit)
+        content.background {
+            CYTabBarAccessibilityHost(identifiers: identifiers)
+                .allowsHitTesting(false)
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+#if canImport(UIKit)
+private struct CYTabBarAccessibilityHost: UIViewRepresentable {
+    let identifiers: [String]
+
+    func makeUIView(context: Context) -> CYTabBarAccessibilityAnchor {
+        let view = CYTabBarAccessibilityAnchor()
+        view.isUserInteractionEnabled = false
+        view.backgroundColor = .clear
+        view.isAccessibilityElement = false
+        view.identifiers = identifiers
+        return view
+    }
+
+    func updateUIView(_ uiView: CYTabBarAccessibilityAnchor, context: Context) {
+        uiView.identifiers = identifiers
+        uiView.applyIfNeeded()
+    }
+}
+
+private final class CYTabBarAccessibilityAnchor: UIView {
+    var identifiers: [String] = []
+    private weak var cachedTabBar: UITabBar?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        cachedTabBar = nil
+        guard window != nil else { return }
+        applyIfNeeded()
+        DispatchQueue.main.async { [weak self] in self?.applyIfNeeded() }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyIfNeeded()
+    }
+
+    func applyIfNeeded() {
+        guard window != nil else { return }
+        if cachedTabBar == nil || cachedTabBar?.window == nil {
+            cachedTabBar = findEnclosingTabBar()
+        }
+        guard let tabBar = cachedTabBar,
+              tabBar.window != nil,
+              let items = tabBar.items,
+              items.count == identifiers.count else { return }
+        for (item, id) in zip(items, identifiers) where item.accessibilityIdentifier != id {
+            item.accessibilityIdentifier = id
+        }
+    }
+
+    private func findEnclosingTabBar() -> UITabBar? {
+        var node: UIView? = self
+        while let current = node {
+            if let found = CYScreenChrome.findTabBar(in: current) {
+                return found
+            }
+            node = current.superview
+        }
+        return nil
+    }
+}
+#endif
 
 #if canImport(UIKit)
 /// UIKit appearance for the parts SwiftUI cannot style: unselected items at 0.6 opacity

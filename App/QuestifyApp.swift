@@ -268,7 +268,7 @@ struct SessionRootView: View {
     #endif
 
     @ViewBuilder private var homeTab: some View {
-                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine },onStartRoam:{ selectedTab = .roam }).cyFloatingTabBarClearance().tabItem { rootTabLabel(.home) }.tag(RootTab.home)
+                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine },onStartRoam:{ selectedTab = .roam }).cyFloatingTabBarClearance().tabItem { rootTabLabel(.home).accessibilityIdentifier("rootTabBar.tab.player.0") }.tag(RootTab.home)
     }
 
     @ViewBuilder private var roamTab: some View {
@@ -292,20 +292,20 @@ struct SessionRootView: View {
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
-                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
+                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.roam).accessibilityIdentifier("rootTabBar.tab.player.1") }.tag(RootTab.roam)
     }
 
     @ViewBuilder private var clubTab: some View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
-                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.club) }.tag(RootTab.club)
+                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.club).accessibilityIdentifier("rootTabBar.tab.player.2") }.tag(RootTab.club)
     }
 
     @ViewBuilder private var mineTab: some View {
                     Group {
                         if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home },presentsTicketPass:$deepLinkTicketPass).id(session.sessionRevision) }
                         else { WelcomeView() }
-                    }.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
+                    }.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.3") }.tag(RootTab.mine)
     }
 
     @ViewBuilder private var playerTabs: some View {
@@ -319,6 +319,7 @@ struct SessionRootView: View {
                 .onAppear { reachability.start() }
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
+                .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.player.0", "rootTabBar.tab.player.1", "rootTabBar.tab.player.2", "rootTabBar.tab.player.3"])
                 .environment(\.cyTabBarHidden, isTabBarHidden)
                 .onPreferenceChange(CYTabBarHiddenPreferenceKey.self) { isTabBarHidden = $0 }
                 .overlay { CYNightTabBar(selection: selectedTab).environment(\.cyTabBarHidden, isTabBarHidden) }

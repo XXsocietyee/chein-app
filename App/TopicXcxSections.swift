@@ -159,13 +159,16 @@ struct TopicXcxActionBar: View {
                         }
                     case .selfPlay(let price):
                         Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
+                            .accessibilityIdentifier("topic.cta.sessions")
                         Button(action: openSelfPlay) {
                             if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                             else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
                         }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                            .accessibilityIdentifier("topic.cta.selfPlay")
                     case .signUp:
                         Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                             .disabled(topic.merchantClosed)
+                            .accessibilityIdentifier("topic.cta.signUp")
                     }
                 }
                 .controlSize(.large)
