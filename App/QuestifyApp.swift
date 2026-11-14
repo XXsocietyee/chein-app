@@ -314,8 +314,7 @@ struct SessionRootView: View {
                     clubTab
                     mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
-                .offlineCapsule(reachability)
-                .onAppear { reachability.start() }
+                .sessionOfflineBanner(reachability: reachability, session: session)
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .overlay { CYNightTabBar(selection: selectedTab) }
@@ -333,11 +332,18 @@ struct SessionRootView: View {
                         merchantRootCoordinator.switchToConsumerMode()
                         if let destination { selectedTab = destination.isPlayerTab ? destination : .home }
                     })
+                    .sessionOfflineBanner(reachability: reachability, session: session)
                 } else {
                 playerTabs
                 }
-            } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).cyScreenStyle().roleTheme(.player) }
+            } else {
+                WelcomeView(onBrowse:{ browsingAsGuest=true })
+                    .cyScreenStyle()
+                    .roleTheme(.player)
+                    .sessionOfflineBanner(reachability: reachability, session: session)
+            }
         }
+        .onAppear { reachability.start() }
         return chain6(chain5(chain4(chain3(chain2(chain1(chain0(base)))))))
     }
 
