@@ -145,7 +145,7 @@ extension EnvironmentValues {
                     }
                     statusView
                     if canTapPay {
-                        CYPillButton(c.t("立即支付", "Pay now"), style: .primary) {
+                        CYPillButton(verbatim: c.t("立即支付", "Pay now"), style: .primary) {
                             Task {
                                 await viewModel.model.pay(
                                     registrationID: registrationID,
@@ -240,7 +240,7 @@ extension EnvironmentValues {
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("registration.pay.expired")
                 if let onExpiredRebuild {
-                    CYPillButton(c.t("重新确认并下单", "Rebuild order"), style: .secondary) {
+                    CYPillButton(verbatim: c.t("重新确认并下单", "Rebuild order"), style: .secondary) {
                         onExpiredRebuild()
                     }
                     .accessibilityIdentifier("registration.pay.rebuild")
