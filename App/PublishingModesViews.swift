@@ -226,7 +226,12 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 }.id(original.id)
             }
         }
-        .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) { pickerSheet }
+        .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) {
+            pickerSheet
+                .themeDomain(.topicEditor)
+                .presentationCornerRadius(CYRadius.sheet)
+                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+        }
         .sheet(isPresented: $localReview) {
             let snapshot = review
             NavigationStack {
@@ -242,6 +247,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         Section("publishParity.activity.description") { Text(draft.description) }
                     }
                 }
+                .cyDomainScreen(.topicEditor)
                 .navigationTitle(Text("publishModes.review")).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -251,11 +257,17 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         }
                     }
                 }
-                .questifyBottomAction {
-                    Button { if let snapshot { Task { await submit(snapshot) } } } label: { Text("publishModes.confirm").frame(maxWidth: .infinity) }
-                        .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CYFooterBar {
+                        Button { if let snapshot { Task { await submit(snapshot) } } } label: { Text("publishModes.confirm") }
+                            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
+                            .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
+                    }
                 }
             }
+            .themeDomain(.topicEditor)
+            .presentationCornerRadius(CYRadius.sheet)
+            .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
             .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
@@ -336,8 +348,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale))
                     }
                     Text(verbatim: CoreLoopCopy(locale: locale).tr(ActivityPublishingWizard.collaboratorSettlementNotice))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textSecondary)
                     fieldError("collaborators")
                 }.disabled(!editable)
                 ForEach($draft.tickets) { $ticket in
@@ -400,7 +412,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 }
             }
             submissionResult
-        }.publishFormChrome().navigationTitle(Text("publishModes.activity"))
+        }.publishFormChrome().cyPushedChrome(domain: .topicEditor).navigationTitle(Text("publishModes.activity"))
         .navigationBarTitleDisplayMode(.inline)
         // Large titles truncate at accessibility sizes ("Publish an act…"): inline title, type capped, shrinks before clipping.
         .toolbar { ToolbarItem(placement: .principal) {
@@ -408,16 +420,18 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 .lineLimit(1).minimumScaleFactor(0.7).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 .accessibilityAddTraits(.isHeader)
         } }
-        .questifyBottomAction {
-            VStack(spacing: 8) {
-                if !message.isEmpty {
-                    Text(LocalizedStringKey(message)).font(.footnote)
-                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
-                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("publishModes.message")
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            CYFooterBar {
+                VStack(spacing: CYSpacing.sm) {
+                    if !message.isEmpty {
+                        Text(LocalizedStringKey(message)).font(CYTypography.meta)
+                            .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
+                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("publishModes.message")
+                    }
+                    ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
                 }
-                ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
-            }.background(palette.bgPage)
+            }
         }
         .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
         .onChange(of: account) { _, _ in
@@ -468,7 +482,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     private func clearButton(_ field: ActivityPublishingLocalClearOwner.Field) -> some View {
         let action = localClear.action(field, draft: $draft, account: account, draftID: draftID, allowed: { mayClear })
         return Button(action: action) {
-            Label("publishModes.clear", systemImage: "xmark.circle.fill").labelStyle(.iconOnly).foregroundStyle(.secondary)
+            Label("publishModes.clear", systemImage: "xmark.circle.fill").labelStyle(.iconOnly).foregroundStyle(palette.textTertiary)
         }.buttonStyle(.borderless)
             .disabled(!mayClear || !localClear.canClear(field, draft: draft, account: account, draftID: draftID))
             .accessibilityIdentifier("publishModes.activity.clear." + field.id)

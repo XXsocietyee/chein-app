@@ -23,22 +23,52 @@ import SwiftUI
     let flow: PublishingAIDraftFlow
     let applied: () -> Void
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         if flow.candidate == nil {
             VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                Text("creatorAIPrompts.title",tableName:"CreatorAIPrompts").font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                ForEach(PublishingAIPromptSuggestion.allCases) { suggestion in
-                    Button(action:controller.action(suggestion,languageCode:locale.identifier,flow:flow,applied:applied)) {
-                        Label {
-                            Text(LocalizedStringKey(suggestion.titleKey),tableName:"CreatorAIPrompts")
-                                .fixedSize(horizontal: false, vertical: true)
-                        } icon: { Image(systemName:"arrow.turn.down.right") }
-                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    }.buttonStyle(.borderless).disabled(!controller.canSelect(in:flow))
-                        .accessibilityIdentifier("creatorAIPrompts.select." + suggestion.rawValue)
+                Text("creatorAIPrompts.title",tableName:"CreatorAIPrompts")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                        promptButtons(fullWidth: true)
+                    }
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: Theme.Space.s2) {
+                            promptButtons(fullWidth: false)
+                        }
+                        .padding(.vertical, CYSpacing.xxs)
+                    }
                 }
             }.accessibilityIdentifier("creatorAIPrompts.options")
+        }
+    }
+    @ViewBuilder private func promptButtons(fullWidth: Bool) -> some View {
+        ForEach(PublishingAIPromptSuggestion.allCases) { suggestion in
+            Button(action:controller.action(suggestion,languageCode:locale.identifier,flow:flow,applied:applied)) {
+                Label {
+                    Text(LocalizedStringKey(suggestion.titleKey),tableName:"CreatorAIPrompts")
+                        .font(CYTypography.label)
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName:"sparkles")
+                        .font(CYTypography.meta)
+                        .accessibilityHidden(true)
+                }
+                .foregroundStyle(palette.textPrimary)
+                .padding(.horizontal, CYSpacing.md)
+                .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(palette.bgPage)
+                )
+            }.buttonStyle(.borderless).disabled(!controller.canSelect(in:flow))
+                .accessibilityIdentifier("creatorAIPrompts.select." + suggestion.rawValue)
         }
     }
 }

@@ -198,6 +198,8 @@ import Combine
 /// Host within the existing navigation stack. Intro/name/edit are replacement steps.
 @MainActor struct TemplateAuthoringView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private enum Step { case intro, name, edit }
     @StateObject private var model: TemplateAuthoringModel
     @StateObject private var media: TemplateMediaReviewController
@@ -262,6 +264,31 @@ import Combine
             }
         }
         .formStyle(.grouped).cyGroupedSurface().cyHeroScreen().cyPushedChrome(domain: .topicEditor)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if model.coordinator.session != nil, step == .edit {
+                CYFooterBar {
+                    let isAX = dynamicTypeSize.isAccessibilitySize
+                    let layout = isAX ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+                    layout {
+                        Button { preview = true } label: {
+                            Label("templateAuthor.preview", systemImage: "play.circle")
+                        }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: isAX, compact: true))
+                        .disabled(!model.canEdit || !model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference)
+                        .accessibilityIdentifier("templateAuthor.preview")
+
+                        if onSavedDraft == nil {
+                            Button { model.prepare(.publish) } label: {
+                                Text("templateAuthor.reviewPublish")
+                            }
+                            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
+                            .disabled(!model.canEdit || !model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly)
+                            .accessibilityIdentifier("templateAuthor.reviewPublish")
+                        }
+                    }
+                }
+            }
+        }
         .modifier(TemplateAuthoringExitGuard(model: model, overlaysOpen: { preview || discard || media.review != nil }))
         .disabled(model.busy)
         .task { model.load(); media.reload() }
@@ -273,11 +300,15 @@ import Combine
         .modifier(TemplateMediaReviewPresentation(controller: media))
         .sheet(isPresented: $preview) {
             TemplateConfiguredRehearsalPreview(model: model) { TemplateAuthoringPreviewView(draft: model.draft) }
-                .cyPlayerSheetGlass()
+                .themeDomain(.topicEditor)
+                .presentationCornerRadius(CYRadius.sheet)
+                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
         }
         .sheet(item: $model.review, onDismiss: { model.cancel() }) { value in
             NavigationStack { TemplateAuthoringReviewView(review: value, canSimulate: model.coordinator.canSimulate, canSubmit: model.coordinator.canSubmit, confirm: { Task { await model.confirm(value) } }, cancel: { model.cancel() }) }
-                .cyPlayerSheetGlass()
+                .themeDomain(.topicEditor)
+                .presentationCornerRadius(CYRadius.sheet)
+                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
         }
         .confirmationDialog("templateAuthor.discardQuestion", isPresented: $discard, titleVisibility: .visible) {
             Button("templateAuthor.discard", role: .destructive) { model.discard() }
@@ -309,8 +340,8 @@ import Combine
                 TextField("templateAuthor.field.title", text: $model.draft.title).accessibilityIdentifier("templateAuthor.field.title")
                 TemplateBasicFieldClearButton(model: model, field: .title)
             }
-            Button { step = .edit } label: { Text("templateAuthor.continue").frame(maxWidth: .infinity) }
-                .buttonStyle(.questifyPrimary).controlSize(.large)
+            Button { step = .edit } label: { Text("templateAuthor.continue") }
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                 .disabled(!model.draft.canSave || !model.canEdit).accessibilityIdentifier("templateAuthor.continue")
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
@@ -319,6 +350,23 @@ import Combine
     /// (game), reward and story, tools; then save draft, preview and publish.
     @ViewBuilder private var editor: some View {
         Group {
+            Section {
+                CYPublishStatusBar(
+                    stepTitles: templateStepTitles,
+                    currentStep: model.draft.publishIssues.isEmpty ? 3 : 1,
+                    saveState: templateSaveState,
+                    issues: templatePublishIssues,
+                    isSubmittingReview: model.busy,
+                    onSelectStep: { _ in },
+                    onSubmitReview: {
+                        if onSavedDraft == nil, model.canEdit, model.draft.publishIssues.isEmpty, !model.draft.validationMethod.isLocalConfigurationOnly {
+                            model.prepare(.publish)
+                        }
+                    }
+                )
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
             Section {
                 HStack(alignment: .bottom) {
                     TemplateAuthoringField("title", text: $model.draft.title)
@@ -335,7 +383,7 @@ import Combine
                     TemplateBasicFieldClearButton(model: model, field: .description)
                 }
                 if model.draft.publishIssues.contains("templateAuthor.validation.descriptionLength") {
-                    Text("templateAuthor.validation.descriptionLength").font(.footnote).foregroundStyle(CYColor.dangerText)
+                    Text("templateAuthor.validation.descriptionLength").font(CYTypography.meta).foregroundStyle(palette.danger)
                 }
                 TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
                 TemplateAuthoringVenueField(model: model)
@@ -367,25 +415,45 @@ import Combine
             if !model.draft.publishIssues.isEmpty {
                 Section("templateAuthor.validationTitle") {
                     ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) {
-                        Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(CYColor.dangerText)
+                        Label(LocalizedStringKey($0), systemImage: "exclamationmark.circle")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(palette.danger)
                     }
                 }
             }
-            Section {
-                if model.draft.validationMethod.isLocalConfigurationOnly { Text("templateAuthor.localConfigurationOnly").font(.footnote).foregroundStyle(.secondary) }
-                if onSavedDraft == nil {
-                    Button { model.prepare(.publish) } label: { Text("templateAuthor.reviewPublish").frame(maxWidth: .infinity) }
-                        .buttonStyle(.questifyPrimary).controlSize(.large)
-                        .disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewPublish")
-                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            if model.draft.validationMethod.isLocalConfigurationOnly {
+                Section {
+                    Text("templateAuthor.localConfigurationOnly").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                 }
             }
             Section {
                 CYPillButton("templateAuthor.reviewDraft", style: .secondary) { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft").e1ActionRow()
-                CYPillButton("templateAuthor.preview", style: .secondary, systemImage: "play.circle") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview").e1ActionRow()
                 CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal").e1ActionRow()
             }
         }.disabled(!model.canEdit)
+    }
+
+    private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
+
+    private var templateStepTitles: [String] {
+        isChinese ? ["信息", "规则", "玩法", "发布"] : ["Basics", "Rules", "Gameplay", "Publish"]
+    }
+
+    private var templateSaveState: CYPublishSaveState {
+        if model.coordinator.locked {
+            return .saveFailed(reason: isChinese ? "存在未确认请求" : "Pending request lock") { model.load() }
+        }
+        return .savedDraft(updatedAt: isChinese ? "本地草稿" : "Local draft")
+    }
+
+    private var templatePublishIssues: [CYPublishValidationIssue] {
+        Array(Set(model.draft.publishIssues)).sorted().prefix(5).map { key in
+            CYPublishValidationIssue(
+                id: key,
+                stepIndex: key.contains("rule") ? 1 : (key.contains("game") || key.contains("finish") ? 2 : 0),
+                message: appLocalized(String.LocalizationValue(key), locale: locale)
+            )
+        }
     }
 }
 
@@ -394,14 +462,18 @@ struct TemplateAuthoringField: View {
     @Binding var text: String
     let multiline: Bool
     let accessibilityID: String?
+    @Environment(\.cyPalette) private var palette
     init(_ key: String, text: Binding<String>, multiline: Bool = false, accessibilityID: String? = nil) {
         self.key = key; _text = text; self.multiline = multiline; self.accessibilityID = accessibilityID
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey("templateAuthor.field." + key)).font(.subheadline)
+            Text(LocalizedStringKey("templateAuthor.field." + key))
+                .font(CYTypography.label)
+                .foregroundStyle(palette.textSecondary)
             TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text, axis: multiline ? .vertical : .horizontal)
                 .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
+                .font(CYTypography.bodyCompact)
                 .textInputAutocapitalization(.sentences)
         }.padding(.vertical, 3)
     }
@@ -413,13 +485,15 @@ struct TemplateAuthoringReviewView: View {
     let canSubmit: Bool
     let confirm: () -> Void
     let cancel: () -> Void
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         Form {
             Section { CYHeroHeader("templateAuthor.reviewTitle") }.e1HeroRow()
             Section {
-                Text(verbatim: review.title).font(CYTypography.sectionTitle)
+                Text(verbatim: review.title).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
                 Text(review.request.path.hasSuffix("publish") ? "templateAuthor.publishReview" : "templateAuthor.draftReview")
-                if !canSubmit && !canSimulate { Text("templateAuthor.unavailable").foregroundStyle(.secondary) }
+                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                if !canSubmit && !canSimulate { Text("templateAuthor.unavailable").foregroundStyle(palette.textSecondary) }
             }
             if let draft = review.draft, !draft.advanced.enabledConfigurationLabelKeys.isEmpty {
                 Section("creatorComposition.review") {
@@ -430,16 +504,22 @@ struct TemplateAuthoringReviewView: View {
                 }
             }
             if canSimulate {
-                Section { Text("templateAuthor.fixtureNotice").foregroundStyle(.secondary) }
+                Section { Text("templateAuthor.fixtureNotice").foregroundStyle(palette.textSecondary) }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
-            .questifyBottomAction {
-                if canSimulate {
-                    Button(action: confirm) { Text("templateAuthor.confirmSimulation").frame(maxWidth: .infinity) }
-                        .accessibilityIdentifier("templateAuthor.confirmSimulation")
-                } else if canSubmit {
-                    Button(action: confirm) { Text("templateAuthor.confirmRequest").frame(maxWidth: .infinity) }
-                        .accessibilityIdentifier("templateAuthor.confirmRequest")
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().cyDomainScreen(.topicEditor)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if canSimulate || canSubmit {
+                    CYFooterBar {
+                        if canSimulate {
+                            Button(action: confirm) { Text("templateAuthor.confirmSimulation") }
+                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
+                                .accessibilityIdentifier("templateAuthor.confirmSimulation")
+                        } else if canSubmit {
+                            Button(action: confirm) { Text("templateAuthor.confirmRequest") }
+                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
+                                .accessibilityIdentifier("templateAuthor.confirmRequest")
+                        }
+                    }
                 }
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("templateAuthor.cancel", action: cancel).accessibilityIdentifier("templateAuthor.cancelReview") } }
@@ -504,7 +584,7 @@ struct TemplateAuthoringReviewView: View {
                     LabeledContent("templateAuthor.field.medalStyle", value: style)
                 }
             } }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen().cyDomainScreen(.topicEditor)
             .toolbar { ToolbarItem(placement: .cancellationAction) { if let configuredRehearsals {
                 TemplateConfiguredRehearsalCloseButton(controller: configuredRehearsals)
             } else { Button("templateAuthor.close") { dismiss() } } } }

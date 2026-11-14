@@ -95,6 +95,8 @@ import Combine
     @StateObject private var controller: TemplateAuthoringIntroController
     @State private var readerRevision: UInt64 = 0
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private struct LoadKey: Equatable { let scope: TemplateAuthoringIntroController.Scope; let readerRevision: UInt64; let active: Bool }
     init(model: TemplateAuthoringModel, reader: (any DiscoveryReading)?, onContinue: @escaping () -> Void) {
         self.model = model; self.reader = reader; self.onContinue = onContinue
@@ -105,52 +107,61 @@ import Combine
         let permit = controller.permit(), advance = controller.continueAction(onContinue)
         // Mini-program publish/template-intro: real featured covers, the two-line value
         // proposition, then one primary action (开始创建). No captions, no second exit.
+        let cardLayout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.sm))
         VStack(alignment:.leading,spacing:20) {
             if let examples = controller.visibleExamples, !examples.rows.isEmpty {
-                HStack(alignment:.top,spacing:10) {
+                cardLayout {
                     ForEach(Array(examples.rows.enumerated()),id:\.offset) { index, item in
                         VStack(alignment:.leading,spacing:6) {
                             DiscoveryArtwork(source:item.imgUrl,height:150)
                                 .frame(maxWidth:.infinity)
                                 .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
                             Text(verbatim:examples.categoryName(at:index))
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(.secondary)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(palette.textSecondary)
                                 .lineLimit(1)
                                 .accessibilityIdentifier("creatorIntro.example.category.\(index)")
                             Group {
                                 if item.title.isEmpty { Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") }
                                 else { Text(verbatim:item.title) }
-                            }.font(.footnote.weight(.semibold)).lineLimit(2)
+                            }
+                            .font(CYTypography.label)
+                            .foregroundStyle(palette.textPrimary)
+                            .lineLimit(2)
                         }
                         .frame(maxWidth:.infinity,alignment:.leading)
+                        .cyDomainCard(padding: CYSpacing.xs)
                         .accessibilityElement(children:.combine).accessibilityIdentifier("creatorIntro.example.\(index)")
                     }
                 }
             } else {
                 switch controller.visiblePhase {
                 case .idle,.loading:
-                    ProgressView().frame(maxWidth:.infinity,minHeight:150)
+                    CYSkeleton().frame(maxWidth:.infinity,minHeight:150)
                 case .failed:
                     VStack(alignment:.leading,spacing:8) {
-                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").font(.footnote).foregroundStyle(CYColor.dangerText)
+                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").font(CYTypography.meta).foregroundStyle(palette.danger)
                         Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
                             .accessibilityIdentifier("creatorIntro.retry")
                     }
-                case .empty,.ready: Text("creatorIntro.empty",tableName:"CreatorIntroExamples").font(.footnote).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .cyDomainCard()
+                case .empty,.ready: Text("creatorIntro.empty",tableName:"CreatorIntroExamples").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                 case .unavailable: EmptyView()
                 }
             }
             VStack(alignment:.leading,spacing:4) {
                 // Mini-program weight order: the lead line is the bold claim, the tail is the lighter follow-on.
-                Text("publishParity.intro.lead").font(.title2.bold()).foregroundStyle(CYColor.textPrimary)
-                Text("publishParity.intro.tail").font(.title2).foregroundStyle(CYColor.textSecondary)
+                Text("publishParity.intro.lead").font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                Text("publishParity.intro.tail").font(CYTypography.cardTitle).foregroundStyle(palette.textSecondary)
             }
             .fixedSize(horizontal:false,vertical:true)
             .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")
-            Button(action:advance) { Text("templateAuthor.begin").frame(maxWidth:.infinity) }
-                .buttonStyle(.questifyPrimary).controlSize(.large)
+            Button(action:advance) { Text("templateAuthor.begin") }
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                 .disabled(!controller.canContinue || scenePhase != .active).accessibilityIdentifier("templateAuthor.begin")
         }
         .padding(.vertical,8)

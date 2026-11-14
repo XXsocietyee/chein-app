@@ -62,7 +62,12 @@ import SwiftUI
                 Text(LocalizedStringKey("projectDraftStoryPreview.reason." + reason.rawValue), tableName: "ProjectDraftStoryPreview").font(.caption)
             }
         }
-        .sheet(item: controller.binding(original)) { original in ProjectDraftStoryPreviewView(controller: controller, original: original) }
+        .sheet(item: controller.binding(original)) { original in
+            ProjectDraftStoryPreviewView(controller: controller, original: original)
+                .themeDomain(.topicEditor)
+                .presentationCornerRadius(CYRadius.sheet)
+                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+        }
         .onChange(of: model.draftMutationRevision) { _, _ in controller.synchronize() }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onChange(of: model.coordinator.session) { _, _ in controller.synchronize() }
