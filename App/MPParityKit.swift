@@ -120,6 +120,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case myProjects
     /// `pages/merchant/ledger/index`. Read-only settlement overview. Payout stays off.
     case merchantLedger
+    /// A page-map path whose native screen already exists. The query is the one `MiniProgramPageLink` accepted.
+    case screen(page: String, query: [String: String])
 
     var id: Self { self }
 
@@ -181,7 +183,8 @@ enum MPParityRoute: Hashable, Identifiable {
         case "pages/merchant/ledger/index":
             self = .merchantLedger
         default:
-            return nil
+            guard MiniProgramPageLink.reviewedPages[page] != nil else { return nil }
+            self = .screen(page: page, query: query)
         }
     }
 }
@@ -225,6 +228,8 @@ enum MPParityRoute: Hashable, Identifiable {
             if let clubID { ClubPersonalSettlementView(clubID: clubID, personal: personal) } else if mine { ClubSettlementMineView() } else { unavailable }
         case .playerOrderList, .coopList, .myProjects, .merchantLedger:
             SubscribeMessageTapEntry(route: route)
+        case .screen(let page, let query):
+            MPReviewedPageScreen(page: page, query: query)
         }
     }
 
