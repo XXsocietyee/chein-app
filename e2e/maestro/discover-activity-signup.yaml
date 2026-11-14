@@ -1,0 +1,94 @@
+appId: invalid.example.questify.ios
+name: Discover -> Activity Sign-Up
+tags:
+  - e2e
+  - discover
+  - registration
+env:
+  E2E_ACTIVITY_QUERY: ${E2E_ACTIVITY_QUERY:-992031}
+  E2E_ACTIVITY_ID: ${E2E_ACTIVITY_ID:-992031}
+---
+# Assumes player session already signed in (run after login.yaml).
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+# Verify Home feed renders discovery entry points, then open Global Search.
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.hero.searchEntry"
+    timeout: 15000
+- tapOn:
+    id: "homeIndex.hero.searchEntry"
+
+# Search for seeded TEST activity (default 992031).
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.keyword"
+    timeout: 10000
+- tapOn:
+    id: "searchMap.keyword"
+- inputText: ${E2E_ACTIVITY_QUERY}
+- tapOn:
+    id: "searchMap.submit"
+
+# Open the discovered activity result card (`searchMap.result.activity-<id>`).
+- extendedWaitUntil:
+    visible:
+      id: "searchMap.result.activity-${E2E_ACTIVITY_ID}"
+    timeout: 15000
+- tapOn:
+    id: "searchMap.result.activity-${E2E_ACTIVITY_ID}"
+
+# Wait for ActivityDetailView to load.
+- extendedWaitUntil:
+    visible:
+      id: "activity.detail.content"
+    timeout: 15000
+- assertNotVisible:
+    id: "activity.detail.error"
+
+# If player already holds a registration (e.g., 9004 holds reg 75 / action is primaryAction),
+# otherwise open registration sheet via activity.openRegistration.
+- runFlow:
+    when:
+      visible:
+        id: "activity.openRegistration"
+    commands:
+      - tapOn:
+          id: "activity.openRegistration"
+      - extendedWaitUntil:
+          visible:
+            id: "registration.form.sheet"
+          timeout: 10000
+      - scrollUntilVisible:
+          element:
+            id: "registration.form.consent"
+          direction: DOWN
+          timeout: 10000
+      - tapOn:
+          id: "registration.form.consent"
+      - scrollUntilVisible:
+          element:
+            id: "registration.form.review"
+          direction: DOWN
+          timeout: 10000
+      - tapOn:
+          id: "registration.form.review"
+      # Known TEST backend gap (docs/release/workflows.md / E2E-20261113b.md):
+      # - api/registration/payment-readiness is blocked/unready on TEST where payment-readiness fails.
+      - runFlow:
+          when:
+            visible:
+              id: "registration.form.confirm"
+          commands:
+            - tapOn:
+                id: "registration.form.confirm"
+      - runFlow:
+          when:
+            visible:
+              id: "registration.form.close"
+          commands:
+            - tapOn:
+                id: "registration.form.close"

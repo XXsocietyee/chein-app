@@ -273,8 +273,16 @@ private struct SocialActionStateView: View {
             case .idle, .reviewing: EmptyView()
             case .preparing, .preflighting, .submitting: CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading"))
             case .notSent: CYStatusChip("social.notSent", tone: .neutral, systemImage: "paperplane").accessibilityIdentifier("social.state.notSent")
-            case .rejected: CYStatusChip("social.rejected", tone: .danger, systemImage: "xmark.circle").accessibilityIdentifier("social.state.rejected")
-            case .outcomeUnknown: CYStatusChip("social.unknown", tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("social.state.unknown")
+            case .rejected:
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    CYStatusChip("social.rejected", tone: .danger, systemImage: "xmark.circle").accessibilityIdentifier("social.state.rejected")
+                    if let row = RequestReferenceRow(pathFragment: "/api/") { row }
+                }
+            case .outcomeUnknown:
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    CYStatusChip("social.unknown", tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("social.state.unknown")
+                    if let row = RequestReferenceRow(pathFragment: "/api/") { row }
+                }
             case .acknowledged(let receipt):
                 CYStatusChip(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged"), tone: .success, systemImage: "checkmark").accessibilityIdentifier("social.state.acknowledged")
             }

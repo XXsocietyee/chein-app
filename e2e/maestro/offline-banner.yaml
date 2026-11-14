@@ -1,0 +1,37 @@
+appId: invalid.example.questify.ios
+name: Offline Banner (OfflineCapsule NWPathMonitor State)
+tags:
+  - e2e
+  - offline
+env:
+  E2E_EXPECT_OFFLINE: ${E2E_EXPECT_OFFLINE:-"0"}
+---
+# `OfflineCapsule` (`App/OfflineCapsule.swift`, id `"offline.capsule"`) observes system NWPathMonitor.
+# On iOS Simulator, NWPathMonitor follows host macOS network reachability (no in-app simulator offline toggle).
+# - Default sequential run (`E2E_EXPECT_OFFLINE=0`): verifies banner stays hidden while online.
+# - Offline verification run (`E2E_EXPECT_OFFLINE=1` while host network / NLC is dropped): verifies `offline.capsule` renders.
+- launchApp:
+    clearState: false
+    arguments:
+      "--e2e-test-host": "https://8120-agqyfqxs5vwolymtoibzq3fhde.instabox.tech"
+
+- extendedWaitUntil:
+    visible:
+      id: "homeIndex.hero.searchEntry"
+    timeout: 15000
+
+- runFlow:
+    when:
+      true: ${E2E_EXPECT_OFFLINE == "1"}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: "offline.capsule"
+          timeout: 10000
+
+- runFlow:
+    when:
+      true: ${E2E_EXPECT_OFFLINE != "1"}
+    commands:
+      - assertNotVisible:
+          id: "offline.capsule"

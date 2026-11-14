@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Questify E2E Harness"
+     xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Roam Shanghai Downtown Simulated Walk</name>
+  </metadata>
+  <trk>
+    <name>People's Square to East Nanjing Road</name>
+    <trkseg>
+      <trkpt lat="31.23040" lon="121.47370"><ele>4</ele><time>2026-11-13T08:00:00Z</time></trkpt>
+      <trkpt lat="31.23085" lon="121.47420"><ele>4</ele><time>2026-11-13T08:00:05Z</time></trkpt>
+      <trkpt lat="31.23130" lon="121.47480"><ele>4</ele><time>2026-11-13T08:00:10Z</time></trkpt>
+      <trkpt lat="31.23180" lon="121.47545"><ele>4</ele><time>2026-11-13T08:00:15Z</time></trkpt>
+      <trkpt lat="31.23235" lon="121.47610"><ele>4</ele><time>2026-11-13T08:00:20Z</time></trkpt>
+      <trkpt lat="31.23290" lon="121.47685"><ele>4</ele><time>2026-11-13T08:00:25Z</time></trkpt>
+      <trkpt lat="31.23350" lon="121.47760"><ele>4</ele><time>2026-11-13T08:00:30Z</time></trkpt>
+      <trkpt lat="31.23415" lon="121.47840"><ele>4</ele><time>2026-11-13T08:00:35Z</time></trkpt>
+      <trkpt lat="31.23480" lon="121.47920"><ele>4</ele><time>2026-11-13T08:00:40Z</time></trkpt>
+      <trkpt lat="31.23545" lon="121.48005"><ele>4</ele><time>2026-11-13T08:00:45Z</time></trkpt>
+      <trkpt lat="31.23610" lon="121.48090"><ele>4</ele><time>2026-11-13T08:00:50Z</time></trkpt>
+      <trkpt lat="31.23680" lon="121.48175"><ele>4</ele><time>2026-11-13T08:00:55Z</time></trkpt>
+      <trkpt lat="31.23750" lon="121.48260"><ele>4</ele><time>2026-11-13T08:01:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

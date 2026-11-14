@@ -142,6 +142,7 @@ struct LoginView: View {
                     Button("action.close") {
                         session.cancelPendingLogin();password="";dismiss()
                     }
+                    .accessibilityIdentifier("auth.close")
                 }
             }
             .sheet(isPresented:$showsOtherSignIn) {

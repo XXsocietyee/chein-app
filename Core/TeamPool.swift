@@ -43,6 +43,42 @@ public struct TeamPoolSnapshot: Decodable, Equatable, Sendable {
               teamScore.map({ $0 >= 0 }) ?? true, timerLimitSec.map({ $0 >= 0 }) ?? true,
               scoreBasis == nil || scoreBasis == "TEAM_FIRST_SOLVE_NODES" else { throw TeamPoolFailure.malformed }
     }
+
+    public var timerDeadlineDate: Date? {
+        Self.parseDate(timerDeadline)
+    }
+
+    public func isTimerExpired(at now: Date = Date()) -> Bool {
+        if timerExpired == true { return true }
+        if let deadline = timerDeadlineDate { return now >= deadline }
+        return false
+    }
+
+    public func remainingTimerSeconds(at now: Date = Date()) -> Int? {
+        guard let limit = timerLimitSec, limit > 0 else { return nil }
+        if timerExpired == true { return 0 }
+        guard timerStartedAt != nil, let deadline = timerDeadlineDate else { return nil }
+        return max(0, Int(ceil(deadline.timeIntervalSince(now))))
+    }
+
+    private static func parseDate(_ raw: String?) -> Date? {
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let isoFrac = ISO8601DateFormatter()
+        isoFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = isoFrac.date(from: trimmed) { return d }
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime]
+        if let d = iso.date(from: trimmed) { return d }
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.timeZone = TimeZone(identifier: "Asia/Shanghai")
+        df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        if let d = df.date(from: trimmed) { return d }
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return df.date(from: trimmed)
+    }
 }
 
 /// Hint text from the same frozen run snapshot as the single-player help ladder (contract §4 "Hint text").
@@ -178,21 +214,30 @@ public struct TeamPoolReceipt: Decodable, Sendable {
     }
 }
 
-/// The team-mode section of the play hint dialog. The pool is shown only when the server says `enabled: true`.
-/// A hint request keeps one request id until the server settles it, so a retry or recovery never spends twice.
+/// The team-mode section of the play hint dialog and run header (contract §4 / §25.1).
+/// Hints, skips and the timer belong to the whole team, and teamScore follows `TEAM_FIRST_SOLVE_NODES`.
+/// A hint/skip/timer request keeps one request id until the server settles it, so retries never spend twice.
 @MainActor @Observable public final class TeamPoolHintModel {
-    public enum Notice: Equatable { case exhausted, timerExpired, disabled, unavailable, hintUnavailable, notMember, unknown, failed }
+    public enum Notice: Equatable {
+        case exhausted, timerExpired, timerDisabled, disabled, unavailable, hintUnavailable
+        case notMember, nodeNotFound, requestConflict, unknown, failed
+    }
     public let nodeID: Int64
     public private(set) var teamID: Int64?
     public private(set) var pool: TeamPoolSnapshot?
     public private(set) var hint: TeamPoolHint?
+    public private(set) var skipResult: TeamPoolConsume?
     /// True when another member's earlier request covered this node (`consumed: false`).
     public private(set) var coveredByTeam = false
+    public private(set) var skippedByTeam = false
     public private(set) var notice: Notice?
     public private(set) var busy = false
     private var pendingRequestID: String?
+    private var pendingKind: TeamPoolConsume.Kind?
+    private var pendingTimerRequestID: String?
     private let service: TeamPoolService
     private let resolveTeam: () async -> Int64?
+    public var onPoolUpdated: ((TeamPoolSnapshot) -> Void)?
     private var generation = 0
 
     public init(service: TeamPoolService, nodeID: Int64, resolveTeam: @escaping () async -> Int64?) {
@@ -201,11 +246,20 @@ public struct TeamPoolReceipt: Decodable, Sendable {
 
     /// Shown only for an enabled pool of a resolved team.
     public var isVisible: Bool { teamID != nil && pool?.enabled == true }
+    public var isNodeSolvedByTeam: Bool { pool?.solvedNodeIds?.contains(nodeID) == true }
     public var canRequestHint: Bool {
-        guard isVisible, !busy, hint == nil, let pool else { return false }
-        return (pool.hintsLeft ?? 0) > 0 && pool.timerExpired != true
+        guard isVisible, !busy, hint == nil, let pool, nodeID > 0 else { return false }
+        return (pool.hintsLeft ?? 0) > 0 && !pool.isTimerExpired()
     }
-    public var canRecover: Bool { pendingRequestID != nil && !busy }
+    public var canRequestSkip: Bool {
+        guard isVisible, !busy, skipResult == nil, !isNodeSolvedByTeam, let pool, nodeID > 0 else { return false }
+        return (pool.skipsLeft ?? 0) > 0 && !pool.isTimerExpired()
+    }
+    public var canStartTimer: Bool {
+        guard isVisible, !busy, let pool else { return false }
+        return (pool.timerLimitSec ?? 0) > 0 && pool.timerStartedAt == nil && pool.timerExpired != true
+    }
+    public var canRecover: Bool { pendingRequestID != nil && pendingKind != nil && !busy }
 
     public func load() async {
         generation += 1; let stamp = generation
@@ -215,6 +269,7 @@ public struct TeamPoolReceipt: Decodable, Sendable {
             let value = try await service.pool(teamID: team)
             guard stamp == generation else { return }
             pool = value
+            onPoolUpdated?(value)
             if !value.enabled { notice = nil }
         } catch {
             guard stamp == generation else { return }
@@ -224,8 +279,9 @@ public struct TeamPoolReceipt: Decodable, Sendable {
 
     public func requestHint() async {
         guard canRequestHint, let teamID else { return }
-        let requestID = pendingRequestID ?? TeamPoolService.newRequestID()
+        let requestID = (pendingKind == .hint ? pendingRequestID : nil) ?? TeamPoolService.newRequestID()
         pendingRequestID = requestID
+        pendingKind = .hint
         busy = true; notice = nil
         defer { busy = false }
         do {
@@ -234,13 +290,41 @@ public struct TeamPoolReceipt: Decodable, Sendable {
         } catch { apply(error) }
     }
 
-    /// Reads the stored result of the pending request instead of sending another one.
+    public func requestSkip() async {
+        guard canRequestSkip, let teamID else { return }
+        let requestID = (pendingKind == .skip ? pendingRequestID : nil) ?? TeamPoolService.newRequestID()
+        pendingRequestID = requestID
+        pendingKind = .skip
+        busy = true; notice = nil
+        defer { busy = false }
+        do {
+            let result = try await service.skip(teamID: teamID, nodeID: nodeID, requestID: requestID)
+            settle(result)
+        } catch { apply(error) }
+    }
+
+    public func startTimer() async {
+        guard isVisible, !busy, let teamID else { return }
+        let requestID = pendingTimerRequestID ?? TeamPoolService.newRequestID()
+        pendingTimerRequestID = requestID
+        busy = true; notice = nil
+        defer { busy = false }
+        do {
+            let updated = try await service.startTimer(teamID: teamID, requestID: requestID)
+            pendingTimerRequestID = nil
+            pool = updated
+            notice = nil
+            onPoolUpdated?(updated)
+        } catch { apply(error) }
+    }
+
+    /// Reads the stored result of the pending hint/skip request instead of sending another one.
     public func recover() async {
-        guard let teamID, let requestID = pendingRequestID, !busy else { return }
+        guard let teamID, let requestID = pendingRequestID, let expectedKind = pendingKind, !busy else { return }
         busy = true; defer { busy = false }
         do {
             if let result = try await service.receipt(teamID: teamID, requestID: requestID) {
-                guard result.kind == .hint, result.nodeId == nodeID else { notice = .failed; return }
+                guard result.kind == expectedKind, result.nodeId == nodeID else { notice = .failed; return }
                 settle(result)
             } else {
                 // Never applied: the same id may be sent again by an explicit retry.
@@ -251,24 +335,40 @@ public struct TeamPoolReceipt: Decodable, Sendable {
 
     private func settle(_ result: TeamPoolConsume) {
         pendingRequestID = nil
-        pool = result.pool; hint = result.hint; coveredByTeam = !result.consumed; notice = nil
+        pendingKind = nil
+        pool = result.pool
+        notice = nil
+        switch result.kind {
+        case .hint:
+            hint = result.hint
+            coveredByTeam = !result.consumed
+        case .skip:
+            skipResult = result
+            skippedByTeam = !result.consumed
+        }
+        onPoolUpdated?(result.pool)
     }
 
     private func apply(_ error: Error) {
         switch error as? TeamPoolFailure {
         case .rejected(_, let code)?:
             pendingRequestID = nil
+            pendingKind = nil
+            pendingTimerRequestID = nil
             switch code {
             case "TEAM_POOL_EXHAUSTED": notice = .exhausted
             case "TEAM_POOL_TIMER_EXPIRED": notice = .timerExpired
+            case "TEAM_POOL_TIMER_DISABLED": notice = .timerDisabled
             case "TEAM_POOL_DISABLED": notice = .disabled
             case "TEAM_POOL_HINT_UNAVAILABLE": notice = .hintUnavailable
             case "TEAM_NOT_MEMBER", "TEAM_NOT_FOUND": notice = .notMember
+            case "NODE_NOT_FOUND": notice = .nodeNotFound
+            case "REQUEST_ID_CONFLICT": notice = .requestConflict
             default: notice = .failed
             }
         case .outcomeUnknown?: notice = .unknown
         case .unauthorized?: notice = .unavailable
-        default: notice = pendingRequestID == nil ? .failed : .unknown
+        default: notice = (pendingRequestID == nil && pendingTimerRequestID == nil) ? .failed : .unknown
         }
     }
 }

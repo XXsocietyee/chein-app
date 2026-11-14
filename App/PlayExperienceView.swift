@@ -55,6 +55,7 @@ import SwiftUI
     @State private var showChapterPicker = false
     @State private var showEmergencyHelp = false
     @State private var titleCardTopic: Int?
+    @State private var runTeamPool: TeamPoolHintModel?
     @Environment(\.playThemePresentationReader) private var themeReader
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
@@ -118,6 +119,15 @@ import SwiftUI
             presentTitleCardIfNeeded(topicID)
         }
         .onChange(of: model.chapterStories.count) { _, _ in presentTitleCardIfNeeded(model.snapshot?.result.topicID) }
+        .task(id: model.snapshot?.result.teamID ?? model.snapshot?.result.topicID) {
+            if let next = teamPoolModel?(0) {
+                next.onPoolUpdated = { _ in }
+                await next.load()
+                runTeamPool = next.isVisible ? next : nil
+            } else {
+                runTeamPool = nil
+            }
+        }
         .task(id: PlayExperiencePresentationKey(model: model)) {
             // This task also restarts when returning from a pushed store. Preserve
             // the same owner's mode host through refresh so its open card pack survives.
@@ -218,6 +228,9 @@ import SwiftUI
             }
             if let compatibility = model.compatibility, model.hasCurrentMediaSnapshot {
                 PlayCompatibilitySection(compatibility: compatibility)
+            }
+            if let runTeamPool, runTeamPool.isVisible {
+                TeamPoolRunStatusSection(model: runTeamPool)
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if let entryCode { PlayEntryCodeSection(context: entryCode) }
@@ -789,6 +802,7 @@ import SwiftUI
                 hintContext = nil
                 Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
             }
+            .accessibilityIdentifier("playx.hints.confirm")
         } message: { Text("playx.hints.consequence") }
         .overlay {
             if showHelpPanel, let help, helpEnabled {
@@ -799,6 +813,13 @@ import SwiftUI
             // The server settled the skip (0 points, assisted). No success verdict; progress is re-read by the model.
             if skipped == true { skippedHere = true; showHelpPanel = false }
         }
+        .onChange(of: teamPool?.skipResult) { _, skipped in
+            if skipped != nil {
+                skippedHere = true
+                showHelpPanel = false
+                Task { await model.load() }
+            }
+        }
         .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
     }
     /// One read when an unfinished stop opens. A failed read keeps the legacy hint entries.
@@ -807,7 +828,14 @@ import SwiftUI
             if help?.identity.nodeID != node.id || node.done == true { help = nil; showHelpPanel = false }
             return
         }
-        if teamPool?.nodeID != Int64(node.id) { teamPool = makeTeamPool?(node.id) }
+        if teamPool?.nodeID != Int64(node.id) {
+            teamPool = makeTeamPool?(node.id)
+            teamPool?.onPoolUpdated = { updated in
+                if updated.solvedNodeIds?.contains(Int64(node.id)) == true {
+                    Task { await model.load() }
+                }
+            }
+        }
         if let help, help.identity == client.identity, help.loaded { await teamPool?.load(); return }
         let next = PlayHelpLadderModel(client: client, store: PlayHelpDefaultsRequestStore.shared)
         help = next

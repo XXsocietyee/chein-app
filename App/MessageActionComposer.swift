@@ -102,6 +102,7 @@ struct MessageComposerSubmission: Equatable {
             case .outcomeUnknown,.rejected:
                 Text(LocalizedStringKey(model.state == .outcomeUnknown ? "message.send.unknown" : "message.send.rejected"))
                     .font(.footnote).accessibilityIdentifier("message.send.issue")
+                if let row = RequestReferenceRow(pathFragment: "/api/im/") { row }
                 if let text=model.coordinator.pendingText { Text(verbatim:text).font(.footnote).lineLimit(3) }
                 Button("message.send.retry") { confirmsRetry=true }.disabled(!ready)
                     .accessibilityIdentifier("message.send.retry")
