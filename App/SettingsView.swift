@@ -43,9 +43,11 @@ struct SettingsView: View {
                     Text(LocalizedStringKey(homeFacts.copyKey), tableName: "MemberProfile")
                 } icon: {
                     Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
+                        .accessibilityHidden(true)
                 }
                 .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .padding(.horizontal, CYSpacing.lg)
+                .accessibilityAddTraits(homeFacts.phase == .loading ? .updatesFrequently : .isStaticText)
                 .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
             case .empty, .ready:
                 EmptyView()
@@ -212,6 +214,7 @@ struct SettingsAccountCard: View {
     let tappable: Bool
     @Environment(\.cyPalette) private var palette
     @Environment(\.themeDomain) private var themeDomain
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .center, spacing: CYSpacing.lg) {
             Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
@@ -225,7 +228,7 @@ struct SettingsAccountCard: View {
                 }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
+                Text(PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale)).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
                     .cyWrapText()
                 Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(palette.textSecondary)
                     .cyWrapText()
@@ -237,6 +240,7 @@ struct SettingsAccountCard: View {
         .background(palette.cardFill, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
         .cyPressTracking()
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(tappable ? .isButton : .isStaticText)
     }
 }
 

@@ -90,16 +90,18 @@ import UIKit
                             onActionBanner?(banner)
                         }
                         .cySectionReveal(order: 1, gate: reveal)
+                        .pageTemplateReadingOrder(80)
                     }
                     if let consent = cityLocationConsent {
                         HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
                             .transition(.opacity.combined(with: .move(edge: .top)))
+                            .pageTemplateReadingOrder(70)
                     }
                     CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
                     // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
-                    feedSection(.recommended, order: 2)
-                    feedSection(.nearby, order: 3)
-                    feedSection(.upcoming, order: 4)
+                    feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
+                    feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
+                    feedSection(.upcoming, order: 4).pageTemplateReadingOrder(40)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         // Source pages/index feed tabs are 主题 / 活动. The indicator uses textPrimary.
                         CYTabs(
@@ -146,9 +148,10 @@ import UIKit
                         }
                     }
                     .cySectionReveal(order: 5, gate: reveal)
-                    todayCard.cySectionReveal(order: 6, gate: reveal)
+                    .pageTemplateReadingOrder(30)
+                    todayCard.cySectionReveal(order: 6, gate: reveal).pageTemplateReadingOrder(20)
                     // Mini-program store card (city pass entry): one feed card, never a paywall.
-                    MPPassExploreCard()
+                    MPPassExploreCard().pageTemplateReadingOrder(15)
                     if !continuationCards.isEmpty {
                         PlayContinuationBannerView(
                             cards: continuationCards,
@@ -167,6 +170,7 @@ import UIKit
                             onRetry: onRetryContinuation
                         )
                         .cySectionReveal(order: 7, gate: reveal)
+                        .pageTemplateReadingOrder(10)
                     }
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -356,11 +360,33 @@ import UIKit
             .cyHeroSourceInherited(item.id, isEnabled: heroNamespace != nil && !heroOwned(by: section == "stream" ? nil : section).contains(item.id))
         }
             .buttonStyle(QuestifyCardButtonStyle())
+            .pageTemplateGroupedCard(label: feedCardLabel(item), traits: .isButton)
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
+    }
+    /// One label for the grouped feed card: name, then the price, time, and place lines already on the card.
+    private func feedCardLabel(_ item: HomeFeedItem) -> Text {
+        let price: Text
+        if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
+            price = Text("playx.finishRoute.priceFrom \(amount)")
+        } else {
+            price = PageTemplateVoiceOver.spoken(HomeFeedSurfaceState.unknownText, locale: locale)
+        }
+        let time: Text
+        if let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone) {
+            time = Text(verbatim: date)
+        } else {
+            time = Text("homeFeed.openEnded")
+        }
+        let place = item.place?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let placeText = PageTemplateVoiceOver.spoken((place?.isEmpty == false ? place! : HomeFeedSurfaceState.unknownText), locale: locale)
+        return Text(verbatim: item.name) + Text(verbatim: ", ")
+            + Text("homeFeed.status.price") + Text(verbatim: " ") + price + Text(verbatim: ", ")
+            + Text("homeFeed.status.time") + Text(verbatim: " ") + time + Text(verbatim: ", ")
+            + Text("homeFeed.place") + Text(verbatim: " ") + placeText
     }
     private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Label { message } icon: { Image(systemName: "exclamationmark.triangle") }
+            Label { message } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
                 .font(CYTypography.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
@@ -691,8 +717,17 @@ struct HomeTodayCard: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
         .cyNightCardDepth(radius: CYRadius.xl)
         .cyPressWave(wave, onTap: c.action)
-        .accessibilityElement(children: .contain)
+        .pageTemplateGroupedCard(label: todayLabel(c), traits: c.action == nil ? .isStaticText : .isButton)
         .accessibilityIdentifier("homeFeed.today.\(c.id)")
+    }
+
+    private func todayLabel(_ c: Content) -> Text {
+        var label = Text(verbatim: c.eyebrow) + Text(verbatim: ", ") + Text(verbatim: c.title)
+        if let meta = c.meta {
+            label = label + Text(verbatim: ", ") + PageTemplateVoiceOver.spoken(meta, locale: locale)
+        }
+        label = label + Text(verbatim: ", ") + Text(verbatim: c.pill)
+        return label
     }
 
     private func backdrop(_ c: Content) -> some View {

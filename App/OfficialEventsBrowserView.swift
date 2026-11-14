@@ -31,6 +31,10 @@ import SwiftUI
                         HStack(spacing: CYSpacing.sm) {
                             ForEach(OfficialEventBucket.allCases) { value in
                                 CYFilterChip(LocalizedStringKey(value.tabTitleKey), isSelected: bucket == value) { bucket = value }
+                                    .pageTemplateControl(
+                                        label: Text(LocalizedStringKey(value.tabTitleKey)),
+                                        traits: bucket == value ? [.isButton, .isSelected] : .isButton
+                                    )
                             }
                         }
                     }
@@ -109,6 +113,8 @@ import SwiftUI
             ForEach(visible) { event in
                 NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin, topicLinks: topicLinks) } label: { OfficialEventCard(event: event) }
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isButton)
                     .accessibilityIdentifier("official.event.\(event.id)")
             }
             Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }

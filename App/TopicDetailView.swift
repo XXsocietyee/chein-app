@@ -189,6 +189,7 @@ struct TopicDetailView: View {
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
                     // Mini-program `sess`: name / time / meeting point / refund on the left, price and seats left on the right.
                     HStack(alignment: .top, spacing: CYSpacing.md) {
+                        // Grouped session card: one element. The visible rows stay in source order.
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text(verbatim: ticket.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                             if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }

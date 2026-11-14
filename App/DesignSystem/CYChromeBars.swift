@@ -43,6 +43,7 @@ public struct CYNavBar<Trailing: View>: View {
                 if !typeSize.isAccessibilitySize {
                     titleLabel
                         .padding(.horizontal, 48)
+                        .pageTemplateReadingOrder(1)
                 }
                 HStack {
                     if showsBack {
@@ -50,7 +51,8 @@ public struct CYNavBar<Trailing: View>: View {
                             backGlyph
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text("action.back"))
+                        .pageTemplateControl(label: Text("action.back"), traits: .isButton)
+                        .pageTemplateReadingOrder(2)
                     } else {
                         Color.clear.frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
                     }
@@ -155,13 +157,13 @@ struct CYFooterActionButtons: View {
             if let secondary {
                 if typeSize.isAccessibilitySize {
                     VStack(spacing: CYSpacing.md) {
-                        primaryButton(primary)
-                        secondaryButton(secondary)
+                        primaryButton(primary).pageTemplateReadingOrder(2)
+                        secondaryButton(secondary).pageTemplateReadingOrder(1)
                     }
                 } else {
                     CYFooterDualRatioLayout(gap: CYSpacing.md) {
-                        secondaryButton(secondary)
-                        primaryButton(primary)
+                        secondaryButton(secondary).pageTemplateReadingOrder(2)
+                        primaryButton(primary).pageTemplateReadingOrder(1)
                     }
                 }
             } else {
@@ -176,6 +178,7 @@ struct CYFooterActionButtons: View {
         }
         .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .md, isLoading: spec.isLoading, isPill: true))
         .disabled(spec.isDisabled || spec.isLoading)
+        .pageTemplateControl(label: Text(verbatim: spec.title), traits: .isButton)
     }
 
     private func secondaryButton(_ spec: CYFooterAction) -> some View {
@@ -184,6 +187,7 @@ struct CYFooterActionButtons: View {
         }
         .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .md, isLoading: spec.isLoading, isPill: true))
         .disabled(spec.isDisabled || spec.isLoading)
+        .pageTemplateControl(label: Text(verbatim: spec.title), traits: .isButton)
     }
 }
 

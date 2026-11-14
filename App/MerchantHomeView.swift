@@ -38,6 +38,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 } else {
                     List {
                         Section {
+                            let named = identity.merchantName?.isEmpty == false
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 if let name = identity.merchantName, !name.isEmpty {
                                     Text(name)
@@ -50,15 +51,20 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                                     .accessibilityIdentifier("merchant.access.inactive")
                             }
                             .padding(.vertical, CYSpacing.xs)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(named ? [.isHeader, .isStaticText] : .isStaticText)
                         }
                         Section {
                             if let openApplication {
                                 CYPillButton("merchant.onboarding.openApplication", action: openApplication)
+                                    .pageTemplateControl(label: Text("merchant.onboarding.openApplication"), traits: .isButton)
                                     .accessibilityIdentifier("merchant.onboarding.entry")
                                 CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await reload() } }
+                                    .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
                                     .accessibilityIdentifier("merchant.access.refresh")
                             } else {
                                 CYPillButton("merchant.refreshAccess") { Task { await reload() } }
+                                    .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
                                     .accessibilityIdentifier("merchant.access.refresh")
                             }
                         }

@@ -412,6 +412,8 @@ struct RegistrationSheetView: View {
                         Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
                             .cyWrapText().layoutPriority(1)
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(summaryTotalText, locale: locale))
+                            .pageTemplateReadingOrder(2)
                     }
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let blocked = flow.confirmationBlock != nil
@@ -423,8 +425,13 @@ struct RegistrationSheetView: View {
                         .buttonStyle(.cyPrimary)
                         // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
                         .cyHaptic(.warning, trigger: blockedTaps)
-                        .accessibilityAddTraits(blocked ? .isButton : [])
                         .accessibilityHint(blockReason(copy) ?? "")
+                        .pageTemplateControl(
+                            label: Text("registration.form.review"),
+                            hint: blockReason(copy).map { Text(verbatim: $0) },
+                            traits: .isButton
+                        )
+                        .pageTemplateReadingOrder(1)
                         .accessibilityIdentifier("registration.form.review")
                     }
                 }
