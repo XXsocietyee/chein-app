@@ -197,12 +197,17 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if phase != .active { model.pauseCancellation() }
             else if let intent = model.cancellationIntent(resume: true) { Task { await loadCancellation(intent) } }
         }
-        .confirmationDialog("compliance.cancelReview", isPresented: $cancelReview) {
-            Button("compliance.cancelApplication", role: .destructive) {
-                guard let intent = cancelIntent else { return }; cancelIntent = nil
-                Task { await model.coordinator.cancel(explicitlyConfirmed: true, intent: intent) }
+        .sheet(isPresented: $cancelReview) {
+            if let intent = cancelIntent {
+                MemberDeregistrationCancelConfirmSheet {
+                    cancelReview = false
+                    cancelIntent = nil
+                    Task { await model.coordinator.cancel(explicitlyConfirmed: true, intent: intent) }
+                }
+                .themeDomain(.player)
             }
         }
+        .onChange(of: cancelReview) { _, visible in if !visible { cancelIntent = nil } }
     }
     private var designModeAllowsToggles: Bool {
 #if DEBUG
@@ -485,29 +490,27 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Task { await model.coordinator.loadMarketing(intent: intent) }
             }.accessibilityIdentifier("compliance.marketing.refresh")
         }
-        .confirmationDialog(Text("compliance.marketing.review", tableName: "MarketingConsentOriginalPresentation"), isPresented: Binding(
-            get: { marketingChange != nil }, set: { if !$0 { marketingChange = nil } }), titleVisibility: .visible) {
-            if let change = marketingChange {
-                Button {
-                    guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
-                    marketingChange = nil
-                    Task {
-                        await SessionOfflineSyncModel.shared.performWriteOptIn(
-                            environmentSession: offlineWriteSession.session,
-                            routes: ["/api/compliance/consents"]
-                        ) {
-                            await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
-                        }
+        .sheet(item: Binding(
+            get: { marketingChange },
+            set: { if $0 == nil { marketingChange = nil } }
+        )) { change in
+            MemberMarketingConsentConfirmSheet(
+                merchantName: change.row.merchantName,
+                channelKey: String.LocalizationValue(stringLiteral: "compliance.channel." + change.channel.rawValue),
+                optedIn: change.optedIn
+            ) {
+                guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
+                marketingChange = nil
+                Task {
+                    await SessionOfflineSyncModel.shared.performWriteOptIn(
+                        environmentSession: offlineWriteSession.session,
+                        routes: ["/api/compliance/consents"]
+                    ) {
+                        await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
                     }
-                } label: { Text(change.optedIn ? "compliance.marketing.confirmOptIn" : "compliance.marketing.confirmOptOut", tableName: "MarketingConsentOriginalPresentation") }
-                    .accessibilityIdentifier("compliance.marketing.confirm")
-                Button("compliance.close", role: .cancel) { marketingChange = nil }
+                }
             }
-        } message: {
-            if let change = marketingChange {
-                Text(verbatim: change.row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
-                Text(LocalizedStringKey("compliance.channel." + change.channel.rawValue))
-            }
+            .themeDomain(.player)
         }
     }
 }

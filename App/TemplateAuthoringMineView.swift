@@ -25,6 +25,7 @@ import SwiftUI
     @State private var busy = false
     @State private var locked = true
     @State private var readSnapshot = false
+    @State private var toastMessage: LocalizedStringKey?
     var body: some View {
         List {
             Section { CYHeroHeader("templateAuthor.mine") }.e1HeroRow()
@@ -161,6 +162,7 @@ import SwiftUI
                                         let stamp = viewRequest
                                         await coordinator.confirmShelf(value)
                                         guard stamp == viewRequest, !Task.isCancelled else { return }
+                                        toastMessage = value.action == .remove ? "templateOwnShelf.delete.confirm" : (value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addConfirm" : "templateAuthor.shelf.removeConfirm")
                                         review = nil
                                         await coordinator.shelfReader.refresh(keyword: keyword)
                                         guard stamp == viewRequest, !Task.isCancelled else { return }
@@ -185,9 +187,9 @@ import SwiftUI
                             #endif
                         }
                 }
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
+                .cyDomainSheet(detents: [.half, .full])
             }
+            .cyToast(message: $toastMessage, tone: .success)
     }
     private static func replacesReadKey(_ key: String) -> Bool {
         key == "templateAuthor.signIn" || key == "templateAuthor.listUnavailable" || key == "templateAuthor.shelf.empty" || key == "templateAuthor.shelf.moreFailed" || key == "templateOwnShelf.read.denied"

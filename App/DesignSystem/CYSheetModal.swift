@@ -404,34 +404,14 @@ public struct CYModal: View {
                 .buttonStyle(CYGhostButtonStyle(isFullWidth: true, size: .sm))
             }
 
-            HStack(spacing: CYSpacing.md) {
-                identified(cancelIdentifier) {
-                    Button(action: onCancel) {
-                        Text(verbatim: cancelTitle)
-                    }
-                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.md) {
+                    modalCancelButton
+                    modalConfirmButton
                 }
-                .pageTemplateControl(label: Text(verbatim: cancelTitle), traits: .isButton)
-                .pageTemplateReadingOrder(2)
-
-                if isDestructive {
-                    identified(confirmIdentifier) {
-                        Button(role: .destructive, action: onConfirm) {
-                            Text(verbatim: confirmTitle)
-                        }
-                        .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
-                    }
-                    .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
-                    .pageTemplateReadingOrder(1)
-                } else {
-                    identified(confirmIdentifier) {
-                        Button(action: onConfirm) {
-                            Text(verbatim: confirmTitle)
-                        }
-                        .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
-                    }
-                    .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
-                    .pageTemplateReadingOrder(1)
+                VStack(spacing: CYSpacing.sm) {
+                    modalConfirmButton
+                    modalCancelButton
                 }
             }
         }
@@ -439,6 +419,43 @@ public struct CYModal: View {
         .frame(maxWidth: 320, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(modalTokens.panel))
         .shadow(color: modalTokens.shadow, radius: 20, x: 0, y: 10)
+    }
+
+    @ViewBuilder private func identified<V: View>(_ identifier: String?, @ViewBuilder content: () -> V) -> some View {
+        if let identifier { content().accessibilityIdentifier(identifier) } else { content() }
+    }
+
+    @ViewBuilder private var modalCancelButton: some View {
+        identified(cancelIdentifier) {
+            Button(action: onCancel) {
+                Text(verbatim: cancelTitle)
+            }
+            .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+        }
+        .pageTemplateControl(label: Text(verbatim: cancelTitle), traits: .isButton)
+        .pageTemplateReadingOrder(2)
+    }
+
+    @ViewBuilder private var modalConfirmButton: some View {
+        if isDestructive {
+            identified(confirmIdentifier) {
+                Button(role: .destructive, action: onConfirm) {
+                    Text(verbatim: confirmTitle)
+                }
+                .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            }
+            .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
+            .pageTemplateReadingOrder(1)
+        } else {
+            identified(confirmIdentifier) {
+                Button(action: onConfirm) {
+                    Text(verbatim: confirmTitle)
+                }
+                .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: isConfirmLoading))
+            }
+            .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
+            .pageTemplateReadingOrder(1)
+        }
     }
 
     @ViewBuilder private func identified<V: View>(_ identifier: String?, @ViewBuilder content: () -> V) -> some View {

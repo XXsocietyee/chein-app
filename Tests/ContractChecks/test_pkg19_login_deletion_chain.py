@@ -91,8 +91,11 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
                       coordinator)
         self.assertIn('await self.invalidateSession(session)', coordinator)
         views = src('App/AccountComplianceViews.swift')
+        popups = src('App/MemberAreaPopupSurfaces.swift')
         self.assertIn('explicitlyConfirmed: true', views)
-        self.assertIn('.confirmationDialog("compliance.cancelReview"', views)
+        self.assertIn('MemberDeregistrationCancelConfirmSheet', views)
+        self.assertIn('CYConfirmSheet', popups)
+        self.assertIn('"compliance.cancelReview"', popups)
 
     def test_sign_out_entry_requires_confirmation(self):
         entry = src('App/SettingsAccountEntries.swift')

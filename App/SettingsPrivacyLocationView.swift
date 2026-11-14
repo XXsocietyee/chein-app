@@ -76,6 +76,7 @@ import SwiftUI
                 NavigationStack {
                     AccountComplianceSheet(coordinator: compliance, destination: .roam, market: market, legalReader: legalReader)
                 }
+                .cyDomainSheet(detents: [.half, .full])
             }
         }
         .cyDomainScreen(.player)

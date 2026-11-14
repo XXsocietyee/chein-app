@@ -356,8 +356,7 @@ struct OrderLifecycleField: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("orderLifecycle.review.close", action: close).accessibilityIdentifier("orderLifecycle.review.close") } }
             .accessibilityIdentifier("orderLifecycle.review.sheet")
         }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
+        .cyDomainSheet(detents: [.full])
         .cyDomainScreen(.player)
     }
 }

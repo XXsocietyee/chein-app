@@ -98,11 +98,11 @@ struct BundleExitSwapView: View {
             }
         }
         .navigationTitle(PlayerCapabilityCopy.text("更换商家", "Swap merchant", locale))
-        .confirmationDialog(PlayerCapabilityCopy.text("更换商家？", "Swap merchant?", locale),
-                            isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } }), titleVisibility: .visible) {
-            Button(PlayerCapabilityCopy.text("更换", "Swap", locale)) { if let target = confirming { Task { await swap(target) } } }
-        } message: {
-            Text(verbatim: "改选" + (confirming?.merchantName ?? "") + "，有效期不变。")
+        .sheet(item: Binding(get: { confirming }, set: { if $0 == nil { confirming = nil } })) { target in
+            MemberBundleSwapConfirmSheet(merchantName: target.merchantName) {
+                confirming = nil
+                Task { await swap(target) }
+            }
         }
         .task { await start() }
         .cyDomainScreen(.player)

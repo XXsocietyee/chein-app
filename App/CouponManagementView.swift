@@ -280,9 +280,13 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                 }
             }
         }
-        .confirmationDialog("couponManagement.discardTitle", isPresented: $discard, titleVisibility: .visible) {
-            Button("couponManagement.discard", role: .destructive) { model.core.discardDraft(); model.revision += 1; dismiss() }
-            Button("couponManagement.keepEditing", role: .cancel) {}
+        .sheet(isPresented: $discard) {
+            MemberCouponDiscardConfirmSheet {
+                discard = false
+                model.core.discardDraft()
+                model.revision += 1
+                dismiss()
+            }
         }
         .sheet(item: $rangeEditor, onDismiss: {
             // Mini-program toast 时间设置完成 after a confirmed range, shown inline instead of a toast.
@@ -293,8 +297,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         }) { editor in
             NavigationStack { CouponValidityRangeEditor(model: editor) }
                 .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+                .cyDomainSheet(detents: [.half, .full])
         }
         .onChange(of: model.core.session) { _, _ in closeRangeEditor() }
         .onChange(of: model.revision) { _, _ in closeRangeEditor() }

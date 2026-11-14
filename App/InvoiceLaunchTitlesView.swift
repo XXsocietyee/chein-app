@@ -57,13 +57,12 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).navigationTitle(invoiceText("titles"))
         .task { await model.refresh() }.refreshable { await model.refresh() }
-        .confirmationDialog(invoiceText("deleteConfirm"), isPresented: Binding(
-            get: { deleteID != nil }, set: { if !$0 { deleteID = nil } }), titleVisibility: .visible) {
-            Button(role: .destructive) {
+        .sheet(isPresented: Binding(
+            get: { deleteID != nil }, set: { if !$0 { deleteID = nil } })) {
+            MemberInvoiceTitleDeleteConfirmSheet {
                 if let id = deleteID { Task { _ = await model.delete(id) } }
                 deleteID = nil
-            } label: { invoiceText("delete") }
-            Button(role: .cancel) { deleteID = nil } label: { invoiceText("keep") }
+            }
         }
         .cyDomainScreen(.player)
     }

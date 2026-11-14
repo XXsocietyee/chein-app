@@ -98,11 +98,14 @@ struct AccountDeregistrationImpactConfirmation: View {
         .font(Theme.Font.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .onDisappear { confirmation = "" }
-        .confirmationDialog(Text("compliance.confirmSheet.title"), isPresented: $confirming, titleVisibility: .visible) {
-            Button(role: .destructive) { confirmation = ""; submit() } label: { Text("compliance.confirmSheet.action") }
-                .accessibilityIdentifier("compliance.submit.confirm")
-            Button("compliance.close", role: .cancel) {}
-        } message: { Text("compliance.confirmSheet.message") }
+        .sheet(isPresented: $confirming) {
+            MemberDeregistrationSubmitConfirmSheet {
+                confirming = false
+                confirmation = ""
+                submit()
+            }
+            .themeDomain(.player)
+        }
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }

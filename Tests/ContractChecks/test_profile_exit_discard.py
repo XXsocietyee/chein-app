@@ -88,6 +88,7 @@ class ProfileExitDiscardContracts(unittest.TestCase):
         self.assertEqual(view().count('exitCommitted = false'), 1)
 
     def test_custom_back_and_modal_fence_require_validated_dismissal(self):
+        popups = (ROOT / 'App/MemberAreaPopupSurfaces.swift').read_text()
         for token in ['@Environment(\\.dismiss) private var dismiss',
                       '.navigationBarBackButtonHidden(true)',
                       '.interactiveDismissDisabled(model.blocksInteractiveExit)',
@@ -95,14 +96,15 @@ class ProfileExitDiscardContracts(unittest.TestCase):
                       'if model.confirmExit(value) { dismiss() }',
                       '.disabled(!model.canRequestExit)',
                       '.accessibilityIdentifier("profile.exitDiscard.back")',
-                      '.accessibilityIdentifier("profile.exitDiscard.confirm")']:
+                      'MemberProfileDiscardConfirmSheet(kind: .exitDiscard']:
             self.assertIn(token, view())
+        self.assertIn('confirmIdentifier: "profile.exitDiscard.confirm"', popups)
         # back/confirm exits plus the post-save fallback when no onSaved handler is supplied.
         self.assertEqual(view().count('dismiss()'), 3)
         self.assertIn('if let onSaved { onSaved() } else { dismiss() }', view())
 
     def test_dialog_cancel_and_system_dismissal_retain_draft(self):
-        self.assertIn('Button("action.cancel", role: .cancel) { model.cancelExit() }', view())
+        self.assertIn('onCancel: { model.cancelExit() }', view())
         self.assertIn('.onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }', view())
         self.assertIn('.onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }', view())
 
@@ -112,9 +114,10 @@ class ProfileExitDiscardContracts(unittest.TestCase):
 
     def test_three_new_strings_are_bilingual_unmerged_fragments(self):
         fragment = json.loads((ROOT / 'Resources/ProfileExitDiscardLocalizations.fragment.json').read_text())
+        popups = (ROOT / 'App/MemberAreaPopupSurfaces.swift').read_text()
         self.assertEqual(set(fragment), {'profile.exitDiscard.title', 'profile.exitDiscard.confirm', 'profile.exitDiscard.message'})
         for key, row in fragment.items():
-            self.assertIn('"' + key + '"', view())
+            self.assertIn('"' + key + '"', popups)
             for language in ['en', 'zh-Hans']:
                 self.assertTrue(row['localizations'][language]['stringUnit']['value'])
         # Integration ownership is documented; absence from the catalog is not a runtime pass.

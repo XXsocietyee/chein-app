@@ -57,15 +57,14 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).cyDomainScreen(.player).navigationTitle(invoiceText("history"))
         .task { await model.refresh() }.refreshable { await model.refresh() }
-        .confirmationDialog(invoiceText("withdrawConfirm"), isPresented: Binding(
-            get: { withdraw.confirming != nil }, set: { if !$0 { withdraw.cancelAsk() } }), titleVisibility: .visible) {
-            Button(role: .destructive) {
+        .sheet(isPresented: Binding(
+            get: { withdraw.confirming != nil }, set: { if !$0 { withdraw.cancelAsk() } })) {
+            MemberInvoiceWithdrawConfirmSheet(confirmIdentifier: "invoice.history.withdraw.confirm") {
                 // Success is announced only after the service returns success.
                 if let id = withdraw.confirm() {
                     Task { let ok = await model.cancel(id); withdraw.finish(id: id, success: ok) }
                 }
-            } label: { invoiceText("withdraw") }
-            Button(role: .cancel) { withdraw.cancelAsk() } label: { invoiceText("keep") }
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.invalidate() }

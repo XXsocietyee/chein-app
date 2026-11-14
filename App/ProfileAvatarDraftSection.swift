@@ -124,9 +124,13 @@ import UIKit
                     .accessibilityIdentifier("profile.avatar.select")
             }
         }
-        .confirmationDialog("profile.avatar.discardTitle", isPresented: Binding(get: { discardID != nil }, set: { if !$0 { discardID = nil } }), presenting: discardID) { id in
-            Button("profile.avatar.discard", role: .destructive) { model.discardAvatar(id: id); discardID = nil }
-            Button("action.cancel", role: .cancel) { discardID = nil }
+        .sheet(isPresented: Binding(get: { discardID != nil }, set: { if !$0 { discardID = nil } })) {
+            if let id = discardID {
+                MemberProfileDiscardConfirmSheet(kind: .avatarDiscard) {
+                    model.discardAvatar(id: id)
+                    discardID = nil
+                }
+            }
         }
         .onChange(of: model.avatarLifetimeID) { _, _ in discardID = nil; presentation.retire() }
         .sheet(isPresented: isPresented) {

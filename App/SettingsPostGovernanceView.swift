@@ -17,6 +17,7 @@ import SwiftUI
             }
             .sheet(isPresented: $presented) {
                 SettingsPostGovernanceSheet(coordinator: coordinator, access: session.squareGovernanceAccess())
+                    .cyDomainSheet(detents: [.half, .full])
             }
         }
     }
@@ -90,6 +91,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
     @State private var reason = ""
     @State private var submitting = false
     @State private var notice: LocalizedStringKey?
+    @State private var toastMessage: LocalizedStringKey?
     @State private var generation = UUID()
     private static let reasonMax = 500
 
@@ -114,6 +116,10 @@ struct PostGovernanceRow: Identifiable, Equatable {
             .refreshable { await reload() }
         }
         .task { await reload() }
+        .onChange(of: notice) { _, next in
+            if let next { toastMessage = next }
+        }
+        .cyToast(message: $toastMessage, tone: notice == "mpd.postGov.submitted" ? .success : .warning)
         .accessibilityIdentifier("settings.postGov.sheet")
     }
 

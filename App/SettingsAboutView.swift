@@ -13,6 +13,7 @@ import UIKit
     @Environment(\.locale) private var locale
     @State private var copyStatus: CopyStatus?
     @State private var showsPlayerCodePending = false
+    @State private var toastMessage: LocalizedStringKey?
     private enum CopyStatus { case copied, failed }
 
     private var model: SettingsAboutPageModel { SettingsAboutPageModel(information: appInformation, market: market) }
@@ -107,7 +108,8 @@ import UIKit
                 .background(palette.bgPage)
             }
         }
-        .onDisappear { copyStatus = nil; showsPlayerCodePending = false }
+        .onDisappear { copyStatus = nil; showsPlayerCodePending = false; toastMessage = nil }
+        .cyToast(message: $toastMessage, tone: copyStatus == .failed ? .warning : .info)
     }
 
     /// `SettingsAboutPageModel.playerCode`. Production is `.error` (the player-code POST stays uninstalled), so the
@@ -159,10 +161,20 @@ import UIKit
         .padding(.vertical, CYSpacing.sm)
         .contentShape(Rectangle())
         // Source bind:retry="explainQrPending": a tap explains, it never requests a code.
-        .onTapGesture { if case .error = phase { showsPlayerCodePending = true } }
+        .onTapGesture {
+            if case .error = phase {
+                showsPlayerCodePending = true
+                toastMessage = "settingsNative.about.playerCodePending"
+            }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(phase == .error ? .isButton : [])
-        .accessibilityAction { if case .error = phase { showsPlayerCodePending = true } }
+        .accessibilityAction {
+            if case .error = phase {
+                showsPlayerCodePending = true
+                toastMessage = "settingsNative.about.playerCodePending"
+            }
+        }
         .accessibilityIdentifier("settingsNative.about.playerCode")
         .cyAnimation(CYMotion.standard, value: showsPlayerCodePending)
     }
@@ -200,6 +212,7 @@ import UIKit
             copyStatus = .failed
         }
         let key: String.LocalizationValue = copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"
+        toastMessage = copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"
         UIAccessibility.post(notification: .announcement, argument: appLocalized(key, locale: locale))
     }
 }

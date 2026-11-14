@@ -356,15 +356,14 @@ struct ParticipantListDeleteView: View {
         }
         .interactiveDismissDisabled(model.busy)
         // Mini-program cy-danger-confirm (utils/danger-actions.js): what, why, irreversible, what stays.
-        .alert("participant.list.deleteTitle", isPresented: $model.showConfirmation) {
-            Button("participant.list.deleteConfirm", role: .destructive) {
+        .sheet(isPresented: $model.showConfirmation) {
+            MemberParticipantDeleteConfirmSheet(
+                summary: model.confirmationSummary,
+                onCancel: { model.cancelConfirmation() }
+            ) {
                 Task { if await model.confirmMutation() { onDeleted?(); dismiss() } }
             }
-            .accessibilityIdentifier("participant.list.delete.confirm")
-            Button("action.cancel", role: .cancel) { model.cancelConfirmation() }
-        } message: {
-            Text(verbatim: model.confirmationSummary + "\n\n") + Text("participant.list.deleteBody") + Text(verbatim: "\n")
-                + Text("participant.list.deleteIrreversible") + Text(verbatim: "\n") + Text("participant.list.deleteKeepsRegistration")
+            .themeDomain(.player)
         }
         .task(id: model.reader.identity) { await model.load() }
         .onDisappear { model.disappear() }

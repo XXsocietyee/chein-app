@@ -101,7 +101,7 @@ import SwiftUI
                 .cyDomainScreen(.player)
                 .navigationTitle(text("review"))
             }
-            .cyPlayerSheetGlass()
+            .cyDomainSheet(detents: [.half, .full])
         }
         // A reopened destination must receive a fresh model from its authorized host.
         .onDisappear { model.cancelReview() }

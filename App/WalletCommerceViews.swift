@@ -334,7 +334,8 @@ enum WalletPayoutCapability { static let isOn = false }
             }.listStyle(.plain).scrollContentBackground(.hidden).listRowBackground(Color.clear)
                 .appNavigationTitle(key: "wallet.title")
                 .cyDomainPageBackground()
-        }.presentationDetents([.medium, .large])
+        }
+        .cyDomainSheet(detents: [.half, .full])
     }
     private func walletRow<D: View>(_ title: LocalizedStringKey, icon: String, id: String, @ViewBuilder destination: () -> D) -> some View {
         NavigationLink { destination() } label: {
@@ -539,6 +540,7 @@ enum WalletPayoutCapability { static let isOn = false }
                     } }
                     .accessibilityIdentifier("wallet.income.detail")
                 }
+                .cyDomainSheet(detents: [.half, .full])
             }
     }
     /// Large balance hero (points or money). Unknown stays an em dash, never zero.

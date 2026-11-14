@@ -55,11 +55,11 @@ import SwiftUI
         .listStyle(.insetGrouped).navigationTitle(invoiceText("detail"))
         .task(id: applicationID) { await model.loadDetail(applicationID) }
         .refreshable { await model.loadDetail(applicationID) }
-        .confirmationDialog(invoiceText("withdrawConfirm"), isPresented: $confirmsCancel, titleVisibility: .visible) {
-            Button(role: .destructive) {
+        .sheet(isPresented: $confirmsCancel) {
+            MemberInvoiceWithdrawConfirmSheet(confirmIdentifier: "invoice.withdraw.confirm") {
+                confirmsCancel = false
                 Task { if await model.cancel(applicationID) { await model.loadDetail(applicationID) } }
-            } label: { invoiceText("withdraw") }
-            Button(role: .cancel) {} label: { invoiceText("keep") }
+            }
         }
         .cyDomainScreen(.player)
     }

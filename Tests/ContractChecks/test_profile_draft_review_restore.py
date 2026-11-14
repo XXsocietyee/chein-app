@@ -75,11 +75,13 @@ class ProfileDraftReviewRestoreContracts(unittest.TestCase):
         self.assertIn('await coordinator.save(value)',s)
     def test_comparison_and_separate_discard_confirmation_are_native_and_local(self):
         s=read('App/ProfileDraftReviewSection.swift')
+        popups=read('App/MemberAreaPopupSurfaces.swift')
         for token in ['DisclosureGroup {','ForEach(summary.changes)', 'value(change.before)', 'value(change.after)',
-                      '@State private var showsRestore = false', '.disabled(!canRestore)', '.confirmationDialog(',
-                      'Button("profile.reviewRestore.confirm", role: .destructive, action: restore)',
-                      'Button("action.cancel", role: .cancel)', 'text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty']:
+                      '@State private var showsRestore = false', '.disabled(!canRestore)', '.sheet(isPresented: $showsRestore)',
+                      'MemberProfileDiscardConfirmSheet(kind: .reviewRestore)', 'restore()', 'text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty']:
             self.assertIn(token,s)
+        for token in ['case .reviewRestore:', 'appLocalized("profile.reviewRestore.confirm"', 'isDestructive: true', 'CYConfirmSheet']:
+            self.assertIn(token,popups)
         for token in ['URLSession', 'URLRequest', 'AsyncImage', '.save(', '.load(', 'coordinator.']:
             self.assertNotIn(token,s)
     def test_existing_save_cancel_and_review_lifetime_wiring_remain(self):
