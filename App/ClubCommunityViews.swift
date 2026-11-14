@@ -259,7 +259,7 @@ struct ClubCommunityFeedView: View {
     private var canCompose: Bool { clubID != nil && identity.isSignedIn }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                 CYHeroHeader("club.community.posts")
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
                 if let notice = model.notice { communityNotice(notice, identifier: "club.community.notice") }

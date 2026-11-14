@@ -12,7 +12,10 @@ public struct ClubService {
     }
     public func home(token: String? = nil) async throws -> ClubHome {
         let data = try await post("api/club/home", json: [:], token: token)
-        return try decode(ClubValueEnvelope<ClubHomeWirePayload>.self, data).data.home
+        return try await PlayerFeedJSON.perform { () -> ClubHome in
+            do { return try JSONDecoder().decode(ClubValueEnvelope<ClubHomeWirePayload>.self, from: data).data.home }
+            catch { throw APIError.malformedResponse }
+        }
     }
     /// The unmodified `api/club/home` response body (already checked for HTTP 2xx and envelope code 200).
     /// `ClubTabPageModel.project(homeBody:)` reads counts from it so a missing count is not a literal 0.
@@ -26,7 +29,10 @@ public struct ClubService {
     }
     public func owned(token: String) async throws -> [ClubRecord] {
         let data = try await post("api/club/my", json: [:], token: token)
-        return try decode(ClubValueEnvelope<ClubOwnedPayload>.self, data).data.owned
+        return try await PlayerFeedJSON.perform { () -> [ClubRecord] in
+            do { return try JSONDecoder().decode(ClubValueEnvelope<ClubOwnedPayload>.self, from: data).data.owned }
+            catch { throw APIError.malformedResponse }
+        }
     }
     public func directory(name: String? = nil, token: String? = nil) async throws -> [ClubRecord] {
         let data: Data
@@ -36,7 +42,10 @@ public struct ClubService {
         } else {
             data = try await post("api/club/list", json: [:], token: token)
         }
-        return try decode(ClubValueEnvelope<[ClubRecord]>.self, data).data
+        return try await PlayerFeedJSON.perform { () -> [ClubRecord] in
+            do { return try JSONDecoder().decode(ClubValueEnvelope<[ClubRecord]>.self, from: data).data }
+            catch { throw APIError.malformedResponse }
+        }
     }
     public func detail(id: Int, token: String? = nil) async throws -> ClubRecord {
         guard id > 0 else { throw APIError.invalidRequest }

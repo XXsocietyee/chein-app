@@ -382,7 +382,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         async let body = reader.clubHomeBodyIfAvailable()
         let home = try await reader.clubHome()
         let raw = await body
-        let page = raw.map { ClubTabPageModel.project(homeBody: $0, merchant: discoveryScope.isMerchantViewer) }
+        let merchant = discoveryScope.isMerchantViewer
+        let page = try await PlayerFeedJSON.perform { raw.map { ClubTabPageModel.project(homeBody: $0, merchant: merchant) } }
         return ClubTabLoaded(home: home, page: page.flatMap { $0.phase == .ready || $0.phase == .empty ? $0 : nil })
     }
 }

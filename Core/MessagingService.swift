@@ -57,7 +57,7 @@ public struct MessagingService {
             throw MessagingReadFailure(httpStatus: status, code: failure?.code,
                 errorCode: failure?.errorCode, message: failure?.msg)
         }
-        do { return try JSONDecoder().decode(Envelope<Value>.self, from: data).data }
+        do { return try await PlayerFeedJSON.perform { try JSONDecoder().decode(Envelope<Value>.self, from: data) }.data }
         catch let error as MessagingReadFailure { throw error }
         catch { throw APIError.malformedResponse }
     }

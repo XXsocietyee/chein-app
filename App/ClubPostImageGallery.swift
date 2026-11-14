@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Reuses the existing post image loading path. A tap previews decoded pixels;
 /// it does not enable a new media reader, upload, save, share or another origin.
@@ -21,7 +22,20 @@ import SwiftUI
         Group {
             if current {
                 ForEach(Array(post.images.enumerated()), id: \.offset) { index, raw in
-                    AsyncImage(url: URL(string: raw)) { phase in
+                    let parsed = URL(string: raw)
+                    if let parsed, ObjectCardMediaPolicy.origin(parsed.absoluteString) != nil {
+                        ClubPostFeedThumb(url: parsed, retry: retries[index, default: 0], postID: post.id, index: index, count: post.images.count, focused: $focusedImage) { image in
+                            guard current, renderedReadScope == model.imageReadScope, selection == nil else { return }
+                            let target = ClubPostImageSelection(post: post, clubID: clubID, identity: identity,
+                                                               readScope: renderedReadScope, index: index)
+                            guard let target else { return }
+                            returnFocus = index; initialImage = image; selection = target
+                        } retryLoad: {
+                            retries[index, default: 0] += 1
+                        }
+                        .id("\(renderedReadScope)|\(index)|\(retries[index, default: 0])")
+                    } else {
+                    AsyncImage(url: parsed) { phase in
                         switch phase {
                         case .success(let image):
                             Button {
@@ -42,11 +56,12 @@ import SwiftUI
                                     .accessibilityIdentifier("club.postImages.retry.\(post.id).\(index)")
                             }
                         case .empty:
-                            if URL(string: raw) == nil { Label("media.destination.failed", systemImage: "photo.badge.exclamationmark") }
+                            if parsed == nil { Label("media.destination.failed", systemImage: "photo.badge.exclamationmark") }
                             else { ProgressView("square.imageLoading") }
                         @unknown default: Image(systemName: "photo")
                         }
                     }.id("\(renderedReadScope)|\(index)|\(retries[index, default: 0])")
+                    }
                 }
             }
         }
@@ -67,6 +82,50 @@ import SwiftUI
     }
     private func invalidate() {
         selection = nil; initialImage = nil; retries = [:]; returnFocus = nil; focusedImage = nil
+    }
+}
+
+/// List thumbnail for one post image. Reuses the feed cache and bounded loader; the tap still hands a SwiftUI image to the existing preview.
+@MainActor private struct ClubPostFeedThumb: View {
+    let url: URL
+    let retry: Int
+    let postID: Int
+    let index: Int
+    let count: Int
+    var focused: AccessibilityFocusState<Int?>.Binding
+    let open: (Image) -> Void
+    let retryLoad: () -> Void
+    @State private var image: UIImage?
+    @State private var failed = false
+
+    var body: some View {
+        Group {
+            if let image {
+                let picture = Image(uiImage: image)
+                Button { open(picture) } label: { picture.resizable().scaledToFit() }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("club.postImages.open \(index + 1) \(count)"))
+                    .accessibilityIdentifier("club.postImages.open.\(postID).\(index)")
+                    .accessibilityFocused(focused, equals: index)
+            } else if failed {
+                VStack {
+                    Label("media.destination.failed", systemImage: "photo.badge.exclamationmark")
+                    Button("action.retry", action: retryLoad)
+                        .accessibilityIdentifier("club.postImages.retry.\(postID).\(index)")
+                }
+            } else {
+                ProgressView("square.imageLoading")
+            }
+        }
+        .task(id: "\(url.absoluteString)|\(retry)") {
+            image = nil
+            failed = false
+            guard let loaded = await PlayerFeedImages.image(for: url, maxPixel: 1200) else {
+                if !Task.isCancelled { failed = true }
+                return
+            }
+            if !Task.isCancelled { image = loaded }
+        }
     }
 }
 

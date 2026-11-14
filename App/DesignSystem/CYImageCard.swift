@@ -11,6 +11,7 @@ struct CYImageCard: View {
     private let imageURL: URL?
     private let aspectRatio: CGFloat
     private let seed: String
+    var cachesFeedImage = false
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -111,8 +112,16 @@ struct CYImageCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    func cachingFeedImage(_ enabled: Bool = true) -> CYImageCard {
+        var copy = self
+        copy.cachesFeedImage = enabled
+        return copy
+    }
+
     @ViewBuilder private var cover: some View {
-        if let imageURL {
+        if let imageURL, cachesFeedImage {
+            PlayerFeedRemoteImage(url: imageURL, maxPixel: style == .shelf ? 960 : 1200, placeholder: { placeholder }, failure: { placeholder })
+        } else if let imageURL {
             AsyncImage(url: imageURL) { phase in
                 if let image = phase.image { image.resizable().scaledToFill() } else { placeholder }
             }

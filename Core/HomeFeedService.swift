@@ -49,7 +49,7 @@ public struct HomeFeedService {
         let (data, status) = try await transport.send(request)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
-        do { return try JSONDecoder().decode(ActivityListResponse.self, from: data).rows }
+        do { return try await PlayerFeedJSON.perform { try JSONDecoder().decode(ActivityListResponse.self, from: data) }.rows }
         catch let error as APIError { throw error }
         catch { throw APIError.malformedResponse }
     }

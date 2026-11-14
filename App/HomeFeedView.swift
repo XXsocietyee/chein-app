@@ -115,47 +115,52 @@ import UIKit
                         )
                         .cySectionReveal(order: 6, gate: reveal)
                     }
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        sectionHeader(Text("homeFeed.explore"))
-                        Picker("homeFeed.content", selection: $kind) {
-                            Text("homeFeed.topics").tag(HomeFeedKind.topics)
-                            Text("homeFeed.activities").tag(HomeFeedKind.activities)
-                        }.pickerStyle(.segmented).accessibilityIdentifier("homeFeed.kind")
-                        Picker("homeFeed.category", selection: $categoryID) {
-                            Text("homeFeed.allCategories").tag(Int?.none)
-                            ForEach(model.categories) { category in Text(verbatim: category.name).tag(Optional(category.id)) }
-                        }.accessibilityIdentifier("homeFeed.category")
-                        if model.categoryFailed { retry(Text("homeFeed.categoriesError"), id: "categories") { model.schedule(.categories, reader: reader, permit: permit) } }
-                        ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
-                            row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger)
-                        }
-                        if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
-                        if model.loadingPage {
-                            if model.pagination.items.isEmpty {
-                                if streamSkeleton {
-                                    CYLoadingStateView(rows: 3)
-                                        .accessibilityLabel(Text("homeFeed.loading"))
-                                        .transition(.opacity)
-                                }
-                            } else { ProgressView("homeFeed.loading") }
-                        }
-                        else if !model.pageFailed && model.pagination.items.isEmpty && !streamSkeleton {
-                            CYEmptyStateView(systemImage: "magnifyingglass", title: "homeFeed.empty", description: "homeFeed.emptyHint")
-                                .accessibilityIdentifier("homeFeed.empty")
-                        }
-                        if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
-                            Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
-                                .frame(minHeight: 44)
-                                .accessibilityIdentifier("homeFeed.loadMore")
-                        } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
-                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
-                                .font(CYTypography.meta)
-                                .foregroundStyle(CYColor.textTertiary)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .accessibilityIdentifier("homeFeed.noMoreFooter")
-                        }
+                    sectionHeader(Text("homeFeed.explore"))
+                        .cySectionReveal(order: 7, gate: reveal)
+                        .homeFeedStreamPitch()
+                    Picker("homeFeed.content", selection: $kind) {
+                        Text("homeFeed.topics").tag(HomeFeedKind.topics)
+                        Text("homeFeed.activities").tag(HomeFeedKind.activities)
+                    }.pickerStyle(.segmented).accessibilityIdentifier("homeFeed.kind")
+                        .homeFeedStreamPitch()
+                    Picker("homeFeed.category", selection: $categoryID) {
+                        Text("homeFeed.allCategories").tag(Int?.none)
+                        ForEach(model.categories) { category in Text(verbatim: category.name).tag(Optional(category.id)) }
+                    }.accessibilityIdentifier("homeFeed.category")
+                        .homeFeedStreamPitch()
+                    if model.categoryFailed { retry(Text("homeFeed.categoriesError"), id: "categories") { model.schedule(.categories, reader: reader, permit: permit) }.homeFeedStreamPitch() }
+                    ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
+                        row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger).homeFeedStreamPitch()
                     }
-                    .cySectionReveal(order: 7, gate: reveal)
+                    if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) }.homeFeedStreamPitch() }
+                    if model.loadingPage {
+                        if model.pagination.items.isEmpty {
+                            if streamSkeleton {
+                                CYLoadingStateView(rows: 3)
+                                    .accessibilityLabel(Text("homeFeed.loading"))
+                                    .transition(.opacity)
+                                    .homeFeedStreamPitch()
+                            }
+                        } else { ProgressView("homeFeed.loading").homeFeedStreamPitch() }
+                    }
+                    else if !model.pageFailed && model.pagination.items.isEmpty && !streamSkeleton {
+                        CYEmptyStateView(systemImage: "magnifyingglass", title: "homeFeed.empty", description: "homeFeed.emptyHint")
+                            .accessibilityIdentifier("homeFeed.empty")
+                            .homeFeedStreamPitch()
+                    }
+                    if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
+                        Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
+                            .frame(minHeight: 44)
+                            .accessibilityIdentifier("homeFeed.loadMore")
+                            .homeFeedStreamPitch()
+                    } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
+                        Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textTertiary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .accessibilityIdentifier("homeFeed.noMoreFooter")
+                            .homeFeedStreamPitch()
+                    }
                     }
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.top, CYSpacing.lg)
@@ -422,6 +427,11 @@ private struct HomeHeroStatusBarClearance: ViewModifier {
     }
 }
 
+private extension View {
+    /// Outer stack spacing is 24. Stream rows keep the previous 12pt pitch.
+    func homeFeedStreamPitch() -> some View { padding(.bottom, CYSpacing.md - CYSpacing.xxl) }
+}
+
 extension HomeFeedItem {
     var accessibilityKey: String {
         switch id { case .activity(let id): return "activity.\(id)"; case .topic(let id): return "topic.\(id)" }
@@ -442,6 +452,7 @@ struct HomeFeedShelfCard: View {
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
+            .cachingFeedImage()
     }
 }
 
@@ -465,6 +476,7 @@ struct HomeFeedCard: View {
             QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone), place: item.place),
                                 price: QuestifyCardText.amount(item.amount, locale: locale), onArtwork: true)
         }
+        .cachingFeedImage()
     }
     /// Only a safe https cover reaches the card; anything else shows the clean placeholder.
     private var safeImageSource: String? {
@@ -619,9 +631,7 @@ struct HomeTodayCard: View {
         ZStack {
             CYCoverArt(seed: c.title)
             if let url = c.imageURL, url.scheme?.lowercased() == "https" {
-                AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: CYMotion.Duration.standard))) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) } else { Color.clear }
-                }
+                PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { Color.clear }, failure: { Color.clear })
             }
             // Indigo dusk at the top, ink (never pure black) at the foot where the text sits.
             LinearGradient(stops: [.init(color: CYNight.indigo.opacity(0.45), location: 0),
