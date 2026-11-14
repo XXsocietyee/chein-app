@@ -11,6 +11,12 @@ public enum CoopFlowRead: Equatable {
     case merchants(name: String?), ownedTopics(kind: CoopFlowTargetKind, scope: String?, page: Int)
     /// Source `pages/coop/list` legs: official merchant invites (GET) and merchant chapter applications.
     case officialMerchantInvites, chapterApplicationsOwned(scope: String?), chapterApplicationsMine
+    /// GET `/api/coop/invite/request?requestId=`. One original send.
+    case inviteRequest(requestID: String)
+    /// GET `/api/coop/invite/requests`. `before` is the previous page cursor, absent on the first page.
+    case inviteRequests(before: String?, limit: Int)
+    /// GET `/api/coop/supply-stations?topicId=&merchantMemberId=`.
+    case supplyStations(topicID: Int, merchantMemberID: Int)
     public var path: String {
         switch self {
         case .invitations: return "api/coop/list"; case .pool: return "api/coop/pool/list"
@@ -28,6 +34,28 @@ public enum CoopFlowRead: Equatable {
         case .officialMerchantInvites: return "api/official/merchant-invites"
         case .chapterApplicationsOwned: return "api/merchant/chapter-application/owner-mine"
         case .chapterApplicationsMine: return "api/merchant/chapter-application/mine"
+        case .inviteRequest: return "api/coop/invite/request"
+        case .inviteRequests: return "api/coop/invite/requests"
+        case .supplyStations: return "api/coop/supply-stations"
+        }
+    }
+    /// GET reads send the query and no body. Every other read stays a JSON POST.
+    public var usesGet: Bool {
+        switch self {
+        case .officialMerchantInvites, .inviteRequest, .inviteRequests, .supplyStations: return true
+        default: return false
+        }
+    }
+    public var queryItems: [URLQueryItem] {
+        switch self {
+        case .inviteRequest(let requestID): return [URLQueryItem(name: "requestId", value: requestID)]
+        case .inviteRequests(let before, let limit):
+            var items = [URLQueryItem(name: "limit", value: String(limit))]
+            if let before { items.append(URLQueryItem(name: "before", value: before)) }
+            return items
+        case .supplyStations(let topicID, let merchantMemberID):
+            return [URLQueryItem(name: "topicId", value: String(topicID)), URLQueryItem(name: "merchantMemberId", value: String(merchantMemberID))]
+        default: return []
         }
     }
     public var expectsArray: Bool { switch self { case .applications, .receivedApplications, .templates, .perks, .complaintTopics, .complaintProgress, .clubs, .merchants, .nearby,
@@ -50,8 +78,25 @@ public enum CoopFlowRead: Equatable {
         case .nearby(let lng, let lat):
             guard lng.isFinite, lat.isFinite, (-180...180).contains(lng), (-90...90).contains(lat) else { throw APIError.invalidRequest }
             return .object(["longitude": .string(String(lng)), "latitude": .string(String(lat)), "radius": .string("5000"), "limit": .string("30")])
+        case .inviteRequest(let requestID):
+            guard Self.validInviteRequestID(requestID) else { throw APIError.invalidRequest }
+            return .object([:])
+        case .inviteRequests(let before, let limit):
+            if let before { guard Self.validInviteCursor(before) else { throw APIError.invalidRequest } }
+            guard (1...20).contains(limit) else { throw APIError.invalidRequest }
+            return .object([:])
+        case .supplyStations(let topicID, let merchantMemberID):
+            guard topicID > 0, merchantMemberID > 0 else { throw APIError.invalidRequest }
+            return .object([:])
         default: return .object([:])
         }
+    }
+    public static func validInviteRequestID(_ value: String) -> Bool {
+        (1...64).contains(value.utf8.count) && value.utf8.allSatisfy { (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 45 || $0 == 95 }
+    }
+    /// Page cursor from `nextCursor`: a positive decimal id, not a padded or signed form.
+    public static func validInviteCursor(_ value: String) -> Bool {
+        !value.isEmpty && value.count <= 19 && value.allSatisfy(\.isNumber) && value.first != "0" && Int64(value) != nil && (Int64(value) ?? 0) > 0
     }
 }
 public struct CoopFlowSession: Equatable {
@@ -93,7 +138,15 @@ public struct CoopFlowService {
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             request.httpBody = Data((parts + "--\(boundary)--\r\n").utf8)
         }
-        if resource == .officialMerchantInvites { request.httpMethod = "GET"; request.httpBody = nil; request.setValue(nil, forHTTPHeaderField: "Content-Type") }
+        if resource.usesGet {
+            request.httpMethod = "GET"; request.httpBody = nil; request.setValue(nil, forHTTPHeaderField: "Content-Type")
+            if !resource.queryItems.isEmpty {
+                guard var parts = URLComponents(url: request.url ?? configuration.baseURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
+                parts.queryItems = resource.queryItems
+                guard let url = parts.url else { throw APIError.invalidRequest }
+                request.url = url
+            }
+        }
         let value: CoopFlowJSON
         do { value = try await send(request) }
         catch CoopFlowFailure.inactiveMerchant(let code, let message) {
@@ -145,6 +198,11 @@ public struct CoopFlowService {
         }
         return result
     }
+    /// Invitee's read receipt. Not a money or merchant write, so it does not wait on the dormant write switch.
+    public func markInviteRead(inviteID: Int, session: CoopFlowSession) async throws -> CoopFlowJSON {
+        let operation = CoopFlowMutation.markInviteRead(inviteID: inviteID)
+        return try await send(makeRequest(path: operation.path, body: operation.body(), session: session))
+    }
     private func makeRequest(path: String, body: CoopFlowJSON, session: CoopFlowSession) throws -> URLRequest {
         var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: session.token)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -170,6 +228,7 @@ public struct CoopFlowService {
     func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON
     func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement
+    func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON
 }
 extension CoopFlowReading {
     public func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
@@ -178,6 +237,7 @@ extension CoopFlowReading {
         guard !Task.isCancelled, isCurrent() else { throw CoopFlowFailure.stale }
         return value
     }
+    public func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON { throw CoopFlowFailure.disabled }
 }
 @MainActor public final class CoopFlowSessionReader: CoopFlowReading {
     private let service: CoopFlowService?
@@ -193,6 +253,9 @@ extension CoopFlowReading {
     }
     public func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {
         try await fenced { try await $0.settlement(source: source, id: id, session: $1) }
+    }
+    public func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON {
+        try await fenced { try await $0.markInviteRead(inviteID: inviteID, session: $1) }
     }
     private func fenced<T>(isCurrent: () -> Bool = { true }, _ operation: (CoopFlowService, CoopFlowSession) async throws -> T) async throws -> T {
         guard isCurrent() else { throw CoopFlowFailure.stale }

@@ -145,6 +145,14 @@ public struct SquareService {
     }
     /// G4. `community-post-api` list with `is_my=1` → `GET me/posts`, `favorite_only=1` → `GET me/bookmarks`
     /// (`pages/member`, `pages/mylike`). `{limit, cursor?}`; the page must carry `items[]` and a boolean `hasMore`.
+    public func ownCreativeSquareIDs(token: String) async throws -> [Int] {
+        try await CreativeSquareAuthorDeleteClient(configuration: configuration, transport: transport).ownIDs(token: token)
+    }
+    public func deleteOwnCreativeSquare(postID: Int, authorMemberID: Int, viewerMemberID: Int, token: String) async throws -> [Int] {
+        let command = try CreativeSquareAuthorDelete(postID: postID, authorMemberID: authorMemberID)
+        return try await CreativeSquareAuthorDeleteClient(configuration: configuration, transport: transport)
+            .deleteOwnAndReread(command, viewerMemberID: viewerMemberID, token: token)
+    }
     public func mine(_ list: SquareMineList, cursor: SquareCursor? = nil, pageSize: Int = 20, token: String) async throws -> SquareFeedPage {
         guard AuthRequestBuilder.isValidToken(token), (1...50).contains(pageSize) else { throw APIError.invalidRequest }
         var query = [URLQueryItem(name: "limit", value: String(pageSize))]

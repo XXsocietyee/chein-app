@@ -194,3 +194,68 @@ public struct SocialActionRequestBuilder {
         return request
     }
 }
+
+/// Author delete of one legacy square post (`POST /api/creativesquare/delete`) and the list re-read
+/// (`POST /api/creativesquare/list`, `is_my=1`). Not a merchant or money write.
+public struct CreativeSquareAuthorDelete: Equatable {
+    public static let path = "api/creativesquare/delete"
+    public static let listPath = "api/creativesquare/list"
+    public let postID: Int
+    public let authorMemberID: Int
+    public var path: String { Self.path }
+    public init(postID: Int, authorMemberID: Int) throws {
+        guard postID > 0, authorMemberID > 0 else { throw APIError.invalidRequest }
+        self.postID = postID; self.authorMemberID = authorMemberID
+    }
+}
+
+public struct CreativeSquareAuthorDeleteClient {
+    public let configuration: APIConfiguration
+    public let transport: any HTTPTransport
+    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+        self.configuration = configuration; self.transport = transport
+    }
+    public func listRequest(token: String) throws -> URLRequest {
+        try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(CreativeSquareAuthorDelete.listPath),
+            fields: ["is_my": "1", "pageNum": "1", "pageSize": "20"], token: token)
+    }
+    public func deleteRequest(_ command: CreativeSquareAuthorDelete, token: String) throws -> URLRequest {
+        try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(command.path),
+            fields: ["id": String(command.postID)], token: token)
+    }
+    public func ownIDs(token: String) async throws -> [Int] {
+        try Self.ids(in: try await send(listRequest(token: token)))
+    }
+    /// Deletes only when the viewer is the author, then re-reads the author's list. The deleted id must be gone.
+    public func deleteOwnAndReread(_ command: CreativeSquareAuthorDelete, viewerMemberID: Int, token: String) async throws -> [Int] {
+        guard viewerMemberID == command.authorMemberID else { throw SocialActionBlock.ownerRequired }
+        try Self.requireCode(try await send(deleteRequest(command, token: token)))
+        let ids = try await ownIDs(token: token)
+        guard !ids.contains(command.postID) else { throw APIError.malformedResponse }
+        return ids
+    }
+    private func send(_ request: URLRequest) async throws -> Data {
+        try Task.checkCancellation()
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        return data
+    }
+    public static func requireCode(_ data: Data) throws {
+        guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw APIError.malformedResponse }
+        let code = (root["code"] as? Int) ?? (root["code"] as? NSNumber)?.intValue
+        guard code == 200 else { throw APIError.malformedResponse }
+    }
+    public static func ids(in data: Data) throws -> [Int] {
+        try requireCode(data)
+        guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let payload = root["data"] as? [String: Any], let rows = payload["rows"] as? [Any] else { throw APIError.malformedResponse }
+        return try rows.map { row in
+            guard let fields = row as? [String: Any] else { throw APIError.malformedResponse }
+            let id = (fields["id"] as? Int) ?? (fields["id"] as? NSNumber)?.intValue ?? 0
+            guard id > 0 else { throw APIError.malformedResponse }
+            return id
+        }
+    }
+}

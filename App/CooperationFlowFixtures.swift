@@ -27,6 +27,10 @@ import SwiftUI
         case .officialMerchantInvites: return .array([.object(["inviteId": .id(41), "title": .string("Synthetic official event"), "status": .id(0), "shareMode": .id(0), "expireTime": .string("2026-11-02 18:00:00")])])
         case .chapterApplicationsOwned: return .array([.object(["id": .id(51), "topicId": .id(8), "topicName": .string("Synthetic chapter topic"), "chapterName": .string("Market chapter"), "merchantName": .string("Synthetic merchant"), "status": .id(0), "source": .id(0)])])
         case .chapterApplicationsMine: return .array([])
+        case .inviteRequest(let requestID):
+            return .object(["state": .string("NOT_FOUND"), "requestId": .string(requestID), "inviteId": .null, "topicId": .null, "toId": .null, "inviteType": .null, "toType": .null, "scope": .null])
+        case .inviteRequests: return .object(["rows": .array([]), "nextCursor": .null, "hasMore": .bool(false)])
+        case .supplyStations: return .object(["requiresSupplyStation": .bool(true), "stations": .array([])])
         }
     }
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {

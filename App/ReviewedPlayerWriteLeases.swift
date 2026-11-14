@@ -512,7 +512,13 @@ enum ReviewedPlayerReadRoute {
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
         "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
         "api/external-game/catalog", "api/external-game/catalog/{}", "api/external-game/catalog/{}/package",
-        "api/external-game/signing-key", "api/external-game/reports"
+        "api/external-game/signing-key", "api/external-game/reports",
+        // WP-04: invite read receipts and the author's own square post. Not money and not api/merchant.
+        "api/coop/invite/read",
+        "api/coop/invite/request",
+        "api/coop/invite/requests",
+        "api/coop/supply-stations",
+        "api/creativesquare/delete"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths)
     /// A play-grant path, templated segments normalized. The composition lets such a GET carry its query (G1/G7/G8/parity-b
     /// reads such as `team/trail/state?activityId=`); the lease still checks method, body and grant.

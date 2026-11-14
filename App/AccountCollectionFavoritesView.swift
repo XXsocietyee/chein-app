@@ -32,6 +32,9 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     private var postsAllowed: Bool { gateModel.postsAllowed(reader: reader, gate: communityGate) }
     var body: some View {
         VStack(spacing: 0) {
+            CreativeSquareAuthorDeleteSection(signedIn: reader.isAuthenticated, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.sm)
             if postsAllowed {
                 Picker("accountCollection.favorites.title", selection: $selectedTab) {
                     Text("social.posts").tag(Tab.posts)

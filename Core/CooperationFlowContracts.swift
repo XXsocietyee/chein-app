@@ -280,6 +280,8 @@ public enum CoopFlowMutation: Equatable {
     case review(topicID: Int, memberID: Int, rating: Int, comment: String?)
     case complaint(topicID: Int, reason: String)
     case contact(inviteID: Int)
+    /// Invitee's read receipt. POST body is `{id}`. The sender opening their own invite is not this call.
+    case markInviteRead(inviteID: Int)
     public var path: String {
         let suffix: String
         switch self {
@@ -291,6 +293,7 @@ public enum CoopFlowMutation: Equatable {
         case .reconfirmOffer: suffix = "offer/circle-supply/reconfirm-current"; case .pauseOffer: suffix = "offer/circle-supply/pause"
         case .withdrawOffer: suffix = "offer/withdraw"
         case .review: suffix = "review/save"; case .complaint: suffix = "complaint/report"; case .contact: suffix = "contact"
+        case .markInviteRead: suffix = "invite/read"
         }; return "api/coop/" + suffix
     }
     public var requiresSeparateEnablement: Bool {
@@ -349,6 +352,7 @@ public enum CoopFlowMutation: Equatable {
             guard !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw CoopFlowFailure.invalid("reason") }
             b = ["topicId": try positive(topic), "reason": .string(reason)]
         case .contact(let id): b = ["id": try positive(id)]
+        case .markInviteRead(let id): b = ["id": try positive(id)]
         }
         return .object(b)
     }

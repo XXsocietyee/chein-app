@@ -81,6 +81,7 @@ import UIKit
                         .accessibilityIdentifier("cooperation.detail.viewerParty")
                 }
                 CooperationField(key: "cooperation.inviteID", value: "#\(row.id)")
+                CoopInviteReadReceiptRow(peerReader: peerReader, inviteID: row.id, direction: key.direction)
                 CooperationTimeField(key: "cooperation.created", value: row.createTime)
                 CooperationTimeField(key: "cooperation.expires", value: row.expireTime)
             }
@@ -247,5 +248,46 @@ import UIKit
             return false
         }
         return true
+    }
+}
+
+/// Received invites post `/api/coop/invite/read`. Opening a sent invite does not.
+@MainActor private struct CoopInviteReadReceiptRow: View {
+    let peerReader: (any CoopFlowReading)?
+    let inviteID: Int
+    let direction: CooperationDirection
+    @Environment(\.locale) private var locale
+    @State private var phase = Phase.loading
+    private enum Phase { case loading, done, failed }
+    var body: some View {
+        Group {
+            if direction == .sent {
+                Text(verbatim: locale.pick("发起方查看不算已读", "Opening your own invite does not mark it read"))
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("cooperation.detail.read.sent")
+            } else {
+                switch phase {
+                case .loading:
+                    Text(verbatim: locale.pick("正在标记已读", "Marking as read")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("cooperation.detail.read.loading")
+                case .done:
+                    Text(verbatim: locale.pick("已读", "Read")).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("cooperation.detail.read.done")
+                case .failed:
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: locale.pick("已读没有记下，请重试", "The read receipt did not stick. Try again."))
+                            .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await mark() } }
+                    }.accessibilityIdentifier("cooperation.detail.read.failed")
+                }
+            }
+        }
+        .task(id: "\(direction.rawValue).\(inviteID)") { await mark() }
+    }
+    private func mark() async {
+        guard direction == .received, inviteID > 0, let peerReader else { phase = .failed; return }
+        phase = .loading
+        do { _ = try await peerReader.markInviteRead(inviteID: inviteID); phase = .done }
+        catch { phase = .failed }
     }
 }

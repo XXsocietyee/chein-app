@@ -15,6 +15,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var onTopicDestination: ((Int) -> Void)? = nil
     /// chein://club/<id>/join: open this club's detail once, then clear it. The detail keeps its own join confirmation.
     var requestedClubID: Binding<Int?>? = nil
+    /// Author square delete on the talent list feed. Nil shows a visible not-connected line.
+    var authorSquare: (any SquareReading)? = nil
     @State private var locality = MerchantClubDiscoveryState()
     /// Card or inline Join pill tapped; both open the gated detail, which still owns the membership action.
     @State private var openedClubID: Int? = nil
@@ -51,6 +53,16 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         if topTab == .feed, let community {
             // 帖文: the existing community feed (like / comment / repost / share / follow). Not rebuilt.
             VStack(spacing: 0) {
+                if let authorSquare {
+                    CreativeSquareAuthorDeleteSection(signedIn: authorSquare.isSignedIn, load: { try await authorSquare.ownCreativeSquareIDs() }, remove: { try await authorSquare.deleteOwnCreativeSquare(postID: $0) })
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .padding(.bottom, CYSpacing.sm)
+                } else {
+                    Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .accessibilityIdentifier("club.authorSquare.missing")
+                }
                 MPPassExploreCard()
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.bottom, CYSpacing.sm)

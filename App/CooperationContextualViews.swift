@@ -129,6 +129,110 @@ import SwiftUI
     }
 }
 
+/// Original send receipts and confirmed supply stations for `pages/coop/invite`.
+@MainActor struct CoopInviteReceiptSections: View {
+    let reader: any CoopFlowReading
+    let kind: CoopFlowTargetKind
+    let topicID: Int?
+    let merchantMemberIDs: [Int]
+    @Environment(\.locale) private var locale
+    @State private var requests = Load.loading
+    @State private var requestRows: [CoopFlowJSON] = []
+    @State private var oneReceipt: CoopFlowJSON?
+    @State private var stations = Load.idle
+    @State private var stationRows: [CoopFlowJSON] = []
+    private enum Load: Equatable { case idle, loading, empty, failed, ready }
+    private var stationKey: String { "\(kind.rawValue):\(topicID ?? 0):\(merchantMemberIDs.sorted().map(String.init).joined(separator: ","))" }
+    var body: some View {
+        Group {
+            Section {
+                Text(verbatim: locale.pick("原请求", "Original requests")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                requestBody
+            }
+            if kind == .merchant, let topicID, topicID > 0, !merchantMemberIDs.isEmpty {
+                Section {
+                    Text(verbatim: locale.pick("已确定据点", "Confirmed stations")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    stationBody
+                }
+            }
+        }
+        .task(id: reader.session) { await loadRequests() }
+        .task(id: stationKey) { await loadStations() }
+    }
+    @ViewBuilder private var requestBody: some View {
+        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+        else {
+            switch requests {
+            case .idle, .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
+            case .empty:
+                Text(verbatim: locale.pick("未查到本次发送记录；仍可能已经发出，请勿重复发送", "No original send was found. It may still have been sent. Do not send again."))
+                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            case .failed:
+                Text(verbatim: locale.pick("原请求暂无法查询，请勿重复发送", "The original request cannot be read right now. Do not send again."))
+                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await loadRequests() } }
+            case .ready:
+                ForEach(Array(requestRows.enumerated()), id: \.offset) { _, row in
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        Text(verbatim: row["state"].text ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: row["requestId"].text ?? "—").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    }
+                }
+                if let oneReceipt {
+                    Text(verbatim: oneReceipt["state"].text ?? "—").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: oneReceipt["inviteId"].text ?? "—").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                }
+            }
+        }
+    }
+    @ViewBuilder private var stationBody: some View {
+        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+        else {
+            switch stations {
+            case .idle, .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
+            case .empty:
+                Text(verbatim: locale.pick("暂无已确定据点", "No confirmed station")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+            case .failed:
+                Text(verbatim: locale.pick("据点读取失败，请重试", "Stations did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary) { Task { await loadStations() } }
+            case .ready:
+                if stationRows.isEmpty { Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                ForEach(Array(stationRows.enumerated()), id: \.offset) { _, row in
+                    Text(verbatim: row["stationName"].text ?? "—").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                }
+            }
+        }
+    }
+    private func loadRequests() async {
+        guard reader.session != nil else { requests = .idle; return }
+        requests = .loading
+        do {
+            let page = try await reader.read(.inviteRequests(before: nil, limit: 20))
+            let rows = page["rows"].rows ?? []
+            requestRows = rows
+            if let requestID = rows.compactMap({ $0["requestId"].text }).first(where: CoopFlowRead.validInviteRequestID) {
+                oneReceipt = try await reader.read(.inviteRequest(requestID: requestID))
+            } else { oneReceipt = nil }
+            requests = rows.isEmpty ? .empty : .ready
+        } catch { requests = .failed }
+    }
+    private func loadStations() async {
+        guard kind == .merchant, let topicID, topicID > 0, !merchantMemberIDs.isEmpty, reader.session != nil else {
+            stations = .idle; stationRows = []; return
+        }
+        stations = .loading
+        do {
+            var found: [CoopFlowJSON] = []
+            for memberID in merchantMemberIDs where memberID > 0 {
+                let page = try await reader.read(.supplyStations(topicID: topicID, merchantMemberID: memberID))
+                found.append(contentsOf: page["stations"].rows ?? [])
+            }
+            stationRows = found
+            stations = found.isEmpty ? .empty : .ready
+        } catch { stations = .failed }
+    }
+}
+
 @MainActor struct CoopFlowNewInvitationView: View {
     let reader: any CoopFlowReading
     let operationScope: String?
@@ -216,6 +320,7 @@ import SwiftUI
                         .accessibilityIdentifier("context.coop.target.\(candidate.id)")
                 }
             }
+            CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id))
             if !model.selected.isEmpty, model.isCurrent {
                 CYListRow("context.coop.selected", trailing: .value(model.selected.isEmpty ? "—" : String(model.selected.count)))
                 // Mini `.cta-bar`: one solid action for the whole screen.

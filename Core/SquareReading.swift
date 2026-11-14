@@ -19,6 +19,8 @@ public struct SquareReadSession: Equatable {
     func squareComments(postID: Int, pageNumber: Int) async throws -> SquareCommentPage
     func squareDetail(route: SquareContentRoute) async throws -> SquarePost
     func squareComments(route: SquareContentRoute, pageNumber: Int) async throws -> SquareCommentPage
+    func ownCreativeSquareIDs() async throws -> [Int]
+    func deleteOwnCreativeSquare(postID: Int) async throws -> [Int]
 }
 public extension SquareReading {
     func squareDetail(route: SquareContentRoute) async throws -> SquarePost {
@@ -31,6 +33,8 @@ public extension SquareReading {
         let value = try await squareComments(postID: route.id, pageNumber: pageNumber)
         guard value.items.allSatisfy({ $0.generation == route.generation }) else { throw APIError.invalidRequest }; return value
     }
+    func ownCreativeSquareIDs() async throws -> [Int] { throw APIError.notConfigured }
+    func deleteOwnCreativeSquare(postID: Int) async throws -> [Int] { throw APIError.notConfigured }
 }
 public struct SquareCommunityFeatures: Equatable {
     public let read: Bool
@@ -86,6 +90,19 @@ public struct SquareCommunityFeatures: Equatable {
     }
     public func squareComments(route: SquareContentRoute, pageNumber: Int) async throws -> SquareCommentPage {
         try await read { try await $0.comments(route: route, pageNumber: pageNumber, token: $1) }
+    }
+    public func ownCreativeSquareIDs() async throws -> [Int] {
+        try await read { service, token in
+            guard let token else { throw APIError.unauthorized }
+            return try await service.ownCreativeSquareIDs(token: token)
+        }
+    }
+    public func deleteOwnCreativeSquare(postID: Int) async throws -> [Int] {
+        guard let author = currentSession()?.accountID else { throw APIError.unauthorized }
+        return try await read { service, token in
+            guard let token, self.currentSession()?.accountID == author else { throw APIError.unauthorized }
+            return try await service.deleteOwnCreativeSquare(postID: postID, authorMemberID: author, viewerMemberID: author, token: token)
+        }
     }
     private func read<T>(_ operation: (SquareService, String?) async throws -> T) async throws -> T {
         guard let service else { throw APIError.notConfigured }
