@@ -43,6 +43,7 @@ import SwiftUI
         }
         .cyAnimation(CYMotion.standard, value: page.phase)
         .appNavigationTitle("characterCard.title")
+        .navigationBarTitleDisplayMode(.large)
         .task { await model.load() }
         .onDisappear { model.dismiss() }
     }

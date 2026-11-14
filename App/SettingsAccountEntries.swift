@@ -36,7 +36,7 @@ import SwiftUI
                     confirms = confirmation != nil
                 } label: {
                     Label("auth.signOut", systemImage: "rectangle.portrait.and.arrow.right")
-                        .frame(maxWidth: .infinity).foregroundStyle(CYColor.dangerText)
+                        .frame(maxWidth: .infinity).foregroundStyle(CYColor.textPrimary)
                 }
                     .accessibilityIdentifier("settings.signOut")
             }

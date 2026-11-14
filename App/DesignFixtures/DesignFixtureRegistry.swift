@@ -80,6 +80,8 @@ enum DesignFixtureRegistry {
         case "d4-confirm": return AnyView(D4ClubFixture(.confirm))
         case "d4-settings": return AnyView(D4MeFixture(screen: .settings))
         case "d4-growth": return AnyView(D4MeFixture(screen: .growth))
+        case "d4-growth-failure": return AnyView(D4MeFixture(screen: .growthFailure))
+        case "d4-growth-offline": return AnyView(D4MeFixture(screen: .growthOffline))
         case "d4-leaderboard": return AnyView(D4MeFixture(screen: .leaderboard))
         case "d4-badges": return AnyView(D4MeFixture(screen: .badges))
         case "d4-join-confirm": return AnyView(D4ClubFixture(.joinConfirm))

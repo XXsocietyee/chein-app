@@ -181,16 +181,17 @@ import UIKit
 /// iOS Settings style row icon: a 30pt continuous rounded-square tile, filled with the group tint
 /// (`settingsTileTint`) and a white glyph. Rows in a group share a hue; the default is neutral gray.
 struct SettingsTileLabelStyle: LabelStyle {
-    @Environment(\.settingsTileTint) private var tint
+    @Environment(\.cyPalette) private var palette
     func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: CYSpacing.md) {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
             configuration.icon
-                .font(.system(.subheadline, weight: .semibold))
-                .foregroundStyle(.white)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(palette.textPrimary)
                 .frame(width: 30, height: 30)
-                .background(tint.gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
                 .accessibilityHidden(true)
             configuration.title
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

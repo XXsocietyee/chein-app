@@ -141,6 +141,7 @@ struct SettingsView: View {
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")
+            .navigationBarTitleDisplayMode(.large)
             .cyHideTabBar()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -210,28 +211,31 @@ struct SettingsAccountCard: View {
     let nickname: String
     let level: Int
     let tappable: Bool
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.themeDomain) private var themeDomain
     var body: some View {
-        HStack(spacing: CYSpacing.lg) {
+        HStack(alignment: .center, spacing: CYSpacing.lg) {
             Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
-                .font(.system(.title, design: .rounded, weight: .bold)).foregroundStyle(.white)
+                .font(.system(.title, design: .rounded, weight: .bold)).foregroundStyle(palette.textPrimary)
                 .frame(width: 60, height: 60)
-                .background(Circle().fill(CYNight.glassFill))
-                .overlay(Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1.5))
+                .background(Circle().fill(palette.bgRaised))
+                .overlay {
+                    if themeDomain == .player {
+                        Circle().strokeBorder(palette.avatarRing, lineWidth: 3)
+                    }
+                }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
-                    .lineLimit(2)
-                Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(.white.opacity(0.85))
+                Text(verbatim: nickname.isEmpty ? "—" : nickname).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            if tappable { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.8)).accessibilityHidden(true) }
+            if tappable { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }
         }
         .padding(CYSpacing.lg)
-        .background {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(CYNight.ink2)
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-        }
+        .background(palette.cardFill, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
         .cyPressTracking()
         .accessibilityElement(children: .combine)
     }

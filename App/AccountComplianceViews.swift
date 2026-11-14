@@ -593,9 +593,7 @@ struct ComplianceHeader: View {
     private var symbol: String {
         switch destination { case .cancellation: return "person.crop.circle.badge.minus"; case .marketing: return "megaphone.fill"; case .roam: return "location.fill" }
     }
-    private var tint: Color {
-        switch destination { case .cancellation: return CYColor.warningText; case .marketing: return SettingsTint.orange; case .roam: return SettingsTint.green }
-    }
+    private var tint: Color { CYColor.textPrimary }
     private var intro: LocalizedStringKey {
         switch destination {
         case .cancellation: return "compliance.cancellation.intro"
@@ -608,9 +606,9 @@ struct ComplianceHeader: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Image(systemName: symbol).font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: symbol).font(.title2.weight(.semibold)).foregroundStyle(tint)
                 .frame(width: 52, height: 52)
-                .background(tint.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
                 .accessibilityHidden(true)
             Text(LocalizedStringKey(destination.title))
                 .font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)
