@@ -344,6 +344,7 @@
         "ParticipantFormLateActionTests",
         "ParticipantRecoveryFeedbackTests",
         "PausedNativeAlbumLifetimeRegressionTests",
+        "PayoutReceiverAppTests",
         "PerformanceSignpostSectionViewTests",
         "PersonalLocationShareCoreLocationSourceTests",
         "PersonalLocationShareNormalEntryTests",

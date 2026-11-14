@@ -206,7 +206,7 @@ public struct WorkshopCommerceApproval {
         guard context.session.accountID > 0, !readApprovalReference.isEmpty, expiresAt.timeIntervalSince1970.isFinite,
               platform == "IOS", ["CN", "US"].contains(market), context.market.rawValue == market,
               productType == "DIGITAL_MOD", channel == "APPLE_STOREKIT",
-              storeKitEnvironment == nil || storeKitEnvironment == "PRODUCTION" else { throw WorkshopCommerceIssue.invalid }
+              storeKitEnvironment == nil || WorkshopStoreKitEnvironment.admits(storeKitEnvironment) else { throw WorkshopCommerceIssue.invalid }
         for reference in [cancellationApprovalReference, reversalStatusReadApprovalReference, ownedReleaseReadApprovalReference].compactMap({ $0 }) {
             guard !reference.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw WorkshopCommerceIssue.invalid }
         }
@@ -231,13 +231,27 @@ public struct WorkshopCommerceApproval {
     }
 }
 
+/// Workshop MODs are digital goods sold through StoreKit IAP only. Release admits the App Store `PRODUCTION`
+/// environment alone; a DEBUG/TEST build also admits the App Store `SANDBOX` (the TEST backend verifies sandbox
+/// transactions against its own configured environment). Local Xcode testing uses `Config/QuestifyWorkshopSandbox.storekit`.
+public enum WorkshopStoreKitEnvironment {
+    public static func admits(_ value: String?) -> Bool {
+        if value == "PRODUCTION" { return true }
+        #if DEBUG || TEST
+        return value == "SANDBOX"
+        #else
+        return false
+        #endif
+    }
+}
+
 /// Read-only server context is fetched again for recovery. Never persist this token or any JWS.
 public struct WorkshopStoreKitParameters: Equatable {
     public let orderKey, productID, bundleID, storefront: String
     public let appAccountToken: UUID
     public init(_ values: [String: String], order: WorkshopCommerceOrder, approval: WorkshopCommerceApproval) throws {
-        guard values["channel"] == "APPLE_STOREKIT", values["environment"] == "PRODUCTION",
-              approval.storeKitEnvironment == "PRODUCTION", values["orderKey"] == order.orderKey,
+        guard values["channel"] == "APPLE_STOREKIT", WorkshopStoreKitEnvironment.admits(values["environment"]),
+              values["environment"] == approval.storeKitEnvironment, values["orderKey"] == order.orderKey,
               let productID = values["productId"], !productID.isEmpty, approval.storeKitProductIDs.contains(productID),
               let bundleID = values["bundleId"], !bundleID.isEmpty, bundleID == approval.storeKitBundleID,
               let rawToken = values["appAccountToken"], let token = UUID(uuidString: rawToken),

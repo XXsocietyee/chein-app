@@ -8,7 +8,7 @@ import StoreKit
     public static func make(service: WorkshopCommerceService, approval: WorkshopCommerceApproval) -> (any WorkshopCommerceNativePurchasing)? {
         #if canImport(StoreKit) && os(iOS)
         guard !approval.readApprovalReference.isEmpty,
-              approval.channel == "APPLE_STOREKIT", approval.storeKitEnvironment == "PRODUCTION",
+              approval.channel == "APPLE_STOREKIT", WorkshopStoreKitEnvironment.admits(approval.storeKitEnvironment),
               let bundleID = approval.storeKitBundleID, !bundleID.isEmpty,
               Bundle.main.bundleIdentifier == bundleID, !approval.storeKitProductIDs.isEmpty,
               (try? service.checkSession()) != nil else { return nil }

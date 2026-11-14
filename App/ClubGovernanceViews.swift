@@ -1443,6 +1443,11 @@ struct ClubGovernanceReadView: View {
             }
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
+            // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).
+            if let clubID = scope.clubID, clubID > 0 {
+                ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil))
+                if settlementSummary?.isOwner == true { ClubPayoutReceiverLink(clubID: clubID) }
+            }
             if let target = ClubOwnerFundsTarget(snapshot: snapshot, context: readContext) {
                 let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
                 ClubOwnerFundsSection(target: target, access: access, context: ownerFunds, sourceGeneration: sourceGeneration,

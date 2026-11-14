@@ -350,6 +350,7 @@
         "OwnMediaModelPreviewHostTests",
         "PausedNativeAlbumLifetimeRegressionTests",
         "PausedNativeLifetimeRegressionTests",
+        "PayoutReceiverAppTests",
         "PersonalLocationShareCoreLocationSourceTests",
         "PhotoLibraryAndCameraPermissionSectionViewTests",
         "PlayAnswerReviewTests",

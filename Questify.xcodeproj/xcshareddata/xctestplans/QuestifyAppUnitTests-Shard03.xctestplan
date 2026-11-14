@@ -337,6 +337,7 @@
         "ParticipantRecoveryFeedbackTests",
         "PausedNativeAlbumLifetimeRegressionTests",
         "PausedNativeLifetimeRegressionTests",
+        "PayoutReceiverAppTests",
         "PerformanceSignpostSectionViewTests",
         "PersonalLocationShareNormalEntryTests",
         "PhotoLibraryAndCameraPermissionSectionViewTests",

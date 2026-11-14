@@ -104,6 +104,7 @@ struct RegistrationSheetView: View {
                         if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
                         quoteSection
                         CouponUsabilitySection(phase: couponPhase, onRetry: { Task { await reloadCoupons() } })
+                        RegistrationPaymentReadinessSection(price: flow.selectedTicket?.price)
                         refundTiersSection
                         waitlistSection
                         confirmationSection

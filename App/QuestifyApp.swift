@@ -448,6 +448,7 @@ struct SessionRootView: View {
     private func chain3_1<V: View>(_ v: V) -> some View {
         v
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
+        .environment(\.registrationPaymentReadiness, PayoutReceiverBridge.paymentsOpen(session) ? { await PayoutReceiverBridge.paymentReadiness(session) } : nil)
     }
 
     private func chain3_2<V: View>(_ v: V) -> some View {

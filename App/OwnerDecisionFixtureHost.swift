@@ -9,24 +9,24 @@ struct OwnerDecisionFixtureHost: View {
         NavigationStack {
             switch mode {
             case "receiver-loading":
-                ClubPayoutReceiverView(clubID: 9003, fixture: .init(phase: .loading))
+                OwnerDecisionClubPayoutReceiverView(clubID: 9003, fixture: .init(phase: .loading))
             case "receiver-empty":
-                ClubPayoutReceiverView(clubID: nil, fixture: .init(phase: .empty))
+                OwnerDecisionClubPayoutReceiverView(clubID: nil, fixture: .init(phase: .empty))
             case "receiver-error":
-                ClubPayoutReceiverView(clubID: 9003, fixture: .init(phase: .error, message: "个人收款状态暂不可用"))
+                OwnerDecisionClubPayoutReceiverView(clubID: 9003, fixture: .init(phase: .error, message: "个人收款状态暂不可用"))
             case "merchant-loading":
-                MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .loading))
+                OwnerDecisionMerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .loading))
             case "merchant-empty":
-                MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission],
+                OwnerDecisionMerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission],
                                            fixture: .init(phase: .empty, account: OwnerDecisionMerchantAccount.shape(["available": true, "state": "NONE"])))
             case "merchant-error":
-                MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .error, message: "收款账户加载失败"))
+                OwnerDecisionMerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: .init(phase: .error, message: "收款账户加载失败"))
             case "merchant-denied":
-                MerchantPayoutAccountView(permissions: [], fixture: .init(phase: .ready, denied: true))
+                OwnerDecisionMerchantPayoutAccountView(permissions: [], fixture: .init(phase: .ready, denied: true))
             case "merchant":
-                MerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: readyAccount)
+                OwnerDecisionMerchantPayoutAccountView(permissions: [OwnerDecisionReceiverCopy.financePermission], fixture: readyAccount)
             default:
-                ClubPayoutReceiverView(clubID: 9003, fixture: readyReceiver)
+                OwnerDecisionClubPayoutReceiverView(clubID: 9003, fixture: readyReceiver)
             }
         }
     }

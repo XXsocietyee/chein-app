@@ -1,112 +1,100 @@
 import SwiftUI
+import UIKit
 
-/// Merchant payout account. Read-only, and only when access/me grants finance read.
-/// There is no edit and no cash-out action. A signing link, when the server sends one, can be copied.
-struct MerchantPayoutAccountView: View {
+/// WP-01. Mini-program pages/merchant/payout-account (l-payout): the merchant's own sub-merchant onboarding status,
+/// read only. Onboarding is filed by platform operations; this page shows the server fact and, when the merchant
+/// must sign or verify, a copyable https link. `FINANCE_READ` is enforced by the server (a refusal shows its copy).
+@MainActor struct MerchantPayoutAccountView: View {
     @Environment(\.locale) private var locale
-    var session: AppSession?
-    var permissions: [String]
-    var fixture: OwnerDecisionScreenFixture?
-
-    @State private var phase: OwnerDecisionScreenPhase = .loading
-    @State private var account: OwnerDecisionMerchantAccount?
-    @State private var message: String?
-    @State private var allowed = false
+    @EnvironmentObject private var session: AppSession
+    @State private var state: PayoutPageState<MerchantPayoutAccount> = .loading
+    @State private var copied = false
 
     var body: some View {
         List {
-            if !allowed && fixture?.denied != false && (fixture?.denied == true || (!allowed && fixture == nil && phase != .loading)) {
-                Text(verbatim: t("没有财务查看权限", "Finance read is not granted"))
-                    .accessibilityIdentifier("merchant.payoutAccount.denied")
+            if !PayoutReceiverBridge.payoutOpen(session) {
+                PayoutAreaClosedNote()
             } else {
-                switch shown {
-                case .loading:
-                    CYSkeleton().accessibilityIdentifier("merchant.payoutAccount.loading")
-                case .empty:
-                    Text(verbatim: t("未开通", "Not set up"))
-                        .accessibilityIdentifier("merchant.payoutAccount.empty")
-                case .error:
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text(verbatim: message ?? t("收款账户加载失败", "Couldn’t load the payout account"))
-                        Button(t("重试", "Try again")) { Task { await load() } }.frame(minHeight: 44)
-                    }.accessibilityIdentifier("merchant.payoutAccount.error")
-                case .ready:
-                    if let account {
-                        if account.phase == .unavailable {
-                            Text(verbatim: t("收款账户暂不可用", "Payout account is unavailable"))
-                                .accessibilityIdentifier("merchant.payoutAccount.unavailable")
-                        } else if account.phase == .none {
-                            Text(verbatim: t("未开通", "Not set up"))
-                                .accessibilityIdentifier("merchant.payoutAccount.empty")
-                        } else {
-                            LabeledContent(t("状态", "Status")) { Text(verbatim: account.stateText.isEmpty ? "—" : account.stateText) }
-                            if !account.stateDesc.isEmpty { Text(verbatim: account.stateDesc) }
-                            LabeledContent(t("商户号", "Merchant account")) { Text(verbatim: account.maskedAccount.isEmpty ? "—" : account.maskedAccount) }
-                            if let sign = account.signURL {
-                                Text(verbatim: sign).font(.footnote).textSelection(.enabled)
-                                Button(t("复制签约链接", "Copy signing link")) { copy(sign) }
-                                    .frame(minHeight: 44)
-                                    .accessibilityIdentifier("merchant.payoutAccount.copy")
-                            }
-                        }
-                    }
-                }
+                content
             }
+            ClubDirectLedgerSection(scope: .merchant(topicID: nil))
         }
-        .navigationTitle(Text(verbatim: t("收款账户", "Payout account")))
-        .accessibilityIdentifier("merchant.payoutAccount.screen")
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
+        .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver"))
+        .refreshable { await load() }
         .task { await load() }
     }
 
-    private var shown: OwnerDecisionScreenPhase { fixture?.phase ?? phase }
+    @ViewBuilder private var content: some View {
+        switch state {
+        case .loading:
+            Section { CYLoadingStateView(rows: 2) }.accessibilityIdentifier("payoutAccount.loading")
+        case .empty:
+            Section { CYEmptyState(systemImage: "building.columns", "payoutAccount.none", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.none") }
+        case .failed(let issue):
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text("payoutAccount.loadFailed", tableName: "PayoutReceiver").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    PayoutReceiverIssueText(issue: issue, fallbackKey: "payoutAccount.loadFailed")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                        .accessibilityIdentifier("payoutAccount.reload")
+                }
+            }
+        case .ready(let account):
+            switch account.pageState {
+            case .unavailable:
+                Section { CYEmptyState(systemImage: "lock", "payoutAccount.unavailable", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.unavailable") }
+            case .none:
+                Section { CYEmptyState(systemImage: "building.columns", "payoutAccount.none", tableName: "PayoutReceiver", messageIdentifier: "payoutAccount.none") }
+            case .ready:
+                ready(account)
+            }
+        }
+    }
 
-    private func t(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
+    @ViewBuilder private func ready(_ account: MerchantPayoutAccount) -> some View {
+        Section {
+            if let key = account.stateKey {
+                LabeledContent {
+                    CYStatusChip(verbatim: payoutText(key, locale), tone: tone(account.tone))
+                } label: { Text("payoutAccount.row.state", tableName: "PayoutReceiver") }
+                    .accessibilityIdentifier("payoutAccount.state." + (account.state ?? ""))
+            }
+            if let masked = account.maskedSubMerchantID {
+                LabeledContent { Text(verbatim: masked).monospacedDigit() } label: { Text("payoutAccount.row.subMchid", tableName: "PayoutReceiver") }
+            }
+            if let checked = account.checkedAt {
+                LabeledContent { Text(checked, format: .dateTime.month().day().hour().minute()).foregroundStyle(CYColor.textTertiary) }
+                    label: { Text("payoutAccount.row.checkedAt", tableName: "PayoutReceiver") }
+            }
+        } footer: {
+            if let description = account.stateDescription { Text(verbatim: description) }
+        }
+        if let link = account.signURL, let key = account.copyKey {
+            Section {
+                CYPillButton(LocalizedStringKey(key), style: .primary, tableName: "PayoutReceiver") {
+                    UIPasteboard.general.string = link.absoluteString
+                    copied = true
+                }
+                .accessibilityIdentifier("payoutAccount.copyLink")
+                if copied { CYStatusChip(verbatim: payoutText("payoutAccount.copied", locale), tone: .success, systemImage: "doc.on.doc") }
+            }
+            .listRowBackground(Color.clear)
+        }
+    }
+
+    private func tone(_ raw: String) -> CYStatusTone {
+        switch raw { case "success": return .success; case "warning": return .warning; case "danger": return .danger; default: return .neutral }
+    }
 
     private func load() async {
-        if let fixture {
-            allowed = !fixture.denied
-            account = fixture.account
-            message = fixture.message
-            return
-        }
-        phase = .loading
-        guard OwnerDecisionMerchantAccount.allowsFinance(permissions) else {
-            allowed = false
-            phase = .ready
-            return
-        }
-        allowed = true
-        guard let client = makeClient() else {
-            phase = .error
-            message = t("收款账户加载失败", "Couldn’t load the payout account")
-            return
-        }
-        if let value = await client.account() {
-            account = value
-            phase = value.phase == .none ? .empty : .ready
-        } else {
-            phase = .error
-            message = t("收款账户加载失败", "Couldn’t load the payout account")
-        }
+        guard PayoutReceiverBridge.payoutOpen(session) else { return }
+        state = .loading
+        do {
+            let account = try await PayoutReceiverBridge.call(session) { try await $0.merchantPayoutAccount(token: $1) }
+            state = .ready(account)
+        } catch { state = .failed(error as? PayoutReceiverIssue ?? .network) }
     }
-
-    private func makeClient() -> OwnerDecisionPayoutClient? {
-        guard let session, let configuration = session.regionalConfiguration?.apiConfiguration,
-              let token = session.token, AuthRequestBuilder.isValidToken(token) else { return nil }
-        let host = configuration.baseURL.host
-        return OwnerDecisionPayoutClient(configuration: configuration, transport: session.composition.makeTransport(),
-                                          token: token, payoutOpen: ReviewedAreaSwitch.payout(host: host),
-                                          merchantWritesOpen: ReviewedAreaSwitch.merchantWrites(host: host))
-    }
-
-    private func copy(_ text: String) {
-        UIPasteboard.general.setItems([["public.utf8-plain-text": text]],
-                                      options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
-    }
-}
-
-struct MerchantPayoutAccountEntry: View {
-    let permissions: [String]
-    @EnvironmentObject private var session: AppSession
-    var body: some View { MerchantPayoutAccountView(session: session, permissions: permissions) }
 }

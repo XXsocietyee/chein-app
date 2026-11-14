@@ -1464,3 +1464,26 @@ enum MerchantOpsWp03Lease {
         return true
     }
 }
+
+/// WP-01 / WP-05, owner 2026-11-13 (money ON for TEST/DEBUG only). The app sends these only while the payout
+/// (or payment) area switch is open; Core `ReleaseMoneyWriteSwitch` and `ChinaReviewedRouteCapability.moneyAreaOwnerGrant`
+/// refuse them again on the production host.
+enum PayoutReceiverRouteGrant {
+    static let readPaths: Set<String> = [
+        "api/club/settlement/mine",
+        "api/club/settlement/summary",
+        "api/club/personal-receiver/status",
+        "api/club-direct-merchant/club",
+        "api/club-direct-merchant/merchant"
+    ]
+    static let moneyPaths: Set<String> = [
+        "api/club/personal-receiver/bind",
+        "api/club/personal-receiver/unbind",
+        "api/merchant/payout-account"
+    ]
+    static let paymentReadPaths: Set<String> = ["api/registration/payment-readiness"]
+
+    static func admits(_ route: PayoutReceiverRoute) -> Bool {
+        readPaths.contains(route.rawValue) || moneyPaths.contains(route.rawValue)
+    }
+}

@@ -37,8 +37,10 @@ public enum ChinaReviewedRouteCapability {
     public static func admitsChinaProductionCall(_ path: String) -> Bool {
         let key = normalized(path)
         if ReleaseMoneyWriteSwitch.blocks(key) { return false }
-        if forcedOff(key) != nil { return false }
+        // A forced-off money route opens only while its own Release switch is on (DEBUG/TEST off the production host).
+        if forcedOff(key) != nil, !ReleaseMoneyWriteSwitch.opens(key) { return false }
         if wiredPatterns.contains(key) { return true }
+        if let kind = moneyAreaOwnerGrant[key], ReleaseMoneyWriteSwitch.isEnabled(kind) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
         // Owner approval of the non-money player writes: the CITY board (gaps A). Member game
         // points only; no CITY route moves money.
@@ -111,6 +113,20 @@ public enum ChinaReviewedRouteCapability {
         "/api/personal-exploration-export/prepare", "/api/personal-exploration-export/page",
         "/api/roam/passport/history", "/api/roam/stamp/create", "/api/roam/stamp/exchange",
         "/api/roam/share/snapshot", "/api/common/uploadOSS"
+    ]
+
+    /// WP-01 / WP-05, owner 2026-11-13: money ON for TEST/DEBUG only. Payout receiver, merchant payout account and the
+    /// owner's settlement and receivable reads; registration payment and its readiness; bank withdrawal preflight and create.
+    /// Each path, read or write, is admitted only while the Release switch of its area is on: Release constants are false,
+    /// and the DEBUG/TEST derivation is false on the production host. Marks stay as they were.
+    public static let moneyAreaOwnerGrant: [String: ReleaseMoneyWriteKind] = [
+        "/api/club/settlement/mine": .payout, "/api/club/personal-receiver/status": .payout,
+        "/api/club/personal-receiver/bind": .payout, "/api/club/personal-receiver/unbind": .payout,
+        "/api/merchant/payout-account": .payout,
+        "/api/club-direct-merchant/club": .payout, "/api/club-direct-merchant/merchant": .payout,
+        "/api/registration/payment-readiness": .payment, "/api/registration/pay": .payment, "/api/registration/pay/app": .payment,
+        "/api/fund/preflight/bank-withdrawal": .withdrawal, "/api/fund/preflight/{}/confirm": .withdrawal,
+        "/api/fund/preflight/{}/reject": .withdrawal, "/api/withdrawal/create": .withdrawal
     ]
 
     /// Contract §7 item 18. The six recipient-preview patterns (`IMPreviewRouteTemplates`).
@@ -2536,6 +2552,12 @@ public enum ReleaseMoneyWriteSwitch {
         }
     }
 
+    /// True when `path` is a money-moving write and that write's own switch is on. Virtual goods never open here.
+    public static func opens(_ path: String) -> Bool {
+        guard let kind = kind(for: path) else { return false }
+        return isEnabled(kind)
+    }
+
     /// True when `path` is a money-moving write and that write's own switch is off.
     public static func blocks(_ path: String) -> Bool {
         guard let kind = kind(for: path) else { return false }
@@ -2552,7 +2574,7 @@ public enum ReleaseMoneyWriteSwitch {
             return .payment
         case "/api/club/settlement/withdraw",
              "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind",
-             "/api/merchant/payout-account/save":
+             "/api/merchant/payout-account/save", "/api/merchant/payout-account":
             return .payout
         case "/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw":
             return .withdrawal

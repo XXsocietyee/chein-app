@@ -117,6 +117,7 @@ import SwiftUI
                         CYListRow("club.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
                     }.accessibilityIdentifier("account.clubs")
                     }
+                    if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
                     NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity) } label: {
                         CYListRow("social.invites.title", trailing: .none) { CYRowIcon(systemImage: "person.2.badge.plus") }
                     }.accessibilityIdentifier("account.inviteHistory")
@@ -332,6 +333,7 @@ import SwiftUI
             NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) })                     } label: {
                 CYListRow("merchant.title", trailing: .none) { CYRowIcon(systemImage: "storefront") }
             }.accessibilityIdentifier("account.merchant")
+            PayoutAccountLinks(audience: .merchant)
             if merchantRootModeSwitch.isAvailable {
                 MerchantAccountModeSwitchRow(modeSwitch: merchantRootModeSwitch)
             }

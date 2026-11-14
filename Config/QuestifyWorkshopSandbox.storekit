@@ -1,0 +1,45 @@
+{
+  "identifier" : "6E2B7F0C-3D3A-4C49-9C1F-5B0A0F0E0105",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "6.0",
+      "familyShareable" : false,
+      "internalID" : "6E2B7F0C-3D3A-4C49-9C1F-5B0A0F0E0106",
+      "localizations" : [
+        {
+          "description" : "One workshop MOD release, installed on this account (sandbox test product).",
+          "displayName" : "Workshop MOD (sandbox)",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "一个工坊 MOD 版本，安装到本账号（沙盒测试商品）。",
+          "displayName" : "工坊 MOD（沙盒）",
+          "locale" : "zh_Hans"
+        }
+      ],
+      "productID" : "invalid.example.questify.ios.workshop.mod.sandbox",
+      "referenceName" : "Workshop MOD sandbox",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "zh_Hans",
+    "_storefront" : "CHN",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

@@ -107,6 +107,11 @@ enum MPParityRoute: Hashable, Identifiable {
     case journeyPromo
     case journeyReport(JourneyRunScope)
     case journeySettle(JourneyRunScope)
+    /// WP-01 payout pages. They need no binding: each reads through `PayoutReceiverBridge` and shows one closed
+    /// sentence while the payout area is off (production host, Release).
+    case clubPayoutReceiver(clubID: Int?, mine: Bool)
+    case merchantPayoutAccount
+    case clubSettlement(clubID: Int?, mine: Bool, personal: Bool)
 
     var id: Self { self }
 
@@ -147,6 +152,18 @@ enum MPParityRoute: Hashable, Identifiable {
                                         topicName: nonEmpty("topicName"), registrationID: nonEmpty("registrationId"),
                                         teamID: nonEmpty("teamId"))
             self = page.hasSuffix("report/index") ? .journeyReport(scope) : .journeySettle(scope)
+        case "pages/club/payout-receiver/index":
+            let club = (nonEmpty("clubId") ?? nonEmpty("id")).flatMap(Int.init).flatMap { $0 > 0 ? $0 : nil }
+            let mine = query["mine"] == "1"
+            guard club != nil || mine else { return nil }
+            self = .clubPayoutReceiver(clubID: club, mine: mine)
+        case "pages/merchant/payout-account/index":
+            self = .merchantPayoutAccount
+        case "pages/club/settlement/index":
+            let club = (nonEmpty("clubId") ?? nonEmpty("id")).flatMap(Int.init).flatMap { $0 > 0 ? $0 : nil }
+            let mine = query["mine"] == "1"
+            guard club != nil || mine else { return nil }
+            self = .clubSettlement(clubID: club, mine: mine, personal: query["personal"] == "1")
         default:
             return nil
         }
@@ -184,6 +201,12 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.journeyReport { JourneyReportHost(binding: make(scope), scope: scope) } else { unavailable }
         case .journeySettle(let scope):
             if let make = bindings.journeySettle { JourneySettleHost(binding: make(scope), scope: scope) } else { unavailable }
+        case .clubPayoutReceiver(let clubID, let mine):
+            ClubPayoutReceiverView(clubID: clubID, mine: mine)
+        case .merchantPayoutAccount:
+            MerchantPayoutAccountView()
+        case .clubSettlement(let clubID, let mine, let personal):
+            if let clubID { ClubPersonalSettlementView(clubID: clubID, personal: personal) } else if mine { ClubSettlementMineView() } else { unavailable }
         }
     }
 
