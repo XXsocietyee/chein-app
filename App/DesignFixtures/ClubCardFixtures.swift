@@ -53,12 +53,10 @@ enum ClubCardFixtures {
     @MainActor fileprivate static func homeList(open: @escaping (Int) -> Void) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYSectionHeader("club.home.yours")
                 CYClubRowCard(name: "Riverside Runners", logoURL: nil, memberCount: 128, seed: "r1", action: .owner, onOpen: { open(1) }, identifier: "fixture.club.Riverside Runners")
                     .cyHeroSourceInherited(1)
                 CYClubRowCard(name: "Old Town Tea Society", logoURL: nil, memberCount: 42, seed: "r2", action: .joined, onOpen: { open(2) }, identifier: "fixture.club.Old Town Tea Society")
                     .cyHeroSourceInherited(2)
-                CYSectionHeader("club.home.discover").padding(.top, CYSpacing.md)
                 photo("Night Market Crew", place: "Food · Chengdu", count: 125, action: .join, prominent: true, onOpen: { open(3) })
                     .cyHeroSourceInherited(3)
                 photo("Dawn Temple Run", place: "Sports · Hangzhou", count: 31, action: .apply, onOpen: { open(4) })

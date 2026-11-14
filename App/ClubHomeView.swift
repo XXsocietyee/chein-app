@@ -116,29 +116,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 } else if ClubTabPresentation.isEmpty(home, nearby: nearby, merchant: false) {
                     Section { playerEmpty }
                 } else {
-                    // 俱乐部: create row above, then 你的俱乐部 (mine + joined) and 发现 (nearby).
-                    if !home.owned.isEmpty || !home.joined.isEmpty {
-                        Section {
-                            clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)
-                            clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)
-                        } header: {
-                            Text("club.home.yours")
-                                .font(CYTypography.sectionTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .textCase(nil)
-                                .accessibilityIdentifier("club.home.yours")
-                        }
-                    }
-                    if !nearby.isEmpty {
-                        Section {
-                            clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
-                        } header: {
-                            Text("club.home.discover")
-                                .font(CYTypography.sectionTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .textCase(nil)
-                                .accessibilityIdentifier("club.home.discover")
-                        }
+                    // Source talent/list (2026-09-18): one list, created → joined → nearby, no group headers.
+                    Section {
+                        clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)
+                        clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)
+                        clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
                     }
                 }
                 Section {
