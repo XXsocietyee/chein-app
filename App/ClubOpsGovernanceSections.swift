@@ -105,9 +105,8 @@ struct ClubOpsGovernanceMembersSection: View {
                 Text(verbatim: text).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
             }
             if roster.members.isEmpty {
-                ContentUnavailableView {
-                    Label { ClubOpsGovernanceCopy.text("clubOpsGov.members.empty") } icon: { Image(systemName: "person.2") }
-                }.accessibilityIdentifier("clubOpsGov.members.empty")
+                CYEmptyState(systemImage: "person.2", "clubOpsGov.members.empty", tableName: "ClubOpsGovernance", messageIdentifier: "clubOpsGov.members.empty")
+                    .listRowBackground(Color.clear)
             }
             // One row per member: name, then its actions side by side (ban, and transfer for the owner).
             ForEach(roster.members) { member in

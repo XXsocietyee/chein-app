@@ -66,8 +66,8 @@ import SwiftUI
         HStack(alignment: .top, spacing: CYSpacing.md) {
             CYAvatarView(name: member.nickname ?? "—", size: .md)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if let nickname = member.nickname { Text(verbatim: nickname).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
-                else { Text("profile.inviteHistory.nicknameUnknown").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
+                if let nickname = member.nickname { Text(verbatim: nickname).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                else { Text("profile.inviteHistory.nicknameUnknown").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 ProfileInviteTimelineDates(invitationTime: member.createdAt,
                     reward: model.scan?.rewards[String(member.id)])
             }
@@ -78,7 +78,7 @@ import SwiftUI
                     Text("u9cde.invite.points \(NSDecimalNumber(decimal: reward.points).stringValue)")
                         .font(CYTypography.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
                         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(Capsule().fill(CYNight.glassFill))
+                        .background(Capsule().fill(palette.actionSecondaryBg))
                     CYStatusChip("social.invites.earned", tone: .success, systemImage: "checkmark")
                 } else { CYStatusChip(LocalizedStringKey(model.scan?.isComplete == true ? "social.invites.pending" : "social.invites.synchronizing"), tone: .neutral, systemImage: "clock") }
             }

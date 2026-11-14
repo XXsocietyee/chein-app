@@ -29,7 +29,7 @@ import SwiftUI
             .padding(.vertical, CYSpacing.lg)
             .disabled(model.working)
         }
-        .cyDomainPageBackground()
+        .cyDomainScreen(.player)
         .privacySensitive()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

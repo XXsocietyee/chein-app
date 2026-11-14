@@ -47,7 +47,6 @@ ALLOWLIST = {
     'App/RoamPassportToolsViews.swift': {FIXED_FONT: 1},
     'App/SettingsView.swift': {VIOLET: 4},
     'App/ShopNPCView.swift': {FIXED_FONT: 2},
-    'App/SocialGuideViews.swift': {FIXED_FONT: 1},
     'App/UsageConsentGateView.swift': {FIXED_FONT: 1},
     'App/WalletCommerceViews.swift': {FIXED_FONT: 2},
     'App/WelcomeView.swift': {FIXED_FONT: 1},

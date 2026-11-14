@@ -151,18 +151,18 @@ private struct MemberScoreAppealRowLabel: View {
         Group {
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    MemberScoreStatusChip(status: row.status)
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         CYRowIcon(systemImage: symbol)
                         copy
                     }
-                    MemberScoreStatusChip(status: row.status)
                 }
             } else {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
+                    MemberScoreStatusChip(status: row.status)
                     CYRowIcon(systemImage: symbol)
                     copy
                     Spacer(minLength: CYSpacing.sm)
-                    MemberScoreStatusChip(status: row.status)
                     if showsChevron {
                         Image(systemName: "chevron.right")
                             .font(.footnote.weight(.semibold))
