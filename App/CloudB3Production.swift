@@ -80,6 +80,11 @@ extension AppSession: OrientScoreEntryProviding {
 
     static func reviewAudit(for session: AppSession) -> IMReviewAuditSessionReader { slot(for: session).reviewAudit }
 
+    static func sweep2Client(for session: AppSession) -> Sweep2Client? {
+        guard let configuration = session.regionalConfiguration?.apiConfiguration else { return nil }
+        return Sweep2Client(configuration: configuration, transport: session.runtimeHTTPTransport, tokenProvider: { session.token })
+    }
+
     static func filingNumber(_ session: AppSession) async -> String? {
         let owner = session.account?.id
         do {
@@ -219,6 +224,8 @@ struct CloudB3RootModifier: ViewModifier {
             .environment(\.imReportProgressUnread, reportUnread)
             .environment(\.aigcFilingNumber, filingNumber)
             .environment(\.squareRouteMap, CloudB3SessionBridge.routeMap(for: session))
+            .environment(\.sweep2Client, CloudB3SessionBridge.sweep2Client(for: session))
+            .environment(\.sweep2AccountID, session.account?.id)
             .task(id: session.account?.id) {
                 let owner = session.account?.id
                 filingNumber = nil

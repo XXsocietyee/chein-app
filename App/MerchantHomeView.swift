@@ -356,6 +356,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         } icon: { Image(systemName: "building.columns") }
                     }.accessibilityIdentifier("merchant.payoutAccount.open")
                 }
+                ClubDirectLedgerSection(scope: .merchant())
             }
             Section("merchant.workbench.more") {
                 Color.clear.frame(height: 0).id("merchant.workbench.moreSection").accessibilityHidden(true)

@@ -63,6 +63,7 @@ struct ClubPayoutReceiverView: View {
                     }
                 }
             }
+            ClubPersonalSettlementSection()
         }
         .navigationTitle(Text(verbatim: t("个人收款", "Personal receiver")))
         .accessibilityIdentifier("club.receiver.screen")

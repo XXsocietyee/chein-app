@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 
 /// Visible loading, empty, error, and ready states for the WP-10 payout screens.
@@ -44,3 +45,4 @@ struct OwnerDecisionFixtureHost: View {
         ]))
     }
 }
+#endif

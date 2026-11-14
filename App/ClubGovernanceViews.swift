@@ -1440,6 +1440,8 @@ struct ClubGovernanceReadView: View {
                         } icon: { Image(systemName: "person.crop.square") }
                     }.accessibilityIdentifier("club.receiver.open")
                 }
+                ClubPersonalSettlementSection()
+                ClubDirectLedgerSection(scope: .club(clubID: clubID))
             }
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
@@ -1588,7 +1590,13 @@ struct ClubGovernanceReadView: View {
         }
     }
     @ViewBuilder private func dataRows(_ rows: [ClubGovernanceValue]) -> some View {
-        if rows.isEmpty { CYEmptyState(systemImage: "tray", "club.gov.empty") }
+        if rows.isEmpty {
+            if operation == .editions, let clubID = scope.clubID {
+                ClubEditionEmptyReasonView(clubID: clubID, reloadEditions: { Task { await load() } })
+            } else {
+                CYEmptyState(systemImage: "tray", "club.gov.empty")
+            }
+        }
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             Section {
                 if let target = customerTopicRoute(row) {

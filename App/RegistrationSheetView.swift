@@ -589,6 +589,7 @@ struct RegistrationSheetView: View {
                     }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
                         .font(CYTypography.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
+                    RegistrationPaymentReadinessCard(payableAmount: quote.payAmount)
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
                         Text(verbatim: CoreLoopCopy(locale: locale).tr(refundNotice))
                             .font(.caption)
