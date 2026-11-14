@@ -25,11 +25,11 @@ checks = {
     'finite coordinate validation': 'latitude.isFinite' in m and 'abs(latitude) <= 90' in m,
     'adapters concrete': 'makePlayer: { try AVAudioPlayer(data: $0) }' in n and 'item.openInMaps' in n,
     'audio lifecycle shared': 'NativeAudioLifecycleObservation' in n and 'lifecycle.invalidate()' in n
-        and 'PlatformAudioLifecyclePolicy.action(' in n and 'case .interruptionEnded: return .ignore' in lp
+        and 'interruption.decide(' in n and 'PlatformAudioLifecyclePolicy.action(' in lp and 'case .interruptionEnded: return .ignore' in lp
         and all(x in lo for x in ['AVAudioSession.interruptionNotification', 'AVAudioSession.routeChangeNotification',
                                   'AVAudioSession.mediaServicesWereResetNotification', 'UIApplication.didEnterBackgroundNotification',
                                   'self.generation == token']),
-    'no background audio entitlement': 'UIBackgroundModes' not in info,
+    'no background audio entitlement': '<string>audio</string>' not in info,
 }
 chapter=(r/'Core/PlatformChapterAudioBridge.swift').read_text()
 patch=(r/'docs/community-media-templates/chapter-audio-reader.patch').read_text()

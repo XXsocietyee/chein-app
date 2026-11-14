@@ -16,7 +16,9 @@ import SwiftUI
                               couponUsability:{
                                   guard let client = WP07CommerceSession.client(session) else { return [] }
                                   return try await client.usability()
-                              })
+                              },
+                              // `Account.xp` decodes `userInfo.point`, the balance `baoming.js:1240` reads.
+                              availablePoints:{ session.account?.xp })
     }
 
     /// The integrator button opens this sheet. An unapproved session still cannot pay.

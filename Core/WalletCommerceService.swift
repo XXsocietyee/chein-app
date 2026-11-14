@@ -17,7 +17,8 @@ public struct WalletCommerceService {
     public func pointsTasks(token: String) async throws -> [WalletPointsTask] {
         let rows = try decodeData([WalletPointsTask].self, await send(path: "api/points/result_list", fields: [:], token: token))
         guard rows.allSatisfy({ $0.id > 0 }) else { throw APIError.malformedResponse }
-        return rows.filter(\.isListedRule)
+        // OWN-D-01.a: spend rules (eventType 14) are kept for the 「积分消耗」 group; deleted and disabled rows are dropped.
+        return rows.filter(\.isListed)
     }
     public func withdrawalBalance(memberID: Int, token: String) async throws -> WithdrawalBalance {
         guard memberID > 0, boundScope.map({ $0.accountID == memberID }) ?? true else { throw APIError.invalidRequest }

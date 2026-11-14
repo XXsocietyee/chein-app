@@ -22,7 +22,7 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertEqual(rows.filter(\.isListedRule).map(\.id), [1, 2])
         let view = try source("App/WalletCommerceViews.swift")
         XCTAssertTrue(view.contains("积分消耗"))
-        XCTAssertTrue(view.contains("wallet.tasks.spend"))
+        XCTAssertTrue(view.contains("wallet.points.spendRule"))
     }
 
     func testOWND01bTurnsTheToggleOffWithTheRealReason() throws {
@@ -35,10 +35,10 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertTrue(emptyNotice.shouldDisable)
         XCTAssertEqual(emptyNotice.notice, "暂无可用积分")
         let flow = try source("Core/RegistrationUIFlow.swift")
-        XCTAssertTrue(flow.contains("pointsToggleNotice"))
+        XCTAssertTrue(flow.contains("pointsRefusal"))  // WP-11 carries the reason as `RegistrationPointsRefusal`
         XCTAssertTrue(flow.contains("usePoints = false"))
         let sheet = try source("App/RegistrationSheetView.swift")
-        XCTAssertTrue(sheet.contains("registration.form.pointsNotice"))
+        XCTAssertTrue(sheet.contains("registration.form.pointsRefusal"))
     }
 
     func testOWND01cShowsTheSnapshotAndHasNoClientRateLiteral() throws {

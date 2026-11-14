@@ -40,14 +40,19 @@ struct RegistrationSheetView: View {
          creationPolicy: RegistrationUICreationPolicy = .disabled,
          waitlistService: (any RegistrationWaitlistServing)? = nil,
          couponUsability: (() async throws -> [CouponUsabilityRow])? = nil,
+         availablePoints: (() -> Int?)? = nil,
          onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
         self.orderReader = orderReader
         self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
         self.couponUsability = couponUsability
-        _model = StateObject(wrappedValue: RegistrationSheetModel(flow: RegistrationUIFlow(
-            activity: activity, coordinator: coordinator, participantReader: participantReader,
-            currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
-            creationPolicy: creationPolicy, waitlistService: waitlistService, onReadback: onReadback)))
+        _model = StateObject(wrappedValue: RegistrationSheetModel(flow: {
+            let flow = RegistrationUIFlow(
+                activity: activity, coordinator: coordinator, participantReader: participantReader,
+                currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
+                creationPolicy: creationPolicy, waitlistService: waitlistService, onReadback: onReadback)
+            flow.availablePoints = availablePoints
+            return flow
+        }()))
     }
     #if DEBUG
     /// Offline fixture-only injection keeps the real view/controller clock and guards intact.
@@ -588,6 +593,11 @@ struct RegistrationSheetView: View {
                             set: { if flow.setUsePoints($0) { Task { await flow.requestQuote() } } }
                         )).disabled(!flow.canEdit).accessibilityIdentifier("registration.form.usePoints")
                     }
+                    // OWN-D-01.b: the server quoted no deduction, so the toggle went off. Say which of the two reasons applies.
+                    if let refusal = flow.pointsRefusal {
+                        Text(LocalizedStringKey(refusal.localizationKey)).font(.caption).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("registration.form.pointsRefusal")
+                    }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
                         .font(CYTypography.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
@@ -603,12 +613,6 @@ struct RegistrationSheetView: View {
                 case .idle, .loading:
                     Text("registration.form.quoteNeeded").foregroundStyle(.secondary)
                 }
-            }
-            if let notice = flow.pointsToggleNotice, !notice.isEmpty {
-                Text(verbatim: notice)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("registration.form.pointsNotice")
             }
             CYPillButton("registration.form.refreshQuote", style: .secondary) { Task { await flow.requestQuote() } }
                 .disabled(!flow.quoteEnabled || !flow.canEdit || flow.isQuoting)

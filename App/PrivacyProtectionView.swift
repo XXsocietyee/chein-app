@@ -71,6 +71,7 @@ struct PrivacyProtectionView: View {
                     .accessibilityIdentifier("authEntry.privacy.withdrawConsent")
                 }
             }
+            SessionLocationHoldsSection()
             if !granted { UsageConsentSignInRequirement(market: market, policy: policy, granted: $granted) }
         }
         .cyGroupedSurface()

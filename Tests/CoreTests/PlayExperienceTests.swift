@@ -95,6 +95,23 @@ import FoundationNetworking
         coordinator = try model(transport, current: { current }); await coordinator.load()
         XCTAssertEqual(coordinator.snapshot?.availability, .completed)
     }
+    /// OWN-OPT-042.c: a nodes reply that lands after the player switched session (epoch) is dropped; it never
+    /// becomes the new session's snapshot.
+    func testLateReplyAfterSessionSwitchDoesNotOverwriteNewSession() async throws {
+        var current: PlayExperienceSession? = try session()
+        let transport = PlayExperienceTestTransport { _ in
+            current = try self.session(epoch: 2)
+            return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.complete), 200)
+        }
+        let coordinator = try model(transport, current: { current }); await coordinator.load()
+        XCTAssertNil(coordinator.snapshot)
+        XCTAssertFalse(coordinator.canWrite)
+    }
+    /// OWN-10.3.b: an unsupported verdict refuses this content's run start; an unconfirmed one does not.
+    func testUnsupportedCompatibilityRefusesRunStart() async throws {
+        XCTAssertTrue(try XCTUnwrap(PlayContentCompatibility(raw: PlayExperienceSyntheticFixtures.wire(#"{"requiredCapabilities":[{"key":"game.x","minVersion":2}],"declared":true,"missingCapabilities":[{"key":"game.x","minVersion":2,"declaredVersion":1}],"supported":false,"source":"DECLARED"}"#))).blocksStart)
+        XCTAssertFalse(try XCTUnwrap(PlayContentCompatibility(raw: PlayExperienceSyntheticFixtures.wire(#"{"requiredCapabilities":[],"declared":false,"missingCapabilities":[],"supported":null,"source":"UNDECLARED"}"#))).blocksStart)
+    }
     func testPausedReconciliationHonorsNewerRemoteAndTombstone() throws {
         let local = try PlayPausedRecord(elapsedSeconds: 20, savedAt: 100)
         let remote = try PlayPausedRecord(elapsedSeconds: 10, savedAt: 200)

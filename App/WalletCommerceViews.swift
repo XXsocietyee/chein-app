@@ -916,22 +916,31 @@ private struct WalletIncomeListCard: ViewModifier {
         List {
             if model.loading { CYSkeleton().accessibilityIdentifier("wallet.tasks.loading") }
             else if let rows = model.value, model.loadedScope == reader.scope {
-                if rows.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.tasks.empty") }
-                let earn = rows.filter(\.isEarnTask)
-                let spend = rows.filter(\.isSpendRule)
-                if !earn.isEmpty {
-                    Section {
-                        ForEach(earn) { item in pointsRuleRow(item) }
-                    } header: {
-                        Text(verbatim: ChannelCopy.text("获取积分", "Points you earn", locale: locale))
-                    }.accessibilityIdentifier("wallet.tasks.earn")
+                // OWN-D-01.a: earn rules, then eventType 14 as 「积分消耗」 (`mp:subpackageMember/components/cy/profile/index.wxml:658-686`).
+                let rules = WalletPointsRules(rows)
+                if rules.earn.isEmpty && rules.spend.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.tasks.empty") }
+                ForEach(rules.earn) { item in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))
+                        if let description = item.description { Text(verbatim: description) }
+                        Text(verbatim: item.value.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)
+                        LabeledContent("wallet.doneCount", value: item.pointsNum == nil ? PointsHistoryPageModel.unknownMark : format.count(item.pointsNum))
+                    }.accessibilityElement(children: .combine)
                 }
-                if !spend.isEmpty {
-                    Section {
-                        ForEach(spend) { item in pointsRuleRow(item) }
-                    } header: {
-                        Text(verbatim: ChannelCopy.text("积分消耗", "Points spent", locale: locale))
-                    }.accessibilityIdentifier("wallet.tasks.spend")
+                if !rules.spend.isEmpty {
+                    Section("wallet.points.spendRules") {
+                        ForEach(rules.spend) { item in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))
+                                if let description = item.description { Text(verbatim: description) }
+                                // The value is the server rule, per use; the client never writes in a number.
+                                Text(verbatim: item.value.map { "−" + format.points($0) } ?? PointsHistoryPageModel.unknownMark)
+                                LabeledContent("wallet.points.spendUsedCount", value: item.pointsNum == nil ? PointsHistoryPageModel.unknownMark : format.count(item.pointsNum))
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("wallet.points.spendRule")
+                        }
+                    }
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
         }.appNavigationTitle("wallet.tasks").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }

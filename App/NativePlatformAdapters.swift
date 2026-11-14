@@ -96,6 +96,9 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     private var event: (@MainActor (PlatformAudioEvent) -> Void)?
     private let lifecycle: NativeAudioLifecycleObservation
     var lifecycleRegistrations: Int { lifecycle.registrations }
+    /// OWN-OPT-042.a: whether the loaded player is audible, and the pending call/alarm resume.
+    private var audible = false
+    private var interruption = PlatformAudioInterruptionResume()
     // Device measurement only: request-to-playing latency, never the source URL.
     private var startInterval: NativePerformanceInterval?
     override convenience init() { self.init(dependencies: .live) }
@@ -106,12 +109,19 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     }
     private func observeLifecycle() {
         lifecycle.observe { [weak self] signal in
-            guard let self, self.event != nil,
-                  // setCategory during this driver's own start also emits a route change;
-                  // an incompatible category takeover remains a stop-worthy event.
-                  PlatformAudioLifecyclePolicy.action(for: signal, ownsConfiguration: self.dependencies.hasPlaybackConfiguration()) == .stop
-            else { return }
-            self.finish(.interrupted)
+            guard let self, self.event != nil else { return }
+            // setCategory during this driver's own start also emits a route change;
+            // an incompatible category takeover remains a stop-worthy event.
+            let decision = self.interruption.decide(signal, playing: self.player == nil ? nil : self.audible,
+                                                    ownsConfiguration: self.dependencies.hasPlaybackConfiguration())
+            switch decision {
+            case .ignore: return
+            case .stop: self.finish(.interrupted)
+            case .pauseForInterruption: self.player?.pause(); self.audible = false; self.event?(.pausedForInterruption)
+            case .resume:
+                guard self.player?.play() == true else { self.finish(.failed); return }
+                self.audible = true; self.event?(.playing)
+            }
         }
     }
     func start(source: PlatformMediaSource, policy: PlatformMediaPolicy, event: @escaping @MainActor (PlatformAudioEvent) -> Void) {
@@ -131,16 +141,19 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
                     let player = try self.dependencies.makePlayer(data)
                     self.player = player; player.delegate = self
                     guard player.prepareToPlay(), player.play() else { self.finish(.failed); return }
+                    self.audible = true
                     self.startInterval?.end(); self.startInterval = nil
                     self.event?(.playing)
                 } catch { self.finish(.failed) }
             }
         }
     }
-    func pause() { player?.pause() }
+    func pause() { interruption.userActed(); player?.pause(); audible = false }
     func resume() {
         guard event != nil else { return }
+        interruption.userActed()
         guard player?.play() == true else { finish(.failed); return }
+        audible = true
         event?(.playing)
     }
     func stop() {
@@ -148,7 +161,7 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
         startInterval?.end(); startInterval = nil
         lifecycle.invalidate()
         download?.cancel(); download = nil
-        player?.stop(); player?.delegate = nil; player = nil; event = nil
+        player?.stop(); player?.delegate = nil; player = nil; event = nil; audible = false; interruption.userActed()
         let usedSession = sessionActive; sessionActive = false
         if usedSession { dependencies.deactivateSession() }
     }

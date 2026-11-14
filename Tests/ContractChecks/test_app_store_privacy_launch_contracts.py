@@ -29,12 +29,15 @@ class AppStorePrivacyLaunchContracts(unittest.TestCase):
         for snippet in ('NPC', '声音互动玩法', '本地测量振幅', '不上传录音'):
             self.assertIn(snippet, mic_zh)
 
-    def test_no_background_or_always_location_declarations(self):
+    def test_no_always_location_and_only_session_background_location(self):
+        # OWN-D-07: When-In-Use only; the one background mode is session-scoped location.
         blob = '\n'.join((ROOT / p).read_text() for p in (
             'Config/Base.xcconfig', 'Config/Info.plist', 'Resources/InfoPlist.xcstrings', 'Resources/PrivacyInfo.xcprivacy'))
         for forbidden in ('NSLocationAlwaysUsageDescription', 'NSLocationAlwaysAndWhenInUseUsageDescription',
-                          'UIBackgroundModes', 'INFOPLIST_KEY_UIBackgroundModes'):
+                          'INFOPLIST_KEY_UIBackgroundModes', 'requestAlwaysAuthorization'):
             self.assertNotIn(forbidden, blob)
+        info = plistlib.loads((ROOT / 'Config/Info.plist').read_bytes())
+        self.assertEqual(info['UIBackgroundModes'], ['location'])
         self.assertEqual(list(ROOT.glob('*.entitlements')) + list(ROOT.glob('App/*.entitlements')), [])
 
     def test_privacy_manifest(self):
