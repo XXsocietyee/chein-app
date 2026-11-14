@@ -113,7 +113,8 @@ import UIKit
             }
         }
     }
-    func testInterruptionEndedDoesNotResumeOrStopExplicitRestart() {
+    /// OWN-OPT-042.a: a user pause is never undone by an interruption end, and a call during a user pause leaves it paused.
+    func testInterruptionEndedNeverResumesUserPausedAudio() {
         let fixture = NativeAudioFixture(), value = model(fixture)
         play(fixture); value.toggle()
         let ended: [AnyHashable: Any] = [
@@ -124,13 +125,38 @@ import UIKit
         XCTAssertEqual(value.state, .paused); XCTAssertEqual(fixture.players[0].plays, 1)
         fixture.post(AVAudioSession.interruptionNotification,
                      [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.began.rawValue])
-        fixture.delivery.drain(); XCTAssertEqual(value.state, .idle)
+        fixture.delivery.drain(); XCTAssertEqual(value.state, .paused)
         fixture.post(AVAudioSession.interruptionNotification, ended); fixture.delivery.drain()
+        XCTAssertEqual(value.state, .paused); XCTAssertEqual(fixture.players[0].plays, 1)
         XCTAssertEqual(fixture.downloads.count, 1)
-        value.approveSelectedMedia(); value.toggle()
-        fixture.post(AVAudioSession.interruptionNotification, ended)
+        value.dispose()
+    }
+    /// OWN-OPT-042.a: a call or alarm pauses audible playback and its end resumes only that playback
+    /// (`mp:pages/play/utils/audio-session.js:38-42`); a second end resumes nothing more.
+    func testInterruptionResumesOnlyAudioThatWasPlaying() {
+        let fixture = NativeAudioFixture(), value = model(fixture)
         play(fixture)
-        XCTAssertEqual(value.state, .playing); XCTAssertEqual(fixture.downloads.count, 2)
+        fixture.post(AVAudioSession.interruptionNotification,
+                     [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.began.rawValue])
+        fixture.delivery.drain()
+        XCTAssertEqual(value.state, .paused); XCTAssertEqual(fixture.players[0].pauses, 1); XCTAssertEqual(fixture.deactivations, 0)
+        let ended: [AnyHashable: Any] = [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.ended.rawValue]
+        fixture.post(AVAudioSession.interruptionNotification, ended); fixture.delivery.drain()
+        XCTAssertEqual(value.state, .playing); XCTAssertEqual(fixture.players[0].plays, 2)
+        fixture.post(AVAudioSession.interruptionNotification, ended); fixture.delivery.drain()
+        XCTAssertEqual(fixture.players[0].plays, 2)
+        value.dispose()
+    }
+    /// OWN-OPT-042.a: going to the background still stops; returning never auto-resumes.
+    func testBackgroundDuringInterruptionStopsAndNeverResumes() {
+        let fixture = NativeAudioFixture(), value = model(fixture)
+        play(fixture)
+        fixture.post(AVAudioSession.interruptionNotification,
+                     [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.began.rawValue])
+        fixture.post(UIApplication.didEnterBackgroundNotification)
+        fixture.post(AVAudioSession.interruptionNotification, [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.ended.rawValue])
+        fixture.delivery.drain()
+        XCTAssertEqual(value.state, .idle); XCTAssertEqual(fixture.players[0].plays, 1); XCTAssertEqual(fixture.deactivations, 1)
         value.dispose()
     }
     func testIncompatibleCategoryAndUnknownNotificationFailClosed() {
@@ -240,9 +266,8 @@ import UIKit
             XCTAssertEqual(fixture.driver.lifecycleRegistrations, NativeAudioLifecycleObservation.names.count)
         }
         play(fixture); XCTAssertEqual(value.state, .playing)
-        // One interruption stops exactly once, not once per earlier run.
-        fixture.post(AVAudioSession.interruptionNotification,
-                     [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.began.rawValue])
+        // One stop signal stops exactly once, not once per earlier run (a call now pauses: OWN-OPT-042.a).
+        fixture.post(AVAudioSession.mediaServicesWereResetNotification)
         fixture.delivery.drain()
         XCTAssertEqual(value.state, .idle); XCTAssertEqual(fixture.deactivations, 1)
         XCTAssertEqual(fixture.driver.lifecycleRegistrations, 0)

@@ -132,6 +132,16 @@ import Combine
                     }
                 }
                 if owner.phase == .active {
+                    if owner.continuesInBackground {
+                        // OWN-D-07: say plainly that location keeps running after Home, and how to stop it.
+                        Section {
+                            Label("roam.live.backgroundLocationOn", systemImage: "location.fill")
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                            Text("roam.live.backgroundLocationHint").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("roam.live.backgroundLocation")
+                    }
                     Section {
                         Label(owner.presenceEnabled ? "roam.live.presenceOn" : "roam.live.presenceOff",
                               systemImage: owner.presenceEnabled ? "person.wave.2" : "person.crop.circle")
@@ -307,7 +317,8 @@ import Combine
         guard owner.phase == .active else { return }
         while !Task.isCancelled && owner.phase == .active {
             do { try await Task.sleep(for: .seconds(3)) } catch { return }
-            guard !Task.isCancelled, scenePhase == .active else { return }
+            // OWN-D-07.c: a walk holding background location keeps pulsing after Home; otherwise only in the foreground.
+            guard !Task.isCancelled, scenePhase == .active || owner.continuesInBackground else { return }
             await owner.pulse()
         }
     }

@@ -12,6 +12,9 @@ import FoundationNetworking
 }
 @MainActor private final class LiveLocation: RoamDeviceLocationProviding {
     var calls = 0, stops = 0
+    /// OWN-D-07.c: true while the fake holds a session background hold.
+    var background = false
+    var continuesInBackground: Bool { background }
     var value: RoamDeviceFix
     var callback: (() -> Void)?
     init(_ date: Date) { value = try! RoamDeviceFix(coordinate: RoamCoordinate(latitude: 31.2, longitude: 121.4)!, accuracyMeters: 10, measuredAt: date, datum: .gcj02) }
@@ -132,6 +135,21 @@ import FoundationNetworking
         XCTAssertEqual(owner.phase, .paused); XCTAssertNil(owner.lastFix); XCTAssertFalse(owner.presenceEnabled)
         XCTAssertEqual(location.calls, 1); XCTAssertEqual(service.heartbeats, 0)
         owner.setForeground(true); XCTAssertEqual(owner.phase, .paused)
+    }
+    /// OWN-D-07.c / OWN-D-07.d: a walk holding background location keeps running and pulsing after Home;
+    /// finishing releases the hold (stop). Without the hold, Home still pauses (test above).
+    func testBackgroundHoldKeepsWalkActiveAndFinishReleasesIt() async throws {
+        let (owner, service, location, _, _) = try fixture()
+        await owner.start(purposeAccepted: true); location.background = true
+        XCTAssertTrue(owner.continuesInBackground)
+        owner.setForeground(false)
+        XCTAssertEqual(owner.phase, .active)
+        await owner.pulse()
+        XCTAssertEqual(location.calls, 2); XCTAssertEqual(owner.phase, .active)
+        let stopsBefore = location.stops
+        await owner.finish()
+        XCTAssertGreaterThan(location.stops, stopsBefore)
+        XCTAssertEqual(service.finishes, 1)
     }
     func testPoorStaleAndFutureLocationCannotCreateSession() async throws {
         for (accuracy, delta) in [(81.0, 0.0), (10, -31), (10, 3)] {

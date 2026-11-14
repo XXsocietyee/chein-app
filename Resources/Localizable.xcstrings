@@ -1,6 +1,118 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "requestReference.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Request reference (for support)"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "请求编号（反馈问题时提供）"}}
+      }
+    },
+    "requestReference.copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Copy"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "复制"}}
+      }
+    },
+    "requestReference.copied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Copied"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已复制"}}
+      }
+    },
+    "privacy.location.holds.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Location in use now"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "正在使用定位"}}
+      }
+    },
+    "privacy.location.holds.roam": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "This device is collecting location for roam"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机正在为漫游采集位置"}}
+      }
+    },
+    "privacy.location.holds.play": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "This device is using location for a play run (only while it is open)"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机正在为游玩使用定位（仅前台）"}}
+      }
+    },
+    "privacy.location.holds.background": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Also when the screen is locked"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "锁屏后仍在记录"}}
+      }
+    },
+    "privacy.location.holds.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "This device is not collecting location for roam or play"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "本机未在为漫游或游玩采集位置"}}
+      }
+    },
+    "privacy.location.holds.stop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Stop"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "停止"}}
+      }
+    },
+    "privacy.location.holds.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Stop ends that session's location on this device now. Your location is never shared with other players."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "停止后本机立即结束该行程的定位。你的位置不会分享给其他玩家。"}}
+      }
+    },
+    "roam.live.backgroundLocationOn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Recording your route, also when the screen is locked"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "锁屏后仍在记录轨迹"}}
+      }
+    },
+    "roam.live.backgroundLocationHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Pause or finish the walk to stop location."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂停或结束漫游即停止定位"}}
+      }
+    },
+    "wallet.points.spendRules": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Points spending"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "积分消耗"}}
+      }
+    },
+    "wallet.points.spendUsedCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Times used"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已用次数"}}
+      }
+    },
+    "registration.form.points.noPoints": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "No points available"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂无可用积分"}}
+      }
+    },
+    "registration.form.points.ticketRefuses": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "This ticket doesn’t support points"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该票不支持积分抵扣"}}
+      }
+    },
     "beGapIm.entry": {
       "extractionState": "manual",
       "localizations": {
@@ -245299,13 +245411,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roam reads your location only while a walk is running, to reveal the map and save your stamps. Pausing or finishing stops it."
+            "value": "Roam uses your location while a walk is running, to reveal the map, check in and record your route. It keeps recording when the screen is locked, and stops when you pause or finish the walk."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只在漫游进行时读取你的位置，用来点亮地图和保存印章。暂停或结束后立即停止。"
+            "value": "用于实时定位、打卡和轨迹记录，锁屏后仍会记录，暂停或结束漫游即停止。"
           }
         }
       }

@@ -44,6 +44,10 @@ public final class RegistrationUIFlow {
     public private(set) var selectedParticipantID: Int?
     public private(set) var selectedTicketID: Int?
     public private(set) var usePoints = false
+    /// OWN-D-01.b: why the server quoted 0 for points after the toggle was on. Cleared by the next toggle or ticket change.
+    public private(set) var pointsRefusal: RegistrationPointsRefusal?
+    /// The viewer's point balance (`userInfo.point`). Nil when unknown, as in `baoming.js:1240`.
+    public var availablePoints: (() -> Int?)?
     public private(set) var consented = false
     public private(set) var confirmation: RegistrationUIConfirmation?
     public private(set) var waitlistCancellation: RegistrationUIWaitlistCancellation?
@@ -215,11 +219,11 @@ public final class RegistrationUIFlow {
     @discardableResult public func selectTicket(id: Int?) -> Bool {
         guard canEdit, (id == nil ? activity.tickets.isEmpty : activity.tickets.contains(where: { $0.id == id })) else { return false }
         guard selectedTicketID != id else { return false }
-        selectedTicketID = id; resetWaitlist(); refreshCreationLock(); applySelection(); changed(); return true
+        selectedTicketID = id; pointsRefusal = nil; resetWaitlist(); refreshCreationLock(); applySelection(); changed(); return true
     }
     @discardableResult public func setUsePoints(_ value: Bool) -> Bool {
         guard canEdit, value != usePoints else { return false }
-        usePoints = value; applySelection(); changed(); return true
+        usePoints = value; pointsRefusal = nil; applySelection(); changed(); return true
     }
     public func setConsent(_ value: Bool) {
         guard canEdit, creationPolicy.permitsCreation else { return }
@@ -262,6 +266,14 @@ public final class RegistrationUIFlow {
         guard matches(stamp, identity), quoteStamp == quoteGeneration else { return }
         isQuoting = false
         if case .received = coordinator.quoteState { quoteReceivedAt = now() }
+        // OWN-D-01.b (`mp:pages/activity/baoming/baoming.js:1238-1243`): the toggle was on and the server quoted no
+        // deduction. Turn it off, say the real reason, and quote again without points so the shown total matches.
+        if usePoints, case .received(let quote) = coordinator.quoteState,
+           let refusal = RegistrationPointsRefusal(usePoints: true, quote: quote, availablePoints: availablePoints?()) {
+            usePoints = false; applySelection(); pointsRefusal = refusal; changed()
+            await requestQuote()
+            return
+        }
         changed()
     }
     @discardableResult public func prepareConfirmation() -> Bool {
@@ -513,9 +525,29 @@ public final class RegistrationUIFlow {
     private func clearForm() {
         resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil; durableStatusFailed = false
         draft = .init(); participantSuppliedDraft = false; participants = []; participantProjectionIdentity = nil; participantsState = .idle; selectedParticipantID = nil
-        selectedTicketID = nil; usePoints = false; consented = false; confirmation = nil; block = nil
+        selectedTicketID = nil; usePoints = false; pointsRefusal = nil; consented = false; confirmation = nil; block = nil
         manuallyEdited = false; isQuoting = false; isSubmitting = false; isReadingStatus = false
     }
     private func changed() { onChange?() }
 }
 
+
+/// OWN-D-01.b: the two reasons a points deduction is refused (`mp:pages/activity/baoming/baoming.js:1238-1243`).
+/// The server quote is the only source; the client never computes a rate.
+public enum RegistrationPointsRefusal: String, Equatable, Sendable {
+    /// 「暂无可用积分」: the viewer has no points. An unknown balance reads as none, as `!(Number(point) > 0)` does.
+    case noPoints
+    /// 「该票不支持积分抵扣」: the viewer has points and the ticket refuses them.
+    case ticketRefusesPoints
+    public var localizationKey: String {
+        switch self {
+        case .noPoints: return "registration.form.points.noPoints"
+        case .ticketRefusesPoints: return "registration.form.points.ticketRefuses"
+        }
+    }
+    /// Nil when the toggle is off or the quote deducts something.
+    public init?(usePoints: Bool, quote: RegistrationQuote, availablePoints: Int?) {
+        guard usePoints, (quote.pointsDeductYuan ?? .zero) <= .zero else { return nil }
+        self = (availablePoints ?? 0) > 0 ? .ticketRefusesPoints : .noPoints
+    }
+}

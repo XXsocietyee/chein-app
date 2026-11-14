@@ -101,8 +101,11 @@ class CB51DiagnosticsContracts(unittest.TestCase):
         self.assertNotIn(FLAG, base)
         info = self.read("Config/Info.plist")
         entitlements = self.read("Config/Questify.entitlements")
-        for text in (info, entitlements, base):
+        # OWN-D-07: Info.plist declares only the session-scoped location background mode.
+        self.assertIn("<key>UIBackgroundModes</key><array><string>location</string></array>", info)
+        for text in (entitlements, base):
             self.assertNotIn("UIBackgroundModes", text)
+        for text in (info, entitlements, base):
             self.assertNotIn("NSLocationAlwaysUsageDescription", text)
             self.assertNotIn("NSLocationAlwaysAndWhenInUseUsageDescription", text)
         package = self.read("Package.swift")

@@ -1,6 +1,7 @@
 import Foundation
 
-/// Foreground-only state machine. Opening a screen performs no location/network work.
+/// Foreground state machine; an active walk continues in the background only while its provider holds a
+/// session background hold (OWN-D-07). Opening a screen performs no location/network work.
 /// Uncertain writes survive cancellation/relaunch; recovery is read-only and never awards locally.
 @MainActor public final class RoamLiveSessionController {
     public private(set) var phase: RoamLivePhase = .ready
@@ -222,7 +223,14 @@ import Foundation
         else if phase == .acquiring { phase = .ready }
         changed()
     }
-    public func setForeground(_ value: Bool) { foreground = value; if !value { pause() } }
+    /// OWN-D-07.d: going to the background is not a stop while the walk holds a session background hold
+    /// (`mp:pages/roam/index.js` onHide keeps the clock while real location is on). Otherwise it still pauses.
+    public func setForeground(_ value: Bool) {
+        foreground = value
+        if !value, !continuesInBackground { pause() }
+    }
+    /// Active walk whose location provider holds background updates.
+    public var continuesInBackground: Bool { phase == .active && location?.continuesInBackground == true }
     public func resume(purposeAccepted: Bool, presenceAccepted: Bool = false) async {
         guard phase == .paused, record?.finishRequested == false else { return }
         guard purposeAccepted else { error = RoamLiveFailure.consentRequired; changed(); return }
@@ -514,7 +522,7 @@ import Foundation
         }
     }
     private func persist(_ draft: RoamLiveRecord) throws { try journal.write(draft); record = draft }
-    private func checkForeground() throws { guard foreground else { throw RoamLiveFailure.foregroundRequired } }
+    private func checkForeground() throws { guard foreground || continuesInBackground else { throw RoamLiveFailure.foregroundRequired } }
     private func begin() -> UUID? {
         guard !busy else { return nil }
         unstartedContinuation = nil

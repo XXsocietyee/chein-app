@@ -7,5 +7,6 @@
     <key>QuestifyCityGameRegion</key><string>$(QUESTIFY_CITY_GAME_REGION)</string>
     <key>QuestifyDeploymentEnvironment</key><string>$(QUESTIFY_DEPLOYMENT_ENVIRONMENT)</string>
     <key>NSPhotoLibraryAddUsageDescription</key><string>Save a walk card, a medal card, or a city stamp slip picture to Photos when you choose Save to Photos.</string>
+    <key>UIBackgroundModes</key><array><string>location</string></array>
     <key>UILaunchScreen</key><dict><key>UIColorName</key><string>LaunchBackground</string><key>UIImageName</key><string>LaunchMark</string></dict>
 </dict></plist>

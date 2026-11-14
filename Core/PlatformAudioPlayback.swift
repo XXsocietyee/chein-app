@@ -18,7 +18,8 @@ public struct PlatformMediaPolicy: Sendable {
     }
 }
 public enum PlatformAudioState: Equatable, Sendable { case gated, idle, loading, playing, paused, ended, failed, disposed }
-public enum PlatformAudioEvent: Sendable { case playing, ended, failed, interrupted }
+/// `pausedForInterruption`: a call or alarm paused audible playback; the interruption end resumes it (OWN-OPT-042.a).
+public enum PlatformAudioEvent: Sendable { case playing, ended, failed, interrupted, pausedForInterruption }
 @MainActor public protocol PlatformAudioDriving: AnyObject {
     func start(source: PlatformMediaSource, policy: PlatformMediaPolicy, event: @escaping @MainActor (PlatformAudioEvent) -> Void)
     func pause()
@@ -57,6 +58,7 @@ public enum PlatformAudioEvent: Sendable { case playing, ended, failed, interrup
             case .ended: self.invalidate(); self.state = .ended
             case .failed: self.invalidate(); self.state = .failed
             case .interrupted: self.invalidate(); self.state = .idle
+            case .pausedForInterruption: self.state = .paused
             }
         }
     }

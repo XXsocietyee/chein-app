@@ -778,6 +778,8 @@ public struct PlayCompletionReview: Equatable {
         }
     }
     public func startRun(now: TimeInterval) {
+        // OWN-10.3.b: an unsupported verdict refuses this content's start; unconfirmed does not.
+        guard compatibility?.blocksStart != true else { return }
         guard canManageRun, let loadedSession, currentSession() == loadedSession, pausedOwner == loadedSession, pausedLease != nil, pausedLease?.value?.pendingRemote != true, !runStorageBusy, !localRecoveryFailed else { return }
         try? clock.start(monotonicNow: now)
     }

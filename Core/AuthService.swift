@@ -38,6 +38,7 @@ public final class URLSessionTransport: HTTPTransport {
         try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(outgoing)
         let (data, response) = try await session.data(for: outgoing)
         guard let http = response as? HTTPURLResponse else { throw APIError.malformedResponse }
+        RequestReferenceLedger.shared.record(http) // OWN-OPT-072: id and path only.
         return (data, http.statusCode)
     }
 }

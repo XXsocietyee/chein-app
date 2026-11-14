@@ -202,7 +202,40 @@ public struct WalletPointsTask: Decodable, Equatable, Identifiable {
     public let value: WalletAmount?
     public let pointsNum: Int?
     public let status: Int?
-    public var isEarnTask: Bool { status == 1 && eventType != 14 }
+    /// `delFlag≠0` rows are deleted rules (`mp:subpackageMember/components/cy/profile/points-rules.js:36-37`).
+    /// RuoYi sends it as a string ("0"/"2") or a number; unreadable reads as not deleted, like `Number(null)`.
+    public let delFlag: Int?
+    private enum CodingKeys: String, CodingKey { case id, eventType, title, description, value, pointsNum, status, delFlag }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        eventType = try c.decodeIfPresent(Int.self, forKey: .eventType)
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+        description = try c.decodeIfPresent(String.self, forKey: .description)
+        value = try c.decodeIfPresent(WalletAmount.self, forKey: .value)
+        pointsNum = try c.decodeIfPresent(Int.self, forKey: .pointsNum)
+        status = try c.decodeIfPresent(Int.self, forKey: .status)
+        if let number = try? c.decodeIfPresent(Int.self, forKey: .delFlag) { delFlag = number }
+        else if let text = try? c.decodeIfPresent(String.self, forKey: .delFlag) { delFlag = Int(text.trimmingCharacters(in: .whitespaces)) }
+        else { delFlag = nil }
+    }
+    /// Enabled and not deleted. Spend rules (eventType 14) stay listed, in their own group.
+    public var isListed: Bool { status == 1 && (delFlag ?? 0) == 0 }
+    public var isEarnTask: Bool { isListed && eventType != WalletPointsRules.spendEventType }
+    /// OWN-D-01.a: eventType 14 is the 「积分消耗」 spend rule (`points-rules.js:18,50`).
+    public var isSpendRule: Bool { isListed && eventType == WalletPointsRules.spendEventType }
+}
+
+/// OWN-D-01.a: earn and spend rules from `api/points/result_list`, split as `points-rules.js:30-53` does.
+/// The point-to-yuan rate is a server constant and is never shown or computed here.
+public struct WalletPointsRules: Equatable {
+    public static let spendEventType = 14
+    public let earn: [WalletPointsTask]
+    public let spend: [WalletPointsTask]
+    public init(_ rows: [WalletPointsTask]) {
+        earn = rows.filter(\.isEarnTask)
+        spend = rows.filter(\.isSpendRule)
+    }
 }
 
 /// Read-only phase for `subpackageA/pages/assetcenter/analysis/index`.

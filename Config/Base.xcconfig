@@ -42,8 +42,9 @@ INFOPLIST_KEY_QuestifyCityGameRegion = $(QUESTIFY_CITY_GAME_REGION)
 // Declares the explicit iPhone step-reading purpose; does not grant or enable access.
 INFOPLIST_KEY_NSMotionUsageDescription = Read step counts from this iPhone when you choose to review a walking activity. Counts are not proof of walking and do not unlock rewards.
 
-// Declares when-in-use location purpose only; no background location and no Always-authorization keys.
-INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Use your location only while the app is open and when you choose to roam, play a location-based activity, find nearby places, or explicitly start personal location sharing with a selected person. Personal sharing uploads your location to the service for that person until you stop or the approved sharing period ends. Location is never used in the background.
+// OWN-D-07: When-In-Use purpose only, no Always key. Background updates run only while a roam walk the player
+// started holds them (the location background mode in Info.plist, SessionBackgroundLocationTracker).
+INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Use your location when you choose to roam, play a location-based activity or find nearby places. While a roam walk you started is running, your route keeps recording in the background, also when the screen is locked, and the system shows the location indicator; it stops when you pause or finish the walk, sign out, or withdraw roam location in Privacy. Your location is never shared with other players.
 
 // Declares the explicit NPC voice recording and local sound-peak gameplay amplitude measurement purposes; does not grant or enable access.
 INFOPLIST_KEY_NSMicrophoneUsageDescription = Use the microphone only when you choose to record an IM voice message, talk to or set up an NPC voice, or measure sound peak levels locally on this iPhone during interactive sound gameplay. IM recordings are uploaded only after your separate confirmation for the original audio safety check; sending the message requires another confirmation. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background.

@@ -6187,7 +6187,7 @@ final class AppSession: ObservableObject {
                   approval.allows(snapshot.identity, api: api) {
             liveService = RoamLiveService(api: api, approval: approval, transport: wire,
                 currentSession: { [weak self] in self?.currentRoamExperienceSession })
-            location = RuntimeNativeLocationProvider(enabled: true)
+            location = SessionTrackedRoamLocationProvider(owner: { [weak self] in self?.account.map { AnyHashable($0.id) } })
         }
         let controller = RoamLiveSessionController(service: liveService, location: location, journal: journal, history: roamHistoryStore)
         if liveService != nil { controller.locationConsent = roamLocationConsentHook() }
