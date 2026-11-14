@@ -86,7 +86,7 @@ import SwiftUI
                                         else { Image(systemName: "person.fill").foregroundStyle(CYColor.textSecondary) }
                                     }
                                     .frame(width: 44, height: 44)
-                                    .background(CYColor.bgSection, in: Circle())
+                                    .background(CYColor.bgSurfaceSubtle, in: Circle())
                                     .accessibilityHidden(true)
                                     Group { if let name = item.authorNickname, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.publicHome.player") } }
                                         .font(CYTypography.cardTitle)

@@ -218,7 +218,6 @@ private struct GrowthLeaderboardPodiumView: View {
     @Environment(\.cyPalette) private var palette
     let entries: [GrowthLeaderboardEntry]
     let metric: GrowthBoardMetric
-    @Environment(\.cyPalette) private var palette
     @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         HStack(alignment: .bottom, spacing: CYSpacing.md) {

@@ -214,13 +214,13 @@ struct OfficialOrganizerConsoleView: View {
                     Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(model.state?.status)))
                     Text(verbatim: "·")
                     Text(verbatim: controlText)
-                }.font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary)
+                }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 if model.state?.control == .paused {
                     if let r = model.state?.pausedReason, !r.isEmpty {
-                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).font(CYTypography.footnote)
+                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).font(CYTypography.meta)
                     }
                     if let n = model.state?.resumeNote, !n.isEmpty {
-                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).font(CYTypography.footnote)
+                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).font(CYTypography.meta)
                     }
                 }
             }
@@ -335,7 +335,7 @@ struct OfficialOrganizerConsoleView: View {
         let presets = OfficialOrganizerRules.pausePresets[field] ?? []
         let binding = Binding(get: { model.pause[field] ?? OfficialOrganizerPauseEntry() }, set: { model.pause[field] = $0 })
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(fieldLabel(field)).font(CYTypography.subhead.weight(.semibold))
+            Text(fieldLabel(field)).font(CYTypography.bodyCompact.weight(.semibold))
             Picker(fieldLabel(field), selection: binding.preset) {
                 Text(c.t("不选预设", "No preset")).tag("")
                 ForEach(Array(presets.enumerated()), id: \.offset) { i, zh in Text(presetLabel(field, i, zh)).tag(zh) }
@@ -361,12 +361,12 @@ struct OfficialOrganizerConsoleView: View {
     }
     @ViewBuilder private func hintText(_ action: OfficialOrganizerAction) -> some View {
         if let hint = model.availability[action]?.hint {
-            Text(hintCopy(hint)).font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary)
+            Text(hintCopy(hint)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }
     }
     @ViewBuilder private func formErrorText(_ action: OfficialOrganizerAction) -> some View {
         if let (a, e) = model.formError, a == action {
-            Text(formErrorCopy(e)).font(CYTypography.footnote).foregroundStyle(CYColor.dangerText)
+            Text(formErrorCopy(e)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("official.organizer.formError")
         }
     }

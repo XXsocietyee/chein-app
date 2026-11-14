@@ -25,7 +25,7 @@ enum MerchantAreaPopupFixtures {
         }
     }
 
-    @MainActor private static func lightWrap<V: View>(_ domain: CYThemeDomain, _ view: V) -> AnyView {
+    @MainActor private static func lightWrap<V: View>(_ domain: ThemeDomain, _ view: V) -> AnyView {
         AnyView(
             view
                 .themeDomain(domain)

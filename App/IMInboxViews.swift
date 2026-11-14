@@ -197,7 +197,7 @@ struct CYIMCoverArt: View {
             CYColor.bgRaised
             if symbolSize > 0 {
                 Image(systemName: systemImage)
-                    .font(symbolSize >= 28 ? CYTypography.title : CYTypography.cardTitle)
+                    .font(symbolSize >= 28 ? CYTypography.pageTitle : CYTypography.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
             }
         }

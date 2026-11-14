@@ -1754,7 +1754,7 @@ struct ClubGovernanceEventView: View {
                     Label { Text("story.aigc", tableName: "SocialParity") } icon: { Image(systemName: "sparkles") }
                         .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                        .background(CYColor.bgSurfaceElevated, in: Capsule())
+                        .background(CYColor.bgElevated, in: Capsule())
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("club.story.aigc")
                 }

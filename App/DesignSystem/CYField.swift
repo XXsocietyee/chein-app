@@ -75,7 +75,7 @@ public struct CYField: View {
         return .idle
     }
 
-    public static func tokens(
+    static func tokens(
         for state: CYFieldState,
         hasText: Bool,
         colorScheme: ColorScheme,

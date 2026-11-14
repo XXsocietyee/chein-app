@@ -172,7 +172,6 @@ enum ActivityPublishingStatusHelper {
         self.merchantHost = merchantHost
     }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {

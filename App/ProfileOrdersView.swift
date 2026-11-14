@@ -413,7 +413,7 @@ struct ProfileOrderDetailView: View {
             .frame(minHeight: 44).disabled(target == nil || !ticketEntryVisible)
             .accessibilityIdentifier("orderTicketEntry.open")
         Text(target == nil ? "orderTicketEntry.unavailable" : "orderTicketEntry.freshRead")
-            .font(CYTypography.footnote).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
     }
     private func retireTicketEntry() { ticketTarget = nil; ticketPresentationID = UUID() }
 }
@@ -520,7 +520,7 @@ private struct ProfileOrderStateNoticeSection: View {
                             .background(Capsule().fill(CYColor.bgSurfaceSubtle))
                             .accessibilityIdentifier("profile.order.detail.stateTag")
                     }
-                    if let hint = notice.hint { Text(verbatim: hint).font(CYTypography.subheadline).foregroundStyle(CYColor.textSecondary) }
+                    if let hint = notice.hint { Text(verbatim: hint).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 }.padding(.vertical, 4).accessibilityElement(children: .contain)
             }
         }

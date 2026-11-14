@@ -30,7 +30,7 @@ import SwiftUI
             else if model.unavailable { text("unavailable") }
             else if model.failed {
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
-                    .font(CYTypography.section).fixedSize(horizontal: false, vertical: true)
+                    .font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
                     .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
             } else if let slice = model.displayedResult(for: reader) {
@@ -84,7 +84,7 @@ import SwiftUI
         }
         if model.pageModel.phase == .unknown || model.pageModel.phase == .empty {
             Text(verbatim: model.pageModel.moneyText)
-                .font(CYTypography.section).monospacedDigit()
+                .font(CYTypography.sectionTitle).monospacedDigit()
                 .accessibilityIdentifier("wallet.analysis.page")
         }
         if slice.rows.isEmpty {

@@ -254,7 +254,6 @@ extension EnvironmentValues {
 struct GrowthProfileDisc: View {
     @Environment(\.cyPalette) private var palette
     let name: String?
-    @Environment(\.cyPalette) private var palette
     @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         let initial = GrowthCenterFormatting.nonempty(name).map { String($0.prefix(1)) }
@@ -279,7 +278,6 @@ struct GrowthBadgeMomentRow: View {
     let badge: GrowthCenterBadge
     let expanded: Bool
     let toggle: () -> Void
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         Button(action: toggle) {
             HStack(spacing: CYSpacing.md) {

@@ -590,7 +590,7 @@ enum WalletPayoutCapability { static let isOn = false }
         return layout {
             if !stacked {
                 Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
-                    .font(CYTypography.subhead.weight(.semibold))
+                    .font(CYTypography.bodyCompact.weight(.semibold))
                     .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                     .frame(width: 36, height: 36)
                     .background(CYColor.bgRaised, in: Circle())
@@ -600,16 +600,16 @@ enum WalletPayoutCapability { static let isOn = false }
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
                         Text(verbatim: badge)
-                            .font(CYTypography.caption2.weight(.bold))
+                            .font(CYTypography.micro.weight(.bold))
                             .foregroundStyle(CYColor.textSecondary)
                             .padding(.horizontal, CYSpacing.xxs + 1)
                             .padding(.vertical, 2)
-                            .background(CYColor.bgSurfaceElevated, in: Capsule())
+                            .background(CYColor.bgElevated, in: Capsule())
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
                 }
-                if income { Text(LocalizedStringKey(row.incomeEventKey)).font(CYTypography.subhead).foregroundStyle(CYColor.textSecondary) }
+                if income { Text(LocalizedStringKey(row.incomeEventKey)).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
                 else if let date = row.createTime { Text(verbatim: date).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
                 if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
