@@ -692,6 +692,7 @@ private struct RegistrationIssueText: View {
 
 @MainActor
 private struct RegistrationOperationSections: View {
+    @Environment(\.analyticsEventClient) private var analytics
     let flow: RegistrationUIFlow
     let revision:UInt64
     var orderReader: (any ProfileReading)? = nil
@@ -722,6 +723,14 @@ private struct RegistrationOperationSections: View {
                 CYPillButton("registration.form.readStatus", style: .secondary) { Task { await flow.readKnownStatus() } }
                     .disabled(!flow.canReadStatus).accessibilityIdentifier("registration.form.readStatus")
                 Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
+            }
+            .onAppear {
+                guard !result.hasPaymentParameters else { return }
+                var properties: [String: PlayWireValue] = ["registrationId": .integer(Int64(result.registrationID))]
+                if let amount = result.payableAmount, let value = MiniProgramAnalytics.amount(amount) { properties["payableAmount"] = value }
+                MiniProgramAnalytics.track(analytics, "signup_submit", bizType: "activity",
+                    bizID: MiniProgramAnalytics.bizID(flow.activity.summary.id), pagePath: "/pages/activity/baoming/baoming",
+                    properties: properties, idempotencyKey: "signup_submit_registration_\(result.registrationID)")
             }
         }
         switch flow.readbackState {

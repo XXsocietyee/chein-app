@@ -339,10 +339,19 @@ private struct G6Avatar: View {
     private var flags: LaunchFeatureFlags?
     private var startedBeforeFlags = false
     private var attached = false
+    private var analyticsClient: AnalyticsEventClient?
+    private var analyticsSessionID = 0
 
-    func attach(_ g6: G6Capabilities, walking: Bool) async {
+    func setAnalyticsSessionID(_ id: Int) {
+        analyticsSessionID = id
+        coordinator?.setAnalyticsSessionID(id)
+    }
+
+    func attach(_ g6: G6Capabilities, walking: Bool, sessionID: Int = 0, analytics: AnalyticsEventClient? = nil) async {
         guard !attached else { return }
         attached = true
+        analyticsClient = analytics
+        analyticsSessionID = sessionID
         guard g6.live() != nil, let reader = g6.flags() else { return }
         let member = g6.member()
         let coordinator = G6RoamNPCCoordinator(ports: .init(
@@ -363,7 +372,12 @@ private struct G6Avatar: View {
                 self.bubble = line
                 return true
             },
-            showFinishLine: { [weak self] line in self?.finishLine = line }))
+            showFinishLine: { [weak self] line in self?.finishLine = line },
+            analytics: { [weak self] name, session in
+                guard let self, let client = self.analyticsClient else { return }
+                MiniProgramAnalytics.track(client, name, bizType: "roam", bizID: MiniProgramAnalytics.bizID(session), pagePath: "/pages/roam/index")
+            }))
+        coordinator.setAnalyticsSessionID(analyticsSessionID)
         self.coordinator = coordinator
         let outcome = await reader.load(token: g6.token())
         guard g6.member() == member, case .loaded(let loaded) = outcome else { return }
@@ -393,7 +407,9 @@ struct G6RoamNPCPromptModifier: ViewModifier {
     let walking: Bool
     let finished: Bool
     let uniqueTiles: Int?
+    var sessionID: Int = 0
     @Environment(\.g6Capabilities) private var g6
+    @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var model = G6RoamNPCPromptModel()
 
@@ -415,7 +431,8 @@ struct G6RoamNPCPromptModifier: ViewModifier {
                 }
             }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: model.bubble)
-            .task { await model.attach(g6, walking: walking) }
+            .task { await model.attach(g6, walking: walking, sessionID: sessionID, analytics: analytics) }
+            .onChange(of: sessionID) { _, id in model.setAnalyticsSessionID(id) }
             .onChange(of: walking) { _, now in if now { model.dispatch(.sessionStarted) } }
             .onChange(of: finished) { _, now in if now { model.dispatch(.sessionFinished) } }
             .onChange(of: uniqueTiles) { _, count in if let count { model.dispatch(.uniqueTileCountChanged(count)) } }

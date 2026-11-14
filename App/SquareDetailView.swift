@@ -13,6 +13,7 @@ import SwiftUI
     @Environment(\.squareDeletion) private var deletion
     @Environment(\.squareShareLink) private var shareLink
     @Environment(\.squareAuthorFollowState) private var followState
+    @Environment(\.analyticsEventClient) private var analytics
     @State private var shareRoute: ShareRoute?
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
@@ -216,7 +217,10 @@ import SwiftUI
             }
             // Mini `act-share` sits right after the other actions (owner 2026-11-09, Threads-style).
             if let route = makeShareRoute(for: post) {
-                Button { shareRoute = route } label: { Image(systemName: "paperplane") }
+                Button {
+                    shareRoute = route
+                    MiniProgramAnalytics.track(analytics, "content_share", bizType: "square", bizID: MiniProgramAnalytics.bizID(post.id), pagePath: "/pages/square/detail/index")
+                } label: { Image(systemName: "paperplane") }
                     .tint(.primary)
                     .accessibilityLabel(Text("share.entry", tableName: "SocialParity")).accessibilityIdentifier("square.detail.share")
             }

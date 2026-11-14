@@ -45,6 +45,8 @@ struct RoamFinishReport: Equatable {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @State private var showShare = false
+    @State private var trackedRouteStory = false
+    @Environment(\.analyticsEventClient) private var analytics
 
     var body: some View {
         ScrollView {
@@ -76,6 +78,11 @@ struct RoamFinishReport: Equatable {
             if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } }
         }
         .accessibilityIdentifier("roam.finishReport")
+        .onAppear {
+            guard !trackedRouteStory, report.story?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+            trackedRouteStory = true
+            MiniProgramAnalytics.track(analytics, "roam_route_story_shown", bizType: "roam", pagePath: "/pages/roam/index")
+        }
     }
 
     private var head: some View {

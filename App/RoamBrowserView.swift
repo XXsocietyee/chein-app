@@ -4,6 +4,8 @@ import SwiftUI
 /// The screen never prompts for location permission, reads GPS, follows the user, or starts a roam.
 @MainActor
 struct RoamBrowserView: View {
+    @Environment(\.analyticsEventClient) private var analytics
+    @State private var trackedRoamStart = false
     let reader: any RoamReading
     var nearbyEventsReader: RoamNearbyEventsReader? = nil
     var nearbyPlayersReader: RoamNearbyPlayersReader? = nil
@@ -197,6 +199,11 @@ struct RoamBrowserView: View {
             }
             .onChange(of: homeTab) { _, tab in
                 if tab == .start { recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil) }
+            }
+            .onAppear {
+                guard !trackedRoamStart else { return }
+                trackedRoamStart = true
+                MiniProgramAnalytics.track(analytics, "roam_start", bizType: "roam", pagePath: "/pages/roam/index")
             }
             .onChange(of: recoveryScenePhase) { _, phase in
                 recoveryEntry.setForeground(phase == .active, reader: experienceReader, hasDestination: liveDestination != nil)

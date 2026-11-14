@@ -68,13 +68,17 @@ public struct G6RoamNPCGate: Equatable, Sendable {
         /// Show (or hide with nil) the top bubble. False means the render failed.
         public var showBubble: @MainActor (String?) -> Bool
         public var showFinishLine: @MainActor (String) -> Void
+        /// `analytics.js` names only. The page supplies the session id; the line text stays out.
+        public var analytics: (@MainActor (String, Int) -> Void)?
 
         public init(now: @escaping @MainActor () -> Double, sleep: @escaping @MainActor (Double) async -> Void,
                     featureOn: @escaping @MainActor () -> Bool,
                     fetchProfile: @escaping @MainActor () async -> String?, fetchLine: @escaping @MainActor (String, String) async -> String?,
-                    showBubble: @escaping @MainActor (String?) -> Bool, showFinishLine: @escaping @MainActor (String) -> Void) {
+                    showBubble: @escaping @MainActor (String?) -> Bool, showFinishLine: @escaping @MainActor (String) -> Void,
+                    analytics: (@MainActor (String, Int) -> Void)? = nil) {
             self.now = now; self.sleep = sleep; self.featureOn = featureOn; self.fetchProfile = fetchProfile
             self.fetchLine = fetchLine; self.showBubble = showBubble; self.showFinishLine = showFinishLine
+            self.analytics = analytics
         }
     }
 
@@ -92,8 +96,12 @@ public struct G6RoamNPCGate: Equatable, Sendable {
     private var hideTask: Task<Void, Never>?
     private var seenPoi: Set<String> = []
     private var inFlight: [Task<Void, Never>] = []
+    /// `roam-npc-coordinator.js` `sessionId`. Zero is not a business id.
+    public private(set) var analyticsSessionID = 0
 
     public init(ports: Ports) { self.ports = ports }
+
+    public func setAnalyticsSessionID(_ id: Int) { analyticsSessionID = id }
 
     public var isSilenced: Bool { giveUp }
 
@@ -122,6 +130,7 @@ public struct G6RoamNPCGate: Equatable, Sendable {
                 return
             }
             self.profileID = id
+            self.ports.analytics?("npc_profile_loaded", self.analyticsSessionID)
             let queued = self.pendingEvents
             self.pendingEvents = []
             queued.forEach { self.dispatch($0) }
@@ -162,10 +171,12 @@ public struct G6RoamNPCGate: Equatable, Sendable {
             if finish {
                 self.ports.showFinishLine(line)
                 self.gate.confirmShown(eventType, now: self.ports.now())
+                self.ports.analytics?("npc_bubble_impression", self.analyticsSessionID)
                 return
             }
             guard self.ports.showBubble(line) else { self.gate.releaseUnshown(eventType); return }
             self.gate.confirmShown(eventType, now: self.ports.now())
+            self.ports.analytics?("npc_bubble_impression", self.analyticsSessionID)
             self.hideTask?.cancel()
             self.hideTask = Task { [weak self] in
                 guard let self else { return }
