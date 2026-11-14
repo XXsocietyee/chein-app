@@ -283,28 +283,26 @@ private struct SessionOfflineReplayTransport: HTTPTransport {
         let compositionTransport = session.runtimeHTTPTransport as? CompositionHTTPTransport
         switch path {
         case "/api/roam/reveal":
-            if let roam = compositionTransport?.makeRoamLiveWriteTransport(profile: .liveRoam)
-                ?? session.composition.makeRoamLiveWriteTransport(profile: .liveRoam) {
+            if let roam = compositionTransport?.makeRoamLiveWriteTransport(profile: .liveRoam) {
                 return try await roam.send(request)
             }
         case "/api/roam/stamp/create":
-            if let stamp = compositionTransport?.makeRoamLiveWriteTransport(profile: .writes)
-                ?? session.composition.makeRoamLiveWriteTransport(profile: .writes) {
+            if let stamp = compositionTransport?.makeRoamLiveWriteTransport(profile: .writes) {
                 return try await stamp.send(request)
             }
         case "/api/capsules/create", "/api/exploration-goals/create":
-            if let tools = compositionTransport?.makeRoamLiveWriteTransport(profile: .privateTools)
-                ?? session.composition.makeRoamLiveWriteTransport(profile: .privateTools) {
+            if let tools = compositionTransport?.makeRoamLiveWriteTransport(profile: .privateTools) {
                 return try await tools.send(request)
             }
         case "/api/user/address/action":
+            let participantRevision = session.participantRevision
             if let context = session.currentRuntimeDependencyContext,
                let access = session.participantAccessSelector(context),
                let wire = compositionTransport?.makeProfileParticipantTransport(
                    context: context,
                    access: access,
                    currentRuntime: { [weak session] in session?.currentRuntimeDependencyContext },
-                   stillCurrent: { [weak session] in session?.participantAccessSelector(context) == access }
+                   stillCurrent: { [weak session] in session?.participantRevision == participantRevision && session?.participantAccessSelector(context) != nil }
                ) {
                 return try await wire.send(request)
             }
@@ -512,7 +510,7 @@ struct SessionOfflineBannerModifier: ViewModifier {
         }
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.xs)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("cy.state.offline.queue.pending \(syncModel.queuedCount)"))
         .accessibilityValue(Text(verbatim: "\(syncModel.queuedCount)"))
