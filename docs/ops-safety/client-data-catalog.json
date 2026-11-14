@@ -86,6 +86,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/ExternalGameReviewModel.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Pins the server's public Ed25519 external-game signing key per API host (key 'externalGame.signingKey.pinned.<host>'); public key only, no personal data",
+      "retention": "Until app uninstall; one 32-byte public key per environment host",
+      "deletion": "Removed with the app container; a key rotation needs the pinned entry cleared (no in-app path yet)"
+    },
+    {
       "file": "App/GlobalSearchView.swift",
       "kinds": [
         "userDefaults"
