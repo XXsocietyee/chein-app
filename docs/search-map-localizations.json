@@ -562,5 +562,9 @@
   "searchMap.retryPage": {
     "en": "Retry this page",
     "zh-Hans": "重试本页"
+  },
+  "searchMap.w208.sheet.failed.detail": {
+    "en": "Check your connection and try again.",
+    "zh-Hans": "检查网络后再试一次"
   }
 }
