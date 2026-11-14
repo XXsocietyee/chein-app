@@ -25,6 +25,7 @@ enum PublishDesignFixtures {
         case "publish-activity":
             return wrap(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil) })
         case "template-topics": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader()) })
+        case "template-topics-offline": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(scenario: .unconfigured)) })
         case "template-games": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(), startOnGames: true) })
         case "template-detail":
             return wrap(NavigationStack { DiscoveryTemplateDetailView(id: 7, reader: TemplateDetailParityFixtureReader(scenario: "public")) })

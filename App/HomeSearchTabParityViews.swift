@@ -40,8 +40,8 @@ struct HomeHeroHeaderSectionView: View {
                                 Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
                                     .font(CYTypography.bodyCompact)
                                     .foregroundStyle(CYColor.textSecondary)
-                                    .lineLimit(1) // one line at every size; truncates instead of wrapping
-                                    .truncationMode(.tail)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .multilineTextAlignment(.leading)
                                 Spacer(minLength: 0)
                             }
                             .padding(.leading, CYSpacing.md)
@@ -66,8 +66,6 @@ struct HomeHeroHeaderSectionView: View {
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
                     }
                     .background(CYColor.bgElevated, in: Capsule())
-                    .overlay { Capsule().strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1) }
-                    .shadow(color: CYNight.ink0.opacity(0.25), radius: 10, y: 4)
                 }
                 // Mini-program `v3-hero-greet-row`: name on its own line, then `玩家 · 城市`, avatar trailing.
                 HStack(alignment: .top, spacing: 12) {
@@ -136,7 +134,7 @@ struct HomeHeroHeaderSectionView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
-                            .lineLimit(1).minimumScaleFactor(0.7)
+                            .fixedSize(horizontal: false, vertical: true)
                         Image(systemName: "chevron.down").font(.caption2.weight(.bold))
                     }
                     .font(CYTypography.label)
@@ -199,9 +197,7 @@ struct PlayContinuationBannerView: View {
                     Spacer()
                     if readAvailability == .failed, let onRetry {
                         Button("homeFeed.retry", action: onRetry)
-                            .font(.caption.weight(.semibold))
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                            .buttonStyle(.cySecondary)
                             .accessibilityIdentifier("homeIndex.continuation.retry")
                     }
                 }
