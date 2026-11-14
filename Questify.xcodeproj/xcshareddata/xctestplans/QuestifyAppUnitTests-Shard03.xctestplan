@@ -322,6 +322,7 @@
         "OfficialPublicEventCompositionTests",
         "OfficialRouteTests",
         "OfficialSourceInvalidationViewTests",
+        "OfflineBannerPackage63Tests",
         "OfflineDurableRecoverySectionViewTests",
         "OwnMediaApprovedLinkHostTests",
         "OwnMediaAudioPreviewDeviceTests",

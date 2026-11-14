@@ -347,6 +347,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/SessionOfflineRetrySupport.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Per-scope Application Support directory ('OfflineIdempotentWriteQueue') storing queued non-money write envelopes with idempotency keys and ClientOperationID locks (no auth tokens stored)",
+      "retention": "Until confirmed replay or explicit user discard/clear",
+      "deletion": "Cleared per scope via clearScope(_:) or removeAll; excluded by scope isolation across account/session switches"
+    },
+    {
       "file": "App/SettingsView.swift",
       "kinds": [
         "userDefaults"

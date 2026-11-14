@@ -4,148 +4,358 @@
     "beGapIm.entry": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Channel tools"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道工具"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel tools"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道工具"
+          }
+        }
       }
     },
     "beGapIm.title": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Channel tools"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道工具"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel tools"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道工具"
+          }
+        }
       }
     },
     "beGapIm.audit": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Audit log"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "审核记录"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audit log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核记录"
+          }
+        }
       }
     },
     "beGapIm.webhook": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Webhook"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "Webhook"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webhook"
+          }
+        }
       }
     },
     "beGapIm.channels": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Channels"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channels"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道"
+          }
+        }
       }
     },
     "beGapIm.chain": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Chain"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "接龙"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chain"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接龙"
+          }
+        }
       }
     },
     "beGapIm.checkin": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Check-in"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "签到"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签到"
+          }
+        }
       }
     },
     "beGapIm.poll": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Poll receipt"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "投票回执"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poll receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投票回执"
+          }
+        }
       }
     },
     "beGapIm.moderation": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Moderation"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "处置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moderation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处置"
+          }
+        }
       }
     },
     "beGapIm.roles": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Roles"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "角色"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色"
+          }
+        }
       }
     },
     "beGapIm.appeal": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Appeal evidence"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "补充申诉"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appeal evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补充申诉"
+          }
+        }
       }
     },
     "beGapIm.media": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Message file"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "消息文件"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message file"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息文件"
+          }
+        }
       }
     },
     "beGapIm.board": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Board"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "榜单"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Board"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "榜单"
+          }
+        }
       }
     },
     "beGapIm.receipts": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Receipts"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "回执"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回执"
+          }
+        }
       }
     },
     "beGapIm.send": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Withdraw appeal"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "撤回申诉"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回申诉"
+          }
+        }
       }
     },
     "beGapIm.notSignedIn": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Sign in to load this"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "登录后才能读取"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to load this"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后才能读取"
+          }
+        }
       }
     },
     "beGapIm.failure": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "The server did not return a result"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "服务器没有返回结果"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not return a result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器没有返回结果"
+          }
+        }
       }
     },
     "beGapIm.channel": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Channel"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "频道"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道"
+          }
+        }
       }
     },
     "beGapIm.message": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Message"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "消息"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息"
+          }
+        }
       }
     },
     "beGapIm.record": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Record"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "记录"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录"
+          }
+        }
       }
     },
     "beGapIm.boardKey": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Board key"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "榜单键"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Board key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "榜单键"
+          }
+        }
       }
     },
     "medalScreen.allDone": {
@@ -272777,792 +272987,2109 @@
     "hostTip.section": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Host tip"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "主持小费"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host tip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主持小费"
+          }
+        }
       }
     },
     "hostTip.entry.config": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Tip settings"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "小费设置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小费设置"
+          }
+        }
       }
     },
     "hostTip.entry.player": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Tip the host"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "给主持打赏"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip the host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给主持打赏"
+          }
+        }
       }
     },
     "hostTip.signedOut": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Sign in to continue"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "登录后继续"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to continue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后继续"
+          }
+        }
       }
     },
     "hostTip.config.title": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Tip settings"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "小费设置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小费设置"
+          }
+        }
       }
     },
     "hostTip.config.empty": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No tip settings yet"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "还没有小费设置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tip settings yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有小费设置"
+          }
+        }
       }
     },
     "hostTip.config.error": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Could not read tip settings"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "小费设置读取失败"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read tip settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小费设置读取失败"
+          }
+        }
       }
     },
     "hostTip.config.enabled": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Accept tips"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "开通小费"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept tips"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开通小费"
+          }
+        }
       }
     },
     "hostTip.config.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Tips are not available yet"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂不可开通"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tips are not available yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不可开通"
+          }
+        }
       }
     },
     "hostTip.config.club": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Club scope"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "作用域俱乐部"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club scope"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作用域俱乐部"
+          }
+        }
       }
     },
     "hostTip.config.minAmount": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Minimum amount"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "单笔最低"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单笔最低"
+          }
+        }
       }
     },
     "hostTip.config.currency": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Currency"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "币种"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currency"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "币种"
+          }
+        }
       }
     },
     "hostTip.config.feeBearer": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Who pays the channel fee"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "通道手续费谁承担"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who pays the channel fee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通道手续费谁承担"
+          }
+        }
       }
     },
     "hostTip.config.feeHost": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Host"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "主持"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主持"
+          }
+        }
       }
     },
     "hostTip.config.feePlatform": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Platform"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "平台"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台"
+          }
+        }
       }
     },
     "hostTip.config.share": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Tips go 100% to the host"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "小费 100% 归主持"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tips go 100% to the host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小费 100% 归主持"
+          }
+        }
       }
     },
     "hostTip.config.shareNote": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "The share and the channel fee are separate. A 100% share is not the amount after the channel fee."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "分成和通道手续费分开显示。100% 分成不等于扣掉渠道费后的实收。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The share and the channel fee are separate. A 100% share is not the amount after the channel fee."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分成和通道手续费分开显示。100% 分成不等于扣掉渠道费后的实收。"
+          }
+        }
       }
     },
     "hostTip.config.save": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Save"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "保存"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
+        }
       }
     },
     "hostTip.config.saved": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Saved"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已保存"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存"
+          }
+        }
       }
     },
     "hostTip.config.invalid": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Check the tip settings"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "请检查小费设置"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the tip settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查小费设置"
+          }
+        }
       }
     },
     "hostTip.config.pending": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Result pending"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "结果待确认"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果待确认"
+          }
+        }
       }
     },
     "hostTip.player.title": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Tip the host"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "给主持打赏"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip the host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给主持打赏"
+          }
+        }
       }
     },
     "hostTip.player.host": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Host member id"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "主持会员号"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host member id"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主持会员号"
+          }
+        }
       }
     },
     "hostTip.player.amount": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Amount"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "金额"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额"
+          }
+        }
       }
     },
     "hostTip.player.note": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Note"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "备注"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备注"
+          }
+        }
       }
     },
     "hostTip.player.prepare": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Record a tip"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "记录小费"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record a tip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录小费"
+          }
+        }
       }
     },
     "hostTip.player.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Payments are not open. Your intent was recorded."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "收款暂未开通，已记录你的意向"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payments are not open. Your intent was recorded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收款暂未开通，已记录你的意向"
+          }
+        }
       }
     },
     "hostTip.player.paymentClosed": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Payment stays closed. This is not a successful payment."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "收款保持关闭。这不是支付成功。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment stays closed. This is not a successful payment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收款保持关闭。这不是支付成功。"
+          }
+        }
       }
     },
     "hostTip.player.empty": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No tip intents yet"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "还没有小费记录"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tip intents yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有小费记录"
+          }
+        }
       }
     },
     "hostTip.player.error": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Could not read tip intents"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "小费记录读取失败"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read tip intents"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小费记录读取失败"
+          }
+        }
       }
     },
     "hostTip.player.cancel": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Cancel unpaid tip"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "取消未支付小费"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel unpaid tip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消未支付小费"
+          }
+        }
       }
     },
     "hostTip.player.cancelDenied": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This tip can no longer be cancelled"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "这笔小费不能取消"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This tip can no longer be cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这笔小费不能取消"
+          }
+        }
       }
     },
     "hostTip.player.invalid": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Check the host and the amount"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "请检查主持和金额"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the host and the amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查主持和金额"
+          }
+        }
       }
     },
     "hostTip.intent.created": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Created"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已创建"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已创建"
+          }
+        }
       }
     },
     "hostTip.intent.awaiting": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Awaiting payment"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "待支付"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting payment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待支付"
+          }
+        }
       }
     },
     "hostTip.intent.paid": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Paid record"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已支付记录"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已支付记录"
+          }
+        }
       }
     },
     "hostTip.intent.cancelled": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Cancelled by you"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "你取消了"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled by you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你取消了"
+          }
+        }
       }
     },
     "hostTip.intent.refunded": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Refunded"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已退款"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退款"
+          }
+        }
       }
     },
     "hostTip.intent.unsupported": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Channel not open"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "没开通"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel not open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没开通"
+          }
+        }
       }
     },
     "hostTip.intent.unknown": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "—"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "—"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
       }
     },
     "channelRedeem.entry": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Redeem a channel code"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换渠道码"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeem a channel code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换渠道码"
+          }
+        }
       }
     },
     "channelRedeem.title": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Channel code"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "渠道码兑换"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "渠道码兑换"
+          }
+        }
       }
     },
     "channelRedeem.code": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Code"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换码"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码"
+          }
+        }
       }
     },
     "channelRedeem.submit": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Redeem"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换"
+          }
+        }
       }
     },
     "channelRedeem.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This code cannot be redeemed yet"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该兑换码暂不可兑换"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code cannot be redeemed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该兑换码暂不可兑换"
+          }
+        }
       }
     },
     "channelRedeem.note": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Channel redemption stays unavailable while the provider is off."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "渠道未配置时，兑换不可用。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel redemption stays unavailable while the provider is off."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "渠道未配置时，兑换不可用。"
+          }
+        }
       }
     },
     "channelRedeem.empty": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Enter a code"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "请输入兑换码"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入兑换码"
+          }
+        }
       }
     },
     "channelRedeem.error": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Could not redeem"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换没有完成"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not redeem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换没有完成"
+          }
+        }
       }
     },
     "channelRedeem.redeemed": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Redeemed"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已兑换"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeemed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已兑换"
+          }
+        }
       }
     },
     "channelRedeem.expired": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This code has expired"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换码已过期"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code has expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码已过期"
+          }
+        }
       }
     },
     "channelRedeem.revoked": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This code was revoked"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换码已撤销"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code was revoked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码已撤销"
+          }
+        }
       }
     },
     "channelRedeem.used": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This code was already used"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换码已被使用"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code was already used"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码已被使用"
+          }
+        }
       }
     },
     "channelRedeem.mismatch": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This code does not belong to this account"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该兑换码不属于当前账号"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code does not belong to this account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该兑换码不属于当前账号"
+          }
+        }
       }
     },
     "channelRedeem.invalid": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This code is not valid"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "兑换码无效"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code is not valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换码无效"
+          }
+        }
       }
     },
     "channelRedeem.unsupportedProduct": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This product cannot be redeemed by a channel code"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该商品暂不支持渠道兑换"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This product cannot be redeemed by a channel code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该商品暂不支持渠道兑换"
+          }
+        }
       }
     },
     "channelRedeem.currency": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This channel order currency is not supported"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该渠道订单币种暂不支持"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This channel order currency is not supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该渠道订单币种暂不支持"
+          }
+        }
       }
     },
     "channelRedeem.replayed": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Original receipt"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "原回执"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原回执"
+          }
+        }
       }
     },
     "channelRedeem.product": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Product"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "商品"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Product"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品"
+          }
+        }
       }
     },
     "channelRedeem.seats": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Seats"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "席位"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seats"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "席位"
+          }
+        }
       }
     },
     "channelRedeem.valid": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Valid"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "有效期"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效期"
+          }
+        }
       }
     },
     "channelRedeem.registration": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Registration"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "报名号"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名号"
+          }
+        }
       }
     },
     "channelRedeem.use": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Use this registration"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "去使用"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去使用"
+          }
+        }
       }
     },
     "channelRedeem.pending": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Result pending"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "结果待确认"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果待确认"
+          }
+        }
       }
     },
     "contentLanding.entry": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Landing page"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Landing page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "落地页"
+          }
+        }
       }
     },
     "contentLanding.title": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Landing page"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Landing page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "落地页"
+          }
+        }
       }
     },
     "contentLanding.topic": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Topic id"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "主题编号"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic id"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题编号"
+          }
+        }
       }
     },
     "contentLanding.load": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Read landing page"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "读取落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read landing page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取落地页"
+          }
+        }
       }
     },
     "contentLanding.empty": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No landing page for this topic"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "这个主题还没有落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No landing page for this topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题还没有落地页"
+          }
+        }
       }
     },
     "contentLanding.error": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Could not read the landing page"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "落地页读取失败"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read the landing page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "落地页读取失败"
+          }
+        }
       }
     },
     "contentLanding.summary": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Summary"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "摘要"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摘要"
+          }
+        }
       }
     },
     "contentLanding.group": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Groups"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "团体"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groups"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团体"
+          }
+        }
       }
     },
     "contentLanding.school": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Schools"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "学校"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schools"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "学校"
+          }
+        }
       }
     },
     "contentLanding.groupMin": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Minimum group size"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "最少成团人数"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum group size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最少成团人数"
+          }
+        }
       }
     },
     "contentLanding.groupMax": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Maximum group size"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "最多成团人数"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum group size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多成团人数"
+          }
+        }
       }
     },
     "contentLanding.ageMin": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Minimum age"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "最小年龄"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum age"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小年龄"
+          }
+        }
       }
     },
     "contentLanding.ageMax": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Maximum age"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "最大年龄"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum age"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大年龄"
+          }
+        }
       }
     },
     "contentLanding.access": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Accessibility note"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "无障碍说明"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无障碍说明"
+          }
+        }
       }
     },
     "contentLanding.save": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Save landing page"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "保存落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save landing page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存落地页"
+          }
+        }
       }
     },
     "contentLanding.saved": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Saved"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已保存"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存"
+          }
+        }
       }
     },
     "contentLanding.conflict": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "The landing page changed. Refresh it and try again."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "内容已被修改，请刷新后再保存"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The landing page changed. Refresh it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容已被修改，请刷新后再保存"
+          }
+        }
       }
     },
     "contentLanding.seoNote": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "The public path is stable. Sitemap, hreflang, and robots are not live."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "只提供稳定的公开路径。sitemap、hreflang、robots 还没有上线。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The public path is stable. Sitemap, hreflang, and robots are not live."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只提供稳定的公开路径。sitemap、hreflang、robots 还没有上线。"
+          }
+        }
       }
     },
     "contentLanding.canonical": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Public path"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "公开路径"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public path"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开路径"
+          }
+        }
       }
     },
     "contentLanding.translationTitle": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Translated title"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "译文标题"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translated title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "译文标题"
+          }
+        }
       }
     },
     "contentLanding.translationSubtitle": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Translated subtitle"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "译文副标题"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translated subtitle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "译文副标题"
+          }
+        }
       }
     },
     "contentLanding.translationSummary": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Translated summary"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "译文摘要"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translated summary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "译文摘要"
+          }
+        }
       }
     },
     "contentLanding.locale": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Locale"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "语言"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
       }
     },
     "contentLanding.translationSave": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Save translation"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "保存译文"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存译文"
+          }
+        }
       }
     },
     "contentLanding.pending": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Pending review"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "待审校"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待审校"
+          }
+        }
       }
     },
     "contentLanding.revised": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Reviewed text was edited and must be reviewed again before it is public."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已审校内容被修改，需重新审校后才对外可见"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed text was edited and must be reviewed again before it is public."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已审校内容被修改，需重新审校后才对外可见"
+          }
+        }
       }
     },
     "contentLanding.approvedRefused": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "A translation cannot be marked approved from here."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "这里不能把译文标成已审校"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A translation cannot be marked approved from here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里不能把译文标成已审校"
+          }
+        }
       }
     },
     "contentLanding.undeclared": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Not declared"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "未声明"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not declared"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未声明"
+          }
+        }
       }
     },
     "contentLanding.yes": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Yes"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "是"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
+          }
+        }
       }
     },
     "contentLanding.no": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "否"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "否"
+          }
+        }
       }
     },
     "contentLanding.version": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Version"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "版本"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本"
+          }
+        }
       }
     },
     "contentLanding.invalid": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Check the landing page fields"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "请检查落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the landing page fields"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查落地页"
+          }
+        }
       }
     },
     "contentLanding.signedOut": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Sign in to edit the landing page"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "登录后编辑落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to edit the landing page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后编辑落地页"
+          }
+        }
       }
     },
     "mp.vb.attribution": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Attribution"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "成交归因"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attribution"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成交归因"
+          }
+        }
       }
     },
     "mp.vb.attribution.unbound": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No promotion source is bound, so there is no confirmed data."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "未绑定推广来源，暂无确认数据"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No promotion source is bound, so there is no confirmed data."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未绑定推广来源，暂无确认数据"
+          }
+        }
       }
     },
     "mp.vb.attribution.ownerMissing": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "This campaign has no owner, so sales data is unavailable."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "该活动未设置归属作者，成交数据不可用"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This campaign has no owner, so sales data is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该活动未设置归属作者，成交数据不可用"
+          }
+        }
       }
     },
     "mp.vb.attribution.paid": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Paid"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "已付"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已付"
+          }
+        }
       }
     },
     "mp.vb.attribution.refunded": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Refunded"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "退款"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款"
+          }
+        }
       }
     },
     "mp.vb.attribution.orders": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Orders"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "单数"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单数"
+          }
+        }
       }
     },
     "mp.vb.attribution.amount": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Amount"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "合计"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合计"
+          }
+        }
       }
     },
     "mp.vb.attribution.refundAmount": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Refunded amount"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "退款合计"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunded amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款合计"
+          }
+        }
       }
     },
     "mp.vb.attribution.campaign": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Campaign attribution"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "活动归因"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campaign attribution"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动归因"
+          }
+        }
       }
     },
     "mp.vb.attribution.campaignId": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Campaign id"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "活动编号"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campaign id"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动编号"
+          }
+        }
       }
     },
     "mp.vb.attribution.empty": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "No attribution read yet"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "还没有读取归因"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No attribution read yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有读取归因"
+          }
+        }
       }
     },
     "mp.vb.attribution.error": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Could not read attribution"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "归因读取失败"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read attribution"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归因读取失败"
+          }
+        }
       }
     },
     "mp.vb.attribution.currencyNote": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Attribution amounts use CNY order snapshots."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "归因金额按订单实付的人民币快照，不与活动币种换算。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attribution amounts use CNY order snapshots."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归因金额按订单实付的人民币快照，不与活动币种换算。"
+          }
+        }
       }
     },
     "publicCatalog.seo.canonical": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Public path"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "公开路径"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public path"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开路径"
+          }
+        }
       }
     },
     "publicCatalog.seo.translation": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Translation"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "译文状态"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "译文状态"
+          }
+        }
       }
     },
     "publicCatalog.seo.notLive": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Sitemap and hreflang are not live."}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "sitemap 和 hreflang 还没有上线。"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sitemap and hreflang are not live."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sitemap 和 hreflang 还没有上线。"
+          }
+        }
       }
     },
     "publicCatalog.seo.open": {
       "extractionState": "manual",
       "localizations": {
-        "en": {"stringUnit": {"state": "translated", "value": "Edit landing page"}},
-        "zh-Hans": {"stringUnit": {"state": "translated", "value": "编辑落地页"}}
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit landing page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑落地页"
+          }
+        }
+      }
+    },
+    "roam.sync.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection lost. Location sync is paused."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络断开，位置暂不同步"
+          }
+        }
+      }
+    },
+    "cy.state.offline.banner.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline. Content may not be up to date."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前离线，内容可能不是最新的"
+          }
+        }
+      }
+    },
+    "cy.state.offline.banner.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry connection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试连接"
+          }
+        }
+      }
+    },
+    "cy.state.offline.banner.stillOffline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Still offline. Check your connection and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仍处于离线状态，请检查网络后重试"
+          }
+        }
+      }
+    },
+    "cy.state.offline.banner.cachedAt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cache updated at"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缓存更新于"
+          }
+        }
+      }
+    },
+    "cy.state.offline.queue.pending %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld offline write(s) queued to sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 %lld 项已保存的非资金操作等待联网同步"
+          }
+        }
+      }
+    },
+    "cy.state.offline.queue.syncNow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即同步"
+          }
+        }
+      }
+    },
+    "cy.state.offline.queue.syncing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing saved requests…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在同步已保存的操作…"
+          }
+        }
+      }
+    },
+    "cy.state.offline.queue.lockedUnknown %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld operation(s) have an unconfirmed outcome and stay locked without auto-retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有 %lld 项结果未知的操作保持锁定，不会自动重放。"
+          }
+        }
+      }
+    },
+    "cy.state.offline.queue.moneyNoAutoReplay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment and payout actions are never queued or replayed automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资金、支付与提现操作绝不会离线排队或自动重放。"
+          }
+        }
+      }
+    },
+    "cy.state.offline.accessibility.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline status notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离线状态提示"
+          }
+        }
       }
     }
   },

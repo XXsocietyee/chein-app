@@ -7,6 +7,12 @@ public protocol HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int)
 }
 
+/// Optional transport capability returning normalized response header values alongside status/data
+/// so retry policies can inspect `Retry-After` and `X-Request-Id` without breaking `HTTPTransport`.
+public protocol HTTPMetadataTransport: HTTPTransport {
+    func sendWithHeaders(_ request: URLRequest) async throws -> (data: Data, status: Int, headers: [String: String])
+}
+
 /// Prevent following redirects with credentials. Authentication APIs must respond directly.
 private final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask,
@@ -17,7 +23,7 @@ private final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate {
     }
 }
 
-public final class URLSessionTransport: HTTPTransport {
+public final class URLSessionTransport: HTTPMetadataTransport {
     private let session: URLSession
     public init() {
         let configuration = URLSessionConfiguration.ephemeral
@@ -34,11 +40,22 @@ public final class URLSessionTransport: HTTPTransport {
         session.dataTask(with: request, completionHandler: completion)
     }
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let (data, status, _) = try await sendWithHeaders(request)
+        return (data, status)
+    }
+
+    public func sendWithHeaders(_ request: URLRequest) async throws -> (data: Data, status: Int, headers: [String: String]) {
         let outgoing = ChinaReviewedRouteAdaptation.adapt(request) ?? request
         try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(outgoing)
         let (data, response) = try await session.data(for: outgoing)
         guard let http = response as? HTTPURLResponse else { throw APIError.malformedResponse }
-        return (data, http.statusCode)
+        var headers: [String: String] = [:]
+        for (rawKey, rawValue) in http.allHeaderFields {
+            if let key = rawKey as? String, let value = rawValue as? String {
+                headers[key.lowercased()] = value
+            }
+        }
+        return (data, http.statusCode, headers)
     }
 }
 
