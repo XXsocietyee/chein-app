@@ -25,10 +25,11 @@ final class OfficialEventFlowTests: XCTestCase {
         XCTAssertEqual(price.value as? String, "Price not available")
     }
     private func select(_ title: String) {
-        let picker = app.descendants(matching: .any)["official.filter"].firstMatch
-        // Source chip tabs render as a segmented control; each segment is a button.
-        XCTAssertTrue(picker.waitForExistence(timeout: 5))
-        app.buttons[title].firstMatch.tap()
+        let chips = app.descendants(matching: .any)["official.filter"].firstMatch
+        XCTAssertTrue(chips.waitForExistence(timeout: 5), app.debugDescription)
+        let chip = chips.buttons[title]
+        XCTAssertTrue(chip.waitForExistence(timeout: 5), app.debugDescription)
+        chip.tap()
     }
     func testListDetailBackReopenAndStatusBuckets() {
         launch()

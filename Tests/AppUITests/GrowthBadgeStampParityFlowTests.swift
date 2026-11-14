@@ -16,7 +16,7 @@ final class GrowthBadgeStampParityFlowTests: XCTestCase {
     func testForbiddenGrowthReadShowsAccountAccessStateWithRetry() {
         launch(["--uitesting-module", "growthCenter", "--uitesting-growth-scenario", "denied"])
         XCTAssertTrue(matchingText("cannot view growth records").waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertTrue(app.buttons["growth.retry"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["growth.issue"].buttons["growth.retry"].exists)
         XCTAssertFalse(matchingText("Sign in to see your growth").exists)
     }
     func testRefreshAnnouncesOnlyBadgesLitSinceThePreviousRead() {

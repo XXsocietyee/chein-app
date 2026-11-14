@@ -436,9 +436,9 @@ import SwiftUI
     private func countText(_ value: GlobalSearchResults, _ kind: GlobalSearchKind) -> String {
         GlobalSearchEntryReadiness.countText(value, kind: kind) ?? String(value.count(kind))
     }
-    private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
+    @ViewBuilder private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind
-        return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
+        let pill = Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
             title.font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
@@ -446,17 +446,11 @@ import SwiftUI
         }
         .buttonStyle(.plain).cyHaptic(.selection, trigger: selectedKind)
         .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-    private func kindPicker(_ value: GlobalSearchResults) -> some View {
-        Picker("searchMap.resultKinds", selection: $selectedKind) {
-            Text("searchMap.all").tag(GlobalSearchKind?.none)
-            ForEach(searchKinds, id: \.self) { kind in
-                (Text(kind.titleKey) + Text(verbatim: " \(countText(value, kind))"))
-                    .tag(Optional(kind))
-                    .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
-            }
+        if let kind {
+            pill.accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
+        } else {
+            pill
         }
-        .labelsHidden()
     }
     private func applyFilter(_ next: GlobalSearchQuery) {
         // Invalidate synchronously, including category-only searches cleared to an empty query.
