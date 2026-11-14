@@ -7,7 +7,12 @@ import SwiftUI
         if let coordinator = Self.coordinator() {
             TeamCreateView(activityID: TeamSyntheticFixtures.creation.ownerID, coordinator: coordinator)
         } else {
-            Text("team.create.leaseClosed").accessibilityIdentifier("team.create.leaseClosed")
+            CurA11yNotice(
+                text: Text("team.create.leaseClosed"),
+                hint: Text("curA11y.teamCreate.closed.hint", tableName: "CurA11y"),
+                identifier: "team.create.leaseClosed",
+                heading: true
+            )
         }
     }
 

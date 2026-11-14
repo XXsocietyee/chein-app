@@ -38,19 +38,19 @@ private struct BeGapImFields: View {
 
     var body: some View {
         Section {
-            TextField("beGapIm.channel", text: $channel)
-                .textInputAutocapitalization(.never)
-                .accessibilityIdentifier("beGapIm.channel")
-            TextField("beGapIm.message", text: $message)
-                .textInputAutocapitalization(.never)
-                .accessibilityIdentifier("beGapIm.message")
-            TextField("beGapIm.record", text: $record)
-                .textInputAutocapitalization(.never)
-                .accessibilityIdentifier("beGapIm.record")
-            TextField("beGapIm.boardKey", text: $board)
-                .textInputAutocapitalization(.never)
-                .accessibilityIdentifier("beGapIm.board")
+            field(title: "beGapIm.channel", hint: "curA11y.beGapIm.channel.hint", text: $channel, identifier: "beGapIm.channel")
+            field(title: "beGapIm.message", hint: "curA11y.beGapIm.message.hint", text: $message, identifier: "beGapIm.message")
+            field(title: "beGapIm.record", hint: "curA11y.beGapIm.record.hint", text: $record, identifier: "beGapIm.record")
+            field(title: "beGapIm.boardKey", hint: "curA11y.beGapIm.board.hint", text: $board, identifier: "beGapIm.board")
+        } header: {
+            Text("beGapIm.title")
+                .accessibilityAddTraits(.isHeader)
         }
+    }
+
+    private func field(title: LocalizedStringKey, hint: LocalizedStringKey, text: Binding<String>, identifier: String) -> some View {
+        CurA11yField(title: Text(title), hint: Text(hint, tableName: "CurA11y"), text: text, identifier: identifier)
+            .textInputAutocapitalization(.never)
     }
 }
 
@@ -77,17 +77,21 @@ private struct BeGapImReads: View {
             read("beGapIm.board", "beGapIm.board") { await BeGapImCall.board(session: session, channel: channel, key: board) }
             read("beGapIm.receipts", "beGapIm.receipts") { await BeGapImCall.receipts(session: session, record: record) }
             if !text.isEmpty {
-                Text(verbatim: text)
-                    .font(.footnote)
+                CurA11yDashText(shown: text, font: CYTypography.meta, color: CYColor.textSecondary)
                     .textSelection(.enabled)
+                    .accessibilityHint(Text("curA11y.beGapIm.result.hint", tableName: "CurA11y"))
                     .accessibilityIdentifier("beGapIm.read.result")
             }
         }
     }
 
     private func read(_ title: LocalizedStringKey, _ identifier: String, action: @escaping () async -> String) -> some View {
-        Button(title) { Task { text = await action() } }
-            .accessibilityIdentifier(identifier)
+        CurA11yTextButton(
+            title: Text(title),
+            hint: Text("curA11y.beGapIm.read.hint", tableName: "CurA11y"),
+            identifier: identifier,
+            action: { Task { text = await action() } }
+        )
     }
 }
 
@@ -101,16 +105,28 @@ private struct BeGapImWrites: View {
 
     var body: some View {
         Section {
-            Button("beGapIm.webhook") { Task { text = await BeGapImCall.createWebhook(session: session, clubID: clubID, channel: channel) } }
-                .accessibilityIdentifier("beGapIm.webhook.write")
-            Button("beGapIm.appeal") { Task { text = await BeGapImCall.appealEvidence(session: session, record: record, note: board) } }
-                .accessibilityIdentifier("beGapIm.appeal.write")
-            Button("beGapIm.send") { Task { text = await BeGapImCall.withdrawAppeal(session: session, record: record, note: board) } }
-                .accessibilityIdentifier("beGapIm.send")
+            CurA11yTextButton(
+                title: Text("beGapIm.webhook"),
+                hint: Text("curA11y.beGapIm.write.hint", tableName: "CurA11y"),
+                identifier: "beGapIm.webhook.write",
+                action: { Task { text = await BeGapImCall.createWebhook(session: session, clubID: clubID, channel: channel) } }
+            )
+            CurA11yTextButton(
+                title: Text("beGapIm.appeal"),
+                hint: Text("curA11y.beGapIm.write.hint", tableName: "CurA11y"),
+                identifier: "beGapIm.appeal.write",
+                action: { Task { text = await BeGapImCall.appealEvidence(session: session, record: record, note: board) } }
+            )
+            CurA11yTextButton(
+                title: Text("beGapIm.send"),
+                hint: Text("curA11y.beGapIm.write.hint", tableName: "CurA11y"),
+                identifier: "beGapIm.send",
+                action: { Task { text = await BeGapImCall.withdrawAppeal(session: session, record: record, note: board) } }
+            )
             if !text.isEmpty {
-                Text(verbatim: text)
-                    .font(.footnote)
+                CurA11yDashText(shown: text, font: CYTypography.meta, color: CYColor.textSecondary)
                     .textSelection(.enabled)
+                    .accessibilityHint(Text("curA11y.beGapIm.result.hint", tableName: "CurA11y"))
                     .accessibilityIdentifier("beGapIm.write.result")
             }
         }

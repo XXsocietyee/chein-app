@@ -26,6 +26,7 @@ private struct BeGapSwitchSection: View {
             BeGapSwitchRow(titleKey: "beGap.password.title", open: access.passwordLogin)
         } header: {
             Text("beGap.switches.title", tableName: "BeGapMerchant")
+                .accessibilityAddTraits(.isHeader)
         }
     }
 }
@@ -35,36 +36,26 @@ private struct BeGapSwitchRow: View {
     let open: Bool
 
     var body: some View {
-        LabeledContent {
-            BeGapSwitchValue(open: open)
-        } label: {
-            BeGapTitle(key: titleKey)
-        }
-        .font(CYTypography.meta)
+        CurA11yLabeled(
+            title: BeGapTitleText.make(titleKey),
+            value: open ? Text("beGap.switch.on", tableName: "BeGapMerchant") : Text("beGap.switch.off", tableName: "BeGapMerchant"),
+            hint: Text("curA11y.beGap.switch.hint", tableName: "CurA11y"),
+            selected: open
+        )
     }
 }
 
-private struct BeGapTitle: View {
-    let key: String
-
-    var body: some View {
+private enum BeGapTitleText {
+    static func make(_ key: String) -> Text {
         switch key {
-        case "beGap.money.title": Text("beGap.money.title", tableName: "BeGapMerchant")
-        case "beGap.payout.title": Text("beGap.payout.title", tableName: "BeGapMerchant")
-        case "beGap.writes.title": Text("beGap.writes.title", tableName: "BeGapMerchant")
-        default: Text("beGap.password.title", tableName: "BeGapMerchant")
-        }
-    }
-}
-
-private struct BeGapSwitchValue: View {
-    let open: Bool
-
-    var body: some View {
-        if open {
-            Text("beGap.switch.on", tableName: "BeGapMerchant")
-        } else {
-            Text("beGap.switch.off", tableName: "BeGapMerchant")
+        case "beGap.money.title":
+            return Text("beGap.money.title", tableName: "BeGapMerchant")
+        case "beGap.payout.title":
+            return Text("beGap.payout.title", tableName: "BeGapMerchant")
+        case "beGap.writes.title":
+            return Text("beGap.writes.title", tableName: "BeGapMerchant")
+        default:
+            return Text("beGap.password.title", tableName: "BeGapMerchant")
         }
     }
 }
@@ -78,9 +69,11 @@ private struct BeGapGateSection: View {
             BeGapGateRow(titleKey: "beGap.payout.title", open: access.payout, refusalKey: "beGap.payout.refused")
             BeGapGateRow(titleKey: "beGap.writes.title", open: access.merchantWrites, refusalKey: "beGap.writes.refused")
             BeGapGateRow(titleKey: "beGap.password.title", open: access.passwordLogin, refusalKey: "beGap.password.refused")
-            Text("beGap.pay.note", tableName: "BeGapMerchant")
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
+            CurA11yNotice(
+                text: Text("beGap.pay.note", tableName: "BeGapMerchant"),
+                hint: Text("curA11y.beGap.note.hint", tableName: "CurA11y"),
+                tone: CYColor.textSecondary
+            )
         }
     }
 }
@@ -91,54 +84,27 @@ private struct BeGapGateRow: View {
     let refusalKey: String
 
     var body: some View {
-        VStack(alignment: .leading) {
-            BeGapTitle(key: titleKey)
-            BeGapGateValue(open: open, refusalKey: refusalKey)
-        }
+        CurA11yLabeled(
+            title: BeGapTitleText.make(titleKey),
+            value: open ? Text("beGap.notSent", tableName: "BeGapMerchant") : BeGapRefusalText.make(refusalKey),
+            hint: Text("curA11y.beGap.gate.hint", tableName: "CurA11y"),
+            selected: open,
+            identifier: open ? "beGap.notSent" : refusalKey
+        )
     }
 }
 
-private struct BeGapGateValue: View {
-    let open: Bool
-    let refusalKey: String
-
-    var body: some View {
-        if open {
-            Text("beGap.notSent", tableName: "BeGapMerchant")
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("beGap.notSent")
-        } else {
-            BeGapRefusal(key: refusalKey)
-        }
-    }
-}
-
-private struct BeGapRefusal: View {
-    let key: String
-
-    var body: some View {
+private enum BeGapRefusalText {
+    static func make(_ key: String) -> Text {
         switch key {
         case "beGap.money.refused":
-            Text("beGap.money.refused", tableName: "BeGapMerchant")
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("beGap.money.refused")
+            return Text("beGap.money.refused", tableName: "BeGapMerchant")
         case "beGap.payout.refused":
-            Text("beGap.payout.refused", tableName: "BeGapMerchant")
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("beGap.payout.refused")
+            return Text("beGap.payout.refused", tableName: "BeGapMerchant")
         case "beGap.writes.refused":
-            Text("beGap.writes.refused", tableName: "BeGapMerchant")
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("beGap.writes.refused")
+            return Text("beGap.writes.refused", tableName: "BeGapMerchant")
         default:
-            Text("beGap.password.refused", tableName: "BeGapMerchant")
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("beGap.password.refused")
+            return Text("beGap.password.refused", tableName: "BeGapMerchant")
         }
     }
 }
@@ -146,19 +112,23 @@ private struct BeGapRefusal: View {
 private struct BeGapFactSection: View {
     var body: some View {
         Section {
-            LabeledContent {
-                Text("beGap.unknown", tableName: "BeGapMerchant")
-            } label: {
-                Text("beGap.fields.address", tableName: "BeGapMerchant")
-            }
-            LabeledContent {
-                Text("beGap.unknown", tableName: "BeGapMerchant")
-            } label: {
-                Text("beGap.fields.status", tableName: "BeGapMerchant")
-            }
-            Text("beGap.notSent", tableName: "BeGapMerchant")
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
+            CurA11yLabeled(
+                title: Text("beGap.fields.address", tableName: "BeGapMerchant"),
+                value: Text("beGap.unknown", tableName: "BeGapMerchant"),
+                spokenValue: Text("curA11y.unknown", tableName: "CurA11y"),
+                hint: Text("curA11y.beGap.fact.hint", tableName: "CurA11y")
+            )
+            CurA11yLabeled(
+                title: Text("beGap.fields.status", tableName: "BeGapMerchant"),
+                value: Text("beGap.unknown", tableName: "BeGapMerchant"),
+                spokenValue: Text("curA11y.unknown", tableName: "CurA11y"),
+                hint: Text("curA11y.beGap.fact.hint", tableName: "CurA11y")
+            )
+            CurA11yNotice(
+                text: Text("beGap.notSent", tableName: "BeGapMerchant"),
+                hint: Text("curA11y.beGap.gate.hint", tableName: "CurA11y"),
+                tone: CYColor.textSecondary
+            )
         }
     }
 }

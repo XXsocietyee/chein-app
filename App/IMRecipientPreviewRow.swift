@@ -161,9 +161,12 @@ struct IMRecipientPreviewRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text("im.preview.section", tableName: "IMRecipientPreview")
-                .font(CYTypography.caption)
+                .font(CYTypography.body)
                 .foregroundStyle(CYColor.textSecondary)
+                .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityHint(Text("curA11y.imPreview.hint", tableName: "CurA11y"))
             ForEach(IMRecipientPreviewBoard.lines(message: message, input: input)) { line in
                 IMRecipientPreviewLineView(line: line, messageID: message.id)
             }
@@ -178,25 +181,31 @@ private struct IMRecipientPreviewLineView: View {
     let messageID: Int
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            title
+        CurA11yPair(leading: titleBlock, trailing: valueBlock)
+            .frame(minHeight: CurA11y.hit, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityHint(Text("curA11y.imPreview.hint", tableName: "CurA11y"))
+            .accessibilityAddTraits(.isStaticText)
+            .accessibilityIdentifier("im.preview.line.\(messageID).\(line.slot)")
+    }
+
+    private var titleBlock: some View {
+        title
+            .font(CYTypography.body)
+            .foregroundStyle(CYColor.textSecondary)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var valueBlock: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            stateLabel
                 .font(CYTypography.meta)
                 .foregroundStyle(CYColor.textSecondary)
+                .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: CYSpacing.sm)
-            VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
-                stateLabel
-                    .font(CYTypography.caption)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(verbatim: line.value)
-                    .font(CYTypography.meta)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            CurA11yDashText(shown: line.value, font: CYTypography.meta, color: CYColor.textPrimary)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("im.preview.line.\(messageID).\(line.slot)")
     }
 
     @ViewBuilder private var title: some View {

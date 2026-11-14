@@ -7,11 +7,11 @@ import FoundationNetworking
     @EnvironmentObject private var session: AppSession
     var body: some View {
         List {
-            NavigationLink { PlayGapDevicePage(session: session) } label: { Text("playGap.device", tableName: "PlayGapMisc") }
-            NavigationLink { PlayGapHomePage(session: session) } label: { Text("playGap.home", tableName: "PlayGapMisc") }
-            NavigationLink { PlayGapReturnPage(session: session) } label: { Text("playGap.return", tableName: "PlayGapMisc") }
-            NavigationLink { PlayGapProductPage(session: session) } label: { Text("playGap.product", tableName: "PlayGapMisc") }
-            NavigationLink { PlayGapSmsPage(session: session) } label: { Text("playGap.sms", tableName: "PlayGapMisc") }
+            CurA11yLink(title: Text("playGap.device", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapDevicePage(session: session) }
+            CurA11yLink(title: Text("playGap.home", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapHomePage(session: session) }
+            CurA11yLink(title: Text("playGap.return", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapReturnPage(session: session) }
+            CurA11yLink(title: Text("playGap.product", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapProductPage(session: session) }
+            CurA11yLink(title: Text("playGap.sms", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapSmsPage(session: session) }
         }
         .navigationTitle(Text("playGap.title", tableName: "PlayGapMisc"))
         .accessibilityIdentifier("playGap.surfaces")
@@ -24,11 +24,24 @@ import FoundationNetworking
     @State private var line = "—"
     var body: some View {
         Form {
-            Text("playGap.device.key", tableName: "PlayGapMisc")
-            TextField("", text: $keyText)
-            Button { Task { await loadStatus() } } label: { Text("playGap.device.status", tableName: "PlayGapMisc") }
-            Button { Task { await challenge() } } label: { Text("playGap.device.challenge", tableName: "PlayGapMisc") }
-            Text(verbatim: line).accessibilityIdentifier("playGap.device.line")
+            CurA11yField(
+                title: Text("playGap.device.key", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.field.hint", tableName: "CurA11y"),
+                text: $keyText
+            )
+            CurA11yTextButton(
+                title: Text("playGap.device.status", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                action: { Task { await loadStatus() } }
+            )
+            CurA11yTextButton(
+                title: Text("playGap.device.challenge", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                action: { Task { await challenge() } }
+            )
+            CurA11yDashText(shown: line)
+                .accessibilityHint(Text("curA11y.playGap.result.hint", tableName: "CurA11y"))
+                .accessibilityIdentifier("playGap.device.line")
         }
     }
     private func loadStatus() async {
@@ -67,15 +80,22 @@ import FoundationNetworking
     @State private var line = "—"
     var body: some View {
         Form {
-            Button { Task { await load() } } label: { Text("playGap.home.load", tableName: "PlayGapMisc") }
-            Text("playGap.home.label", tableName: "PlayGapMisc")
-            TextField("", text: $label)
-            Text("playGap.home.latitude", tableName: "PlayGapMisc")
-            TextField("", text: $latitude)
-            Text("playGap.home.longitude", tableName: "PlayGapMisc")
-            TextField("", text: $longitude)
-            Button { Task { await save() } } label: { Text("playGap.home.save", tableName: "PlayGapMisc") }
-            Text(verbatim: line).accessibilityIdentifier("playGap.home.line")
+            CurA11yTextButton(
+                title: Text("playGap.home.load", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                action: { Task { await load() } }
+            )
+            CurA11yField(title: Text("playGap.home.label", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.field.hint", tableName: "CurA11y"), text: $label)
+            CurA11yField(title: Text("playGap.home.latitude", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.field.hint", tableName: "CurA11y"), text: $latitude)
+            CurA11yField(title: Text("playGap.home.longitude", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.field.hint", tableName: "CurA11y"), text: $longitude)
+            CurA11yTextButton(
+                title: Text("playGap.home.save", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                action: { Task { await save() } }
+            )
+            CurA11yDashText(shown: line)
+                .accessibilityHint(Text("curA11y.playGap.result.hint", tableName: "CurA11y"))
+                .accessibilityIdentifier("playGap.home.line")
         }
     }
     private func load() async {
@@ -111,8 +131,14 @@ import FoundationNetworking
     @State private var line = "—"
     var body: some View {
         Form {
-            Button { Task { await load() } } label: { Text("playGap.return.policy", tableName: "PlayGapMisc") }
-            Text(verbatim: line).accessibilityIdentifier("playGap.return.line")
+            CurA11yTextButton(
+                title: Text("playGap.return.policy", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                action: { Task { await load() } }
+            )
+            CurA11yDashText(shown: line)
+                .accessibilityHint(Text("curA11y.playGap.result.hint", tableName: "CurA11y"))
+                .accessibilityIdentifier("playGap.return.line")
         }
     }
     private func load() async {
@@ -134,14 +160,28 @@ import FoundationNetworking
     @State private var line = "—"
     var body: some View {
         Form {
-            Text("playGap.product.digital", tableName: "PlayGapMisc")
-            Button { Task { await load() } } label: { Text("playGap.product.load", tableName: "PlayGapMisc") }
-            if rows.isEmpty { Text(verbatim: "—") }
+            CurA11yNotice(
+                text: Text("playGap.product.digital", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.buy.hint", tableName: "CurA11y"),
+                tone: CYColor.textSecondary
+            )
+            CurA11yTextButton(
+                title: Text("playGap.product.load", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                action: { Task { await load() } }
+            )
+            if rows.isEmpty { CurA11yDashText(shown: "—") }
             ForEach(rows) { row in
-                Button { Task { await buy(row) } } label: { Text(verbatim: row.name) }
-                    .accessibilityIdentifier("playGap.product.buy")
+                CurA11yTextButton(
+                    title: Text(verbatim: row.name),
+                    hint: Text("curA11y.playGap.buy.hint", tableName: "CurA11y"),
+                    identifier: "playGap.product.buy",
+                    action: { Task { await buy(row) } }
+                )
             }
-            Text(verbatim: line).accessibilityIdentifier("playGap.product.line")
+            CurA11yDashText(shown: line)
+                .accessibilityHint(Text("curA11y.playGap.result.hint", tableName: "CurA11y"))
+                .accessibilityIdentifier("playGap.product.line")
         }
     }
     private func load() async {
@@ -182,11 +222,24 @@ import FoundationNetworking
     @State private var line = "—"
     var body: some View {
         Form {
-            Text("playGap.sms.note", tableName: "PlayGapMisc")
-            Text("playGap.sms.phone", tableName: "PlayGapMisc")
-            TextField("", text: $phone)
-            Button { Task { await send() } } label: { Text("playGap.sms.send", tableName: "PlayGapMisc") }
-            Text(verbatim: line).accessibilityIdentifier("playGap.sms.line")
+            CurA11yNotice(
+                text: Text("playGap.sms.note", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                tone: CYColor.textSecondary
+            )
+            CurA11yField(
+                title: Text("playGap.sms.phone", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.field.hint", tableName: "CurA11y"),
+                text: $phone
+            )
+            CurA11yTextButton(
+                title: Text("playGap.sms.send", tableName: "PlayGapMisc"),
+                hint: Text("curA11y.playGap.action.hint", tableName: "CurA11y"),
+                action: { Task { await send() } }
+            )
+            CurA11yDashText(shown: line)
+                .accessibilityHint(Text("curA11y.playGap.result.hint", tableName: "CurA11y"))
+                .accessibilityIdentifier("playGap.sms.line")
         }
     }
     private func send() async {
