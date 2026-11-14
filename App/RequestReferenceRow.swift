@@ -30,5 +30,8 @@ struct RequestReferenceRow: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("requestReference.row")
+        .accessibilityLabel(Text("requestReference.label"))
+        .accessibilityValue(Text(verbatim: reference))
+        .accessibilityHint(Text(copied ? "requestReference.copied" : "requestReference.copy"))
     }
 }

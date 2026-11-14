@@ -18,6 +18,10 @@ public struct UnifiedOPT090To092AndEXT01To11SectionView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text(verbatim: "\(pkg.optID) · \(pkg.title)"))
+                .accessibilityValue(Text(verbatim: pkg.sevenLayerSignoff.isEmpty ? "—" : pkg.sevenLayerSignoff.joined(separator: " -> ")))
+                .accessibilityHint(Text(verbatim: pkg.iosViewImplementation))
             }
             ForEach(UnifiedOPT090To092AndEXT01To11ReleaseSignoffContract.conditionalExtensions) { ext in
                 LabeledContent("\(ext.extID) \(ext.title)", value: ext.disposition)

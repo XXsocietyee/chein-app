@@ -120,6 +120,8 @@ struct MerchantOpsWp03Panel: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(LocalizedStringKey(titleKey), tableName: "MerchantOpsWp03")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityLabel(Text(LocalizedStringKey(titleKey), tableName: "MerchantOpsWp03"))
             ForEach(page.routes) { route in
                 MerchantOpsWp03RowView(route: route, phase: model.phase[route.id] ?? .loading, reply: model.reply[route.id]) {
                     Task { await model.load(page: page, bridge: bridge) }
@@ -162,6 +164,32 @@ private struct MerchantOpsWp03RowView: View {
             state
         }
         .accessibilityIdentifier("wp03.row." + route.id)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(LocalizedStringKey(titleKey), tableName: "MerchantOpsWp03"))
+        .accessibilityValue(spokenValue)
+        .accessibilityHint(spokenHint)
+    }
+
+    private var spokenValue: Text {
+        switch phase {
+        case .loading: return Text("wp03.loading", tableName: "MerchantOpsWp03")
+        case .empty: return Text("wp03.empty", tableName: "MerchantOpsWp03")
+        case .failed: return Text(verbatim: reply?.message ?? MerchantOpsWp03Reply.unknown)
+        case .withheld: return Text("wp03.unknown", tableName: "MerchantOpsWp03")
+        case .signedOut: return Text("wp03.signedOut", tableName: "MerchantOpsWp03")
+        case .ready: return Text(verbatim: reply?.detail ?? MerchantOpsWp03Reply.unknown)
+        }
+    }
+
+    private var spokenHint: Text {
+        switch phase {
+        case .failed: return Text("wp03.retry", tableName: "MerchantOpsWp03")
+        case .withheld: return Text(LocalizedStringKey(withheldKey), tableName: "MerchantOpsWp03")
+        case .empty: return Text("wp03.empty", tableName: "MerchantOpsWp03")
+        case .signedOut: return Text("wp03.signedOut", tableName: "MerchantOpsWp03")
+        case .loading: return Text("wp03.loading", tableName: "MerchantOpsWp03")
+        case .ready: return Text(verbatim: MerchantOpsWp03Catalog.method(for: route.path) + " /" + route.path)
+        }
     }
 
     private var titleKey: String { "wp03.row." + route.rawValue }

@@ -127,7 +127,7 @@ extension EnvironmentValues {
 
     var body: some View {
         let _ = viewModel.revision
-        if registrationID > 0 && (payableAmount ?? .zero) > .zero {
+        if showsPaySection {
             Section {
                 if payExecutor == nil {
                     Label {
@@ -137,12 +137,18 @@ extension EnvironmentValues {
                     }
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("registration.pay.closed")
+                    .accessibilityLabel(Text("paymentReadiness.closed", tableName: "PayoutReceiver"))
+                    .accessibilityHint(Text(verbatim: c.t("支付开关未开启", "Payment switch is closed")))
                 } else {
                     LabeledContent(c.t("待支付金额", "Amount due")) {
-                        Text(verbatim: RegistrationUIMoney.display(payableAmount, locale: locale) ?? "—")
+                        Text(verbatim: amountText)
                             .monospacedDigit()
                             .foregroundStyle(CYColor.textPrimary)
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(Text(verbatim: c.t("待支付金额", "Amount due")))
+                    .accessibilityValue(Text(verbatim: amountText))
+                    .accessibilityHint(Text(verbatim: payOnceHint))
                     statusView
                     if canTapPay {
                         CYPillButton(c.t("立即支付", "Pay now"), style: .primary) {
@@ -166,6 +172,8 @@ extension EnvironmentValues {
                             }
                         }
                         .accessibilityIdentifier("registration.pay.submit")
+                        .accessibilityLabel(Text(verbatim: c.t("立即支付", "Pay now")))
+                        .accessibilityHint(Text(verbatim: payOnceHint))
                     }
                 }
             } header: {
@@ -180,6 +188,22 @@ extension EnvironmentValues {
                 }
             }
         }
+    }
+
+    /// A missing amount stays on screen as an em dash. A decoded zero stays off this section.
+    private var showsPaySection: Bool {
+        guard registrationID > 0 else { return false }
+        guard let payableAmount else { return true }
+        return payableAmount > .zero
+    }
+
+    private var amountText: String {
+        RegistrationUIMoney.display(payableAmount, locale: locale) ?? "—"
+    }
+
+    private var payOnceHint: String {
+        c.t("单次发起支付，不自动重试；如需重建订单请重新确认报名。",
+            "Payment runs once with no automatic retry. Rebuild the order manually if it expires.")
     }
 
     private var canTapPay: Bool {
