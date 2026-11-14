@@ -165,10 +165,22 @@ public enum MoneyPassExpiry {
     public static let windowDays = 7
 
     /// Natural-day count (China calendar). Today == 0. Already past `until` (instant) or no date == nil.
+    /// An expiry that falls on 00:00:00 is the previous civil day, the same day as 「可玩至」.
     public static func daysLeft(until: String?, nowMs: Int64) -> Int? {
         guard let untilMs = MoneyParityTime.timestamp(until) else { return nil }
         if untilMs < nowMs { return nil }
-        return Int(MoneyParityTime.chinaDayIndex(untilMs) - MoneyParityTime.chinaDayIndex(nowMs))
+        let last = Self.playableThrough(untilMs)
+        return Int(MoneyParityTime.chinaDayIndex(last) - MoneyParityTime.chinaDayIndex(nowMs))
+    }
+
+    /// Midnight China time rolls back one millisecond so the last playable day is the day before.
+    private static func playableThrough(_ untilMs: Int64) -> Int64 {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? calendar.timeZone
+        let date = Date(timeIntervalSince1970: TimeInterval(untilMs + MoneyParityTime.chinaOffsetMs) / 1000)
+        let parts = calendar.dateComponents([.hour, .minute, .second], from: date)
+        if parts.hour == 0, parts.minute == 0, parts.second == 0, untilMs % 1000 == 0 { return untilMs - 1 }
+        return untilMs
     }
 
     public static func text(until: String?, nowMs: Int64) -> String {

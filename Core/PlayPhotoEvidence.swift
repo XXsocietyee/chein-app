@@ -21,7 +21,7 @@ extension PlayExperienceService {
         var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"capture.\(ext)\"\r\nContent-Type: \(mimeType)\r\n\r\n".utf8)
         body.append(bytes); body.append(Data("\r\n--\(boundary)--\r\n".utf8))
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent("api/common/uploadOSS"))
-        request.httpMethod = "POST"; request.httpBody = body; request.timeoutInterval = 30
+        request.httpMethod = "POST"; request.httpBody = body; request.timeoutInterval = 60
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(token, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")

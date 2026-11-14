@@ -358,18 +358,21 @@ struct DiscoveryTopicTemplatePreview: View {
         if nonempty(item.description) != nil || !item.chapters.isEmpty {
             Section {
                 if let opening = nonempty(item.description) {
-                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled)
+                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled).lineLimit(4)
                 }
                 let numbered = Self.numberedStops(item.chapters)
                 ForEach(Array(item.chapters.enumerated()), id: \.element.id) { index, chapter in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                            if !(chapter.name ?? "").hasPrefix("第") {
+                            if !TopicXcxFacts.hidesGeneratedChapterOrdinal(chapter.name ?? "") {
                                 Text("u10.template.chapterNo \(index + 1)").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                             }
                             DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(CYTypography.cardTitle)
                         }
-                        optionalText(chapter.description)
+                        let guide = TopicXcxFacts.chapterGuide(description: chapter.description)
+                        if !guide.isEmpty {
+                            Text(verbatim: guide).font(CYTypography.meta).foregroundStyle(palette.textSecondary).lineLimit(2)
+                        }
                         let stops = numbered.filter { $0.chapterID == chapter.id }
                         if !stops.isEmpty {
                             TemplateChipFlow(spacing: CYSpacing.sm) {

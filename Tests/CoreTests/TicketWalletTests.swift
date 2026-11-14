@@ -35,6 +35,14 @@ private actor TicketWalletSuspendedTransport: HTTPTransport {
 }
 
 final class TicketWalletTests: XCTestCase {
+    func testTopicFocusLandsOnTheTopicTicket() throws {
+        let raw = #"[{"id":1,"ownerType":2,"ownerId":9,"cmsActivity":{"id":9,"name":"Session"}},{"id":2,"ownerType":1,"ownerId":3,"cmsTopic":{"id":9,"name":"Route"}},{"id":3,"ownerType":1,"ownerId":8}]"#
+        let tickets = try JSONDecoder().decode([TicketWalletTicket].self, from: Data(raw.utf8))
+        XCTAssertEqual(TicketWalletTopicFocus.index(in: tickets, topicID: 9), 1)
+        XCTAssertEqual(TicketWalletTopicFocus.index(in: tickets, topicID: 8), 2)
+        XCTAssertNil(TicketWalletTopicFocus.index(in: tickets, topicID: 0))
+    }
+
     private func service(_ transport: any HTTPTransport) throws -> TicketWalletService {
         try TicketWalletService(configuration: APIConfiguration(baseURL: URL(string: "https://example.com/test/")!), transport: transport)
     }
