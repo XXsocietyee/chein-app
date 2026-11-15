@@ -455,14 +455,14 @@ import SwiftUI
 
     private var isDestructiveAction: Bool {
         switch snapshot.action {
-        case .withdrawApplication, .reject: return true
+        case .withdraw, .handle(_, _, false): return true
         default: return false
         }
     }
 
     private var consequenceKeys: [String] {
         switch snapshot.action {
-        case .reject:
+        case .handle(_, _, false):
             return ["nearby.consequence.reject.1", "nearby.consequence.reject.2"]
         default:
             return []
