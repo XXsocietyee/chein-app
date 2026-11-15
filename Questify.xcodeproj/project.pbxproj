@@ -1365,6 +1365,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "044A5E71DE3A796D8DE9207F";
 		};
+		"A2F08B302BCC90BD44F14C40" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityMonopolyHapticPlayer.swift";
+			"sourceTree" = "<group>";
+		};
+		"7CAC019770A2FEC7B1044E31" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A2F08B302BCC90BD44F14C40";
+		};
+		"52E2D3B8827B479EF436DCC2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityMonopolyTerritorySection.swift";
+			"sourceTree" = "<group>";
+		};
+		"729E3F3CDA17597591866681" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "52E2D3B8827B479EF436DCC2";
+		};
 		"A7EC63A22AB9CB77A876B537" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -6064,6 +6084,16 @@
 		"745A2ADDA425EA9E644EC18D" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1644BAB315B5EDC43B4388FD";
+		};
+		"C5685F644F920AA6497A08DA" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MemberAttributesSection.swift";
+			"sourceTree" = "<group>";
+		};
+		"0FB70CABCB12EA9B55354010" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C5685F644F920AA6497A08DA";
 		};
 		"9245F28F1CE32AED6B083AAF" = {
 			"isa" = "PBXFileReference";
@@ -19303,6 +19333,36 @@
 		"90CE6156640391C909BABF1D" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "E38E61C9E84C26DA4A928EAB";
+		};
+		"FCF70C5B16E42A786CF36E5A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CityMonopolyContracts.swift";
+			"sourceTree" = "<group>";
+		};
+		"542DB1A1FF908902FF932617" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "FCF70C5B16E42A786CF36E5A";
+		};
+		"415749517C51C5C627751B4C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CityMonopolyScreenModels.swift";
+			"sourceTree" = "<group>";
+		};
+		"5003D004D5785A6D30CD779E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "415749517C51C5C627751B4C";
+		};
+		"3CF09D56C180A23CC18D34E6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CityMonopolyService.swift";
+			"sourceTree" = "<group>";
+		};
+		"9E2E139556E1E2A25D837D39" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3CF09D56C180A23CC18D34E6";
 		};
 		"90D40F2D17052D94141F9FD9" = {
 			"isa" = "PBXFileReference";
@@ -39430,6 +39490,8 @@
 				"E8BC981F4EBF405313CD2945",
 				"AF3ACE846E88767BB0607B75",
 				"044A5E71DE3A796D8DE9207F",
+				"A2F08B302BCC90BD44F14C40",
+				"52E2D3B8827B479EF436DCC2",
 				"A7EC63A22AB9CB77A876B537",
 				"5904A4093213E939BE4E4B20",
 				"B8F4D2B8EC3E0239CAA82318",
@@ -39900,6 +39962,7 @@
 				"801E74D78CD4641D327E322C",
 				"B933707E830D2BB9D4B67488",
 				"1644BAB315B5EDC43B4388FD",
+				"C5685F644F920AA6497A08DA",
 				"9245F28F1CE32AED6B083AAF",
 				"2DADD43D251FB82CFCF694EE",
 				"D3A391FFB1755D7563520D04",
@@ -41223,6 +41286,9 @@
 				"2F33D6B819E91A99924EFEBD",
 				"48D596B6CACAC460302BFD81",
 				"E38E61C9E84C26DA4A928EAB",
+				"FCF70C5B16E42A786CF36E5A",
+				"415749517C51C5C627751B4C",
+				"3CF09D56C180A23CC18D34E6",
 				"90D40F2D17052D94141F9FD9",
 				"E0D9EE7A9A68C98841C6F2DE",
 				"FBE32F302E2DC592DD2F9698",
@@ -44526,6 +44592,8 @@
 				"0404AA59375BAD3A687118EE",
 				"44D5870C85AC4AF1A6305E96",
 				"8EEA9EFE80FE4ED853C33BA6",
+				"7CAC019770A2FEC7B1044E31",
+				"729E3F3CDA17597591866681",
 				"0DB7AA2E9FB5AD650B5AECCF",
 				"F9AA98C6916BD32FDAA90B40",
 				"0DEF793FD6A3E326F4AB03DE",
@@ -44996,6 +45064,7 @@
 				"85D5D7C04C9FB8458A6DF794",
 				"8EDAA2B030227227BBF35AA2",
 				"745A2ADDA425EA9E644EC18D",
+				"0FB70CABCB12EA9B55354010",
 				"B7515F8B7CEC7891121CB93D",
 				"1F49F719987ECF64C8048CD9",
 				"F94FDBA110115B3CF4AAC1DD",
@@ -46319,6 +46388,9 @@
 				"10FCA2B8E8BB7BF2261E2ED2",
 				"B906B087AFC51B5831D1C72E",
 				"90CE6156640391C909BABF1D",
+				"542DB1A1FF908902FF932617",
+				"5003D004D5785A6D30CD779E",
+				"9E2E139556E1E2A25D837D39",
 				"24221F94FC56A21F4538D21E",
 				"C391E72BC8BC404EA06C772C",
 				"135AB22B7C3B6BE0880D8FFB",

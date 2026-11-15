@@ -23,6 +23,7 @@ public enum HapticEvent: String, Equatable, Sendable, CaseIterable {
     case impactLight
     case impactMedium
     case impactHeavy
+    case impactRigid
 
     // Gameplay & progression events
     case checkInSuccess
@@ -74,7 +75,7 @@ public enum HapticEvent: String, Equatable, Sendable, CaseIterable {
             return .impactMedium
         case .impactHeavy, .diceLand, .sensorShoutTick:
             return .impactHeavy
-        case .sensorShakeHit:
+        case .impactRigid, .sensorShakeHit:
             return .impactRigid
         case .scratchRub:
             return .impactSoft
@@ -85,7 +86,7 @@ public enum HapticEvent: String, Equatable, Sendable, CaseIterable {
     /// while terminal feedback (e.g. `diceLand` right after `diceRoll`) can still land crisply.
     public var isContinuous: Bool {
         switch self {
-        case .selection, .impactLight, .impactMedium, .impactHeavy,
+        case .selection, .impactLight, .impactMedium, .impactHeavy, .impactRigid,
              .diceRoll, .sensorShakeHit, .sensorQuietWarn, .sensorCompassAlign,
              .sensorShoutTick, .sensorStepsProgress, .scratchRub:
             return true

@@ -14,12 +14,13 @@ import UIKit
 /// | `.selection` | tab change, chip / segment pick, pager page |
 /// | `.success` | join, save, order paid, badge unlock, stamp |
 /// | `.warning` | blocked action, validation stop |
-/// | `.error` | wrong answer, rejected validation |
+/// | `.error` | wrong answer, rejected validation, lost CITY challenge (City Monopoly spec §5; validation stops stay `.warning`) |
 /// | `.impactLight` | pull-to-refresh trigger, sheet detent snap |
 /// | `.impactMedium` | primary commit (register, check-in) |
 /// | `.impactHeavy` | GO press |
+/// | `.impactRigid` | CITY defense held (City Monopoly spec §5) |
 enum CYHaptics: Equatable {
-    case selection, success, warning, error, impactLight, impactMedium, impactHeavy
+    case selection, success, warning, error, impactLight, impactMedium, impactHeavy, impactRigid
 
     var event: HapticEvent {
         switch self {
@@ -30,6 +31,7 @@ enum CYHaptics: Equatable {
         case .impactLight: return .impactLight
         case .impactMedium: return .impactMedium
         case .impactHeavy: return .impactHeavy
+        case .impactRigid: return .impactRigid
         }
     }
 
@@ -42,6 +44,7 @@ enum CYHaptics: Equatable {
         case .impactLight: return .impact(weight: .light)
         case .impactMedium: return .impact(weight: .medium)
         case .impactHeavy: return .impact(weight: .heavy)
+        case .impactRigid: return .impact(flexibility: .rigid)
         }
     }
 

@@ -8,6 +8,8 @@ import SwiftUI
     var selfOrdersAccess: ProfileSelfOrdersAccess? = nil
     var selfProjectsAccess: ProfileSelfProjectsAccess? = nil
     var selfGrowthAccess: ProfileSelfGrowthAccess? = nil
+    /// Attributes v2 (six attributes, archetype, titles) for the viewer's own profile; points-only CITY lease.
+    var memberAttributesService: (any CityMonopolyReading)? = nil
     var weeklyPointsAccess: ProfileWeeklyPointsAccess? = nil
     var personalToolsAccess: ProfilePersonalToolsAccess? = nil
     var selfCouponAccess: ProfileSelfCouponAccess? = nil
@@ -192,6 +194,9 @@ import SwiftUI
                         if let selfGrowthAccess {
                             ProfileSelfGrowthEntry(memberID: memberID, accountReader: reader,
                                 access: selfGrowthAccess, isCurrent: isCurrent)
+                        }
+                        if let memberAttributesService, isCurrent() {
+                            MemberAttributesSection(service: memberAttributesService)
                         }
                         Section("social.achievements") {
                             SocialOptionalCount(title: "social.published", count: profile.published)

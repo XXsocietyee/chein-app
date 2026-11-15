@@ -7,7 +7,7 @@ All tactile feedback in Questify flows through `HapticsService` (`Core/HapticsSe
 1. **System setting**: UIKit feedback generators natively respect iOS **Settings > Sounds & Haptics > System Haptics**. `HapticsService` additionally consults `HapticsPreferenceReading.isSystemHapticsEnabled()` (backed on iOS by hardware/system availability and testing overrides, and injectable in `CoreTests`).
 2. **In-app toggle**: Reads `SettingsSoundPreferences.haptics` from `UserDefaults.standard` under `"scene_sound_haptics"` (default `true` when unset). Toggling Haptics off in Settings immediately suppresses every `HapticsService` event.
 3. **Cooldown (`>= 120 ms`)**:
-   - Repeating / streaming events (`diceRoll`, `sensorShakeHit`, `sensorQuietWarn`, `sensorCompassAlign`, `sensorShoutTick`, `sensorStepsProgress`, `scratchRub`, `selection`, `impactLight`, `impactMedium`, `impactHeavy`) share a `120 ms` continuous cooldown bucket.
+   - Repeating / streaming events (`diceRoll`, `sensorShakeHit`, `sensorQuietWarn`, `sensorCompassAlign`, `sensorShoutTick`, `sensorStepsProgress`, `scratchRub`, `selection`, `impactLight`, `impactMedium`, `impactHeavy`, `impactRigid`) share a `120 ms` continuous cooldown bucket.
    - Discrete / terminal events (`checkInSuccess`, `wrongAnswer`, `diceLand`, `rewardOrMedal`, `medalCycle`, `claimSuccess`, `levelUp`, `sensor*Complete`, `sensorStillFailed`, `scratchReveal`, `jigsawSwap`, `jigsawSolved`, `success`, `warning`, `error`) are each debounced per event at `120 ms` so stacked updates never double-buzz while terminal confirmations after a roll/tick are never dropped.
 
 ## Event-to-Generator Mapping
@@ -45,3 +45,4 @@ All tactile feedback in Questify flows through `HapticsService` (`Core/HapticsSe
 | `impactLight` | `UIImpactFeedbackGenerator` | `.light` | Pull-to-refresh / subtle snap (`CYHaptics.impactLight`) |
 | `impactMedium` | `UIImpactFeedbackGenerator` | `.medium` | Primary commit press (`CYHaptics.impactMedium`) |
 | `impactHeavy` | `UIImpactFeedbackGenerator` | `.heavy` | Heavy trigger press (`CYHaptics.impactHeavy`) |
+| `impactRigid` | `UIImpactFeedbackGenerator` | `.rigid` | CITY defense held (`CYHaptics.impactRigid`, City Monopoly spec §5) |

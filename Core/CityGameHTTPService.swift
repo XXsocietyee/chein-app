@@ -35,7 +35,15 @@ public struct CityGameProductionLease: Equatable, Sendable {
         "/api/city-game/merchant/operations/availability", "/api/city-game/merchant/operations/request/{}",
         "/api/city-game/dice/roll", "/api/city-game/dice/audit",
         "/api/roam/territory/nearby", "/api/roam/territory/claim", "/api/roam/territory/checkin",
-        "/api/roam/territory/leaderboard", "/api/roam/territory/my"
+        "/api/roam/territory/leaderboard", "/api/roam/territory/my",
+        // City Monopoly + attributes v2 (CITY-MONOPOLY-SPEC §6.2). Points only, no money route.
+        "/api/city-game/territory/map", "/api/city-game/territory/property/{}",
+        "/api/city-game/territory/claim/quote", "/api/city-game/territory/claim/command",
+        "/api/city-game/territory/upgrade/quote", "/api/city-game/territory/upgrade/command",
+        "/api/city-game/territory/challenge/quote", "/api/city-game/territory/challenge/command",
+        "/api/city-game/territory/scout", "/api/city-game/territory/shield",
+        "/api/city-game/territory/revenue", "/api/city-game/season/current", "/api/city-game/season/leaderboard",
+        "/api/member/attributes", "/api/member/attributes/ledger", "/api/member/titles/equip"
     ]
 
     public init?(host: String, regionID: String) {

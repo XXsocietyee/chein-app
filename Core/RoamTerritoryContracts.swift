@@ -34,6 +34,11 @@ public struct RoamTerritoryItem: Decodable, Equatable, Identifiable, Sendable {
     public let checkinCount: Int64
     public let revenueTotalPoints: Int64
     public let distanceM: Double?
+    /// City Monopoly layer fields (CITY-MONOPOLY-SPEC §2.1–§2.8); absent on older servers.
+    public let tier: CityMonopolyTier?
+    public let upgradeLevel: Int?
+    public let districtId: String?
+    public let decayState: String?
 
     public var id: String {
         territoryId ?? propertyId ?? pointId ?? (poiId.map { "poi-\($0)" } ?? "\(latitude),\(longitude)")
@@ -125,6 +130,8 @@ public struct RoamTerritoryCheckinReceipt: Decodable, Equatable, Sendable {
     public let revenueMode: String
     public let plausibilityStatus: String?
     public let distanceM: Double?
+    /// Rent produced by this visit (points), or why none was produced (CITY-MONOPOLY-SPEC §2.4, §6.2).
+    public let territory: CityTerritoryVisitYield?
 }
 
 public struct RoamTerritoryLeaderEntry: Decodable, Equatable, Identifiable, Sendable {
