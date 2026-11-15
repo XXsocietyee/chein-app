@@ -106,7 +106,14 @@ public struct PlayCompletionReview: Equatable {
     /// Every display read rechecks the caller's live session/approval lease.
     public private(set) var snapshot: PlaySnapshot? {
         get { loadedSession != nil && loadedSession == currentSession() ? storedSnapshot : nil }
-        set { storedSnapshot = newValue }
+        set { storedSnapshot = newValue; publishLiveActivity() }
+    }
+    /// Lock Screen / Dynamic Island mirror of this session. Display only; it never drives progress or the run clock.
+    @ObservationIgnored public weak var liveActivity: (any QuestLiveActivityPublishing)?
+    private func publishLiveActivity() {
+        guard let liveActivity else { return }
+        liveActivity.publish(QuestLiveActivityMapping.play(key: "play:\(scope)", snapshot: snapshot, clockPhase: clock.phase,
+            elapsedSeconds: clock.elapsed(monotonicNow: ProcessInfo.processInfo.systemUptime), now: Date()))
     }
     public private(set) var extras: [Int: PlayNodeExtras] = [:]
     public private(set) var chapterStories: [Int: ChapterStoryDocument] = [:]
@@ -852,7 +859,7 @@ public struct PlayCompletionReview: Equatable {
             else { value = try .init(owner: .init(session: session), record: reconciled, tombstone: tombstone) }
             if value != lease.value { lease = try await pausedStorage.write(value, replacing: lease, key: key); try check(session, request) }
             pausedLease = lease; pausedOwner = session
-            clock.restore(value.record); localRecoveryFailed = false
+            clock.restore(value.record); localRecoveryFailed = false; publishLiveActivity()
             remoteRunSaveFailed = value.pendingRemote
         } catch {
             #if DEBUG
@@ -872,10 +879,12 @@ public struct PlayCompletionReview: Equatable {
         guard compatibility?.blocksStart != true else { return }
         guard canManageRun, let loadedSession, currentSession() == loadedSession, pausedOwner == loadedSession, pausedLease != nil, pausedLease?.value?.pendingRemote != true, !runStorageBusy, !localRecoveryFailed else { return }
         try? clock.start(monotonicNow: now)
+        publishLiveActivity()
     }
     public func pauseRun(now: TimeInterval, savedAt: Int64) async {
         guard canManageRun, let session = loadedSession, currentSession() == session, pausedOwner == session, let old = pausedLease, old.value?.pendingRemote != true, !runStorageBusy,
               let record = try? clock.pause(monotonicNow: now, savedAt: savedAt) else { return }
+        publishLiveActivity()
         runStorageBusy = true; defer { runStorageBusy = false }
         let request = generation, key = PlayRunStorageKey.make(session: session, scope: scope)
         do {
@@ -914,6 +923,7 @@ public struct PlayCompletionReview: Equatable {
             let value = try PlayPausedSnapshot(owner: .init(session: session), record: nil, tombstone: max(savedAt, old.value?.tombstone ?? 0), pendingRemote: true)
             let saved = try await pausedStorage.write(value, replacing: old, key: key); try check(session, request)
             pausedLease = saved; clock.end(monotonicNow: now); localRecoveryFailed = false
+            publishLiveActivity()
         } catch {
             guard currentSession() == session, generation == request else { return }
             localRecoveryFailed = true; remoteRunSaveFailed = true; issue = .persistenceUnavailable; return

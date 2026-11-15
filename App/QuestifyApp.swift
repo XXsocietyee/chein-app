@@ -7,6 +7,7 @@ struct QuestifyApp: App {
     init() {
         CYTabBarAppearance.install()
         MPNotificationTapRouter.shared.attach()
+        QuestLiveActivityCenter.shared.endOrphanedActivities()
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
             UserDefaults.standard.set(AppLanguage.system.rawValue,forKey:"preferences.language")

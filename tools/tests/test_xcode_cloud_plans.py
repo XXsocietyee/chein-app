@@ -36,7 +36,7 @@ class XcodeCloudPlanTests(unittest.TestCase):
         self.assertGreater(len(names), 4)
         with tempfile.TemporaryDirectory(prefix='questify-xcode-cloud-') as directory:
             scratch = pathlib.Path(directory)
-            for folder in ('App', 'Core', 'Tests', 'Resources'):
+            for folder in ('App', 'Core', 'Tests', 'Resources', 'LiveActivityWidget'):
                 (scratch / folder).symlink_to(ROOT / folder, target_is_directory=True)
             (scratch / 'tools').mkdir()
             shutil.copyfile(ROOT / 'tools/generate_project.py', scratch / 'tools/generate_project.py')

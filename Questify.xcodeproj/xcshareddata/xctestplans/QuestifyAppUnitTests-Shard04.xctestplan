@@ -485,6 +485,7 @@
         "PublishingAIDraftCandidateRetentionAppTests",
         "PublishingAIPromptControlsTests",
         "PushNotificationAndLiveActivitySectionViewTests",
+        "QuestLiveActivityMappingTests",
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
         "ReceivedStampsAndPassportToolsSectionViewTests",
