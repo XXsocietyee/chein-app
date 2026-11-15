@@ -17,6 +17,9 @@ import QuestifyCore
     var unconfirmedRequestID: String?
     var workshop = WorkshopModuleImportGate()
     var reportOutcome = ""
+    var monetizationByGame: [String: ExternalGameMonetizationFact] = [:]
+    var creatorSummary: ExternalGameCreatorSummary?
+    var lastResultOutcome: ExternalGameResultOutcome?
 
     init(store: ExternalGameStore) {
         self.store = store
@@ -208,5 +211,80 @@ import QuestifyCore
     }
     private static var workshopBinary: String {
         W8Text.t("工坊二进制包不会提交。请提交单个 HTML 游戏包。", "A workshop binary is not submitted. Submit a single HTML game package.")
+    }
+
+    func loadMonetization(gameID: String, session: ExternalGameSessionBridge?) async {
+        guard let client = client(session), let token = session?.token else { return }
+        if let fact = await client.monetizationConfig(gameID: gameID, token: token) {
+            monetizationByGame[gameID] = fact
+        }
+    }
+
+    func loadCreatorSummary(session: ExternalGameSessionBridge?) async {
+        guard let client = client(session), let token = session?.token else { return }
+        creatorSummary = await client.creatorSummary(token: token)
+    }
+
+    func saveMonetization(
+        gameID: String,
+        pricingMode: String,
+        priceFen: Int,
+        trafficRewardMode: String,
+        channelFeeBearer: Int = 0,
+        session: ExternalGameSessionBridge?
+    ) async -> Bool {
+        guard let client = client(session), let token = session?.token else { notice = Self.unavailable; return false }
+        if let saved = await client.saveMonetizationConfig(
+            gameID: gameID,
+            pricingMode: pricingMode,
+            priceFen: priceFen,
+            trafficRewardMode: trafficRewardMode,
+            channelFeeBearer: channelFeeBearer,
+            token: token
+        ) {
+            monetizationByGame[gameID] = saved
+            notice = W8Text.t("变现配置已提交审核（状态：\(saved.reviewStatus)）。", "Monetization config submitted (\(saved.reviewStatus)).")
+            await loadCreatorSummary(session: session)
+            return true
+        }
+        notice = W8Text.t("变现配置保存失败。", "Failed to save monetization config.")
+        return false
+    }
+
+    func purchaseGame(gameID: String, session: ExternalGameSessionBridge?) async -> Bool {
+        guard let session, let client = client(session) else { notice = Self.unavailable; return false }
+        guard ReviewedAreaSwitch.moneyPayments(apiHost: session.baseURL.host),
+              !ReleaseMoneyWriteSwitch.blocks(ExternalGameReviewPaths.orders) else {
+            notice = W8Text.t("当前环境未开启付费购买。", "Paid purchases are disabled in this build or environment.")
+            return false
+        }
+        if let order = await client.purchaseGame(gameID: gameID, token: session.token) {
+            await loadMonetization(gameID: gameID, session: session)
+            notice = W8Text.t("购买成功（订单 \(order.orderNo)），已解锁下载与游玩。", "Purchased (\(order.orderNo)). Download & play unlocked.")
+            return true
+        }
+        notice = W8Text.t("购买未完成，请稍后确认。", "Purchase could not be completed.")
+        return false
+    }
+
+    func bindNode(nodeID: Int, gameID: String, minScore: Int = 0, requirePass: Bool = true, session: ExternalGameSessionBridge?) async -> Bool {
+        guard let client = client(session), let token = session?.token else { notice = Self.unavailable; return false }
+        let ok = await client.bindNode(nodeID: nodeID, gameID: gameID, minScore: minScore, requirePass: requirePass, token: token)
+        notice = ok
+            ? W8Text.t("节点已绑定外部游戏 \(gameID)。", "Bound external game \(gameID) to node.")
+            : W8Text.t("节点绑定失败。", "Failed to bind external game.")
+        return ok
+    }
+
+    func startPlaySession(gameID: String, nodeID: Int? = nil, topicID: Int? = nil, activityID: Int? = nil, session: ExternalGameSessionBridge?) async -> ExternalGameSessionTicket? {
+        guard let client = client(session), let token = session?.token else { return nil }
+        return await client.startSession(gameID: gameID, nodeID: nodeID, topicID: topicID, activityID: activityID, token: token)
+    }
+
+    func submitSignedResult(ticket: ExternalGameSessionTicket, passed: Bool, score: Int?, durationMs: Int64, digest: String? = nil, session: ExternalGameSessionBridge?) async -> ExternalGameResultOutcome? {
+        guard let client = client(session), let token = session?.token else { return nil }
+        let outcome = await client.submitSignedResult(ticket: ticket, passed: passed, score: score, durationMs: durationMs, digest: digest, token: token)
+        lastResultOutcome = outcome
+        return outcome
     }
 }

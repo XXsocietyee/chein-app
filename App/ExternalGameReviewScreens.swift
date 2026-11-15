@@ -8,9 +8,13 @@ import QuestifyCore
     let model: ExternalGameReviewModel
     let session: ExternalGameSessionBridge?
     var onSubmissions: () -> Void
+    @State private var showCreatorMonetization = false
 
     var body: some View {
         catalogBody
+            .sheet(isPresented: $showCreatorMonetization) {
+                ExternalGameCreatorMonetizationSheet(model: model, session: session)
+            }
     }
 
     @ViewBuilder private var catalogBody: some View {
@@ -59,6 +63,13 @@ import QuestifyCore
                 identifier: "externalGame.submissions",
                 action: onSubmissions
             )
+            if session != nil {
+                Button(W8Text.t("创作者定价与流量收益", "Creator Pricing & Traffic")) {
+                    showCreatorMonetization = true
+                }
+                .font(CYTypography.label)
+                .accessibilityIdentifier("externalGame.creatorMonetization")
+            }
         }
     }
 
@@ -78,15 +89,54 @@ import QuestifyCore
                 .fixedSize(horizontal: false, vertical: true)
             CurA11yDashText(shown: meta(row), font: CYTypography.meta, color: CYColor.textSecondary)
             CurA11yDashText(shown: dash(row.summary), font: CYTypography.body, color: CYColor.textPrimary)
-            CurA11yTextButton(
-                title: Text(verbatim: W8Text.t("下载并安装", "Download and install")),
-                hint: Text("curA11y.external.install.hint", tableName: "CurA11y"),
-                identifier: "externalGame.install.\(row.gameID)",
-                action: { Task { await model.install(gameID: row.gameID, session: session) } }
-            )
+            if let cfg = model.monetizationByGame[row.gameID] {
+                Text(verbatim: monetizationLabel(cfg))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+            }
+            if let cfg = model.monetizationByGame[row.gameID],
+               cfg.reviewStatus == "APPROVED",
+               cfg.pricingMode == "PAID",
+               cfg.priceFen > 0,
+               !cfg.entitled {
+                if let session,
+                   ReviewedAreaSwitch.moneyPayments(apiHost: session.baseURL.host),
+                   !ReleaseMoneyWriteSwitch.blocks(ExternalGameReviewPaths.orders) {
+                    Button(W8Text.t("TEST 解锁购买 (¥\(String(format: "%.2f", Double(cfg.priceFen) / 100.0)))", "TEST Purchase (¥\(String(format: "%.2f", Double(cfg.priceFen) / 100.0)))")) {
+                        Task { _ = await model.purchaseGame(gameID: row.gameID, session: session) }
+                    }
+                    .font(CYTypography.label)
+                    .accessibilityIdentifier("externalGame.purchase.\(row.gameID)")
+                } else {
+                    Text(verbatim: W8Text.t("付费内容 · 当前环境未开启支付", "Paid game · payments disabled here"))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                }
+            } else {
+                CurA11yTextButton(
+                    title: Text(verbatim: W8Text.t("下载并安装", "Download and install")),
+                    hint: Text("curA11y.external.install.hint", tableName: "CurA11y"),
+                    identifier: "externalGame.install.\(row.gameID)",
+                    action: { Task { await model.install(gameID: row.gameID, session: session) } }
+                )
+            }
+        }
+        .task(id: row.gameID) {
+            await model.loadMonetization(gameID: row.gameID, session: session)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("externalGame.catalog.\(row.gameID)")
+    }
+
+    private func monetizationLabel(_ cfg: ExternalGameMonetizationFact) -> String {
+        let priceText = cfg.pricingMode == "PAID"
+            ? String(format: "¥%.2f", Double(cfg.priceFen) / 100.0)
+            : (cfg.pricingMode == "TRAFFIC_ONLY" ? W8Text.t("流量激励", "Traffic") : W8Text.t("免费", "Free"))
+        let trafficText = cfg.trafficRewardMode == "POINTS"
+            ? W8Text.t(" · 游玩积分", " · Play points")
+            : (cfg.trafficRewardMode == "TEST_MONEY" ? W8Text.t(" · TEST现金激励", " · TEST cash") : "")
+        let statusText = cfg.reviewStatus == "PENDING" ? W8Text.t(" (待审)", " (Pending)") : ""
+        return "\(priceText)\(trafficText)\(statusText)"
     }
 
     private func meta(_ row: ExternalGameCatalogFact) -> String {
@@ -314,5 +364,119 @@ import QuestifyCore
             }
         }
         .accessibilityIdentifier("externalGame.reportSheet")
+    }
+}
+
+@available(macOS 14.0, *)
+@MainActor struct ExternalGameCreatorMonetizationSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let model: ExternalGameReviewModel
+    let session: ExternalGameSessionBridge?
+
+    @State private var gameID = ""
+    @State private var pricingMode = "TRAFFIC_ONLY"
+    @State private var priceYuanText = "0"
+    @State private var trafficRewardMode = "POINTS"
+    @State private var channelFeeBearer = 0
+    @State private var nodeIDText = ""
+    @State private var minScoreText = "0"
+    @State private var isSaving = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let summary = model.creatorSummary {
+                    Section(W8Text.t("创作者收益概览", "Creator Summary")) {
+                        LabeledContent(W8Text.t("付费订单数", "Paid Orders"), value: "\(summary.paidOrders)")
+                        LabeledContent(W8Text.t("TEST 净销售分成", "TEST Sales Net"), value: String(format: "¥%.2f", Double(summary.creatorSalesNetFen) / 100.0))
+                        LabeledContent(W8Text.t("有效流量游玩", "Valid Traffic Plays"), value: "\(summary.trafficValidPlays)")
+                        LabeledContent(W8Text.t("已结算流量积分", "Traffic Points"), value: "\(summary.trafficSettledPoints)")
+                        if summary.payoutGateOpen {
+                            LabeledContent(W8Text.t("TEST 流量现金", "TEST Traffic Cash"), value: String(format: "¥%.2f", Double(summary.trafficSettledFen) / 100.0))
+                        }
+                    }
+                }
+                Section(W8Text.t("定价与流量激励配置（发布后可设）", "Monetization Config")) {
+                    TextField(W8Text.t("外部游戏 gameId", "Game ID"), text: $gameID)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    Picker(W8Text.t("定价模式", "Pricing Mode"), selection: $pricingMode) {
+                        Text(W8Text.t("仅流量激励", "Traffic Only")).tag("TRAFFIC_ONLY")
+                        Text(W8Text.t("付费购买 (TEST)", "Paid (TEST)")).tag("PAID")
+                        Text(W8Text.t("免费无激励", "Free")).tag("FREE")
+                    }
+                    if pricingMode == "PAID" {
+                        TextField(W8Text.t("售价（元）", "Price (CNY)"), text: $priceYuanText)
+                            .keyboardType(.decimalPad)
+                    }
+                    Picker(W8Text.t("流量激励模式", "Traffic Mode"), selection: $trafficRewardMode) {
+                        Text(W8Text.t("积分 (POINTS)", "Points")).tag("POINTS")
+                        Text(W8Text.t("TEST 现金", "TEST Cash")).tag("TEST_MONEY")
+                        Text(W8Text.t("关闭", "None")).tag("NONE")
+                    }
+                    Picker(W8Text.t("通道手续费", "Channel Fee"), selection: $channelFeeBearer) {
+                        Text(W8Text.t("创作者承担", "Creator")).tag(0)
+                        Text(W8Text.t("平台承担", "Platform")).tag(1)
+                    }
+                    Button(isSaving ? W8Text.t("提交中...", "Submitting...") : W8Text.t("保存并提交审核", "Save & Submit Review")) {
+                        let yuan = Double(priceYuanText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+                        let fen = max(0, Int((yuan * 100.0).rounded()))
+                        Task {
+                            isSaving = true
+                            _ = await model.saveMonetization(
+                                gameID: gameID.trimmingCharacters(in: .whitespacesAndNewlines),
+                                pricingMode: pricingMode,
+                                priceFen: fen,
+                                trafficRewardMode: trafficRewardMode,
+                                channelFeeBearer: channelFeeBearer,
+                                session: session
+                            )
+                            isSaving = false
+                        }
+                    }
+                    .disabled(gameID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSaving)
+                    .accessibilityIdentifier("externalGame.saveMonetization")
+                }
+
+                Section(W8Text.t("绑定到主题节点", "Bind to Journey Node")) {
+                    TextField(W8Text.t("节点 ID (nodeId)", "Node ID"), text: $nodeIDText)
+                        .keyboardType(.numberPad)
+                    TextField(W8Text.t("最低通关分 (0 不限)", "Min Score"), text: $minScoreText)
+                        .keyboardType(.numberPad)
+                    Button(W8Text.t("绑定外部游戏到此节点", "Bind Game to Node")) {
+                        guard let nid = Int(nodeIDText.trimmingCharacters(in: .whitespacesAndNewlines)) else { return }
+                        let minScore = Int(minScoreText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+                        Task {
+                            _ = await model.bindNode(
+                                nodeID: nid,
+                                gameID: gameID.trimmingCharacters(in: .whitespacesAndNewlines),
+                                minScore: minScore,
+                                session: session
+                            )
+                        }
+                    }
+                    .disabled(gameID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || Int(nodeIDText) == nil)
+                    .accessibilityIdentifier("externalGame.bindNode")
+                }
+
+                if !model.notice.isEmpty {
+                    Section {
+                        Text(verbatim: model.notice).font(CYTypography.meta)
+                    }
+                }
+            }
+            .navigationTitle(W8Text.t("创作者变现与绑定", "Creator Monetization"))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(W8Text.t("关闭", "Close")) { dismiss() }
+                }
+            }
+            .task {
+                if gameID.isEmpty, let first = model.catalog.first?.gameID {
+                    gameID = first
+                }
+                await model.loadCreatorSummary(session: session)
+            }
+        }
     }
 }
