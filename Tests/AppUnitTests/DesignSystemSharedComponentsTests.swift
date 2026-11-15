@@ -20,7 +20,6 @@ final class DesignSystemSharedComponentsTests: XCTestCase {
         #if canImport(UIKit)
         let hosted = view
             .environment(\.themeDomain, domain)
-            .environment(\.cyPalette, CYDomainPalette(domain))
             .environment(\.colorScheme, domain.colorScheme)
             .environment(\.locale, Locale(identifier: localeIdentifier))
             .environment(\.dynamicTypeSize, typeSize)
@@ -60,7 +59,7 @@ final class DesignSystemSharedComponentsTests: XCTestCase {
                     CYButton(variant: .danger, isFullWidth: true, action: {}) {
                         Text(verbatim: cfg.locale == "en" ? "Delete" : "删除草稿")
                     }
-                    CYPillButton(cfg.locale == "en" ? "Publish Activity" : longChinese, style: .primary, action: {})
+                    CYPillButton(verbatim: cfg.locale == "en" ? "Publish Activity" : longChinese, style: .primary, action: {})
                 }
                 assertFits(buttons, domain: domain, localeIdentifier: cfg.locale, typeSize: cfg.typeSize, width: cfg.width, "buttons-\(domain)-\(cfg.suffix)")
 
@@ -124,7 +123,7 @@ final class DesignSystemSharedComponentsTests: XCTestCase {
                     .rowDisabled()
 
                     Text(verbatim: cfg.locale == "en" ? "Card surface" : longChinese)
-                        .cyCardSurface(.elevated)
+                        .cyCardSurface(variant: .elevated)
 
                     CYField(
                         label: cfg.locale == "en" ? "Activity Title" : "活动名称",

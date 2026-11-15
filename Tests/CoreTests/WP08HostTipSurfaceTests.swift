@@ -41,7 +41,7 @@ final class WP08HostTipSurfaceTests: XCTestCase {
         }
         XCTAssertTrue(ReleaseMoneyWriteSwitch.blocks("/api/registration/pay"))
         XCTAssertNil(ReleaseMoneyWriteSwitch.kind(for: "/api/host-tip/prepare"))
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679)
     }
 
     func testPrepare501IsUnavailableAndNotAPayment() throws {

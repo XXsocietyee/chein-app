@@ -404,7 +404,7 @@ import FoundationNetworking
                      "/api/marketing/product/orders/77/pay", "/api/registration/pay", "/api/pay/create", "/api/withdrawal/create"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677) // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679) // 677 + IM in-game resolve/summary
         let wire = Wire(body: Data(#"{"code":200,"data":[]}"#.utf8))
         let china = G6CapabilitySource(configuration: try APIConfiguration(baseURL: URL(string: "https://www.chengyinhub.com/prod-api/")!), transport: wire)
         _ = try await china.authorRevenue(token: token)

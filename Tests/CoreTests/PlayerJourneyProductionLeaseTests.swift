@@ -143,8 +143,8 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
         ] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution (owner-approved 2026-11-13).
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 677)
+        // 672 + H8 help use/skip + H1 template binding, binding-status, media attribution + IM in-game resolve/summary (679).
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679)
         XCTAssertFalse(JourneyLoopSource.moneyWritesEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)

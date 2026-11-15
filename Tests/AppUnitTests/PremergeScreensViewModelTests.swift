@@ -1,9 +1,11 @@
 import XCTest
 import SwiftUI
 @testable import Questify
+#if canImport(QuestifyCore)
 @testable import QuestifyCore
+#endif
 
-private final class PremergeTestVault: TokenStoring {
+private final class PremergeTestVault: AppTokenStorage {
     var value: String?
     func read() throws -> String? { value }
     func write(_ token: String) throws { value = token }
@@ -82,17 +84,15 @@ final class PremergeScreensViewModelTests: XCTestCase {
         values.deepLinkDirtyTracker = tracker
         XCTAssertTrue(values.deepLinkDirtyTracker === tracker)
 
-        let defaultDisable = await values.memberPopupActions.disableRoamPresence()
-        let defaultClubs = await values.memberPopupActions.loadSettingsClubEntry()
-        XCTAssertEqual(defaultDisable, .unavailable)
-        XCTAssertEqual(defaultClubs, .applyForHost)
+        XCTAssertNil(values.memberPopupActions.disablePresence)
+        XCTAssertNil(values.memberPopupActions.loadOwnedClubs)
 
         values.memberPopupActions = MemberPopupEnvironmentActions(
-            disableRoamPresence: { .disabled },
-            loadSettingsClubEntry: { .failed(message: "测试失败") }
+            disablePresence: { .disabled },
+            loadOwnedClubs: { .failed(message: "测试失败") }
         )
-        let customDisable = await values.memberPopupActions.disableRoamPresence()
-        let customClubs = await values.memberPopupActions.loadSettingsClubEntry()
+        let customDisable = await values.memberPopupActions.disablePresence?()
+        let customClubs = await values.memberPopupActions.loadOwnedClubs?()
         XCTAssertEqual(customDisable, .disabled)
         XCTAssertEqual(customClubs, .failed(message: "测试失败"))
     }
@@ -125,15 +125,15 @@ final class PremergeScreensViewModelTests: XCTestCase {
         )
 
         let actions = session.memberPopupActions()
-        let disableOutcome = await actions.disableRoamPresence()
+        let disableOutcome = await actions.disablePresence?()
         XCTAssertEqual(disableOutcome, .disabled)
 
-        let clubOutcome = await actions.loadSettingsClubEntry()
-        if case .openClub(let club) = clubOutcome {
+        let clubOutcome = await actions.loadOwnedClubs?()
+        if case .openClub(let club)? = clubOutcome {
             XCTAssertEqual(club.id, 12)
             XCTAssertEqual(club.name, "杭州城南探索社")
         } else {
-            XCTFail("Expected .openClub, got \(clubOutcome)")
+            XCTFail("Expected .openClub, got \(String(describing: clubOutcome))")
         }
     }
 
@@ -197,7 +197,7 @@ final class PremergeScreensViewModelTests: XCTestCase {
         """
         let result = try JSONDecoder().decode(PlayNodesResult.self, from: Data(json.utf8))
         let snapshot = try PlaySnapshot(scope: .topic(88), result: result)
-        var currentSession: PlayAuthSession? = try PlayAuthSession(accountID: 77, epoch: 1, namespace: "premerge", token: "valid-premerge-token")
+        var currentSession: PlayExperienceSession? = try PlayExperienceSession(accountID: 77, epoch: 1, namespace: "premerge", token: "valid-premerge-token")
         let config = try APIConfiguration(baseURL: URL(string: "https://example.test/native")!)
         let service = PlayExperienceService(configuration: config, transport: PremergeSessionTransport(), enabled: [.reads])
         let coordinator = PlayExperienceCoordinator(
