@@ -39,8 +39,9 @@ class CoopFixtureLifecycleDiagnosticChecks(unittest.TestCase):
         # This explicit production identity-owner increment changes Release code;
         # it must not be described as another Release-equivalent diagnostic patch.
         # Re-pinned after the e3/UI-CLOUD-16 player-surface restyles and WP-04 square author delete mount;
-        # the identity-owner/lifetime token content above is unchanged. Re-pinned again for the RM-01 relation post feed.
-        self.assertEqual('de53b4481e737a9c5554101670592f2ae226e32b3dd7960428fbb43c6c1609ed', hashlib.sha256(normalized.encode()).hexdigest())
+        # the identity-owner/lifetime token content above is unchanged. Re-pinned again for the RM-01 relation post feed,
+        # and after the Audit 2026-11-14 compile fix removing the player clubCommunityContext feed from CoopRelationContextLabel.
+        self.assertEqual('6023d92bc3d2075c882a8dfa6825fd8c320e8704130e1a789cabe014304b6c79', hashlib.sha256(normalized.encode()).hexdigest())
 
     def test_failure_projection_is_small_and_does_not_change_read_count_label(self):
         source = (ROOT / 'Tests/AppUITests/CoopRelationDiscoveryFlowTests.swift').read_text()

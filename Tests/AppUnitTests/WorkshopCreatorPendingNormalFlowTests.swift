@@ -60,7 +60,7 @@ import UIKit
         let h = Harness(); defer { h.clean() }; await h.login(); try h.approve(); let c = try controller(h), a = WorkshopCreatorPendingAppearance()
         let sceneWindow = try WorkshopHostedSceneWindow()
         let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window; window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }
-        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
+        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a).environment(\.scenePhase, .active)); navigation.pushViewController(host, animated: false)
         try await waitUntil { c.phase == .editing };
         WorkshopHostedLifecycleProbe.record(.pendingInitialBack, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: c.phase == .editing)
         h.fill(c); let old = try XCTUnwrap(c.offerAuthor(a)); navigation.popViewController(animated: false)
@@ -72,7 +72,7 @@ import UIKit
         let sceneWindow = try WorkshopHostedSceneWindow()
         let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = sceneWindow.window
         window.rootViewController = navigation; window.makeKeyAndVisible(); defer { sceneWindow.retire() }
-        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a)); navigation.pushViewController(host, animated: false)
+        let host = WorkshopHostedLifecycleHost(rootView: WorkshopCreatorPendingView(controller: c, appearance: a).environment(\.scenePhase, .active)); navigation.pushViewController(host, animated: false)
         try await waitUntil { c.phase == .editing };
         WorkshopHostedLifecycleProbe.record(.pendingInitialReview, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: c.phase == .editing)
         h.fill(c); await (try XCTUnwrap(c.offerAuthor(a)))()

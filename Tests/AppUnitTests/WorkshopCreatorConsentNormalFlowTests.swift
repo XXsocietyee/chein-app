@@ -142,7 +142,7 @@ import UIKit
         let sceneWindow = try WorkshopHostedSceneWindow()
         let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=sceneWindow.window
         window.rootViewController=navigation;window.makeKeyAndVisible();defer{sceneWindow.retire()}
-        let host=WorkshopHostedLifecycleHost(rootView:WorkshopCreatorConsentView(controller:c,appearance:selection.appearance));navigation.pushViewController(host,animated:false)
+        let host=WorkshopHostedLifecycleHost(rootView:WorkshopCreatorConsentView(controller:c,appearance:selection.appearance).environment(\.scenePhase,.active));navigation.pushViewController(host,animated:false)
         try await waitUntil{c.phase == .reviewing};
         WorkshopHostedLifecycleProbe.record(.consentInitial, root: root, host: host, navigation: navigation, idle: c.phase == .idle, loading: c.phase == .loading, reviewing: c.phase == .reviewing, editing: false)
         XCTAssertEqual(c.phase,.reviewing)

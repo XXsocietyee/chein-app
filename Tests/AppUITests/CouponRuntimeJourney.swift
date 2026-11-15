@@ -48,8 +48,17 @@ import XCTest
         code.typeText("6")
         let submit = app.buttons["auth.channels.phoneSignIn"]
         if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn") }
-        XCTAssertTrue(app.tabBars.buttons[chinese ? "护照" : "Passport"].waitForExistence(timeout: 8), app.debugDescription); app.tabBars.buttons[chinese ? "护照" : "Passport"].tap()
-        app.buttons[chinese ? "设置" : "Settings"].tap(); tap("account.merchant"); tap("merchant.content.open"); tap("merchant.content.entry.recruiting"); tap("couponManagement.marketing.entry")
+        let merchantTab = app.tabBars.buttons["rootTabBar.tab.merchant.0"]
+        let passportTab = app.tabBars.buttons[chinese ? "护照" : "Passport"]
+        let signedInShell = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            merchantTab.exists || passportTab.exists
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [signedInShell], timeout: 8), .completed, app.debugDescription)
+        if !merchantTab.exists {
+            XCTAssertTrue(passportTab.waitForExistence(timeout: 8), app.debugDescription); passportTab.tap()
+            app.buttons[chinese ? "设置" : "Settings"].tap(); tap("account.merchant")
+        }
+        tap("merchant.content.open"); tap("merchant.content.entry.recruiting"); tap("couponManagement.marketing.entry")
         XCTAssertTrue(app.buttons["couponManagement.definition.710"].waitForExistence(timeout: 5))
     }
     func enterDraft(expectReview: Bool = true) {

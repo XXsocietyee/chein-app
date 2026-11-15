@@ -95,7 +95,7 @@ import UIKit
         let h=try Harness();defer{h.clean()};await h.login();try h.approve();let c=try h.controller(),old=WorkshopPaidInstallAppearance()
         let sceneWindow = try HostedNavigationSceneWindow()
         let window=sceneWindow.window,presenter=UIViewController();window.rootViewController=presenter;window.makeKeyAndVisible();defer{sceneWindow.retire()}
-        let host=UIHostingController(rootView:WorkshopPaidInstallView(controller:c,appearance:old,onClose:{}));presenter.present(host,animated:false)
+        let host=UIHostingController(rootView:WorkshopPaidInstallView(controller:c,appearance:old,onClose:{}).environment(\.scenePhase,.active));presenter.present(host,animated:false)
         await hostedWait{c.phase == .ready};XCTAssertEqual(c.phase,.ready)
         presenter.dismiss(animated:false);await hostedWait{c.phase == .idle};XCTAssertEqual(c.phase,.idle)
         let fresh=WorkshopPaidInstallAppearance();await (try XCTUnwrap(c.appear(fresh)))();c.close(old);XCTAssertNil(c.appear(old));XCTAssertEqual(c.phase,.ready)

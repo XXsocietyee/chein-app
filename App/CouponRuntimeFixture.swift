@@ -133,6 +133,10 @@ import SwiftUI
             guard expected.httpBody == body else { throw APIError.invalidRequest }
             try recordPending(request, resource: "stop:\(ownedID)")
             writes += 1; status = 4; response = ["code":200,"msg":"Synthetic stop acknowledgement"]
+        case "api/merchant/todo-summary":
+            response = ["code":200,"data":["pendingVerify":0,"verifiedCount":0,"pendingScanConfirm":0,"pendingOrders":0,"refundCount":0,"pendingPredict":0,"biddingTopics":0]]
+        case "api/merchant/events":
+            response = ["code":200,"data":[]]
         default: violations.append(path); throw APIError.notConfigured
         }
         routes.append(path)
