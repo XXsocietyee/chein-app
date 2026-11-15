@@ -15,6 +15,13 @@ struct CYEmptyState: View {
     private let action: (() -> Void)?
     private let kind: CYStateKind?
 
+    /// Already-resolved copy (restyled merchant/member screens). Not looked up again in a string table.
+    init(systemImage: String = "tray", verbatimTitle: String, verbatimSubtitle: String? = nil,
+         kind: CYStateKind? = nil, action: (() -> Void)? = nil) {
+        self.init(systemImage: systemImage, LocalizedStringKey(verbatimTitle), detailVerbatim: verbatimSubtitle,
+                  kind: kind, action: action)
+    }
+
     init(
         systemImage: String = "tray",
         _ message: LocalizedStringKey,

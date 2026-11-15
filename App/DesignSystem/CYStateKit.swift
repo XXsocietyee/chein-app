@@ -18,6 +18,8 @@ struct CYKitCopy {
 // MARK: - Kind
 
 enum CYStateKind: Equatable {
+    /// Alias used by restyled screens for a plain empty state.
+    static var empty: CYStateKind { .generic }
     case generic, inbox, orders, favorites, notices, search, projects, offline, failure
     case location, camera, notifications, photos
 

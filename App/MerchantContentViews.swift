@@ -216,6 +216,7 @@ struct MerchantContentBoundary: View {
                     .sheet(isPresented: $confirmsRetry) {
                         CYConfirmSheet(
                             title: appLocalized("merchant.content.retryOriginalWarning", locale: locale),
+                            message: "",
                             confirmTitle: appLocalized("merchant.content.retryOriginal", locale: locale),
                             isDestructive: true,
                             onConfirm: { Task { await model.retryStation() } }

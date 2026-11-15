@@ -543,7 +543,8 @@ struct MerchantCityNodeInlineError: View {
         default: return ""
         }
     }
-    private func confirmLabel(_ command: MerchantContentCommand) -> String {
+    private func confirmLabel(_ command: MerchantContentCommand?) -> String {
+        guard let command else { return MerchantCityNodeCopy.string("merchantCityNode.action.ok") }
         switch command {
         case .claim: return MerchantCityNodeCopy.string("merchantCityNode.claim.action")
         case .cancelClaim: return MerchantCityNodeCopy.string("merchantCityNode.withdraw.action")
@@ -551,7 +552,8 @@ struct MerchantCityNodeInlineError: View {
         default: return MerchantCityNodeCopy.string("merchantCityNode.action.ok")
         }
     }
-    private func isDestructive(_ command: MerchantContentCommand) -> Bool {
+    private func isDestructive(_ command: MerchantContentCommand?) -> Bool {
+        guard let command else { return false }
         switch command { case .cancelClaim: return true; case .cityStatus(_, let online): return !online; default: return false }
     }
 }
