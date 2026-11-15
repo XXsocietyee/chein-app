@@ -1072,6 +1072,40 @@
         }
       }
     },
+    "team.invitationExpiry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation expires"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请到期时间"
+          }
+        }
+      }
+    },
+    "team.invitationExpiryUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation expiry not provided"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请到期时间未提供"
+          }
+        }
+      }
+    },
     "team.sessionStart": {
       "extractionState": "manual",
       "localizations": {

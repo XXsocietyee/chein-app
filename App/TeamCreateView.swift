@@ -45,6 +45,12 @@ import SwiftUI
             }
         }.cyHeroScreen()
             .task { await model.run { await model.coordinator.loadCreation(ownerID: activityID) } }
+            .onChange(of: model.coordinator.creation?.sizes ?? [], initial: true) { _, sizes in
+                // Keep a still-valid draft choice. Never invent a capacity while
+                // eligibility is loading, absent or no permitted size exists.
+                guard !sizes.contains(size), let first = sizes.first else { return }
+                size = first
+            }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
             .onDisappear { model.leave() }
         .cyDomainScreen(.player)
@@ -58,7 +64,7 @@ import SwiftUI
                 model.refuseClosedLease()
             }
         }
-        .disabled(model.actionLocked)
+        .disabled(model.actionLocked || !context.sizes.contains(size))
         .accessibilityIdentifier("team.create.review")
     }
 

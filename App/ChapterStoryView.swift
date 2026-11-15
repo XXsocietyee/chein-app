@@ -22,6 +22,9 @@ import UIKit
     @State private var confirmLeave = false
     @State private var activeInlineNodeID: Int?
     @State private var audioURL: String?
+    @State private var audioMounted = false
+    @State private var audioPresentationID = UUID()
+    @State private var thoughtReadRevision = UUID()
     /// Chapter opening gate (mini-program chapter-gate): once per visit of this chapter.
     @State private var showGate = false
     @State private var gateSeen = false
@@ -61,6 +64,29 @@ import UIKit
         guard !nodes.isEmpty else { return nil }
         return (nodes.filter { snapshot.isDone($0) }.count, nodes.count)
     }
+    private var currentAudioURLs: Set<String> {
+        guard visible else { return [] }
+        var urls = Set(segments.compactMap { segment -> String? in
+            if case .audio(let url) = segment.content { return url }
+            return nil
+        })
+        if let selection = PlatformChapterAudioSelection.resolve(snapshot: model.snapshot, nodeID: nodeID, extras: model.extras, currentRead: visible) {
+            if let narration = selection.narrationURL { urls.insert(narration) }
+            if let guide = selection.guideURL { urls.insert(guide) }
+        }
+        return urls
+    }
+    private struct ThoughtReadTaskKey: Hashable {
+        let identity: String?
+        let chapterID: Int
+        let nodeID: Int
+        let revision: UUID
+        let active: Bool
+    }
+    private var thoughtReadTaskKey: ThoughtReadTaskKey {
+        .init(identity: model.identity, chapterID: chapterID, nodeID: nodeID,
+              revision: thoughtReadRevision, active: scenePhase == .active)
+    }
     var body: some View {
         ScrollViewReader { reader in
         ScrollView {
@@ -97,7 +123,13 @@ import UIKit
                         }.accessibilityIdentifier("chapterStory.thought.readback")
                     }
                     audioSelection
-                    if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
+                    if makeAudio == nil, !currentAudioURLs.isEmpty {
+                        Label("platform.audio.gated", systemImage: "speaker.slash")
+                            .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    }
+                    if let audioURL, audioMounted, scenePhase == .active, currentAudioURLs.contains(audioURL) {
+                        PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio)
+                    }
                     if let progress = chapterProgress, progress.done == progress.total {
                         if let closing = chapter.closingLine {
                             Text(verbatim: closing).font(CYTypography.body).italic().foregroundStyle(CYColor.textSecondary)
@@ -135,20 +167,25 @@ import UIKit
             // The last segment whose top has reached the upper band is where the reader is.
             let order = segments.map(\.id)
             let reached = order.last { (offsets[$0] ?? .infinity) <= 120 } ?? order.first
-            guard let reached, reached != readingSegmentID, resumeTried else { return }
+            guard visible, let reached, reached != readingSegmentID, resumeTried else { return }
             readingSegmentID = reached
             readingStore.save(reached, key: readingKey)
         }
         .task(id: "\(readingKey ?? ""):\(segments.count)") {
-            guard !resumeTried, visible, !segments.isEmpty else { return }
+            guard !Task.isCancelled, !resumeTried, visible, !segments.isEmpty, let capturedKey = readingKey else { return }
             resumeTried = true
             await Task.yield()
-            if let target = ChapterReadingPositionStore.resumeTarget(saved: readingStore.read(readingKey), rendered: segments.map(\.id)) {
+            guard !Task.isCancelled, visible, capturedKey == readingKey else { return }
+            if let target = ChapterReadingPositionStore.resumeTarget(saved: readingStore.read(capturedKey), rendered: segments.map(\.id)) {
                 reader.scrollTo(target, anchor: .top)
             }
         }
         }
-        .fullScreenCover(item: $zoomedImage) { item in ChapterStoryImageViewer(image: item.image, alt: item.alt) }
+        .fullScreenCover(item: $zoomedImage) { item in
+            if visible, scenePhase == .active, imageReader?.enabled == true {
+                ChapterStoryImageViewer(image: item.image, alt: item.alt)
+            }
+        }
         .background(CYColor.bgPage.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("chapterStory.title").navigationBarTitleDisplayMode(.inline)
@@ -169,30 +206,45 @@ import UIKit
             }
         }
         .toolbar(showGate ? .hidden : .automatic, for: .navigationBar)
-        .onAppear { if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = true } }
-        .onChange(of: visible) { _, now in if now && !gateSeen && chapter != nil { gateSeen = true; showGate = true } }
+        .onAppear { audioMounted = true; if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = true } }
+        .onChange(of: visible) { _, now in
+            if !now { zoomedImage = nil }
+            if now && !gateSeen && chapter != nil { gateSeen = true; showGate = true }
+        }
         .privacySensitive().accessibilityIdentifier("chapterStory.body")
         .interactiveDismissDisabled(!dirtyNodes.isEmpty)
         .confirmationDialog("chapterStory.discardQuestion", isPresented: $confirmLeave, titleVisibility: .visible) {
             Button("chapterStory.discard", role: .destructive) { dirtyNodes = []; dismiss() }
             Button("chapterStory.keepEditing", role: .cancel) {}
         } message: { Text("chapterStory.discardBody") }
-        .task(id: "\(model.identity ?? ""):chapter=\(chapterID)") { if visible { await model.claimVisibleThoughts(chapterID: chapterID) } }
-        .onChange(of: model.snapshot) { _, _ in if visible { Task { await model.claimVisibleThoughts(chapterID: chapterID) } } }
+        .task(id: thoughtReadTaskKey) {
+            guard !Task.isCancelled, scenePhase == .active, visible else { return }
+            await model.claimVisibleThoughts(chapterID: chapterID)
+        }
+        .onChange(of: model.snapshot) { _, _ in thoughtReadRevision = UUID() }
         .onChange(of: model.storyVariables) { _, next in advancedVariables.merge(next) { _, new in new } }
-        .onChange(of: model.identity) { _, _ in advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; resumeTried = false; readingSegmentID = nil }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { audioURL = nil } }
-        .onDisappear { audioURL = nil; advancedVariables = [:]; dirtyNodes = [] }
+        .onChange(of: currentAudioURLs) { _, available in
+            if let selected = audioURL, !available.contains(selected) { audioURL = nil }
+        }
+        .onChange(of: mediaScope) { _, _ in audioPresentationID = UUID(); audioURL = nil; zoomedImage = nil }
+        .onChange(of: chapterID) { _, _ in audioPresentationID = UUID(); audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
+        .onChange(of: nodeID) { _, _ in audioPresentationID = UUID(); audioURL = nil; zoomedImage = nil }
+        .onChange(of: model.identity) { _, _ in audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
+        .onChange(of: scenePhase) { _, phase in audioPresentationID = UUID(); if phase != .active { audioURL = nil; zoomedImage = nil } }
+        .onDisappear { audioMounted = false; audioURL = nil; audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; zoomedImage = nil }
         .cyDomainScreen(.player)
     }
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
-        case .text(let text): Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).textSelection(.enabled)
+        case .text(let text): Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         case .image(let url):
             ChapterStoryArtwork(url: url, alt: segment.alt, reader: imageReader) { image in zoomedImage = .init(image: image, alt: segment.alt) }
+                .id(mediaScope)
         case .audio(let url):
+            let selectAudio = scopedAudioSelection()
             VStack(alignment: .leading, spacing: 8) {
-                Button("chapterStory.listen", systemImage: "speaker.wave.2") { audioURL = url }
+                Button("chapterStory.listen", systemImage: "speaker.wave.2") { selectAudio(url) }
+                    .disabled(makeAudio == nil)
                 if let transcript = segment.alt {
                     // Same-version text of the audio: muted, interrupted or slow audio still gives the evidence.
                     DisclosureGroup {
@@ -213,27 +265,40 @@ import UIKit
             VStack(alignment: .leading, spacing: 8) {
                 if !speaker.isEmpty { Text(verbatim: speaker).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
                 Text(verbatim: text).font(CYTypography.body).italic().foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
             }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                .accessibilityElement(children: .combine)
         case .reveal(let speaker, let lines):
             DisclosureGroup {
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).padding(.vertical, 4) }
+                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                    Text(verbatim: line).padding(.vertical, 4)
+                        .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                }
             } label: {
                 if speaker.isEmpty { Label("chapterStory.reveal", systemImage: "text.bubble") }
                 else { Text(verbatim: speaker) }
             }
         case .dream(let title, let images):
             VStack(alignment: .leading, spacing: 12) {
-                if let title { Text(verbatim: title).font(.headline) }
+                if let title { Text(verbatim: title).font(.headline).accessibilityAddTraits(.isHeader) }
                 ForEach(Array(images.enumerated()), id: \.offset) { _, item in
                     ChapterStoryArtwork(url: item.url, alt: item.line, reader: imageReader) { image in zoomedImage = .init(image: image, alt: item.line) }
-                    if let line = item.line, !line.isEmpty { Text(verbatim: line).font(.subheadline) }
+                        .id(mediaScope)
+                    if let line = item.line, !line.isEmpty {
+                        Text(verbatim: line).font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                    }
                 }
             }
         case .thought(let name, let description):
             VStack(alignment: .leading, spacing: 8) {
                 Label { Text(verbatim: name).font(CYTypography.cardTitle) } icon: { Image(systemName: "lightbulb") }
-                if let description { Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                if let description {
+                    Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                }
             }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                .accessibilityElement(children: .combine)
         case .game(let id):
             if let journey = journeyModel?(id) {
                 JourneyRoleViewInlineHost(model: journey.roleContent, sessionIdentity: model.identity,
@@ -256,11 +321,26 @@ import UIKit
     }
     @ViewBuilder private var audioSelection: some View {
         if let selection = PlatformChapterAudioSelection.resolve(snapshot: model.snapshot, nodeID: nodeID, extras: model.extras, currentRead: visible) {
+            let selectAudio = scopedAudioSelection()
             VStack(alignment: .leading, spacing: 12) {
-                if let url = selection.narrationURL { Button("chapterStory.narration", systemImage: "headphones") { audioURL = url } }
-                if let url = selection.guideURL { Button("chapterStory.guide", systemImage: "location.circle") { audioURL = url } }
-            }
+                if let url = selection.narrationURL { Button("chapterStory.narration", systemImage: "headphones") { selectAudio(url) } }
+                if let url = selection.guideURL { Button("chapterStory.guide", systemImage: "location.circle") { selectAudio(url) } }
+            }.disabled(makeAudio == nil)
         }
+    }
+    private func scopedAudioSelection() -> (String) -> Void {
+        let expectedIdentity = model.identity
+        let expectedPresentationID = audioPresentationID
+        return { url in
+            guard let expectedIdentity, expectedIdentity == model.identity else { return }
+            guard expectedPresentationID == audioPresentationID else { return }
+            selectAudio(url)
+        }
+    }
+    private func selectAudio(_ url: String) {
+        guard makeAudio != nil else { return }
+        guard audioMounted, scenePhase == .active, currentAudioURLs.contains(url) else { return }
+        audioURL = url
     }
     private func leave() { if dirtyNodes.isEmpty { dismiss() } else { confirmLeave = true } }
 }
@@ -423,9 +503,27 @@ struct ChapterStoryZoomedImage: Identifiable {
     @State private var loading = false
     @State private var failed = false
     @State private var attempt = 0
+    @State private var imageRequestID = UUID()
+    @State private var loadedURL: String?
+    @Environment(\.scenePhase) private var scenePhase
+    private struct RequestKey: Hashable {
+        let url: String
+        let attempt: Int
+        let enabled: Bool
+        let active: Bool
+    }
+    private var requestKey: RequestKey {
+        .init(url: url, attempt: attempt, enabled: reader?.enabled == true, active: scenePhase == .active)
+    }
     var body: some View {
         Group {
-            if let image {
+            if !requestKey.enabled || !requestKey.active {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("chapterStory.imageGated", systemImage: "photo")
+                    if let alt { Text(verbatim: alt).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+            else if let image, loadedURL == url {
                 Button { zoom?(image) } label: { Image(uiImage: image).resizable().scaledToFit() }
                     .buttonStyle(.plain)
                     .accessibilityLabel(alt.map { Text(verbatim: $0) } ?? Text("chapterStory.artwork"))
@@ -449,16 +547,30 @@ struct ChapterStoryZoomedImage: Identifiable {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }.frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 18))
-        .task(id: "\(url)#\(attempt)") {
-            image = nil; failed = false
-            guard let reader, reader.enabled, let source = URL(string: url) else { return }
+        .task(id: requestKey) {
+            guard !Task.isCancelled else { return }
+            let captured = requestKey
+            let requestID = UUID()
+            imageRequestID = requestID
+            image = nil; loadedURL = nil; failed = false; loading = false
+            guard captured.enabled, captured.active, let reader, let source = URL(string: captured.url) else { return }
             loading = true
-            defer { loading = false }
+            defer { if imageRequestID == requestID { loading = false } }
             do {
                 let bytes = try await reader.image(url: source)
+                try Task.checkCancellation()
+                guard imageRequestID == requestID else { return }
+                guard captured == requestKey else { return }
                 let sanitized = try RetainedImageSanitizer.sanitize(bytes)
-                try Task.checkCancellation(); image = UIImage(data: sanitized.jpeg)
-            } catch { if !Task.isCancelled { failed = true } }
-        }.onDisappear { image = nil }
+                try Task.checkCancellation()
+                guard imageRequestID == requestID else { return }
+                guard captured == requestKey else { return }
+                guard let decoded = UIImage(data: sanitized.jpeg) else {
+                    if imageRequestID == requestID && captured == requestKey { failed = true }
+                    return
+                }
+                loadedURL = captured.url; image = decoded
+            } catch { if imageRequestID == requestID && captured == requestKey && !Task.isCancelled { failed = true } }
+        }.onDisappear { imageRequestID = UUID(); image = nil; loadedURL = nil; loading = false; failed = false }
     }
 }

@@ -105,8 +105,10 @@ import UIKit
             }
         }
         .onChange(of: progress) { _, _ in copyModel.invalidate() }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in copyModel.invalidate() }
         .onChange(of: reader.scope) { _, _ in copyModel.invalidate() }
         .onChange(of: reader.authorizationGeneration) { _, _ in copyModel.invalidate() }
+        .onChange(of: reader.isConfigured) { _, _ in copyModel.invalidate() }
         .onChange(of: scenePhase) { _, _ in copyModel.invalidate() }
         .onDisappear { copyModel.invalidate() }
     }

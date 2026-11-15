@@ -18,6 +18,7 @@ import UIKit
     @State private var machine = CYShareComposerMachine()
     @State private var style = CYShareCardStyle(template: .poster, ratio: .story, tint: .gold)
     @State private var caption = ""
+    @State private var renderedSelection: RoamMedalShareSelection?
     @State private var visible = false
     @State private var systemShare: RoamHistorySystemShareRequest?
     @State private var toast: LocalizedStringKey?
@@ -58,6 +59,7 @@ import UIKit
             } }
             .background(RoamShareNativeLifetime(presentation: presentation).frame(width: 0, height: 0))
             .onAppear { presentation.appear(); visible = true; if !sourceIsCurrent { markStale() } }
+            .onChange(of: selection) { _, _ in invalidate(); if !sourceIsCurrent { markStale() } }
             .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in markStale() }
             .onChange(of: style) { _, _ in invalidate(.styleChanged) }
             .onChange(of: caption) { _, _ in invalidate(.captionChanged) }
@@ -76,6 +78,7 @@ import UIKit
             .sheet(item: $systemShare, onDismiss: { if machine.state.isExporting { machine.send(.exportFinished(false)) } }) { item in
                 if sourceIsCurrent, machine.image === item.image,
                    item.selection == .init(record: selection.record, includeRoute: false),
+                   renderedSelection == selection,
                    item.isCurrent(reader: reader) {
                     RoamMedalSystemShare(request: item, reader: reader) { completed in
                         if completed { finishExport(success: true, toastKey: "roam.share.sharedToast") } else { machine.send(.exportFinished(false)) }
@@ -86,13 +89,13 @@ import UIKit
             }
     }
     @ViewBuilder private var actionsSection: some View {
-        if let image = machine.image {
+        if let image = machine.image, renderedSelection == selection {
             CYShareReadyRow(image: image, title: "roam.share.ready", hint: "roam.share.readyHint",
                             previewLabel: "roam.medalShare.preview", identifier: "roam.medalShare.preview")
             saveControls(image)
             CYPillButton("roam.share.system", style: .secondary, systemImage: "square.and.arrow.up") {
                 guard systemShare == nil, !photoSave.inFlight, !machine.state.isExporting else { return }
-                guard sourceIsCurrent, machine.image === image,
+                guard sourceIsCurrent, renderedSelection == selection, machine.image === image,
                       let request = RoamHistorySystemShareRequest(image: image,
                           selection: .init(record: selection.record, includeRoute: false),
                           owner: .init(reader: reader), reader: reader, presentation: presentation) else {
@@ -113,10 +116,16 @@ import UIKit
     private func prepare() {
         guard sourceIsCurrent else { markStale(); return }
         photoSave.invalidate()
+        renderedSelection = nil
         machine.send(.prepare)
-        let renderContent = cardContent, renderStyle = style
+        let capturedSelection = selection
+        let renderContent = cardContent, renderStyle = style, renderCaption = caption
         Task { @MainActor in
             let image = RoamMedalShareRenderer.render(content: renderContent, style: renderStyle)
+            guard sourceIsCurrent, capturedSelection == selection, renderStyle == style, renderCaption == caption else {
+                invalidate(); return
+            }
+            renderedSelection = image == nil ? nil : capturedSelection
             machine.send(.rendered(image))
         }
     }
@@ -127,14 +136,18 @@ import UIKit
         CYShareAnnouncer.announce(appLocalized(String.LocalizationValue(stringLiteral: toastKey), locale: locale))
     }
     private func invalidate(_ event: CYShareComposerEvent = .invalidate) {
-        photoSave.invalidate(); systemShare = nil; machine.send(event)
+        photoSave.invalidate(); systemShare = nil; renderedSelection = nil; machine.send(event)
     }
-    private func markStale() { photoSave.invalidate(); systemShare = nil; machine.send(.sourceChanged) }
+    private func markStale() { photoSave.invalidate(); systemShare = nil; renderedSelection = nil; machine.send(.sourceChanged) }
     @ViewBuilder private func saveControls(_ image: UIImage) -> some View {
         let phase = photoSave.state.phase
         CYPillButton(LocalizedStringKey(saveButtonKey), systemImage: "square.and.arrow.down") {
+            guard renderedSelection == selection, sourceIsCurrent else { markStale(); return }
+            let captured = selection
             machine.send(.export(.photos))
-            photoSave.save(image, selection: .init(record: selection.record, includeRoute: false)) { sourceIsCurrent }
+            photoSave.save(image, selection: .init(record: captured.record, includeRoute: false)) {
+                sourceIsCurrent && selection == captured && renderedSelection == captured
+            }
         }
             .disabled(photoSave.inFlight || phase == .saved || phase == .sourceChanged)
             .accessibilityIdentifier("roam.medalShare.savePhotos")

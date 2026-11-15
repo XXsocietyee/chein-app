@@ -18,13 +18,16 @@ import SwiftUI
     @State private var busy = false
     @State private var loadFailed = false
     @State private var generation = UUID()
+    @State private var visible = false
+    @State private var resultSession: PublishingSession?
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
     private func text(_ key: String) -> String { appLocalized(String.LocalizationValue(key), locale: locale) }
     /// pages/topic/pricing/index screen from the view's own read facts (TopicPricingXcx.screen).
     private var screen: TopicPricingXcx.Screen {
         let read: TopicPricingXcx.Read = topicID <= 0 ? .missingTopic : busy ? .loading : loadFailed ? .failed : .idle
-        return TopicPricingXcx.screen(read: read, kept: preview, subtype: subtype, teamSize: Int(team), price: Decimal(string: price))
+        let keptPreview = resultSession == client.session ? preview : nil
+        return TopicPricingXcx.screen(read: read, kept: keptPreview, subtype: subtype, teamSize: Int(team), price: Decimal(string: price))
     }
     /// Confirm stays hidden unless the existing pricing grant is present; the shipped factory keeps it dormant.
     private var showsConfirm: Bool {
@@ -44,7 +47,7 @@ import SwiftUI
                 CYEmptyState(systemImage: "exclamationmark.triangle",
                              LocalizedStringKey(failure == .incomplete ? "publisherPricing.incomplete" : "publisherPricing.loadFailed"),
                              messageIdentifier: "publisher.pricing.error", actionTitle: "topic.retry",
-                             actionIdentifier: "publisher.pricing.retry", action: { Task { await load() } })
+                             actionIdentifier: "publisher.pricing.retry", action: { beginLoad() })
                     .listRowBackground(Color.clear)
             case .ready(let ready) where ready.refreshFailed:
                 Label("publisherPricing.stalePreview", systemImage: "clock.arrow.circlepath")
@@ -70,11 +73,11 @@ import SwiftUI
                 }
             }
             Section {
-                CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { Task { await load() } }
+                CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { beginLoad() }
                     .listRowBackground(Color.clear).disabled(busy).accessibilityIdentifier("publisher.preview")
                 if busy { Text(text("publisherPricing.checkingTheLatestPricing")).font(.caption) }
             }
-            if let preview {
+            if let preview, resultSession == client.session {
                 Section(text("publisherPricing.costFloor")) {
                     // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
                     Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).font(CYTypography.dataXL).monospacedDigit()
@@ -129,20 +132,20 @@ import SwiftUI
                             .accessibilityIdentifier("publisher.phaseBlocked")
                     }
                     if showsConfirm {
-                        CYPillButton(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")) { Task { await prepare() } }
+                        CYPillButton(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")) { beginPrepare() }
                             .listRowBackground(Color.clear).disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
                     }
                 }
             }
             }
-            if let review {
+            if let review, review.session == client.session, review.action == currentAction {
                 Section(text("publisherPricing.review")) {
                     Text(text("publisherPricing.salesOpenAtThisPriceAnd"))
                     Text(price).accessibilityIdentifier("publisher.reviewedPrice")
-                    Button(text("publisherPricing.confirmOpeningSales"), role: .destructive) { Task { busy = true; let result = await coordinator.confirm(review, consequentialApproval: true); message = PublisherLifecycleCopy.outcome(result, zh: isChinese); self.review = nil; busy = false } }.disabled(busy).accessibilityIdentifier("publisher.confirmPrice")
+                    Button(text("publisherPricing.confirmOpeningSales"), role: .destructive) { beginConfirm(review) }.disabled(busy).accessibilityIdentifier("publisher.confirmPrice")
                 }
             }
-            if !message.isEmpty { Text(message).accessibilityIdentifier("publisher.message") }
+            if !message.isEmpty, resultSession == client.session { Text(message).accessibilityIdentifier("publisher.message") }
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
@@ -150,13 +153,16 @@ import SwiftUI
         .cyPushedChrome(domain: .merchant)
         .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
         // Mini-program pages/topic/pricing calls preview() in onLoad: load the floor without a manual tap.
-        .task { if preview == nil, !busy, subtype == .selfPlay { await load() } }
+        .task { visible = true; if preview == nil, !busy, subtype == .selfPlay { beginLoad() } }
+        .onAppear { visible = true }
+        .onChange(of: topicID) { _, _ in invalidate() }
+        .onChange(of: client.session) { _, _ in invalidate() }
         .onChange(of: subtype) { _, _ in invalidate() }
         .onChange(of: cost) { _, _ in invalidate() }
         .onChange(of: team) { _, _ in invalidate() }
-        .onChange(of: price) { _, _ in review = nil; coordinator.invalidate() }
+        .onChange(of: price) { _, _ in invalidate(keepPreview: true) }
         .onChange(of: phase) { _, value in if value != .active { invalidate() } }
-        .onDisappear { invalidate() }
+        .onDisappear { visible = false; invalidate() }
     }
     private func loadPartnerNames() async {
         guard let lineup = preview?.lineup else { return }
@@ -178,16 +184,79 @@ import SwiftUI
     }
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     private func input() throws -> PublisherPricingInput { try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team)) }
-    private func invalidate() { generation = UUID(); preview = nil; partnerNames = [:]; review = nil; loadFailed = false; coordinator.invalidate() }
-    private func load() async {
-        let stamp = generation; busy = true; defer { busy = false }
-        do { let result = try await client.pricing(input()); guard generation == stamp else { return }; preview = result; loadFailed = false; price = String(TopicPricingXcx.initialPrice(floor: result.minimum)); message = "" }
-        catch { if generation == stamp { preview = nil; loadFailed = true; message = PublisherLifecycleCopy.error(error, zh: isChinese) } }
+    private var currentAction: PublisherLifecycleAction? {
+        guard let value = Decimal(string: price), let input = try? input() else { return nil }
+        return .pricing(input, value)
     }
-    private func prepare() async {
-        busy = true; defer { busy = false }; let stamp = generation
-        do { guard let price = Decimal(string: price) else { throw PublisherLifecycleError.incomplete }; let value = try await coordinator.prepare(.pricing(input(), price)); guard generation == stamp else { return }; review = value }
-        catch { message = PublisherLifecycleCopy.error(error, zh: isChinese) }
+    private var formKey: [String] { [String(topicID), String(describing: subtype), cost, team, price] }
+    private func invalidate(keepPreview: Bool = false) {
+        generation = UUID(); review = nil; message = ""; busy = false; loadFailed = false
+        if !keepPreview { preview = nil; partnerNames = [:]; resultSession = nil }
+        coordinator.invalidate()
+    }
+    private func isCurrent(_ stamp: UUID, _ session: PublishingSession, _ key: [String]) -> Bool {
+        visible && phase == .active && generation == stamp && client.session == session && coordinator.currentSession == session && formKey == key
+    }
+    private func beginLoad() {
+        guard visible, phase == .active, !busy, let session = client.session,
+              coordinator.currentSession == session else { return }
+        let capturedInput: PublisherPricingInput
+        do { capturedInput = try input() }
+        catch { message = PublisherLifecycleCopy.error(error, zh: isChinese); resultSession = session; loadFailed = true; return }
+        invalidate()
+        let stamp = generation, key = formKey
+        busy = true
+        Task {
+            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, key) { busy = false } }
+            do {
+                let value = try await client.pricing(capturedInput)
+                guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+                busy = false; preview = value; loadFailed = false; resultSession = session
+                price = String(TopicPricingXcx.initialPrice(floor: value.minimum))
+            } catch {
+                guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+                loadFailed = true; message = PublisherLifecycleCopy.error(error, zh: isChinese); resultSession = session
+            }
+        }
+    }
+    private func beginPrepare() {
+        guard visible, phase == .active, !busy, let session = client.session,
+              coordinator.currentSession == session else { return }
+        guard let action = currentAction else {
+            message = PublisherLifecycleCopy.error(PublisherLifecycleError.incomplete, zh: isChinese); resultSession = session; return
+        }
+        invalidate(keepPreview: true)
+        let stamp = generation, key = formKey
+        busy = true
+        Task {
+            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, key) { busy = false } }
+            do {
+                let value = try await coordinator.prepare(action)
+                guard isCurrent(stamp, session, key), !Task.isCancelled,
+                      value.session == session, value.action == action else { return }
+                review = value
+            } catch {
+                guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+                message = PublisherLifecycleCopy.error(error, zh: isChinese); resultSession = session
+            }
+        }
+    }
+    private func beginConfirm(_ value: PublisherLifecycleReview) {
+        guard visible, phase == .active, !busy, let session = client.session,
+              coordinator.currentSession == session, value.session == session,
+              self.review == value, value.action == currentAction else { return }
+        let stamp = generation, key = formKey
+        busy = true
+        Task {
+            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, key) { busy = false } }
+            let review = value
+            let outcome = await coordinator.confirm(review, consequentialApproval: true)
+            guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
+            message = PublisherLifecycleCopy.outcome(outcome, zh: isChinese); resultSession = session; self.review = nil
+        }
     }
 }
 @MainActor struct PublisherPartnerView: View {
@@ -196,7 +265,20 @@ import SwiftUI
     @State private var message = ""
     @State private var loading = true
     @State private var failed = false
+    @State private var generation = UUID()
+    @State private var resultKey: ReadKey?
+    @Environment(\.scenePhase) private var phase
     @Environment(\.locale) private var locale
+    private struct ReadKey: Equatable {
+        let client: ObjectIdentifier
+        let session: PublishingSession?
+        let topicID: Int
+        let row: PublisherLineup
+        let active: Bool
+    }
+    private var readKey: ReadKey {
+        .init(client: ObjectIdentifier(client), session: client.session, topicID: topicID, row: row, active: phase == .active)
+    }
     private var isClub: Bool { row.type == "club" }
     var body: some View {
         List {
@@ -211,7 +293,8 @@ import SwiftUI
             } else {
                 Section {
                     // pages/topic/pricing/partner/index phase (TopicPricingXcx.partnerPreviewPhase).
-                    switch TopicPricingXcx.partnerPreviewPhase(loading: loading, inspection: result, failed: failed) {
+                    let scopedResult = resultKey == readKey ? result : nil
+                    switch TopicPricingXcx.partnerPreviewPhase(loading: loading, inspection: scopedResult, failed: resultKey == readKey && failed) {
                     case .loading: CYSkeleton()
                     case .error:
                         Label("publisherPricing.loadFailed", systemImage: "exclamationmark.triangle")
@@ -228,7 +311,7 @@ import SwiftUI
                         ForEach(rows, id: \.0) { key, value in LabeledContent(key, value: value) }
                     }
                 } header: { Text(isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")) }
-                if let terms = result?.terms {
+                if resultKey == readKey, let terms = result?.terms {
                     Section {
                         LabeledContent(text("publisherPricing.settlement"), value: terms.mode == 1 ? text("publisherPricing.revenueShare") : terms.mode == 2 ? text("publisherPricing.fixed") : text("publisherPricing.referral"))
                         // Unknown share / fee is a bare em dash (never "—%" or "¥—"); a literal 0 stays "0".
@@ -243,18 +326,32 @@ import SwiftUI
                     }
                 }
             }
-            if !message.isEmpty { Text(message) }
+            if resultKey == readKey, !message.isEmpty { Text(message) }
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .accessibilityIdentifier("publisher.partner")
         .cyHeroScreen()
         .cyPushedChrome(domain: .merchant)
-        .task {
-            guard topicID > 0, row.partnerID > 0 else { loading = false; return }
-            do { result = try await client.partner(topicID: topicID, type: row.type, id: row.partnerID); failed = false }
-            catch { failed = true; message = PublisherLifecycleCopy.error(error, zh: zh) }
-            loading = false
+        .task(id: readKey) { await load(readKey) }
+        .onDisappear { retire() }
+    }
+    private func retire() {
+        generation = UUID(); result = nil; message = ""; resultKey = nil; failed = false; loading = false
+    }
+    private func load(_ key: ReadKey) async {
+        guard !Task.isCancelled else { return }
+        retire()
+        guard key == readKey, key.active, key.session != nil, key.topicID > 0, key.row.partnerID > 0 else { return }
+        let stamp = generation
+        loading = true
+        do {
+            let value = try await client.partner(topicID: key.topicID, type: key.row.type, id: key.row.partnerID)
+            guard !Task.isCancelled, generation == stamp, key == readKey else { return }
+            result = value; resultKey = key; failed = false; loading = false
+        } catch {
+            guard !Task.isCancelled, generation == stamp, key == readKey else { return }
+            failed = true; message = PublisherLifecycleCopy.error(error, zh: zh); resultKey = key; loading = false
         }
     }
     /// Source profile rows; values may be strings, numbers, arrays or objects (flattened by name/title/label).
@@ -298,6 +395,9 @@ import SwiftUI
     let resource: PublishedResource; let coordinator: PublisherLifecycleCoordinator
     @State private var reason = ""; @State private var review: PublisherLifecycleReview?
     @State private var message = ""; @State private var busy = false
+    @State private var generation = UUID()
+    @State private var visible = false
+    @State private var messageSession: PublishingSession?
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
@@ -307,32 +407,70 @@ import SwiftUI
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Text(zh ? "主办方取消并退款，无法撤销。原因将展示给玩家。" : "Organizer cancellation and refunds are irreversible. The reason is shown to players.")
             TextField(zh ? "取消原因" : "Cancellation reason", text: $reason, axis: .vertical).accessibilityIdentifier("publisher.cancelReason")
-            CYPillButton(verbatim: zh ? "查看退款影响" : "Preview refund impact", style: .secondary) { Task {
-                busy = true; defer { busy = false }
-                do { review = try await coordinator.prepare(.cancel(resource, reason: reason, scope: nil)); message = "" }
-                catch { message = PublisherLifecycleCopy.error(error, zh: zh) }
-            } }.disabled(busy || reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("publisher.refundPreview")
-            if let review, let count = review.paidPlayers {
+            CYPillButton(verbatim: zh ? "查看退款影响" : "Preview refund impact", style: .secondary) { beginPrepare() }.disabled(busy || reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("publisher.refundPreview")
+            if let review, review.session == coordinator.currentSession, review.action == currentAction, let count = review.paidPlayers {
                 Text(zh ? "将给 \(count) 位已付款玩家全额退款。" : "Full refunds will be issued to \(count) paid players.").accessibilityIdentifier("publisher.paidPlayers")
                 Text(resource.kind == .topic ? (zh ? "主题停售，名下场次一并取消；已核销票不自动退款。" : "Topic sales stop and its sessions are cancelled; redeemed tickets are not automatically refunded.") : (zh ? "活动下架，玩家无法报名或进入。" : "The activity is removed from sale; players cannot register or enter."))
                 Text(reason)
-                Button(zh ? "确认取消并退款" : "Confirm cancellation and refunds", role: .destructive) { Task {
-                    busy = true; let outcome = await coordinator.confirm(review, consequentialApproval: true)
-                    message = PublisherLifecycleCopy.outcome(outcome, zh: zh); self.review = nil; busy = false
-                } }.disabled(busy).accessibilityIdentifier("publisher.confirmRefund")
+                Button(zh ? "确认取消并退款" : "Confirm cancellation and refunds", role: .destructive) { beginConfirm(review) }.disabled(busy).accessibilityIdentifier("publisher.confirmRefund")
             }
-            Text(message)
+            if messageSession == coordinator.currentSession { Text(message) }
         }.cyHeroScreen()
-        .onChange(of: reason) { _, _ in clear() }.onDisappear { clear() }
+        .onAppear { visible = true }
+        .onChange(of: reason) { _, _ in clear() }
+        .onChange(of: resource) { _, _ in clear() }
+        .onChange(of: coordinator.currentSession) { _, _ in clear() }
+        .onDisappear { visible = false; clear() }
         .onChange(of: phase) { _, value in if value != .active { clear() } }
         .cyDomainScreen(.merchant)
     }
-    private func clear() { review = nil; coordinator.invalidate() }
+    private var currentAction: PublisherLifecycleAction { .cancel(resource, reason: reason, scope: nil) }
+    private func clear() {
+        generation = UUID(); review = nil; message = ""; messageSession = nil
+        busy = false; coordinator.invalidate()
+    }
+    private func isCurrent(_ stamp: UUID, _ session: PublishingSession, _ action: PublisherLifecycleAction) -> Bool {
+        visible && phase == .active && generation == stamp && coordinator.currentSession == session && currentAction == action
+    }
+    private func beginPrepare() {
+        guard visible, phase == .active, !busy, let session = coordinator.currentSession else { return }
+        let stamp = UUID(), action = currentAction
+        generation = stamp; busy = true; review = nil; message = ""; messageSession = nil
+        Task {
+            guard isCurrent(stamp, session, action), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, action) { busy = false } }
+            do {
+                let value = try await coordinator.prepare(action)
+                guard isCurrent(stamp, session, action), !Task.isCancelled,
+                      value.session == session, value.action == action else { return }
+                review = value
+            } catch {
+                guard isCurrent(stamp, session, action), !Task.isCancelled else { return }
+                message = PublisherLifecycleCopy.error(error, zh: zh); messageSession = session
+            }
+        }
+    }
+    private func beginConfirm(_ value: PublisherLifecycleReview) {
+        guard visible, phase == .active, !busy, let session = coordinator.currentSession,
+              value.session == session, value.action == currentAction, review == value else { return }
+        let stamp = generation, action = currentAction
+        busy = true
+        Task {
+            guard isCurrent(stamp, session, action), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, action) { busy = false } }
+            let outcome = await coordinator.confirm(value, consequentialApproval: true)
+            guard isCurrent(stamp, session, action), !Task.isCancelled else { return }
+            message = PublisherLifecycleCopy.outcome(outcome, zh: zh); messageSession = session; review = nil
+        }
+    }
 }
 /// Use for selected eligible club or current topic beta action. No arbitrary identity editor.
 @MainActor struct PublisherOwnershipReviewView: View {
     let action: PublisherLifecycleAction; let coordinator: PublisherLifecycleCoordinator
     @State private var review: PublisherLifecycleReview?; @State private var message = ""; @State private var busy = false
+    @State private var generation = UUID()
+    @State private var visible = false
+    @State private var messageSession: PublishingSession?
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
@@ -342,14 +480,55 @@ import SwiftUI
                 Text("#\(topic) → #\(club)")
                 Text(zh ? "为俱乐部复制新草稿，原主题下架；发起人保留内容所有权，俱乐部只能组织带队。" : "Create a new club draft and take the original topic offline. The initiator retains content ownership; the club organizes only.")
             } else { Text(zh ? "永久移除 Beta 标识，无法撤销。" : "Permanently remove the Beta designation. This cannot be undone.") }
-            Button(zh ? "刷新并审阅" : "Refresh and review") { Task { busy = true; defer { busy = false }; do { review = try await coordinator.prepare(action) } catch { message = PublisherLifecycleCopy.error(error, zh: zh) } } }.disabled(busy)
-            if let review {
-                Button(zh ? "确认此操作" : "Confirm this action", role: .destructive) { Task { busy = true; let result = await coordinator.confirm(review, consequentialApproval: true); message = PublisherLifecycleCopy.outcome(result, zh: zh); self.review = nil; busy = false } }.disabled(busy).accessibilityIdentifier("publisher.confirmOwnership")
+            Button(zh ? "刷新并审阅" : "Refresh and review") { beginPrepare() }.disabled(busy)
+            if let review, review.session == coordinator.currentSession, review.action == action {
+                Button(zh ? "确认此操作" : "Confirm this action", role: .destructive) { beginConfirm(review) }.disabled(busy).accessibilityIdentifier("publisher.confirmOwnership")
             }
-            Text(message)
-        }.onDisappear { coordinator.invalidate(); review = nil }
-        .onChange(of: phase) { _, value in if value != .active { coordinator.invalidate(); review = nil } }
+            if messageSession == coordinator.currentSession { Text(message) }
+        }.onAppear { visible = true }
+        .onDisappear { visible = false; clear() }
+        .onChange(of: action) { _, _ in clear() }
+        .onChange(of: coordinator.currentSession) { _, _ in clear() }
+        .onChange(of: phase) { _, value in if value != .active { clear() } }
         .cyDomainScreen(.merchant)
+    }
+    private func clear() {
+        generation = UUID(); review = nil; message = ""; messageSession = nil
+        busy = false; coordinator.invalidate()
+    }
+    private func isCurrent(_ stamp: UUID, _ session: PublishingSession, _ capturedAction: PublisherLifecycleAction) -> Bool {
+        visible && phase == .active && generation == stamp && coordinator.currentSession == session && action == capturedAction
+    }
+    private func beginPrepare() {
+        guard visible, phase == .active, !busy, let session = coordinator.currentSession else { return }
+        let stamp = UUID(), capturedAction = action
+        generation = stamp; busy = true; review = nil; message = ""; messageSession = nil
+        Task {
+            guard isCurrent(stamp, session, capturedAction), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, capturedAction) { busy = false } }
+            do {
+                let value = try await coordinator.prepare(capturedAction)
+                guard isCurrent(stamp, session, capturedAction), !Task.isCancelled,
+                      value.session == session, value.action == capturedAction else { return }
+                review = value
+            } catch {
+                guard isCurrent(stamp, session, capturedAction), !Task.isCancelled else { return }
+                message = PublisherLifecycleCopy.error(error, zh: zh); messageSession = session
+            }
+        }
+    }
+    private func beginConfirm(_ value: PublisherLifecycleReview) {
+        guard visible, phase == .active, !busy, let session = coordinator.currentSession,
+              value.session == session, value.action == action, review == value else { return }
+        let stamp = generation, capturedAction = action
+        busy = true
+        Task {
+            guard isCurrent(stamp, session, capturedAction), !Task.isCancelled else { return }
+            defer { if isCurrent(stamp, session, capturedAction) { busy = false } }
+            let result = await coordinator.confirm(value, consequentialApproval: true)
+            guard isCurrent(stamp, session, capturedAction), !Task.isCancelled else { return }
+            message = PublisherLifecycleCopy.outcome(result, zh: zh); messageSession = session; review = nil
+        }
     }
 }
 @MainActor struct PublisherXPBudgetSection: View {
