@@ -103,7 +103,14 @@ import XCTest
             "binding": [
                 "boardId": "b1", "regionId": "r1", "seasonId": "s1",
                 "rulesReleaseId": "rr1", "releaseId": 1,
-                "contentHash": String(repeating: "a", count: 64)
+                "contentHash": String(repeating: "a", count: 64),
+                "revision": 1, "title": "Board 1",
+                "rules": [
+                    "mode": "COOP", "minMembers": 2, "maxMembers": 4,
+                    "joinPolicy": "OPEN", "rosterPolicy": "FIXED",
+                    "replacementPolicy": "NONE", "reentryPolicy": "DENY",
+                    "roundPolicy": "FIXED", "roundId": "round-1"
+                ]
             ],
             "teamId": "11111111-1111-1111-1111-111111111111",
             "sessionId": "22222222-2222-2222-2222-222222222222",
