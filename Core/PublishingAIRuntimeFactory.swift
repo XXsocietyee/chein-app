@@ -18,18 +18,24 @@ import FoundationNetworking
     }
     public static func validates(_ request: URLRequest, feature: BusinessRuntimeFeature, baseURL: URL) -> Bool {
         guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil else { return false }
-        let path: String
+        let allowedPaths: [String]
         switch feature {
-        case .publishingAITheme: path = "api/ai/theme/draft"
-        case .publishingAIClub: path = "api/ai/club/design"
-        case .publishingAITemplate: path = "api/ai/template/fill"
+        case .publishingAITheme: allowedPaths = [PublishingContracts.aiThemeDraftPreparePath, PublishingContracts.aiThemeDraftExecutePath]
+        case .publishingAIClub: allowedPaths = ["api/ai/club/design"]
+        case .publishingAITemplate: allowedPaths = ["api/ai/template/fill"]
         case .publishingAIQuota:
             return request.url == baseURL.appendingPathComponent("api/ai/theme/draft/quota") && (request.httpBody == nil || request.httpBody?.isEmpty == true)
         default: return false
         }
-        guard request.url == baseURL.appendingPathComponent(path),
+        guard let matchedPath = allowedPaths.first(where: { request.url == baseURL.appendingPathComponent($0) }),
               request.value(forHTTPHeaderField: "Content-Type")?.lowercased().hasPrefix("application/json") == true,
               let data = request.httpBody, let fields = try? JSONDecoder().decode([String: ProjectEditJSON].self, from: data) else { return false }
+        if feature == .publishingAITheme && matchedPath == PublishingContracts.aiThemeDraftExecutePath {
+            guard Set(fields.keys) == ["requestId"],
+                  let requestID = fields["requestId"]?.text,
+                  G6AIThemeDraft.isServerID(requestID) else { return false }
+            return true
+        }
         if feature == .publishingAITemplate {
             guard Set(fields.keys).isSubset(of: ["shopName", "extraNote", "category", "reward", "playStyle", "validationMethod"]),
                   let name = fields["shopName"]?.text, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -41,7 +47,9 @@ import FoundationNetworking
         guard let idea = fields["idea"]?.text, !idea.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         switch feature {
         case .publishingAITheme:
-            return Set(fields.keys) == ["idea", "productType"] && idea.count <= 300 && [1, 2].contains(fields["productType"]?.integer ?? 0)
+            guard Set(fields.keys) == ["prepareKey", "idea", "productType"],
+                  let prepareKey = fields["prepareKey"]?.text, UUID(uuidString: prepareKey) != nil else { return false }
+            return idea.count <= 300 && [1, 2].contains(fields["productType"]?.integer ?? 0)
         case .publishingAIClub:
             guard Set(fields.keys).isSubset(of: ["idea", "clubStyle", "targetDurationMin"]) else { return false }
             if let style = fields["clubStyle"], style.text == nil { return false }

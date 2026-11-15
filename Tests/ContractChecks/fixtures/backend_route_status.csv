@@ -19,7 +19,8 @@ POST,api/ai/npc/merchant-chat,MATCH,Core/MerchantNPCHTTP.swift:69
 ?,api/ai/npc/voice-chat,MATCH,Core/ShopNPCHTTP.swift:45
 ?,api/ai/safety/precheck,MATCH,Core/ProjectEditContract.swift:8
 ?,api/ai/template/fill,MATCH,Core/PublishModesContracts.swift:110
-POST,api/ai/theme/draft,MATCH,Core/MerchantNPCOriginalDraftWriter.swift:30
+POST,api/ai/theme/draft/execute,MATCH,Core/PublishModesContracts.swift:109
+POST,api/ai/theme/draft/prepare,MATCH,Core/PublishModesContracts.swift:101
 ?,api/ai/theme/draft/quota,MATCH,Core/PublishModesService.swift:318
 GET,api/ai/theme/draft/request,MATCH,Core/MerchantNPCThemeDraftRequestRead.swift:15
 ?,api/approved-topic-release/v1/prepare,NO-BACKEND,Core/ApprovedTopicReleaseDomain.swift:4

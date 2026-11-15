@@ -171,8 +171,9 @@ import Foundation
         return true
     }
 
-    /// UUID shape the server accepts before it will read a theme draft request. This does not create one.
+    /// UUID or V2 server ID (`td2_` + 32 hex) accepted before reading a draft request. This does not create one.
     public static func isThemeDraftRequestID(_ value: String) -> Bool {
+        if G6AIThemeDraft.isServerID(value) { return true }
         let parts = value.split(separator: "-", omittingEmptySubsequences: false)
         let lengths = [8, 4, 4, 4, 12]
         guard parts.count == lengths.count else { return false }

@@ -191,6 +191,15 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertTrue(bridge.contains("guard await open() else { throw APIError.notConfigured }"))
         XCTAssertTrue(lease.contains("ReviewedAreaSwitch.payout"))
         XCTAssertTrue(lease.contains("ReviewedAreaSwitch.merchantWrites"))
+        _ = try? await testClient.account()
+        let readRequest = try XCTUnwrap(transport.requests.last)
+        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertEqual(readRequest.httpMethod, "POST")
+        XCTAssertEqual(readRequest.url?.path, "/native/api/merchant/payout-account")
+        XCTAssertNil(readRequest.url?.query)
+        XCTAssertEqual(readRequest.value(forHTTPHeaderField: "Accept"), "application/json")
+        XCTAssertNil(readRequest.value(forHTTPHeaderField: "Content-Type"))
+        XCTAssertNil(readRequest.httpBody)
     }
 
     func testOWND06PassPurchaseStaysBehindTheCommerceGate() throws {

@@ -306,10 +306,26 @@ extension RewardPledgeTests {
         XCTAssertEqual(RewardPledgeRoutes.operation(withdrawReq, baseURL: base), "withdraw")
         XCTAssertEqual(RewardPledgeRoutes.operation(catalogReq, baseURL: base), "catalog")
         XCTAssertEqual(RewardPledgeRoutes.operation(offerReq, baseURL: base), "offer")
+        XCTAssertEqual(holdReq.httpMethod, "POST")
+        XCTAssertEqual(withdrawReq.httpMethod, "POST")
+        XCTAssertEqual(catalogReq.httpMethod, "GET")
+        XCTAssertEqual(offerReq.httpMethod, "GET")
         XCTAssertEqual(holdReq.url?.path, "/api/reward-pledge/versions/ver-9/hold")
         XCTAssertEqual(withdrawReq.url?.path, "/api/reward-pledge/versions/ver-9/withdraw")
         XCTAssertEqual(catalogReq.url?.path, "/api/rewards/noncash/subjects/sub-7")
         XCTAssertEqual(offerReq.url?.path, "/api/rewards/noncash/versions/ver-9")
+        for req in [holdReq, withdrawReq, catalogReq, offerReq] {
+            XCTAssertEqual(req.value(forHTTPHeaderField: "Accept"), "application/json")
+            XCTAssertNil(req.value(forHTTPHeaderField: "Content-Type"))
+            XCTAssertNil(req.httpBody)
+        }
+        XCTAssertNil(holdReq.url?.query)
+        XCTAssertNil(withdrawReq.url?.query)
+        XCTAssertNil(catalogReq.url?.query)
+        XCTAssertEqual(URLComponents(url: offerReq.url!, resolvingAgainstBaseURL: false)?.queryItems, [
+            URLQueryItem(name: "branch", value: "THEME"),
+            URLQueryItem(name: "subjectId", value: "sub-7"),
+        ])
 
         var bareVersions = URLRequest(url: base.appendingPathComponent("api/reward-pledge/versions"))
         bareVersions.httpMethod = "POST"

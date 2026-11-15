@@ -26,12 +26,17 @@ import FoundationNetworking
         let listed = try XCTUnwrap(wire.requests.first)
         XCTAssertEqual(listed.httpMethod, "POST")
         XCTAssertTrue(listed.url?.path.hasSuffix("/api/workshop/v2/purchased/list") == true)
+        XCTAssertEqual(listed.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertEqual(listed.httpBody, Data())
+        XCTAssertNil(listed.url?.query)
         var detailFailed = false
         do { _ = try await service.detail(licenseId: "w18-paid-11", lifetime: lifetime) } catch { detailFailed = true }
         XCTAssertTrue(detailFailed)
         let detailed = try XCTUnwrap(wire.requests.last)
         XCTAssertEqual(detailed.httpMethod, "POST")
         XCTAssertTrue(detailed.url?.path.hasSuffix("/api/workshop/v2/purchased/detail") == true)
+        XCTAssertEqual(detailed.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertNil(detailed.url?.query)
         let body = String(data: detailed.httpBody ?? Data(), encoding: .utf8)
         XCTAssertEqual(body, "license_id=w18-paid-11")
         XCTAssertEqual(wire.requests.count, 2)

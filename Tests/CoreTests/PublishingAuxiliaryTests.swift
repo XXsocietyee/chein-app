@@ -28,7 +28,7 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
     private func client(_ transport: PublishingAuxFakeTransport, session: PublishingSession, journal: PublishingAuxJournal? = nil, approved: Bool = true) throws -> PublishingAuxiliaryService {
         let credential = try PublishingCredentials(session: session, token: "synthetic")
         let approval = try OperationEndpointApproval(baseURL: config().baseURL, namespace: session.namespace, accountID: session.accountID,
-            paths: ["api/ai/theme/draft", "api/ai/template/fill", "api/ai/club/design", "api/ai/safety/precheck", "api/publisher/identity"])
+            paths: ["api/ai/theme/draft/prepare", "api/ai/theme/draft/execute", "api/ai/template/fill", "api/ai/club/design", "api/ai/safety/precheck", "api/publisher/identity"])
         return try PublishingAuxiliaryService(configuration: config(), transport: transport, approval: approved ? approval : nil,
                                               journal: journal ?? PublishingAuxJournal(), credentials: { credential })
     }
@@ -39,12 +39,24 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
         return prefix + String(Array("10X98765432")[sum % 11])
     }
     func testAIExactExecutableRequestsAndPayloads() async throws {
-        let s = session(), t = PublishingAuxFakeTransport(Array(repeating: #"{"code":200,"data":{"fixture":true}}"#, count: 4)), api = try client(t, session: s)
+        let s = session()
+        let replies = [
+            #"{"code":200,"data":{"requestId":"td2_0123456789abcdef0123456789abcdef","state":"PREPARED"}}"#,
+            #"{"code":200,"data":{"requestId":"td2_0123456789abcdef0123456789abcdef","state":"SUCCEEDED","resultAvailable":true,"result":{"fixture":true}}}"#,
+            #"{"code":200,"data":{"fixture":true}}"#,
+            #"{"code":200,"data":{"fixture":true}}"#,
+            #"{"code":200,"data":{"fixture":true}}"#,
+        ]
+        let t = PublishingAuxFakeTransport(replies), api = try client(t, session: s)
         let operations: [PublishingAssistance] = [.theme(idea: " idea "), .template(shopName: "shop", extraNote: "note", category: "", reward: "", playStyle: "", validationMethod: 2), .club(idea: " idea ", style: nil, minutes: 30), .safety(["text": .string("synthetic")])]
         for op in operations { let review = try api.prepare(op, session: s); let result = await api.confirm(review); XCTAssertEqual(result, .acknowledged(.object(["fixture": .bool(true)]))) }
-        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/ai/theme/draft", "/api/ai/template/fill", "/api/ai/club/design", "/api/ai/safety/precheck"])
+        XCTAssertEqual(t.requests.map { $0.url!.path }, ["/api/ai/theme/draft/prepare", "/api/ai/theme/draft/execute", "/api/ai/template/fill", "/api/ai/club/design", "/api/ai/safety/precheck"])
         let bodies = try t.requests.map { try JSONDecoder().decode([String: ProjectEditJSON].self, from: XCTUnwrap($0.httpBody)) }
-        XCTAssertEqual(bodies[0], ["idea": .string("idea")]); XCTAssertEqual(bodies[1]["category"], .string("")); XCTAssertEqual(bodies[1]["validationMethod"], .number(2)); XCTAssertNil(bodies[2]["clubStyle"]); XCTAssertEqual(bodies[2]["targetDurationMin"], .number(30))
+        XCTAssertEqual(Set(bodies[0].keys), ["prepareKey", "idea"])
+        XCTAssertNotNil(UUID(uuidString: bodies[0]["prepareKey"]?.text ?? ""))
+        XCTAssertEqual(bodies[0]["idea"], .string("idea"))
+        XCTAssertEqual(bodies[1], ["requestId": .string("td2_0123456789abcdef0123456789abcdef")])
+        XCTAssertEqual(bodies[2]["category"], .string("")); XCTAssertEqual(bodies[2]["validationMethod"], .number(2)); XCTAssertNil(bodies[3]["clubStyle"]); XCTAssertEqual(bodies[3]["targetDurationMin"], .number(30))
         for request in t.requests { XCTAssertEqual(request.httpMethod, "POST"); XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json"); XCTAssertNil(request.value(forHTTPHeaderField: "Idempotency-Key")) }
     }
     func testDefaultAuxiliaryMakesZeroRequests() async throws {
@@ -61,8 +73,11 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
         // Current backend gateThemeDraftRole permits players for theme drafting only.
         let s = session(role: "player"), t = PublishingAuxFakeTransport(), api = try client(t, session: s, approved: false)
         let current = try api.prepare(.themeForProduct(idea: "synthetic", product: .freeExplore), session: s)
-        XCTAssertEqual(current.request.path, "api/ai/theme/draft")
-        XCTAssertEqual(current.request.fields, ["idea": .string("synthetic"), "productType": .number(2)])
+        XCTAssertEqual(current.request.path, "api/ai/theme/draft/prepare")
+        XCTAssertEqual(Set(current.request.fields.keys), ["prepareKey", "idea", "productType"])
+        XCTAssertNotNil(UUID(uuidString: current.request.fields["prepareKey"]?.text ?? ""))
+        XCTAssertEqual(current.request.fields["idea"], .string("synthetic"))
+        XCTAssertEqual(current.request.fields["productType"], .number(2))
         XCTAssertTrue(t.requests.isEmpty)
         let result = await api.confirm(current)
         XCTAssertEqual(result, .notSent); XCTAssertTrue(t.requests.isEmpty)
@@ -87,7 +102,11 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
             journal: PublishingAuxJournal(), credentials: { credential })
         let first = try wrongPathClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: s)
         let deniedPath = await wrongPathClient.confirm(first); XCTAssertEqual(deniedPath, .notSent)
-        let themePath = try OperationEndpointApproval(baseURL: config().baseURL, namespace: s.namespace, accountID: s.accountID, paths: ["api/ai/theme/draft"])
+        let prepareOnly = try OperationEndpointApproval(baseURL: config().baseURL, namespace: s.namespace, accountID: s.accountID, paths: ["api/ai/theme/draft/prepare"])
+        let prepareOnlyClient = try PublishingAuxiliaryService(configuration: config(), transport: t, approval: prepareOnly, journal: PublishingAuxJournal(), credentials: { credential })
+        let halfGranted = try prepareOnlyClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: s)
+        XCTAssertEqual(await prepareOnlyClient.confirm(halfGranted), .notSent)
+        let themePath = try OperationEndpointApproval(baseURL: config().baseURL, namespace: s.namespace, accountID: s.accountID, paths: ["api/ai/theme/draft/prepare", "api/ai/theme/draft/execute"])
         let noJournalClient = try PublishingAuxiliaryService(configuration: config(), transport: t, approval: themePath, credentials: { credential })
         let second = try noJournalClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: s)
         let deniedJournal = await noJournalClient.confirm(second); XCTAssertEqual(deniedJournal, .notSent)

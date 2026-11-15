@@ -331,7 +331,7 @@ public extension BusinessRuntimeFeature {
         case .topicSelfPlayConsentRead: paths = ["api/compliance/consents/latest"]
         case .topicSelfPlayConsentWrite: paths = ["api/compliance/consents"]
         case .publishingAIQuota: paths = ["api/ai/theme/draft/quota"]
-        case .publishingAITheme: paths = ["api/ai/theme/draft"]
+        case .publishingAITheme: paths = ["api/ai/theme/draft/prepare", "api/ai/theme/draft/execute"]
         case .publishingAIClub: paths = ["api/ai/club/design"]
         case .publishingAITemplate: paths = ["api/ai/template/fill"]
         case .publishingWrite: paths = ["api/project/state-requests/submit", "api/activity/create-requests/submit", "api/activity/create-requests/resume-post-processing", "api/activity/publish", "api/topic/create", "api/topic/delete", "api/topic/update_user_status", "api/activity/delete", "api/activity/update_publish_status", "api/template/delete", "api/template/updateLibraryStatus"]

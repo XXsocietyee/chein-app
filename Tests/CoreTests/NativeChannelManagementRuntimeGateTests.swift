@@ -424,7 +424,14 @@ extension NativeChannelManagementRuntimeGateTests {
         let wire = ManagementRuntimeGateWire()
         var req = URLRequest(url: URL(string: "https://8120.example.test/" + concrete.path)!)
         req.httpMethod = "GET"
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
         _ = try await wire.send(req)
-        XCTAssertEqual(wire.requests.last?.url?.path, "/api/channels/member-state-requests/00000000-0000-4000-8000-000000000001")
+        let sent = try XCTUnwrap(wire.requests.last)
+        XCTAssertEqual(sent.httpMethod, "GET")
+        XCTAssertEqual(sent.url?.path, "/api/channels/member-state-requests/00000000-0000-4000-8000-000000000001")
+        XCTAssertEqual(sent.value(forHTTPHeaderField: "Accept"), "application/json")
+        XCTAssertNil(sent.value(forHTTPHeaderField: "Content-Type"))
+        XCTAssertNil(sent.httpBody)
+        XCTAssertNil(sent.url?.query)
     }
 }
