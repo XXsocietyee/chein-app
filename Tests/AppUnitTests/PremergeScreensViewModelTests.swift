@@ -67,10 +67,7 @@ final class PremergeScreensViewModelTests: XCTestCase {
             verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.questify.premerge",
             realm: "premerge-tests",
-            reads: [.homeAndSearch],
-            // The presence switch is a reviewed player write; the composition gate refuses it without these.
-            productionGatesEnabled: true,
-            playerWritesEnabled: true
+            reads: [.homeAndSearch]
         )
     }
 

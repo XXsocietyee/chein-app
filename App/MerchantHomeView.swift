@@ -24,6 +24,12 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     @StateObject private var todo = MerchantLoadModel<MerchantTodo>()
     @StateObject private var events = MerchantLoadModel<[MerchantEvent]>()
     @State private var childReturnRevision: UInt64 = 0
+    /// True while a pushed child covers this root. SwiftUI may report the child leaving before or after the root
+    /// re-appears; either way a return must cause exactly one fresh access read.
+    @State private var coveredByChild = false
+    /// Uptime at which the root re-appeared and its `.task` restarted. A child reported as leaving within the same
+    /// pop transition is already covered by that read; any later return still refreshes.
+    @State private var returnReadStartedAt: TimeInterval?
 
     var body: some View {
         ZStack {
@@ -33,7 +39,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                 merchantGate(systemImage: "person.crop.circle.badge.exclamationmark", message: "merchant.signIn")
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
-                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, childReturnRevision: childReturnRevision, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturnRevision &+= 1 })
+                    MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, childReturnRevision: childReturnRevision, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturned() })
                         .id("\(reader.sessionRevision):\(identity.merchantID ?? 0):\(identity.role?.rawValue ?? "")")
                 } else {
                     List {
@@ -103,6 +109,18 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
         .themeDomain(.merchant)
         .tint(CYDomainPalette(.merchant).brand)
         .task(id: [reader.sessionRevision, childReturnRevision]) { await reload() }
+        .onDisappear { coveredByChild = true; returnReadStartedAt = nil }
+        .onAppear { if coveredByChild { coveredByChild = false; returnReadStartedAt = ProcessInfo.processInfo.systemUptime } }
+    }
+    private func childReturned() {
+        if coveredByChild {
+            // The child left first; the root's re-appearance starts the task once with the new id.
+            coveredByChild = false; childReturnRevision &+= 1
+        } else if let started = returnReadStartedAt, ProcessInfo.processInfo.systemUptime - started < 1 {
+            returnReadStartedAt = nil
+        } else {
+            childReturnRevision &+= 1
+        }
     }
     private func reload() async {
         await Self.refreshWorkbenchOnChildReturn(accessModel: access, dashboard: dashboard, todo: todo, events: events,

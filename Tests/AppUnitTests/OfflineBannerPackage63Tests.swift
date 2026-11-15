@@ -236,7 +236,10 @@ final class OfflineBannerPackage63Tests: XCTestCase {
         XCTAssertEqual(model.queuedCount, 1)
         XCTAssertEqual(model.status(for: ["/api/play/feedback/submit"], isOnline: false), .queued(count: 1))
         XCTAssertEqual(model.status(for: ["/api/capsules/create"], isOnline: false), .none)
-        XCTAssertEqual(model.status(for: ["/api/pay/create"], isOnline: false), .moneyExcluded)
+        // The release money switch refuses the payment at the composition gate, so it is never sent and there is
+        // nothing to capture. The excluded-money status of a captured money write is asserted in
+        // testSessionOfflineSyncModelTracksQueuedSyncedAndExcludedMoneyStatus.
+        XCTAssertEqual(model.status(for: ["/api/pay/create"], isOnline: false), .none)
         XCTAssertFalse(stub.hosts.contains("www.chengyinhub.com"))
         XCTAssertTrue(stub.hosts.allSatisfy { $0 == "8120.example.test" })
     }
