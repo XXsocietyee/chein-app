@@ -193,7 +193,7 @@ localizable_ui=re.sub(r'(?:systemImage|systemName|symbol):\s*"(?:\\.|[^"\\])*"',
 # SF Symbol name returned for the search-map layers tile, not a localization key.
 localizable_ui=localizable_ui.replace('case .layers: "square.3.layers.3d"', 'case .layers: ""')
 # SF Symbol names in this status-chip ternary, not localization keys.
-localizable_ui=localizable_ui.replace('systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? "lock.fill" : "play.circle"', '')
+localizable_ui=localizable_ui.replace('systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? (node.weatherLocked == true ? "cloud.rain.fill" : "lock.fill") : "play.circle"', '')
 # These four values are explicit nonlocalized identifiers at these exact calls.
 # Do not exclude the same strings when used by Text or localization lookup.
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")', '')
