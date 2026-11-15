@@ -434,7 +434,7 @@ private struct MessagingBubble: View {
     /// Received messages show a small avatar beside the bubble; only groups add the sender name.
     private var isGroup: Bool { conversation?.kind == .group }
     var body: some View {
-        if conversation?.kind == .system && !isOwn { noticeCard } else { bubbleRow }
+        if (conversation?.kind == .system || message.senderID == 0) && !isOwn { noticeCard } else { bubbleRow }
     }
     /// Mini-program system notice: full-width card (icon, title, body, time) instead of a narrow bubble.
     private var noticeCard: some View {

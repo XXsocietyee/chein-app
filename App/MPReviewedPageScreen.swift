@@ -186,7 +186,7 @@ import SwiftUI
                         territoryDestination: { AnyView(SessionRoamTerritoryView().environmentObject(session)) },
                         nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environmentObject(session)) },
                         stampDestination: { AnyView(SessionRoamStampCameraView().environmentObject(session)) },
-                        liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader)) },
+                        liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) },
                         posterDestination: { AnyView(SessionRoamPosterView(node: $0).environmentObject(session)) },
                         eventDestination: { target in
                             switch target {
@@ -217,6 +217,7 @@ import SwiftUI
             .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
             .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
             .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
+            .environment(\.inGameChannelHost, session.inGameChannelHost)
     }
 
     private var unavailable: some View {

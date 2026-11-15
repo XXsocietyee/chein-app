@@ -14,7 +14,7 @@ public enum BusinessRuntimeFeature: Hashable {
     case imChannelMentionMemberRead, imChannelMentionRoleRead
     case imChainClose, imChainCreate, imChainJoin, imChainRead, imChainReceipt, imChainWithdraw, imChannelReportReceipt, imCheckinRank, imCheckinReceipt, imCheckinStatus, imCheckinWrite, imFilePreview, imFilePreviewStatus, imFileReceipt, imFileScan, imFileSend, imFileUpload, imFileUploadReceipt, imImageUploadReceipt, imOrdinaryMuteReceipt, imOrdinaryMuteState, imOrdinaryReadReceipt, imOrdinaryReadState, imOrdinarySendReceipt, imRouteReceipt, imRouteSend, imRouteShareRead, imStaticLocationReceipt, imStaticLocationSend, imVideoPolicy, imVideoPreview, imVideoPreviewStatus, imVideoReceipt, imVideoSend, imVideoUpload, imVideoUploadReceipt, imVoicePlayback, imVoicePlaybackStatus, imVoiceReceipt, imVoiceSend, imVoiceUpload, imVoiceUploadReceipt
     case imStart, imRead, imMute, imSend, imUpload
-    case imDelete, imReport, imBlock, imUnblock, imUnreadTotal
+    case imDelete, imReport, imBlock, imUnblock, imUnreadTotal, inGameChannels
     case imPollResult, imPollCreate, imPollVote, imPollClose, imPollCreateReceipt, clubChat
     case publishingRead, publishingWrite, projectRead, projectWrite, projectAuthorInputRead, projectPublicationRead, directVerification
     case publishingAIQuota, publishingAITheme, publishingAIClub, publishingAITemplate
@@ -293,6 +293,10 @@ public extension BusinessRuntimeFeature {
             let requestID = String(route.path.dropFirst(prefix.count))
             return UUID(uuidString: requestID) != nil
         }
+        if self == .inGameChannels {
+            return (route.method == "POST" && route.path == "api/im/ingame/resolve")
+                || (route.method == "GET" && route.path == "api/im/ingame/summary")
+        }
         guard route.method == "POST" else { return false }
         let paths: Set<String>
         switch self {
@@ -324,6 +328,7 @@ public extension BusinessRuntimeFeature {
         case .imBlock: paths = ["api/im/block"]
         case .imUnblock: paths = ["api/im/unblock"]
         case .imUnreadTotal: paths = ["api/im/unread-total"]
+        case .inGameChannels: return false // Exact methods handled above.
         case .publishingRead: paths = ["api/project/state-requests/context", "api/project/state-requests/read", "api/activity/create-requests/read", "api/publish/home", "api/publisher/identity/status", "api/category/list", "api/user/list", "api/template/my-list", "api/project/my", "api/ai/theme/draft/quota"]
         case .topicSelfPlayRead: paths = ["api/topic/info-to-user", "api/registration/info"]
         case .topicSelfPlayCreate: paths = ["api/registration/create"]

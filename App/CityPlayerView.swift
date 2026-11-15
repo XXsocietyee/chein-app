@@ -36,6 +36,7 @@ struct SessionCityPlayerView: View {
             }.accessibilityIdentifier("city.value.entry")
             CityPlayerView(reader: session.makeCityPlayerReader(), rulesFactory: { session.makeCityPlayerRulesFlow(read: $0) }, historyFactory: { session.makeCityTaskHistoryRuntimeOwner() }, historyRevision: session.cityTaskHistoryRuntimeRevision, onsiteFactory: { session.makeCityOnsiteTaskRuntimeOwner(board: $0) }, onsiteRevision: session.cityOnsiteTaskRuntimeRevision, neutralFactory: { session.makeCityNeutralTaskRuntimeOwner(board: $0) }, neutralRevision: session.cityNeutralTaskRuntimeRevision, arrivalFactory: { session.makeCityArrivalEvidenceRuntimeOwner(audience: .player(regionID: $0.regionId), board: $0) }, arrivalRevision: session.cityArrivalEvidenceRuntimeRevision, gameFactory: session.cityGameFactory).id(session.cityPlayerReadIdentity)
                 .environment(\.cityAcquisitionEntryContext, CityAcquisitionEntryContext(acquisitionFactory: { session.makeCityAcquisitionController() }))
+                .environment(\.inGameChannelHost, session.inGameChannelHost)
         }
     }
 }
@@ -156,6 +157,16 @@ struct CityPlayerView: View {
             }.padding()
         }
         .toolbar {
+            if let context = reader.pointMapContext, context.snapshot.participation != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    InGameChannelToolbarButton(
+                        scope: .cityTeam(teamID: nil, boardID: context.snapshot.board.boardId),
+                        titleKey: "ingame.channel.city",
+                        accessibilityID: "ingame.channel.cityPlayer.entry",
+                        reloadTrigger: context.snapshot.board.boardId
+                    )
+                }
+            }
             if reader.isConfigured {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { selection = nil; reader.cancel(); readRequest = UUID() } label: { Label("action.retry", systemImage: "arrow.clockwise") }

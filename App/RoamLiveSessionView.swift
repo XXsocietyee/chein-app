@@ -250,6 +250,14 @@ import QuestifyCore
         .safeAreaInset(edge: .bottom) { actionBar }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                InGameChannelToolbarButton(
+                    scope: .roam(district: fogMap?.area.label ?? "nearby"),
+                    titleKey: "ingame.channel.roam",
+                    accessibilityID: "ingame.channel.roamLive.entry",
+                    reloadTrigger: fogMap?.area.label ?? ""
+                )
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 Button { showRules = true } label: { Label("roam.live.rules", systemImage: "info.circle") }
                     .accessibilityIdentifier("roam.live.rules")
             }

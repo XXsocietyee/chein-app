@@ -68,6 +68,7 @@ struct ActivityDetailView: View {
                         }))
                     },
                     hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess)
+                    .environment(\.inGameChannelHost, session.inGameChannelHost)
                     .id(session.contentDetailRevision)
             }
         }
@@ -371,6 +372,17 @@ struct ActivityDetailView: View {
                 E1ActivityInfoCard(detail:detail)
                     .questifyCardListRow()
                     .id(E1ActivityAnchor.overview.rawValue)
+                if primaryAction != .signUp, !detail.isCancelled {
+                    InGameChannelRowButton(
+                        scope: .activity(id: id),
+                        titleKey: "ingame.channel.activity",
+                        subtitleKey: "ingame.channel.activitySubtitle",
+                        accessibilityID: "ingame.channel.activity.entry",
+                        reloadTrigger: primaryAction
+                    )
+                    .questifyCardSurface()
+                    .questifyCardListRow()
+                }
             }
             if detail.isCancelled {
                 Section {

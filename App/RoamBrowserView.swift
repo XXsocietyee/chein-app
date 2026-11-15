@@ -429,6 +429,14 @@ struct RoamBrowserView: View {
                 if area.label.isEmpty { Text("roam.suppliedArea") } else { Text(verbatim: area.label) }
             } icon: { Image(systemName: "mappin.and.ellipse") }
         }
+        let roamDistrict = reader.searchArea?.label ?? ""
+        InGameChannelRowButton(
+            scope: .roam(district: roamDistrict),
+            titleKey: "ingame.channel.roam",
+            subtitleKey: "ingame.channel.roamSubtitle",
+            accessibilityID: "ingame.channel.roam.entry",
+            reloadTrigger: roamDistrict
+        )
         Picker("roam.layer", selection: $layer) {
             ForEach(RoamLayer.allCases, id: \.self) { value in
                 Text(LocalizedStringKey("roam.layer." + String(value.rawValue))).tag(value)
