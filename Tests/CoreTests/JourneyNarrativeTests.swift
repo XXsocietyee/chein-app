@@ -232,7 +232,10 @@ private final class NarrativeHTTP: HTTPTransport {
         let captured = try owner(), scope = try target()
         let model = JourneyNarrativeCoordinator(scope: scope, query: .casebook, service: try service(http), journal: journal(), currentSession: { captured })
         await model.sendDialogue(npcID: 7, utterance: "Tell me about the lantern", routeActionID: "act-1")
-        XCTAssertEqual(http.requests.count, 2)
+        // A missing request must fail this test, not trap the whole CoreTests runner on requests[0].
+        guard http.requests.count == 2 else {
+            return XCTFail("dialogue sent \(http.requests.count) requests; issue \(String(describing: model.issue))")
+        }
         XCTAssertEqual(http.requests[0].url?.path, "/api/ai/npc/dialogue")
         let receipt = try XCTUnwrap(model.dialogueReceipt)
         XCTAssertEqual(receipt.reply, "Let us talk inside.")

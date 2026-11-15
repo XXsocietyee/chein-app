@@ -147,7 +147,8 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertEqual(OwnerDecisionMerchantAccount.shape(["available": false])?.stateText, "—")
         // Owner 2026-11-14: the merchant home finance row opens WP-01/05's MerchantPayoutAccountView, the only payout-account screen.
         let home = try source("App/MerchantHomeView.swift")
-        XCTAssertTrue(home.contains("NavigationLink { MerchantPayoutAccountView() }"))
+        // ui/h-popups-merchant pushes it with merchant chrome: NavigationLink { MerchantPayoutAccountView().cyPushedChrome(domain: .merchant) }.
+        XCTAssertTrue(home.contains("NavigationLink {\n                        MerchantPayoutAccountView()\n                            .cyPushedChrome(domain: .merchant)"))
         XCTAssertFalse(home.contains("MerchantPayoutAccountEntry"))
     }
 

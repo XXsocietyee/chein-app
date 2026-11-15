@@ -85,7 +85,8 @@ import FoundationNetworking
     func testLoadingAndFailedRefreshBlockCachedDetailUntilRecovery() async throws {
         let h = try await TeamChannelSourceHarness.loaded(), source = try XCTUnwrap(h.source())
         h.reader.beforeRead = { XCTAssertNil(h.source()); XCTAssertFalse(source.isCurrent(for: source.scope)) }
-        h.reader.failure = TeamFailure.rejected(403)
+        // A transient failure keeps the stale detail for its banner; a 403 withdraws it (ui/h-zip-ports read-lifetime hardening).
+        h.reader.failure = TeamFailure.rejected(503)
         await h.flow.loadDetail(.id(4101))
         XCTAssertNotNil(h.flow.detail, "The source page may display its stale-read banner")
         XCTAssertNil(h.source()); XCTAssertFalse(source.isCurrent(for: source.scope))
