@@ -774,6 +774,8 @@ struct MemberCoopInviteSheet: View {
                                 .padding(.vertical, CYSpacing.xs)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier("member.coopInvite.topic.\(topic.id)")
+                            .accessibilityAddTraits(selectedTopicID == topic.id ? .isSelected : [])
                         }
                     }
 
@@ -800,6 +802,8 @@ struct MemberCoopInviteSheet: View {
                                     .padding(.vertical, CYSpacing.xs)
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityIdentifier("member.coopInvite.chapter.\(chapter.id)")
+                                .accessibilityAddTraits(draft.selectedChapterID == numericID ? .isSelected : [])
                             }
                         }
                     }
@@ -811,6 +815,8 @@ struct MemberCoopInviteSheet: View {
                     )
                     .lineLimit(2...4)
                     .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel(MemberPopupCopy.text("合作说明", "Cooperation note", locale: locale))
+                    .accessibilityIdentifier("member.coopInvite.note")
 
                     HStack(spacing: CYSpacing.sm) {
                         CYPillButton(
@@ -819,6 +825,7 @@ struct MemberCoopInviteSheet: View {
                         ) {
                             if dirty { showsDiscard = true } else { onClose() }
                         }
+                        .accessibilityIdentifier("member.coopInvite.close")
                         CYPillButton(
                             verbatim: MemberPopupCopy.text("发送", "Send", locale: locale),
                             style: .primary

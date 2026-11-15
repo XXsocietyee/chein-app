@@ -33,7 +33,7 @@ enum PublishDesignFixtures {
         case "t11-fabu-blocked":
             return wrapCreator(NavigationStack { T11ProjectEditFixtureHost(signedIn: false) })
         case "t11-quick-ai":
-            return wrapCreator(PublishingAIDraftSheet(client: nil, product: .city, initialIdea: "Sample city walk (debug fixture)", accept: { _ in }))
+            return wrapCreator(PublishingAIDraftSheet(client: nil, product: .city, initialIdea: "示例：西湖苏堤夜游漫步（设计预览）", accept: { _ in }))
         case "t11-quick-error":
             return wrapCreator(NavigationStack { QuickPublishingView(placeSearch: nil, account: nil, openProfessional: { _ in }).disabled(true) })
         case "t11-template-author":
@@ -63,14 +63,14 @@ enum PublishDesignFixtures {
             return wrap(NavigationStack { DiscoveryTopicTemplatePreview(coordinator: coordinator) })
         case "publish-cover":
             return wrap(NavigationStack { Form { Section { ActivityCoverAuthoringSection(owner: ActivityCoverAuthoringOwner()) } header: { CYSectionHeader("publishModes.coverSection") } }
-                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "Cover (debug fixture)")).navigationBarTitleDisplayMode(.inline) })
+                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "封面设置（设计预览）")).navigationBarTitleDisplayMode(.inline) })
         case "publish-template-select":
             let owner = ActivityTemplateSelectionOwner()
-            let rows = [(1, "Sample city walk (debug fixture)", ""), (2, "Sample museum trail (debug fixture)", ""), (3, "Sample album template (debug fixture)", #","advancedConfigJson":"{}""#)]
+            let rows = [(1, "示例：西湖夜游漫步（设计预览）", ""), (2, "示例：运河博物寻踪（设计预览）", ""), (3, "示例：老街图集模板（设计预览）", #","advancedConfigJson":"{}""#)]
                 .compactMap { try? ActivityTemplateChoice(JSONDecoder().decode(ProjectEditJSON.self, from: Data(#"{"id":\#($0.0),"title":"\#($0.1)"\#($0.2)}"#.utf8))) }
             owner.designPreviewRows(rows, selected: 1)
             return wrap(NavigationStack { Form { ActivityTemplateSelectionSection(owner: owner, apply: { _ in true }, createAvailable: true) }
-                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "Template (debug fixture)")).navigationBarTitleDisplayMode(.inline) })
+                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "模板选择（设计预览）")).navigationBarTitleDisplayMode(.inline) })
         case "publish-timerange":
             let draft = ActivityPublishingTimeRangeDraft(source: ActivityPublishDraft(), now: Date())!
             let presentation = ActivityPublishingTimeRangeOwner.Presentation(generation: UUID(), source: Data(), draft: draft, timeZoneID: TimeZone.autoupdatingCurrent.identifier)
@@ -81,13 +81,13 @@ enum PublishDesignFixtures {
         }
     }
 
-    /// Synthetic rows, clearly labelled as a debug fixture (titles start with "Sample").
+    /// Synthetic rows, clearly labelled as a debug fixture.
     static var sampleProjects: [PublishingProject] {
         let rows = [
-            #"{"bizType":"topic","id":9001,"title":"Sample topic (debug fixture)","state":"running","stateText":"Online","publishStatus":"online","ownerType":"member","signupCount":0}"#,
-            #"{"bizType":"activity","id":9002,"title":"Sample activity with a rather long title that wraps (debug fixture)","state":"notStarted","stateText":"Not started","publishStatus":"online","ownerType":"club","signupCount":12}"#,
-            #"{"bizType":"topic","id":9003,"title":"Sample draft (debug fixture)","state":"draft","stateText":"Draft","ownerType":"member","signupCount":0}"#,
-            #"{"bizType":"template","id":9004,"title":"Sample template (debug fixture)","state":"rejected","stateText":"Rejected","ownerType":"member","signupCount":0}"#,
+            #"{"bizType":"topic","id":9001,"title":"示例主题：南宋御街寻踪（设计预览）","state":"running","stateText":"进行中","publishStatus":"online","ownerType":"member","signupCount":0}"#,
+            #"{"bizType":"activity","id":9002,"title":"示例活动：良渚古城遗址深度解谜研学长标题换行预览（设计预览）","state":"notStarted","stateText":"未开始","publishStatus":"online","ownerType":"club","signupCount":12}"#,
+            #"{"bizType":"topic","id":9003,"title":"示例草稿：北山街建筑故事（设计预览）","state":"draft","stateText":"草稿","ownerType":"member","signupCount":null}"#,
+            #"{"bizType":"template","id":9004,"title":"示例模板：宋韵非遗体验（设计预览）","state":"rejected","stateText":"已驳回","ownerType":"member","signupCount":null}"#,
         ]
         return rows.compactMap { try? JSONDecoder().decode([String: ProjectEditJSON].self, from: Data($0.utf8)) }.compactMap { try? PublishingProject($0) }
     }

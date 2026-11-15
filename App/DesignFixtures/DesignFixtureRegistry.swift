@@ -178,6 +178,7 @@ enum DesignFixtureRegistry {
             if name.hasPrefix("cur7-"), let cur7 = Cur7Fixtures.make(name) { return cur7 }
             if name.hasPrefix("cur8-"), let cur8 = CurFixtures8.make(name) { return cur8 }
             if name.hasPrefix("ugc-"), let ugc = UGCSafetyFixtures.make(name) { return ugc }
+            if name.hasPrefix("premerge-"), let premerge = PremergeChineseFixtures.make(name) { return premerge }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
@@ -398,9 +399,9 @@ enum CoreGapPageFixtures {
 enum T5PageFixtures {
     private static let samplePass = PassProductCard(
         id: "t5-pass-1",
-        name: "Hangzhou Old Town 3-Play Pass",
+        name: "杭州老城三游通票",
         kind: .cityBundle,
-        city: "Hangzhou",
+        city: "杭州",
         validity: .daysAfterPurchase(30),
         seats: 2,
         cashPriceText: "¥168.00",
@@ -409,7 +410,7 @@ enum T5PageFixtures {
         giftAllowed: true,
         giftOnly: false,
         isExtraSeat: false,
-        faceText: "HZ PASS"
+        faceText: "杭城通"
     )
 
     @MainActor static func make(_ name: String) -> AnyView? {
@@ -430,9 +431,9 @@ enum T5PageFixtures {
                     samplePass,
                     PassProductCard(
                         id: "t5-pass-2",
-                        name: "West Lake Weekend Timed Pass",
+                        name: "西湖周末限时畅玩卡",
                         kind: .timedPass,
-                        city: "Hangzhou",
+                        city: "杭州",
                         validity: .daysFromFirstPlay(7),
                         seats: nil,
                         cashPriceText: "¥88.00",
@@ -441,7 +442,7 @@ enum T5PageFixtures {
                         giftAllowed: false,
                         giftOnly: false,
                         isExtraSeat: false,
-                        faceText: "7D"
+                        faceText: "7日"
                     )
                 ],
                 orders: [],
@@ -473,13 +474,13 @@ enum T5PageFixtures {
             let checkout = [
                 PassCheckoutRow(kind: .price, valueText: "¥168.00", note: nil, off: false),
                 PassCheckoutRow(kind: .cash, valueText: "¥168.00", note: nil, off: false),
-                PassCheckoutRow(kind: .points, valueText: "1200", note: "Fixture points quote", off: false)
+                PassCheckoutRow(kind: .points, valueText: "1200", note: "示例积分报价", off: false)
             ]
             let detail = PassDetailState(
                 product: .ready(samplePass),
                 forGift: false,
                 buy: .buyable(
-                    payModes: [PassPayMode(mode: .cash, amountText: "¥168.00"), PassPayMode(mode: .points, amountText: "1200 pts")],
+                    payModes: [PassPayMode(mode: .cash, amountText: "¥168.00"), PassPayMode(mode: .points, amountText: "1200 积分")],
                     cashReason: nil
                 ),
                 checkout: checkout,
@@ -495,8 +496,8 @@ enum T5PageFixtures {
             let detail = PassDetailState(
                 product: .ready(samplePass),
                 forGift: false,
-                buy: .unavailable(reason: "Channel unavailable in fixture"),
-                checkout: [PassCheckoutRow(kind: .cash, valueText: "—", note: "Cash checkout disabled", off: true)],
+                buy: .unavailable(reason: "该渠道暂未开放（预览）"),
+                checkout: [PassCheckoutRow(kind: .cash, valueText: "—", note: "暂不支持现金购买", off: true)],
                 unlockSteps: [],
                 giftShare: nil,
                 groupQuote: nil,
@@ -511,7 +512,7 @@ enum T5PageFixtures {
             })
         case "t5-pass-gift-expired":
             return wrapPlayer(NavigationStack {
-                PassGiftClaimView(state: PassGiftClaimState(phase: .failed(reason: "Gift link expired"), claiming: false), onClaim: {}, onOpenGifts: {})
+                PassGiftClaimView(state: PassGiftClaimState(phase: .failed(reason: "赠送链接已失效"), claiming: false), onClaim: {}, onOpenGifts: {})
             })
         case "t5-membership":
             let content = PassMembershipContent(
@@ -534,8 +535,8 @@ enum T5PageFixtures {
             })
         case "t5-library":
             let cards = [
-                PassLibraryCard(id: "88", title: "West Lake Night Walk", coverURL: nil, city: "Hangzhou", kind: .city, minutes: 90, freeWithPass: true),
-                PassLibraryCard(id: "89", title: "Grand Canal Lanterns", coverURL: nil, city: "Hangzhou", kind: .free, minutes: 60, freeWithPass: false)
+                PassLibraryCard(id: "88", title: "西湖夜游漫步", coverURL: nil, city: "杭州", kind: .city, minutes: 90, freeWithPass: true),
+                PassLibraryCard(id: "89", title: "大运河灯火巡礼", coverURL: nil, city: "杭州", kind: .free, minutes: 60, freeWithPass: false)
             ]
             return wrapPlayer(NavigationStack {
                 PassLibraryView(phase: .ready(cards), initialKind: .all, onLoad: { _ in }, onOpenTopic: { _ in })
@@ -546,21 +547,21 @@ enum T5PageFixtures {
             })
         case "t5-seats":
             let seats = JourneySeatsContent(
-                headName: "West Lake Night Walk",
+                headName: "西湖夜游漫步",
                 headCoverURL: nil,
-                me: JourneyPerson(name: "Alex", avatarURL: nil),
+                me: JourneyPerson(name: "陈小北", avatarURL: nil),
                 showsParty: true,
                 occupied: 2,
                 seatCount: 4,
                 circles: [
-                    JourneySeatCircle(no: 1, kind: .me, avatarURL: nil, initial: "A", tappable: false),
+                    JourneySeatCircle(no: 1, kind: .me, avatarURL: nil, initial: "陈", tappable: false),
                     JourneySeatCircle(no: 2, kind: .invited, avatarURL: nil, initial: nil, tappable: false),
                     JourneySeatCircle(no: 3, kind: .open, avatarURL: nil, initial: nil, tappable: true),
                     JourneySeatCircle(no: 4, kind: .open, avatarURL: nil, initial: nil, tappable: true)
                 ],
                 canInvite: true,
                 openCount: 2,
-                invited: [JourneyInvitedRow(invitationID: "inv-1", no: 2, kind: .invited, expiresText: "23h left", canCancel: true)],
+                invited: [JourneyInvitedRow(invitationID: "inv-1", no: 2, kind: .invited, expiresText: "剩余23小时", canCancel: true)],
                 multi: true,
                 tiles: [],
                 canGoToStart: true,
@@ -600,7 +601,7 @@ enum T5PageFixtures {
                     rank: JourneyRankState(),
                     rate: .idle,
                     shareURL: nil,
-                    topicName: "West Lake Night Walk",
+                    topicName: "西湖夜游漫步",
                     onRetry: {},
                     onSignIn: {},
                     onLoadRank: {},
@@ -737,9 +738,9 @@ private actor T5OrderCenterTransport: HTTPTransport {
     init(failed: Bool) { self.failed = failed }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         if failed {
-            return (Data(#"{"code":404,"msg":"Order not found"}"#.utf8), 404)
+            return (Data(#"{"code":404,"msg":"订单不存在"}"#.utf8), 404)
         }
-        let json = #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"Hangzhou Old Town Pass","statusText":"Paid","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
+        let json = #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"杭州老城畅玩卡","statusText":"已支付","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
         return (Data(json.utf8), 200)
     }
 }
@@ -784,9 +785,9 @@ private actor T5OrderCenterTransport: HTTPTransport {
         }
         func catalog(topicID: FreeExploreLaunchID) async throws -> FreeExploreLaunchCatalog {
             if failed { throw FreeExploreLaunchFailure.response(status: 503, code: 503, businessCode: nil) }
-            return try decode(["topicId": 88, "topicName": "Sample free-explore bundle", "productType": 2, "saleEnabled": false, "reservationEnabled": true,
-                               "items": [["chapterId": 3, "name": "Old-town chapter", "unitsPerHolder": 1,
-                                          "stores": [["offerId": 29, "merchantName": "Sample Tea House", "validEnd": "2026-12-31"]]]]])
+            return try decode(["topicId": 88, "topicName": "示例自由探索套票：河坊街茶韵线", "productType": 2, "saleEnabled": false, "reservationEnabled": true,
+                               "items": [["chapterId": 3, "name": "老城茶街章节", "unitsPerHolder": 1,
+                                          "stores": [["offerId": 29, "merchantName": "清河坊示范茶馆", "validEnd": "2026-12-31"]]]]])
         }
         func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder {
             try decode(["registrationId": 41, "bundle": [
@@ -908,7 +909,7 @@ enum T12T13DesignFixtures {
     func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON {
         if failed { throw CoopFlowFailure.unavailable }
         return .object(["topics": .array([.object([
-            "topicId": .id(8), "topicName": .string("Synthetic organizer route"),
+            "topicId": .id(8), "topicName": .string("示例主办方路线：钱塘江夜跑"),
             "myIncome": .number(128.50), "settled": .bool(true), "myIncomeArrived": .bool(true),
             "totalSales": .number(480), "verifiedSales": .number(420), "platformAmount": .number(42), "merchantTotal": .number(249.5)
         ])])])
@@ -946,7 +947,7 @@ private struct T12T13WithdrawalTransport: HTTPTransport {
         denied ? .denied(nil) : .allowed(.init(known: true, blockers: [], risks: [], risksKnown: true))
     }
     func eventState(eventID: Int) async throws -> OfficialOrganizerEventState? {
-        OfficialOrganizerEventState(status: OfficialOrganizerEventState.scheduled, control: .normal, title: "Synthetic official activity")
+        OfficialOrganizerEventState(status: OfficialOrganizerEventState.scheduled, control: .normal, title: "官方示例活动：良渚秋日探索")
     }
     func command(_ command: OfficialOrganizerCommand, mode: OfficialOrganizerCommandMode) async throws -> OfficialOrganizerReceipt? {
         OfficialOrganizerReceipt(requestId: command.requestId, state: .applied, message: "ok")

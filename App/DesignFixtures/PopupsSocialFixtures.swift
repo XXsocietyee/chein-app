@@ -156,7 +156,7 @@ enum PopupsSocialFixtures {
             owner: true,
             bookmarkable: true,
             bookmarked: false,
-            summary: "Saturday evening city walk route around West Bund",
+            summary: "周六傍晚西岸滨江城市漫步路线",
             onEdit: {},
             onBookmark: {},
             onDelete: {},

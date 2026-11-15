@@ -203,7 +203,7 @@ import SwiftUI
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("teamPool.run.score")
                         .accessibilityLabel(Text(verbatim: c.t("团队总分", "Team total score")))
-                        .accessibilityValue(Text(verbatim: TeamPoolHintSection.scoreText(pool)))
+                        .accessibilityValue(PageTemplateVoiceOver.spoken(TeamPoolHintSection.scoreText(pool), locale: locale))
                 }
                 HStack(spacing: CYSpacing.md) {
                     if let left = pool.hintsLeft, let total = pool.hintsTotal {
@@ -245,7 +245,7 @@ import SwiftUI
             }
             .accessibilityIdentifier("teamPool.run.section")
             .accessibilityLabel(Text("teamPool.title"))
-            .accessibilityValue(Text(verbatim: TeamPoolHintSection.scoreText(pool)))
+            .accessibilityValue(PageTemplateVoiceOver.spoken(TeamPoolHintSection.scoreText(pool), locale: locale))
             .accessibilityHint(Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
                                                   "First solve advances the team · Shared hints, skips, timer & single team score")))
         }
