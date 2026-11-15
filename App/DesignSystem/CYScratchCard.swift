@@ -79,15 +79,15 @@ import SwiftUI
                             VStack(spacing: CYSpacing.xs) {
                                 Image(systemName: "hand.draw.fill")
                                     .font(CYTypography.sectionTitle)
-                                    .foregroundStyle(CYNight.textSecondary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityHidden(true)
                                 Text(verbatim: (coverLabel?.isEmpty == false ? coverLabel : nil) ?? "")
                                     .font(CYTypography.bodyMedium)
-                                    .foregroundStyle(CYNight.textPrimary)
+                                    .foregroundStyle(CYColor.textPrimary)
                                 if coverLabel?.isEmpty != false {
                                     Text("playkit.scratch.coverPrompt")
                                         .font(CYTypography.bodyMedium)
-                                        .foregroundStyle(CYNight.textPrimary)
+                                        .foregroundStyle(CYColor.textPrimary)
                                 }
                             }
                             .allowsHitTesting(false)

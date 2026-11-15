@@ -138,12 +138,12 @@ extension PlayKitScreen {
                 if let prize = raw["prizeText"].text, !prize.isEmpty {
                     Text(verbatim: prize)
                         .font(CYTypography.cardTitle)
-                        .foregroundStyle(CYNight.textPrimary)
+                        .foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("playkit.scratchCard.prize")
                 } else {
                     Text("playkit.scratch.revealedPlaceholder")
                         .font(CYTypography.bodyCompact)
-                        .foregroundStyle(CYNight.textSecondary)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
                 if let url = raw["revealImageUrl"].text, !url.isEmpty {
                     artwork(url)
@@ -195,14 +195,14 @@ extension PlayKitScreen {
                                 .padding(.horizontal, CYSpacing.xs)
                                 .padding(.vertical, 2)
                                 .background(Capsule().fill(CYNight.ink2.opacity(0.85)))
-                                .foregroundStyle(CYNight.textPrimary)
+                                .foregroundStyle(CYColor.textPrimary)
                                 .padding(CYSpacing.xs)
                         }
                         .frame(maxWidth: .infinity, minHeight: 72)
                         .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYNight.glassFill))
                         .overlay(
                             RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-                                .strokeBorder(isSelected ? CYNight.gold1 : CYNight.glassEdgeTop, lineWidth: isSelected ? 2 : 1)
+                                .strokeBorder(isSelected ? CYNight.lantern : CYNight.glassEdgeTop, lineWidth: isSelected ? 2 : 1)
                         )
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     }
