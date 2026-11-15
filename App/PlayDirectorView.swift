@@ -25,97 +25,7 @@ import UIKit
                 }
             }
             if let projection = model.projection {
-                Section("playx.director.readiness") {
-                    LabeledContent("playx.state") { Text(verbatim: projection.status) }
-                    LabeledContent("playx.advanced.version") { Text(verbatim: String(projection.revision)) }
-                    let readiness = projection.club["readiness"]
-                    if let ready = readiness["readyStations"].integer, let required = readiness["requiredStations"].integer {
-                        LabeledContent("playx.director.stationProgress") { Text(verbatim: "\(ready) / \(required)") }
-                    } else { Text("playx.director.unknownCounts") }
-                    ForEach(Array((readiness["blockers"].array ?? []).enumerated()), id: \.offset) { _, blocker in if let text = blocker.text { Text(verbatim: text) } }
-                }
-                if projection.playMode == "ROUTE" {
-                    SharedRunControlSection(activityID: projection.activityID, expectedRevision: projection.revision)
-                }
-                Section("playx.director.actions") {
-                    ForEach(PlayDirectorAction.allCases.filter { projection.availableActions.contains($0.rawValue) }) { action in
-                        CYPillButton(LocalizedStringKey("playx.director.action." + action.rawValue), style: .secondary) { editor = action }
-                            .listRowBackground(Color.clear)
-                            .disabled(model.phase != "ready" || (action == .start && !projection.canStart))
-                            .accessibilityIdentifier("playx.director.action.\(action.rawValue)")
-                    }
-                    Button {
-                        showingPlanFallbackSheet = true
-                        Task {
-                            if let load = popupCloseActions.loadPlanFallback {
-                                planFallbackStatus = await load(projection.activityID, projection.revision)
-                            }
-                        }
-                    } label: {
-                        Text(verbatim: PlayCloseCopy.text("默认结局收尾（Plan Fallback）", "Default ending fallback", locale))
-                    }
-                    .disabled(model.phase != "ready")
-                    .accessibilityIdentifier("playx.director.action.planFallback")
-                }
-                Section("playx.director.stations") {
-                    ForEach(Array(projection.stations.enumerated()), id: \.offset) { _, station in
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(verbatim: station["nodeName"].text ?? station["stationName"].text ?? station["name"].text ?? "—").font(.headline)
-                            if let status = station["status"].text { Text(verbatim: status) }
-                            if let reason = station["pauseReason"].text ?? station["blockedReason"].text ?? station["issue"].text { Text(verbatim: reason) }
-                            if let eta = station["resumeEta"].text { LabeledContent("playx.player.resumeETA") { Text(verbatim: eta) } }
-                            if let count = station["pendingVerificationCount"].integer { LabeledContent("playx.director.pendingCount") { Text(verbatim: String(count)) } }
-                        }
-                    }
-                }
-                Section("playx.director.teams") {
-                    ForEach(Array(projection.teams.enumerated()), id: \.offset) { _, team in
-                        VStack(alignment: .leading) {
-                            Text(verbatim: team["name"].text ?? team["teamName"].text ?? "—").font(.headline)
-                            if let completed = team["completedNodes"].integer, let total = team["totalNodes"].integer { Text(verbatim: "\(completed) / \(total)") }
-                            if let stuck = team["blockedReason"].text ?? team["issue"].text { Text(verbatim: stuck) }
-                            if let event = team["recentEvent"]["action"].text { Text(verbatim: event).font(.caption) }
-                        }
-                    }
-                }
-                Section("playx.director.roles") {
-                    ForEach(Array(projection.roles.enumerated()), id: \.offset) { _, role in
-                        LabeledContent { Text(verbatim: role["roleName"].text ?? role["roleLabel"].text ?? "—") } label: { Text(verbatim: role["memberName"].text ?? role["name"].text ?? "—") }
-                    }
-                }
-                Section("playx.director.broadcasts") {
-                    ForEach(Array((projection.club["broadcasts"].array ?? []).enumerated()), id: \.offset) { _, broadcast in
-                        VStack(alignment: .leading) {
-                            if let content = broadcast["content"].text { Text(verbatim: content) }
-                            if let status = broadcast["receiptStatus"].text ?? broadcast["status"].text { Text(verbatim: status).font(.caption) }
-                            if let count = broadcast["recipientCount"].integer { LabeledContent("playx.director.recipients") { Text(verbatim: String(count)) } }
-                        }
-                    }
-                }
-                Section("playx.director.submissions") {
-                    Text("playx.director.noEvidence").font(.footnote)
-                    ForEach(Array(projection.submissions.enumerated()), id: \.offset) { _, submission in
-                        VStack(alignment: .leading) {
-                            Text(verbatim: submission["nodeName"].text ?? "—")
-                            if let status = submission["status"].text { Text(verbatim: status) }
-                            if let reason = submission["decisionReason"].text { Text(verbatim: reason) }
-                        }
-                    }
-                }
-                Section("playx.director.recap") {
-                    if let recap = try? PlayDirectorRecap.normalize(projection.club["recap"]) {
-                        if let generated = recap["generatedAt"].text { Text(verbatim: generated) }
-                        ForEach(Array((recap["metrics"].array ?? []).enumerated()), id: \.offset) { _, metric in
-                            if let label = metric["label"].text, let value = metric["value"].integer {
-                                LabeledContent { Text(verbatim: "\(value) \(metric["unit"].text ?? "")") } label: { Text(verbatim: label) }
-                            }
-                        }
-                        if recap["exportAvailable"].bool == true {
-                            Button("playx.director.copyRecap") { Task { if let export = await model.exportRecap() { LocalPasteboard.copy(export) } } }
-                                .disabled(model.phase != "ready").accessibilityIdentifier("playx.director.copyRecap")
-                        }
-                    } else { Text("playx.director.recapPending") }
-                }
+                projectionSections(projection)
             }
         }.cyGroupedSurface().privacySensitive().navigationTitle("playx.director.title").accessibilityIdentifier("playx.director.view")
             .task { await model.load() }
@@ -192,6 +102,122 @@ import UIKit
             }
             .cyToast(verbatimMessage: $toastMessage)
         .cyDomainScreen(.game)
+    }
+
+    @ViewBuilder
+    private func projectionSections(_ projection: PlayDirectorProjection) -> some View {
+        Section("playx.director.readiness") {
+            LabeledContent("playx.state") { Text(verbatim: projection.status) }
+            LabeledContent("playx.advanced.version") { Text(verbatim: String(projection.revision)) }
+            let readiness = projection.club["readiness"]
+            if let ready = readiness["readyStations"].integer, let required = readiness["requiredStations"].integer {
+                LabeledContent("playx.director.stationProgress") { Text(verbatim: "\(ready) / \(required)") }
+            } else { Text("playx.director.unknownCounts") }
+            ForEach(Array((readiness["blockers"].array ?? []).enumerated()), id: \.offset) { _, blocker in if let text = blocker.text { Text(verbatim: text) } }
+        }
+        if projection.playMode == "ROUTE" {
+            SharedRunControlSection(activityID: projection.activityID, expectedRevision: projection.revision)
+        }
+        directorActionsSection(projection)
+        directorStationsAndTeamsSections(projection)
+        directorBroadcastsAndSubmissionsSections(projection)
+        directorRecapSection(projection)
+    }
+
+    @ViewBuilder
+    private func directorActionsSection(_ projection: PlayDirectorProjection) -> some View {
+        let actions: [PlayDirectorAction] = PlayDirectorAction.allCases.filter { projection.availableActions.contains($0.rawValue) }
+        Section("playx.director.actions") {
+            ForEach(actions) { action in
+                CYPillButton(LocalizedStringKey("playx.director.action." + action.rawValue), style: .secondary) { editor = action }
+                    .listRowBackground(Color.clear)
+                    .disabled(model.phase != "ready" || (action == .start && !projection.canStart))
+                    .accessibilityIdentifier("playx.director.action.\(action.rawValue)")
+            }
+            Button {
+                showingPlanFallbackSheet = true
+                Task {
+                    if let load = popupCloseActions.loadPlanFallback {
+                        planFallbackStatus = await load(projection.activityID, projection.revision)
+                    }
+                }
+            } label: {
+                Text(verbatim: PlayCloseCopy.text("默认结局收尾（Plan Fallback）", "Default ending fallback", locale))
+            }
+            .disabled(model.phase != "ready")
+            .accessibilityIdentifier("playx.director.action.planFallback")
+        }
+    }
+
+    @ViewBuilder
+    private func directorStationsAndTeamsSections(_ projection: PlayDirectorProjection) -> some View {
+        Section("playx.director.stations") {
+            ForEach(Array(projection.stations.enumerated()), id: \.offset) { _, station in
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(verbatim: station["nodeName"].text ?? station["stationName"].text ?? station["name"].text ?? "—").font(.headline)
+                    if let status = station["status"].text { Text(verbatim: status) }
+                    if let reason = station["pauseReason"].text ?? station["blockedReason"].text ?? station["issue"].text { Text(verbatim: reason) }
+                    if let eta = station["resumeEta"].text { LabeledContent("playx.player.resumeETA") { Text(verbatim: eta) } }
+                    if let count = station["pendingVerificationCount"].integer { LabeledContent("playx.director.pendingCount") { Text(verbatim: String(count)) } }
+                }
+            }
+        }
+        Section("playx.director.teams") {
+            ForEach(Array(projection.teams.enumerated()), id: \.offset) { _, team in
+                VStack(alignment: .leading) {
+                    Text(verbatim: team["name"].text ?? team["teamName"].text ?? "—").font(.headline)
+                    if let completed = team["completedNodes"].integer, let total = team["totalNodes"].integer { Text(verbatim: "\(completed) / \(total)") }
+                    if let stuck = team["blockedReason"].text ?? team["issue"].text { Text(verbatim: stuck) }
+                    if let event = team["recentEvent"]["action"].text { Text(verbatim: event).font(.caption) }
+                }
+            }
+        }
+        Section("playx.director.roles") {
+            ForEach(Array(projection.roles.enumerated()), id: \.offset) { _, role in
+                LabeledContent { Text(verbatim: role["roleName"].text ?? role["roleLabel"].text ?? "—") } label: { Text(verbatim: role["memberName"].text ?? role["name"].text ?? "—") }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func directorBroadcastsAndSubmissionsSections(_ projection: PlayDirectorProjection) -> some View {
+        Section("playx.director.broadcasts") {
+            ForEach(Array((projection.club["broadcasts"].array ?? []).enumerated()), id: \.offset) { _, broadcast in
+                VStack(alignment: .leading) {
+                    if let content = broadcast["content"].text { Text(verbatim: content) }
+                    if let status = broadcast["receiptStatus"].text ?? broadcast["status"].text { Text(verbatim: status).font(.caption) }
+                    if let count = broadcast["recipientCount"].integer { LabeledContent("playx.director.recipients") { Text(verbatim: String(count)) } }
+                }
+            }
+        }
+        Section("playx.director.submissions") {
+            Text("playx.director.noEvidence").font(.footnote)
+            ForEach(Array(projection.submissions.enumerated()), id: \.offset) { _, submission in
+                VStack(alignment: .leading) {
+                    Text(verbatim: submission["nodeName"].text ?? "—")
+                    if let status = submission["status"].text { Text(verbatim: status) }
+                    if let reason = submission["decisionReason"].text { Text(verbatim: reason) }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func directorRecapSection(_ projection: PlayDirectorProjection) -> some View {
+        Section("playx.director.recap") {
+            if let recap = try? PlayDirectorRecap.normalize(projection.club["recap"]) {
+                if let generated = recap["generatedAt"].text { Text(verbatim: generated) }
+                ForEach(Array((recap["metrics"].array ?? []).enumerated()), id: \.offset) { _, metric in
+                    if let label = metric["label"].text, let value = metric["value"].integer {
+                        LabeledContent { Text(verbatim: "\(value) \(metric["unit"].text ?? "")") } label: { Text(verbatim: label) }
+                    }
+                }
+                if recap["exportAvailable"].bool == true {
+                    Button("playx.director.copyRecap") { Task { if let export = await model.exportRecap() { LocalPasteboard.copy(export) } } }
+                        .disabled(model.phase != "ready").accessibilityIdentifier("playx.director.copyRecap")
+                }
+            } else { Text("playx.director.recapPending") }
+        }
     }
 }
 @MainActor private struct PlayDirectorCommandEditor: View {
@@ -281,15 +307,15 @@ import UIKit
                 )
             }
     }
-    private var noticeKey: StaticString {
+    private var noticeKey: String.LocalizationValue {
         switch action {
         case .finish: return "playx.director.finishNotice"
         case .broadcast: return "playx.director.broadcastNotice"
         default: return "playx.director.commandNotice"
         }
     }
-    private func directorLocalized(_ key: StaticString) -> String {
-        String(localized: LocalizedStringResource(key, locale: locale))
+    private func directorLocalized(_ key: String.LocalizationValue) -> String {
+        appLocalized(key, locale: locale)
     }
     private func idPicker(_ key: String, rows: [PlayWireValue], idKey: String, labelKeys: [String], selection: Binding<Int>) -> some View {
         Picker(LocalizedStringKey(key), selection: selection) {
