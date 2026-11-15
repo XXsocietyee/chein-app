@@ -101,6 +101,12 @@ struct CYErrorState: View {
         self.onRetry = onRetry
     }
 
+    /// Kind form used by restyled merchant screens. `.network` shows the offline variant.
+    enum Kind { case server, permission, network }
+    init(kind: Kind, message: LocalizedStringKey, retryTitle: LocalizedStringKey = "action.retry", onRetry: @escaping () -> Void) {
+        self.init(message, retryTitle: retryTitle, offline: kind == .network, onRetry: onRetry)
+    }
+
     var body: some View {
         CYEmptyState(systemImage: "exclamationmark.triangle", message, actionTitle: retryTitle, kind: offline ? .offline : .failure, action: onRetry)
     }

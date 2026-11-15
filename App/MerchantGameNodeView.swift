@@ -83,7 +83,9 @@ enum MerchantGameNodeCopy {
         .onDisappear { submissionImport.invalidate() }
         .cyToast(
             verbatimMessage: Binding(
-                get: { c.toast.map { MerchantGameNodeCopy.string($0) } },
+                get: { c.toast.map { message -> String in
+                    switch message { case .key(let key): return MerchantGameNodeCopy.string(key); case .server(let value): return value }
+                } },
                 set: { if $0 == nil { c.clearToast() } }
             ),
             tone: .info,
