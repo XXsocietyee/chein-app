@@ -152,8 +152,9 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         assertColor(player.bgSurface, matchesHex: 0x111111, scheme: .dark, "player.bgSurface")
         assertColor(player.actionPrimaryBg, matchesHex: 0xF8F8F8, scheme: .dark, "player.actionPrimaryBg")
         assertColor(player.actionPrimaryFg, matchesHex: 0x0A0A0A, scheme: .dark, "player.actionPrimaryFg")
-        assertColor(player.textPrimary, matchesHex: 0xFFFFFF, scheme: .dark, "player.textPrimary")
-        assertColor(player.textDisabled, matchesHex: 0x737373, scheme: .dark, "player.textDisabled")
+        // Dark values follow the source tokens (docs/release/ui-token-diff.md): text-primary #F8F8F8, text-disabled rgba(255,255,255,.40).
+        assertColor(player.textPrimary, matchesHex: 0xF8F8F8, scheme: .dark, "player.textPrimary")
+        assertColor(player.textDisabled, matchesHex: 0xFFFFFF, alpha: 0.40, scheme: .dark, "player.textDisabled")
         assertColor(player.actionDangerBg, matchesHex: 0xD0323B, scheme: .dark, "player.actionDangerBg")
         assertColor(player.actionDangerFg, matchesHex: 0xFFFFFF, scheme: .dark, "player.actionDangerFg")
     }
@@ -164,6 +165,9 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         for domain in [ThemeDomain.player, ThemeDomain.merchant] {
             let palette = CYDomainPalette(domain)
             let scheme = domain.colorScheme
+            // text-disabled is #737373 on the light merchant domain and rgba(255,255,255,.40) on the dark player domain.
+            let disabledHex: UInt32 = domain == .merchant ? 0x737373 : 0xFFFFFF
+            let disabledAlpha: CGFloat = domain == .merchant ? 1.0 : 0.40
 
             // CYListRow disabled (both standard and danger become textDisabled and suppress pressed highlight)
             let disabledRow = CYListRowTokens.resolve(tone: .standard, isDisabled: true, isPressed: true, in: palette)
@@ -173,7 +177,7 @@ final class DesignSystemTokenMappingTests: XCTestCase {
             assertSameColor(disabledRow.chevron, palette.textDisabled, scheme: scheme, "row disabled chevron")
             assertSameColor(disabledRow.background, Color.clear, scheme: scheme, "row disabled suppresses press fill")
             XCTAssertEqual(disabledRow.leadingOpacity, 0.4, accuracy: 0.001)
-            assertColor(disabledRow.title, matchesHex: 0x737373, scheme: scheme, "row disabled title == #737373")
+            assertColor(disabledRow.title, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "row disabled title == text-disabled")
 
             let disabledDangerRow = CYListRowTokens.resolve(tone: .danger, isDisabled: true, isPressed: false, in: palette)
             assertSameColor(disabledDangerRow.title, palette.textDisabled, scheme: scheme, "disabled danger row uses textDisabled")
@@ -182,7 +186,7 @@ final class DesignSystemTokenMappingTests: XCTestCase {
             let fieldDisabled = CYField.tokens(for: .disabled, hasText: true, colorScheme: scheme, in: palette)
             assertSameColor(fieldDisabled.background, palette.inputDisabledBg, scheme: scheme, "field disabled bg")
             assertSameColor(fieldDisabled.textForeground, palette.textDisabled, scheme: scheme, "field disabled text")
-            assertColor(fieldDisabled.textForeground, matchesHex: 0x737373, scheme: scheme, "field disabled == #737373")
+            assertColor(fieldDisabled.textForeground, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "field disabled == text-disabled")
             XCTAssertFalse(fieldDisabled.showsSuccessIcon)
 
             // CYRouteNodeRow locked / disabled
@@ -198,12 +202,12 @@ final class DesignSystemTokenMappingTests: XCTestCase {
                 in: palette
             )
             assertSameColor(taskLocked.iconColor, palette.textDisabled, scheme: scheme, "task locked iconColor")
-            assertColor(taskLocked.iconColor, matchesHex: 0x737373, scheme: scheme, "task locked == #737373")
+            assertColor(taskLocked.iconColor, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "task locked == text-disabled")
             XCTAssertEqual(taskLocked.badgeTone, .neutral)
 
             // CYAvatarView offline indicator uses textDisabled
             if let offlineDot = CYAvatarView.onlineDotColor(isOnline: false) {
-                assertColor(offlineDot, matchesHex: 0x737373, scheme: scheme, "avatar offline dot == #737373")
+                assertColor(offlineDot, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "avatar offline dot == text-disabled")
             } else {
                 XCTFail("Expected non-nil offline dot color")
             }

@@ -13,8 +13,11 @@ import XCTest
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let host = try String(contentsOf: root.appendingPathComponent("App/CoopRelationDiscoveryView.swift"), encoding: .utf8)
-        XCTAssertTrue(host.contains("CoopRelationPostFeedFactory.make"))
-        XCTAssertTrue(host.contains("session.clubCommunityContext"))
+        // Audit 2026-11-14 (ui/h-audit-bugs): the general club community feed is not this relation's posts, so the
+        // session host no longer injects it and the Posts segment stays hidden until a relation-scoped source exists.
+        XCTAssertFalse(host.contains("CoopRelationPostFeedFactory.make"))
+        XCTAssertFalse(host.contains("session.clubCommunityContext"))
+        XCTAssertFalse(host.contains("cooperationRelationPostFeed,"))
         XCTAssertNil(CoopRelationPostFeedFactory.make(community: nil, identity: { nil }))
     }
 }

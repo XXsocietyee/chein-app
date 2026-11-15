@@ -45,7 +45,14 @@ import UIKit
     func testProfitSupportActionStillOnlyOpensContactSheetUnderOriginalGate() throws {
         let ui = try source("CoopFinanceProfitView.swift")
         XCTAssertTrue(ui.contains("if profit.canWithdraw, loadedSession == reader.session { showsSupport = true }"))
-        XCTAssertTrue(ui.contains(".sheet(isPresented: $showsSupport) { WithdrawalSupportContactView() }"))
+        // ui/h-popups-merchant presents the same contact view as a merchant-domain design-system sheet; nothing else is in the sheet.
+        XCTAssertTrue(ui.contains("""
+        .sheet(isPresented: $showsSupport) {
+            WithdrawalSupportContactView()
+                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.merchant)
+        }
+"""))
         XCTAssertTrue(ui.contains(".disabled(!profit.canWithdraw)"))
         XCTAssertTrue(ui.contains("if profit.isOwner, let walletReader { CoopFinanceFundsStagesSection(reader: walletReader) }"))
         for forbidden in ["URLSession", "confirmPayment", "createTransfer", "submitWithdrawal", "CoopDepositRefundOriginalEntry"] {

@@ -201,7 +201,9 @@ final class OfflineBannerPackage63Tests: XCTestCase {
             approvedBaseURLs: [.china: ["https://8120.example.test"]],
             verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.questify.curoffline",
-            realm: "cur-offline-test"
+            realm: "cur-offline-test",
+            productionGatesEnabled: true,
+            playerWritesEnabled: true
         )
         let stub = StubTransport()
         let root = AppCompositionRoot(
@@ -212,17 +214,19 @@ final class OfflineBannerPackage63Tests: XCTestCase {
         let session = root.makeSession()
         await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
         XCTAssertNotNil(session.account)
+        // The composition gate admits a player write only for the signed-in viewer under the player-write grant.
+        let token = try XCTUnwrap(session.token)
 
         let model = SessionOfflineSyncModel(directory: dir)
         model.bind(session: session)
 
-        let feedback = try Self.writeRequest(path: "/api/play/feedback/submit", body: #"{"runId":12,"content":"gate offline","requestId":"fb63b000001"}"#)
+        let feedback = try Self.writeRequest(path: "/api/play/feedback/submit", body: #"{"runId":12,"content":"gate offline","requestId":"fb63b000001"}"#, token: token)
         _ = try? await session.runtimeHTTPTransport.send(feedback)
         XCTAssertEqual(model.queuedCount, 0)
         XCTAssertEqual(model.status(for: ["/api/play/feedback/submit"], isOnline: false), .none)
 
-        let other = try Self.writeRequest(path: "/api/capsules/create", body: #"{"text":"skip","requestId":"capskip00001"}"#)
-        let payment = try Self.writeRequest(path: "/api/pay/create", body: #"{"requestId":"payblocked01"}"#)
+        let other = try Self.writeRequest(path: "/api/capsules/create", body: #"{"text":"skip","requestId":"capskip00001"}"#, token: token)
+        let payment = try Self.writeRequest(path: "/api/pay/create", body: #"{"requestId":"payblocked01"}"#, token: token)
         await model.performWriteOptIn(session: session, routes: ["/api/play/feedback/submit"]) {
             _ = try? await session.runtimeHTTPTransport.send(feedback)
             _ = try? await session.runtimeHTTPTransport.send(other)
@@ -237,10 +241,12 @@ final class OfflineBannerPackage63Tests: XCTestCase {
         XCTAssertTrue(stub.hosts.allSatisfy { $0 == "8120.example.test" })
     }
 
-    private static func writeRequest(path: String, body: String) throws -> URLRequest {
+    private static func writeRequest(path: String, body: String, token: String) throws -> URLRequest {
         let url = try XCTUnwrap(URL(string: "https://8120.example.test\(path)"))
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
         request.httpBody = Data(body.utf8)
         return request
     }

@@ -67,7 +67,10 @@ final class PremergeScreensViewModelTests: XCTestCase {
             verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.questify.premerge",
             realm: "premerge-tests",
-            reads: [.homeAndSearch]
+            reads: [.homeAndSearch],
+            // The presence switch is a reviewed player write; the composition gate refuses it without these.
+            productionGatesEnabled: true,
+            playerWritesEnabled: true
         )
     }
 
@@ -187,10 +190,10 @@ final class PremergeScreensViewModelTests: XCTestCase {
           "total": 4,
           "doneCount": 1,
           "nodes": [
-            {"id": 1, "name": "断桥残雪", "done": true},
-            {"id": 2, "name": "白堤", "done": false, "needAnswer": true},
-            {"id": 3, "name": "平湖秋月", "done": false, "needGPS": true, "arrived": true},
-            {"id": 4, "name": "苏堤", "done": false, "locked": true, "unlockAfterNodeId": 2, "lockReason": "需先完成白堤"}
+            {"nodeId": 1, "name": "断桥残雪", "done": true},
+            {"nodeId": 2, "name": "白堤", "done": false, "needAnswer": true},
+            {"nodeId": 3, "name": "平湖秋月", "done": false, "needGps": true, "arrived": true},
+            {"nodeId": 4, "name": "苏堤", "done": false, "locked": true, "unlockAfterNodeId": 2, "lockReason": "需先完成白堤"}
           ],
           "chapters": []
         }
