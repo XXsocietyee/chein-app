@@ -97,7 +97,19 @@ public enum PublishingContracts {
         if project.resource.kind == .topic && action == .toggle { f["expectedUserStatus"] = .string(project.online ? "1" : "0") }
         return .init(path: path, encoding: .form, fields: f)
     }
-    public static func aiThemeDraft(idea: String) -> PublishingRequest { .init(path: "api/ai/theme/draft", encoding: .json, fields: ["idea": .string(idea.trimmingCharacters(in: .whitespacesAndNewlines))]) }
+    public static let aiThemeDraftPreparePath = "api/ai/theme/draft/prepare"
+    public static let aiThemeDraftExecutePath = "api/ai/theme/draft/execute"
+    public static func aiThemeDraft(idea: String, prepareKey: String = UUID().uuidString.lowercased(), product: ProjectEditProduct? = nil) -> PublishingRequest {
+        var f: [String: ProjectEditJSON] = [
+            "prepareKey": .string(prepareKey),
+            "idea": .string(idea.trimmingCharacters(in: .whitespacesAndNewlines)),
+        ]
+        if let product { f["productType"] = .number(Decimal(product.rawValue)) }
+        return .init(path: aiThemeDraftPreparePath, encoding: .json, fields: f)
+    }
+    public static func aiThemeDraftExecute(requestID: String) -> PublishingRequest {
+        .init(path: aiThemeDraftExecutePath, encoding: .json, fields: ["requestId": .string(requestID)])
+    }
     public static func aiClubDesign(idea: String, style: String?, minutes: Int?) -> PublishingRequest {
         var f: [String: ProjectEditJSON] = ["idea": .string(idea.trimmingCharacters(in: .whitespacesAndNewlines))]
         if let style { f["clubStyle"] = .string(style) }; if let minutes { f["targetDurationMin"] = .number(Decimal(minutes)) }

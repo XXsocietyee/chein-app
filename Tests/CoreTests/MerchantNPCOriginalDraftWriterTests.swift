@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor final class MerchantNPCOriginalDraftWriterTests: XCTestCase {
     private let heldRequest = "7c9e6679-7425-40de-944b-e07fc1f90ae7"
-    private let returnedRequest = "22222222-2222-4222-8222-222222222222"
+    private let returnedRequest = "td2_22222222222222222222222222222222"
     private let scope = MerchantNPCScope(
         accountID: 901, namespace: "synthetic.invalid", epoch: UUID(),
         merchantRowID: PublicMerchantRowID(31)!, accessRevision: UUID()
@@ -81,20 +81,20 @@ import XCTest
         )
     }
 
-    private func submitBody(requestID: String, requestState: String, code: Int = 200,
+    private func intentBody(requestID: String, state: String, code: Int = 200,
                             errorCode: String? = nil, nestedOnly: Bool = false) throws -> Data {
+        var data: [String: Any] = ["state": state]
+        if !nestedOnly {
+            data["requestId"] = requestID
+        } else {
+            data["result"] = ["requestId": requestID, "traceId": "t1", "draft": ["title": "第一份"]]
+        }
         var object: [String: Any] = [
             "code": code,
             "msg": "操作成功",
-            "data": ["traceId": "t1", "draft": ["title": "第一份"]] as [String: Any]
+            "data": data,
         ]
-        if !nestedOnly {
-            object["requestId"] = requestID
-            object["requestState"] = requestState
-        } else {
-            object["data"] = ["requestId": requestID, "draft": ["title": "第一份"]]
-            object["requestState"] = requestState
-        }
+        if nestedOnly { object["requestId"] = requestID }
         if let errorCode { object["errorCode"] = errorCode }
         return try JSONSerialization.data(withJSONObject: object)
     }
@@ -110,21 +110,34 @@ import XCTest
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertNil(request.value(forHTTPHeaderField: "Bearer"))
         let parts = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
-        XCTAssertEqual(parts?.path, "/api/ai/theme/draft")
+        XCTAssertEqual(parts?.path, "/api/ai/theme/draft/prepare")
         XCTAssertNil(parts?.queryItems)
         XCTAssertNotEqual(parts?.path, "/api/ai/theme/draft/request")
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: String])
-        XCTAssertEqual(Set(body.keys), ["requestId", "idea"])
+        XCTAssertEqual(Set(body.keys), ["prepareKey", "idea"])
+        XCTAssertNil(body["requestId"])
         XCTAssertNil(body["name"])
         XCTAssertNil(body["greeting"])
         XCTAssertNil(body["persona"])
         XCTAssertNil(body["knowledge"])
         XCTAssertNil(body["productType"])
         XCTAssertNil(body["existingNodeNames"])
-        XCTAssertEqual(body["requestId"], held)
+        XCTAssertEqual(body["prepareKey"], held)
         let idea = "name: Guide\ngreeting: Welcome\npersona: Kind\nknowledge: \(knowledge)"
         XCTAssertEqual(body["idea"], idea)
         XCTAssertEqual(idea.split(separator: "\n", omittingEmptySubsequences: false).count, 4)
+    }
+
+    private func assertExecute(_ request: URLRequest, requestID: String) throws {
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "member-token")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let parts = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
+        XCTAssertEqual(parts?.path, "/api/ai/theme/draft/execute")
+        XCTAssertNil(parts?.queryItems)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: String])
+        XCTAssertEqual(Set(body.keys), ["requestId"])
+        XCTAssertEqual(body["requestId"], requestID)
     }
 
     private func assertGet(_ request: URLRequest, requestID: String) {
@@ -143,16 +156,18 @@ import XCTest
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
         XCTAssertFalse(flow.gate.draft.faq.contains { $0.answer == knowledge })
         transport.results = [
-            (try submitBody(requestID: returnedRequest, requestState: "SUCCEEDED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "PREPARED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "SUCCEEDED"), 200),
             (try readBody(requestID: returnedRequest, state: "SUCCEEDED"), 200)
         ]
         let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
         XCTAssertEqual(fact?.requestID, returnedRequest)
         XCTAssertEqual(fact?.state, "SUCCEEDED")
-        XCTAssertEqual(transport.sent.count, 2)
+        XCTAssertEqual(transport.sent.count, 3)
         try assertPost(transport.sent[0], held: heldRequest, knowledge: knowledge)
-        assertGet(transport.sent[1], requestID: returnedRequest)
-        XCTAssertNotEqual(transport.sent[1].url?.query, "requestId=\(heldRequest)")
+        try assertExecute(transport.sent[1], requestID: returnedRequest)
+        assertGet(transport.sent[2], requestID: returnedRequest)
+        XCTAssertNotEqual(transport.sent[2].url?.query, "requestId=\(heldRequest)")
         XCTAssertEqual(flow.heldThemeDraftRequestID, returnedRequest)
         XCTAssertEqual(flow.gate.phase, .aiDraft)
         XCTAssertNil(flow.gate.published)
@@ -165,15 +180,17 @@ import XCTest
         let publisher = RecordingPublisher()
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
-        transport.failureAt = 1
+        transport.failureAt = 2
         transport.results = [
-            (try submitBody(requestID: returnedRequest, requestState: "PROCESSING", code: 409, errorCode: "AI_DRAFT_IN_PROGRESS"), 200),
+            (try intentBody(requestID: returnedRequest, state: "PREPARED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "PROCESSING", code: 409, errorCode: "AI_DRAFT_IN_PROGRESS"), 200),
             (try readBody(requestID: returnedRequest, state: "SUCCEEDED"), 200)
         ]
         let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
         XCTAssertNil(fact)
-        XCTAssertEqual(transport.sent.count, 1)
+        XCTAssertEqual(transport.sent.count, 2)
         try assertPost(transport.sent[0], held: heldRequest, knowledge: "Local facts")
+        try assertExecute(transport.sent[1], requestID: returnedRequest)
         XCTAssertEqual(flow.heldThemeDraftRequestID, heldRequest)
         XCTAssertEqual(flow.gate.phase, .aiDraft)
         XCTAssertNil(flow.gate.published)
@@ -203,7 +220,7 @@ import XCTest
         let publisher = RecordingPublisher()
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
-        transport.results = [(try submitBody(requestID: "hand-filled", requestState: "SUCCEEDED"), 200)]
+        transport.results = [(try intentBody(requestID: "hand-filled", state: "PREPARED"), 200)]
         let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
         XCTAssertNil(fact)
         XCTAssertEqual(transport.sent.count, 1)
@@ -217,7 +234,7 @@ import XCTest
         let publisher = RecordingPublisher()
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
-        transport.results = [(try submitBody(requestID: returnedRequest, requestState: "SUCCEEDED", nestedOnly: true), 200)]
+        transport.results = [(try intentBody(requestID: returnedRequest, state: "PREPARED", nestedOnly: true), 200)]
         let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
         XCTAssertNil(fact)
         XCTAssertEqual(transport.sent.count, 1)
@@ -245,13 +262,14 @@ import XCTest
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
         transport.results = [
-            (try submitBody(requestID: returnedRequest, requestState: "SUCCEEDED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "PREPARED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "SUCCEEDED"), 200),
             (try readBody(requestID: returnedRequest, state: "NOT_FOUND"), 200)
         ]
         let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
         XCTAssertNil(fact)
-        XCTAssertEqual(transport.sent.count, 2)
-        assertGet(transport.sent[1], requestID: returnedRequest)
+        XCTAssertEqual(transport.sent.count, 3)
+        assertGet(transport.sent[2], requestID: returnedRequest)
         XCTAssertNil(flow.gate.published)
         XCTAssertEqual(publisher.published, 0)
         XCTAssertEqual(flow.gate.phase, .aiDraft)
@@ -262,7 +280,8 @@ import XCTest
         let missing = try drafted(publisher: nil)
         XCTAssertTrue(missing.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
         missingTransport.results = [
-            (try submitBody(requestID: returnedRequest, requestState: "SUCCEEDED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "PREPARED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "SUCCEEDED"), 200),
             (try readBody(requestID: returnedRequest, state: "SUCCEEDED"), 200)
         ]
         let missingFact = try await writer(transport: missingTransport).submitHeldDraftThenRead(missing)
@@ -276,7 +295,8 @@ import XCTest
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
         transport.results = [
-            (try submitBody(requestID: returnedRequest, requestState: "SUCCEEDED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "PREPARED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "SUCCEEDED"), 200),
             (try readBody(requestID: returnedRequest, state: "SUCCEEDED"), 200)
         ]
         _ = try await writer(transport: transport).submitHeldDraftThenRead(flow)
@@ -291,12 +311,13 @@ import XCTest
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
         transport.results = [
-            (try submitBody(requestID: returnedRequest, requestState: "FAILED", code: 500, errorCode: "AI_DRAFT_FAILED"), 200)
+            (try intentBody(requestID: returnedRequest, state: "PREPARED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "FAILED", code: 500, errorCode: "AI_DRAFT_FAILED"), 200)
         ]
-        transport.failureAt = 1
+        transport.failureAt = 2
         let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
         XCTAssertNil(fact)
-        XCTAssertEqual(transport.sent.count, 1)
+        XCTAssertEqual(transport.sent.count, 2)
         XCTAssertEqual(flow.heldThemeDraftRequestID, heldRequest)
         XCTAssertNil(flow.gate.published)
         XCTAssertEqual(publisher.published, 0)
@@ -316,7 +337,7 @@ import XCTest
             let flow = try drafted(publisher: publisher)
             XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
             transport.failureAt = 1
-            transport.results = [(try submitBody(requestID: returnedRequest, requestState: state, code: code, errorCode: errorCode), status)]
+            transport.results = [(try intentBody(requestID: returnedRequest, state: state, code: code, errorCode: errorCode), status)]
             let fact = try await writer(transport: transport).submitHeldDraftThenRead(flow)
             XCTAssertNil(fact)
             XCTAssertEqual(transport.sent.count, 1)
@@ -334,18 +355,20 @@ import XCTest
         let flow = try drafted(publisher: publisher)
         XCTAssertTrue(flow.holdThemeDraftRequest(memberID: 7, requestID: heldRequest))
         transport.results = [
-            (try submitBody(requestID: returnedRequest, requestState: "SUCCEEDED"), 200)
+            (try intentBody(requestID: returnedRequest, state: "PREPARED"), 200),
+            (try intentBody(requestID: returnedRequest, state: "SUCCEEDED"), 200)
         ]
-        transport.failureAt = 1
+        transport.failureAt = 2
         do {
             _ = try await writer(transport: transport).submitHeldDraftThenRead(flow)
             XCTFail()
         } catch {
             XCTAssertEqual(error as? APIError, .malformedResponse)
         }
-        XCTAssertEqual(transport.sent.count, 2)
+        XCTAssertEqual(transport.sent.count, 3)
         try assertPost(transport.sent[0], held: heldRequest, knowledge: "Local facts")
-        assertGet(transport.sent[1], requestID: returnedRequest)
+        try assertExecute(transport.sent[1], requestID: returnedRequest)
+        assertGet(transport.sent[2], requestID: returnedRequest)
         XCTAssertEqual(flow.heldThemeDraftRequestID, returnedRequest)
         XCTAssertNil(flow.gate.published)
         XCTAssertEqual(publisher.published, 0)

@@ -79,7 +79,14 @@ import FoundationNetworking
             paths: NativeFriendChannelInviteApproval.reads.union(NativeFriendChannelInviteApproval.writes)), mode: .mine, expiresAt: Date().addingTimeInterval(600))
         let service = try NativeFriendChannelInviteService(context: context, approval: approval, transport: wire, current: { true }, unauthorized: {})
         _ = try await service.mine()
-        XCTAssertEqual(wire.requests.last?.url?.path, "/api/friend/channel-invite/mine")
+        let req = try XCTUnwrap(wire.requests.last)
+        XCTAssertEqual(req.httpMethod, "GET")
+        XCTAssertEqual(req.url?.path, "/api/friend/channel-invite/mine")
+        XCTAssertEqual(req.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertNil(req.httpBody)
+        XCTAssertEqual(URLComponents(url: req.url!, resolvingAgainstBaseURL: false)?.queryItems, [
+            URLQueryItem(name: "before", value: "0"),
+        ])
     }
 }
 

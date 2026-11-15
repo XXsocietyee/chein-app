@@ -4,7 +4,9 @@ import XCTest
 @MainActor final class PublishingAIDraftFlowTests: XCTestCase {
     func testCurrentThemeRequestCarriesMode() {
         let request = PublishingAssistance.themeForProduct(idea: " walk ", product: .freeExplore).request
-        XCTAssertEqual(request.path, "api/ai/theme/draft")
+        XCTAssertEqual(request.path, "api/ai/theme/draft/prepare")
+        XCTAssertEqual(Set(request.fields.keys), ["prepareKey", "idea", "productType"])
+        XCTAssertNotNil(UUID(uuidString: request.fields["prepareKey"]?.text ?? ""))
         XCTAssertEqual(request.fields["productType"], .number(2)); XCTAssertEqual(request.fields["idea"], .string("walk"))
     }
     func testGeneratedDraftPreservesTraceAndRequiresEveryPlace() throws {

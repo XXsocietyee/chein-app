@@ -14,7 +14,7 @@ public enum PublishingAssistance: Equatable {
         switch self {
         case .theme(let idea): return PublishingContracts.aiThemeDraft(idea: idea)
         case .themeForProduct(let idea, let product):
-            return PublishingRequest(path: "api/ai/theme/draft", encoding: .json, fields: ["idea": .string(idea.trimmingCharacters(in: .whitespacesAndNewlines)), "productType": .number(Decimal(product.rawValue))])
+            return PublishingRequest(path: PublishingContracts.aiThemeDraftPreparePath, encoding: .json, fields: ["prepareKey": .string(UUID().uuidString.lowercased()), "idea": .string(idea.trimmingCharacters(in: .whitespacesAndNewlines)), "productType": .number(Decimal(product.rawValue))])
         case .template(let name, let note, let category, let reward, let style, let method):
             return PublishingContracts.aiTemplateFill(shopName: name, extraNote: note, category: category, reward: reward, playStyle: style, validationMethod: method)
         case .club(let idea, let style, let minutes): return PublishingContracts.aiClubDesign(idea: idea, style: style, minutes: minutes)
@@ -31,6 +31,7 @@ public struct PublishingAuxiliaryReview: Identifiable, Equatable {
     var targetKey: String { "publishingAuxiliary:" + request.path }
     var isIdentity: Bool { request.path == "api/publisher/identity" }
     var isSafety: Bool { request.path == "api/ai/safety/precheck" }
+    var isThemeDraftPrepare: Bool { request.path == PublishingContracts.aiThemeDraftPreparePath }
 }
 public enum PublishingAuxiliaryOutcome: Equatable {
     case acknowledged(ProjectEditJSON)
@@ -71,7 +72,9 @@ public struct PublishingSafetyIssue: Equatable {
     }
     public var themeConfigured: Bool {
         guard let credential = credentials(), let approval, journal != nil else { return false }
-        return credential.session.region == .china && ["player", "club", "merchant"].contains(credential.session.role) && approval.allows(configuration: configuration, namespace: credential.session.namespace, accountID: credential.session.accountID, path: "api/ai/theme/draft")
+        return credential.session.region == .china && ["player", "club", "merchant"].contains(credential.session.role)
+            && approval.allows(configuration: configuration, namespace: credential.session.namespace, accountID: credential.session.accountID, path: PublishingContracts.aiThemeDraftPreparePath)
+            && approval.allows(configuration: configuration, namespace: credential.session.namespace, accountID: credential.session.accountID, path: PublishingContracts.aiThemeDraftExecutePath)
     }
     public var templateSession: PublishingSession? { credentials()?.session }
     public var templateConfigured: Bool {
@@ -85,7 +88,7 @@ public struct PublishingSafetyIssue: Equatable {
     public func prepare(_ assistance: PublishingAssistance, session: PublishingSession) throws -> PublishingAuxiliaryReview {
         guard let credential = credentials(), credential.session == session else { throw PublishModesError.changedSession }
         try check(credential)
-        guard (assistance.request.path == "api/ai/theme/draft" && ["player", "club", "merchant"].contains(session.role)) || session.role == "club" || session.role == "merchant" else { throw PublishModesError.forbidden }
+        guard (assistance.request.path == PublishingContracts.aiThemeDraftPreparePath && ["player", "club", "merchant"].contains(session.role)) || session.role == "club" || session.role == "merchant" else { throw PublishModesError.forbidden }
         if case .template(let name, let note, _, _, _, _) = assistance {
             guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw PublishModesError.invalidDraft }
@@ -114,13 +117,14 @@ public struct PublishingSafetyIssue: Equatable {
     }
     public func confirm(_ review: PublishingAuxiliaryReview) async -> PublishingAuxiliaryOutcome {
         guard !busy, reviews[review.id] == review, let credential = credentials(), credential.session == review.session,
-              let approval, let journal, approval.allows(configuration: configuration, namespace: review.session.namespace,
-                                                        accountID: review.session.accountID, path: review.request.path) else { return .notSent }
+              let approval, let journal,
+              approval.allows(configuration: configuration, namespace: review.session.namespace, accountID: review.session.accountID, path: review.request.path),
+              !review.isThemeDraftPrepare || approval.allows(configuration: configuration, namespace: review.session.namespace, accountID: review.session.accountID, path: PublishingContracts.aiThemeDraftExecutePath) else { return .notSent }
         if review.isIdentity {
             guard review.session.region == .china else { return .notSent }
         } else {
             // Conservative US provider gate remains closed pending an approved regional contract.
-            guard review.session.region == .china, (review.request.path == "api/ai/theme/draft" && ["player", "club", "merchant"].contains(review.session.role)) || ["club", "merchant"].contains(review.session.role) else { return .notSent }
+            guard review.session.region == .china, (review.isThemeDraftPrepare && ["player", "club", "merchant"].contains(review.session.role)) || ["club", "merchant"].contains(review.session.role) else { return .notSent }
         }
         busy = true; defer { busy = false }
         let record = OperationPendingRecord(operationID: review.id, ownerKey: review.session.storageKey, targetKey: review.targetKey)
@@ -149,9 +153,51 @@ public struct PublishingSafetyIssue: Equatable {
                 if status == 403 || code == 403 { try journal.clear(record); return .rejected("当前身份暂不支持AI创作") }
             }
             guard (200..<300).contains(status), let body = try? OperationAdapterHTTP.envelope(data), let code = body["code"]?.integer else { return review.isSafety ? .unavailable("") : .unknown }
+            if review.isThemeDraftPrepare {
+                return try await finishThemeDraftV2(prepareBody: body, prepareCode: code, credential: credential, record: record, journal: journal)
+            }
             try journal.clear(record)
             if code == 200 { return .acknowledged(body["data"] ?? .null) }
             return review.isSafety ? .unavailable(body["msg"]?.text ?? "") : .rejected(body["msg"]?.text ?? "")
         } catch { return review.isSafety ? .unavailable("") : .unknown }
+    }
+
+    private func finishThemeDraftV2(prepareBody: [String: ProjectEditJSON], prepareCode: Int, credential: PublishingCredentials,
+                                    record: OperationPendingRecord, journal: any OperationPendingJournal) async throws -> PublishingAuxiliaryOutcome {
+        guard prepareCode == 200 else {
+            try journal.clear(record); return .rejected(prepareBody["msg"]?.text ?? "")
+        }
+        guard let prepareView = prepareBody["data"]?.object,
+              let requestID = prepareView["requestId"]?.text, G6AIThemeDraft.isServerID(requestID),
+              let prepareState = prepareView["state"]?.text else { return .unknown }
+        if prepareState == "SUCCEEDED" {
+            guard prepareView["resultAvailable"]?.bool == true, let result = prepareView["result"] else { return .unknown }
+            try journal.clear(record); return .acknowledged(result)
+        }
+        if prepareState == "FAILED" {
+            try journal.clear(record); return .rejected(prepareView["reasonCode"]?.text ?? prepareBody["msg"]?.text ?? "")
+        }
+        guard prepareState == "PREPARED" else { return .unknown }
+        let exec = PublishingContracts.aiThemeDraftExecute(requestID: requestID)
+        let execRequest = try OperationAdapterHTTP.json(configuration: configuration, path: exec.path,
+                                                        body: JSONEncoder().encode(exec.fields), token: credential.token)
+        let (execData, execStatus) = try await transport.send(execRequest); try check(credential)
+        guard (200..<300).contains(execStatus), let execBody = try? OperationAdapterHTTP.envelope(execData),
+              let execCode = execBody["code"]?.integer else { return .unknown }
+        guard execCode == 200 else {
+            if let state = execBody["data"]?.object?["state"]?.text, state == "PROCESSING" || state == "UNKNOWN" { return .unknown }
+            try journal.clear(record); return .rejected(execBody["msg"]?.text ?? "")
+        }
+        guard let execView = execBody["data"]?.object, execView["requestId"]?.text == requestID,
+              let execState = execView["state"]?.text else { return .unknown }
+        switch execState {
+        case "SUCCEEDED":
+            guard execView["resultAvailable"]?.bool == true, let result = execView["result"] else { return .unknown }
+            try journal.clear(record); return .acknowledged(result)
+        case "FAILED":
+            try journal.clear(record); return .rejected(execView["reasonCode"]?.text ?? execBody["msg"]?.text ?? "")
+        default:
+            return .unknown
+        }
     }
 }
