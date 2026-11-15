@@ -54,6 +54,107 @@ public enum ShopNPCFailure: Error, Equatable {
         }
     }
 }
+public enum ShopNPCRelationState: String, Decodable, Equatable {
+    case ally, neutral, guarded
+}
+public struct ShopNPCRelationBadge: Equatable {
+    public let name: String?
+    public let state: ShopNPCRelationState
+    public let value: Int?
+    public let line: String?
+    public init(name: String? = nil, state: ShopNPCRelationState, value: Int? = nil, line: String? = nil) {
+        self.name = name; self.state = state; self.value = value; self.line = line
+    }
+    fileprivate struct Wire: Decodable {
+        var name: String?; var state: String?; var value: Int?; var line: String?
+    }
+    fileprivate init(wire: Wire) throws {
+        guard let rawState = wire.state, let state = ShopNPCRelationState(rawValue: rawState) else {
+            throw ShopNPCFailure.malformed
+        }
+        self.init(name: wire.name, state: state, value: wire.value, line: wire.line)
+    }
+}
+public struct ShopNPCDialogueEffect: Equatable, Identifiable {
+    public enum Kind: String, Equatable {
+        case inc = "INC"
+        case addTag = "ADD_TAG"
+    }
+    private static let forbiddenKeywords = ["reward", "badge", "item", "coin", "coupon", "answer", "clue"]
+    public let id: String
+    public let type: Kind
+    public let key: String
+    public let delta: Int?
+    public let value: Int?
+    public let label: String?
+    public init(type: Kind, key: String, delta: Int? = nil, value: Int? = nil, label: String? = nil) throws {
+        let normalized = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty, normalized.count <= 64,
+              normalized.range(of: #"^[A-Za-z0-9._-]+$"#, options: .regularExpression) != nil else {
+            throw ShopNPCFailure.malformed
+        }
+        let lowered = normalized.lowercased()
+        guard !Self.forbiddenKeywords.contains(where: { lowered.contains($0) }) else {
+            throw ShopNPCFailure.malformed
+        }
+        switch type {
+        case .inc:
+            guard normalized.hasPrefix("relation."), normalized.count > "relation.".count,
+                  let delta, delta != 0, (-10...10).contains(delta) else {
+                throw ShopNPCFailure.malformed
+            }
+        case .addTag:
+            guard normalized.hasPrefix("tag."), normalized.count > "tag.".count else {
+                throw ShopNPCFailure.malformed
+            }
+        }
+        self.type = type; self.key = normalized; self.delta = delta; self.value = value; self.label = label
+        self.id = "\(type.rawValue):\(normalized):\(delta.map(String.init) ?? label ?? "")"
+    }
+    fileprivate struct Wire: Decodable {
+        var type: String?; var key: String?; var delta: Int?; var value: Int?; var label: String?
+    }
+    fileprivate init(wire: Wire) throws {
+        guard let rawType = wire.type, let kind = Kind(rawValue: rawType), let key = wire.key else {
+            throw ShopNPCFailure.malformed
+        }
+        try self.init(type: kind, key: key, delta: wire.delta, value: wire.value, label: wire.label)
+    }
+}
+public struct ShopNPCDialogueReceipt: Equatable {
+    public let requestID: UUID
+    public let npcID: Int
+    public let routeActionID: String
+    public let stateVersion: Int
+    public let reply: String
+    public let effects: [ShopNPCDialogueEffect]
+    public let relation: ShopNPCRelationBadge?
+    public static func decode(_ bytes: Data, requestID: UUID, npcID: Int, routeActionID: String) throws -> Self {
+        struct Envelope: Decodable {
+            var code: Int?; var msg: String?; var data: Payload?
+            struct Payload: Decodable {
+                var npcId: Int?; var routeActionId: String?; var stateVersion: Int?; var reply: String?
+                var effects: [ShopNPCDialogueEffect.Wire]?; var relation: ShopNPCRelationBadge.Wire?
+            }
+        }
+        let body: Envelope
+        do { body = try JSONDecoder().decode(Envelope.self, from: bytes) }
+        catch { throw ShopNPCFailure.malformed }
+        guard let code = body.code else { throw ShopNPCFailure.malformed }
+        guard code == 200 else { throw ShopNPCFailure.server(code: code, message: body.msg) }
+        guard let data = body.data,
+              data.npcId == npcID,
+              data.routeActionId == routeActionID,
+              let version = data.stateVersion, version >= 0,
+              let reply = data.reply, !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              reply.utf8.count <= 32_768 else {
+            throw ShopNPCFailure.malformed
+        }
+        let effects = try (data.effects ?? []).map(ShopNPCDialogueEffect.init(wire:))
+        let relation = try data.relation.map(ShopNPCRelationBadge.init(wire:))
+        return Self(requestID: requestID, npcID: npcID, routeActionID: routeActionID, stateVersion: version, reply: reply, effects: effects, relation: relation)
+    }
+}
 public struct ShopNPCReply: Equatable {
     public enum Outcome: String, Equatable { case succeeded = "SUCCEEDED", rejected = "REJECTED", failed = "FAILED", processing = "PROCESSING" }
     public let requestID: UUID
@@ -64,6 +165,8 @@ public struct ShopNPCReply: Equatable {
     public let asr: String?
     public let safetyDecision: String
     public let errorCode: String?
+    public let relation: ShopNPCRelationBadge?
+    public let effects: [ShopNPCDialogueEffect]
     /// PROCESSING is not permission to retry an unresolved provider outcome.
     public var needsRetry: Bool { retryable }
     public var hasUnknownOutcome: Bool {
@@ -79,6 +182,7 @@ public struct ShopNPCReply: Equatable {
             struct Payload: Decodable {
                 var requestId: String?; var outcomeStatus: String?; var safetyDecision: String?
                 var retryable: Bool?; var retryAfterSeconds: Int?; var safeText: String?; var errorCode: String?
+                var relation: ShopNPCRelationBadge.Wire?; var effects: [ShopNPCDialogueEffect.Wire]?
             }
         }
         let body: Envelope
@@ -100,9 +204,12 @@ public struct ShopNPCReply: Equatable {
         if outcome == .succeeded, !retryable {
             guard safety == "PASS", !safe.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ShopNPCFailure.malformed }
         }
+        let relation = try data.relation.map(ShopNPCRelationBadge.init(wire:))
+        let effects = try (data.effects ?? []).map(ShopNPCDialogueEffect.init(wire:))
         // No legacy data.text fallback: missing terminal evidence is not success.
         return Self(requestID: id, outcome: outcome, retryable: retryable, retryAfterSeconds: data.retryAfterSeconds,
-                    text: safe, asr: voice ? body.asr : nil, safetyDecision: safety, errorCode: data.errorCode)
+                    text: safe, asr: voice ? body.asr : nil, safetyDecision: safety, errorCode: data.errorCode,
+                    relation: relation, effects: effects)
     }
 }
 /// Public NPC read of one published release. Private order, customer and cost keys are withheld.
@@ -133,9 +240,11 @@ public struct ShopNPCMessage: Identifiable, Equatable {
     public let mine: Bool
     public var text: String
     public let source: Source
+    public var effects: [ShopNPCDialogueEffect]
     public var hasReusableQuestion: Bool { mine && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var voiceTranscriptMissing: Bool { mine && source == .voice && !hasReusableQuestion }
-    public init(id: UUID = UUID(), mine: Bool, text: String, source: Source = .text) {
+    public init(id: UUID = UUID(), mine: Bool, text: String, source: Source = .text, effects: [ShopNPCDialogueEffect] = []) {
         self.id = id; self.mine = mine; self.text = text; self.source = mine ? source : .text
+        self.effects = mine ? [] : effects
     }
 }

@@ -43,12 +43,92 @@ public struct JourneyRecordLine: Equatable {
     public let text: String?
 }
 public struct JourneyRecordRelation: Equatable {
+    public let key: String?
     public let name: String?
     public let state: String
+    public let value: Int?
     public let line: String?
     init(_ raw: PlayWireValue) throws {
         guard raw.object != nil, let state = raw["state"].text, ["ally", "neutral", "guarded"].contains(state) else { throw PlayExperienceError.malformed }
-        name = try JourneyNarrativeDecoding.text(raw["name"]); self.state = state; line = try JourneyNarrativeDecoding.text(raw["line"])
+        key = try JourneyNarrativeDecoding.text(raw["key"])
+        name = try JourneyNarrativeDecoding.text(raw["name"])
+        self.state = state
+        value = try JourneyNarrativeDecoding.optionalNumber(raw["value"])
+        line = try JourneyNarrativeDecoding.text(raw["line"])
+    }
+}
+public struct JourneyDialogueEffect: Equatable, Identifiable {
+    public enum Kind: String, Equatable {
+        case inc = "INC"
+        case addTag = "ADD_TAG"
+    }
+    private static let forbiddenKeywords = ["reward", "badge", "item", "coin", "coupon", "answer", "clue"]
+    public let id: String
+    public let type: Kind
+    public let key: String
+    public let delta: Int?
+    public let value: Int?
+    public let label: String?
+    public static func decodeList(_ raw: PlayWireValue) throws -> [JourneyDialogueEffect] {
+        if raw == .null { return [] }
+        return try JourneyNarrativeDecoding.rows(raw).map(Self.init)
+    }
+    init(_ raw: PlayWireValue) throws {
+        guard raw.object != nil,
+              let kindRaw = raw["type"].text,
+              let type = Kind(rawValue: kindRaw),
+              let key = raw["key"].text?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !key.isEmpty, key.count <= 64,
+              key.range(of: #"^[A-Za-z0-9._-]+$"#, options: .regularExpression) != nil else {
+            throw PlayExperienceError.malformed
+        }
+        let lowered = key.lowercased()
+        guard !Self.forbiddenKeywords.contains(where: { lowered.contains($0) }) else {
+            throw PlayExperienceError.malformed
+        }
+        let delta = try JourneyNarrativeDecoding.optionalNumber(raw["delta"])
+        switch type {
+        case .inc:
+            guard key.hasPrefix("relation."), key.count > "relation.".count,
+                  let delta, delta != 0, (-10...10).contains(delta) else {
+                throw PlayExperienceError.malformed
+            }
+        case .addTag:
+            guard key.hasPrefix("tag."), key.count > "tag.".count else {
+                throw PlayExperienceError.malformed
+            }
+        }
+        let value = try JourneyNarrativeDecoding.optionalNumber(raw["value"])
+        let label = try JourneyNarrativeDecoding.text(raw["label"])
+        self.type = type
+        self.key = key
+        self.delta = delta
+        self.value = value
+        self.label = label
+        self.id = "\(type.rawValue):\(key):\(delta.map(String.init) ?? label ?? "")"
+    }
+}
+public struct JourneyDialogueReceipt: Equatable {
+    public let npcID: Int
+    public let routeActionID: String
+    public let reply: String
+    public let effects: [JourneyDialogueEffect]
+    public let relation: JourneyRecordRelation?
+    public let stateVersion: Int
+    init(_ raw: PlayWireValue, npcID: Int, routeActionID: String) throws {
+        guard raw.object != nil,
+              raw["npcId"].integer == npcID,
+              raw["routeActionId"].text == routeActionID,
+              let reply = raw["reply"].text, !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let version = raw["stateVersion"].integer, version >= 0 else {
+            throw PlayExperienceError.malformed
+        }
+        self.npcID = npcID
+        self.routeActionID = routeActionID
+        self.reply = reply
+        self.effects = try JourneyDialogueEffect.decodeList(raw["effects"])
+        self.relation = raw["relation"] == .null ? nil : try JourneyRecordRelation(raw["relation"])
+        self.stateVersion = version
     }
 }
 public struct JourneyRecordLog: Equatable {
@@ -69,12 +149,14 @@ public struct JourneyCasebookDocument: Equatable {
     public let facts: [String]
     public let costs: [String]
     public let relations: [JourneyRecordRelation]
+    public let effects: [JourneyDialogueEffect]
     public let log: [JourneyRecordLog]
     public let found: Int
     public let total: Int
     init(_ raw: PlayWireValue) throws {
         facts = try JourneyNarrativeDecoding.labels(raw["facts"]); costs = try JourneyNarrativeDecoding.labels(raw["costs"])
         relations = try JourneyNarrativeDecoding.rows(raw["relations"]).map(JourneyRecordRelation.init)
+        effects = try JourneyDialogueEffect.decodeList(raw["effects"])
         log = try JourneyNarrativeDecoding.rows(raw["log"]).map(JourneyRecordLog.init)
         let counts = try JourneyNarrativeDecoding.progress(raw); found = counts.0; total = counts.1
     }
