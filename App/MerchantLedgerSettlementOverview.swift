@@ -284,7 +284,7 @@ import UIKit
             }
             if let key = slot.failureKey {
                 Section {
-                    CYErrorState(kind: .server, message: LocalizedStringKey(key)) { model.appear() }
+                    CYErrorState(LocalizedStringKey(key)) { model.appear() }
                         .disabled(slot.isLoading)
                 }
                 .listRowBackground(Color.clear)

@@ -133,7 +133,7 @@ final class PremergeCoreCoverageTests: XCTestCase {
         }
         let unauthService = RoamPresenceVisibilityService(configuration: config, transport: unusedTransport)
         let nilTokenOutcome = await unauthService.disablePresence(token: nil)
-        let shortTokenOutcome = await unauthService.disablePresence(token: "abc")
+        let shortTokenOutcome = await unauthService.disablePresence(token: " ")
         XCTAssertEqual(nilTokenOutcome, .unavailable)
         XCTAssertEqual(shortTokenOutcome, .unavailable)
 
@@ -164,7 +164,7 @@ final class PremergeCoreCoverageTests: XCTestCase {
 
     func testRoamConsentWithdrawalFeedbackTransitions() {
         XCTAssertEqual(
-            RoamConsentWithdrawalFeedback.evaluate(previous: .none, current: .complete, error: nil),
+            RoamConsentWithdrawalFeedback.evaluate(previous: .idle, current: .complete, error: nil),
             .withdrawn
         )
         XCTAssertEqual(
@@ -172,15 +172,15 @@ final class PremergeCoreCoverageTests: XCTestCase {
             .idle
         )
         XCTAssertEqual(
-            RoamConsentWithdrawalFeedback.evaluate(previous: .none, current: .serverConfirmed, error: "local fail"),
+            RoamConsentWithdrawalFeedback.evaluate(previous: .idle, current: .serverConfirmed, error: "local fail"),
             .partialLocalPending
         )
         XCTAssertEqual(
-            RoamConsentWithdrawalFeedback.evaluate(previous: .none, current: .trackingStopped, error: "local fail"),
+            RoamConsentWithdrawalFeedback.evaluate(previous: .idle, current: .trackingStopped, error: "local fail"),
             .partialLocalPending
         )
         XCTAssertEqual(
-            RoamConsentWithdrawalFeedback.evaluate(previous: .none, current: .none, error: "network fail"),
+            RoamConsentWithdrawalFeedback.evaluate(previous: .idle, current: .idle, error: "network fail"),
             .failed
         )
     }
@@ -199,7 +199,7 @@ final class PremergeCoreCoverageTests: XCTestCase {
 
         // Multiple clubs -> .chooseClub
         let multiTransport = PremergeStubHTTPTransport { _ in
-            (Data(#"{"code":200,"data":[{"id":1,"name":"西湖夜跑团"},{"id":2,"name":"运河城市探索"}]}"#.utf8), 200)
+            (Data(#"{"code":200,"data":{"owned":[{"id":1,"name":"西湖夜跑团"},{"id":2,"name":"运河城市探索"}]}}"#.utf8), 200)
         }
         let multiOutcome = await SettingsClubPickerService(configuration: config, transport: multiTransport)
             .resolveEntry(token: "valid-premerge-token-12345")

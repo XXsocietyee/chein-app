@@ -86,7 +86,7 @@ enum PopupsSocialFixtures {
                 }
             }
         }
-        .cyToast($toastMessage, tone: .info)
+        .cyToast(message: $toastMessage, tone: .info)
     }
 }
 
@@ -180,7 +180,7 @@ enum PopupsSocialFixtures {
             onCancel: {},
             onConfirm: { toastMessage = "topic.unlike.toast" }
         )
-        .cyToast($toastMessage, tone: .info)
+        .cyToast(message: $toastMessage, tone: .info)
     }
 }
 

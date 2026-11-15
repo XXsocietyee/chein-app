@@ -76,7 +76,8 @@ import SwiftUI
         .onDisappear { sourceFocused = false; invalidate(); replaceExample = false }
         .sheet(isPresented: $replaceExample) {
             CYConfirmSheet(
-                title: appLocalized("templateAuthor.preference.replaceQuestion", locale: locale),
+                title: appLocalized("templateAuthor.preference.example", locale: locale),
+                message: appLocalized("templateAuthor.preference.replaceQuestion", locale: locale),
                 confirmTitle: appLocalized("templateAuthor.preference.replace", locale: locale),
                 isDestructive: true,
                 onConfirm: {

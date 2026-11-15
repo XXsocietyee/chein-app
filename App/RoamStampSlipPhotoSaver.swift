@@ -112,13 +112,13 @@ struct RoamStampSlipSaveRow: View {
             case .permissionDenied:
                 showingPermissionModal = true
             case .saved:
-                toastMessage = PlayCloseCopy.text("已保存到相册", "Saved to Photos", locale: locale)
+                toastMessage = PlayCloseCopy.text("已保存到相册", "Saved to Photos", locale)
             case .needsTear:
-                toastMessage = PlayCloseCopy.text("撕开邮票后可保存纪念图", "Tear the stamp first to save the image", locale: locale)
+                toastMessage = PlayCloseCopy.text("撕开邮票后可保存纪念图", "Tear the stamp first to save the image", locale)
             case .noPicture:
-                toastMessage = PlayCloseCopy.text("本枚邮票暂无图片可保存", "This stamp has no image to save", locale: locale)
+                toastMessage = PlayCloseCopy.text("本枚邮票暂无图片可保存", "This stamp has no image to save", locale)
             case .failed, .unavailable, .restricted:
-                toastMessage = PlayCloseCopy.text("保存失败，请重试", "Could not save photo. Try again.", locale: locale)
+                toastMessage = PlayCloseCopy.text("保存失败，请重试", "Could not save photo. Try again.", locale)
             case .idle, .saving:
                 break
             }

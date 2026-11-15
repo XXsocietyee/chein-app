@@ -93,7 +93,7 @@ struct MerchantCorrectionSheet: View {
                             CYEmptyState(
                                 systemImage: "exclamationmark.triangle",
                                 LocalizedStringKey(message.isEmpty ? PlayerCapabilityCopy.text("暂时无法纠错", "Unable to correct info right now", locale) : message),
-                                kind: .error
+                                kind: .failure
                             )
                             HStack(spacing: CYSpacing.sm) {
                                 CYPillButton(verbatim: PlayerCapabilityCopy.text("取消", "Cancel", locale), style: .secondary) { dismiss() }
@@ -105,7 +105,7 @@ struct MerchantCorrectionSheet: View {
                             CYEmptyState(
                                 systemImage: "checkmark.circle",
                                 LocalizedStringKey(PlayerCapabilityCopy.text("纠错已提交", "Correction submitted", locale)),
-                                kind: .empty
+                                kind: .generic
                             )
                             Text(verbatim: message)
                                 .font(CYTypography.body)

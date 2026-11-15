@@ -83,8 +83,8 @@ enum MerchantAreaPopupFixtures {
             title: "离开创作编辑？",
             message: "无法确认草稿已保存。可重新检查、继续编辑，或不保存离开。",
             consequences: [
-                CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: "未保存的本地改动会丢失", tone: .warning),
-                CYConfirmConsequence(systemImage: "arrow.clockwise", text: "可先重新检查当前本地草稿保存状态", tone: .info),
+                CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: "未保存的本地改动会丢失"),
+                CYConfirmConsequence(systemImage: "arrow.clockwise", text: "可先重新检查当前本地草稿保存状态"),
             ],
             cancelTitle: "继续编辑",
             confirmTitle: "不保存，直接离开",
@@ -109,8 +109,8 @@ enum MerchantAreaPopupFixtures {
             confirmTitle: confirmed ? "已删除" : "删除锚点",
             isDestructive: true,
             consequences: [
-                CYConfirmConsequence(systemImage: "qrcode", text: "桌台 A-04 的静态二维码立即失效", tone: .danger),
-                CYConfirmConsequence(systemImage: "clock", text: "已开始的游玩会话不受影响", tone: .info),
+                CYConfirmConsequence(systemImage: "qrcode", text: "桌台 A-04 的静态二维码立即失效"),
+                CYConfirmConsequence(systemImage: "clock", text: "已开始的游玩会话不受影响"),
             ],
             onConfirm: { confirmed = true }
         )

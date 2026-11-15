@@ -49,7 +49,7 @@ enum PublishDesignFixtures {
         case "t11-coupon-create":
             return wrapCreator(CouponManagementFixtureHost(showsHarness: false))
         case "t11-coupon-unknown":
-            return wrapCreator(NavigationStack { CouponManagementView(coordinator: CouponManagementCoordinator(adapter: .init(transport: nil, syntheticWritesEnabled: false), authorizer: nil, locks: nil, currentSession: { nil }), sessionKey: nil, isSourceVisible: true) })
+            return wrapCreator(NavigationStack { CouponManagementView(coordinator: CouponManagementCoordinator(adapter: .init(transport: nil, syntheticWritesEnabled: false), authorizer: CouponPublisherUnavailable(), locks: CouponManagementAppLocks(), currentSession: { nil }), sessionKey: nil, isSourceVisible: true) })
         case "template-topics": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader()) })
         case "template-topics-offline": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(scenario: .unconfigured)) })
         case "template-games": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(), startOnGames: true) })
@@ -167,7 +167,7 @@ enum PublishDesignFixtures {
             let service = ProjectEditSyntheticService()
             service.snapshot = ProjectEditSyntheticFixtures.snapshot(scope: .full)
             coordinator = ProjectEditCoordinator(
-                initial: signedIn ? service.snapshot : nil,
+                initial: service.snapshot,
                 service: service,
                 store: ProjectEditLocalStore(storage: ProjectEditMemoryStorage()),
                 currentSession: { session }

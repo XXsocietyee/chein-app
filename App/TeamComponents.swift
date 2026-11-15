@@ -129,7 +129,7 @@ struct TeamMemberRow: View {
     private var isDestructiveAction: Bool {
         switch review.action {
         case .leave, .remove, .disband: return true
-        case .create, .joinByCode, .apply, .reviewApplication, .changeJoinMode: return false
+        case .create, .join, .changeJoinMode: return false
         }
     }
 
@@ -346,7 +346,7 @@ struct TeamMemberRow: View {
                     .accessibilityIdentifier("team.invite.close")
             }
         }
-        .cyToast($toastMessage, tone: toastTone)
+        .cyToast(message: $toastMessage, tone: toastTone)
         .cyDomainSheet(detents: [.half, .full])
         .onAppear { copyPermit = model.beginInvitePreview() }
         .onChange(of: team) { _, _ in endPreview() }

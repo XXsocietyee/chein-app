@@ -147,13 +147,7 @@ import SwiftUI
             .cyModalConfirm(
                 isPresented: tagConfirm,
                 title: appLocalized("playx.preference.tag", locale: locale),
-                message: {
-                    if let disclosure = model.submission?.disclosure,
-                       let recipient = disclosure["recipientLabel"].text, let purpose = disclosure["purpose"].text {
-                        return recipient + "\n" + purpose
-                    }
-                    return nil
-                }(),
+                message: tagConfirmMessage,
                 cancelTitle: appLocalized("playx.cancel", locale: locale),
                 confirmTitle: appLocalized("playx.submit", locale: locale),
                 onCancel: { tagConfirm = false },
@@ -180,6 +174,13 @@ import SwiftUI
                 .cyDomainSheet(detents: [.half])
             }
             .onDisappear { model.cancelReview(); review = nil; onFinished() }
+    }
+    private var tagConfirmMessage: String {
+        if let disclosure = model.submission?.disclosure,
+           let recipient = disclosure["recipientLabel"].text, let purpose = disclosure["purpose"].text {
+            return recipient + "\n" + purpose
+        }
+        return ""
     }
     private func prepare(reuse: Int?) {
         do { review = try model.review(reuseTagID: reuse); confirm = true; error = nil }

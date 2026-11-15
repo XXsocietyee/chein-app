@@ -107,22 +107,25 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         .onDisappear { reportSourceActive = false; reportReadGeneration &+= 1 }
         .sheet(isPresented: $choosing) {
             if let target = choice {
-                var items: [CYOptionSheetItem<String>] = [
-                    CYOptionSheetItem(
-                        id: "public",
-                        title: appLocalized("social.profile", locale: locale),
-                        systemImage: "person.crop.circle",
-                        identifier: "club.member.choice.public"
-                    )
-                ]
-                if target.viewerRevision == governance?.viewerRevision, matchesGovernance(target.identity) {
-                    items.append(CYOptionSheetItem(
-                        id: "customer",
-                        title: appLocalized("club.gov.customer", locale: locale),
-                        systemImage: "person.text.rectangle",
-                        identifier: "club.member.choice.customer"
-                    ))
-                }
+                let items: [CYOptionSheetItem<String>] = {
+                    var list: [CYOptionSheetItem<String>] = [
+                        CYOptionSheetItem(
+                            id: "public",
+                            title: appLocalized("social.profile", locale: locale),
+                            systemImage: "person.crop.circle",
+                            identifier: "club.member.choice.public"
+                        )
+                    ]
+                    if target.viewerRevision == governance?.viewerRevision, matchesGovernance(target.identity) {
+                        list.append(CYOptionSheetItem(
+                            id: "customer",
+                            title: appLocalized("club.gov.customer", locale: locale),
+                            systemImage: "person.text.rectangle",
+                            identifier: "club.member.choice.customer"
+                        ))
+                    }
+                    return list
+                }()
                 CYOptionSheet(
                     title: appLocalized("club.members", locale: locale),
                     items: items,

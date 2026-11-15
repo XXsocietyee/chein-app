@@ -98,10 +98,12 @@ struct BundleExitSwapView: View {
             }
         }
         .navigationTitle(PlayerCapabilityCopy.text("更换商家", "Swap merchant", locale))
-        .sheet(item: Binding(get: { confirming }, set: { if $0 == nil { confirming = nil } })) { target in
-            MemberBundleSwapConfirmSheet(merchantName: target.merchantName) {
-                confirming = nil
-                Task { await swap(target) }
+        .sheet(isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } })) {
+            if let target = confirming {
+                MemberBundleSwapConfirmSheet(merchantName: target.merchantName ?? "—") {
+                    confirming = nil
+                    Task { await swap(target) }
+                }
             }
         }
         .task { await start() }

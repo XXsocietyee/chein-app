@@ -386,7 +386,7 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
-    @ViewBuilder private func shelfIssue(_ error: Error, retry: @escaping () -> Void) -> some View {
+    private func shelfIssue(_ error: Error, retry: @escaping () -> Void) -> some View {
         let reason = error as? DiscoveryTemplateUnavailable
         let unauthorized = (error as? APIError) == .unauthorized
         let offline = reason == .offline || (error as? URLError)?.code == .notConnectedToInternet
@@ -409,7 +409,7 @@ struct DiscoveryTemplateBrowserView: View {
             detail = nil
         }
         let canRetry = !unauthorized && (reason?.retryable ?? true)
-        CYStateLayout(
+        return CYStateLayout(
             kind: offline ? .offline : .failure,
             title: Text(title),
             detail: detail.map { Text($0) },

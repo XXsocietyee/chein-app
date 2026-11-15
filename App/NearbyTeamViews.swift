@@ -133,14 +133,14 @@ import SwiftUI
                 PlayAreaNearbyRangeSheet(radii: NearbyQueryContext.radii, selected: radius, onSelect: { picked in
                     radius = picked
                     showingRange = false
-                    toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(picked / 1000) km", locale: locale)
+                    toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(picked / 1000) km", locale)
                 }, onClose: { showingRange = false })
             }
             .sheet(isPresented: $showingMapStyle) {
                 PlayAreaNearbyMapStyleSheet(selected: mapStyle, onSelect: { picked in
                     mapStyle = picked
                     showingMapStyle = false
-                    toastMessage = PlayCloseCopy.text("已切换地图样式：\(picked.title(locale: locale))", "Map style: \(picked.title(locale: locale))", locale: locale)
+                    toastMessage = PlayCloseCopy.text("已切换地图样式：\(picked.title(locale: locale))", "Map style: \(picked.title(locale: locale))", locale)
                 }, onClose: { showingMapStyle = false })
             }
             .cyToast(verbatimMessage: $toastMessage)
@@ -262,7 +262,7 @@ import SwiftUI
                         .foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityIdentifier("nearby.mapStyle")
-                .accessibilityLabel(Text(verbatim: PlayCloseCopy.text("地图样式", "Map style", locale: locale)))
+                .accessibilityLabel(Text(verbatim: PlayCloseCopy.text("地图样式", "Map style", locale)))
                 Spacer(minLength: 8)
                 CYPillButton("nearby.search", style: .secondary, systemImage: "magnifyingglass", fullWidth: false) { Task { await refresh() } }
                     .disabled(model.running).accessibilityIdentifier("nearby.search")
@@ -481,14 +481,14 @@ import SwiftUI
 
     private var isDestructiveAction: Bool {
         switch snapshot.action {
-        case .withdrawApplication, .reject: return true
+        case .withdraw, .handle(_, _, false): return true
         default: return false
         }
     }
 
     private var consequenceKeys: [String] {
         switch snapshot.action {
-        case .reject:
+        case .handle(_, _, false):
             return ["nearby.consequence.reject.1", "nearby.consequence.reject.2"]
         default:
             return []

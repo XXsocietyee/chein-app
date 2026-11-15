@@ -21,7 +21,8 @@ public struct NativeChannelMessagePinPage: Decodable {
 
 /// Ephemeral confirmation only, not a writer, authority grant, or receipt store.
 /// The source version is frozen for UI revalidation; PIN/UNPIN do not accept a CAS field.
-@MainActor public struct NativeChannelMessagePinSelection {
+@MainActor public struct NativeChannelMessagePinSelection: Identifiable {
+    public var id: String { command.requestID }
     public let command: NativeChannelMessageCommand
     public let identity: MessagingReadIdentity
     public let snapshot: NativeChannelMessageSnapshot

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Reviewed popup-closure actions injected via EnvironmentValues without growing `AppSession.swift`.
-@MainActor struct PopupCloseEnvironmentActions {
+struct PopupCloseEnvironmentActions {
     var graduateBetaTopic: (@MainActor (_ topicID: Int) async -> Result<String, Error>)?
     var loadTransferClubs: (@MainActor () async -> [ClubRecord])?
     var transferTopicToClub: (@MainActor (_ topicID: Int, _ clubID: Int) async -> Result<Int?, Error>)?
@@ -36,8 +36,8 @@ extension AppSession {
                     return .failure(PublisherLifecycleError.unavailable)
                 }
                 do {
-                    let resource = try PublishedResource(kind: .topic, value: topicID)
-                    let coordinator = context.coordinator(for: resource)
+                    _ = try PublishedResource(kind: .topic, value: topicID)
+                    let coordinator = context.coordinator
                     let review = try await coordinator.prepare(.graduate(topicID: topicID))
                     let outcome = await coordinator.confirm(review, consequentialApproval: true)
                     switch outcome {
@@ -65,8 +65,8 @@ extension AppSession {
                     return .failure(PublisherLifecycleError.unavailable)
                 }
                 do {
-                    let resource = try PublishedResource(kind: .topic, value: topicID)
-                    let coordinator = context.coordinator(for: resource)
+                    _ = try PublishedResource(kind: .topic, value: topicID)
+                    let coordinator = context.coordinator
                     let review = try await coordinator.prepare(.transfer(topicID: topicID, clubID: clubID))
                     let outcome = await coordinator.confirm(review, consequentialApproval: true)
                     switch outcome {

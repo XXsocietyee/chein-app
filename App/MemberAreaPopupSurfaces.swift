@@ -164,7 +164,7 @@ struct MemberFavoritesRecommendNoteSheet: View {
             }
             .padding(.bottom, CYSpacing.lg)
         }
-        .cyDomainSheet(detents: [.half, .large])
+        .cyDomainSheet(detents: [.half, .full])
     }
 }
 
@@ -747,8 +747,7 @@ struct MemberCoopInviteSheet: View {
                 } else if topics.isEmpty {
                     CYEmptyState(
                         systemImage: "doc.text",
-                        LocalizedStringKey(MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale)),
-                        kind: .empty
+                        LocalizedStringKey(MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale))
                     )
                 } else {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {

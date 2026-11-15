@@ -10,7 +10,7 @@ private struct DeepLinkDirtyTrackerKey: EnvironmentKey {
 }
 
 /// Environment closures connecting member-area popups to reviewed Core services without expanding `AppSession.swift`.
-@MainActor struct MemberPopupEnvironmentActions {
+struct MemberPopupEnvironmentActions {
     var disablePresence: (@MainActor () async -> RoamPresenceDisableOutcome)?
     var loadOwnedClubs: (@MainActor () async -> SettingsClubPickerOutcome)?
     var makeNPCDataCoordinator: (@MainActor () -> NPCChatDataCoordinator)?
@@ -108,7 +108,7 @@ extension AppSession {
                 guard let json = try? await service.read(.ownedTopics(kind: .merchant, scope: nil, page: 1), session: coopSession),
                       let rows = json["rows"].rows else { return [] }
                 return rows.compactMap { row in
-                    guard let id = row["id"].intValue, id > 0 else { return nil }
+                    guard let id = row["id"].integer, id > 0 else { return nil }
                     let title = row["title"].text ?? row["name"].text ?? "#\(id)"
                     return (id: id, title: title)
                 }

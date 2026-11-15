@@ -23,6 +23,10 @@ enum CYMapRegion {
             && (abs(coordinate.latitude) > 0.0001 || abs(coordinate.longitude) > 0.0001)
     }
 
+    static func region(center: CLLocationCoordinate2D, span: Double = 0.04) -> MKCoordinateRegion {
+        sanitizedRegion(center: center, span: span)
+    }
+
     static func sanitizedRegion(
         center: CLLocationCoordinate2D,
         span: Double = 0.04,

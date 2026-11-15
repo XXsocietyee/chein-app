@@ -101,11 +101,11 @@ import QuestifyCore
                     return MerchantChoiceOption(id: String(node.id), title: label, systemImage: "mappin.and.ellipse")
                 },
                 domain: .topicEditor,
-                selectedID: .constant(row.nodeId.map(String.init)),
+                selectedID: .constant(row.nodeId),
                 onSelect: { option in
                     picking = nil
-                    if let nodeID = Int64(option.id) {
-                        Task { await model.bind(row, nodeId: nodeID) }
+                    if !option.id.isEmpty {
+                        Task { await model.bind(row, nodeId: option.id) }
                     }
                 },
                 onClose: { picking = nil }

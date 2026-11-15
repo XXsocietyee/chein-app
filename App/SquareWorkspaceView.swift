@@ -226,7 +226,7 @@ import UniformTypeIdentifiers
         }
         .onChange(of: draft) { _, _ in coordinator.cancelReview() }
         .onChange(of: lane) { _, _ in coordinator.cancelReview(); options = []; localMedia.invalidate(); coordinator.clearRevisions() }
-        .cyToast($toastMessage, tone: .info)
+        .cyToast(message: $toastMessage, tone: .info)
         .overlay {
             if issue {
                 CYModal(

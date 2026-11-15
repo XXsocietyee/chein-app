@@ -74,8 +74,10 @@ import QuestifyCore
         ) {
             CYConfirmSheet(
                 title: confirmationText,
+                message: "",
                 confirmTitle: MerchantAreaCopy.text("确认", "Confirm", locale),
                 isDestructive: true,
+                onCancel: { model.dismiss() },
                 onConfirm: { Task { await model.confirm() } }
             )
             .cyDomainSheet(detents: [.half])

@@ -319,7 +319,7 @@ import Combine
             onConfirm: { discard = false; model.discard() }
         )
         .onChange(of: model.coordinator.messageKey) { _, key in
-            if let key { toastMessage = appLocalized(key, locale: locale) }
+            if let key { toastMessage = appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale) }
         }
         .cyToast(verbatimMessage: $toastMessage)
     }

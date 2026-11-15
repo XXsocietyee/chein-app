@@ -135,7 +135,7 @@ final class PopupCloseParityTests: XCTestCase {
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/official/events/42/attendance/manage"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/contact"))
 
-        XCTAssertFalse(ReleaseMoneyWriteSwitch.isEnabled(.payments))
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.isEnabled(.payment))
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/pay/create"))
     }
 }

@@ -23,8 +23,8 @@ extension PlayKitScreen {
             } else {
                 ForEach(Array(projection.options.enumerated()), id: \.element.id) { index, option in
                     let marker = PlayKitImageOption.letter(at: index)
-                    CYChoiceRow(label: PlayKitImageOption.stripDuplicateKey(option.label, key: marker), marker: marker,
-                                selected: selected.contains(option.id), multi: multi, enabled: enabled) { toggle(option.id, multi: multi) }
+                    CYChoiceRow(label: PlayKitImageOption.stripDuplicateKey(option.label, key: marker),
+                                selected: selected.contains(option.id), multi: multi, enabled: enabled, marker: marker) { toggle(option.id, multi: multi) }
                 }
             }
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)

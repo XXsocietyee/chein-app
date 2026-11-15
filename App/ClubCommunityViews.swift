@@ -361,7 +361,7 @@ struct ClubCommunityFeedView: View {
         .sheet(isPresented: $composing, onDismiss: { Task { await model.reviewPendingDraft() } }) {
             if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: nil) }
         }
-        .cyToast($toastMessage, tone: .info)
+        .cyToast(message: $toastMessage, tone: .info)
         .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
             ClubCommunityReviewView(review: review, model: model, refresh: operation) { settled in
                 toastMessage = ClubCommunityToast.message(for: settled)
@@ -694,7 +694,7 @@ struct ClubCommunityPostDetailView: View {
             }
         }
         .onDisappear { model.suspend() }
-        .cyToast($toastMessage, tone: .info)
+        .cyToast(message: $toastMessage, tone: .info)
         .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
             ClubCommunityReviewView(review: review, model: model, refresh: commentsOperation) { settled in
                 toastMessage = ClubCommunityToast.message(for: settled)

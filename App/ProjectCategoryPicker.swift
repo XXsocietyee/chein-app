@@ -35,7 +35,7 @@ extension EnvironmentValues {
     @Published private(set) var retainedIDs: [Int] = []
     @Published private(set) var selection = TemplateMetadataCategorySelection(raw: nil)
     let maxSelection: Int
-    @Published private(set) var limitToastMessage: String?
+    @Published var limitToastMessage: String?
     init(model: ProjectEditModel, reader: (any DiscoveryReading)?, maxSelection: Int = 0) {
         self.model = model; self.reader = reader; self.maxSelection = maxSelection
     }

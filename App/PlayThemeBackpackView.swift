@@ -87,7 +87,7 @@ import SwiftUI
                 onClose: { inspectedItem = nil }
             ) {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text(verbatim: effect(item.effect).description)
+                    effect(item.effect)
                         .font(CYTypography.body)
                         .foregroundStyle(CYColor.textSecondary)
                     if let q = item.quantity {
