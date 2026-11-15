@@ -143,6 +143,8 @@ import Observation
                     Marker(target.title, coordinate: .init(latitude: target.coordinate.point.latitude, longitude: target.coordinate.point.longitude))
                 }
             }.mapStyle(QuestifyMapAppearance.baseStyle)
+                .environment(\.colorScheme, .light)
+                .background { CYMapPlaceholder(fog: false) }
                 .mapControls {
                     MapCompass().mapControlVisibility(.visible)
                     MapScaleView()

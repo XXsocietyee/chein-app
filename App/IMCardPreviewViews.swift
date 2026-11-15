@@ -111,9 +111,12 @@ struct IMLocationCardMap: View {
             Color.clear
                 .aspectRatio(16.0 / 10.0, contentMode: .fit)
                 .overlay {
-                    Map(initialPosition: .region(MKCoordinateRegion(center: coordinate, latitudinalMeters: 800, longitudinalMeters: 800))) {
+                    Map(initialPosition: .region(CYMapRegion.region(center: coordinate, span: 0.01))) {
                         Marker(title ?? "", coordinate: coordinate)
                     }
+                    .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+                    .environment(\.colorScheme, .light)
+                    .background { CYMapPlaceholder(fog: false) }
                     .accessibilityHidden(true)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))

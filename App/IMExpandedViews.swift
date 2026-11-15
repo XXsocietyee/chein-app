@@ -860,7 +860,7 @@ private extension IMOutgoingPayload {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var consented=false
-    @State private var position:MapCameraPosition = .rect(MKMapRect.world)
+    @State private var position:MapCameraPosition = CYMapRegion.defaultPosition
     @State private var picked:CLLocationCoordinate2D?
     @State private var renderedCenter:CLLocationCoordinate2D?
     @State private var name=""
@@ -897,6 +897,9 @@ private extension IMOutgoingPayload {
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: mapHeight)
+                            .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+                            .environment(\.colorScheme, .light)
+                            .background { CYMapPlaceholder(fog: false) }
                             .onMapCameraChange(frequency:.onEnd) { context in
                                 guard available,consented else{return};renderedCenter=context.region.center
                             }

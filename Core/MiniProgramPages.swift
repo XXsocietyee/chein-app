@@ -103,6 +103,7 @@ public enum MiniProgramPage: String, CaseIterable, Hashable, Sendable {
     case merchantPredictIndex = "pages/merchant/predict/index"
     case merchantProfile = "pages/merchant/profile"
     case merchantProfileIndex = "pages/merchant/profile/index"
+    case merchantRelation = "pages/merchant/relation"
     case merchantRelationIndex = "pages/merchant/relation/index"
     case merchantReviews = "pages/merchant/reviews"
     case merchantReviewsIndex = "pages/merchant/reviews/index"

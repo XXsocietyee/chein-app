@@ -28,11 +28,14 @@ struct IMStaticLocationCardView: View {
     }
 
     private var map: some View {
-        Map(initialPosition: .region(MKCoordinateRegion(
+        Map(initialPosition: .region(CYMapRegion.region(
             center: CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng),
-            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)))) {
+            span: 0.01))) {
             Marker(placeTitle, coordinate: CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng))
         }
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+        .environment(\.colorScheme, .light)
+        .background { CYMapPlaceholder(fog: false) }
         .frame(height: 150)
         .allowsHitTesting(false)
         .accessibilityLabel(Text(verbatim: placeTitle))

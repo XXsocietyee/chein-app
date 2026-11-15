@@ -440,11 +440,7 @@ struct RoamBrowserView: View {
                 let count = entryReader != nil ? peekCount : (loadedKey == requestKey && !loading && issue == nil ? renderedItems.count : nil)
                 CYMapScaffold(detent: Self.initialDetent, peek: AnyView(peekLine(count: count)), map: {
                     // Keeps its camera state through loading, errors and empty filters; pins follow visibleItems.
-                    #if DEBUG
                     if reader.isOfflineExample { CYMapStreetGrid() } else { roamMap(scope: scope, key: renderedKey, items: renderedItems) }
-                    #else
-                    roamMap(scope: scope, key: renderedKey, items: renderedItems)
-                    #endif
                 }, controls: {
                     // Title top-left; the ONE overflow menu top-right (area, list, account, passport tools, refresh).
                     HStack(alignment: .center) {

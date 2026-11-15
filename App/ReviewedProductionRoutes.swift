@@ -152,3 +152,44 @@ enum ReviewedPlayGapRoute {
     }
 }
 
+/// Team lobby (`/api/orient/team/lobby`) and opening-lobby seat reads (`/api/play/player-journey/seats`,
+/// `/api/play/seat-invitations*`) aligned with `integration/backend-app-r2`: signed-in `Authorization: <token>`
+/// GET requests with positive integer query/path identifiers.
+enum ReviewedTeamLobbyAndSeatsReadRoute {
+    static func acceptsRead(url: URL, parts: URLComponents, baseURL: URL) -> Bool {
+        guard url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port else { return false }
+        func exact(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
+        func positive(_ raw: String?) -> Bool {
+            guard let raw, !raw.isEmpty, raw.utf8.count <= 18,
+                  raw.utf8.allSatisfy({ (48...57).contains($0) }),
+                  let value = Int(raw), value > 0, String(value) == raw else { return false }
+            return true
+        }
+        let items = parts.queryItems ?? []
+        if exact("api/orient/team/lobby") {
+            guard items.count == 2 else { return false }
+            var values: [String: String] = [:]
+            for item in items {
+                guard let value = item.value, values[item.name] == nil else { return false }
+                values[item.name] = value
+            }
+            return values.count == 2 && positive(values["ownerType"]) && positive(values["ownerId"])
+        }
+        if exact("api/play/player-journey/seats") || exact("api/play/seat-invitations") {
+            return items.count == 1 && items[0].name == "registrationId" && positive(items[0].value)
+        }
+        let invitationPrefix = baseURL.appendingPathComponent("api/play/seat-invitations").path + "/"
+        if items.isEmpty, parts.query == nil, parts.path.hasPrefix(invitationPrefix) {
+            let suffix = String(parts.path.dropFirst(invitationPrefix.count))
+            guard !suffix.isEmpty, suffix.utf8.count <= 64,
+                  suffix != "invite", suffix != "claim",
+                  suffix.utf8.allSatisfy({
+                      (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 95 || $0 == 45
+                  }) else { return false }
+            return true
+        }
+        return false
+    }
+}
+
+

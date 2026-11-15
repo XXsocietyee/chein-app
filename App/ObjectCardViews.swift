@@ -1,15 +1,27 @@
 import SwiftUI
 import ImageIO
 
+private struct ObjectCardMediaEnvironmentKey: EnvironmentKey {
+    static let defaultValue: (any ObjectCardImageLoading)? = nil
+}
+extension EnvironmentValues {
+    var objectCardMedia: (any ObjectCardImageLoading)? {
+        get { self[ObjectCardMediaEnvironmentKey.self] }
+        set { self[ObjectCardMediaEnvironmentKey.self] = newValue }
+    }
+}
+
 /// Host must observe the session revision and mount this destination with .id(reader.scope).
-/// Both live reader and media loader default to unconfigured in host integration.
+/// Reads the injected media loader or falls back to the environment `objectCardMedia` loader.
 @MainActor struct ObjectCardsView: View {
     let reader: any ObjectCardReading
     var media: (any ObjectCardImageLoading)? = nil
     @State private var model = ObjectCardCollectionModel()
+    @Environment(\.objectCardMedia) private var envMedia
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Namespace private var hero
     private var scope: UUID { reader.scope }
+    private var effectiveMedia: (any ObjectCardImageLoading)? { media ?? envMedia }
     var body: some View {
         List {
             Section { CYHeroHeader("objects.title") }.listRowBackground(Color.clear)
@@ -53,10 +65,10 @@ import ImageIO
                                 ForEach(Array(collection.cards.enumerated()), id: \.offset) { offset, card in
                                     let capturedScope = model.loadedScope ?? scope
                                     NavigationLink {
-                                        ObjectCardDetailView(card: card, reader: reader, expectedScope: capturedScope, media: media)
+                                        ObjectCardDetailView(card: card, reader: reader, expectedScope: capturedScope, media: effectiveMedia)
                                             .cyHeroDestination(offset, in: hero)
                                     } label: {
-                                        ObjectCardTile(card: card, media: media, expectedScope: capturedScope, currentScope: { reader.scope })
+                                        ObjectCardTile(card: card, media: effectiveMedia, expectedScope: capturedScope, currentScope: { reader.scope })
                                             .cyHeroSource(offset, in: hero)
                                     }.buttonStyle(QuestifyCardButtonStyle())
                                         .accessibilityIdentifier("objects.card.\(card.id)")
@@ -273,3 +285,23 @@ import ImageIO
         catch { if run == generation, captured == key, currentScope() == expectedScope { failed = true } }
     }
 }
+
+extension AppSession {
+    func makeObjectCardImageLoader() -> ObjectCardBoundedImageLoader? {
+        var origins = Set<String>()
+        if let baseURL = regionalConfiguration?.apiConfiguration?.baseURL {
+            origins.formUnion(RetainedImageOrigin.configured(
+                apiBase: baseURL,
+                extra: Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String
+            ))
+        }
+        for host in playKitArtworkHosts where !host.isEmpty {
+            if let origin = ObjectCardMediaPolicy.origin("https://" + host) {
+                origins.insert(origin)
+            }
+        }
+        guard !origins.isEmpty else { return nil }
+        return ObjectCardBoundedImageLoader(policy: .init(approvedOrigins: origins))
+    }
+}
+

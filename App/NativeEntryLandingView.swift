@@ -36,7 +36,10 @@ import SwiftUI
                     case .routeError(let failure):
                         NativeRouteErrorView(failure: failure, goHome: { session.dismissNativeEntry(); goHome() })
                     case .badge(let parameters):
-                        ObjectBadgeRoutePreview(parameters: parameters, expectedScope: entry.id, currentScope: { session.nativeEntry?.id ?? UUID() })
+                        ObjectBadgeShowroomView(parameters: parameters, expectedScope: entry.id,
+                            currentScope: { session.nativeEntry?.id ?? UUID() },
+                            media: session.makeObjectCardImageLoader(),
+                            glbHosts: session.playKitArtworkHosts)
                     case .teamInvitation(let route):
                         if session.account == nil {
                             CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "nativeNav.team.signInDetail",
