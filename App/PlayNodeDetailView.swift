@@ -61,9 +61,16 @@ struct PlayNodeDetailView: View {
                     Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
                 CYStatusChip(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"),
-                             tone: snapshot.isDone(node) ? .success : snapshot.isLocked(node) ? .neutral : .info,
-                             systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? "lock.fill" : "play.circle")
+                             tone: snapshot.isDone(node) ? .success : snapshot.isLocked(node) ? (node.weatherLocked == true ? .warning : .neutral) : .info,
+                             systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? (node.weatherLocked == true ? "cloud.rain.fill" : "lock.fill") : "play.circle")
                     .accessibilityIdentifier("play.node.status")
+                if !snapshot.isDone(node), snapshot.isLocked(node), node.weatherLocked == true {
+                    CYStatusChip(
+                        verbatim: CoreLoopCopy(locale: locale).t("需天气/时段条件解锁", "Weather Condition Gate"),
+                        tone: .warning,
+                        systemImage: "cloud.sun.rain.fill"
+                    )
+                }
                 if let reason = snapshot.lockReason(node), !reason.isEmpty { Text(verbatim: reason) }
                 if let note = snapshot.result.timeNote, snapshot.availability != .active, !note.isEmpty { Text(verbatim: note) }
                 if let hours = node.businessTime, !hours.isEmpty { LabeledContent("play.businessTime") { Text(verbatim: hours) } }

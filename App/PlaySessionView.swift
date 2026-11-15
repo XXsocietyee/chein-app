@@ -9,6 +9,7 @@ struct PlaySessionView: View {
     @State private var selectedNodeID: Int?
     @State private var freePackOpen = false
     @State private var presentedMode: Int?
+    @Environment(\.locale) private var locale
     init(reader: any PlayReading) {
         self.reader = reader; _model = State(initialValue: PlayViewModel(reader: reader))
     }
@@ -113,8 +114,8 @@ struct PlaySessionView: View {
                     ForEach(snapshot.visibleNodes) { node in
                         Button { selectedNodeID = node.id } label: {
                             HStack(alignment: .top, spacing: 12) {
-                                Image(systemName: snapshot.isDone(node) ? "checkmark.circle.fill" : snapshot.isLocked(node) ? "lock.circle" : "circle")
-                                    .font(.title3).foregroundStyle(snapshot.isDone(node) ? CYColor.successText : CYColor.textTertiary)
+                                Image(systemName: snapshot.isDone(node) ? "checkmark.circle.fill" : snapshot.isLocked(node) ? (node.weatherLocked == true ? "cloud.rain.circle" : "lock.circle") : "circle")
+                                    .font(.title3).foregroundStyle(snapshot.isDone(node) ? CYColor.successText : (snapshot.isLocked(node) && node.weatherLocked == true) ? CYColor.warningText : CYColor.textTertiary)
                                 VStack(alignment: .leading, spacing: 5) {
                                     if let name = node.name, !name.isEmpty { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
                                     else { Text("play.node.untitled").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
@@ -125,6 +126,11 @@ struct PlaySessionView: View {
                                     if let hook = node.hookText, !hook.isEmpty { Text(verbatim: hook).font(.subheadline).foregroundStyle(.secondary) }
                                     Text(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"))
                                         .font(.caption).foregroundStyle(.secondary)
+                                    if !snapshot.isDone(node), snapshot.isLocked(node), node.weatherLocked == true {
+                                        Text(verbatim: snapshot.lockReason(node) ?? CoreLoopCopy(locale: locale).t("等待对应天气或时段触发", "Waiting for weather condition"))
+                                            .font(.caption)
+                                            .foregroundStyle(CYColor.warningText)
+                                    }
                                 }
                                 Spacer(minLength: 4)
                                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
