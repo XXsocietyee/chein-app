@@ -38,10 +38,14 @@ public struct PlayService {
     /// receipt must be followed by an authoritative nodes read, never local completion.
     public func answer(snapshot: PlaySnapshot, nodeID: Int, answer: String, token: String) async throws -> PlayAnswerReceipt {
         try snapshot.validateAnswer(nodeID: nodeID, answer: answer)
+        // A1 (acceptance-r3): the backend refuses play/answer without routeActionId, expectedRouteVersion
+        // and routeSessionId. Read the run identity first; nothing is written if that read fails.
+        let context = try await actionContext(scope: snapshot.scope, nodeID: nodeID, token: token)
         var request = try baseRequest("api/play/answer", token: token)
         request.httpMethod = "POST"
         var fields = snapshot.scope.fields
         fields["nodeId"] = String(nodeID); fields["answer"] = answer
+        fields.merge(Self.identityFields(context, actionID: UUID().uuidString)) { _, new in new }
         // Flutter FormData is multipart/form-data, not application/x-www-form-urlencoded.
         // Fresh boundary excludes user text so it cannot terminate a submitted part.
         var boundary = "QuestifyPlay-" + UUID().uuidString
@@ -54,6 +58,25 @@ public struct PlayService {
         let receipt: PlayAnswerReceipt = try await execute(request)
         guard receipt.nodeID == nodeID else { throw APIError.malformedResponse }
         return receipt
+    }
+    /// `GET api/play/action-context`: the identity a new basic command must carry. Read only.
+    func actionContext(scope: PlaySessionScope, nodeID: Int, token: String) async throws -> PlayBasicActionContext {
+        guard nodeID > 0 else { throw APIError.invalidRequest }
+        var request = try readRequest("api/play/action-context", scope: scope, token: token)
+        guard var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
+        url.queryItems = (url.queryItems ?? []) + [URLQueryItem(name: "nodeId", value: String(nodeID))]
+        guard let finalURL = url.url else { throw APIError.invalidRequest }
+        request.url = finalURL
+        let raw: PlayWireValue = try await execute(request)
+        do { return try PlayBasicActionContext(raw: raw) } catch { throw APIError.malformedResponse }
+    }
+    static func identityFields(_ context: PlayBasicActionContext, actionID: String) -> [String: String] {
+        var fields = ["routeActionId": actionID, "expectedRouteVersion": String(context.expectedRouteVersion),
+                      "routeSessionId": String(context.routeSessionID)]
+        if let instance = context.runtimeInstance, let epoch = context.authorityEpoch {
+            fields["runtimeInstance"] = instance; fields["authorityEpoch"] = String(epoch)
+        }
+        return fields
     }
     private func readRequest(_ path: String, scope: PlaySessionScope, token: String) throws -> URLRequest {
         guard scope.isValid else { throw APIError.invalidRequest }

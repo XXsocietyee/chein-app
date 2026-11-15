@@ -11,6 +11,10 @@ private final class StoreDayFakeTransport: PlayStoreDayOfflineTransport, @unchec
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         let path = request.url?.path ?? ""
+        // A1 (acceptance-r3): proof writes first read the run identity; answer it unless a test overrides it.
+        if replies[path] == nil, path.hasSuffix("/api/play/action-context") {
+            return (Data(#"{"code":200,"data":{"routeSessionId":"993803","expectedRouteVersion":4}}"#.utf8), 200)
+        }
         guard var queue = replies[path], !queue.isEmpty else { return (Data(#"{"code":404}"#.utf8), 404) }
         let reply = queue.count > 1 ? queue.removeFirst() : queue[0]
         replies[path] = queue
@@ -98,7 +102,7 @@ final class PlayStoreDayPresentationTests: XCTestCase {
         let disabled = service(transport, execution: .disabled)
         XCTAssertFalse(disabled.permitsProofWrites); XCTAssertFalse(disabled.permitsConsentWrites)
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.storeDayProofWrites); XCTAssertFalse(MerchantCityNPCParityGates.disabled.storeDayConsentWrites)
-        let checkin = await disabled.checkin(scope: .topic(71), code: "SYNTHETIC")
+        let checkin = await disabled.checkin(scope: .topic(71), nodeID: 701, code: "SYNTHETIC")
         let consent = await disabled.consent(merchantID: 81, event: .agree, requestID: "merchant-agree-81-1")
         XCTAssertEqual(checkin, .rejected(nil)); XCTAssertEqual(consent, .rejected(nil))
         XCTAssertTrue(transport.requests.isEmpty)
@@ -115,14 +119,20 @@ final class PlayStoreDayPresentationTests: XCTestCase {
         let node = try await api.node(scope: .topic(71), nodeID: 701)
         XCTAssertEqual(node?.id, 701)
         XCTAssertEqual(transport.requests[0].httpMethod, "GET"); XCTAssertEqual(transport.requests[0].url?.query, "topicId=71")
-        guard case .confirmed(let message, _) = await api.checkin(scope: .topic(71), code: " SYNTHETIC ") else { return XCTFail() }
+        guard case .confirmed(let message, _) = await api.checkin(scope: .topic(71), nodeID: 701, code: " SYNTHETIC ") else { return XCTFail() }
         XCTAssertEqual(message, "已记录到店")
-        let body = String(data: transport.requests[1].httpBody ?? Data(), encoding: .utf8) ?? ""
+        // A1 (acceptance-r3): the run identity is read first, then the checkin carries it.
+        XCTAssertEqual(transport.requests[1].httpMethod, "GET"); XCTAssertEqual(transport.requests[1].url?.path, "/fixture/api/play/action-context")
+        XCTAssertEqual(transport.requests[1].url?.query, "nodeId=701&topicId=71")
+        let body = String(data: transport.requests[2].httpBody ?? Data(), encoding: .utf8) ?? ""
         XCTAssertTrue(body.contains("name=\"code\"\r\n\r\nSYNTHETIC\r\n")); XCTAssertTrue(body.contains("name=\"topicId\"\r\n\r\n71\r\n"))
-        XCTAssertFalse(body.contains("name=\"nodeId\"")); XCTAssertFalse(body.contains("registrationId"))
+        XCTAssertTrue(body.contains("name=\"nodeId\"\r\n\r\n701\r\n")); XCTAssertFalse(body.contains("registrationId"))
+        XCTAssertTrue(body.contains("name=\"routeSessionId\"\r\n\r\n993803\r\n"))
+        XCTAssertTrue(body.contains("name=\"expectedRouteVersion\"\r\n\r\n4\r\n"))
+        XCTAssertTrue(body.contains("name=\"routeActionId\""))
         _ = await api.consent(merchantID: 81, event: .agree, requestID: "merchant-agree-81-1")
-        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: transport.requests[2].httpBody ?? Data()) as? [String: Any])
-        XCTAssertEqual(transport.requests[2].value(forHTTPHeaderField: "Content-Type"), "application/json")
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: transport.requests[3].httpBody ?? Data()) as? [String: Any])
+        XCTAssertEqual(transport.requests[3].value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertEqual(Set(json.keys), ["docType", "scene", "scopeType", "scopeId", "eventType", "requestId"])
         XCTAssertEqual(json["docType"] as? String, "merchant_onsite_data_sharing"); XCTAssertEqual(json["scene"] as? String, "merchant_redeem")
     }
@@ -140,6 +150,18 @@ final class PlayStoreDayPresentationTests: XCTestCase {
         XCTAssertEqual(wrong, .rejected("答案不正确"))
         let insecure = await api.photo(scope: .topic(71), nodeID: 701, pictureURL: "http://fixture.example/p.jpg")
         XCTAssertEqual(insecure, .rejected(nil))
+    }
+    /// A1 (acceptance-r3): when the run identity cannot be read, no answer/checkin is written.
+    func testProofWriteWithoutRunIdentitySendsNothing() async {
+        let transport = StoreDayFakeTransport()
+        let api = service(transport)
+        transport.replies["/fixture/api/play/action-context"] = [.json(#"{"code":409,"msg":"本局已结束"}"#, 200)]
+        let ended = await api.answer(scope: .topic(71), nodeID: 701, answer: "A")
+        XCTAssertEqual(ended, .rejected("本局已结束"))
+        transport.replies["/fixture/api/play/action-context"] = [.failure]
+        let offline = await api.checkin(scope: .topic(71), nodeID: 701, code: "SYNTHETIC")
+        XCTAssertEqual(offline, .rejected(nil))
+        XCTAssertEqual(transport.paths().filter { !$0.hasSuffix("/action-context") }, [])
     }
     func testUnknownCheckinIsResolvedByReadbackNotResent() async {
         let transport = StoreDayFakeTransport()

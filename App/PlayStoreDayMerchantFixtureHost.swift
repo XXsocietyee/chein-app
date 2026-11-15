@@ -64,6 +64,10 @@ import Observation
             if scenario == "permission" { return envelope(NSNull(), code: 401, msg: "请先登录") }
             if scenario == "stillUnknown", nodeReads > 1 { throw URLError(.notConnectedToInternet) }
             return envelope(["topicId": 71, "mode": 2, "nodes": scenario == "empty" ? [] : [row]])
+        case "/fixture/api/play/action-context":
+            // A1 (acceptance-r3): proof writes read the run identity first. A read, not a write.
+            guard request.httpMethod == "GET", request.url?.query == "nodeId=701&topicId=71" else { return envelope(NSNull(), code: 500, msg: "参数有误") }
+            return envelope(["routeSessionId": "9901", "expectedRouteVersion": 0])
         case "/fixture/api/play/checkin":
             writes.append("checkin")
             guard field("code", in: request) == PlayStoreDayFixtureEvidence.code, field("topicId", in: request) == "71" else { return envelope(NSNull(), code: 500, msg: "无效的打卡码") }

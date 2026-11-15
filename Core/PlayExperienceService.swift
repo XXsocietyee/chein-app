@@ -100,8 +100,11 @@ public struct PlayExperienceService {
             fields["answer"] = answer
         case .scan(let code):
             guard !code.isEmpty else { throw APIError.invalidRequest }
-            // Source checkin resolves node from code; never invent a nodeId argument.
-            fields.removeValue(forKey: "nodeId"); fields["code"] = code
+            // Source checkin resolves node from code. A1 (acceptance-r3): the current backend binds a new
+            // checkin intent to the reviewed node (`nodeId`) and refuses it without one, so an intent bound
+            // to the server action context carries it. Unbound (older) journals replay their original body.
+            if advance?.isContextBound != true { fields.removeValue(forKey: "nodeId") }
+            fields["code"] = code
         case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
             guard coordinateSystem == "GCJ02", longitude.isFinite, latitude.isFinite,
                   abs(longitude) <= 180, abs(latitude) <= 90 else { throw APIError.invalidRequest }

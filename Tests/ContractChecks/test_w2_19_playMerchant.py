@@ -15,8 +15,11 @@ class PlayMerchantContractChecks(unittest.TestCase):
     def test_endpoints_are_exactly_the_mini_program_routes(self):
         source = read(SERVICE)
         paths = set(re.findall(r'Path = "([^"]+)"', source))
+        # A1 (acceptance-r3): proof writes first read the run identity from api/play/action-context (GET).
         self.assertEqual(paths, {'api/play/nodes', 'api/play/checkin', 'api/play/photo', 'api/play/answer',
-                                 'api/compliance/consents/latest', 'api/compliance/consents'})
+                                 'api/play/action-context', 'api/compliance/consents/latest', 'api/compliance/consents'})
+        for field in ['"routeActionId"', '"expectedRouteVersion"', '"routeSessionId"']:
+            self.assertIn(field, source)
         self.assertNotIn('registrationId', source)  # source merchant page sends session + code only
         self.assertIn('fields.removeValue', read('Core/PlayExperienceService.swift'))
         self.assertIn('request.httpMethod = "GET"', source)

@@ -47,7 +47,10 @@ final class PlayServiceTests: XCTestCase {
         XCTAssertTrue(body.contains("name=\"nodeId\"\r\n\r\n7\r\n"))
         XCTAssertTrue(body.contains("name=\"answer\"\r\n\r\n\(text)\r\n"))
         XCTAssertTrue(body.hasSuffix("--\(boundary)--\r\n"))
-        for forbidden in ["topicId", "latitude", "longitude", "outcomeCode", "targetNodeId", "routeActionId", "expectedRouteVersion", "code\""] {
+        XCTAssertTrue(body.contains("name=\"expectedRouteVersion\"\r\n\r\n4\r\n"))
+        XCTAssertTrue(body.contains("name=\"routeSessionId\"\r\n\r\n993803\r\n"))
+        XCTAssertTrue(body.contains("name=\"routeActionId\""))
+        for forbidden in ["topicId", "latitude", "longitude", "outcomeCode", "targetNodeId", "runtimeInstance", "authorityEpoch", "code\""] {
             XCTAssertFalse(body.contains("name=\"" + forbidden), forbidden)
         }
         XCTAssertEqual(transport.requests.count, 1)
@@ -99,14 +102,52 @@ final class PlayServiceTests: XCTestCase {
         do { _ = try await service(badReceipt).answer(snapshot: PlayTestData.snapshot(), nodeID: 7, answer: "answer", token: "synthetic-token"); XCTFail() }
         catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
     }
+    /// A1 (acceptance-r3): play/answer carries routeActionId, expectedRouteVersion and routeSessionId
+    /// from a fresh `GET api/play/action-context` for the same scope and node.
+    func testAnswerReadsActionContextAndSendsRunIdentity() async throws {
+        let transport = PlayRecordingTransport(body: PlayTestData.receipt)
+        _ = try await service(transport).answer(snapshot: PlayTestData.snapshot(scope: .topic(71)), nodeID: 7, answer: "1921", token: "synthetic-token")
+        let context = try XCTUnwrap(transport.contextRequests.first)
+        XCTAssertEqual(context.httpMethod, "GET"); XCTAssertEqual(context.url?.path, "/fixture/api/play/action-context")
+        let items = try XCTUnwrap(URLComponents(url: context.url!, resolvingAgainstBaseURL: false)?.queryItems)
+        XCTAssertEqual(Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") }), ["topicId": "71", "nodeId": "7"])
+        let body = String(data: try XCTUnwrap(transport.requests.first?.httpBody), encoding: .utf8)!
+        for field in ["routeActionId", "expectedRouteVersion", "routeSessionId"] { XCTAssertTrue(body.contains("name=\"\(field)\""), field) }
+        XCTAssertEqual(transport.contextRequests.count, 1); XCTAssertEqual(transport.requests.count, 1)
+    }
+    func testSharedRuntimeContextAddsInstanceAndEpoch() async throws {
+        let transport = PlayRecordingTransport(body: PlayTestData.receipt)
+        transport.contextBody = #"{"code":200,"data":{"routeSessionId":"77","expectedRouteVersion":3,"runtimeInstance":"shared:77:4","authorityEpoch":4}}"#
+        _ = try await service(transport).answer(snapshot: PlayTestData.snapshot(), nodeID: 7, answer: "answer", token: "synthetic-token")
+        let body = String(data: try XCTUnwrap(transport.requests.first?.httpBody), encoding: .utf8)!
+        XCTAssertTrue(body.contains("name=\"runtimeInstance\"\r\n\r\nshared:77:4\r\n"))
+        XCTAssertTrue(body.contains("name=\"authorityEpoch\"\r\n\r\n4\r\n"))
+        XCTAssertTrue(body.contains("name=\"routeSessionId\"\r\n\r\n77\r\n"))
+    }
+    func testFailedActionContextSendsNoAnswer() async throws {
+        let transport = PlayRecordingTransport(body: PlayTestData.receipt)
+        transport.contextBody = #"{"code":409,"msg":"本局已结束","errorCode":"INTENT_SESSION_ENDED"}"#
+        do { _ = try await service(transport).answer(snapshot: PlayTestData.snapshot(), nodeID: 7, answer: "answer", token: "synthetic-token"); XCTFail() }
+        catch let failure as PlayFailure { XCTAssertEqual(failure.code, 409) }
+        transport.contextBody = #"{"code":200,"data":{"expectedRouteVersion":3}}"#
+        do { _ = try await service(transport).answer(snapshot: PlayTestData.snapshot(), nodeID: 7, answer: "answer", token: "synthetic-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+        XCTAssertTrue(transport.requests.isEmpty, "no answer is written without a run identity")
+    }
 }
 
 final class PlayRecordingTransport: HTTPTransport {
     let body: String
     let status: Int
     private(set) var requests: [URLRequest] = []
+    /// `GET api/play/action-context` reads, kept apart so write assertions stay exact.
+    private(set) var contextRequests: [URLRequest] = []
+    var contextBody = PlayTestData.actionContext
     init(body: String, status: Int = 200) { self.body = body; self.status = status }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
+        if request.url?.path.hasSuffix("/api/play/action-context") == true {
+            contextRequests.append(request); return (Data(contextBody.utf8), 200)
+        }
         requests.append(request); return (Data(body.utf8), status)
     }
 }
@@ -115,6 +156,7 @@ enum PlayTestData {
     static let result = #"{"topicId":71,"topicName":"Synthetic route","mode":1,"playable":true,"total":2,"doneCount":0,"nodes":[{"nodeId":7,"done":false,"validationMethod":1,"question":"Synthetic question"},{"nodeId":8,"done":false,"locked":true}]}"#
     static let envelope = "{\"code\":\"200\",\"data\":\(result)}"
     static let receipt = #"{"code":200,"data":{"nodeId":7,"firstTime":true,"done":1,"total":2,"completed":false}}"#
+    static let actionContext = #"{"code":200,"data":{"routeSessionId":"993803","expectedRouteVersion":4}}"#
     static func snapshot(scope: PlaySessionScope = .activity(41)) throws -> PlaySnapshot {
         try PlaySnapshot(scope: scope, result: JSONDecoder().decode(PlayNodesResult.self, from: Data(result.utf8)))
     }

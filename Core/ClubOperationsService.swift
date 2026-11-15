@@ -30,7 +30,8 @@ public struct ClubOperationsService {
             return .init(target: target, accountRole: account.effectiveRole, ownedClubIDs: owned.filter { $0.status != 2 }.map(\.id))
         case .club(let id):
             guard id > 0 else { throw APIError.invalidRequest }
-            let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/club/detail"), fields: ["id": String(id)], token: token)
+            // A3 (acceptance-r3): /api/club/detail and /api/club/members read @RequestBody JSON; multipart is refused.
+            let request = try jsonRead("api/club/detail", body: ["id": id], token: token)
             let (data, status) = try await transport.send(request)
             try checkSession(); try Self.validateRead(data: data, status: status)
             let profile: ClubOperationsProfile
@@ -40,7 +41,7 @@ public struct ClubOperationsService {
             guard profile.club.canGovern else { throw ClubReadFailure.forbidden(message: nil) }
             let members: [ClubMember]
             if profile.club.isOwner {
-                let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/club/members"), fields: ["clubId": String(id)], token: token)
+                let request = try jsonRead("api/club/members", body: ["clubId": id], token: token)
                 let (data, status) = try await transport.send(request)
                 try checkSession(); try Self.validateRead(data: data, status: status)
                 do { members = try JSONDecoder().decode(MembersEnvelope.self, from: data).data.map(\.member) }
@@ -50,6 +51,13 @@ public struct ClubOperationsService {
             guard Set(members.map(\.id)).count == members.count else { throw APIError.malformedResponse }
             return .init(target: target, profile: profile, members: members)
         }
+    }
+    /// JSON read request for club endpoints that bind `@RequestBody`.
+    func jsonRead(_ path: String, body: [String: Any], token: String) throws -> URLRequest {
+        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        return request
     }
     /// Exact JSON request construction shared by review tests and dormant dispatch.
     func makeReviewRequest(_ command: ClubOperationsCommand, snapshot: ClubOperationsSnapshot,

@@ -343,6 +343,19 @@ private final class PlayExperienceTestTransport: HTTPTransport {
         XCTAssertThrowsError(try decoded.intent.evidence.validateNewLocationMeasurement(now: now.addingTimeInterval(60)))
         XCTAssertEqual(try request(decoded.intent.evidence).httpBody, try request(pending.intent.evidence).httpBody)
     }
+    /// A1 (acceptance-r3): a checkin bound to the server action context carries the reviewed nodeId
+    /// plus routeActionId, expectedRouteVersion and routeSessionId; the backend refuses it otherwise.
+    func testContextBoundScanCarriesNodeAndRunIdentity() throws {
+        let advance = try PlayRouteAdvance(actionID: "bound-scan", expectedVersion: 4, routeSessionID: 993803, runtimeInstance: nil, authorityEpoch: nil)
+        let req = try api().completionRequest(scope: .topic(71), nodeID: 701, evidence: .scan("synthetic-qr"), advance: advance, token: "synthetic", boundary: "stable-intent")
+        XCTAssertEqual(req.url?.path, "/fixture/api/play/checkin")
+        let body = String(decoding: try XCTUnwrap(req.httpBody), as: UTF8.self)
+        XCTAssertTrue(body.contains("name=\"nodeId\"\r\n\r\n701\r\n"))
+        XCTAssertTrue(body.contains("name=\"code\"\r\n\r\nsynthetic-qr\r\n"))
+        XCTAssertTrue(body.contains("name=\"routeActionId\"\r\n\r\nbound-scan\r\n"))
+        XCTAssertTrue(body.contains("name=\"expectedRouteVersion\"\r\n\r\n4\r\n"))
+        XCTAssertTrue(body.contains("name=\"routeSessionId\"\r\n\r\n993803\r\n"))
+    }
     func testScanRouteAndDormantCapabilitiesAreUnchanged() throws {
         let req = try request(.scan("synthetic-qr"))
         XCTAssertEqual(req.url?.path, "/fixture/api/play/checkin")
