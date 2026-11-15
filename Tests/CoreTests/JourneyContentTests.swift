@@ -191,4 +191,80 @@ private final class JourneyFakeHTTP: HTTPTransport {
         XCTAssertEqual(http.requests.count, 2); XCTAssertNil(model.receipt)
     }
 
+    func testCheckRecoveryAndPendingHideOldOwnerWithoutErasingJournal() async throws {
+        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200)]
+        let original = try session(), journal = JourneyMemoryCheckJournal()
+        var owner: PlayExperienceSession? = original
+        let model = JourneyCheckCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try api(http), journal: journal, currentSession: { owner })
+        await model.probe(nodeDone: false); try model.prepare(.roll)
+        http.fail = true
+        await model.confirm(try XCTUnwrap(model.review))
+        XCTAssertTrue(model.canRecover); XCTAssertNotNil(model.pending)
+        let requestCount = http.requests.count
+        let persisted = try journal.pending(session: original, scope: .topic(12), topicID: 12, nodeID: 34)
+        XCTAssertNotNil(persisted)
+        owner = try session(2)
+        XCTAssertNil(model.pending); XCTAssertFalse(model.available); XCTAssertFalse(model.canRecover)
+        XCTAssertEqual(http.requests.count, requestCount)
+        XCTAssertEqual(try journal.pending(session: original, scope: .topic(12), topicID: 12, nodeID: 34), persisted)
+        owner = nil
+        XCTAssertNil(model.pending); XCTAssertFalse(model.available); XCTAssertFalse(model.canRecover)
+    }
+    func testServerIssueHidesImmediatelyWhenSessionChanges() async throws {
+        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200), (#"{"code":403,"msg":"Original owner issue"}"#, 200)]
+        var owner: PlayExperienceSession? = try session()
+        let model = JourneyCheckCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try api(http), currentSession: { owner })
+        await model.probe(nodeDone: false); try model.prepare(.roll)
+        await model.confirm(try XCTUnwrap(model.review))
+        XCTAssertEqual(model.issue, "Original owner issue")
+        owner = try session(2)
+        XCTAssertNil(model.issue); XCTAssertFalse(model.available)
+        XCTAssertEqual(http.requests.count, 2)
+    }
+    func testCancelledProbeDoesNotConsumeOptionalReadOpportunity() async throws {
+        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200)]
+        let owner = try session()
+        let model = JourneyCheckCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try api(http), currentSession: { owner })
+        let task = Task { @MainActor in await model.probe(nodeDone: false) }
+        task.cancel(); await task.value
+        XCTAssertTrue(http.requests.isEmpty)
+        XCTAssertNil(model.problem)
+        await model.probe(nodeDone: false)
+        XCTAssertEqual(http.requests.count, 1)
+        XCTAssertNotNil(model.problem)
+    }
+    func testCancelledConfirmationKeepsReviewAndDoesNotCreateJournal() async throws {
+        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200), (rolled, 200)]
+        let owner = try session(), journal = JourneyMemoryCheckJournal()
+        let model = JourneyCheckCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try api(http), journal: journal, currentSession: { owner })
+        await model.probe(nodeDone: false); try model.prepare(.roll)
+        let approved = try XCTUnwrap(model.review)
+        let task = Task { @MainActor in await model.confirm(approved) }
+        task.cancel(); await task.value
+        XCTAssertEqual(http.requests.count, 1)
+        XCTAssertEqual(model.review, approved)
+        XCTAssertNil(model.pending); XCTAssertFalse(model.unknown); XCTAssertFalse(model.acting)
+        XCTAssertNil(try journal.pending(session: owner, scope: .topic(12), topicID: 12, nodeID: 34))
+        await model.confirm(approved)
+        XCTAssertEqual(http.requests.count, 2); XCTAssertNotNil(model.receipt)
+    }
+    func testCancelledUnknownRecoveryPreservesOriginalJournalAndReview() async throws {
+        let http = JourneyFakeHTTP(); http.responses = [(encounter, 200)]
+        let owner = try session(), journal = JourneyMemoryCheckJournal()
+        let model = JourneyCheckCoordinator(scope: .topic(12), topicID: 12, nodeID: 34, service: try api(http), journal: journal, currentSession: { owner })
+        await model.probe(nodeDone: false); try model.prepare(.roll)
+        http.fail = true
+        await model.confirm(try XCTUnwrap(model.review))
+        let originalPending = model.pending, originalRequestCount = http.requests.count
+        let originalJournal = try journal.pending(session: owner, scope: .topic(12), topicID: 12, nodeID: 34)
+        try model.prepare(.settle, recoverUnknown: true)
+        let recovery = try XCTUnwrap(model.review)
+        let task = Task { @MainActor in await model.confirm(recovery) }
+        task.cancel(); await task.value
+        XCTAssertEqual(http.requests.count, originalRequestCount)
+        XCTAssertEqual(model.review, recovery); XCTAssertEqual(model.pending, originalPending)
+        XCTAssertTrue(model.unknown)
+        XCTAssertEqual(try journal.pending(session: owner, scope: .topic(12), topicID: 12, nodeID: 34), originalJournal)
+    }
+
 }

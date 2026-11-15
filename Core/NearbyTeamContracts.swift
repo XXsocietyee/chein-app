@@ -53,10 +53,23 @@ public struct NearbyTeam: Decodable, Equatable, Identifiable {
     public let addressName: String
     public let coordSource: String
     public let productType: Int?
+    /// Display only a recognized source product; absence/future values are not city mode.
+    public var productLabelKey: String? {
+        switch productType {
+        case 1: return "nearby.urbanExplore"
+        case 2: return "nearby.freeExplore"
+        default: return nil
+        }
+    }
     public let distance: Double?
     public let latitude: Double?
     public let longitude: Double?
     public let memberAvatars: [String]
+    /// Presentation provenance only. Missing or invalid source counts are not zero.
+    public let reportedJoinedCount: Int?
+    public let reportedMaxMembers: Int?
+    public let reportedPendingCount: Int?
+    /// Legacy numeric compatibility; never use these defaults as displayed server facts.
     public let joinedCount: Int
     public let maxMembers: Int
     public let pendingCount: Int
@@ -71,7 +84,10 @@ public struct NearbyTeam: Decodable, Equatable, Identifiable {
         title = c.nearbyText(.title); activityName = c.nearbyText(.activityName); leaderName = c.nearbyText(.leaderName); leaderAvatar = c.nearbyText(.leaderAvatar); addressName = c.nearbyText(.addressName); coordSource = c.nearbyText(.coordSource)
         productType = c.nearbyInt(.productType); distance = c.nearbyDouble(.distance); latitude = c.nearbyDouble(.latitude); longitude = c.nearbyDouble(.longitude)
         memberAvatars = Array((try c.decodeIfPresent([String].self, forKey: .memberAvatars) ?? []).filter { !$0.isEmpty }.prefix(3))
-        joinedCount = max(0, c.nearbyInt(.joinedCount) ?? 0); maxMembers = max(0, c.nearbyInt(.maxMembers) ?? 0); pendingCount = max(0, c.nearbyInt(.pendingCount) ?? 0)
+        reportedJoinedCount = c.nearbyInt(.joinedCount).flatMap { $0 >= 0 ? $0 : nil }
+        reportedMaxMembers = c.nearbyInt(.maxMembers).flatMap { $0 >= 0 ? $0 : nil }
+        reportedPendingCount = c.nearbyInt(.pendingCount).flatMap { $0 >= 0 ? $0 : nil }
+        joinedCount = reportedJoinedCount ?? 0; maxMembers = reportedMaxMembers ?? 0; pendingCount = reportedPendingCount ?? 0
         viewerStatus = NearbyViewerStatus(rawValue: c.nearbyText(.viewerStatus)) ?? .unknown
         viewerHasTicket = (try? c.decode(Bool.self, forKey: .viewerHasTicket)) == true
         applyExpireTime = try c.decodeIfPresent(NearbyServerTime.self, forKey: .applyExpireTime)

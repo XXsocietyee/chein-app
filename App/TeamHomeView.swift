@@ -3,6 +3,7 @@ import SwiftUI
 /// Embed in an existing NavigationStack. A session-owned factory creates isolated route models.
 @MainActor struct TeamHomeView: View {
     @StateObject private var model: TeamScreenModel
+    @State private var readOwner = ManualMapReadTaskOwner()
     let makeCoordinator: () -> TeamCoordinator
     var onLogin: (() -> Void)?
     var nearbyDestination: (([OwnedTeam]) -> AnyView)?
@@ -19,27 +20,31 @@ import SwiftUI
                 TeamNotice(coordinator: model.coordinator)
                 if !model.coordinator.authenticated {
                     if let onLogin { Button("team.signIn", action: onLogin).buttonStyle(.cyPrimary) }
-                } else if model.running && model.coordinator.teams.isEmpty {
+                } else if model.running && model.coordinator.currentTeams.isEmpty {
                     CYLoadingState("team.loading", messageIdentifier: "team.loading")
                 }
-                else if model.coordinator.messageKey == nil && model.coordinator.teams.isEmpty {
+                else if model.coordinator.hasCurrentTeamsRead && model.coordinator.messageKey == nil && model.coordinator.currentTeams.isEmpty {
                     CYEmptyState(systemImage: "person.3", "team.empty", detail: "team.empty.detail", messageIdentifier: "team.empty")
                 }
-                ForEach(model.coordinator.teams) { team in
+                ForEach(model.coordinator.currentTeams) { team in
                     NavigationLink { TeamDetailView(lookup: .id(team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator) } label: { TeamCard(team: team) }
                         .buttonStyle(.plain).accessibilityIdentifier("team.row.\(team.id)")
                 }
                 if model.coordinator.authenticated && model.coordinator.configured {
                     Button("team.refresh") {
                         let permit = model.captureRun()
-                        Task { await reload(permit: permit) }
+                        readOwner.start { await reload(permit: permit) }
                     }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle("team.title")
-            .toolbar { if let nearbyDestination { NavigationLink("nearby.title") { nearbyDestination(model.coordinator.teams) } } }
-            .task { await reload() }.refreshable { await reload() }
-            .onDisappear { model.leave() }
+            .toolbar { if let nearbyDestination { NavigationLink("nearby.title") { nearbyDestination(model.coordinator.currentTeams) } } }
+            .task {
+                guard !Task.isCancelled else { return }
+                readOwner.activate()
+                await readOwner.run { await reload() }
+            }.refreshable { await readOwner.run { await reload() } }
+            .onDisappear { readOwner.deactivate(); model.leave() }
         .cyDomainScreen(.player)
     }
     private func reload(permit: TeamScreenModel.RunPermit? = nil) async {
@@ -49,6 +54,7 @@ import SwiftUI
 @MainActor struct TeamDetailView: View {
     let lookup: TeamLookup
     @StateObject private var model: TeamScreenModel
+    @State private var readOwner = ManualMapReadTaskOwner()
     @State private var invitationPreview = false
     let makeCoordinator: () -> TeamCoordinator
     let requiresMembership: Bool
@@ -209,16 +215,20 @@ import SwiftUI
                 if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
                     Button("team.refresh") {
                         let permit = model.captureRun()
-                        Task { await reload(permit: permit) }
+                        readOwner.start { await reload(permit: permit) }
                     }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
-            .task { await reload() }.refreshable { await reload() }
-            .onDisappear { model.leave() }
+            .task {
+                guard !Task.isCancelled else { return }
+                readOwner.activate()
+                await readOwner.run { await reload() }
+            }.refreshable { await readOwner.run { await reload() } }
+            .onDisappear { readOwner.deactivate(); model.leave() }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
             .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
-            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); Task { await reload(permit: permit) } }) { sheet in if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }
+            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }
         .cyDomainScreen(.player)
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
@@ -250,7 +260,7 @@ import SwiftUI
         guard lookup.isValid else { return nil }
         return {
             let permit = model.captureRun()
-            Task { await reload(permit: permit) }
+            readOwner.start { await reload(permit: permit) }
         }
     }
     private func reload(permit: TeamScreenModel.RunPermit? = nil) async {

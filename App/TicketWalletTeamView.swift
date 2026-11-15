@@ -205,8 +205,8 @@ struct TicketWalletTeamContext: Hashable {
                         TeamCard(team: detail.team)
                         Text("team.ticketSeparation").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                         if let expiry = detail.team.expireTime, !expiry.isEmpty {
-                            LabeledContent("team.sessionStart", value: expiry)
-                        } else { Text("team.timeUnknown") }
+                            LabeledContent("team.invitationExpiry", value: expiry)
+                        } else { Text("team.invitationExpiryUnknown") }
                     }
                     Section("team.members.title") {
                         if detail.members.isEmpty { CYEmptyState(systemImage: "person.2", "team.members.empty") }

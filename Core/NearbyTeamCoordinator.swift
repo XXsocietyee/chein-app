@@ -18,6 +18,8 @@ public struct NearbyTeamReview: Identifiable, Equatable {
 @MainActor public final class NearbyTeamCoordinator {
     public private(set) var teams: [NearbyTeam] = []
     public private(set) var myApplications: [NearbyMyApplication] = []
+    /// A completed current-binding read, not a backend membership or write grant.
+    public private(set) var hasLoadedMine = false
     public private(set) var applicants: [NearbyApplicant] = []
     public private(set) var applicantsTeamID: NearbyTeamID?
     public private(set) var review: NearbyTeamReview?
@@ -48,6 +50,7 @@ public struct NearbyTeamReview: Identifiable, Equatable {
     public func bind(_ session: NearbyTeamSession?) {
         guard self.session != session else { return }; generation &+= 1; bindingGeneration &+= 1; revision &+= 1; self.session = session
         withdrawnApplications = []
+        hasLoadedMine = false
         teams = []; myApplications = []; applicants = []; applicantsTeamID = nil; context = nil; review = nil; busy = false; active = true; refreshRequired = false; messageKey = nil; serverMessage = ""; errorCode = ""; settledActions = []
     }
     public func leave() { generation &+= 1; active = false; review = nil; busy = false }
@@ -60,6 +63,7 @@ public struct NearbyTeamReview: Identifiable, Equatable {
         busy = true; review = nil; messageKey = nil; serverMessage = ""; errorCode = ""; return (session, generation)
     }
     public func loadNearby(_ context: NearbyQueryContext) async {
+        guard !Task.isCancelled else { return }
         guard context.valid else { messageKey = "nearby.context.invalid"; return }
         guard let (session, generation) = begin() else { return }
         defer { if valid(session, generation) { busy = false } }
@@ -69,19 +73,22 @@ public struct NearbyTeamReview: Identifiable, Equatable {
             if rows.contains(where: { withdrawnApplications.contains($0.id) && $0.viewerStatus == .pending }) { messageKey = "nearby.stale" }
             teams = rows.map(applyingWithdrawalBarrier); self.context = context; revision &+= 1
             applicants = []; applicantsTeamID = nil; refreshRequired = false
-        } catch { if valid(session, generation) { failure(error) } }
+        } catch { if !Task.isCancelled, !(error is CancellationError), valid(session, generation) { failure(error) } }
     }
     public func loadMine() async {
+        guard !Task.isCancelled else { return }
         guard let (session, generation) = begin() else { return }
+        hasLoadedMine = false
         defer { if valid(session, generation) { busy = false } }
         do {
             let rows = try await service.myApplications(session: session); guard valid(session, generation) else { return }
             var seen: Set<NearbyTeamID> = []
             if rows.contains(where: { withdrawnApplications.contains($0.id) && $0.status == .pending }) { messageKey = "nearby.stale" }
-            myApplications = rows.filter { !(withdrawnApplications.contains($0.id) && $0.status == .pending) && [.pending, .rejected].contains($0.status) && seen.insert($0.id).inserted }; revision &+= 1
-        } catch { if valid(session, generation) { failure(error) } }
+            myApplications = rows.filter { !(withdrawnApplications.contains($0.id) && $0.status == .pending) && [.pending, .rejected].contains($0.status) && seen.insert($0.id).inserted }; hasLoadedMine = true; revision &+= 1
+        } catch { if !Task.isCancelled, !(error is CancellationError), valid(session, generation) { failure(error) } }
     }
     public func loadApplicants(teamID: NearbyTeamID) async {
+        guard !Task.isCancelled else { return }
         guard teams.first(where: { $0.id == teamID })?.viewerStatus == .leader else { messageKey = "nearby.role"; return }
         guard let (session, generation) = begin() else { return }
         defer { if valid(session, generation) { busy = false } }
@@ -89,7 +96,7 @@ public struct NearbyTeamReview: Identifiable, Equatable {
             let rows = try await service.applications(teamID, session: session); guard valid(session, generation) else { return }
             guard Set(rows.map(\.id)).count == rows.count else { throw NearbyTeamFailure.contract }
             applicants = rows; applicantsTeamID = teamID; revision &+= 1
-        } catch { if valid(session, generation) { applicants = []; applicantsTeamID = nil; failure(error) } }
+        } catch { if !Task.isCancelled, !(error is CancellationError), valid(session, generation) { applicants = []; applicantsTeamID = nil; failure(error) } }
     }
     public func allowed(_ action: NearbyTeamAction, now: Date = Date()) -> Bool {
         guard authenticated, !locked, !settledActions.contains(.init(action)) else { return false }

@@ -13,6 +13,7 @@ import Foundation
                 authority: @escaping (PublishedResource, PublishingSession) async throws -> PublisherAuthority) {
         self.client = client; self.journal = journal; self.now = now; self.authority = authority
     }
+    public var currentSession: PublishingSession? { client.session }
     public func invalidate() { generation = UUID(); reviews.removeAll() }
     public func prepare(_ action: PublisherLifecycleAction) async throws -> PublisherLifecycleReview {
         guard !busy, let captured = client.credentials(), let resource = action.resource else { throw PublisherLifecycleError.unavailable }

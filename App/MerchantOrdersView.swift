@@ -8,6 +8,19 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
     @State private var draftFilter = MerchantOrderFilter()
     @State private var showFilters = false
     @State private var selection: OrderSelection?
+    @State private var visible = false
+    @State private var ownedTask: Task<Void, Never>?
+    @State private var loadedKey: ReadKey?
+    private struct ReadKey: Equatable {
+        let reader: ObjectIdentifier
+        let revision: UInt64
+        let configured: Bool
+        let signedIn: Bool
+    }
+    private var readKey: ReadKey {
+        .init(reader: ObjectIdentifier(reader), revision: reader.sessionRevision,
+              configured: reader.isConfigured, signedIn: reader.isSignedIn)
+    }
 
     private struct OrderSelection: Identifiable {
         let id = UUID()
@@ -21,14 +34,14 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                 CYEmptyState(systemImage: "network.slash", "merchant.orders", subtitle: "auth.notConfigured")
             } else if !reader.isSignedIn {
                 CYEmptyState(systemImage: "lock", "merchant.orders", subtitle: "merchant.signIn")
-            } else if model.loadedRevision == reader.sessionRevision, let rows = model.value {
+            } else if loadedKey == readKey, model.loadedRevision == reader.sessionRevision, let rows = model.value {
                 List {
                     Section {
                         if filter.status != nil || filter.aftersaleStatus != nil { filterSummary }
                         if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
                         if let error = model.errorKey {
                             Text("merchant.stale").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
-                            MerchantInlineFailure(errorKey: error, retry: { Task { await reload() } })
+                            MerchantInlineFailure(errorKey: error, retry: { scheduleReload() })
                         }
                     }
                     if rows.isEmpty {
@@ -37,7 +50,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                     } else {
                         ForEach(Array(rows.enumerated()), id: \.offset) { index, order in
                             Button {
-                                selection = OrderSelection(order: order, revision: reader.sessionRevision)
+                                if canPresentSummary { selection = OrderSelection(order: order, revision: reader.sessionRevision) }
                             } label: { MerchantOrderRow(order: order) }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("merchant.order.row.\(order.id.map(String.init) ?? String(index))")
@@ -45,7 +58,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                     }
                 }.refreshable { await reload() }
             } else if let error = model.errorKey {
-                MerchantFailureView(errorKey: error, identifier: "merchant.orders", retry: { Task { await reload() } })
+                MerchantFailureView(errorKey: error, identifier: "merchant.orders", retry: { scheduleReload() })
             } else {
                 CYSkeleton(variant: .row)
                     .padding(CYSpacing.pageHorizontal)
@@ -86,7 +99,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("merchant.filters.apply") {
                             filter = draftFilter; showFilters = false
-                            Task { await reload(discardOldValue: true) }
+                            scheduleReload(discardOldValue: true)
                         }.accessibilityIdentifier("merchant.orders.filters.apply")
                     }
                 }
@@ -104,19 +117,49 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
             .cyDomainSheet(detents: [.half, .full])
             .themeDomain(.merchant)
         }
-        .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
-        .onChange(of: reader.sessionRevision) { _, _ in selection = nil; showFilters = false }
+        .task(id: readKey) {
+            guard !Task.isCancelled else { return }
+            visible = true
+            await reload(discardOldValue: true)
+        }
+        .onChange(of: readKey) { _, _ in selection = nil; showFilters = false; ownedTask?.cancel() }
+        .onDisappear {
+            visible = false; ownedTask?.cancel(); ownedTask = nil
+            selection = nil; showFilters = false; loadedKey = nil; model.clear()
+        }
     }
     @ViewBuilder private var filterSummary: some View {
         if let status = filter.status { Text(LocalizedStringKey(status.titleKey)) }
         if let aftersale = filter.aftersaleStatus { Text(LocalizedStringKey(aftersale.titleKey)) }
     }
+    // A summary is a copy of a list row, not an independently authorized detail response.
+    private var canPresentSummary: Bool {
+        visible && loadedKey == readKey && reader.isConfigured && reader.isSignedIn && model.loadedRevision == reader.sessionRevision
+            && !model.isLoading && model.errorKey == nil && model.value != nil
+    }
+    private func scheduleReload(discardOldValue: Bool = false) {
+        guard visible else { return }
+        let key = readKey
+        ownedTask?.cancel()
+        ownedTask = Task {
+            guard visible, key == readKey, !Task.isCancelled else { return }
+            await reload(discardOldValue: discardOldValue)
+        }
+    }
     private func reload(discardOldValue: Bool = false) async {
+        guard visible, !Task.isCancelled else { return }
+        let key = readKey
+        let discard = discardOldValue || loadedKey != key
+        loadedKey = key
+        // Retire copied rows before refreshing permission or changing filters.
+        selection = nil
         let requestedFilter = filter
         let revision = reader.sessionRevision
-        await model.load(reader: reader, discardOldValue: discardOldValue) {
+        await model.load(reader: reader, discardOldValue: discard) {
+            try Task.checkCancellation()
+            guard visible, key == readKey else { throw CancellationError() }
             let access = try await reader.merchantAccess()
-            guard revision == reader.sessionRevision, reader.isSignedIn else { throw CancellationError() }
+            guard visible, key == readKey, revision == reader.sessionRevision, reader.isSignedIn else { throw CancellationError() }
             guard access.allows(.orders) else { throw MerchantReadError.accessDenied }
             try Task.checkCancellation()
             return try await reader.merchantOrders(access: access, filter: requestedFilter)

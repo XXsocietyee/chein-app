@@ -81,6 +81,15 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     public private(set) var retiredMembershipTeamID: Int?
     public private(set) var scope = UUID()
     public private(set) var teams: [OwnedTeam] = []
+    private var completedTeamsRead = false
+    /// Local reader provenance only; never a membership or mutation grant.
+    public var hasCurrentTeamsRead: Bool {
+        completedTeamsRead && capturedSession != nil && currentSession() == capturedSession
+    }
+    public var currentTeams: [OwnedTeam] {
+        guard capturedSession != nil, currentSession() == capturedSession else { return [] }
+        return teams
+    }
     public private(set) var detail: TeamDetail?
     public private(set) var creation: TeamCreationContext?
     public private(set) var review: TeamReview?
@@ -119,6 +128,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     public func synchronizeSession() {
         guard currentSession() != capturedSession else { return }
         generation &+= 1; scope = UUID(); capturedSession = currentSession()
+        completedTeamsRead = false
         teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil; completedJoinID = nil; readFailure = nil
         rejectionCode = nil
         loading = false; writeState = .idle; retiredMembershipTeamID = nil; confirmedJoinMode = nil
@@ -129,12 +139,20 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     private func readError(_ error: Error, session: TeamSession) {
         readFailure = TeamReadFailureKind(error)
         if error as? TeamFailure == .unauthorized {
+            completedTeamsRead = false
             teams = []; detail = nil; creation = nil; review = nil; messageKey = "team.signIn"; onUnauthorized(session)
+        } else if error as? TeamFailure == .rejected(403) {
+            // A denied read withdraws cached private projections, not the
+            // account's login or the outcome of an already dispatched write.
+            completedTeamsRead = false
+            teams = []; detail = nil; creation = nil; review = nil; completedJoinID = nil
+            messageKey = detail == nil ? "team.loadFailed" : "team.refreshFailed"
         } else if error as? TeamFailure == .notConfigured { messageKey = "team.unconfigured" }
         else { messageKey = detail == nil ? "team.loadFailed" : "team.refreshFailed" }
     }
     public func loadTeams() async {
-        synchronizeSession(); guard !busy else { return }
+        synchronizeSession(); guard !Task.isCancelled, !busy else { return }
+        completedTeamsRead = false
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
         guard configured else { messageKey = "team.unconfigured"; return }
         generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil
@@ -143,11 +161,12 @@ public enum TeamReadFailureKind: Equatable, Sendable {
             let rows = try await service.myTeams(session: session)
             guard active(session, stamp) else { return }
             teams = rows.filter { !membershipRetired(teamID: $0.id, session: session) }
+            completedTeamsRead = true
         }
         catch { guard active(session, stamp) else { return }; readError(error, session: session) }
     }
     public func loadDetail(_ lookup: TeamLookup, requireMembership: Bool = false) async {
-        synchronizeSession(); guard !busy else { return }
+        synchronizeSession(); guard !Task.isCancelled, !busy else { return }
         guard let lookup = lookup.normalized else { detail = nil; messageKey = "team.invalidLink"; return }
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
         generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil
@@ -183,11 +202,12 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     }
     /// A continuation is permanently read-only for this isolated coordinator's lifetime.
     public func loadPostJoinDetail(teamID: Int) async {
+        synchronizeSession(); guard !Task.isCancelled, !busy else { return }
         readOnlyDetail = true; review = nil
         await loadDetail(.id(teamID), requireMembership: true)
     }
     public func loadCreation(ownerID: Int) async {
-        synchronizeSession(); guard !busy else { return }
+        synchronizeSession(); guard !Task.isCancelled, !busy else { return }
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
         generation &+= 1; let stamp = generation; loading = true; creation = nil; review = nil; messageKey = nil
         defer { if generation == stamp { loading = false } }

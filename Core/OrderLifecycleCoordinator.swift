@@ -192,11 +192,11 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         return attempt(orderID: orderID) != nil
     }
     public func load(id: Int) async {
+        guard !Task.isCancelled else { return }
         invalidateVisible()
         visibleScope = reader.scope
         guard reader.accountID != nil else { storedIssue = .login; return }
         guard reader.isConfigured else { storedIssue = .notConfigured; return }
-        guard !Task.isCancelled else { storedIssue = .cancelled; return }
         let stamp = generation, captured = reader.scope
         loading = true
         defer { if stamp == generation { loading = false } }

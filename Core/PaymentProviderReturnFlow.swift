@@ -12,12 +12,19 @@ public enum PaymentProviderReturnPhase: Equatable { case idle, checking, accepte
     private let currentScope: () -> UUID
     private let openedScope: UUID
     private var generation = 0
+    private var retired = false
     public init(registrationID: Int, verifier: OrderPaymentVerifier, currentScope: @escaping () -> UUID) {
         self.registrationID = registrationID; self.verifier = verifier; self.currentScope = currentScope; openedScope = currentScope()
     }
     public var canClose: Bool { phase != .checking }
     public func reconcile() async {
-        guard phase == .idle, registrationID > 0, currentScope() == openedScope else { return }
+        guard phase == .idle else { return }
+        guard currentScope() == openedScope else {
+            phase = .accessDenied; detail = nil; onChange?(); return
+        }
+        guard !retired, registrationID > 0, !Task.isCancelled else {
+            phase = .unknown; detail = nil; onChange?(); return
+        }
         generation += 1; let stamp = generation; phase = .checking; onChange?()
         let result = await verifier.verify(registrationID: registrationID)
         guard stamp == generation else { return }
@@ -37,5 +44,5 @@ public enum PaymentProviderReturnPhase: Equatable { case idle, checking, accepte
         }
         onChange?()
     }
-    public func leave() { generation += 1; verifier.abort(); detail = nil }
+    public func leave() { retired = true; generation += 1; verifier.abort(); detail = nil }
 }
