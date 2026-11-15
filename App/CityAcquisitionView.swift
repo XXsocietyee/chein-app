@@ -91,6 +91,16 @@ import SwiftUI
     }
     init(controller: CityAcquisitionController) { _controller = State(initialValue: controller) }
     var body: some View {
+        screenWithLifecycle
+            .cyHapticEvent(.claimSuccess, trigger: controller.receipt?.requestId) { old, next in
+                next != nil && old != next && controller.receipt?.succeeded == true
+            }
+            .cyHapticEvent(.wrongAnswer, trigger: controller.receipt?.requestId) { old, next in
+                next != nil && old != next && controller.receipt?.succeeded == false
+            }
+            .onDisappear { visible = false; controller.suspend() }
+    }
+    private var screenWithLifecycle: some View {
         ScrollView { pageColumn }
             .scrollDismissesKeyboard(.interactively)
             .cyDomainPageBackground()
@@ -105,13 +115,6 @@ import SwiftUI
                 if visible, phase == .active { controller.activate(); readID = UUID() }
             }
             .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
-            .cyHapticEvent(.claimSuccess, trigger: controller.receipt?.requestId) { old, next in
-                next != nil && old != next && controller.receipt?.succeeded == true
-            }
-            .cyHapticEvent(.wrongAnswer, trigger: controller.receipt?.requestId) { old, next in
-                next != nil && old != next && controller.receipt?.succeeded == false
-            }
-            .onDisappear { visible = false; controller.suspend() }
     }
     private var confirmationBinding: Binding<CityAcquisitionQuote?> {
         Binding(get: { controller.confirmation }, set: { if $0 == nil { controller.cancelConfirmation() } })
