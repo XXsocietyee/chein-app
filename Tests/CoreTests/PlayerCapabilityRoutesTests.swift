@@ -298,4 +298,38 @@ final class PlayerCapabilityRoutesTests: XCTestCase {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(money), money)
         }
     }
+
+    func testWeatherLockedNodeAndClearWeatherFallback() async {
+        let json = """
+        {
+          "mode": 1,
+          "playable": true,
+          "registered": true,
+          "total": 1,
+          "doneCount": 0,
+          "nodes": [
+            {
+              "nodeId": 701,
+              "name": "雨夜茶馆",
+              "done": false,
+              "locked": true,
+              "weatherLocked": true,
+              "lockReason": "仅在降雨天气解锁"
+            }
+          ]
+        }
+        """
+        let result = try! JSONDecoder().decode(PlayNodesResult.self, from: Data(json.utf8))
+        let snapshot = PlaySnapshot(result: result)
+        let node = snapshot.visibleNodes[0]
+        XCTAssertEqual(node.weatherLocked, true)
+        XCTAssertTrue(snapshot.isLocked(node))
+        XCTAssertEqual(snapshot.lockReason(node), "仅在降雨天气解锁")
+
+        let stub = RouteStub()
+        let service = MapSearchPlayerService(client: client(stub))
+        stub.replies["api/map/weather"] = (#"{"code":200,"data":{"kind":"clear","intensity":0}}"#, 200)
+        let fallbackWeather = await service.weather(latitude: 30.27, longitude: 120.15)
+        XCTAssertNil(fallbackWeather)
+    }
 }
