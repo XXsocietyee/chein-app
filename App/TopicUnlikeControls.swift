@@ -60,7 +60,7 @@ struct TopicUnlikeFlow: ViewModifier {
                     .themeDomain(.player)
                 }
                 .safeAreaInset(edge: .bottom) { TopicUnlikeStatus(controller: controller) }
-                .cyToast($toastMessage, tone: .info)
+                .cyToast(message: $toastMessage, tone: .info)
                 .onChange(of: controller.phase) { _, phase in
                     if case .removed(let id) = phase {
                         toastMessage = "topic.unlike.toast"
