@@ -930,6 +930,25 @@ import SwiftUI
                         }
                     }
                 }
+                if node.sensorType == "audio_clip",
+                   let audioConfig = try? PlayAudioClipConfiguration(raw: model.extras[nodeID]?.sensorConfig ?? .null) {
+                    NavigationLink("playx.audioClip.title") {
+                        PlayInteractionBoundContent(context: model.interactionContext) { issuedContext in
+                            PlayAudioClipStreamView(
+                                configuration: audioConfig,
+                                canWrite: model.canWrite,
+                                uploadAudio: { bytes, mime in
+                                    guard let token = model.loadedSession?.token else { throw PlayExperienceError.unauthorized }
+                                    return try await model.service.uploadAudio(bytes, mimeType: mime, token: token)
+                                },
+                                onSubmit: { payload in
+                                    prepare(.sensor(type: "audio_clip", payload: payload), context: issuedContext)
+                                }
+                            )
+                        }
+                    }
+                    .accessibilityIdentifier("playx.audioClip.open")
+                }
                 if let advanced, node.hasAdvancedPrerequisite {
                     NavigationLink("playx.advanced") {
                         PlayInteractionBoundContent(context: model.interactionContext) { advancedContext in
@@ -951,8 +970,19 @@ import SwiftUI
         .onChange(of: outcomeState) { old, new in
             // Only this screen's own submission produces a verdict; a later read never replays one.
             guard old == .submitting else { return }
-            if new == .completed { verdict = .init(kind: .win) }
+            if new == .completed {
+                if let node {
+                    let task = PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node)
+                    if task == .arrive || task == .scan {
+                        UIKitHapticsDriver.ensureInstalled()
+                        HapticsService.shared.play(.checkInSuccess)
+                    }
+                }
+                verdict = .init(kind: .win)
+            }
             else if new == .pending || new == .failed, case .rejected(_, let message)? = model.issue {
+                UIKitHapticsDriver.ensureInstalled()
+                HapticsService.shared.play(.wrongAnswer)
                 verdict = .init(kind: .fail, text: message)
             }
         }

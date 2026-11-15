@@ -139,6 +139,8 @@ struct CYMedalDeck: View {
     }
     private func next() {
         guard items.count > 1 else { return }
+        UIKitHapticsDriver.ensureInstalled()
+        HapticsService.shared.play(.medalCycle)
         withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { order.advance() }
     }
 }
@@ -245,7 +247,7 @@ struct CYMedalScreen: View {
                 try? await Task.sleep(for: .milliseconds(40))
             }
         }
-        .cyHaptic(.success, trigger: on)
+        .cyHapticEvent(.rewardOrMedal, trigger: on) { _, new in new }
     }
 
     private var rays: some View {
@@ -340,6 +342,8 @@ struct CYMedalScreen: View {
 
     private func next() {
         guard items.count > 1 else { return }
+        UIKitHapticsDriver.ensureInstalled()
+        HapticsService.shared.play(.medalCycle)
         withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { order.advance() }
     }
 }

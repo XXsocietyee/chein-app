@@ -11,7 +11,7 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
     def test_all_source_screen_kinds_are_registered_and_dispatched(self):
         contracts = self.read('Core/PlayKitScreenContracts.swift')
         view = self.read('App/PlayKitScreen.swift')
-        expected = ['coinFlip','diceRoll','reaction','ballShake','quietHold','countdown','stopwatch','qa','branch','estimate','pricePair','hiddenObject','predict','random','scan','walk','bingo','profile','photoCheck','note','typeIn','dailySign','sort','match','classify','compass','shout']
+        expected = ['coinFlip','diceRoll','reaction','ballShake','quietHold','countdown','stopwatch','qa','trueFalse','imageGuess','jigsaw','scratchCard','branch','estimate','pricePair','hiddenObject','predict','random','scan','walk','bingo','profile','photoCheck','note','typeIn','dailySign','sort','match','classify','compass','shout']
         for kind in expected:
             self.assertRegex(contracts, r'\b'+kind+r'\b')
             self.assertIn('.'+kind, view)

@@ -14,50 +14,52 @@ import UIKit
 /// | `.selection` | tab change, chip / segment pick, pager page |
 /// | `.success` | join, save, order paid, badge unlock, stamp |
 /// | `.warning` | blocked action, validation stop |
+/// | `.error` | wrong answer, rejected validation |
 /// | `.impactLight` | pull-to-refresh trigger, sheet detent snap |
 /// | `.impactMedium` | primary commit (register, check-in) |
 /// | `.impactHeavy` | GO press |
 enum CYHaptics: Equatable {
-    case selection, success, warning, impactLight, impactMedium, impactHeavy
+    case selection, success, warning, error, impactLight, impactMedium, impactHeavy
+
+    var event: HapticEvent {
+        switch self {
+        case .selection: return .selection
+        case .success: return .success
+        case .warning: return .warning
+        case .error: return .error
+        case .impactLight: return .impactLight
+        case .impactMedium: return .impactMedium
+        case .impactHeavy: return .impactHeavy
+        }
+    }
 
     var sensory: SensoryFeedback {
         switch self {
         case .selection: return .selection
         case .success: return .success
         case .warning: return .warning
+        case .error: return .error
         case .impactLight: return .impact(weight: .light)
         case .impactMedium: return .impact(weight: .medium)
         case .impactHeavy: return .impact(weight: .heavy)
         }
     }
 
-    /// Imperative form for non-view code (refresh actions). 120 ms cooldown so stacked triggers never buzz twice.
+    /// Imperative form routed through `HapticsService` with 120 ms cooldown and in-app/system gating.
     @MainActor func play() {
-        #if canImport(UIKit)
-        let now = ProcessInfo.processInfo.systemUptime
-        guard now - Self.lastPlayed >= 0.12 else { return }
-        Self.lastPlayed = now
-        switch self {
-        case .selection: UISelectionFeedbackGenerator().selectionChanged()
-        case .success: UINotificationFeedbackGenerator().notificationOccurred(.success)
-        case .warning: UINotificationFeedbackGenerator().notificationOccurred(.warning)
-        case .impactLight: UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        case .impactMedium: UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        case .impactHeavy: UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-        }
-        #endif
+        UIKitHapticsDriver.ensureInstalled()
+        HapticsService.shared.play(event)
     }
-    @MainActor private static var lastPlayed: TimeInterval = 0
 }
 
 extension View {
-    /// Declarative haptic: plays `haptic` whenever `trigger` changes.
+    /// Declarative haptic routed through `HapticsService`: plays `haptic` whenever `trigger` changes.
     func cyHaptic<T: Equatable>(_ haptic: CYHaptics, trigger: T) -> some View {
-        sensoryFeedback(haptic.sensory, trigger: trigger)
+        cyHapticEvent(haptic.event, trigger: trigger)
     }
-    /// Plays `haptic` only for the transitions `condition(old, new)` accepts (e.g. press down).
+    /// Plays `haptic` through `HapticsService` only for transitions accepted by `condition(old, new)`.
     func cyHaptic<T: Equatable>(_ haptic: CYHaptics, trigger: T, where condition: @escaping (T, T) -> Bool) -> some View {
-        sensoryFeedback(haptic.sensory, trigger: trigger, condition: condition)
+        cyHapticEvent(haptic.event, trigger: trigger, where: condition)
     }
 }
 

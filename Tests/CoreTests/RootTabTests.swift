@@ -13,11 +13,12 @@ final class RootTabTests: XCTestCase {
         XCTAssertEqual(Set(RootTab.allCases.map(\.systemImage)).count, RootTab.allCases.count)
     }
 
-    func testPlayerBarIsFourTabsWithoutPublish() {
-        XCTAssertEqual(RootTab.playerTabs, [.home, .roam, .club, .mine])
-        XCTAssertFalse(RootTab.publish.isPlayerTab)
-        XCTAssertEqual(RootTab.playerTabs.map(\.playerTitleKey), ["tabBar.explore", "tabBar.roam", "tabBar.club", "tabBar.passport"])
+    func testPlayerBarRestoresFiveTabsWithPublish() {
+        XCTAssertEqual(RootTab.playerTabs, [.home, .roam, .publish, .club, .mine])
+        XCTAssertTrue(RootTab.publish.isPlayerTab)
+        XCTAssertEqual(RootTab.playerTabs.map(\.playerTitleKey), ["tabBar.explore", "tabBar.roam", "tabBar.publish", "tabBar.club", "tabBar.passport"])
         XCTAssertEqual(RootTab.mine.playerSystemImage, "book.closed")
-        XCTAssertEqual(Set(RootTab.playerTabs.map(\.playerSystemImage)).count, 4)
+        XCTAssertEqual(RootTab.publish.playerSystemImage, "plus.square")
+        XCTAssertEqual(Set(RootTab.playerTabs.map(\.playerSystemImage)).count, 5)
     }
 }

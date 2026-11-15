@@ -60,7 +60,9 @@ public enum PlayKitActionCatalog {
         "profile": ["SUBMIT_PROFILE"], "photoCheck": ["SUBMIT_PHOTO_CHECK"], "note": ["SUBMIT_NOTE"],
         "typeIn": ["START_CHALLENGE", "SUBMIT_TYPE_IN"], "timeWindow": [], "musicCorner": [], "walk": [], "gameTimer": [], "stickerBook": [], "bingo": [],
         // UG-01 and the album completion are play actions. Album carries image URLs, not a price or payment.
-        "hangman": ["SUBMIT_HANGMAN"], "album": ["SUBMIT_ALBUM"]
+        "hangman": ["SUBMIT_HANGMAN"], "album": ["SUBMIT_ALBUM"],
+        "trueFalse": ["SUBMIT_TRUE_FALSE"], "imageGuess": ["SUBMIT_IMAGE_GUESS"],
+        "jigsaw": ["SUBMIT_JIGSAW"], "scratchCard": ["SUBMIT_SCRATCH_CARD"]
     ]
     public static func payload(kind: String, action: String, detail: [String: PlayWireValue]) throws -> [String: PlayWireValue] {
         guard actions[kind]?.contains(action) == true else { throw PlayExperienceError.unsupported }

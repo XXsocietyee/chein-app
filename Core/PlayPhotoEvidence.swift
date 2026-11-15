@@ -12,13 +12,38 @@ extension PlayExperienceService {
     /// Source play_api.dart uploadImage: one multipart `file`, top-level `url`.
     /// Upload is not node completion, receipt evidence, or a reward.
     @MainActor public func uploadPhoto(_ bytes: Data, mimeType: String, token: String) async throws -> String {
+        guard ["image/jpeg", "image/png"].contains(mimeType) else { throw APIError.invalidRequest }
+        let ext = mimeType == "image/png" ? "png" : "jpg"
+        return try await uploadMultipartOSS(bytes, mimeType: mimeType, fileExtension: ext, boundaryPrefix: "PlayPhoto-", token: token)
+    }
+
+    /// Uploads recorded audio bytes (`.m4a`, `.aac`, `.mp3`, `.wav`) via `api/common/uploadOSS` for `audio_clip` sensors.
+    @MainActor public func uploadAudio(_ bytes: Data, mimeType: String, token: String) async throws -> String {
+        let ext: String
+        switch mimeType {
+        case "audio/m4a", "audio/mp4": ext = "m4a"
+        case "audio/aac": ext = "aac"
+        case "audio/mpeg", "audio/mp3": ext = "mp3"
+        case "audio/wav", "audio/x-wav": ext = "wav"
+        default: throw APIError.invalidRequest
+        }
+        return try await uploadMultipartOSS(bytes, mimeType: mimeType, fileExtension: ext, boundaryPrefix: "PlayAudio-", token: token)
+    }
+
+    @MainActor private func uploadMultipartOSS(
+        _ bytes: Data,
+        mimeType: String,
+        fileExtension: String,
+        boundaryPrefix: String,
+        token: String
+    ) async throws -> String {
         try checkReadLifetime()
         guard enabled.contains(.mediaUpload) else { throw PlayExperienceError.disabled }
-        guard AuthRequestBuilder.isValidToken(token), !bytes.isEmpty, bytes.count <= 20 * 1024 * 1024,
-              ["image/jpeg", "image/png"].contains(mimeType) else { throw APIError.invalidRequest }
-        let boundary = "PlayPhoto-" + UUID().uuidString
-        let ext = mimeType == "image/png" ? "png" : "jpg"
-        var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"capture.\(ext)\"\r\nContent-Type: \(mimeType)\r\n\r\n".utf8)
+        guard AuthRequestBuilder.isValidToken(token), !bytes.isEmpty, bytes.count <= 20 * 1024 * 1024 else {
+            throw APIError.invalidRequest
+        }
+        let boundary = boundaryPrefix + UUID().uuidString
+        var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"capture.\(fileExtension)\"\r\nContent-Type: \(mimeType)\r\n\r\n".utf8)
         body.append(bytes); body.append(Data("\r\n--\(boundary)--\r\n".utf8))
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent("api/common/uploadOSS"))
         request.httpMethod = "POST"; request.httpBody = body; request.timeoutInterval = 60
