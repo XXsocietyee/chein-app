@@ -129,7 +129,7 @@ import SwiftUI
                     Text(verbatim: "\(model.elapsedSeconds) s")
                 }
                 CYStatusChip(
-                    LocalizedStringKey("playx.audioClip.phase.\(model.phase.rawValue)"),
+                    LocalizedStringKey("playx.audioClip.phase." + model.phase.rawValue),
                     tone: statusTone,
                     systemImage: statusIcon
                 )
