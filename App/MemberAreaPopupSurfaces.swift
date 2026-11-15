@@ -747,7 +747,8 @@ struct MemberCoopInviteSheet: View {
                 } else if topics.isEmpty {
                     CYEmptyState(
                         systemImage: "doc.text",
-                        LocalizedStringKey(MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale))
+                        LocalizedStringKey(MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale)),
+                        kind: .generic
                     )
                 } else {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {

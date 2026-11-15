@@ -15,6 +15,13 @@ struct CYEmptyState: View {
     private let action: (() -> Void)?
     private let kind: CYStateKind?
 
+    /// Already-resolved copy (restyled merchant/member screens). Not looked up again in a string table.
+    init(systemImage: String = "tray", verbatimTitle: String, verbatimSubtitle: String? = nil,
+         kind: CYStateKind? = nil, action: (() -> Void)? = nil) {
+        self.init(systemImage: systemImage, LocalizedStringKey(verbatimTitle), detailVerbatim: verbatimSubtitle,
+                  kind: kind, action: action)
+    }
+
     init(
         systemImage: String = "tray",
         _ message: LocalizedStringKey,
@@ -99,6 +106,12 @@ struct CYErrorState: View {
         self.retryTitle = retryTitle
         self.offline = offline
         self.onRetry = onRetry
+    }
+
+    /// Kind form used by restyled merchant screens. `.network` shows the offline variant.
+    enum Kind { case server, permission, network }
+    init(kind: Kind, message: LocalizedStringKey, retryTitle: LocalizedStringKey = "action.retry", onRetry: @escaping () -> Void) {
+        self.init(message, retryTitle: retryTitle, offline: kind == .network, onRetry: onRetry)
     }
 
     var body: some View {

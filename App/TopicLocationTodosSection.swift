@@ -104,8 +104,8 @@ import QuestifyCore
                 selectedID: .constant(row.nodeId),
                 onSelect: { option in
                     picking = nil
-                    if !option.id.isEmpty {
-                        Task { await model.bind(row, nodeId: option.id) }
+                    if let nodeID = Int64(option.id) {
+                        Task { await model.bind(row, nodeId: String(nodeID)) }  // canonical numeric id
                     }
                 },
                 onClose: { picking = nil }

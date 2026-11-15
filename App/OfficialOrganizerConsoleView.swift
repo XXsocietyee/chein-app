@@ -562,3 +562,8 @@ struct OfficialOrganizerEntryRow: View {
         }
     }
 }
+
+
+extension OfficialOrganizerAction: @retroactive Identifiable {
+    public var id: String { rawValue }
+}
