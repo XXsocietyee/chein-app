@@ -573,6 +573,7 @@ struct SessionRootView: View {
             accountID: session.account?.id ?? 0,
             transport: session.runtimeHTTPTransport))
         .environment(\.registrationMySignupsDestination, { AnyView(SessionPlayerJourneyView(destination: .participations)) })
+        .environment(\.objectCardMedia, session.makeObjectCardImageLoader())
         .task { await session.bootstrap() }
         .onAppear { session.setPrivateHomePresentationActive(true) }
         .onAppear { session.setOwnerDraftPresentationActive(true) }

@@ -4018,6 +4018,7 @@ enum ReviewedOrientOfficialRoute {
             return items.count == 2 && items[0].name == "ownerType" && positive(items[0].value)
                 && items[1].name == "ownerId" && positive(items[1].value)
         }
+        if ReviewedTeamLobbyAndSeatsReadRoute.acceptsRead(url: url, parts: parts, baseURL: baseURL) { return true }
         if exact("api/preset/route/list") || exact("api/official/my-published") { return items.isEmpty && parts.query == nil }
         if exact("api/preset/route/info") {
             return items.count == 1 && items[0].name == "id" && OfficialRouteReader.isValidID(items[0].value ?? "")

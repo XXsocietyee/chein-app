@@ -4,7 +4,8 @@ import SwiftUI
 @MainActor struct SessionObjectCardsView: View {
     @EnvironmentObject private var session: AppSession
     var body: some View {
-        ObjectCardsView(reader: session.objectCardReader).id(session.objectCardReader.scope)
+        ObjectCardsView(reader: session.objectCardReader, media: session.makeObjectCardImageLoader())
+            .id(session.objectCardReader.scope)
     }
 }
 
@@ -47,7 +48,9 @@ import SwiftUI
     }
     var body: some View {
         Group {
-            if reader.associationIsCurrent { ObjectCardsView(reader: reader).id(reader.scope) }
+            if reader.associationIsCurrent {
+                ObjectCardsView(reader: reader, media: session.makeObjectCardImageLoader()).id(reader.scope)
+            }
             else { CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "social.changed") }
         }
         // Observe the live host even while the profile is covered by this route.

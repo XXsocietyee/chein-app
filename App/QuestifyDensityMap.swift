@@ -44,9 +44,11 @@ struct QuestifyDensityMap: View {
         self.mapHeight = mapHeight; self.interactionID = interactionID
         self.pinIdentifierPrefix = pinIdentifierPrefix; self.pinHint = pinHint
         _currentFocusInput = State(initialValue: FocusInput(area: area, pins: pins, selectedID: selectedID, interactionID: interactionID))
-        _position = State(initialValue: .region(MKCoordinateRegion(
+        _position = State(initialValue: .region(CYMapRegion.sanitizedRegion(
             center: CLLocationCoordinate2D(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude),
-            span: MKCoordinateSpan(latitudeDelta: initialSpan, longitudeDelta: initialSpan))))
+            span: initialSpan,
+            coordinates: pins.map { CLLocationCoordinate2D(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
+        )))
     }
     private struct Group: Identifiable {
         let members: [SearchMapPin]
@@ -121,6 +123,8 @@ struct QuestifyDensityMap: View {
                             MapPolyline(coordinates: polyline.map(coordinate)).stroke(QuestifyMapAppearance.route, style: StrokeStyle(lineWidth: 4, dash: [7, 4]))
                         }
                     }.mapStyle(QuestifyMapAppearance.baseStyle)
+                    .environment(\.colorScheme, .light)
+                    .background { CYMapPlaceholder(fog: false) }
                     .mapControls {
                         MapCompass().mapControlVisibility(.visible)
                         MapScaleView()

@@ -31,6 +31,7 @@ struct ObjectBadgeWallLayoutSelection {
     /// Play-side badge code to read back on the loaded wall (source query `badgeCode`).
     var focusBadgeCode: String? = nil
     @State private var layoutSelection = ObjectBadgeWallLayoutSelection()
+    @Environment(\.objectCardMedia) private var envMedia
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
@@ -120,6 +121,7 @@ struct ObjectBadgeWallLayoutSelection {
     }
     private func link(_ badge: ProfileBadgeSelection, identifier: String, albumID: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
         let capturedIdentity = reader.identity
+        let media = self.media ?? envMedia
         let isNew = ObjectBadgeAlbumItem.isNew(badge) && !seen.contains(ObjectBadgeAlbumItem.seenKey(badge))
         return NavigationLink {
             ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,

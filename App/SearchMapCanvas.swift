@@ -22,21 +22,23 @@ struct SearchMapCanvas: View {
     var body: some View {
         Group {
             if offline {
-                // Static dark map ground (kit map chrome); pins stay real buttons with their ids and traits.
+                // Static readable map ground (kit map chrome); pins stay real buttons with their ids and traits.
                 ZStack {
                     CYMapPlaceholder(fog: false)
                     VStack(spacing: 12) {
                         Label { Text("searchMap.offlineMap").accessibilityIdentifier("searchMap.map") } icon: { Image(systemName: "map") }
-                            .font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.8))
+                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                            .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                            .background(.thinMaterial, in: Capsule(style: .continuous))
                         ForEach(pins) { pin in
                             Button { onSelect?(pin.id) } label: {
                                 HStack(spacing: 12) {
                                     QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)
-                                    Text(verbatim: pin.title).font(CYTypography.bodyMedium).foregroundStyle(.white).fixedSize(horizontal: false, vertical: true)
+                                    Text(verbatim: pin.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                                         .multilineTextAlignment(.leading)
                                 }
                                 .padding(.trailing, CYSpacing.md)
-                                .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+                                .background(.regularMaterial, in: Capsule(style: .continuous))
                             }.buttonStyle(.plain).frame(minHeight: 44)
                                 .accessibilityLabel(Text(verbatim: pin.title))
                                 .accessibilityIdentifier("searchMap.pin.\(pin.id)")

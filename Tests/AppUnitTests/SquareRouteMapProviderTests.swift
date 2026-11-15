@@ -1,4 +1,5 @@
 import XCTest
+import MapKit
 @testable import Questify
 
 @MainActor final class SquareRouteMapProviderTests: XCTestCase {
@@ -56,5 +57,24 @@ import XCTest
         }
         do { _ = try await provider.route(topicID: 7); XCTFail() }
         catch { XCTAssertEqual(error as? TopicReadFailure, .unavailable) }
+    }
+
+    func testCYMapRegionRejectsZeroOrInvalidCoordinatesAndDerivesBoundingRegion() {
+        let zeroRegion = CYMapRegion.sanitizedRegion(center: CLLocationCoordinate2D(latitude: 0, longitude: 0), span: 0.04)
+        XCTAssertTrue(CYMapRegion.isValid(zeroRegion.center))
+        XCTAssertEqual(zeroRegion.center.latitude, CYMapRegion.fallbackCenter.latitude, accuracy: 0.0001)
+
+        let coords = [
+            CLLocationCoordinate2D(latitude: 31.22, longitude: 121.46),
+            CLLocationCoordinate2D(latitude: 31.24, longitude: 121.48),
+        ]
+        let bounded = CYMapRegion.boundingRegion(coordinates: coords)
+        XCTAssertEqual(bounded.center.latitude, 31.23, accuracy: 0.0001)
+        XCTAssertEqual(bounded.center.longitude, 121.47, accuracy: 0.0001)
+        XCTAssertGreaterThan(bounded.span.latitudeDelta, 0.02)
+        XCTAssertGreaterThan(bounded.span.longitudeDelta, 0.02)
+
+        let emptyBounded = CYMapRegion.boundingRegion(coordinates: [])
+        XCTAssertTrue(CYMapRegion.isValid(emptyBounded.center))
     }
 }

@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // Night-city light, crafted badge (wave 3 B5 review). The unlock cover used a flat cover-art disc; this is the object that
 // lands: a silhouette per badge type (medal with ribbon, star, shield with laurel) so the bloom matches the badge, a lantern
@@ -195,3 +198,20 @@ struct CYCraftedMedal: View {
         .opacity(0.9)
     }
 }
+
+#if canImport(UIKit)
+/// UIKit / SceneKit palette tokens for the 3D badge showroom turntable and medallion placeholder.
+enum CYBadgeShowroomPalette {
+    static let stageBackground = UIColor(red: 0.08, green: 0.09, blue: 0.14, alpha: 1)
+    static let emblemFill = UIColor(red: 0.13, green: 0.16, blue: 0.25, alpha: 1)
+
+    static func accent(style: String, rarity: Int) -> UIColor {
+        switch (style, rarity) {
+        case ("glow", _), (_, 4): return UIColor(red: 0.96, green: 0.78, blue: 0.28, alpha: 1)
+        case (_, 3): return UIColor(red: 0.30, green: 0.78, blue: 0.72, alpha: 1)
+        case (_, 2): return UIColor(red: 0.42, green: 0.76, blue: 0.96, alpha: 1)
+        default: return UIColor(red: 0.85, green: 0.74, blue: 0.48, alpha: 1)
+        }
+    }
+}
+#endif

@@ -1158,6 +1158,57 @@ import XCTest
         request.setValue(token, forHTTPHeaderField: "Authorization")
         return request
     }
+
+    @MainActor func testShippedChinaAdmitsTeamLobbyAndSeatsWithBackendAuthContract() async throws {
+        let base = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        let recorder = PlayerReadRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(
+            build: .init(market: "CN", baseURL: base.absoluteString, bundleIdentifier: "com.chengyin.app", realm: "china-prod"),
+            makeTransport: { recorder }
+        )
+        let session = composition.makeSession()
+        let transport = session.runtimeHTTPTransport
+        let token = "jwt.player.token"
+
+        func getRequest(_ path: String, queryItems: [URLQueryItem], auth: String? = token) throws -> URLRequest {
+            var components = URLComponents(url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+            components.queryItems = queryItems.isEmpty ? nil : queryItems
+            var request = URLRequest(url: try XCTUnwrap(components.url))
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            if let auth { request.setValue(auth, forHTTPHeaderField: "Authorization") }
+            return request
+        }
+
+        // Direct route matcher aligns with backend-app-r2 (Authorization raw JWT + exact GET params in either order for lobby).
+        let sortedLobby = try getRequest("api/orient/team/lobby", queryItems: [
+            URLQueryItem(name: "ownerId", value: "7"),
+            URLQueryItem(name: "ownerType", value: "2")
+        ])
+        let orderedLobby = try getRequest("api/orient/team/lobby", queryItems: [
+            URLQueryItem(name: "ownerType", value: "1"),
+            URLQueryItem(name: "ownerId", value: "7")
+        ])
+        let seats = try getRequest("api/play/player-journey/seats", queryItems: [URLQueryItem(name: "registrationId", value: "15")])
+        let invitations = try getRequest("api/play/seat-invitations", queryItems: [URLQueryItem(name: "registrationId", value: "15")])
+        let invitationDetail = try getRequest("api/play/seat-invitations/inv-1", queryItems: [])
+
+        XCTAssertEqual(ReviewedOrientOfficialRoute.kind(sortedLobby, baseURL: base, token: token), .read)
+        XCTAssertEqual(ReviewedOrientOfficialRoute.kind(orderedLobby, baseURL: base, token: token), .read)
+        XCTAssertEqual(ReviewedOrientOfficialRoute.kind(seats, baseURL: base, token: token), .read)
+        XCTAssertEqual(ReviewedOrientOfficialRoute.kind(invitations, baseURL: base, token: token), .read)
+        XCTAssertEqual(ReviewedOrientOfficialRoute.kind(invitationDetail, baseURL: base, token: token), .read)
+
+        // Missing or mismatched Authorization, zero IDs, duplicate query keys, or POST-only invitation segments stay refused.
+        XCTAssertNil(ReviewedOrientOfficialRoute.kind(try getRequest("api/orient/team/lobby", queryItems: [URLQueryItem(name: "ownerId", value: "7"), URLQueryItem(name: "ownerType", value: "2")], auth: nil), baseURL: base, token: token))
+        XCTAssertNil(ReviewedOrientOfficialRoute.kind(try getRequest("api/play/player-journey/seats", queryItems: [URLQueryItem(name: "registrationId", value: "0")]), baseURL: base, token: token))
+        XCTAssertNil(ReviewedOrientOfficialRoute.kind(try getRequest("api/play/seat-invitations/invite", queryItems: []), baseURL: base, token: token))
+
+        // Unauthenticated session transport must refuse seats / lobby before wire dispatch.
+        await assertClosed { try await transport.send(sortedLobby) }
+        await assertClosed { try await transport.send(seats) }
+        XCTAssertTrue(recorder.paths.isEmpty)
+    }
 }
 
 private final class PlayerWriteRecorder: HTTPTransport {

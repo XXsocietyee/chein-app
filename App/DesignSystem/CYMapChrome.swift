@@ -1,8 +1,67 @@
 import SwiftUI
+import MapKit
 
 // Map chrome for the immersive player screens (play / roam / search map). Presentation only:
-// glass controls, the white GO circle, a persistent detent sheet and a static placeholder map
-// used by debug fixtures and empty states. Real screens keep MapKit underneath.
+// glass controls, the white GO circle, a persistent detent sheet and a non-black cartographic
+// placeholder map used by debug fixtures, offline states, and simulator fallback. Real screens keep MapKit underneath.
+
+/// Sanitizes map coordinates and derives non-empty bounding regions so MapKit never opens on
+/// `(0, 0)`, `.automatic` with zero annotations, or `MKMapRect.world`.
+enum CYMapRegion {
+    static let fallbackCenter = CLLocationCoordinate2D(latitude: 31.2304, longitude: 121.4737)
+    static let fallbackSpan = MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
+
+    static var defaultPosition: MapCameraPosition {
+        .region(MKCoordinateRegion(center: fallbackCenter, span: fallbackSpan))
+    }
+
+    static func isValid(_ coordinate: CLLocationCoordinate2D) -> Bool {
+        CLLocationCoordinate2DIsValid(coordinate)
+            && coordinate.latitude.isFinite
+            && coordinate.longitude.isFinite
+            && abs(coordinate.latitude) <= 85
+            && (abs(coordinate.latitude) > 0.0001 || abs(coordinate.longitude) > 0.0001)
+    }
+
+    static func sanitizedRegion(
+        center: CLLocationCoordinate2D,
+        span: Double = 0.04,
+        coordinates: [CLLocationCoordinate2D] = []
+    ) -> MKCoordinateRegion {
+        let clampedSpan = max(0.002, min(span.isFinite ? span : 0.04, 60.0))
+        if isValid(center) {
+            return MKCoordinateRegion(
+                center: center,
+                span: MKCoordinateSpan(latitudeDelta: clampedSpan, longitudeDelta: clampedSpan)
+            )
+        }
+        return boundingRegion(coordinates: coordinates, minimumSpan: clampedSpan)
+    }
+
+    static func boundingRegion(
+        coordinates: [CLLocationCoordinate2D],
+        minimumSpan: Double = 0.015
+    ) -> MKCoordinateRegion {
+        let valid = coordinates.filter(isValid)
+        guard let first = valid.first else {
+            return MKCoordinateRegion(center: fallbackCenter, span: fallbackSpan)
+        }
+        if valid.count == 1 {
+            let span = max(0.004, min(minimumSpan, 60.0))
+            return MKCoordinateRegion(center: first, span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span))
+        }
+        var minLat = first.latitude, maxLat = first.latitude
+        var minLng = first.longitude, maxLng = first.longitude
+        for point in valid.dropFirst() {
+            minLat = min(minLat, point.latitude); maxLat = max(maxLat, point.latitude)
+            minLng = min(minLng, point.longitude); maxLng = max(maxLng, point.longitude)
+        }
+        let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLng + maxLng) / 2)
+        let latDelta = max(minimumSpan, min((maxLat - minLat) * 1.35, 60.0))
+        let lngDelta = max(minimumSpan, min((maxLng - minLng) * 1.35, 60.0))
+        return MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lngDelta))
+    }
+}
 
 /// Artwork of a round glass control (also used as a NavigationLink / Menu label).
 struct CYGlassLabel: View {
@@ -102,37 +161,49 @@ struct CYGoButton: View {
     }
 }
 
-/// Dark static stand-in for a map (roads, water, a fog vignette). Debug fixtures and offline state only.
+/// Readable cartographic stand-in for a map (land, parks, waterways, avenues). Used behind
+/// MapKit views, in offline states, and as a non-black simulator fallback. Never draws a black rectangle.
 struct CYMapPlaceholder: View {
     var fog = true
+    @Environment(\.colorScheme) private var colorScheme
     var body: some View {
+        let isLight = colorScheme == .light
+        let land = isLight ? Color(red: 0.93, green: 0.91, blue: 0.87) : Color(red: 0.16, green: 0.21, blue: 0.29)
+        let block = isLight ? Color(red: 0.87, green: 0.85, blue: 0.81) : Color(red: 0.21, green: 0.27, blue: 0.36)
+        let park = isLight ? Color(red: 0.81, green: 0.89, blue: 0.78) : Color(red: 0.16, green: 0.31, blue: 0.24)
+        let water = isLight ? Color(red: 0.71, green: 0.83, blue: 0.94) : Color(red: 0.16, green: 0.33, blue: 0.49)
+        let street = isLight ? Color.white : Color.white.opacity(0.24)
+        let avenue = isLight ? Color(red: 0.97, green: 0.87, blue: 0.63) : Color(red: 0.49, green: 0.54, blue: 0.44)
         ZStack {
-            Color(red: 0.07, green: 0.075, blue: 0.085)
+            land
             Canvas { ctx, size in
-                var water = Path()
-                water.move(to: CGPoint(x: -20, y: size.height * 0.62))
-                water.addCurve(to: CGPoint(x: size.width + 20, y: size.height * 0.30),
-                               control1: CGPoint(x: size.width * 0.35, y: size.height * 0.78),
-                               control2: CGPoint(x: size.width * 0.62, y: size.height * 0.20))
-                ctx.stroke(water, with: .color(Color(red: 0.10, green: 0.18, blue: 0.26)), lineWidth: 34)
-                let road = Color.white.opacity(0.10)
+                ctx.fill(Path(CGRect(x: size.width * 0.54, y: size.height * 0.12, width: size.width * 0.32, height: size.height * 0.18)), with: .color(park))
+                ctx.fill(Path(CGRect(x: size.width * 0.04, y: size.height * 0.58, width: size.width * 0.24, height: size.height * 0.18)), with: .color(park))
+                ctx.fill(Path(CGRect(x: size.width * 0.14, y: size.height * 0.16, width: size.width * 0.26, height: size.height * 0.14)), with: .color(block))
+                ctx.fill(Path(CGRect(x: size.width * 0.62, y: size.height * 0.56, width: size.width * 0.26, height: size.height * 0.18)), with: .color(block))
+                var waterPath = Path()
+                waterPath.move(to: CGPoint(x: -20, y: size.height * 0.62))
+                waterPath.addCurve(to: CGPoint(x: size.width + 20, y: size.height * 0.30),
+                                   control1: CGPoint(x: size.width * 0.35, y: size.height * 0.78),
+                                   control2: CGPoint(x: size.width * 0.62, y: size.height * 0.20))
+                ctx.stroke(waterPath, with: .color(water), lineWidth: 34)
                 for i in 0..<9 {
                     var p = Path()
                     let y = size.height * (0.06 + CGFloat(i) * 0.115)
                     p.move(to: CGPoint(x: 0, y: y))
                     p.addLine(to: CGPoint(x: size.width, y: y + size.height * 0.05 * (i.isMultiple(of: 2) ? 1 : -1)))
-                    ctx.stroke(p, with: .color(road), lineWidth: i.isMultiple(of: 3) ? 5 : 2)
+                    ctx.stroke(p, with: .color(i.isMultiple(of: 3) ? avenue : street), lineWidth: i.isMultiple(of: 3) ? 6 : 2.5)
                 }
                 for i in 0..<6 {
                     var p = Path()
                     let x = size.width * (0.08 + CGFloat(i) * 0.18)
                     p.move(to: CGPoint(x: x, y: 0))
                     p.addLine(to: CGPoint(x: x + size.width * 0.12, y: size.height))
-                    ctx.stroke(p, with: .color(road), lineWidth: i.isMultiple(of: 2) ? 4 : 2)
+                    ctx.stroke(p, with: .color(i.isMultiple(of: 2) ? avenue : street), lineWidth: i.isMultiple(of: 2) ? 5 : 2.5)
                 }
             }
             if fog {
-                RadialGradient(colors: [.clear, .black.opacity(0.72)], center: .center, startRadius: 120, endRadius: 520)
+                RadialGradient(colors: [.clear, Color(red: 0.12, green: 0.16, blue: 0.24).opacity(0.26)], center: .center, startRadius: 140, endRadius: 540)
             }
         }
         .ignoresSafeArea()
@@ -140,17 +211,16 @@ struct CYMapPlaceholder: View {
     }
 }
 
-#if DEBUG
-/// DEBUG-only street-grid stand-in for a tile-less simulator map, so layout can be judged. Never in Release.
+/// Readable street-grid stand-in for offline and tile-less simulator maps across both Debug and Release builds.
 struct CYMapStreetGrid: View {
     var body: some View {
         ZStack {
-            Color(red: 0.13, green: 0.14, blue: 0.155)
+            Color(red: 0.18, green: 0.23, blue: 0.31)
             Canvas { ctx, size in
-                let block = Color(red: 0.16, green: 0.175, blue: 0.19)
-                let street = Color(red: 0.30, green: 0.32, blue: 0.35)
-                let avenue = Color(red: 0.42, green: 0.40, blue: 0.30)
-                ctx.fill(Path(CGRect(x: size.width * 0.52, y: size.height * 0.12, width: size.width * 0.34, height: size.height * 0.16)), with: .color(Color(red: 0.12, green: 0.24, blue: 0.17)))
+                let block = Color(red: 0.22, green: 0.28, blue: 0.37)
+                let street = Color(red: 0.39, green: 0.44, blue: 0.52)
+                let avenue = Color(red: 0.56, green: 0.55, blue: 0.41)
+                ctx.fill(Path(CGRect(x: size.width * 0.52, y: size.height * 0.12, width: size.width * 0.34, height: size.height * 0.16)), with: .color(Color(red: 0.17, green: 0.32, blue: 0.24)))
                 ctx.fill(Path(CGRect(x: 0, y: size.height * 0.5, width: size.width * 0.26, height: size.height * 0.2)), with: .color(block))
                 let step: CGFloat = 64
                 var x: CGFloat = -10
@@ -168,14 +238,11 @@ struct CYMapStreetGrid: View {
                 var diag = Path(); diag.move(to: CGPoint(x: 0, y: size.height * 0.9)); diag.addLine(to: CGPoint(x: size.width, y: size.height * 0.25))
                 ctx.stroke(diag, with: .color(avenue), lineWidth: 9)
             }
-            VStack { Text(verbatim: "DEBUG placeholder map (simulator has no tiles)")
-                .font(.system(size: 10, design: .monospaced)).foregroundStyle(Color.white.opacity(0.4)).padding(.top, 150); Spacer() }
         }
         .ignoresSafeArea()
         .accessibilityHidden(true)
     }
 }
-#endif
 
 /// Pin used by placeholder maps: white label callout like the mini-program search map.
 struct CYMapCallout: View {

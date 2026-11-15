@@ -27,7 +27,7 @@ struct MerchantDeskAnchorAcceptance:Equatable {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @ObservedObject var flow:MerchantDeskAnchorFlow
-    @State private var position:MapCameraPosition = .automatic
+    @State private var position:MapCameraPosition = CYMapRegion.defaultPosition
     @State private var picked:CLLocationCoordinate2D?
     @State private var renderedCenter:CLLocationCoordinate2D?
     @State private var radius=30
@@ -68,6 +68,10 @@ struct MerchantDeskAnchorAcceptance:Equatable {
                             if let lat=flow.latitude,let lng=flow.longitude{Marker(coordinate:.init(latitude:lat,longitude:lng)){Text("merchant.desk.anchor.saved",tableName:"MerchantDeskSkuSupply")}}
                             if let picked{Marker(coordinate:picked){Text("merchant.desk.anchor.selected",tableName:"MerchantDeskSkuSupply")}}
                         }.frame(height:240)
+                        .mapStyle(.standard(elevation:.flat,emphasis:.muted))
+                        .environment(\.colorScheme,.light)
+                        .background { CYMapPlaceholder(fog:false) }
+                        .onAppear { position = .region(CYMapRegion.region(center:store,span:0.01)) }
                         .onMapCameraChange(frequency:.onEnd){context in renderedCenter=context.region.center}
                         .accessibilityAddTraits(.allowsDirectInteraction)
                         .onTapGesture { point in

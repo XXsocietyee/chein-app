@@ -66,7 +66,10 @@ struct CYSquareRouteMapCard: View {
 
     private func map(_ route: CYSquareRoutePreview) -> some View {
         let segments = route.roadSegments.filter { $0.count >= 2 }
-        return Map(initialPosition: .automatic, interactionModes: [.zoom, .pan]) {
+        let region = CYMapRegion.boundingRegion(
+            coordinates: segments.flatMap { $0.map(\.coordinate) } + route.nodes.map(\.coordinate)
+        )
+        return Map(initialPosition: .region(region), interactionModes: [.zoom, .pan]) {
             ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
                 MapPolyline(coordinates: segment.map(\.coordinate)).stroke(CYNight.lantern, lineWidth: 4)
             }
@@ -88,8 +91,9 @@ struct CYSquareRouteMapCard: View {
                 .annotationTitles(selected == node.id ? .visible : .hidden)
             }
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
-        .environment(\.colorScheme, .dark)
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+        .environment(\.colorScheme, .light)
+        .background { CYMapPlaceholder(fog: false) }
     }
 
     private func load() async {

@@ -1,11 +1,13 @@
 import XCTest
 import SwiftUI
+import SceneKit
 @testable import Questify
 
 @MainActor final class ClubBadgeHostDefaultTests: XCTestCase {
     func testEnvironmentDefaultHasNoBadgeEntryOrFactory() {
         let environment = EnvironmentValues()
         XCTAssertNil(environment.clubBadgeHostFactory(7))
+        XCTAssertNil(environment.objectCardMedia)
     }
     func testUnconfiguredCompositionDoesNotConstructService() throws {
         let c = RuntimeDependencyContext(market: .china, baseURL: URL(string: "https://badge.example")!, role: "player",
@@ -16,5 +18,20 @@ import SwiftUI
         let root = AppCompositionRoot()
         XCTAssertNil(root.clubBadgeManagementApproval(c))
         XCTAssertNil(root.makeClubBadgeService(context: c, clubID: 7, approval: approval, current: { c }, unauthorized: {}))
+    }
+
+    func testBadgeShowroomSceneFactoryBuildsMedallionAndRejectsMalformedAssets() {
+        XCTAssertTrue(ObjectBadgeShowroomSceneFactory.isModelAssetURL("https://cdn.example.com/badges/shanghai.glb"))
+        XCTAssertFalse(ObjectBadgeShowroomSceneFactory.isModelAssetURL("http://cdn.example.com/badges/shanghai.glb"))
+        XCTAssertFalse(ObjectBadgeShowroomSceneFactory.isModelAssetURL("https://cdn.example.com/badges/shanghai.png"))
+
+        let scene = ObjectBadgeShowroomSceneFactory.makeMedallionScene(artwork: nil, title: "Shanghai", style: "enamel", rarity: 3)
+        XCTAssertNotNil(scene)
+        XCTAssertNotNil(scene?.rootNode.childNode(withName: "badgeTurntable", recursively: false))
+        XCTAssertNotNil(scene?.rootNode.childNode(withName: "showroomCamera", recursively: false))
+        XCTAssertNotNil(scene?.rootNode.childNode(withName: "badgeMedallion", recursively: true))
+
+        XCTAssertNil(ObjectBadgeShowroomSceneFactory.decodeArtwork(Data("not-an-image".utf8)))
+        XCTAssertNil(ObjectBadgeShowroomSceneFactory.prepareLoadedScene(SCNScene()))
     }
 }

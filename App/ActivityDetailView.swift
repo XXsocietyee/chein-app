@@ -390,9 +390,12 @@ struct ActivityDetailView: View {
                 Section("activity.location") {
                     let coordinate=CLLocationCoordinate2D(latitude:latitude,longitude:longitude)
                     // Static map: an interactive map inside a List traps VoiceOver focus.
-                    Map(initialPosition:.region(MKCoordinateRegion(center:coordinate,span:MKCoordinateSpan(latitudeDelta:0.01,longitudeDelta:0.01))),interactionModes:[]) {
+                    Map(initialPosition:.region(CYMapRegion.region(center:coordinate,span:0.01)),interactionModes:[]) {
                         Marker(detail.summary.name,coordinate:coordinate)
                     }.frame(height:220)
+                        .mapStyle(.standard(elevation:.flat,emphasis:.muted))
+                        .environment(\.colorScheme,.light)
+                        .background { CYMapPlaceholder(fog:false) }
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityElement(children:.ignore)
                         .accessibilityLabel(Text("activity.location"))

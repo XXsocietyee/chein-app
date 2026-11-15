@@ -81,7 +81,7 @@ import SwiftUI
         case "subpackageP3/pages/stamp-album/index/index":
             RoamStampAlbumView(reader: session.roamExperienceReader)
         case "subpackageP3/pages/badge-wall/index/index":
-            ObjectBadgeWallView(reader: session.profileReader)
+            ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader())
         case "subpackageP3/pages/object-cards/index/index":
             SessionObjectCardsView().environmentObject(session)
         case "subpackageB/pages/im/list/index":
@@ -119,6 +119,8 @@ import SwiftUI
             if let id = reviewedID(query) { ProfileOrderDetailView(id: id, reader: session.ownedOrderReader) } else { unavailable }
         case "pages/merchant/index/index":
             SessionMerchantOverviewView(session: session)
+        case "pages/merchant/relation/index", "pages/merchant/relation":
+            SessionCoopRelationDiscoveryView(session: session, reader: session.cooperationFlowReader)
         case "pages/search2/index", "pages/search2/result/index", "pages/searchmap/index", "pages/talent/search/index":
             SessionGlobalSearchView().environmentObject(session)
         case "pages/square/list/index":

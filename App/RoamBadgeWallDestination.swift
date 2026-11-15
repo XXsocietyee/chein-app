@@ -21,19 +21,21 @@ import SwiftUI
     var body: some View {
         if ObjectIdentifier(roamReader) == ObjectIdentifier(session.roamExperienceReader) {
             RoamBadgeWallOwnedView(roam: roamReader, profile: session.profileReader,
+                media: session.makeObjectCardImageLoader(),
                 currentOwner: .init(roam: roamReader, profile: session.profileReader))
         } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.badgeWall.changed") }
     }
 }
 @MainActor private struct RoamBadgeWallOwnedView: View {
     let currentOwner: RoamBadgeWallReadOwner
+    let media: (any ObjectCardImageLoading)?
     @State private var reader: RoamBadgeWallReader
-    init(roam: any RoamExperienceReading, profile: any ProfileReading, currentOwner: RoamBadgeWallReadOwner) {
-        self.currentOwner = currentOwner; _reader = State(initialValue: .init(roam: roam, profile: profile))
+    init(roam: any RoamExperienceReading, profile: any ProfileReading, media: (any ObjectCardImageLoading)? = nil, currentOwner: RoamBadgeWallReadOwner) {
+        self.currentOwner = currentOwner; self.media = media; _reader = State(initialValue: .init(roam: roam, profile: profile))
     }
     var body: some View {
         if currentOwner == reader.origin, reader.isCurrent {
-            ObjectBadgeWallView(reader: reader)
+            ObjectBadgeWallView(reader: reader, media: media)
         } else {
             CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.badgeWall.changed")
                 .accessibilityIdentifier("roam.badgeWall.changed")

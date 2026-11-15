@@ -404,7 +404,16 @@ struct RouteActionPageReadRequest {
                 }
             }
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+        .environment(\.colorScheme, .light)
+        .background { CYMapPlaceholder(fog: false) }
+        .onAppear {
+            if cameraPosition == .automatic {
+                cameraPosition = .region(CYMapRegion.boundingRegion(
+                    coordinates: presentation.mappedStops.compactMap(\.coordinate).map { coordinate($0) }
+                ))
+            }
+        }
         .mapControls { MapCompass() }
         .accessibilityIdentifier("playRoute.map")
         #if DEBUG

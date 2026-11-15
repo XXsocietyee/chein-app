@@ -1,21 +1,21 @@
 import Foundation
 
-/// Top-level segments of the merchant cooperation tab (mini-program `pages/merchant/relation`:
-/// 帖子 is the default segment, 俱乐部 the second). Merchants stay a legacy segment of the native screen.
+/// Top-level segments of the merchant cooperation tab (mini-program `pages/merchant/relation`):
+/// 合作商户 (merchants) is the default segment sourced from `api/merchant/relation-home`, followed by 俱乐部 and optional 帖子.
 public enum CoopRelationSection: String, CaseIterable, Hashable {
-    case posts, merchants, clubs
+    case merchants, clubs, posts
 
-    /// The post feed is offered only when the host injected one; without it the screen keeps its previous default.
+    /// Merchant relations are always the default segment so opening the page shows partner relations instead of the player feed.
     public static func effective(selected: CoopRelationSection?, feedAvailable: Bool) -> CoopRelationSection {
         if let selected {
             if selected == .posts && !feedAvailable { return .merchants }
             return selected
         }
-        return feedAvailable ? .posts : .merchants
+        return .merchants
     }
 
     public static func available(feedAvailable: Bool) -> [CoopRelationSection] {
-        feedAvailable ? [.posts, .merchants, .clubs] : [.merchants, .clubs]
+        feedAvailable ? [.merchants, .clubs, .posts] : [.merchants, .clubs]
     }
 
     /// Relation reads only apply to the two relation segments.
