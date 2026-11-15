@@ -53,6 +53,8 @@ import SwiftUI
         initialCoordinate: RoamCoordinate? = nil,
         photoContext: RetainedImageSelectionContext? = nil,
         captureFix: (@MainActor () async throws -> RoamDeviceFix)? = nil,
+        monopolyService: (any CityMonopolyReading)? = nil,
+        monopolyPointsBalance: (@MainActor () async -> Int64?)? = nil,
         initialTab: Tab = .nearby
     ) {
         self.service = service
@@ -61,6 +63,8 @@ import SwiftUI
         self.initialCoordinate = initialCoordinate
         self.photoContext = photoContext
         self.captureFix = captureFix
+        self.monopolyService = monopolyService
+        self.monopolyPointsBalance = monopolyPointsBalance
         self._selectedTab = State(initialValue: initialTab)
     }
     @State private var loading = false

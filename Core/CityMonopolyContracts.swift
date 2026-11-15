@@ -934,6 +934,7 @@ public struct MemberTitle: Decodable, Equatable, Identifiable, Sendable {
     public let category: String?
     public let equipped: Bool?
     public let obtainedAt: CityMonopolyInstant?
+    public var id: String { code }
 
     private enum CodingKeys: String, CodingKey { case code, titleCode, name, category, equipped, obtainedAt }
 
