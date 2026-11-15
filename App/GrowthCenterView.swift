@@ -26,6 +26,7 @@ extension EnvironmentValues {
     @State private var newlyLitBadges: [String] = []
     @State private var celebrations = CYCelebrationCenter()
     @State private var expandedBadge: Int?
+    @State private var lastKnownLevel: [GrowthCenterLoadKey: Int] = [:]
     private var reads: GrowthNormalReadTask { model.overviewReads }
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope) }
@@ -240,6 +241,13 @@ extension EnvironmentValues {
         // Only a successful center section in the same scope can light a badge; failures keep the baseline.
         guard !Task.isCancelled, captured == key, presentation == badgePresentationID,
               let center = model.value(key: captured)?.center.value else { return }
+        if let level = GrowthCenterFormatting.nonnegative(center.level) {
+            if let previousLevel = lastKnownLevel[captured], level > previousLevel {
+                UIKitHapticsDriver.ensureInstalled()
+                HapticsService.shared.play(.levelUp)
+            }
+            lastKnownLevel[captured] = level
+        }
         let lit = unlockTracker.observe(center.badges)
         newlyLitBadges = lit.compactMap(\.displayName)
         // The cover carries its own haptics; the queue plays one badge at a time and dedupes a re-read.

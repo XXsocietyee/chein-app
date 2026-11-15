@@ -94,7 +94,7 @@ struct CYPlayVerdictOverlay: View {
         .accessibilityAddTraits(.isModal)
         .accessibilityLabel(Text(wordKey))
         .accessibilityIdentifier("playVerdict." + verdict.kind.rawValue)
-        .cyHaptic(verdict.kind == .fail ? .warning : .success, trigger: landed)
+        .cyHapticEvent(verdict.kind == .fail ? .wrongAnswer : .rewardOrMedal, trigger: landed) { _, new in new }
         .onAppear {
             if reduceMotion {
                 risen = true

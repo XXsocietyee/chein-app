@@ -120,7 +120,7 @@ struct CYHoldToRollButton: View {
         .scaleEffect(holding && !reduceMotion ? 0.97 : 1)
         .animation(CYMotion.resolve(CYMotion.press, reduceMotion: reduceMotion), value: holding)
         .gesture(holdGesture)
-        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: tick) { _, _ in holding }
+        .cyHapticEvent(.diceRoll, trigger: tick) { _, _ in holding }
         .task(id: holding) { await shakeLoop() }
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)

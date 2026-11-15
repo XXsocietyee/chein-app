@@ -94,6 +94,23 @@ import UIKit
             if value == .background || (value != .active && stage.phase != .authorizing) { stage.interrupt(.interrupted) }
         }
         .onDisappear { stage.interrupt(.interrupted) }
+        .cyHapticEvent(.sensorShakeHit, trigger: stage.ball.hits) { old, next in kind == .ballShake && next > old }
+        .cyHapticEvent(.sensorQuietWarn, trigger: stage.quiet.exceeded) { old, next in kind == .quietHold && !old && next }
+        .cyHapticEvent(.sensorCompassAlign, trigger: stage.compass.aligned) { old, next in kind == .compass && !old && next }
+        .cyHapticEvent(.sensorShoutTick, trigger: Int((stage.shout.heldSeconds * 4).rounded(.down))) { old, next in
+            kind == .shout && stage.phase == .running && next > old
+        }
+        .onChange(of: stage.phase) { old, next in
+            guard old != .measured, next == .measured else { return }
+            UIKitHapticsDriver.ensureInstalled()
+            switch kind {
+            case .ballShake: HapticsService.shared.play(.sensorShakeComplete)
+            case .quietHold: HapticsService.shared.play(.sensorQuietComplete)
+            case .compass: HapticsService.shared.play(.sensorCompassComplete)
+            case .shout: HapticsService.shared.play(.sensorShoutComplete)
+            default: break
+            }
+        }
         .accessibilityIdentifier("playkit.sensor." + kind.rawValue)
     }
 

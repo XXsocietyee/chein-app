@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor struct SessionPublishingModesView: View {
     @EnvironmentObject private var session: AppSession
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
+    var appliesPushedChrome: Bool = true
     @State private var seed: ProjectEditDraft?
     @State private var showEditor = false
     @State private var resource: PublishedResource?
@@ -60,6 +61,17 @@ import SwiftUI
             .onChange(of: session.publishingSession) { _, _ in
                 session.publishingService?.invalidateReviews(); seed = nil; showEditor = false; resource = nil
             }
-            .cyPushedChrome(domain: .topicEditor)
+            .modifier(SessionPublishingRootChrome(appliesPushedChrome: appliesPushedChrome))
+    }
+}
+
+private struct SessionPublishingRootChrome: ViewModifier {
+    let appliesPushedChrome: Bool
+    func body(content: Content) -> some View {
+        if appliesPushedChrome {
+            content.cyPushedChrome(domain: .topicEditor)
+        } else {
+            content
+        }
     }
 }

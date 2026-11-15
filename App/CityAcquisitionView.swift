@@ -105,6 +105,12 @@ import SwiftUI
                 if visible, phase == .active { controller.activate(); readID = UUID() }
             }
             .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
+            .cyHapticEvent(.claimSuccess, trigger: controller.receipt?.requestId) { old, next in
+                next != nil && old != next && controller.receipt?.succeeded == true
+            }
+            .cyHapticEvent(.wrongAnswer, trigger: controller.receipt?.requestId) { old, next in
+                next != nil && old != next && controller.receipt?.succeeded == false
+            }
             .onDisappear { visible = false; controller.suspend() }
     }
     private var confirmationBinding: Binding<CityAcquisitionQuote?> {

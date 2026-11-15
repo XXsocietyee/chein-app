@@ -98,7 +98,13 @@ typealias PlayKitAccusationWrite = (String) -> Void
             // Server came back unsolved after this screen sent: the whole guess was wrong, start over.
             guard sent else { return }
             sent = false
-            if !next.solved { wrong = true; text = ""; typed = [:]; word = "" }
+            UIKitHapticsDriver.ensureInstalled()
+            if !next.solved {
+                wrong = true; text = ""; typed = [:]; word = ""
+                HapticsService.shared.play(.wrongAnswer)
+            } else {
+                HapticsService.shared.play(.rewardOrMedal)
+            }
         }
         .cyDomainScreen(.game)
     }
@@ -262,6 +268,8 @@ typealias PlayKitAccusationWrite = (String) -> Void
         .overlay { if confirmOpen, let suspect = suspect { confirmPanel(suspect) } }
         .overlay { if let openClue, projection.clues.indices.contains(openClue) { cluePanel(projection.clues[openClue]) } }
         .onChange(of: projection.suspects.count) { _, count in current = min(current, max(0, count - 1)) }
+        .cyHapticEvent(.wrongAnswer, trigger: projection.wrongAttempt) { old, next in !old && next }
+        .cyHapticEvent(.rewardOrMedal, trigger: projection.showsEnding) { old, next in !old && next }
         .cyDomainScreen(.game)
     }
 

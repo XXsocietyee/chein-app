@@ -127,6 +127,8 @@ import SwiftUI
                 }
             }
         }.cyGroupedSurface().navigationTitle("playx.stillness").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.stillness.stream")
+            .cyHapticEvent(.sensorStillComplete, trigger: model.machine.phase) { old, next in old != .completed && next == .completed }
+            .cyHapticEvent(.sensorStillFailed, trigger: model.machine.phase) { old, next in old != .failed && next == .failed }
             .onChange(of: scenePhase) { _, phase in if phase != .active { model.pause() } }
             .onDisappear { model.pause() }
     }

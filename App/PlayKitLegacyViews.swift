@@ -118,19 +118,24 @@ extension PlayKitScreen {
 @MainActor struct PlayKitSlowTaskBody: View {
     let segment: PlayWireValue; let enabled: Bool; let requestReview: PlayKitReviewRequest
     @State private var revealed = false
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if segment["claimed"].bool == true {
-                if revealed {
+                CYScratchCard(
+                    coverLabel: appLocalized("playkitLegacy.slow.reveal", locale: locale),
+                    threshold: 0.4,
+                    revealed: revealed,
+                    onReveal: { _ in revealed = true }
+                ) {
                     if let text = segment["unlockText"].text, !text.isEmpty {
                         Text(verbatim: text).font(CYTypography.body)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(CYSpacing.lg)
-                            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop))
                             .accessibilityIdentifier("playkit.slowTask.unlockText")
+                    } else {
+                        Text("playkitLegacy.slow.emptyReadback")
                     }
-                    else { Text("playkitLegacy.slow.emptyReadback") }
-                } else { CYPillButton("playkitLegacy.slow.reveal") { revealed = true } }
+                }
             } else if segment["started"].bool == true {
                 if let days = segment["daysLeft"].integer, days > 0 {
                     Text("playkitLegacy.slow.daysLeftCount \(days)").font(CYTypography.dataXL).monospacedDigit()
@@ -149,6 +154,7 @@ extension PlayKitScreen {
                 }.buttonStyle(.questifyPrimary).disabled(!enabled)
             }
         }
+        .cyHapticEvent(.claimSuccess, trigger: segment["claimed"].bool == true) { old, next in !old && next }
     }
 }
 

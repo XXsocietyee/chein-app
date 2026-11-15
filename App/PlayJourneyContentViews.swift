@@ -56,9 +56,17 @@ import SwiftUI
                                 .disabled(!model.canRecover).accessibilityIdentifier("journey.check.recover")
                         } else if model.receipt == nil {
                             // Mini-program 「按住摇骰，松手掷出」; a tap or a phone shake also rolls.
-                            CYHoldToRollButton(busy: model.acting) { try? model.prepare(.roll) }
+                            CYHoldToRollButton(busy: model.acting) {
+                                UIKitHapticsDriver.ensureInstalled()
+                                HapticsService.shared.play(.diceRoll)
+                                try? model.prepare(.roll)
+                            }
                                 .disabled(model.acting || !model.available)
-                                .cyOnShake(enabled: !model.acting && model.available) { try? model.prepare(.roll) }
+                                .cyOnShake(enabled: !model.acting && model.available) {
+                                    UIKitHapticsDriver.ensureInstalled()
+                                    HapticsService.shared.play(.diceRoll)
+                                    try? model.prepare(.roll)
+                                }
                         }
                         else if model.receipt?.settled == false {
                             if model.receipt?.canReroll == true { action(.reroll, style: .secondary) }
@@ -71,8 +79,9 @@ import SwiftUI
                     }
                     .padding(CYSpacing.xl)
                     .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
-                    .sensoryFeedback(.impact(weight: .heavy), trigger: model.receipt?.dice ?? [])
-                    .sensoryFeedback(trigger: model.receipt?.success) { _, new in new == nil ? nil : (new == true ? SensoryFeedback.success : SensoryFeedback.warning) }
+                    .cyHapticEvent(.diceLand, trigger: model.receipt?.dice ?? []) { old, next in !next.isEmpty && old != next }
+                    .cyHapticEvent(.rewardOrMedal, trigger: model.receipt?.success) { _, next in next == true }
+                    .cyHapticEvent(.warning, trigger: model.receipt?.success) { _, next in next == false }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)).listRowBackground(Color.clear)
                 }
             } else if model.problem != nil && !model.nodeDone {

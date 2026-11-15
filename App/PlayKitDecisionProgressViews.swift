@@ -18,9 +18,18 @@ extension PlayKitScreen {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        CYPillButton("playkit.coin.flip", systemImage: "circle.circle") { prepare("FLIP_COIN") }.disabled(!enabled)
+        CYPillButton("playkit.coin.flip", systemImage: "circle.circle") {
+            UIKitHapticsDriver.ensureInstalled()
+            HapticsService.shared.play(.diceRoll)
+            prepare("FLIP_COIN")
+        }.disabled(!enabled)
             // 摇一摇抛硬币: same action as the button, which stays as the fallback.
-            .cyOnShake(enabled: enabled) { prepare("FLIP_COIN") }
+            .cyOnShake(enabled: enabled) {
+                UIKitHapticsDriver.ensureInstalled()
+                HapticsService.shared.play(.diceRoll)
+                prepare("FLIP_COIN")
+            }
+            .cyHapticEvent(.diceLand, trigger: key) { old, next in !next.isEmpty && old != next }
         if enabled { shakeHint("playkit.coin.shakeHint") }
     }
     @ViewBuilder var diceFaces: some View {
@@ -50,8 +59,17 @@ extension PlayKitScreen {
         if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)) } }
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }
         if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array, faces.indices.contains(pip - 1), let task = faces[pip - 1].text { Text(verbatim: task) }
-        CYPillButton("playkit.dice.roll", systemImage: "dice") { prepare("ROLL_DICE") }.disabled(!enabled)
-            .cyOnShake(enabled: enabled) { prepare("ROLL_DICE") }
+        CYPillButton("playkit.dice.roll", systemImage: "dice") {
+            UIKitHapticsDriver.ensureInstalled()
+            HapticsService.shared.play(.diceRoll)
+            prepare("ROLL_DICE")
+        }.disabled(!enabled)
+            .cyOnShake(enabled: enabled) {
+                UIKitHapticsDriver.ensureInstalled()
+                HapticsService.shared.play(.diceRoll)
+                prepare("ROLL_DICE")
+            }
+            .cyHapticEvent(.diceLand, trigger: values) { old, next in !next.isEmpty && old != next }
         if enabled { shakeHint("playkit.coin.shakeHint") }
     }
     func shakeHint(_ key: LocalizedStringKey) -> some View {
@@ -164,6 +182,8 @@ extension PlayKitScreen {
 /// signer and time left, then the line left for you. Missing fields read as an em dash.
 @MainActor struct PlayKitDailySignTicket: View {
     let segment: PlayWireValue
+    @State private var lineRevealed = false
+    @Environment(\.locale) private var locale
     private func value(_ key: String) -> String {
         let text = (segment[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         return text.isEmpty ? "—" : text
@@ -206,17 +226,21 @@ extension PlayKitScreen {
             divider
             Text("playkit.daily.lineForYou").font(CYTypography.caption).foregroundStyle(.secondary)
             let lines = (segment["lines"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if lines.isEmpty { Text(verbatim: "—") }
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).font(CYTypography.bodyMedium) }
+            CYScratchCard(
+                coverLabel: appLocalized("playkit.daily.lineForYou", locale: locale),
+                threshold: 0.45,
+                revealed: lineRevealed || lines.isEmpty,
+                onReveal: { _ in lineRevealed = true }
+            ) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    if lines.isEmpty { Text(verbatim: "—") }
+                    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).font(CYTypography.bodyMedium) }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(CYSpacing.md)
-            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.glassFill))
         }
         .padding(CYSpacing.lg)
         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
-        .accessibilityElement(children: .combine)
         .accessibilityIdentifier("playkit.dailySign.ticket")
     }
     private struct Line: Shape {
