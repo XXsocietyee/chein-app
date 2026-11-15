@@ -17,8 +17,10 @@ import UIKit
 /// | `.impactLight` | pull-to-refresh trigger, sheet detent snap |
 /// | `.impactMedium` | primary commit (register, check-in) |
 /// | `.impactHeavy` | GO press |
+/// | `.error` | lost CITY challenge (City Monopoly spec §5 only; validation stops stay `.warning`) |
+/// | `.impactRigid` | CITY defense held (City Monopoly spec §5) |
 enum CYHaptics: Equatable {
-    case selection, success, warning, impactLight, impactMedium, impactHeavy
+    case selection, success, warning, impactLight, impactMedium, impactHeavy, error, impactRigid
 
     var sensory: SensoryFeedback {
         switch self {
@@ -28,6 +30,8 @@ enum CYHaptics: Equatable {
         case .impactLight: return .impact(weight: .light)
         case .impactMedium: return .impact(weight: .medium)
         case .impactHeavy: return .impact(weight: .heavy)
+        case .error: return .error
+        case .impactRigid: return .impact(flexibility: .rigid)
         }
     }
 
@@ -44,6 +48,8 @@ enum CYHaptics: Equatable {
         case .impactLight: UIImpactFeedbackGenerator(style: .light).impactOccurred()
         case .impactMedium: UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         case .impactHeavy: UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        case .error: UINotificationFeedbackGenerator().notificationOccurred(.error)
+        case .impactRigid: UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
         }
         #endif
     }
