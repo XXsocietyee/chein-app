@@ -151,13 +151,13 @@ public enum HapticEvent: String, Equatable, Sendable, CaseIterable {
     private var lastTriggerByBucket: [String: TimeInterval] = [:]
 
     public init(
-        driver: any HapticsFeedbackDriver = NoopHapticsDriver(),
-        preferences: any HapticsPreferenceReading = DefaultHapticsPreferenceReader(),
+        driver: (any HapticsFeedbackDriver)? = nil,
+        preferences: (any HapticsPreferenceReading)? = nil,
         minimumInterval: TimeInterval = HapticsService.minimumCooldownSeconds,
         clock: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
     ) {
-        self.driver = driver
-        self.preferences = preferences
+        self.driver = driver ?? NoopHapticsDriver()
+        self.preferences = preferences ?? DefaultHapticsPreferenceReader()
         self.minimumInterval = minimumInterval
         self.clock = clock
     }
