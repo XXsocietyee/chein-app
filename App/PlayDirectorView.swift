@@ -43,7 +43,7 @@ import UIKit
                         onClose: { showingPlanFallbackSheet = false }
                     ) {
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            if planFallbackStatus?.present == false {
+                            if planFallbackStatus?.available == false {
                                 Text(verbatim: PlayCloseCopy.text("当前暂无待处理的 Plan Fallback", "No active Plan Fallback state.", locale))
                                     .font(CYTypography.caption)
                                     .foregroundStyle(CYColor.textSecondary)
