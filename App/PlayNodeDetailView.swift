@@ -242,7 +242,7 @@ struct PlayNodeDetailView: View {
         }
     }
 
-    private func nodeStatusIcon(snapshot: PlaySessionSnapshot, node: PlayNode) -> NodeStatusIcon {
+    private func nodeStatusIcon(snapshot: PlaySnapshot, node: PlayNode) -> NodeStatusIcon {
         if snapshot.isDone(node) { return .done }
         if snapshot.isLocked(node) { return node.weatherLocked == true ? .weatherLocked : .locked }
         return .open
