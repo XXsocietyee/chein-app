@@ -291,5 +291,22 @@ extension AppSession {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
             })
     }
+    /// City Monopoly + attributes v2 service (CITY-MONOPOLY-SPEC §6.2) under the reviewed CITY lease. Points only.
+    func makeCityMonopolyService() -> CityMonopolyService? {
+        guard let context = currentRuntimeDependencyContext, let lease = composition.cityGameLease(context), lease.matches(context),
+              let api = try? APIConfiguration(baseURL: context.baseURL) else { return nil }
+        let viewer = cityParticipationRuntimeRevision
+        let current: () -> Bool = { [weak self, weak lease] in
+            guard let self, let lease, self.cityParticipationRuntimeRevision == viewer, let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityGameLease(live) === lease, lease.matches(live) else { return false }
+            return true
+        }
+        return try? CityMonopolyService(configuration: api, token: context.session.token, lease: lease.lease,
+            transport: composition.makeTransport(), isCurrent: current, onUnauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
 }
 

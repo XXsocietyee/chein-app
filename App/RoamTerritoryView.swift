@@ -8,6 +8,7 @@ import SwiftUI
         let territoryService = session.makeRoamTerritoryService()
         let photoContext = session.makeRoamTerritoryPhotoContext()
         let cityGameService = session.makeUnifiedCityGameHTTPService()
+        let growth = session.growthCenterReader
         let boardId = session.playCityGame?.snapshot?.boardId
         let center = session.roamReader.searchArea?.coordinate
         RoamTerritoryView(
@@ -16,7 +17,9 @@ import SwiftUI
             boardId: boardId,
             initialCoordinate: center,
             photoContext: photoContext,
-            captureFix: { try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: RuntimeNativeLocationProvider(enabled: true)) }
+            captureFix: { try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: RuntimeNativeLocationProvider(enabled: true)) },
+            monopolyService: session.makeCityMonopolyService(),
+            monopolyPointsBalance: { (try? await growth.overview())?.center.value?.points.map { Int64($0) } }
         )
         .id(session.cityPlayerReadIdentity)
     }
@@ -35,6 +38,10 @@ import SwiftUI
     var initialCoordinate: RoamCoordinate? = nil
     var photoContext: RetainedImageSelectionContext? = nil
     var captureFix: (@MainActor () async throws -> RoamDeviceFix)? = nil
+    /// City Monopoly numbers (tiers, upgrades, rent, caps, protection, challenge, decay, season); points only.
+    var monopolyService: (any CityMonopolyReading)? = nil
+    /// The member's points balance (growth center); the one currency on City screens.
+    var monopolyPointsBalance: (@MainActor () async -> Int64?)? = nil
 
     @Environment(\.locale) private var locale
     @State private var selectedTab: Tab = .nearby
@@ -49,6 +56,8 @@ import SwiftUI
     @State private var lastRollReceipt: CityUnifiedDiceRollReceipt?
     @State private var claimingItem: RoamTerritoryItem?
     @State private var uploadedPhotoURL: String?
+    @State private var monopolyFocusID: String?
+    @State private var monopolyReload = 0
 
     private func copy(_ zh: String, _ en: String) -> String {
         ChannelCopy.text(zh, en, locale: locale)
@@ -79,6 +88,11 @@ import SwiftUI
                     }
                     if loading {
                         CYSkeleton()
+                    }
+                    if let monopolyService {
+                        CityMonopolyTerritorySection(service: monopolyService, items: nearby?.items ?? [],
+                                                     focusedItemID: $monopolyFocusID, reloadSignal: monopolyReload,
+                                                     captureFix: captureFix, pointsBalance: monopolyPointsBalance)
                     }
                     if let item = claimingItem {
                         claimSheetCard(item)
@@ -124,12 +138,12 @@ import SwiftUI
 
     @ViewBuilder private var nearbySection: some View {
         HStack(spacing: CYSpacing.sm) {
-            CYPillButton(verbatim: copy("刷新附近", "Refresh nearby"), style: .secondary, fullWidth: false, systemImage: "arrow.clockwise") {
+            CYPillButton(verbatim: copy("刷新附近", "Refresh nearby"), style: .secondary, systemImage: "arrow.clockwise", fullWidth: false) {
                 Task { await loadNearby(useGPS: false) }
             }
             .disabled(loading || busyAction)
             if captureFix != nil {
-                CYPillButton(verbatim: copy("用当前位置加载", "Use GPS"), style: .tertiary, fullWidth: false, systemImage: "location") {
+                CYPillButton(verbatim: copy("用当前位置加载", "Use GPS"), style: .tertiary, systemImage: "location", fullWidth: false) {
                     Task { await loadNearby(useGPS: true) }
                 }
                 .disabled(loading || busyAction)
@@ -150,6 +164,15 @@ import SwiftUI
                         if let dist = item.distanceM {
                             CYStatusChip(verbatim: "\(Int(dist))m", tone: .neutral)
                         }
+                        if let tier = item.tier {
+                            CYStatusChip(verbatim: tier.code + " " + tier.name(chinese: ChannelCopy.isChinese(locale)), tone: .info)
+                        }
+                        if let level = item.upgradeLevel {
+                            CYStatusChip(verbatim: "Lv\(level) " + CityMonopolyLevel.name(level, chinese: ChannelCopy.isChinese(locale)), tone: .neutral)
+                        }
+                        if let decay = CityDecayState(wire: item.decayState), decay != .ok {
+                            CYStatusChip(verbatim: decay.label(chinese: ChannelCopy.isChinese(locale)), tone: .warning)
+                        }
                     }
                     CYFactRow(label: Text(verbatim: copy("地主", "Owner")), value: item.ownerNickname ?? (item.ownerMemberId.map { "#\($0)" } ?? "—"))
                     CYFactRow(label: Text(verbatim: copy("打卡积分收益", "Check-in revenue (pts)")), value: "\(item.ownerRevenuePoints) pts")
@@ -167,6 +190,11 @@ import SwiftUI
                                 Task { await submitCheckin(item) }
                             }
                             .disabled(busyAction || captureFix == nil)
+                        }
+                        if monopolyService != nil, item.propertyId != nil {
+                            CYPillButton(verbatim: copy("地产卡", "Deed card"), style: .tertiary, fullWidth: false) {
+                                monopolyFocusID = monopolyFocusID == item.id ? nil : item.id
+                            }
                         }
                     }
                 }
@@ -220,7 +248,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYSectionHeader(LocalizedStringKey(copy("统一骰子与审计", "Unified Dice & Audit")))
                 HStack(spacing: CYSpacing.sm) {
-                    CYPillButton(verbatim: copy("统一掷骰", "Unified Roll"), style: .primary, fullWidth: false, systemImage: "dice") {
+                    CYPillButton(verbatim: copy("统一掷骰", "Unified Roll"), style: .primary, systemImage: "dice", fullWidth: false) {
                         Task { await rollUnifiedDice(service: cityGameService, boardId: resolvedBoardId) }
                     }
                     .disabled(busyAction)
@@ -288,6 +316,7 @@ import SwiftUI
         guard service != nil else { return }
         await loadNearby(useGPS: false)
         await loadMineAndLeaderboard()
+        monopolyReload += 1
     }
 
     private func loadNearby(useGPS: Bool) async {
@@ -365,13 +394,26 @@ import SwiftUI
             )
             let receipt = try await service.checkin(request)
             statusMessage = copy(
-                "打卡完成：地主获得 \(receipt.ownerRevenuePoints) 游戏积分",
-                "Checked in: owner earned \(receipt.ownerRevenuePoints) points"
-            )
+                "打卡完成：地主获得 \(receipt.territory?.yieldPoints ?? receipt.ownerRevenuePoints) 积分",
+                "Checked in: owner earned \(receipt.territory?.yieldPoints ?? receipt.ownerRevenuePoints) points"
+            ) + checkinRentNote(receipt.territory)
             await reloadAll()
         } catch {
             errorMessage = describeError(error)
         }
+    }
+
+    /// Visitor reward and the reason no rent was produced (CITY-MONOPOLY-SPEC §2.4, §2.11).
+    private func checkinRentNote(_ visit: CityTerritoryVisitYield?) -> String {
+        guard let visit else { return "" }
+        var note = ""
+        if let reward = visit.visitorPoints, reward > 0 {
+            note += copy("；你获得 \(reward) 积分", "; you earned \(reward) points")
+        }
+        if let reason = visit.ineligibleReason ?? visit.capReason {
+            note += copy("（未产租/封顶：\(reason)）", " (no rent / capped: \(reason))")
+        }
+        return note
     }
 
     private func rollUnifiedDice(service: CityGameHTTPService, boardId: String) async {
