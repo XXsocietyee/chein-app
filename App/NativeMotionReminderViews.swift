@@ -136,6 +136,12 @@ import SwiftUI
             }
         }
         .onChange(of: advanced.state?.version) { _, version in if let version { stage.observeVersion(version) } }
+        .cyHapticEvent(.sensorStepsProgress, trigger: stage.receipt?["acceptedDelta"].integer) { old, next in
+            (next ?? 0) > (old ?? 0)
+        }
+        .cyHapticEvent(.sensorStepsComplete, trigger: stage.receipt?["completed"].bool) { old, next in
+            old != true && next == true
+        }
         .onChange(of: advanced.isCurrent) { _, current in if !current { purpose = false; stage.invalidate() } }
         .onChange(of: scenePhase) { _, next in if next == .background { purpose = false; stage.interrupt() } }
         .onDisappear { stage.interrupt() }

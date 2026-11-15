@@ -5,11 +5,12 @@ import Foundation
 public enum PlayKitScreenKind: String, CaseIterable, Identifiable {
     case coinFlip, diceRoll, reaction, ballShake, quietHold, countdown, stopwatch
     case qa, branch, estimate, pricePair, hiddenObject, predict, random, scan, walk, bingo
+    case trueFalse, imageGuess, jigsaw, scratchCard
     case profile, photoCheck, note, typeIn, dailySign, steps
     case sort, match, classify, compare, compass, shout
     case blindTaste, diyName, silentOrder, slowTask, musicCorner, timeWindow
     /// Source priority, preserving main tasks before ambient topic progress.
-    public static let priority: [Self] = [.qa, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .compare, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .blindTaste, .diyName, .silentOrder, .steps, .walk, .slowTask, .musicCorner, .dailySign, .timeWindow, .bingo]
+    public static let priority: [Self] = [.qa, .trueFalse, .imageGuess, .jigsaw, .scratchCard, .branch, .predict, .random, .estimate, .pricePair, .sort, .match, .classify, .compare, .hiddenObject, .scan, .profile, .photoCheck, .note, .typeIn, .coinFlip, .diceRoll, .reaction, .ballShake, .quietHold, .compass, .shout, .countdown, .stopwatch, .blindTaste, .diyName, .silentOrder, .steps, .walk, .slowTask, .musicCorner, .dailySign, .timeWindow, .bingo]
     public static func present(in state: PlayAdvancedState) -> [Self] {
         priority.filter { state.playKit[$0.rawValue].object != nil || ($0 == .branch && state.config["branch"]["enabled"].bool == true) || ($0 == .random && state.config["random"]["enabled"].bool == true) }
     }
@@ -36,7 +37,9 @@ public struct PlayKitScreenProjection: Equatable {
     public var title: String { segment["title"].text ?? segment["question"].text ?? segment["kicker"].text ?? "" }
     public var complete: Bool {
         switch kind {
-        case .qa, .pricePair, .sort, .compare: return segment["finished"].bool == true
+        case .qa, .pricePair, .sort, .compare, .trueFalse, .imageGuess: return segment["finished"].bool == true
+        case .jigsaw: return segment["solved"].bool == true || segment["finished"].bool == true
+        case .scratchCard: return segment["revealed"].bool == true || segment["finished"].bool == true
         case .branch: return segment["currentStep"]["terminal"].bool == true || segment["ended"].bool == true
         case .estimate: return segment["submitted"].bool == true
         case .predict: return !(segment["myOptionKey"].text ?? "").isEmpty
@@ -348,6 +351,26 @@ public enum PlayKitInputContract {
             if action == "START_SLOW_TASK" { try require(segment["started"].bool != true) }
             else if action == "CLAIM_SLOW_TASK" { try require(segment["started"].bool == true && segment["daysLeft"].integer == 0) }
             else { throw PlayExperienceError.unsupported }
+        case .trueFalse:
+            try require(action == "SUBMIT_TRUE_FALSE" && keys == ["answer"] && payload["answer"]?.bool != nil)
+        case .imageGuess:
+            try require(action == "SUBMIT_IMAGE_GUESS")
+            if keys == ["action"] && payload["action"]?.text == "REVEAL_STEP" {
+                let level = segment["revealLevel"].integer ?? 0
+                let total = segment["totalClues"].integer ?? 0
+                try require(level < total)
+            } else {
+                try require(keys == ["guess"] && text("guess", max: 200))
+            }
+        case .jigsaw:
+            let rows = max(2, min(4, segment["rows"].integer ?? 2))
+            let cols = max(2, min(4, segment["cols"].integer ?? 2))
+            let count = rows * cols
+            let order = (payload["order"]?.array ?? []).compactMap(\.integer)
+            try require(action == "SUBMIT_JIGSAW" && keys == ["order"] && order.count == count && order.count == payload["order"]?.array?.count && Set(order) == Set(0..<count))
+        case .scratchCard:
+            let progress = payload["progress"]?.double ?? 0
+            try require(action == "SUBMIT_SCRATCH_CARD" && keys == ["progress"] && progress.isFinite && progress > 0 && progress <= 1.0)
         case .silentOrder, .musicCorner, .timeWindow: throw PlayExperienceError.unsupported
         case .bingo, .walk, .steps: throw PlayExperienceError.unsupported // WeChat encrypted step proof has no approved native replacement.
         }

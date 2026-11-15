@@ -99,7 +99,8 @@ struct RoamPOIActionRows: View {
     private var needRedeem: Bool { model.needRedeemOverride ?? node.needRedeem }
 
     var body: some View {
-        Button { model.toggleFavorite(poiID: node.poiId, current: favorited, actions: actions) } label: {
+        Group {
+            Button { model.toggleFavorite(poiID: node.poiId, current: favorited, actions: actions) } label: {
             HStack {
                 Label(LocalizedStringKey(favorited ? "roam.poi.action.unfavorite" : "roam.poi.action.favorite"),
                       systemImage: favorited ? "heart.fill" : "heart")
@@ -129,6 +130,12 @@ struct RoamPOIActionRows: View {
             Label(LocalizedStringKey(receipt.needRedeem ? "roam.poi.checkIn.needRedeem" : (receipt.alreadyClaimed ? "roam.poi.checkIn.already" : "roam.poi.checkIn.success")),
                   systemImage: "checkmark.seal.fill").foregroundStyle(.green)
                 .accessibilityIdentifier("roam.poi.checkin.success")
+        }
+        }
+        .cyHapticEvent(.checkInSuccess, trigger: model.checkInSuccess != nil) { old, new in !old && new }
+        .cyHapticEvent(.wrongAnswer, trigger: model.checkInPhase) { _, next in
+            if case .failed = next { return true }
+            return false
         }
     }
 

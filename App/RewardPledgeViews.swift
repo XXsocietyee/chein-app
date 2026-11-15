@@ -1225,6 +1225,9 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             guard let entry, entry.current()?.read == true, !model.awardsLoaded else { return }
             await model.loadAwards(entry: entry)
         }
+        .cyHapticEvent(.claimSuccess, trigger: model.playerResult?.fields["historyId"]) { old, new in
+            !(new ?? "").isEmpty && old != new
+        }
         .cyDomainScreen(.player)
     }
 }

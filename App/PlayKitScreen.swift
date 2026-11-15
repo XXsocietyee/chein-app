@@ -199,6 +199,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
                 PlayKitAccusationView(projection: accusation, approvedHosts: approvedArtworkHosts, enabled: enabled, showsTitle: false,
                     accuse: accusationWrite, close: presentation == .inline ? nil : { dismiss() })
             } else { qaForm }
+        case .trueFalse: trueFalseForm
+        case .imageGuess: imageGuessForm
+        case .jigsaw: jigsawForm
+        case .scratchCard: scratchCardForm
         case .branch: branchForm
         case .estimate: estimateForm
         case .pricePair: pricePairForm

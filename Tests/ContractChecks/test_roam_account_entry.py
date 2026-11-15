@@ -23,7 +23,7 @@ class RoamAccountEntryContracts(unittest.TestCase):
     def test_normal_root_selects_existing_current_account_tab(self):
         self.assertIn("onOpenAccount:{ selectedTab = .mine }", self.root)
         self.assertEqual(self.root.count("onOpenAccount:"), 1)
-        self.assertIn('}.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.3") }.tag(RootTab.mine)', self.root)
+        self.assertIn('}.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.4") }.tag(RootTab.mine)', self.root)
         self.assertIn("if let account=session.account { PassportView(account:account", self.root)
         self.assertIn("else { WelcomeView() }", self.root)
 

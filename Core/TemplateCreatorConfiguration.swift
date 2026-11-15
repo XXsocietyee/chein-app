@@ -112,7 +112,7 @@ extension TemplateAdvancedDraft {
                     if required && v.isEmpty { fail(p, "required") }
                     if v.utf16.count > max { fail(p, "length") }
                     if let pattern, !v.isEmpty, !matches(v, pattern) { fail(p, "identifier") }
-                    if ["audioUrl", "imageUrl", "overlayUrl", "markerUrl", "modelUrl", "frameUrl", "url"].contains(field.id), !v.isEmpty, !media(v) { fail(p, "media") }
+                    if ["audioUrl", "imageUrl", "overlayUrl", "markerUrl", "modelUrl", "frameUrl", "url", "img"].contains(field.id), !v.isEmpty, !media(v) { fail(p, "media") }
                 case .number(let min, let max, let integer):
                     guard let n = raw.number, n.isFinite, n >= min, n <= max, !integer || n.rounded() == n, !(raw.string?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? false) else { fail(p, "range"); continue }
                 case .choice(let choices): if !choices.contains(raw.string ?? "__invalid__") { fail(p, "choice") }

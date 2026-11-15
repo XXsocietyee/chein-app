@@ -424,8 +424,20 @@ public struct PlayCompletionReview: Equatable {
             guard (node.needScan != true && node.needGPS != true) || node.arrived == true else { throw PlayExperienceError.invalidAction }
         case (.scan, .scan), (.merchantScan, .scan), (.photo, .photo), (.merchantPhoto, .photo), (.arrive, .location): break
         case (.sensor, .sensor(let type, let payload)):
-            guard type == node.sensorType, type == "still", let config = try? PlayStillnessConfiguration(raw: extras[nodeID]?.sensorConfig ?? .null),
-                  payload.keys.sorted() == ["heldSec"], payload["heldSec"]?.integer == config.durationSeconds else { throw PlayExperienceError.invalidAction }
+            guard type == node.sensorType else { throw PlayExperienceError.invalidAction }
+            switch type {
+            case "still":
+                guard let config = try? PlayStillnessConfiguration(raw: extras[nodeID]?.sensorConfig ?? .null),
+                      payload.keys.sorted() == ["heldSec"], payload["heldSec"]?.integer == config.durationSeconds else { throw PlayExperienceError.invalidAction }
+            case "audio_clip":
+                guard let config = try? PlayAudioClipConfiguration(raw: extras[nodeID]?.sensorConfig ?? .null),
+                      payload.keys.sorted() == ["durationSec", "mediaUrl"],
+                      let duration = payload["durationSec"]?.integer,
+                      (config.minDurationSeconds...60).contains(duration),
+                      let url = payload["mediaUrl"]?.text, PlayExperienceService.validHTTPS(url) else { throw PlayExperienceError.invalidAction }
+            default:
+                throw PlayExperienceError.invalidAction
+            }
         default: throw PlayExperienceError.unsupported
         }
         let advance: PlayRouteAdvance?
