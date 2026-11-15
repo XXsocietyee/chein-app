@@ -437,7 +437,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                                 "Platform consent revoked; local cleanup pending",
                                 locale: locale))
                         case .failed:
-                            toastTone = .error
+                            toastTone = .warning
                             toastMessage = LocalizedStringKey(MemberPopupCopy.text(
                                 "撤回漫游定位同意失败，请稍后再试",
                                 "Failed to withdraw roam consent",

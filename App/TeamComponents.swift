@@ -362,7 +362,7 @@ struct TeamMemberRow: View {
             LocalPasteboard.copy(value)
         }
         copyMessageKey = copied ? "team.invite.copied" : "team.invite.unavailable"
-        toastTone = copied ? .success : .error
+        toastTone = copied ? .success : .warning
         toastMessage = copied ? "team.invite.copied" : "team.invite.unavailable"
     }
 }

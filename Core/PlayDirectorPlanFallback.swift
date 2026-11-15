@@ -89,7 +89,7 @@ extension PlayExperienceService {
         ]
         let raw = try await request("api/game/session/command", json: body, capability: .directorCommands, token: token)
         let outcome = raw["outcome"].text ?? ""
-        guard ["APPLIED", "PENDING"].contains(outcome) else { throw PlayExperienceError.rejected(nil) }
+        guard ["APPLIED", "PENDING"].contains(outcome) else { throw PlayExperienceError.rejected(409, raw["reason"].text ?? raw["msg"].text) }
         let result = raw["result"]["result"]
         let title = result["title"].text ?? "已按默认结局收尾"
         return PlayPlanFallbackResult(title: title, endingKey: result["endingKey"].text, reason: result["reason"].text ?? cleanReason)

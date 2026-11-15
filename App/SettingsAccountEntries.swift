@@ -31,7 +31,7 @@ import SwiftUI
                             clubPickerChoices = clubs
                             showsClubPicker = true
                         case .failed(let message):
-                            toastTone = .error
+                            toastTone = .warning
                             toastMessage = LocalizedStringKey(message)
                         }
                     }

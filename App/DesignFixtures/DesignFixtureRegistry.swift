@@ -455,8 +455,9 @@ enum T5PageFixtures {
                     initialTab: .shop,
                     onReload: { _ in },
                     onOpenProduct: { _ in },
-                    onOpenGiftClaim: {},
-                    onOpenMembership: {}
+                    onOpenMembership: {},
+                    onOpenLibrary: nil,
+                    pointsDestination: nil
                 )
             })
         case "t5-pass-market-error":
@@ -466,8 +467,9 @@ enum T5PageFixtures {
                     initialTab: .shop,
                     onReload: { _ in },
                     onOpenProduct: { _ in },
-                    onOpenGiftClaim: {},
-                    onOpenMembership: {}
+                    onOpenMembership: {},
+                    onOpenLibrary: nil,
+                    pointsDestination: nil
                 )
             })
         case "t5-pass-detail":
@@ -490,7 +492,7 @@ enum T5PageFixtures {
                 activateTopicID: "88"
             )
             return wrapPlayer(NavigationStack {
-                PassDetailView(state: detail, onRetry: {}, onForGift: { _ in }, onOpenCheckout: { _, _ in }, onResultDone: { _ in })
+                PassDetailView(state: detail, onRetry: {}, onSetForGift: { _ in }, onOpenCheckout: { _, _ in }, onResultDone: { _ in })
             })
         case "t5-pass-detail-unavailable":
             let detail = PassDetailState(
@@ -504,7 +506,7 @@ enum T5PageFixtures {
                 activateTopicID: nil
             )
             return wrapPlayer(NavigationStack {
-                PassDetailView(state: detail, onRetry: {}, onForGift: { _ in }, onOpenCheckout: { _, _ in }, onResultDone: { _ in })
+                PassDetailView(state: detail, onRetry: {}, onSetForGift: { _ in }, onOpenCheckout: { _, _ in }, onResultDone: { _ in })
             })
         case "t5-pass-gift":
             return wrapPlayer(NavigationStack {
@@ -852,9 +854,9 @@ enum T12T13DesignFixtures {
         case "t12-coop-invites-empty":
             return merchant(NavigationStack { CooperationBrowserView(reader: CooperationFixtureReader(scenario: .empty)) })
         case "t12-public-store":
-            return merchant(NavigationStack { PublicMerchantHomeView(target: .ownerMemberID(101), context: .init(reader: CoopRelationFixtureReader(scenario: "mixed"))) })
+            return merchant(NavigationStack { PublicMerchantHomeView(target: .ownerMemberID(PublicMerchantOwnerID(101)!), context: .init(reader: CoopRelationFixtureReader(scenario: "mixed"))) })
         case "t12-public-store-failed":
-            return merchant(NavigationStack { PublicMerchantHomeView(target: .ownerMemberID(101), context: .init(reader: CoopRelationFixtureReader(scenario: "retry"))) })
+            return merchant(NavigationStack { PublicMerchantHomeView(target: .ownerMemberID(PublicMerchantOwnerID(101)!), context: .init(reader: CoopRelationFixtureReader(scenario: "retry"))) })
         case "t13-coop-profit":
             return merchant(NavigationStack { CoopFinanceProfitView(reader: T12T13CoopFlowReader(failed: false)) })
         case "t13-coop-profit-failed":

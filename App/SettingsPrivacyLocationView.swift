@@ -80,13 +80,13 @@ import SwiftUI
                                 "Nearby presence sharing turned off",
                                 locale: locale))
                         case .rejected(let msg):
-                            toastTone = .error
+                            toastTone = .warning
                             toastMessage = LocalizedStringKey(msg ?? MemberPopupCopy.text(
                                 "关闭位置分享失败，请稍后重试",
                                 "Failed to turn off presence sharing",
                                 locale: locale))
                         case .unavailable, .failed:
-                            toastTone = .error
+                            toastTone = .warning
                             toastMessage = LocalizedStringKey(MemberPopupCopy.text(
                                 "关闭位置分享失败，请稍后重试",
                                 "Failed to turn off presence sharing",

@@ -23,7 +23,7 @@ import SwiftUI
             case .failed:
                 CYErrorStateView(title: "officialRoute.list.error", message: "officialRoute.error.message", retryTitle: "officialRoute.retry") { Task { await load() } }
             case .offline:
-                CYStateLayout(kind: .offline, title: Text("officialRoute.list.error"), detail: Text("cy.kit.offline.body"), primary: ("officialRoute.retry", { Task { await load() } }))
+                CYStateLayout(kind: .offline, title: Text("officialRoute.list.error"), detail: Text("cy.kit.offline.body"), primary: ("officialRoute.retry", { _ = Task { await load() } }))
             case .empty:
                 CYEmptyStateView(systemImage: "point.topleft.down.to.point.bottomright.curvepath", title: "officialRoute.list.empty")
             case .ready(let routes):

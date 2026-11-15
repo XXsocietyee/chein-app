@@ -176,7 +176,7 @@ import SwiftUI
     }
     private var reopenAction: (title: String, action: () -> Void)? {
         guard canReopen else { return nil }
-        return (title: copy("重新打开", "Open again"), action: { Task { await model.open() } })
+        return (title: copy("重新打开", "Open again"), action: { _ = Task { await model.open() } })
     }
     private func units(_ value: Int?) -> String {
         if let number = value { return String(number) }

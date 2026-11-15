@@ -41,7 +41,7 @@ import SwiftUI
                 kind: .failure,
                 title: Text(model.phase == .expired ? "citySnapshot.expired" : "citySnapshot.unloaded"),
                 detail: Text("重新读取当前范围，不会提交任何游戏操作。"),
-                primary: (!model.isRetired && scenePhase == .active) ? (title: "重新读取", action: { Task { await model.open() } }) : nil,
+                primary: (!model.isRetired && scenePhase == .active) ? (title: "重新读取", action: { _ = Task { await model.open() } }) : nil,
                 primaryStyle: .secondary,
                 primaryIdentifier: "city.orderedMap.refresh"
             )

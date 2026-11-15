@@ -45,7 +45,7 @@ import QuestifyCore
                     detail: Text(verbatim: readable(coordinator.errorMessage.isEmpty
                         ? W8Text.t("请检查网络连接后重试", "Check your connection and try again")
                         : coordinator.errorMessage)),
-                    primary: (title: "playx.poi.retry", action: { Task { await onRefresh() } }),
+                    primary: (title: "playx.poi.retry", action: { _ = Task { await onRefresh() } }),
                     primaryStyle: .secondary
                 )
 

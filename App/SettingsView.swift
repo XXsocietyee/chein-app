@@ -228,7 +228,7 @@ struct SettingsAccountCard: View {
                 }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale)).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
+                PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
                     .cyWrapText()
                 Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(palette.textSecondary)
                     .cyWrapText()

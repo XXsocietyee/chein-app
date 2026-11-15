@@ -23,7 +23,9 @@ struct WelcomeView: View {
 
     var body: some View {
         // Launch (guest browse available) gets the onboarding pager; the signed-out Me tab keeps the compact page.
-        if onBrowse != nil { onboardingBody } else { classicBody }
+        Group {
+            if onBrowse != nil { onboardingBody } else { classicBody }
+        }
         .cyDomainScreen(.player)
     }
 
