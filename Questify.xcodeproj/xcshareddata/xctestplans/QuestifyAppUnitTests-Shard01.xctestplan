@@ -493,6 +493,7 @@
         "PublishingAIDraftCandidateRetentionAppTests",
         "PublishingAIDraftInitialIdeaTests",
         "PublishingAIQuotaSectionTests",
+        "QuestLiveActivityMappingTests",
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
         "ReferenceChatTaskAppTests",

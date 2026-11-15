@@ -163,7 +163,7 @@ for key,obj in objects.items():
             assert (ROOT/obj['path']).is_dir(),obj['path']
         else: assert (ROOT/obj['path']).is_file(),obj['path']
 source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
-assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests','Tests/AppUnitTests'] for p in (ROOT/folder).rglob('*.swift')}
+assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests','Tests/AppUnitTests','LiveActivityWidget'] for p in (ROOT/folder).rglob('*.swift')}
 # Inspect actual target membership independently of the generator. Swift files
 # sharing a basename collide in per-target localization extraction outputs.
 for target_id in project_obj['targets']:
@@ -256,7 +256,7 @@ def semantic_project(document):
 before=hashlib.sha256(project_path.read_bytes()).hexdigest()
 with tempfile.TemporaryDirectory(prefix='questify-current-scaffold-') as directory:
     scratch=pathlib.Path(directory)
-    for name in ('App','Core','Tests','Resources'):(scratch/name).symlink_to(ROOT/name,target_is_directory=True)
+    for name in ('App','Core','Tests','Resources','LiveActivityWidget'):(scratch/name).symlink_to(ROOT/name,target_is_directory=True)
     (scratch/'tools').mkdir();shutil.copyfile(ROOT/'tools/generate_project.py',scratch/'tools/generate_project.py')
     subprocess.run(['python3','-B',str(scratch/'tools/generate_project.py')],check=True,capture_output=True)
     expected=parse_project((scratch/'Questify.xcodeproj/project.pbxproj').read_text())

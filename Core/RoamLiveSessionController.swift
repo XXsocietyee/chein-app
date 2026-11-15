@@ -23,6 +23,9 @@ import Foundation
     public private(set) var foreground = true
     public private(set) var busy = false
     public var onChange: (() -> Void)?
+    /// Lock Screen / Dynamic Island mirror of this walk. Display only; it never drives the walk.
+    public weak var liveActivity: (any QuestLiveActivityPublishing)?
+    private var liveActivityContent: QuestLiveActivityContent?
     /// Records the server `roam_location` AGREE for an explicit local acceptance (E2E-20261112 F3). It runs on every
     /// start before the first `/api/roam/reveal` and must be idempotent; a failure leaves the walk unstarted.
     public var locationConsent: (@MainActor () async throws -> Void)?
@@ -553,7 +556,18 @@ import Foundation
         generation += 1; operation = nil; busy = false; location?.stop(); record = nil; settlement = nil; places = []; registeredShops = []; track = []
         lastFix = nil; previousFix = nil; origin = nil; grid = []; boundIdentity = nil; presenceEnabled = false; error = nil; phase = .unavailable; changed()
     }
-    private func changed() { onChange?() }
+    private func changed() { onChange?(); publishLiveActivity() }
+    private func publishLiveActivity() {
+        guard let liveActivity else { return }
+        let places = record.map { Set($0.confirmedPOIIDs).count + Set($0.confirmedShops).count }
+        let update = QuestLiveActivityMapping.roam(phase: phase, hasRecord: record != nil, distanceMeters: record?.distanceMeters,
+            placesRevealed: places, elapsedSeconds: record == nil ? nil : localForegroundElapsedSeconds, now: now(), previous: liveActivityContent)
+        switch update {
+        case .show(_, let content): liveActivityContent = content
+        case .end: liveActivityContent = nil
+        }
+        liveActivity.publish(update)
+    }
 }
 
 /// In-memory only. A bad clock sample permanently makes this measurement unknown.

@@ -23,6 +23,11 @@ release_excluded_names = release_test_fixture_names
 if design_fixture_names:
     release_excluded_names += ' '+design_fixture_names
 unit_source_paths = sorted([*ROOT.glob('Tests/AppUnitTests/**/*.swift'), *release_test_fixture_sources])
+# Live Activity widget extension (roam walk / play session). It compiles its own folder plus the one shared,
+# Foundation/ActivityKit-only Core file that declares the ActivityAttributes; that file stays in the app too.
+live_activity_shared_sources = [ROOT/'Core/QuestLiveActivityContent.swift']
+live_activity_sources = sorted([*ROOT.glob('LiveActivityWidget/*.swift'), *(p for p in live_activity_shared_sources if p.is_file())])
+live_activity_resources = sorted(ROOT.glob('LiveActivityWidget/*.xcstrings'))
 
 def validate_swift_basenames(target_name, paths):
     # Swift localization extraction emits <basename>.stringsdata within each
@@ -42,7 +47,7 @@ def validate_swift_basenames(target_name, paths):
 # Check every target before writing any generated project or scheme. Identical
 # basenames in separate targets (for example Core and AppUnit tests) are valid.
 for target_name, paths in [('Questify', sources), ('QuestifyUITests', ui_source_paths),
-                           ('QuestifyAppUnitTests', unit_source_paths)]:
+                           ('QuestifyAppUnitTests', unit_source_paths), ('QuestifyLiveActivity', live_activity_sources)]:
     validate_swift_basenames(target_name, paths)
 headers = sorted(ROOT.glob('App/*.h'))
 resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt'), *ROOT.glob('Resources/PrivacyInfo.xcprivacy'), *ROOT.glob('Resources/SettingsBrandMark.png'), *ROOT.glob('App/Assets.xcassets')])
@@ -114,7 +119,38 @@ def configurations(scope):
         extra={'baseConfigurationReference':release_config_ref if name=='Release' else config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
-target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[release_gate,src_phase,framework_phase,res_phase,embed_phase],buildRules=[],dependencies=[gltf_dependency],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
+# Widget extension target: Lock Screen and Dynamic Island Live Activity. Same xcconfig chain as the app so the
+# version and team match; the bundle ID appends to the app's. No App Group: ActivityKit carries all content state.
+la_files,la_resource_files=[],[]
+for path in live_activity_sources+live_activity_resources:
+    relative=str(path.relative_to(ROOT))
+    is_strings=path.suffix=='.xcstrings'
+    ref=obj(relative,isa='PBXFileReference',lastKnownFileType='text.json.xcstrings' if is_strings else 'sourcecode.swift',path=relative,sourceTree='<group>')
+    if ref not in objects[group]['children']:
+        objects[group]['children'].append(ref)
+    (la_resource_files if is_strings else la_files).append(obj('build:'+relative,isa='PBXBuildFile',fileRef=ref))
+la_product=obj('la-product',isa='PBXFileReference',explicitFileType='wrapper.app-extension',includeInIndex=0,path='QuestifyLiveActivity.appex',sourceTree='BUILT_PRODUCTS_DIR')
+objects[products]['children'].append(la_product)
+la_configs=[]
+for name in ['Debug','Release']:
+    settings={'PRODUCT_NAME':'$(TARGET_NAME)','PRODUCT_BUNDLE_IDENTIFIER':'$(inherited).LiveActivity','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator',
+              'SWIFT_EMIT_LOC_STRINGS':'YES','INFOPLIST_FILE':'LiveActivityWidget/Info.plist','GENERATE_INFOPLIST_FILE':'YES',
+              'INFOPLIST_KEY_CFBundleDisplayName':'Questify','INFOPLIST_KEY_UIApplicationSceneManifest_Generation':'NO',
+              'ASSETCATALOG_COMPILER_APPICON_NAME':'','APPLICATION_EXTENSION_API_ONLY':'YES','SKIP_INSTALL':'YES',
+              'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks',
+              'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O'}
+    if name=='Debug': settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
+    la_configs.append(obj('la'+name,isa='XCBuildConfiguration',name=name,baseConfigurationReference=release_config_ref if name=='Release' else config_ref,buildSettings=settings))
+la_config_list=obj('laconfigs',isa='XCConfigurationList',buildConfigurations=la_configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
+la_sources=obj('la-sources',isa='PBXSourcesBuildPhase',buildActionMask=2147483647,files=la_files,runOnlyForDeploymentPostprocessing=0)
+la_resources=obj('la-resources',isa='PBXResourcesBuildPhase',buildActionMask=2147483647,files=la_resource_files,runOnlyForDeploymentPostprocessing=0)
+la_frameworks=obj('la-frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)
+la_target=obj('la-target',isa='PBXNativeTarget',buildConfigurationList=la_config_list,buildPhases=[la_sources,la_frameworks,la_resources],buildRules=[],dependencies=[],name='QuestifyLiveActivity',productName='QuestifyLiveActivity',productReference=la_product,productType='com.apple.product-type.app-extension')
+la_proxy=obj('la-proxy',isa='PBXContainerItemProxy',containerPortal=ident('project'),proxyType=1,remoteGlobalIDString=la_target,remoteInfo='QuestifyLiveActivity')
+la_dependency=obj('la-dependency',isa='PBXTargetDependency',target=la_target,targetProxy=la_proxy)
+la_embed=obj('la-embed',isa='PBXBuildFile',fileRef=la_product,settings={'ATTRIBUTES':['RemoveHeadersOnCopy']})
+la_embed_phase=obj('embed-extensions',isa='PBXCopyFilesBuildPhase',buildActionMask=2147483647,dstPath='',dstSubfolderSpec=13,files=[la_embed],name='Embed Foundation Extensions',runOnlyForDeploymentPostprocessing=0)
+target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[release_gate,src_phase,framework_phase,res_phase,embed_phase,la_embed_phase],buildRules=[],dependencies=[gltf_dependency,la_dependency],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
 ui_files=[]
 for path in ui_source_paths:
     relative=str(path.relative_to(ROOT))
@@ -156,7 +192,7 @@ unit_frameworks=obj('unit-frameworks',isa='PBXFrameworksBuildPhase',buildActionM
 unit_proxy=obj('unit-proxy',isa='PBXContainerItemProxy',containerPortal=ident('project'),proxyType=1,remoteGlobalIDString=target,remoteInfo='Questify')
 unit_dependency=obj('unit-dependency',isa='PBXTargetDependency',target=target,targetProxy=unit_proxy)
 unit_target=obj('unit-target',isa='PBXNativeTarget',buildConfigurationList=unit_config_list,buildPhases=[unit_sources,unit_frameworks],buildRules=[],dependencies=[unit_dependency],name='QuestifyAppUnitTests',productName='QuestifyAppUnitTests',productReference=unit_product,productType='com.apple.product-type.bundle.unit-test')
-project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500','TargetAttributes':{ui_target:{'TestTargetID':target},unit_target:{'TestTargetID':target}}},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',projectReferences=[{'ProductGroup':gltf_products,'ProjectRef':gltf_project}],targets=[target,ui_target,unit_target])
+project=obj('project',isa='PBXProject',attributes={'LastUpgradeCheck':'1500','TargetAttributes':{ui_target:{'TestTargetID':target},unit_target:{'TestTargetID':target}}},buildConfigurationList=configurations('project'),compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',projectReferences=[{'ProductGroup':gltf_products,'ProjectRef':gltf_project}],targets=[target,ui_target,unit_target,la_target])
 # OpenStep property list, all strings quoted for deterministic escaping.
 def serialize(value, level=0):
     if isinstance(value,dict): return '{\n'+''.join('\t'*(level+1)+json.dumps(k)+' = '+serialize(v,level+1)+';\n' for k,v in value.items())+'\t'*level+'}'

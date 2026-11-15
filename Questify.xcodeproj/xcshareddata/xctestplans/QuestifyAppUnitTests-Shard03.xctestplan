@@ -479,6 +479,7 @@
         "PublishingAIPromptControlsTests",
         "PublishingAIQuotaSectionTests",
         "PushNotificationAndLiveActivitySectionViewTests",
+        "QuestLiveActivityMappingTests",
         "ReceivedStampsAndPassportToolsSectionViewTests",
         "ReferenceChatTaskAppTests",
         "ReformWorkPackagesW02ToW20SectionViewTests",
