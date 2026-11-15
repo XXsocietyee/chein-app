@@ -37,7 +37,9 @@ public struct CityActionBudgetState: Decodable {
               CityParticipationCommand.id(b.boardId), CityParticipationCommand.id(b.seasonId), CityParticipationCommand.id(b.rulesReleaseId),
               b.contentHash.range(of: #"^[a-f0-9]{64}\z"#, options: .regularExpression) != nil,
               let teamId, Self.uuid(teamId), let teamVersion, (1...9_007_199_254_740_991).contains(teamVersion),
-              movementStatus == "UNAVAILABLE", arrivalProof == "NOT_PROVIDED", ownershipEffect == "NONE", pointsEffect == "NONE", effectsStatus == "NOT_EXECUTED",
+              ["UNAVAILABLE", "AVAILABLE"].contains(movementStatus ?? ""),
+              arrivalProof == "NOT_PROVIDED", ownershipEffect == "NONE", pointsEffect == "NONE",
+              ["NOT_EXECUTED", "APPLIED", "COMMITTED"].contains(effectsStatus ?? ""),
               !writeApproved || status == "AVAILABLE" else { throw CityActionBudgetFailure.invalid }
         if status == "NOT_CONFIGURED" { guard rules == nil, dice == nil, !writeApproved else { throw CityActionBudgetFailure.invalid }; return }
         guard let r = rules, let dice, let version, let usedUnits, let remainingUnits, let rollCount,
@@ -49,7 +51,8 @@ public struct CityActionBudgetState: Decodable {
         let mixed = r.actionKind == "DICE_ROLL_AND_ACQUIRE"
         if mixed {
             guard contract == "CITY_ACTION_BUDGET_V2", let cost = r.acquisitionCost, (1...r.totalUnits).contains(cost),
-                  r.chargeTiming == "COMMITTED_ACTION_EFFECT", r.resultPolicy == "DICE_RECORD_ONLY_ACQUISITION_EXPLICIT_CONFIRM",
+                  r.chargeTiming == "COMMITTED_ACTION_EFFECT",
+                  ["DICE_RECORD_ONLY_ACQUISITION_EXPLICIT_CONFIRM", "DICE_UNIFIED_TRACK_ACQUISITION_EXPLICIT_CONFIRM"].contains(r.resultPolicy),
                   usedUnits == rollCount * r.rollCost + (Int(version) - rollCount) * cost else { throw CityActionBudgetFailure.invalid }
         } else {
             guard contract == "CITY_ACTION_BUDGET_V1", r.actionKind == "DICE_ROLL", r.acquisitionCost == nil,
@@ -67,11 +70,25 @@ public struct CityActionBudgetResult: Codable {
     public let resultId: String, requestId: String, diceId: String, createdAt: String, effectsStatus: String, verifier: String
     public let rollNumber: Int, costUnits: Int, beforeUnits: Int, afterUnits: Int, faceIndex: Int
     public let budgetVersion: Int64, faceValue: Int64
+    public let previousPosition: Int?
+    public let newPosition: Int?
+    public let landedPropertyId: String?
+    public init(resultId: String, requestId: String, diceId: String, createdAt: String, effectsStatus: String, verifier: String,
+                rollNumber: Int, costUnits: Int, beforeUnits: Int, afterUnits: Int, faceIndex: Int,
+                budgetVersion: Int64, faceValue: Int64,
+                previousPosition: Int? = nil, newPosition: Int? = nil, landedPropertyId: String? = nil) {
+        self.resultId = resultId; self.requestId = requestId; self.diceId = diceId; self.createdAt = createdAt
+        self.effectsStatus = effectsStatus; self.verifier = verifier; self.rollNumber = rollNumber
+        self.costUnits = costUnits; self.beforeUnits = beforeUnits; self.afterUnits = afterUnits
+        self.faceIndex = faceIndex; self.budgetVersion = budgetVersion; self.faceValue = faceValue
+        self.previousPosition = previousPosition; self.newPosition = newPosition; self.landedPropertyId = landedPropertyId
+    }
     func validate(dice: CityActionBudgetState.Dice, cost: Int, total: Int) throws {
         guard CityActionBudgetState.uuid(resultId), CityParticipationCommand.id(requestId), diceId == dice.diceId,
               (1...total).contains(rollNumber), (1...Int64(total)).contains(budgetVersion), budgetVersion >= Int64(rollNumber),
               costUnits == cost, (cost...total).contains(beforeUnits), afterUnits == beforeUnits - cost,
-              dice.faces.indices.contains(faceIndex), faceValue == dice.faces[faceIndex], effectsStatus == "NOT_EXECUTED",
+              dice.faces.indices.contains(faceIndex), faceValue == dice.faces[faceIndex],
+              ["NOT_EXECUTED", "APPLIED", "COMMITTED"].contains(effectsStatus),
               verifier == "SERVER_WEIGHTED_SECURE_RANDOM_V1", Self.validDate(createdAt) else { throw CityActionBudgetFailure.invalid }
     }
     private static func validDate(_ value: String) -> Bool {

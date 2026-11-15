@@ -1335,6 +1335,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "E8BC981F4EBF405313CD2945";
 		};
+		"C17E00010000000000000001" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/RoamTerritoryView.swift";
+			"sourceTree" = "<group>";
+		};
+		"C17E00020000000000000002" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C17E00010000000000000001";
+		};
 		"AF3ACE846E88767BB0607B75" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -19123,6 +19133,26 @@
 		"A55BAF216CD453105B805BDF" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "74B161E2FF3B0E230DC2C49C";
+		};
+		"C17E00030000000000000003" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamTerritoryContracts.swift";
+			"sourceTree" = "<group>";
+		};
+		"C17E00040000000000000004" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C17E00030000000000000003";
+		};
+		"C17E00050000000000000005" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/RoamTerritoryService.swift";
+			"sourceTree" = "<group>";
+		};
+		"C17E00060000000000000006" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C17E00050000000000000005";
 		};
 		"893B72F8EFE4B123E2D1DE7A" = {
 			"isa" = "PBXFileReference";
@@ -39226,6 +39256,7 @@
 				"1767043EC54B9683DF39B564",
 				"271D01B0952DE8702D074EE4",
 				"E8BC981F4EBF405313CD2945",
+				"C17E00010000000000000001",
 				"AF3ACE846E88767BB0607B75",
 				"044A5E71DE3A796D8DE9207F",
 				"A7EC63A22AB9CB77A876B537",
@@ -41004,6 +41035,8 @@
 				"6EE890F2A0DAD2965981CFA3",
 				"F98610087F84BC1E64FECF13",
 				"74B161E2FF3B0E230DC2C49C",
+				"C17E00030000000000000003",
+				"C17E00050000000000000005",
 				"893B72F8EFE4B123E2D1DE7A",
 				"749AC63509B5FFD2D2423078",
 				"2F33D6B819E91A99924EFEBD",
@@ -44296,6 +44329,7 @@
 				"FB0A15C0C78FF9FCBE4A72D1",
 				"EF975DCBC55D22F04BE75230",
 				"0404AA59375BAD3A687118EE",
+				"C17E00020000000000000002",
 				"44D5870C85AC4AF1A6305E96",
 				"8EEA9EFE80FE4ED853C33BA6",
 				"0DB7AA2E9FB5AD650B5AECCF",
@@ -46074,6 +46108,8 @@
 				"A46D38CD5D9E94A41791D79B",
 				"1D61C6090AE61D280A310C5F",
 				"A55BAF216CD453105B805BDF",
+				"C17E00040000000000000004",
+				"C17E00060000000000000006",
 				"007D01EA2B6308B7C4392F96",
 				"6D86DA4088F89CAA615C8850",
 				"10FCA2B8E8BB7BF2261E2ED2",

@@ -181,6 +181,7 @@ import SwiftUI
                         onChooseArea: {}, onOpenAccount: {}, experienceReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader,
                         tileMemoryReader: session.roamTileMemoryReader, sessionFactReader: session.roamSessionFactReader,
                         cityDestination: { AnyView(SessionCityPlayerView().environmentObject(session)) },
+                        territoryDestination: { AnyView(SessionRoamTerritoryView().environmentObject(session)) },
                         nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environmentObject(session)) },
                         stampDestination: { AnyView(SessionRoamStampCameraView().environmentObject(session)) },
                         liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader)) },
