@@ -54,19 +54,21 @@ struct PlayNodeDetailView: View {
         .onChange(of: nodeID) { _, _ in reviewOwner.reset(); answer = "" }
         .onChange(of: model.visibleSnapshot) { _, _ in answer = ""; answerReviewIssue = nil; reviewOwner.discardInvalidUnclaimedReview() }
         .onChange(of: reviewOwner.readGeneration) { _, _ in reviewOwner.discardInvalidUnclaimedReview() }
-        .sheet(item: $launchingExtGame) { game in
-            ExternalGameRunnerSheet(
-                store: extGameStore,
-                game: game,
-                session: externalGameSession,
-                review: ensuredExtModel(),
-                nodeContext: ExternalGameNodePlayContext(nodeID: nodeID, topicID: nil, activityID: nil),
-                onResultSubmitted: { outcome in
-                    if outcome.nodeCompleted {
-                        Task { await model.load(keepingReceipt: true) }
+        .sheet(isPresented: Binding(get: { launchingExtGame != nil }, set: { if !$0 { launchingExtGame = nil } })) {
+            if let game = launchingExtGame {
+                ExternalGameRunnerSheet(
+                    store: extGameStore,
+                    game: game,
+                    session: externalGameSession,
+                    review: ensuredExtModel(),
+                    nodeContext: ExternalGameNodePlayContext(nodeID: nodeID, topicID: nil, activityID: nil),
+                    onResultSubmitted: { outcome in
+                        if outcome.nodeCompleted {
+                            Task { await model.load(keepingReceipt: true) }
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 
@@ -107,7 +109,7 @@ struct PlayNodeDetailView: View {
                 }
                 CYStatusChip(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"),
                              tone: snapshot.isDone(node) ? .success : snapshot.isLocked(node) ? (node.weatherLocked == true ? .warning : .neutral) : .info,
-                             systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? (node.weatherLocked == true ? "cloud.rain.fill" : "lock.fill") : "play.circle")
+                             systemImage: nodeStatusIcon(snapshot: snapshot, node: node).systemImage)
                     .accessibilityIdentifier("play.node.status")
                 if !snapshot.isDone(node), snapshot.isLocked(node), node.weatherLocked == true {
                     CYStatusChip(
@@ -115,6 +117,7 @@ struct PlayNodeDetailView: View {
                         tone: .warning,
                         systemImage: "cloud.sun.rain.fill"
                     )
+                    .accessibilityIdentifier("play.node.weatherLocked")
                 }
                 if let reason = snapshot.lockReason(node), !reason.isEmpty { Text(verbatim: reason) }
                 if let note = snapshot.result.timeNote, snapshot.availability != .active, !note.isEmpty { Text(verbatim: note) }
@@ -137,6 +140,7 @@ struct PlayNodeDetailView: View {
                 if let ext = node.externalGame {
                     Section(W8Text.t("节点挑战小游戏", "Node External Game")) {
                         Text(verbatim: ext.gameName ?? ext.gameID).font(.headline)
+                            .accessibilityIdentifier("play.node.externalGame.title")
                         if let minScore = ext.minScore, minScore > 0 {
                             Text(verbatim: W8Text.t("通关要求：得分 ≥ \(minScore)", "Min score: \(minScore)"))
                                 .font(CYTypography.meta)
@@ -148,8 +152,10 @@ struct PlayNodeDetailView: View {
                             Task { await launchBoundExternalGame(ext.gameID) }
                         }
                         .disabled(isLaunchingExtGame || externalGameSession == nil)
+                        .accessibilityLabel(Text(verbatim: isLaunchingExtGame ? W8Text.t("正在准备小游戏", "Loading game") : W8Text.t("启动外部小游戏 \(ext.gameName ?? ext.gameID)", "Launch \(ext.gameName ?? ext.gameID)")))
                         .accessibilityIdentifier("play.node.externalGame.launch")
                     }
+                    .accessibilityIdentifier("play.node.externalGame")
                 }
                 if let question = node.question, !question.isEmpty {
                     Section("play.question") {
@@ -224,6 +230,24 @@ struct PlayNodeDetailView: View {
         }
         .accessibilityIdentifier("play.nodeDetail")
     }
+    private enum NodeStatusIcon {
+        case done, weatherLocked, locked, open
+        var systemImage: String {
+            switch self {
+            case .done: return "checkmark.seal.fill"
+            case .weatherLocked: return "cloud.rain.fill"
+            case .locked: return "lock.fill"
+            case .open: return "play.circle"
+            }
+        }
+    }
+
+    private func nodeStatusIcon(snapshot: PlaySessionSnapshot, node: PlayNode) -> NodeStatusIcon {
+        if snapshot.isDone(node) { return .done }
+        if snapshot.isLocked(node) { return node.weatherLocked == true ? .weatherLocked : .locked }
+        return .open
+    }
+
     private func reviewLocalized(_ key: String) -> String {
         String(localized: LocalizedStringResource(String.LocalizationValue(key), table: "PlayAnswerReview", locale: locale))
     }

@@ -277593,6 +277593,91 @@
           }
         }
       }
+    },
+    "playx.audioClip.start.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to start recording the audio clip challenge."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点按开始录制语音片段挑战。"
+          }
+        }
+      }
+    },
+    "playx.audioClip.stop.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop recording and upload the audio clip once minimum duration is met."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到最短时长后停止录音并上传音频片段。"
+          }
+        }
+      }
+    },
+    "playkit.imageGuess.artworkLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clue image for guessing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "猜图线索画面"
+          }
+        }
+      }
+    },
+    "playkit.scratch.revealDirect.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Directly reveal the hidden scratch card reward without dragging."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需滑动刮开，直接揭晓刮刮卡内容。"
+          }
+        }
+      }
+    },
+    "publishTab.creatorMenu.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open creator projects and creator content center."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开创作者项目与内容中心菜单。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

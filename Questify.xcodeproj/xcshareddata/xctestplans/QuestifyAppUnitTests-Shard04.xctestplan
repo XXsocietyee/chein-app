@@ -328,6 +328,7 @@
         "NativeWebhookVisitBindingTests",
         "NativeZeroHPAuthorControllerTests",
         "NativeZeroHPCompletionHintTests",
+        "NewFeatureViewsAndModelsTests",
         "NicknameC6HostTests",
         "NonCashRewardCompositionTests",
         "NonCashRewardDetailCompositionTests",

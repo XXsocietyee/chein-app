@@ -18,6 +18,7 @@ import SwiftUI
                         Button("discovery.browseTemplates", systemImage: "square.stack.3d.up") {
                             showsTemplates = true
                         }
+                        .accessibilityLabel(Text("discovery.browseTemplates"))
                         .accessibilityIdentifier("publishTab.openTemplates")
                     }
                     if session.publishingSession != nil {
@@ -25,16 +26,20 @@ import SwiftUI
                             Button("creatorContent.projects", systemImage: "square.stack") {
                                 showsProjects = true
                             }
+                            .accessibilityLabel(Text("creatorContent.projects"))
                             .accessibilityIdentifier("publishTab.openCreatorProjects")
                             Button("creatorContent.center", systemImage: "pencil.and.outline") {
                                 showsCreatorCenter = true
                             }
+                            .accessibilityLabel(Text("creatorContent.center"))
                             .accessibilityIdentifier("publishTab.openCreatorCenter")
                         } label: {
                             Label("homeFeed.more", systemImage: "ellipsis.circle")
                                 .labelStyle(.iconOnly)
                                 .frame(minWidth: 44, minHeight: 44)
                         }
+                        .accessibilityLabel(Text("homeFeed.more"))
+                        .accessibilityHint(Text("publishTab.creatorMenu.hint"))
                         .accessibilityIdentifier("publishTab.creatorMenu")
                     }
                 }

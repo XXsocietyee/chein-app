@@ -29,7 +29,8 @@ class CompareGameContracts(unittest.TestCase):
         text = self.read('Core/PlayCompareContracts.swift')
         for token in ['lastMarked', 'lastCorrect', 'remaining == max(0, cap - attempts)', 'remainingAttempts = nil', '!finished']:
             self.assertIn(token, text)
-        self.assertIn('case .qa, .pricePair, .sort, .compare: return segment["finished"].bool == true', self.read('Core/PlayKitScreenContracts.swift'))
+        # .trueFalse and .imageGuess (ui/h-game-feel) also complete via segment["finished"].bool == true alongside .compare.
+        self.assertIn('case .qa, .pricePair, .sort, .compare, .trueFalse, .imageGuess: return segment["finished"].bool == true', self.read('Core/PlayKitScreenContracts.swift'))
     def test_draft_and_review_are_immutable_version_and_owner_bound(self):
         text = self.read('Core/PlayCompareContracts.swift')
         self.assertIn('self.revision == revision', text)

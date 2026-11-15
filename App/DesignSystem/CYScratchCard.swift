@@ -123,6 +123,8 @@ import SwiftUI
                     .accessibilityHidden(true)
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(verbatim: (coverLabel?.isEmpty == false ? coverLabel : nil) ?? appLocalized("playkit.scratch.coverPrompt", locale: .current)))
             .accessibilityIdentifier("playkit.scratchCard.surface")
 
             if !isRevealed {
@@ -134,6 +136,8 @@ import SwiftUI
                     }
                 }
                 .disabled(!enabled)
+                .accessibilityLabel(Text("playkit.scratch.revealDirect"))
+                .accessibilityHint(Text("playkit.scratch.revealDirect.hint"))
                 .accessibilityIdentifier("playkit.scratchCard.revealDirect")
             }
         }

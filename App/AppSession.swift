@@ -657,14 +657,14 @@ final class AppSession: ObservableObject {
     let platformConsumers = PlatformConsumerSessionOwner()
     let retainedImagePickerHost = RetainedImagePickerHost()
     private var publicMerchantReviewEpoch = UUID()
-    private var currentRetainedImageCredentials: RetainedImageHostCredentials? {
+    var currentRetainedImageCredentials: RetainedImageHostCredentials? {
         guard let account, let token, let namespace = storageScope?.service,
               let configuration = regionalConfiguration?.apiConfiguration else { return nil }
         return RetainedImageHostCredentials(accountID: account.id, sessionVersion: gate.currentStamp,
             realm: configuration.baseURL.absoluteString, namespace: namespace, token: token, authorizationRevision: account.effectiveRole)
     }
     private lazy var imageUploadStorage = ImageUploadSecureStorage(scope: storageScope)
-    private lazy var imageUploadJournal = StoredImageUploadJournal(
+    lazy var imageUploadJournal = StoredImageUploadJournal(
         read: { [unowned self] in try self.imageUploadStorage.read($0) },
         write: { [unowned self] in try self.imageUploadStorage.write($0, key: $1) })
     private lazy var retainedImageContextCache: RetainedImageContextCache? = {
@@ -4468,7 +4468,7 @@ final class AppSession: ObservableObject {
             authorizer: authorizer, locks: couponManagementLocks, currentSession: current)
     }
     // Source-backed media composition remains dormant: hardware, upload origins and write grants are empty.
-    private var roamMediaScope: RetainedImageScope? {
+    var roamMediaScope: RetainedImageScope? {
         guard let wallet = walletCommerceScope, let credentials = currentRetainedImageCredentials else { return nil }
         return try? RetainedImageScope(accountID: wallet.accountID, epoch: wallet.epoch,
             realm: credentials.realm, destination: .stamp, namespace: wallet.namespace)
@@ -4527,22 +4527,6 @@ final class AppSession: ObservableObject {
             executor: executor, journal: composition.storage.operationJournal(), refreshNode: { [weak self] in
                 guard let self else { throw APIError.unauthorized }; return try await self.roamReader.roamNodeDetail(id: node.poiId)
             })
-    }
-    func makeRoamTerritoryPhotoContext() -> RetainedImageSelectionContext? {
-        guard let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
-              let credentials = currentRetainedImageCredentials,
-              let wire = compositionTransport.makeRoamLiveWriteTransport() else { return nil }
-        let current: () -> RetainedImageScope? = { [weak self] in
-            guard let self, self.currentRetainedImageCredentials == credentials else { return nil }; return self.roamMediaScope
-        }
-        let token: () -> String? = { [weak self] in self?.currentRetainedImageCredentials == credentials ? credentials.token : nil }
-        let origins = RetainedImageOrigin.configured(apiBase: configuration.baseURL,
-            extra: Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String)
-        let uploader = RetainedImageHTTPUploader(configuration: configuration, transport: wire,
-            enabled: true, approvedOrigins: origins, currentScope: current, token: token)
-        return RetainedImageSelectionContext(scope: scope, currentScope: current,
-            picker: retainedImagePickerHost.makePicker(),
-            uploads: RetainedImageUploadCoordinator(uploader: uploader, journal: imageUploadJournal))
     }
     func makeBankWithdrawalContext() -> BankWithdrawalRuntimeContext? {
         guard ReleaseMoneyWriteSwitch.withdrawalEnabled,

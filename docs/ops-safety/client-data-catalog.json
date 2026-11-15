@@ -584,6 +584,15 @@
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
     },
     {
+      "file": "Core/HapticsService.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Reads the in-app haptics preference via SettingsSoundPreferences.storageKey (non-sensitive); writes nothing",
+      "retention": "Until changed (read-only mirror of SettingsSoundPreferences)",
+      "deletion": "Removed with app"
+    },
+    {
       "file": "Core/IMVoiceJournal.swift",
       "kinds": [
         "userDefaults"
