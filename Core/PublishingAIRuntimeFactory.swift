@@ -18,16 +18,22 @@ import FoundationNetworking
     }
     public static func validates(_ request: URLRequest, feature: BusinessRuntimeFeature, baseURL: URL) -> Bool {
         guard request.httpMethod == "POST", request.url?.query == nil, request.url?.fragment == nil else { return false }
-        let allowedPaths: [String]
-        switch feature {
-        case .publishingAITheme: allowedPaths = [PublishingContracts.aiThemeDraftPreparePath, PublishingContracts.aiThemeDraftExecutePath]
-        case .publishingAIClub: allowedPaths = ["api/ai/club/design"]
-        case .publishingAITemplate: allowedPaths = ["api/ai/template/fill"]
-        case .publishingAIQuota:
-            return request.url == baseURL.appendingPathComponent("api/ai/theme/draft/quota") && (request.httpBody == nil || request.httpBody?.isEmpty == true)
-        default: return false
+        let matchedPath: String?
+        if feature == .publishingAITheme {
+            matchedPath = [PublishingContracts.aiThemeDraftPreparePath, PublishingContracts.aiThemeDraftExecutePath]
+                .first(where: { request.url == baseURL.appendingPathComponent($0) })
+        } else {
+            let path: String
+            switch feature {
+            case .publishingAIClub: path = "api/ai/club/design"
+            case .publishingAITemplate: path = "api/ai/template/fill"
+            case .publishingAIQuota:
+                return request.url == baseURL.appendingPathComponent("api/ai/theme/draft/quota") && (request.httpBody == nil || request.httpBody?.isEmpty == true)
+            default: return false
+            }
+            matchedPath = request.url == baseURL.appendingPathComponent(path) ? path : nil
         }
-        guard let matchedPath = allowedPaths.first(where: { request.url == baseURL.appendingPathComponent($0) }),
+        guard let matchedPath,
               request.value(forHTTPHeaderField: "Content-Type")?.lowercased().hasPrefix("application/json") == true,
               let data = request.httpBody, let fields = try? JSONDecoder().decode([String: ProjectEditJSON].self, from: data) else { return false }
         if feature == .publishingAITheme && matchedPath == PublishingContracts.aiThemeDraftExecutePath {
