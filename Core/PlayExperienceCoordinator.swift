@@ -232,6 +232,11 @@ public struct PlayCompletionReview: Equatable {
         let currentSession = self.currentSession
         return PlayOfflinePackModel(scope: scope, service: service, session: session, isCurrent: { currentSession() == session }, store: store, fetch: fetch)
     }
+    /// Uploads an `audio_clip` sensor recording using the active read-bound session.
+    public func uploadAudio(_ bytes: Data, mimeType: String) async throws -> String {
+        guard let session = loadedSession, session == currentSession() else { throw PlayExperienceError.unauthorized }
+        return try await service.uploadAudio(bytes, mimeType: mimeType, token: session.token)
+    }
     private func retireChildRead(generation request: UInt64) {
         guard generation == request else { return }
         generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]

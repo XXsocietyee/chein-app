@@ -45,17 +45,10 @@ import SwiftUI
         }
         recorder = value
         self.onInterruption = onInterruption
-        lifecycle.start(notifications: [
-            AVAudioSession.interruptionNotification,
-            AVAudioSession.mediaServicesWereResetNotification,
-            UIApplication.didEnterBackgroundNotification,
-        ]) { [weak self] name, info in
+        lifecycle.observe { [weak self] signal in
             guard let self else { return }
-            let signal = NativeAudioLifecycleObservation.classify(name, info: info)
             if PlatformAudioLifecyclePolicy.action(for: signal, ownsConfiguration: AVAudioSession.sharedInstance().category == .playAndRecord) == .stop {
-                Task { @MainActor [weak self] in
-                    self?.onInterruption?()
-                }
+                self.onInterruption?()
             }
         }
     }
@@ -64,7 +57,7 @@ import SwiftUI
         guard let recorder, let url = recordingURL else { throw PlayExperienceError.invalidAction }
         recorder.delegate = nil
         recorder.stop()
-        lifecycle.stop()
+        lifecycle.invalidate()
         let audio = try AVAudioFile(forReading: url)
         let sampleRate = max(1, audio.fileFormat.sampleRate)
         let seconds = max(1, min(60, Int((Double(audio.length) / sampleRate).rounded())))
@@ -76,7 +69,7 @@ import SwiftUI
     func cancelRecording() {
         recorder?.delegate = nil
         recorder?.stop()
-        lifecycle.stop()
+        lifecycle.invalidate()
         onInterruption = nil
         cleanupFilesAndSession()
     }

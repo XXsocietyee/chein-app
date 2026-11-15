@@ -705,6 +705,111 @@ import SwiftUI
     private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
     var body: some View {
         let context = model.interactionContext
+        nodeWithConfirms(context: context)
+            .overlay {
+                if showHelpPanel, let help, helpEnabled {
+                    PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
+                }
+            }
+            .cyModalOverlay(isPresented: showUnsavedDiscard) {
+                PlayUnsavedEditModal(
+                    onKeepEditing: { showUnsavedDiscard = false },
+                    onDiscard: { showUnsavedDiscard = false; answer = "" }
+                )
+            }
+            .cyToast(verbatimMessage: $nodeToastMessage)
+            .onChange(of: help?.skipped) { _, skipped in
+                // The server settled the skip (0 points, assisted). No success verdict; progress is re-read by the model.
+                if skipped == true { skippedHere = true; showHelpPanel = false }
+            }
+            .onChange(of: teamPool?.skipResult) { _, skipped in
+                if skipped != nil {
+                    skippedHere = true
+                    showHelpPanel = false
+                    Task { await model.load() }
+                }
+            }
+            .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
+    }
+
+    private func nodeWithConfirms(context: PlayInteractionContext?) -> some View {
+        nodeWithOutcomes(context: context)
+            .cyModalConfirm(
+                isPresented: showReview,
+                title: appLocalized("playx.review", locale: .current),
+                message: appLocalized("playx.review.detail", locale: .current),
+                cancelTitle: appLocalized("playx.cancel", locale: .current),
+                confirmTitle: appLocalized("playx.submit", locale: .current),
+                confirmIdentifier: "playx.confirm",
+                onCancel: { showReview = false; model.cancelReview(); review = nil },
+                onConfirm: {
+                    showReview = false
+                    guard let review else { return }
+                    self.review = nil // Consume before adaptive dismissal
+                    Task { await model.submit(review) }
+                }
+            )
+            .onChange(of: showReview) { _, visible in
+                // A popover's outside-tap dismissal has no visible Cancel button.
+                if !visible, review != nil { model.cancelReview(); review = nil }
+            }
+            .cyModalConfirm(
+                isPresented: showHint,
+                title: appLocalized("playx.hints.request", locale: .current),
+                message: appLocalized("playx.hints.consequence", locale: .current),
+                cancelTitle: appLocalized("playx.cancel", locale: .current),
+                confirmTitle: appLocalized("playx.hints.confirm", locale: .current),
+                confirmIdentifier: "playx.hints.confirm",
+                onCancel: { showHint = false },
+                onConfirm: {
+                    showHint = false
+                    let context = hintContext, level = hintLevel
+                    hintContext = nil
+                    Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
+                }
+            )
+    }
+
+    private func nodeWithOutcomes(context: PlayInteractionContext?) -> some View {
+        nodeList(context: context)
+            .privacySensitive()
+            .navigationTitle("playx.task.title")
+            .onChange(of: outcomeState) { old, new in
+                // Only this screen's own submission produces a verdict; a later read never replays one.
+                guard old == .submitting else { return }
+                if new == .completed {
+                    if let node {
+                        let task = PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node)
+                        if task == .arrive || task == .scan {
+                            UIKitHapticsDriver.ensureInstalled()
+                            HapticsService.shared.play(.checkInSuccess)
+                        }
+                    }
+                    verdict = .init(kind: .win)
+                } else if new == .pending || new == .failed, case .rejected(_, let message)? = model.issue {
+                    UIKitHapticsDriver.ensureInstalled()
+                    HapticsService.shared.play(.wrongAnswer)
+                    verdict = .init(kind: .fail, text: message)
+                }
+            }
+            .cyPlayVerdict($verdict)
+            .modifier(JourneyCheckReviewPresentation(model: journey))
+            // The optional check initially renders no rows, so its probe belongs to this stable host.
+            .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
+                if let node {
+                    await loadHelp(node: node)
+                    await journey?.probe(nodeDone: node.done == true)
+                    guard !Task.isCancelled, self.node?.id == node.id, model.hasCurrentMediaSnapshot else { journey?.roleContent.close(); return }
+                    await journey?.roleContent.load(expectedRunID: model.snapshot?.route?.sessionID, minimumStateVersion: model.snapshot?.route?.version)
+                } else { journey?.roleContent.close() }
+            }
+            .onChange(of: node?.done) { _, _ in
+                if let node { journey?.updateNodeDone(node.done == true) }
+            }
+    }
+
+    @ViewBuilder
+    private func nodeList(context: PlayInteractionContext?) -> some View {
         List {
             PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
             if let state = model.submitRecovery, state.nodeID == nodeID {
@@ -726,339 +831,287 @@ import SwiftUI
                 PlayArrivalReadingSection(reading: reading)
             }
             if let node {
-                if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
-                else { PlayCheckRuntimeSection(nodeID: node.id, routeSessionID: model.snapshot?.route?.sessionID, nodeDone: node.done == true) }
-                if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
-                    NavigationLink("journey.record.questions") {
-                        JourneyNarrativeView(model: narrative, onChanged: { await model.load() })
-                    }.accessibilityIdentifier("journey.record.open.questions.\(nodeID)")
-                }
-                Section {
-                    // Template 6 outdoor-readable node brief: (1) what to do now, (2) where + arrival status, (3) 6-state status card.
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        HStack(spacing: CYSpacing.sm) {
-                            if let snapshot = model.snapshot {
-                                CYStatusChip(
-                                    LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue),
-                                    tone: .info,
-                                    systemImage: "flag.fill"
-                                )
-                            }
-                            CYStatusChip(
-                                verbatim: node.arrived == true
-                                    ? CoreLoopCopy(locale: locale).t("已到达", "Arrived")
-                                    : (node.needGPS == true || node.needScan == true
-                                        ? CoreLoopCopy(locale: locale).t("待到达", "Arrival required")
-                                        : CoreLoopCopy(locale: locale).t("自由打卡", "Open check-in")),
-                                tone: node.arrived == true ? .success : .neutral,
-                                systemImage: node.arrived == true ? "checkmark.circle.fill" : "location.fill"
-                            )
-                        }
-                        PlayNodeTitle(name: node.name)
-                            .font(CYTypography.pageTitle)
-                            .foregroundStyle(palette.textPrimary)
-                        if let body = node.storyText ?? node.description {
-                            Text(verbatim: body)
-                                .font(CYTypography.body)
-                                .foregroundStyle(palette.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        if let instructions = node.ruleInstructions {
-                            Text(verbatim: instructions)
-                                .font(CYTypography.bodyCompact)
-                                .foregroundStyle(palette.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        if let question = node.question {
-                            Text(verbatim: question)
-                                .font(CYTypography.cardTitle)
-                                .foregroundStyle(palette.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        // Mini-program question card: the question image sits under the question.
-                        if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, let image = node.questionImage, !image.isEmpty {
-                            PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                .accessibilityIdentifier("playx.question.image")
-                        }
-                        if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
-                            Text(verbatim: requirement)
-                                .font(CYTypography.cardTitle)
-                                .foregroundStyle(palette.textPrimary)
-                                .accessibilityIdentifier("playx.photo.requirement")
-                        }
-                        if node.validationMethod == 4 {
-                            Text("playx.scan.prompt")
-                                .font(CYTypography.cardTitle)
-                                .foregroundStyle(palette.textPrimary)
-                                .accessibilityIdentifier("playx.scan.prompt")
-                        }
-                        if let address = node.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Label {
-                                Text(verbatim: address).fixedSize(horizontal: false, vertical: true)
-                            } icon: {
-                                Image(systemName: "mappin.and.ellipse").foregroundStyle(palette.actionPrimaryBg).accessibilityHidden(true)
-                            }
-                            .font(CYTypography.meta)
-                            .foregroundStyle(palette.textSecondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
-
-                    PlatformChapterAudioHost(selection: PlatformChapterAudioSelection.resolve(snapshot: model.snapshot, nodeID: nodeID, extras: model.extras, currentRead: model.hasCurrentMediaSnapshot), scope: mediaScope, makeModel: makeAudio)
-                    if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
-                        if let audio = node.questionAudio, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: mediaScope, makeModel: makeAudio) }
-                        PlatformExternalMapHost(destination: .init(name: node.name ?? "#\(node.id)", address: node.address, latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
-                    }
-                    if let snapshot = model.snapshot {
-                        CYTaskStatusCard(
-                            title: node.name ?? "#\(node.id)",
-                            state: PlayTaskStatusCardMapper.state(
-                                node: node,
-                                snapshot: snapshot,
-                                model: model,
-                                locale: locale,
-                                ctaTitle: appLocalized("playx.review", locale: locale),
-                                onOpen: {
-                                    if PlayNodeTask.resolve(mode: snapshot.result.mode, node: node) == .answer,
-                                       !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        prepare(.answer(answer), context: context)
-                                    }
-                                },
-                                onRefresh: { Task { await model.load() } }
-                            )
-                        )
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
-                        PlayTaskStatusBadge(node: node, snapshot: snapshot)
-                    }
-                }
-                if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, node.npc != nil, let shopNPC {
-                    Section {
-                        ShopNPCNodeEntrance(name: shopNPC.name, makeCoordinator: shopNPC.makeCoordinator, greeting: shopNPC.greeting,
-                            makeScriptedGuide: { scope in ShopNPCScriptedGuideSource(runtime: model, nodeID: nodeID, conversation: scope) })
-                            .id(shopNPC.identity)
-                    }
-                }
-                if model.snapshot?.result.mode == 2 {
-                    FreeExplorationVisitSteps(node: node)
-                }
-                if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) == .answer {
-                    Section("playx.answer") {
-                        if let options = node.options, node.validationMethod == 3 {
-                            // Keyed option cards (A / B / C) with outdoor high-contrast game runtime tokens.
-                            VStack(spacing: CYSpacing.sm) {
-                                ForEach(options.keys.sorted(), id: \.self) { key in
-                                    let on = answer == key
-                                    Button { answer = key } label: {
-                                        HStack(spacing: CYSpacing.md) {
-                                            Text(verbatim: key)
-                                                .font(CYTypography.cardTitle)
-                                                .foregroundStyle(on ? palette.actionPrimaryFg : palette.textSecondary)
-                                            Text(verbatim: options[key] ?? key)
-                                                .font(CYTypography.body)
-                                                .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
-                                                .fixedSize(horizontal: false, vertical: true)
-                                            Spacer(minLength: 0)
-                                        }
-                                        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm).frame(minHeight: 52)
-                                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(on ? palette.actionPrimaryBg : palette.bgRaised))
-                                        .contentShape(Rectangle())
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityAddTraits(on ? .isSelected : [])
-                                    .accessibilityIdentifier("playx.answer.option." + key)
-                                }
-                            }
-                            .accessibilityIdentifier("playx.answer.options")
-                        } else {
-                            TextField("playx.answer.placeholder", text: $answer, axis: .vertical)
-                                .foregroundStyle(palette.textPrimary)
-                                .accessibilityIdentifier("playx.answer.field")
-                        }
-                        CYPillButton("playx.review", systemImage: "checkmark.circle.fill") {
-                            prepare(.answer(answer), context: context)
-                        }
-                        .disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        .accessibilityIdentifier("playx.answer.review")
-                    }
-                }
-                if helpEnabled || skippedHere {
-                    Section("playHelp.title") {
-                        if skippedHere {
-                            Label("playHelp.skipped", systemImage: "forward.end").foregroundStyle(CYColor.textSecondary)
-                                .accessibilityIdentifier("playHelp.skipped")
-                        } else {
-                            Button("playHelp.open") { showHelpPanel = true }
-                                .disabled(!model.hasCurrentMediaSnapshot)
-                                .accessibilityIdentifier("playHelp.open")
-                        }
-                    }
-                }
-                if !helpEnabled, !skippedHere, let extra = model.extras[nodeID], extra.hintLocked == true || extra.puzzleScoring == true {
-                    Section("playx.hints") {
-                        if let cost = extra.hintCost { LabeledContent("playx.hints.cost") { Text(verbatim: String(cost)) } }
-                        ForEach(Array(extra.usedHints.enumerated()), id: \.offset) { _, text in Text(verbatim: text).font(CYTypography.meta).foregroundStyle(.secondary) }
-                        if let cap = extra.puzzleScoreCap {
-                            Text("playx.hints.capLine \(cap)").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
-                                .accessibilityIdentifier("playx.hints.cap")
-                        }
-                        Button {
-                            hintContext = context
-                            hintLevel = extra.puzzleScoring == true ? min(2, (extra.puzzleHintLevel ?? 0) + 1) : nil
-                            showHint = true
-                        } label: {
-                            if extra.puzzleScoring == true { Text("playx.hints.requestLevel \(min(2, (extra.puzzleHintLevel ?? 0) + 1))") }
-                            else { Text("playx.hints.request") }
-                        }
-                            .disabled(!model.canWrite || (extra.puzzleScoring != true && extra.hintCost == nil))
-                            .accessibilityIdentifier("playx.hints.request")
-                    }
-                }
-                if !helpEnabled, let hint = model.hint { Section("playx.hints") { ForEach(Array(hint.hints.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } } }
-                if let preference, node.validationMethod == 6 {
-                    NavigationLink("playx.preference.title") { PlayPreferenceView(model: preference) { Task { await model.load() } } }
-                        .accessibilityIdentifier("playx.preference.open")
-                }
-                if let stillness, node.sensorType == "still" {
-                    NavigationLink("playx.stillness") {
-                        PlayInteractionBoundContent(context: model.interactionContext) { issuedContext in
-                            PlayStillnessStreamView(model: stillness) { prepare(.sensor(type: "still", payload: $0), context: issuedContext) }
-                        }
-                    }
-                }
-                if node.sensorType == "audio_clip",
-                   let audioConfig = try? PlayAudioClipConfiguration(raw: model.extras[nodeID]?.sensorConfig ?? .null) {
-                    NavigationLink("playx.audioClip.title") {
-                        PlayInteractionBoundContent(context: model.interactionContext) { issuedContext in
-                            PlayAudioClipStreamView(
-                                configuration: audioConfig,
-                                canWrite: model.canWrite,
-                                uploadAudio: { bytes, mime in
-                                    guard let token = model.loadedSession?.token else { throw PlayExperienceError.unauthorized }
-                                    return try await model.service.uploadAudio(bytes, mimeType: mime, token: token)
-                                },
-                                onSubmit: { payload in
-                                    prepare(.sensor(type: "audio_clip", payload: payload), context: issuedContext)
-                                }
-                            )
-                        }
-                    }
-                    .accessibilityIdentifier("playx.audioClip.open")
-                }
-                if let advanced, node.hasAdvancedPrerequisite {
-                    NavigationLink("playx.advanced") {
-                        PlayInteractionBoundContent(context: model.interactionContext) { advancedContext in
-                            PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
-                                              stationQuestion: node.question, stationName: node.name, stationPassText: node.passText) { state in
-                                try? model.acceptAdvanced(state, context: advancedContext)
-                            }
-                        }
-                    }
-                }
-                if let device { PlayDeviceTaskSection(model: device, task: PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node),
-                    photoFilter: node.sensorType == "filter_shot" ? PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") : nil,
-                    unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), interaction: .init(context: context, current: { model.interactionContext }), onEvidence: { prepare($0, context: $1) }) }
-                else if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) != .answer { Text("playx.device.disabled") }
-            } else { Text("playx.node.unavailable") }
+                nodeSections(node: node, context: context)
+            } else {
+                Text("playx.node.unavailable")
+            }
             if let localIssue { PlayExperienceIssueView(issue: localIssue) }
         }
-        .privacySensitive().navigationTitle("playx.task.title")
-        .onChange(of: outcomeState) { old, new in
-            // Only this screen's own submission produces a verdict; a later read never replays one.
-            guard old == .submitting else { return }
-            if new == .completed {
-                if let node {
-                    let task = PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node)
-                    if task == .arrive || task == .scan {
-                        UIKitHapticsDriver.ensureInstalled()
-                        HapticsService.shared.play(.checkInSuccess)
+    }
+
+    @ViewBuilder
+    private func nodeSections(node: PlayNode, context: PlayInteractionContext?) -> some View {
+        if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
+        else { PlayCheckRuntimeSection(nodeID: node.id, routeSessionID: model.snapshot?.route?.sessionID, nodeDone: node.done == true) }
+        if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
+            NavigationLink("journey.record.questions") {
+                JourneyNarrativeView(model: narrative, onChanged: { await model.load() })
+            }.accessibilityIdentifier("journey.record.open.questions.\(nodeID)")
+        }
+        nodeBriefSection(node: node, context: context)
+        if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, node.npc != nil, let shopNPC {
+            Section {
+                ShopNPCNodeEntrance(name: shopNPC.name, makeCoordinator: shopNPC.makeCoordinator, greeting: shopNPC.greeting,
+                    makeScriptedGuide: { scope in ShopNPCScriptedGuideSource(runtime: model, nodeID: nodeID, conversation: scope) })
+                    .id(shopNPC.identity)
+            }
+        }
+        if model.snapshot?.result.mode == 2 {
+            FreeExplorationVisitSteps(node: node)
+        }
+        nodeAnswerSection(node: node, context: context)
+        nodeHelpAndHintSections(node: node, context: context)
+        nodeSensorAndDeviceSections(node: node, context: context)
+    }
+
+    @ViewBuilder
+    private func nodeAnswerSection(node: PlayNode, context: PlayInteractionContext?) -> some View {
+        if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) == .answer {
+            Section("playx.answer") {
+                if let options = node.options, node.validationMethod == 3 {
+                    // Keyed option cards (A / B / C) with outdoor high-contrast game runtime tokens.
+                    VStack(spacing: CYSpacing.sm) {
+                        ForEach(options.keys.sorted(), id: \.self) { key in
+                            let on = answer == key
+                            Button { answer = key } label: {
+                                HStack(spacing: CYSpacing.md) {
+                                    Text(verbatim: key)
+                                        .font(CYTypography.cardTitle)
+                                        .foregroundStyle(on ? palette.actionPrimaryFg : palette.textSecondary)
+                                    Text(verbatim: options[key] ?? key)
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Spacer(minLength: 0)
+                                }
+                                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm).frame(minHeight: 52)
+                                .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(on ? palette.actionPrimaryBg : palette.bgRaised))
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityAddTraits(on ? .isSelected : [])
+                            .accessibilityIdentifier("playx.answer.option." + key)
+                        }
+                    }
+                    .accessibilityIdentifier("playx.answer.options")
+                } else {
+                    TextField("playx.answer.placeholder", text: $answer, axis: .vertical)
+                        .foregroundStyle(palette.textPrimary)
+                        .accessibilityIdentifier("playx.answer.field")
+                }
+                CYPillButton("playx.review", systemImage: "checkmark.circle.fill") {
+                    prepare(.answer(answer), context: context)
+                }
+                .disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .accessibilityIdentifier("playx.answer.review")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func nodeHelpAndHintSections(node: PlayNode, context: PlayInteractionContext?) -> some View {
+        if helpEnabled || skippedHere {
+            Section("playHelp.title") {
+                if skippedHere {
+                    Label("playHelp.skipped", systemImage: "forward.end").foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("playHelp.skipped")
+                } else {
+                    Button("playHelp.open") { showHelpPanel = true }
+                        .disabled(!model.hasCurrentMediaSnapshot)
+                        .accessibilityIdentifier("playHelp.open")
+                }
+            }
+        }
+        if !helpEnabled, !skippedHere, let extra = model.extras[nodeID], extra.hintLocked == true || extra.puzzleScoring == true {
+            legacyHintSection(extra: extra, context: context)
+        }
+        if !helpEnabled, let hint = model.hint {
+            Section("playx.hints") {
+                ForEach(Array(hint.hints.enumerated()), id: \.offset) { _, text in
+                    Text(verbatim: text)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func nodeSensorAndDeviceSections(node: PlayNode, context: PlayInteractionContext?) -> some View {
+        if let preference, node.validationMethod == 6 {
+            NavigationLink("playx.preference.title") { PlayPreferenceView(model: preference) { Task { await model.load() } } }
+                .accessibilityIdentifier("playx.preference.open")
+        }
+        if let stillness, node.sensorType == "still" {
+            NavigationLink("playx.stillness") {
+                PlayInteractionBoundContent(context: model.interactionContext) { issuedContext in
+                    PlayStillnessStreamView(model: stillness) { prepare(.sensor(type: "still", payload: $0), context: issuedContext) }
+                }
+            }
+        }
+        if node.sensorType == "audio_clip",
+           let audioConfig = try? PlayAudioClipConfiguration(raw: model.extras[nodeID]?.sensorConfig ?? .null) {
+            NavigationLink("playx.audioClip.title") {
+                PlayInteractionBoundContent(context: model.interactionContext) { issuedContext in
+                    PlayAudioClipStreamView(
+                        configuration: audioConfig,
+                        canWrite: model.canWrite,
+                        uploadAudio: { bytes, mime in
+                            try await model.uploadAudio(bytes, mimeType: mime)
+                        },
+                        onSubmit: { payload in
+                            prepare(.sensor(type: "audio_clip", payload: payload), context: issuedContext)
+                        }
+                    )
+                }
+            }
+            .accessibilityIdentifier("playx.audioClip.open")
+        }
+        if let advanced, node.hasAdvancedPrerequisite {
+            NavigationLink("playx.advanced") {
+                PlayInteractionBoundContent(context: model.interactionContext) { advancedContext in
+                    PlayAdvancedView(model: advanced, device: device, mediaScope: mediaScope, makeAudio: makeAudio, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
+                                      stationQuestion: node.question, stationName: node.name, stationPassText: node.passText) { state in
+                        try? model.acceptAdvanced(state, context: advancedContext)
                     }
                 }
-                verdict = .init(kind: .win)
-            }
-            else if new == .pending || new == .failed, case .rejected(_, let message)? = model.issue {
-                UIKitHapticsDriver.ensureInstalled()
-                HapticsService.shared.play(.wrongAnswer)
-                verdict = .init(kind: .fail, text: message)
             }
         }
-        .cyPlayVerdict($verdict)
-        .modifier(JourneyCheckReviewPresentation(model: journey))
-        // The optional check initially renders no rows, so its probe belongs to this stable host.
-        .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
-            if let node {
-                await loadHelp(node: node)
-                await journey?.probe(nodeDone: node.done == true)
-                guard !Task.isCancelled, self.node?.id == node.id, model.hasCurrentMediaSnapshot else { journey?.roleContent.close(); return }
-                await journey?.roleContent.load(expectedRunID: model.snapshot?.route?.sessionID, minimumStateVersion: model.snapshot?.route?.version)
-            } else { journey?.roleContent.close() }
-        }
-        .onChange(of: node?.done) { _, _ in
-            if let node { journey?.updateNodeDone(node.done == true) }
-        }
-        .cyModalConfirm(
-            isPresented: showReview,
-            title: appLocalized("playx.review", locale: .current),
-            message: appLocalized("playx.review.detail", locale: .current),
-            cancelTitle: appLocalized("playx.cancel", locale: .current),
-            confirmTitle: appLocalized("playx.submit", locale: .current),
-            confirmIdentifier: "playx.confirm",
-            onCancel: { showReview = false; model.cancelReview(); review = nil },
-            onConfirm: {
-                showReview = false
-                guard let review else { return }
-                self.review = nil // Consume before adaptive dismissal
-                Task { await model.submit(review) }
-            }
-        )
-        .onChange(of: showReview) { _, visible in
-            // A popover's outside-tap dismissal has no visible Cancel button.
-            if !visible, review != nil { model.cancelReview(); review = nil }
-        }
-        .cyModalConfirm(
-            isPresented: showHint,
-            title: appLocalized("playx.hints.request", locale: .current),
-            message: appLocalized("playx.hints.consequence", locale: .current),
-            cancelTitle: appLocalized("playx.cancel", locale: .current),
-            confirmTitle: appLocalized("playx.hints.confirm", locale: .current),
-            confirmIdentifier: "playx.hints.confirm",
-            onCancel: { showHint = false },
-            onConfirm: {
-                showHint = false
-                let context = hintContext, level = hintLevel
-                hintContext = nil
-                Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
-            }
-        )
-        .overlay {
-            if showHelpPanel, let help, helpEnabled {
-                PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
-            }
-        }
-        .cyModalOverlay(isPresented: showUnsavedDiscard) {
-            PlayUnsavedEditModal(
-                onKeepEditing: { showUnsavedDiscard = false },
-                onDiscard: { showUnsavedDiscard = false; answer = "" }
-            )
-        }
-        .cyToast(verbatimMessage: $nodeToastMessage)
-        .onChange(of: help?.skipped) { _, skipped in
-            // The server settled the skip (0 points, assisted). No success verdict; progress is re-read by the model.
-            if skipped == true { skippedHere = true; showHelpPanel = false }
-        }
-        .onChange(of: teamPool?.skipResult) { _, skipped in
-            if skipped != nil {
-                skippedHere = true
-                showHelpPanel = false
-                Task { await model.load() }
-            }
-        }
-        .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
+        if let device { PlayDeviceTaskSection(model: device, task: PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node),
+            photoFilter: node.sensorType == "filter_shot" ? PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") : nil,
+            unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), interaction: .init(context: context, current: { model.interactionContext }), onEvidence: { prepare($0, context: $1) }) }
+        else if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) != .answer { Text("playx.device.disabled") }
     }
+    @ViewBuilder
+    private func nodeBriefCard(node: PlayNode) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack(spacing: CYSpacing.sm) {
+                if let snapshot = model.snapshot {
+                    CYStatusChip(
+                        LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue),
+                        tone: .info,
+                        systemImage: "flag.fill"
+                    )
+                }
+                CYStatusChip(
+                    verbatim: node.arrived == true
+                        ? CoreLoopCopy(locale: locale).t("已到达", "Arrived")
+                        : (node.needGPS == true || node.needScan == true
+                            ? CoreLoopCopy(locale: locale).t("待到达", "Arrival required")
+                            : CoreLoopCopy(locale: locale).t("自由打卡", "Open check-in")),
+                    tone: node.arrived == true ? .success : .neutral,
+                    systemImage: node.arrived == true ? "checkmark.circle.fill" : "location.fill"
+                )
+            }
+            PlayNodeTitle(name: node.name)
+                .font(CYTypography.pageTitle)
+                .foregroundStyle(palette.textPrimary)
+            if let body = node.storyText ?? node.description {
+                Text(verbatim: body)
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let instructions = node.ruleInstructions {
+                Text(verbatim: instructions)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let question = node.question {
+                Text(verbatim: question)
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false, let image = node.questionImage, !image.isEmpty {
+                PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .accessibilityIdentifier("playx.question.image")
+            }
+            if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
+                Text(verbatim: requirement)
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .accessibilityIdentifier("playx.photo.requirement")
+            }
+            if node.validationMethod == 4 {
+                Text("playx.scan.prompt")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .accessibilityIdentifier("playx.scan.prompt")
+            }
+            if let address = node.address, !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Label {
+                    Text(verbatim: address).fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "mappin.and.ellipse").foregroundStyle(palette.actionPrimaryBg).accessibilityHidden(true)
+                }
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+    }
+
+    @ViewBuilder
+    private func nodeBriefSection(node: PlayNode, context: PlayInteractionContext?) -> some View {
+        Section {
+            nodeBriefCard(node: node)
+            PlatformChapterAudioHost(selection: PlatformChapterAudioSelection.resolve(snapshot: model.snapshot, nodeID: nodeID, extras: model.extras, currentRead: model.hasCurrentMediaSnapshot), scope: mediaScope, makeModel: makeAudio)
+            if model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
+                if let audio = node.questionAudio, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: mediaScope, makeModel: makeAudio) }
+                PlatformExternalMapHost(destination: .init(name: node.name ?? "#\(node.id)", address: node.address, latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
+            }
+            if let snapshot = model.snapshot {
+                CYTaskStatusCard(
+                    title: node.name ?? "#\(node.id)",
+                    state: PlayTaskStatusCardMapper.state(
+                        node: node,
+                        snapshot: snapshot,
+                        model: model,
+                        locale: locale,
+                        ctaTitle: appLocalized("playx.review", locale: locale),
+                        onOpen: {
+                            if PlayNodeTask.resolve(mode: snapshot.result.mode, node: node) == .answer,
+                               !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                prepare(.answer(answer), context: context)
+                            }
+                        },
+                        onRefresh: { Task { await model.load() } }
+                    )
+                )
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                PlayTaskStatusBadge(node: node, snapshot: snapshot)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func legacyHintSection(extra: PlayNodeExtras, context: PlayInteractionContext?) -> some View {
+        let nextLevel = min(2, (extra.puzzleHintLevel ?? 0) + 1)
+        Section("playx.hints") {
+            if let cost = extra.hintCost { LabeledContent("playx.hints.cost") { Text(verbatim: String(cost)) } }
+            ForEach(Array(extra.usedHints.enumerated()), id: \.offset) { _, text in Text(verbatim: text).font(CYTypography.meta).foregroundStyle(.secondary) }
+            if let cap = extra.puzzleScoreCap {
+                Text("playx.hints.capLine \(cap)").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("playx.hints.cap")
+            }
+            Button {
+                hintContext = context
+                hintLevel = extra.puzzleScoring == true ? nextLevel : nil
+                showHint = true
+            } label: {
+                if extra.puzzleScoring == true { Text("playx.hints.requestLevel \(nextLevel)") }
+                else { Text("playx.hints.request") }
+            }
+            .disabled(!model.canWrite || (extra.puzzleScoring != true && extra.hintCost == nil))
+            .accessibilityIdentifier("playx.hints.request")
+        }
+    }
+
     /// One read when an unfinished stop opens. A failed read keeps the legacy hint entries.
     private func loadHelp(node: PlayNode) async {
         guard node.done != true, model.snapshot?.isLocked(node) == false, let client = model.helpClient(nodeID: node.id) else {

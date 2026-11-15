@@ -108,29 +108,61 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     var body: some View {
+        stillnessWithHaptics
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active { model.pause() }
+            }
+            .onDisappear { model.pause() }
+    }
+
+    private var stillnessWithHaptics: some View {
+        stillnessWithCompleteHaptic
+            .cyHapticEvent(.sensorStillFailed, trigger: model.machine.phase) { old, next in
+                old != .failed && next == .failed
+            }
+    }
+
+    private var stillnessWithCompleteHaptic: some View {
+        stillnessSurface
+            .cyHapticEvent(.sensorStillComplete, trigger: model.machine.phase) { old, next in
+                old != .completed && next == .completed
+            }
+    }
+
+    private var stillnessSurface: some View {
+        stillnessList
+            .cyGroupedSurface()
+            .navigationTitle("playx.stillness")
+            .navigationBarTitleDisplayMode(.inline)
+            .accessibilityIdentifier("playx.stillness.stream")
+    }
+
+    @ViewBuilder
+    private var stillnessList: some View {
         List {
             Section("playx.stillness") {
-                Text("playx.stillness.instructions")
-                ProgressView(value: model.machine.stableSeconds, total: Double(model.machine.configuration.durationSeconds))
-                    .accessibilityLabel(Text("playx.stillness.progress"))
-                PlayRuntimePhaseText(phase: model.machine.phase.rawValue)
-                if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                if !model.available { Text("playx.device.disabled") }
-                CYPillButton("playx.stillness.start") { Task { await model.start() } }
-                    .listRowBackground(Color.clear)
-                    .disabled(!model.available || model.running || model.machine.phase == .completed || model.machine.phase == .failed)
-                    .accessibilityIdentifier("playx.stillness.start")
-                if model.running { Button("playx.run.pause") { model.pause() } }
-                if let payload = model.machine.sourcePayload {
-                    Button("playx.review") { delivered = true; dismiss(); onCompleted(payload) }.disabled(delivered)
-                        .accessibilityIdentifier("playx.stillness.review")
-                }
+                stillnessSectionContent
             }
-        }.cyGroupedSurface().navigationTitle("playx.stillness").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.stillness.stream")
-            .cyHapticEvent(.sensorStillComplete, trigger: model.machine.phase) { old, next in old != .completed && next == .completed }
-            .cyHapticEvent(.sensorStillFailed, trigger: model.machine.phase) { old, next in old != .failed && next == .failed }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { model.pause() } }
-            .onDisappear { model.pause() }
+        }
+    }
+
+    @ViewBuilder
+    private var stillnessSectionContent: some View {
+        Text("playx.stillness.instructions")
+        ProgressView(value: model.machine.stableSeconds, total: Double(model.machine.configuration.durationSeconds))
+            .accessibilityLabel(Text("playx.stillness.progress"))
+        PlayRuntimePhaseText(phase: model.machine.phase.rawValue)
+        if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+        if !model.available { Text("playx.device.disabled") }
+        CYPillButton("playx.stillness.start") { Task { await model.start() } }
+            .listRowBackground(Color.clear)
+            .disabled(!model.available || model.running || model.machine.phase == .completed || model.machine.phase == .failed)
+            .accessibilityIdentifier("playx.stillness.start")
+        if model.running { Button("playx.run.pause") { model.pause() } }
+        if let payload = model.machine.sourcePayload {
+            Button("playx.review") { delivered = true; dismiss(); onCompleted(payload) }.disabled(delivered)
+                .accessibilityIdentifier("playx.stillness.review")
+        }
     }
 }
 
