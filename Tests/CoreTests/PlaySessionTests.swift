@@ -195,5 +195,9 @@ final class PlaySessionTests: XCTestCase {
 private final class PlayClosureTransport: HTTPTransport {
     private let operation: @MainActor (URLRequest) async throws -> (Data, Int)
     init(_ operation: @escaping @MainActor (URLRequest) async throws -> (Data, Int)) { self.operation = operation }
-    func send(_ request: URLRequest) async throws -> (Data, Int) { try await operation(request) }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        // A1 (acceptance-r3): answers first read the run identity; it is not part of what these tests count.
+        if request.url?.path.hasSuffix("/api/play/action-context") == true { return (Data(PlayTestData.actionContext.utf8), 200) }
+        return try await operation(request)
+    }
 }

@@ -181,7 +181,7 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
         let outcome: PlayStoreDayWriteOutcome
         let success: PlayStoreDayNotice, autoPopup: Bool
         switch prepared {
-        case .scan(let code): outcome = await service.checkin(scope: scope, code: code); success = .arrivalRecorded; autoPopup = true
+        case .scan(let code): outcome = await service.checkin(scope: scope, nodeID: node.id, code: code); success = .arrivalRecorded; autoPopup = true
         case .photo(let url): outcome = await service.photo(scope: scope, nodeID: node.id, pictureURL: url); success = .photoRecorded; autoPopup = false
         }
         switch outcome {

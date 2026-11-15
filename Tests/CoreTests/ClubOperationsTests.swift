@@ -435,4 +435,20 @@ final class ClubOperationsServiceTests: XCTestCase {
         XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/club/detail"])
         XCTAssertEqual(journal.writeCount, 0)
     }
+    /// A3 (acceptance-r3): the club snapshot reads detail and members as JSON, never multipart.
+    func testClubSnapshotReadsDetailAndMembersAsJSON() async throws {
+        let transport = OperationsTransport()
+        transport.replies = replies(owner: true, admin: false)
+        let service = ClubOperationsService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: transport)
+        let snapshot = try await service.snapshot(target: target, token: "synthetic-token", accountID: 701, checkSession: {})
+        XCTAssertEqual(snapshot.members.count, 2)
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/club/detail", "/api/club/members"])
+        for request in transport.requests {
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-token")
+        }
+        XCTAssertEqual(try JSONSerialization.jsonObject(with: XCTUnwrap(transport.requests[0].httpBody)) as? [String: Int], ["id": 81])
+        XCTAssertEqual(try JSONSerialization.jsonObject(with: XCTUnwrap(transport.requests[1].httpBody)) as? [String: Int], ["clubId": 81])
+    }
 }

@@ -34,6 +34,7 @@ public enum PlayStoreDayWriteOutcome: Equatable {
     public static let checkinPath = "api/play/checkin"
     public static let photoPath = "api/play/photo"
     public static let answerPath = "api/play/answer"
+    public static let actionContextPath = "api/play/action-context"
     public static let consentLatestPath = "api/compliance/consents/latest"
     public static let consentWritePath = "api/compliance/consents"
     private let configuration: APIConfiguration?
@@ -96,20 +97,21 @@ public enum PlayStoreDayWriteOutcome: Equatable {
     }
 
     // MARK: Writes (dispatched only when permitted; never retried here)
-    public func checkin(scope: PlaySessionScope, code: String) async -> PlayStoreDayWriteOutcome {
+    public func checkin(scope: PlaySessionScope, nodeID: Int, code: String) async -> PlayStoreDayWriteOutcome {
         let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return .rejected(nil) }
-        // Source merchant page sends session + code only; the code resolves the node server-side.
-        return await proofWrite(Self.checkinPath, scope: scope, fields: ["code": trimmed])
+        guard nodeID > 0, !trimmed.isEmpty else { return .rejected(nil) }
+        // A1 (acceptance-r3): the backend binds a checkin to the node the player is on (`nodeId`) and
+        // refuses it without the run identity; the code still names the store server-side.
+        return await proofWrite(Self.checkinPath, scope: scope, nodeID: nodeID, fields: ["nodeId": String(nodeID), "code": trimmed])
     }
     public func photo(scope: PlaySessionScope, nodeID: Int, pictureURL: String) async -> PlayStoreDayWriteOutcome {
         guard nodeID > 0, let url = URL(string: pictureURL), url.scheme == "https", url.host?.isEmpty == false else { return .rejected(nil) }
-        return await proofWrite(Self.photoPath, scope: scope, fields: ["nodeId": String(nodeID), "picUrl": pictureURL])
+        return await proofWrite(Self.photoPath, scope: scope, nodeID: nodeID, fields: ["nodeId": String(nodeID), "picUrl": pictureURL])
     }
     public func answer(scope: PlaySessionScope, nodeID: Int, answer: String) async -> PlayStoreDayWriteOutcome {
         let trimmed = answer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard nodeID > 0, !trimmed.isEmpty else { return .rejected(nil) }
-        return await proofWrite(Self.answerPath, scope: scope, fields: ["nodeId": String(nodeID), "answer": trimmed])
+        return await proofWrite(Self.answerPath, scope: scope, nodeID: nodeID, fields: ["nodeId": String(nodeID), "answer": trimmed])
     }
     public func consent(merchantID: Int, event: ComplianceEvent, requestID: String) async -> PlayStoreDayWriteOutcome {
         guard permitsConsentWrites, merchantID > 0, !requestID.isEmpty, requestID.count <= 64,
@@ -118,11 +120,35 @@ public enum PlayStoreDayWriteOutcome: Equatable {
         guard let request = try? makeJSONRequest(Self.consentWritePath, body: body, session: session) else { return .rejected(nil) }
         return await dispatch(request, session: session)
     }
-    private func proofWrite(_ path: String, scope: PlaySessionScope, fields: [String: String]) async -> PlayStoreDayWriteOutcome {
+    private func proofWrite(_ path: String, scope: PlaySessionScope, nodeID: Int, fields: [String: String]) async -> PlayStoreDayWriteOutcome {
         guard permitsProofWrites, scope.isValid, let session = currentSession(), let configuration else { return .rejected(nil) }
-        let all = scope.fields.merging(fields) { _, new in new }
+        // A1 (acceptance-r3): read the run identity first. Nothing is written when it cannot be read.
+        let context: PlayBasicActionContext
+        switch await actionContext(scope: scope, nodeID: nodeID, session: session) {
+        case .success(let value): context = value
+        case .failure(let refusal): return refusal
+        }
+        var identity = ["routeActionId": UUID().uuidString, "expectedRouteVersion": String(context.expectedRouteVersion),
+                        "routeSessionId": String(context.routeSessionID)]
+        if let instance = context.runtimeInstance, let epoch = context.authorityEpoch {
+            identity["runtimeInstance"] = instance; identity["authorityEpoch"] = String(epoch)
+        }
+        let all = scope.fields.merging(fields) { _, new in new }.merging(identity) { _, new in new }
         guard let request = try? AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: all, token: session.token) else { return .rejected(nil) }
         return await dispatch(request, session: session)
+    }
+    private enum ContextRead { case success(PlayBasicActionContext), failure(PlayStoreDayWriteOutcome) }
+    /// `GET api/play/action-context`. A read: every failure here is a definite "not sent".
+    private func actionContext(scope: PlaySessionScope, nodeID: Int, session: PlayStoreDaySession) async -> ContextRead {
+        var query = scope.fields; query["nodeId"] = String(nodeID)
+        guard nodeID > 0, let request = try? makeRequest(Self.actionContextPath, query: query, session: session) else { return .failure(.rejected(nil)) }
+        guard let response = try? await transport.send(request), currentSession() == session else { return .failure(.rejected(nil)) }
+        let (bytes, status) = response
+        if status == 401 { onUnauthorized(session); return .failure(.rejected(nil)) }
+        guard (200..<300).contains(status), let envelope = try? decodeEnvelope(bytes) else { return .failure(.rejected(nil)) }
+        guard envelope.code == 200 else { return .failure(.rejected(envelope.message)) }
+        guard let context = try? PlayBasicActionContext(raw: envelope.data) else { return .failure(.rejected(nil)) }
+        return .success(context)
     }
     private func dispatch(_ request: URLRequest, session: PlayStoreDaySession) async -> PlayStoreDayWriteOutcome {
         let response: (Data, Int)

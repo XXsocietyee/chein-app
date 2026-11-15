@@ -41,6 +41,10 @@ private final class PlayFixtureState {
         if scenario == .freeExploration, request.url?.path.hasSuffix("/nodes") == true {
             return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.mode2), 200)
         }
+        if request.url?.path.hasSuffix("/action-context") == true {
+            // A1 (acceptance-r3): an answer first reads the run identity. A read; nothing is submitted.
+            return try envelope(["code": 200, "data": ["routeSessionId": "501", "expectedRouteVersion": 2]])
+        }
         if request.url?.path.hasSuffix("/answer") == true {
             submitted = true
             if scenario == .uncertainAnswer { throw URLError(.timedOut) }
