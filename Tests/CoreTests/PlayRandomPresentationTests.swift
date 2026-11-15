@@ -48,7 +48,7 @@ final class PlayRandomPresentationTests: XCTestCase {
         XCTAssertEqual(coupon.label, "商家彩蛋券")
         XCTAssertEqual(coupon.couponTemplateID, 77)
 
-        let extras = PlayNodeExtras(wire: try wire(#"{"dispatchedTask":{"poolId":2,"nodeId":33,"nodeName":"探索隐藏角落"}}"#))
+        let extras = PlayNodeExtras(raw: try wire(#"{"dispatchedTask":{"poolId":2,"nodeId":33,"nodeName":"探索隐藏角落"}}"#))
         XCTAssertEqual(extras.dispatchedTask?.nodeID, 33)
         XCTAssertEqual(extras.dispatchedTask?.nodeName, "探索隐藏角落")
     }

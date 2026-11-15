@@ -601,7 +601,7 @@ public struct ExternalGameReviewClient {
         guard let body = try? JSONSerialization.data(withJSONObject: payload),
               let req = try? make(method: "PUT", path: ExternalGameReviewPaths.monetization(gameID), token: token, body: body, contentType: "application/json"),
               let parsed = await perform(req), parsed.ok,
-              let data = Self.envelopeData(parsed.raw) else { return nil }
+              let data = parsed.data as? [String: Any] else { return nil }
         return Self.monetizationFact(data)
     }
 
@@ -653,7 +653,7 @@ public struct ExternalGameReviewClient {
         guard let body = try? JSONSerialization.data(withJSONObject: payload),
               let req = try? make(method: "POST", path: ExternalGameReviewPaths.orders, token: token, body: body, contentType: "application/json"),
               let parsed = await perform(req), parsed.ok,
-              let data = Self.envelopeData(parsed.raw) else { return nil }
+              let data = parsed.data as? [String: Any] else { return nil }
         return Self.orderFact(data)
     }
 
@@ -685,7 +685,7 @@ public struct ExternalGameReviewClient {
         guard let body = try? JSONSerialization.data(withJSONObject: payload),
               let req = try? make(method: "POST", path: ExternalGameReviewPaths.sessionsStart, token: token, body: body, contentType: "application/json"),
               let parsed = await perform(req), parsed.ok,
-              let data = Self.envelopeData(parsed.raw),
+              let data = parsed.data as? [String: Any],
               let sessionID = Self.text(data, "sessionId"),
               let resolvedGameID = Self.text(data, "gameId"),
               let nonce = Self.text(data, "nonce"),
@@ -733,7 +733,7 @@ public struct ExternalGameReviewClient {
         guard let body = try? JSONSerialization.data(withJSONObject: payload),
               let req = try? make(method: "POST", path: ExternalGameReviewPaths.sessionResult(ticket.sessionID), token: token, body: body, contentType: "application/json"),
               let parsed = await perform(req), parsed.ok,
-              let data = Self.envelopeData(parsed.raw),
+              let data = parsed.data as? [String: Any],
               let sessionID = Self.text(data, "sessionId"),
               let gameID = Self.text(data, "gameId") else { return nil }
         return ExternalGameResultOutcome(

@@ -179,7 +179,7 @@ final class ExternalGameReviewClientTests: XCTestCase {
             sha256: String(repeating: "a", count: 64),
             signature: "sig"
         )
-        let req = Data(#"{"apiVersion":1,"action":"submitResult","payload":{"passed":"true","score":"96","digest":"d1"}}"#.utf8)
+        let req = Data(#"{"apiVersion":"1.0","action":"submitResult","payload":{"passed":"true","score":"96","digest":"d1"}}"#.utf8)
         let resp = ExternalGameBridgeHandler.handle(rawJSON: req, manifest: manifest, progressStore: &progress)
         XCTAssertTrue(resp.ok)
         XCTAssertEqual(resp.data?["passed"], "true")

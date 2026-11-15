@@ -104,24 +104,28 @@ public struct ChallengePOIHTTPWriter: ChallengePOIWriting {
 
         do {
             let (data, httpStatus) = try await transport.send(urlRequest)
-            guard let root = try? JSONDecoder().decode(PlayWireValue.self, from: data) else {
-                return .unconfirmed(message: W8Text.t("结果还没确认，请稍后重试", "Result is not confirmed yet. Please try again."))
-            }
-            let code = root["code"].tolerantInteger
-            let msg = root["msg"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
-            let payload = root["data"]
-            if (200...299).contains(httpStatus), code == 200, payload["needRedeem"].bool != nil {
-                return .success(data: payload)
-            }
-            let cleanMsg = msg?.isEmpty == false ? msg! : nil
-            if code.map(ChallengePOIRules.isPrewriteRejection) == true
-                || (cleanMsg.map { Self.prewriteRejectionMessages.contains($0) } == true) {
-                return .rejected(message: cleanMsg ?? W8Text.t("未通过挑战，请核对后重试", "Challenge not passed. Check and try again."))
-            }
-            return .unconfirmed(message: cleanMsg ?? W8Text.t("结果还没确认，请稍后重试", "Result is not confirmed yet. Please try again."))
+            return Self.classifyHTTPResult(statusCode: httpStatus, data: data)
         } catch {
             return .unconfirmed(message: W8Text.t("网络异常，请重试", "Network error. Please retry."))
         }
+    }
+
+    public static func classifyHTTPResult(statusCode httpStatus: Int, data: Data) -> ChallengePOIWriteOutcome {
+        guard let root = try? JSONDecoder().decode(PlayWireValue.self, from: data) else {
+            return .unconfirmed(message: W8Text.t("结果还没确认，请稍后重试", "Result is not confirmed yet. Please try again."))
+        }
+        let code = root["code"].tolerantInteger
+        let msg = root["msg"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let payload = root["data"]
+        if (200...299).contains(httpStatus), code == 200, payload["needRedeem"].bool != nil {
+            return .success(data: payload)
+        }
+        let cleanMsg = msg?.isEmpty == false ? msg! : nil
+        if code.map(ChallengePOIRules.isPrewriteRejection) == true
+            || (cleanMsg.map { prewriteRejectionMessages.contains($0) } == true) {
+            return .rejected(message: cleanMsg ?? W8Text.t("未通过挑战，请核对后重试", "Challenge not passed. Check and try again."))
+        }
+        return .unconfirmed(message: cleanMsg ?? W8Text.t("结果还没确认，请稍后重试", "Result is not confirmed yet. Please try again."))
     }
 }
 

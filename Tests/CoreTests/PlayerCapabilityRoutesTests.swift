@@ -330,7 +330,7 @@ final class PlayerCapabilityRoutesTests: XCTestCase {
         }
         """
         let result = try! JSONDecoder().decode(PlayNodesResult.self, from: Data(json.utf8))
-        let snapshot = PlaySnapshot(result: result)
+        let snapshot = try! PlaySnapshot(scope: .activity(1), result: result)
         let node = snapshot.visibleNodes[0]
         XCTAssertEqual(node.weatherLocked, true)
         XCTAssertTrue(snapshot.isLocked(node))

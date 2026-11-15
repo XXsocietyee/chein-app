@@ -110,7 +110,7 @@ import QuestifyCore
                 } else {
                     Text(verbatim: W8Text.t("付费内容 · 当前环境未开启支付", "Paid game · payments disabled here"))
                         .font(CYTypography.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
             } else {
                 CurA11yTextButton(

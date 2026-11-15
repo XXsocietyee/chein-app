@@ -184,7 +184,7 @@ import SwiftUI
                 HStack(spacing: CYSpacing.md) {
                     Image(systemName: "bubble.left.and.bubble.right.fill")
                         .font(CYTypography.sectionTitle)
-                        .foregroundStyle(palette.accent)
+                        .foregroundStyle(palette.brand)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack(spacing: CYSpacing.xs) {
