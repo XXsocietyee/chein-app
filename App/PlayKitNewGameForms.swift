@@ -6,10 +6,10 @@ extension PlayKitScreen {
         HStack(spacing: CYSpacing.sm) {
             CYChoiceRow(
                 label: appLocalized("playkit.trueFalse.true", locale: .current),
-                marker: "✓",
                 selected: selected.contains("true"),
                 multi: false,
-                enabled: enabled
+                enabled: enabled,
+                marker: "✓"
             ) {
                 UIKitHapticsDriver.ensureInstalled()
                 HapticsService.shared.play(.selection)
@@ -20,10 +20,10 @@ extension PlayKitScreen {
 
             CYChoiceRow(
                 label: appLocalized("playkit.trueFalse.false", locale: .current),
-                marker: "✕",
                 selected: selected.contains("false"),
                 multi: false,
-                enabled: enabled
+                enabled: enabled,
+                marker: "✕"
             ) {
                 UIKitHapticsDriver.ensureInstalled()
                 HapticsService.shared.play(.selection)
