@@ -133,6 +133,7 @@ struct FreeExplorationStoreName: View {
     @State private var chapterFilter: Int?
     @State private var showChapterPicker = false
     @State private var showEmergencyHelp = false
+    @Environment(\.locale) private var locale
     @Environment(\.playThemePresentationReader) private var themeReader
     private var themeFacts: PlayThemePresentationFacts? {
         model.snapshot?.result.topicID.flatMap { themeReader?.facts(topicID: $0) }
@@ -150,6 +151,18 @@ struct FreeExplorationStoreName: View {
                         selectedStore = id
                     }
                     if let reward = model.reward {
+                        if let drop = PlayRewardDrop.fromReward(reward) {
+                            Label(drop.toastMessage(locale: locale), systemImage: "sparkles")
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.successText)
+                                .accessibilityIdentifier("playFree.reward.drop")
+                        }
+                        if let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
+                            Label(dispatched.revealTitle(locale: locale), systemImage: "shippingbox.fill")
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .accessibilityIdentifier("playFree.reward.dispatchedTask")
+                        }
                         PlayRewardBadgeRows(targets: PlayRewardBadgeTarget.targets(in: reward), destination: rewardCollectionDestination)
                             .id(PlayRewardBadgeTarget.targets(in: reward))
                     }
@@ -217,9 +230,18 @@ struct FreeExplorationStoreName: View {
     @State private var review: PlayCompletionReview?
     @State private var showingReview = false
     @State private var issue: PlayExperienceError?
+    @State private var storeToastMessage: String?
+    @Environment(\.locale) private var locale
     private var node: PlayNode? {
         guard model.gameplayMode == .freeExploration else { return nil }
         return model.snapshot?.visibleNodes.first { $0.id == nodeID }
+    }
+    private var activeDispatchedTask: PlayRandomDispatchedTask? {
+        if let reward = model.reward, reward["nodeId"].tolerantInteger == nodeID,
+           let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
+            return dispatched
+        }
+        return model.extras[nodeID]?.dispatchedTask
     }
     var body: some View {
         let context = model.interactionContext
@@ -228,6 +250,23 @@ struct FreeExplorationStoreName: View {
                 Section {
                     FreeExplorationStoreName(name: node.name).font(.title2.bold())
                     Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
+                }
+                if let dispatched = activeDispatchedTask {
+                    Section {
+                        CYStatusChip(
+                            verbatim: CoreLoopCopy(locale: locale).t("今日盲盒任务", "Today's Mystery Task"),
+                            tone: .info,
+                            systemImage: "shippingbox.fill"
+                        )
+                        Text(verbatim: dispatched.displayName)
+                            .font(CYTypography.cardTitle)
+                        if let rule = dispatched.ruleInstructions, !rule.isEmpty {
+                            Text(verbatim: rule)
+                                .font(CYTypography.bodyCompact)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityIdentifier("playFree.random.dispatchedTask")
                 }
                 if !snapshot.isLocked(node) {
                     if let description = node.description { Section { Text(verbatim: description) } }
@@ -277,6 +316,15 @@ struct FreeExplorationStoreName: View {
                     Task { await model.submit(review) }
                 }
             )
+            .onChange(of: model.reward) { _, reward in
+                guard let reward, reward["nodeId"].tolerantInteger == nodeID else { return }
+                if let drop = PlayRewardDrop.fromReward(reward) {
+                    storeToastMessage = drop.toastMessage(locale: locale)
+                } else if let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
+                    storeToastMessage = dispatched.revealTitle(locale: locale)
+                }
+            }
+            .cyToast(verbatimMessage: $storeToastMessage)
             .onDisappear { device?.cancel(); review = nil; model.cancelReview() }
     }
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {

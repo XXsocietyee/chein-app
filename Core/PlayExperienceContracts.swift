@@ -148,6 +148,7 @@ public struct PlayNodeExtras: Equatable {
     public let medalName: String?
     public let medalImage: String?
     public let couponID: Int?
+    public let dispatchedTask: PlayRandomDispatchedTask?
     init(raw: PlayWireValue) {
         merchantID = raw["merchantId"].tolerantInteger
         hint1 = raw["hint1"].text; hint2 = raw["hint2"].text; hintCost = raw["hintCost"].tolerantInteger
@@ -157,6 +158,7 @@ public struct PlayNodeExtras: Equatable {
         usedHints = raw["usedHints"].array?.compactMap(\.text) ?? []
         sensorConfig = raw["sensorConfig"]; uploadedImage = raw["imgUrl"].text; storyImage = raw["storyImg"].text; audioURL = raw["audioUrl"].text
         medalName = raw["medalName"].text; medalImage = raw["medalImg"].text; couponID = raw["couponId"].tolerantInteger
+        dispatchedTask = PlayRandomDispatchedTask(wire: raw["dispatchedTask"])
     }
 }
 public enum PlayNodeTask: String, CaseIterable {
@@ -299,5 +301,170 @@ public struct PlayLeadUnlockCommand: Codable, Equatable {
     public func confirms(_ data: PlayWireValue) -> Bool {
         data["commandId"].text == commandID && data["expectedChapterId"].tolerantInteger == expectedChapterID
             && data["targetChapterId"].tolerantInteger == targetChapterID
+    }
+}
+
+/// Dispatched mystery task revealed on store entry / check-in (`node_task_pool`).
+public struct PlayRandomDispatchedTask: Equatable, Decodable, Sendable {
+    public let poolID: Int?
+    public let poolName: String?
+    public let nodeID: Int
+    public let nodeName: String?
+    public let dispatchDate: String?
+    public let ruleInstructions: String?
+    public let randomReceiptID: String?
+
+    enum CodingKeys: String, CodingKey {
+        case poolID = "poolId"
+        case poolName
+        case nodeID = "nodeId"
+        case nodeName
+        case dispatchDate
+        case ruleInstructions = "rule"
+        case randomReceiptID = "randomReceiptId"
+    }
+
+    public init(
+        poolID: Int? = nil,
+        poolName: String? = nil,
+        nodeID: Int,
+        nodeName: String? = nil,
+        dispatchDate: String? = nil,
+        ruleInstructions: String? = nil,
+        randomReceiptID: String? = nil
+    ) {
+        self.poolID = poolID
+        self.poolName = poolName
+        self.nodeID = nodeID
+        self.nodeName = nodeName
+        self.dispatchDate = dispatchDate
+        self.ruleInstructions = ruleInstructions
+        self.randomReceiptID = randomReceiptID
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func intOrString(_ key: CodingKeys) -> Int? {
+            if let value = try? c.decode(Int.self, forKey: key) { return value > 0 ? value : nil }
+            if let text = try? c.decode(String.self, forKey: key),
+               let value = Int(text.trimmingCharacters(in: .whitespacesAndNewlines)), value > 0 {
+                return value
+            }
+            return nil
+        }
+        guard let nodeID = intOrString(.nodeID) else {
+            throw DecodingError.dataCorruptedError(forKey: .nodeID, in: c, debugDescription: "Missing positive nodeId")
+        }
+        self.poolID = intOrString(.poolID)
+        self.poolName = (try? c.decodeIfPresent(String.self, forKey: .poolName))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.nodeID = nodeID
+        self.nodeName = (try? c.decodeIfPresent(String.self, forKey: .nodeName))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.dispatchDate = (try? c.decodeIfPresent(String.self, forKey: .dispatchDate))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.ruleInstructions = (try? c.decodeIfPresent(String.self, forKey: .ruleInstructions))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.randomReceiptID = (try? c.decodeIfPresent(String.self, forKey: .randomReceiptID))?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    public init?(wire: PlayWireValue) {
+        guard wire.object != nil, let nodeID = wire["nodeId"].tolerantInteger, nodeID > 0 else { return nil }
+        self.init(
+            poolID: wire["poolId"].tolerantInteger.flatMap { $0 > 0 ? $0 : nil },
+            poolName: Self.nonEmpty(wire["poolName"].text),
+            nodeID: nodeID,
+            nodeName: Self.nonEmpty(wire["nodeName"].text ?? wire["title"].text ?? wire["name"].text),
+            dispatchDate: Self.nonEmpty(wire["dispatchDate"].text),
+            ruleInstructions: Self.nonEmpty(wire["rule"].text ?? wire["ruleInstructions"].text),
+            randomReceiptID: Self.nonEmpty(wire["randomReceiptId"].text)
+        )
+    }
+
+    public static func fromResponse(_ response: PlayWireValue) -> PlayRandomDispatchedTask? {
+        PlayRandomDispatchedTask(wire: response["dispatchedTask"])
+    }
+
+    public var displayName: String {
+        if let nodeName, !nodeName.isEmpty { return nodeName }
+        return "#\(nodeID)"
+    }
+
+    public func revealTitle(locale: Locale = .current) -> String {
+        Self.isEnglish(locale) ? "Today's Mystery Task: \(displayName)" : "今日盲盒任务：\(displayName)"
+    }
+
+    private static func nonEmpty(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
+        return trimmed
+    }
+
+    fileprivate static func isEnglish(_ locale: Locale) -> Bool {
+        locale.identifier.lowercased().hasPrefix("en")
+    }
+}
+
+/// Reward drop receipt attached to completion responses (`reward["drop"]`).
+public struct PlayRewardDrop: Equatable, Sendable {
+    public let dropType: Int
+    public let label: String
+    public let extraXp: Int?
+    public let mult: Int?
+    public let badgeCode: String?
+    public let couponTemplateID: Int?
+    public let randomReceiptID: String?
+
+    public init(
+        dropType: Int,
+        label: String,
+        extraXp: Int? = nil,
+        mult: Int? = nil,
+        badgeCode: String? = nil,
+        couponTemplateID: Int? = nil,
+        randomReceiptID: String? = nil
+    ) {
+        self.dropType = dropType
+        self.label = label
+        self.extraXp = extraXp
+        self.mult = mult
+        self.badgeCode = badgeCode
+        self.couponTemplateID = couponTemplateID
+        self.randomReceiptID = randomReceiptID
+    }
+
+    public init?(wire: PlayWireValue) {
+        guard wire.object != nil else { return nil }
+        let type = wire["dropType"].tolerantInteger ?? 0
+        let rawLabel = wire["label"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard type > 0 || (rawLabel?.isEmpty == false) else { return nil }
+        let fallbackLabel: String
+        switch type {
+        case 1: fallbackLabel = "探索值加倍"
+        case 2: fallbackLabel = "徽章碎片"
+        case 3: fallbackLabel = "商家彩蛋券"
+        default: fallbackLabel = "神秘奖励"
+        }
+        self.dropType = type
+        self.label = (rawLabel?.isEmpty == false ? rawLabel! : fallbackLabel)
+        self.extraXp = wire["extraXp"].tolerantInteger
+        self.mult = wire["mult"].tolerantInteger
+        self.badgeCode = wire["badgeCode"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.couponTemplateID = wire["couponTemplateId"].tolerantInteger
+        self.randomReceiptID = wire["randomReceiptId"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    public static func fromReward(_ reward: PlayWireValue) -> PlayRewardDrop? {
+        PlayRewardDrop(wire: reward["drop"])
+    }
+
+    public func toastMessage(locale: Locale = .current) -> String {
+        let en = PlayRandomDispatchedTask.isEnglish(locale)
+        let summary = detailText(locale: locale)
+        return en ? "Bonus drop: \(summary)" : "随机掉落：\(summary)"
+    }
+
+    public func detailText(locale: Locale = .current) -> String {
+        let en = PlayRandomDispatchedTask.isEnglish(locale)
+        var parts = [label]
+        if let extraXp, extraXp > 0 {
+            parts.append(en ? "+\(extraXp) XP" : "+\(extraXp) 探索值")
+        }
+        return parts.joined(separator: " ")
     }
 }
