@@ -24,15 +24,18 @@ import XCTest
          "license":{"status":"AUTHORITATIVE","licensedEntity":"某工作室","validTo":"2027-01-31T00:00:00"},
          "sourceLocale":"zh-CN","translationStatus":"SINGLE_LOCALE"}
         """#)
-        let rows = TopicTemplateAdoptionConditions.rows(full, chinese: true)
+        let rows = TopicTemplateAdoptionConditions.rows(full, canViewEvidence: true, chinese: true)
         XCTAssertEqual(rows.map(\.key), ["place", "operating", "evidence", "locale", "license", "revision"])
         XCTAssertEqual(rows[0].value, "需要到现场 · 3 个地点")
-        XCTAssertEqual(rows[1].value, "仅对合作商家开放")
+        XCTAssertEqual(rows[1].label, "运营资料")
+        XCTAssertEqual(rows[1].value, "仅合作商家可见")
         XCTAssertEqual(rows[2].value, "预估，未实地验证")
         XCTAssertEqual(rows[3].value, "简体中文")
         XCTAssertEqual(rows[4].value, "某工作室 · 至 2027-01-31")
         XCTAssertEqual(rows[5].value, "第 4 版")
-        let english = TopicTemplateAdoptionConditions.rows(full, chinese: false)
+        let hiddenEvidence = TopicTemplateAdoptionConditions.rows(full, chinese: true)
+        XCTAssertFalse(hiddenEvidence.contains { $0.key == "evidence" })
+        let english = TopicTemplateAdoptionConditions.rows(full, canViewEvidence: true, chinese: false)
         XCTAssertEqual(english.first { $0.key == "locale" }?.value, "Simplified Chinese only (no translation yet)")
     }
 

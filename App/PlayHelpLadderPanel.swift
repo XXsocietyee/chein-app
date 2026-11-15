@@ -50,7 +50,7 @@ import SwiftUI
                         .accessibilityLabel(Text("playHelp.close"))
                         .accessibilityIdentifier("playHelp.close")
                     }
-                    if let left = model.freeLeft {
+                    if let left = model.freeLeft, left > 0 {
                         Text("playHelp.freeLeft \(left)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("playHelp.freeLeft")
                     }

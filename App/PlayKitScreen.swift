@@ -282,6 +282,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     private func loadInitial() {
         guard !loaded else { return }; loaded = true; sessionIdentity = model.state?.sessionID
         if kind == .note { text = segment["mine"].text ?? segment["mine"]["text"].text ?? "" }
+        if kind == .qa { text = segment["acceptedInput"].text ?? segment["lastInput"].text ?? "" }
         if kind == .diyName { text = segment["name"].text ?? "" }
         if kind == .dailySign { text = segment["myText"].text ?? "" }
         if kind == .profile { answers = (segment["answers"].object ?? [:]).compactMapValues(\.text); avatarURL = segment["avatarUrl"].text ?? "" }

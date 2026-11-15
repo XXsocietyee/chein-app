@@ -96,13 +96,13 @@ public enum TopicTemplateAdoptionConditions {
         public var id: String { key }
     }
 
-    public static func rows(_ delivery: TopicTemplateContentDelivery?, chinese: Bool = W8Text.isChinese) -> [Row] {
+    public static func rows(_ delivery: TopicTemplateContentDelivery?, canViewEvidence: Bool = false, chinese: Bool = W8Text.isChinese) -> [Row] {
         guard let delivery else { return [] }
         func t(_ zh: String, _ en: String) -> String { chinese ? zh : en }
         var out: [Row] = []
         if let value = place(delivery.locationRequirement, t) { out.append(.init(key: "place", label: t("地点", "Places"), value: value)) }
-        if let value = operating(delivery, t) { out.append(.init(key: "operating", label: t("投入", "Operating needs"), value: value)) }
-        if let value = evidence(delivery.evidenceLevel, t) { out.append(.init(key: "evidence", label: t("验证", "Evidence"), value: value)) }
+        if let value = operating(delivery, t) { out.append(.init(key: "operating", label: t("运营资料", "Operating needs"), value: value)) }
+        if canViewEvidence, let value = evidence(delivery.evidenceLevel, t) { out.append(.init(key: "evidence", label: t("验证", "Evidence"), value: value)) }
         if let value = delivery.platformExecution, !value.isEmpty, value != "UNKNOWN" {
             out.append(.init(key: "platform", label: t("端侧", "Platforms"), value: value))
         }
@@ -123,7 +123,7 @@ public enum TopicTemplateAdoptionConditions {
 
     private static func operating(_ delivery: TopicTemplateContentDelivery, _ t: (String, String) -> String) -> String? {
         switch delivery.operatingRequirementsVisibility {
-        case "PARTNER_ONLY": return t("仅对合作商家开放", "Shared with partner merchants only")
+        case "PARTNER_ONLY": return t("仅合作商家可见", "Visible to partner merchants only")
         case "INCLUDED": break
         default: return nil
         }

@@ -49,6 +49,25 @@ public struct PlayerCapabilityClient {
         return request
     }
 
+    /// GET request that attaches `Authorization` when signed in and omits it for guest-capable reads (`#842`).
+    func optionalAuthGetRequest(_ path: String, query: [(String, String)] = []) throws -> URLRequest {
+        guard var parts = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else {
+            throw PlayerCapabilityFailure.invalid
+        }
+        if !query.isEmpty { parts.queryItems = query.map { URLQueryItem(name: $0.0, value: $0.1) } }
+        guard let url = parts.url else { throw PlayerCapabilityFailure.invalid }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpShouldHandleCookies = false
+        if AuthRequestBuilder.isValidToken(token) {
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+        }
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        return request
+    }
+
     /// `app.sendRequest` with `JSON.stringify(data)` and `Content-Type: application/json`.
     func jsonRequest(_ path: String, body: [String: SquareGovernanceJSON]) throws -> URLRequest {
         var request = try getRequest(path)

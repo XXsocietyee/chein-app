@@ -7,7 +7,7 @@ import FoundationNetworking
 /// - `utils/open-address.js#geocode`: `POST api/map/geocode {address, region}` (form)
 /// - `components/cy/map-address-search`: `POST api/map/place-search {keyword, longitude, latitude}` (form)
 /// - `subpackageRoam/components/map-weather` + `weather-core.js`: `GET api/map/weather {lat, lng}` of the cell centre
-/// - `pages/search2/result`: `POST api/search/unified {keyword, types, city_code, pageNum, pageSize: 12}` (form)
+/// - `pages/search2/result`: `GET api/search/unified {keyword, types, city_code, pageNum, pageSize: 12}`
 public struct MapSearchPlayerService {
     public static let geocodePath = "api/map/geocode"
     public static let placeSearchPath = "api/map/place-search"
@@ -140,14 +140,14 @@ public struct MapSearchPlayerService {
         return SearchPage(items: items, total: total, count: rows.count)
     }
 
-    /// Signed-in search. `types` is `topic,activity` plus `post` when community read is open.
+    /// Search (`#842`: GET, works signed in or as guest). `types` is `topic,activity` plus `post` when community read is open.
     /// 503/404 mean unified search is not open: the caller falls back to the topic/activity lists.
     public func unifiedSearch(keyword: String, types: [String], cityCode: String, page: Int) async throws -> SearchPage {
         let text = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, page > 0, !types.isEmpty, types.allSatisfy({ Self.typeLabels[$0] != nil }) else {
             throw PlayerCapabilityFailure.invalid
         }
-        let raw = try await client.read(try client.formRequest(Self.unifiedSearchPath, fields: [
+        let raw = try await client.read(try client.optionalAuthGetRequest(Self.unifiedSearchPath, query: [
             ("keyword", text), ("types", types.joined(separator: ",")), ("city_code", cityCode),
             ("pageNum", String(page)), ("pageSize", String(Self.pageSize))
         ]))

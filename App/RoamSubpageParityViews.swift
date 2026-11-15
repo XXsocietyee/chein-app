@@ -197,6 +197,12 @@ struct RoamShareCardParityFooter: View {
                     Text(verbatim: record.shops.map(String.init) ?? "—").font(.headline.monospacedDigit())
                     Text("roamSub.w208.share.lit").font(.caption2).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.lit")
+                if record.footprintCount > 0 {
+                    VStack(alignment: .leading) {
+                        Text(verbatim: String(record.footprintCount)).font(.headline.monospacedDigit())
+                        Text("roamSub.w208.share.footprints").font(.caption2).foregroundStyle(.secondary)
+                    }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.footprints")
+                }
             }
             Text("roamSub.w208.share.brand").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         }

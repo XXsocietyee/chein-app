@@ -40,9 +40,11 @@ public struct GatedChallengePOIWriter: ChallengePOIWriting {
 public struct ChallengePOIHTTPWriter: ChallengePOIWriting {
     private static let prewriteRejectionMessages: Set<String> = [
         "离据点太远,请到店后再完成",
+        "离据点太远，请到店后再完成",
         "答案不正确",
         "请上传拍照打卡照片",
         "照片地址不合法,请重新上传",
+        "照片地址不合法，请重新上传",
         "照片未上传成功或不属于当前账号，请重新拍摄上传",
         "照片校验暂不可用，请稍后重试",
         "据点未开放或已下线",

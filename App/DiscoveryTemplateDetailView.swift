@@ -272,8 +272,10 @@ struct DiscoveryTopicTemplatePreview: View {
     @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
+    @State private var openingExpanded = false
     /// Caller override. Nil asks the existing parsers; an unparsed topic path copies its mini-program path and has no public URL.
     var shareURL: URL? = nil
+    var scope: String? = nil
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
     /// A parsed topic path would be a universal link. This path is not parsed, so the share key copies the mini-program path.
     private func topicShareOffer(_ id: Int) -> (url: URL?, copyText: String?) {
@@ -364,7 +366,16 @@ struct DiscoveryTopicTemplatePreview: View {
         if nonempty(item.description) != nil || !item.chapters.isEmpty {
             Section {
                 if let opening = nonempty(item.description) {
-                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled).lineLimit(4)
+                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                        .textSelection(.enabled).lineLimit(openingExpanded ? nil : 4)
+                    if opening.count > 90 {
+                        Button(openingExpanded ? "u10.template.cap.collapse" : "u10.template.cap.expand") {
+                            openingExpanded.toggle()
+                        }
+                        .font(CYTypography.meta.weight(.semibold))
+                        .foregroundStyle(palette.brand)
+                        .accessibilityIdentifier("discovery.topicDetail.openingToggle")
+                    }
                 }
                 let numbered = Self.numberedStops(item.chapters)
                 ForEach(Array(item.chapters.enumerated()), id: \.element.id) { index, chapter in
@@ -410,14 +421,20 @@ struct DiscoveryTopicTemplatePreview: View {
             } header: { TemplateXbSectionTitle(title: "u10.template.story", systemImage: "book") }
                 .discoveryCardRow()
         }
+        let free = item.mode == "FREE_EXPLORE"
         Section {
-            HStack(alignment: .top) {
-                topicStat(Text(verbatim: String(item.chapters.count)), label: "discovery.templateDetail.stat.chapters")
-                topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+            if !free {
+                HStack(alignment: .top) {
+                    topicStat(Text(verbatim: String(item.chapters.count)), label: "discovery.templateDetail.stat.chapters")
+                    topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+                }
             }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
         }.discoveryCardRow()
-        TopicTemplateAdoptionConditionsSection(delivery: item.contentDelivery)
+        TopicTemplateAdoptionConditionsSection(
+            delivery: item.contentDelivery,
+            canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
+        )
         let nodes = item.chapters.flatMap(\.nodes)
         if !nodes.isEmpty {
             Section {
@@ -462,6 +479,11 @@ struct DiscoveryTopicTemplatePreview: View {
                 .discoveryCardRow()
                 .accessibilityIdentifier("discovery.topicDetail.medal")
         }
+        if let coverRef = nonempty(item.imgUrl), TopicTemplateAdoptionFactory.attributionIsLive {
+            Section { TopicTemplateNodeCredit(reference: coverRef) }
+                .discoveryCardRow()
+                .accessibilityIdentifier("discovery.topicDetail.coverCredit")
+        }
     }
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
@@ -471,9 +493,11 @@ struct DiscoveryTopicTemplatePreview: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
-    /// 能力: one summary chip line, then each stop with its play, teaser and duration; a dash when there are none.
+    /// 能力: one summary chip line, then each stop (grouped by chapter for multi-chapter / FREE_EXPLORE routes)
+    /// with its play, teaser and duration; an empty state when there are none.
     @ViewBuilder private func topicCapabilities(_ item: PublicTopicTemplateDetail) -> some View {
-        let stops = Self.numberedStops(item.chapters)
+        let free = item.mode == "FREE_EXPLORE"
+        let stops = Self.numberedStops(item.chapters, freeExplore: free)
         Section {
             TemplateChipFlow(spacing: CYSpacing.sm) {
                 ForEach(topicSummary(item, stopCount: stops.count), id: \.self) { chip in
@@ -484,24 +508,39 @@ struct DiscoveryTopicTemplatePreview: View {
             if stops.isEmpty {
                 CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
             }
-            ForEach(stops, id: \.number) { stop in
-                HStack(alignment: .top, spacing: CYSpacing.md) {
-                    Text(verbatim: String(stop.number)).font(CYTypography.label.monospacedDigit())
-                        .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        if let name = stop.name { Text(verbatim: name).font(CYTypography.label).cyWrapText() }
-                        if let play = nonempty(stop.node.interactionType) {
-                            Text(verbatim: play).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
-                        }
-                        if let teaser = nonempty(stop.node.hookTeaser) {
-                            Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+            if item.chapters.count > 1 && !stops.isEmpty {
+                ForEach(Array(item.chapters.enumerated()), id: \.element.id) { index, chapter in
+                    let groupStops = stops.filter { $0.chapterID == chapter.id }
+                    if !groupStops.isEmpty {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter")
+                                .font(CYTypography.meta.weight(.semibold))
+                                .foregroundStyle(palette.textSecondary)
+                            ForEach(groupStops, id: \.number) { stopRow($0) }
                         }
                     }
                 }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number)")
+            } else {
+                ForEach(stops, id: \.number) { stopRow($0) }
             }
         }.discoveryCardRow()
+    }
+    private func stopRow(_ stop: NumberedStop) -> some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            Text(verbatim: String(stop.number)).font(CYTypography.label.monospacedDigit())
+                .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                if let name = stop.name { Text(verbatim: name).font(CYTypography.label).cyWrapText() }
+                if let play = stop.interactionType {
+                    Text(verbatim: play).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                }
+                if let teaser = stop.hookTeaser {
+                    Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("discovery.topicDetail.stop.\(stop.number)")
     }
     private func topicSummary(_ item: PublicTopicTemplateDetail, stopCount: Int) -> [String] {
         let free = item.mode == "FREE_EXPLORE"
@@ -511,13 +550,25 @@ struct DiscoveryTopicTemplatePreview: View {
         if stopCount > 0 { chips.append(appLocalized("u10.template.summary.stops \(stopCount)", locale: locale)) }
         return chips
     }
-    private struct NumberedStop { let number: Int; let chapterID: Int; let name: String?; let node: PublicTemplateNode }
-    private static func numberedStops(_ chapters: [PublicTemplateChapter]) -> [NumberedStop] {
+    private struct NumberedStop {
+        let number: Int; let chapterID: Int; let name: String?; let interactionType: String?; let hookTeaser: String?
+    }
+    private static func numberedStops(_ chapters: [PublicTemplateChapter], freeExplore: Bool = false) -> [NumberedStop] {
+        func clean(_ value: String?) -> String? {
+            guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
+            return trimmed
+        }
         var out: [NumberedStop] = []
         for chapter in chapters {
+            if chapter.nodes.isEmpty, freeExplore {
+                let guide = clean(TopicXcxFacts.chapterGuide(description: chapter.description))
+                out.append(.init(number: out.count + 1, chapterID: chapter.id, name: clean(chapter.name),
+                                 interactionType: nil, hookTeaser: guide ?? clean(chapter.description)))
+                continue
+            }
             for node in chapter.nodes {
-                let name = node.name?.trimmingCharacters(in: .whitespacesAndNewlines)
-                out.append(.init(number: out.count + 1, chapterID: chapter.id, name: (name?.isEmpty ?? true) ? nil : name, node: node))
+                out.append(.init(number: out.count + 1, chapterID: chapter.id, name: clean(node.name),
+                                 interactionType: clean(node.interactionType), hookTeaser: clean(node.hookTeaser)))
             }
         }
         return out

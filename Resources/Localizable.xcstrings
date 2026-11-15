@@ -192727,6 +192727,23 @@
         }
       }
     },
+    "roamSub.w208.share.footprints": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处到达"
+          }
+        }
+      }
+    },
     "roamSub.w208.share.lit": {
       "extractionState": "manual",
       "localizations": {

@@ -74,6 +74,14 @@ import XCTest
         XCTAssertEqual(model.state, .rejected("答案不正确"))
         XCTAssertFalse(c.unknownSubmission)
         XCTAssertNotEqual(c.state, .done)
+
+        for fullWidth in ["离据点太远，请到店后再完成", "照片地址不合法，请重新上传"] {
+            let outcome = ChallengePOIHTTPWriter.classifyHTTPResult(
+                statusCode: 200,
+                data: Data(#"{"code":400,"msg":"\#(fullWidth)"}"#.utf8)
+            )
+            XCTAssertEqual(outcome, .rejected(message: fullWidth))
+        }
     }
 
     func testNodeDecodesCoverUrlFallback() throws {
