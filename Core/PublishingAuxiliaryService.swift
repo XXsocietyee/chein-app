@@ -171,7 +171,7 @@ public struct PublishingSafetyIssue: Equatable {
               let requestID = prepareView["requestId"]?.text, G6AIThemeDraft.isServerID(requestID),
               let prepareState = prepareView["state"]?.text else { return .unknown }
         if prepareState == "SUCCEEDED" {
-            guard prepareView["resultAvailable"]?.bool == true, let result = prepareView["result"] else { return .unknown }
+            guard prepareView["resultAvailable"] == .bool(true), let result = prepareView["result"] else { return .unknown }
             try journal.clear(record); return .acknowledged(result)
         }
         if prepareState == "FAILED" {
@@ -192,7 +192,7 @@ public struct PublishingSafetyIssue: Equatable {
               let execState = execView["state"]?.text else { return .unknown }
         switch execState {
         case "SUCCEEDED":
-            guard execView["resultAvailable"]?.bool == true, let result = execView["result"] else { return .unknown }
+            guard execView["resultAvailable"] == .bool(true), let result = execView["result"] else { return .unknown }
             try journal.clear(record); return .acknowledged(result)
         case "FAILED":
             try journal.clear(record); return .rejected(execView["reasonCode"]?.text ?? execBody["msg"]?.text ?? "")

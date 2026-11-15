@@ -520,27 +520,29 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Task { await model.coordinator.loadMarketing(intent: intent) }
             }.accessibilityIdentifier("compliance.marketing.refresh")
         }
-        .sheet(item: Binding(
-            get: { marketingChange },
-            set: { if $0 == nil { marketingChange = nil } }
-        )) { change in
-            MemberMarketingConsentConfirmSheet(
-                merchantName: change.row.merchantName,
-                channelKey: String.LocalizationValue(stringLiteral: "compliance.channel." + change.channel.rawValue),
-                optedIn: change.optedIn
-            ) {
-                guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
-                marketingChange = nil
-                Task {
-                    await SessionOfflineSyncModel.shared.performWriteOptIn(
-                        environmentSession: offlineWriteSession.session,
-                        routes: ["/api/compliance/consents"]
-                    ) {
-                        await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
+        .sheet(isPresented: Binding(
+            get: { marketingChange != nil },
+            set: { if !$0 { marketingChange = nil } }
+        )) {
+            if let change = marketingChange {
+                MemberMarketingConsentConfirmSheet(
+                    merchantName: change.row.merchantName,
+                    channelKey: String.LocalizationValue(stringLiteral: "compliance.channel." + change.channel.rawValue),
+                    optedIn: change.optedIn
+                ) {
+                    guard scenePhase == .active, model.marketingRead() != nil else { marketingChange = nil; return }
+                    marketingChange = nil
+                    Task {
+                        await SessionOfflineSyncModel.shared.performWriteOptIn(
+                            environmentSession: offlineWriteSession.session,
+                            routes: ["/api/compliance/consents"]
+                        ) {
+                            await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
+                        }
                     }
                 }
+                .themeDomain(.player)
             }
-            .themeDomain(.player)
         }
     }
 }
