@@ -657,6 +657,22 @@
         }
       }
     },
+    "nearby.expiry.deadline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application deadline (server value)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请截止时间（服务端原文）"
+          }
+        }
+      }
+    },
     "nearby.expiry.rule": {
       "localizations": {
         "en": {

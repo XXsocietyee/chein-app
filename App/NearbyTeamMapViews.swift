@@ -169,15 +169,21 @@ struct NearbyTeamBadgeView: View {
 struct NearbyTeamSubLine: View {
     let team: NearbyTeam
     private var line: Text {
-        var line = Text(team.productType == 2 ? "nearby.freeExplore" : "nearby.urbanExplore")
+        var parts: [Text] = []
+        if let key = team.productLabelKey { parts.append(Text(LocalizedStringKey(key))) }
         if !team.addressName.isEmpty {
-            let place = NearbyTeamPresentation.placeIsGather(team) ? Text("nearby.w208.place.gather \(team.addressName)") : Text("nearby.w208.place.near \(team.addressName)")
-            line = line + Text(verbatim: " · ") + place
+            parts.append(NearbyTeamPresentation.placeIsGather(team) ? Text("nearby.w208.place.gather \(team.addressName)") : Text("nearby.w208.place.near \(team.addressName)"))
         }
-        if let distance = team.distance { line = line + Text(verbatim: " · ") + Text("nearby.w208.distance \(NearbyTeamPresentation.distanceText(distance))") }
-        return line
+        if let distance = team.distance { parts.append(Text("nearby.w208.distance \(NearbyTeamPresentation.distanceText(distance))")) }
+        guard var result = parts.first else { return Text(verbatim: "") }
+        for part in parts.dropFirst() { result = result + Text(verbatim: " · ") + part }
+        return result
     }
-    var body: some View { line.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+    var body: some View {
+        if team.productLabelKey != nil || !team.addressName.isEmpty || team.distance != nil {
+            line.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
 }
 
 /// `队长 X · 已组 N 人 · 还差 M 人满员 / 已满员`.
@@ -279,7 +285,7 @@ struct NearbyRecruitingSection: View {
                 }
                 NearbyTeamSubLine(team: team)
                 HStack {
-                    NearbyMineMembersText(joined: team.joinedCount, maximum: team.maxMembers > 0 ? team.maxMembers : nil)
+                    NearbyMineMembersText(joined: team.reportedJoinedCount, maximum: team.reportedMaxMembers)
                     Spacer()
                     Text("nearby.w208.recruit.onMap").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
                 }

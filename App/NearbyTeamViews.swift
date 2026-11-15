@@ -73,11 +73,11 @@ import SwiftUI
                         NearbyMapDiscoveryStatusView(model: discovery, filter: discoveryFilter) { reloadDiscovery(force: true) }
                     }
                     if discoverySources == nil || discoveryFilter.includesTeams {
-                    NearbyTeamCountLine(loaded: discoverySources == nil ? coordinator.context != nil : nearbyCurrentReadSucceeded, count: visibleTeams.count)
+                    NearbyTeamCountLine(loaded: discoverySources == nil ? (coordinator.authenticated && !model.running && coordinator.context != nil && coordinator.messageKey == nil) : nearbyCurrentReadSucceeded, count: visibleTeams.count)
                     if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.loading")) }
                     if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
                         NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
-                    } else if !model.running && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
+                    } else if !model.running && coordinator.authenticated && coordinator.context != nil && coordinator.messageKey == nil && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
                         CYEmptyState(systemImage: "person.3", "nearby.empty", detail: "nearby.w208.listEmpty")
                     }
                     }
@@ -145,13 +145,17 @@ import SwiftUI
             }
             .cyToast(verbatimMessage: $toastMessage)
             .task {
+                guard !Task.isCancelled else { return }
                 coordinator.resume()
+                if tab == 1 {
+                    await loadMine()
+                    return
+                }
                 if let context = initialContext {
                     latitude = String(context.latitude); longitude = String(context.longitude)
                     submitManualContext(.init(latitude: context.latitude, longitude: context.longitude, radius: radius))
-                    if tab == 0 { await model.run { await coordinator.loadNearby(.init(latitude: context.latitude, longitude: context.longitude, radius: radius)) } }
+                    await model.run { await coordinator.loadNearby(.init(latitude: context.latitude, longitude: context.longitude, radius: radius)) }
                 }
-                if tab == 1 { await loadMine() }
             }
             .onChange(of: tab) { _, value in if value == 1 { Task { await loadMine() } } }
             .onAppear { ownedReadVisible = true; ownedReadVisit = UUID(); reloadDiscovery(force: true) }
@@ -386,10 +390,11 @@ import SwiftUI
             }
             let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
-            if joinedTeamsStatus.isLoaded && !mine.failed {
+            let mineReady = !model.running && !mine.loading && coordinator.authenticated && coordinator.hasLoadedMine && coordinator.messageKey == nil && joinedTeamsStatus.isLoaded && !mine.failed
+            if mineReady {
                 LabeledContent("nearby.activeCount") { Text(verbatim: String(NearbyTeamBridge.activeCount(rows))) }
             }
-            if !rows.isEmpty && joinedTeamsStatus.isLoaded && !mine.failed {
+            if !rows.isEmpty && mineReady {
                 HStack(spacing: 8) {
                     ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
                         VStack(spacing: 2) {
@@ -401,7 +406,7 @@ import SwiftUI
                     }
                 }.padding(.vertical, 8)
             }
-            if rows.isEmpty && joinedTeamsStatus.isLoaded && mine.loaded && !mine.loading && !mine.failed {
+            if rows.isEmpty && mine.loaded && mineReady {
                 CYEmptyState(systemImage: "person.3", "nearby.w208.mine.empty", messageIdentifier: "nearby.mine.empty",
                              actionTitle: "nearby.mine.findOnMap", actionIdentifier: "nearby.mine.findOnMap", actionStyle: .primary) { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }
                 NearbyRecruitingSection(state: recruiting, teams: recruiting == .loaded ? NearbyTeamPresentation.recruiting(coordinator.teams) : [],
@@ -464,7 +469,13 @@ import SwiftUI
     @ViewBuilder private func expiry(_ value: NearbyServerTime?) -> some View {
         if let minutes = value?.remainingMinutes(now: Date()) {
             LabeledContent("nearby.expiry") { Text(verbatim: "\(minutes < 60 ? minutes : minutes / 60)"); Text(minutes < 60 ? "nearby.minutes" : "nearby.hours") }
-        }
+        } else if let value, case .text(let raw) = value, value.date() != nil {
+            // Preserve the server text: offset-free timestamps have no verified
+            // source time zone. This is not a server application-status verdict.
+            LabeledContent("nearby.expiry.deadline") {
+                Text(verbatim: raw).fixedSize(horizontal: false, vertical: true)
+            }
+        } else { Text("nearby.expiry.rule").font(.footnote) }
     }
 }
 @MainActor private struct NearbyTeamReviewView: View {

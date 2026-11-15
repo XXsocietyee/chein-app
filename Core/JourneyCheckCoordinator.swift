@@ -7,12 +7,20 @@ import Observation
     public private(set) var problem: JourneyCheckProblem?
     public private(set) var receipt: JourneyCheckReceipt?
     public private(set) var review: JourneyCheckReview?
-    public private(set) var pending: JourneyCheckReview?
+    private var storedPending: JourneyCheckReview?
+    public private(set) var pending: JourneyCheckReview? {
+        get { identity != nil && identity == currentSession() ? storedPending : nil }
+        set { storedPending = newValue }
+    }
     public private(set) var acting = false
     public private(set) var nodeDone = false
     public private(set) var visible = false
     public private(set) var unknown = false
-    public private(set) var issue: String?
+    private var storedIssue: String?
+    public private(set) var issue: String? {
+        get { identity != nil && identity == currentSession() ? storedIssue : nil }
+        set { storedIssue = newValue }
+    }
     private let journal: any JourneyCheckJournal
     private let service: JourneyContentService
     private let currentSession: () -> PlayExperienceSession?
@@ -27,7 +35,7 @@ import Observation
         self.journal = journal ?? JourneyMemoryCheckJournal(); self.currentSession = currentSession; unauthorized = onUnauthorized; identity = currentSession()
     }
     public var canRecover: Bool { unknown && pending != nil && !acting && available }
-    public var available: Bool { service.checksEnabled && !nodeDone && currentSession() != nil }
+    public var available: Bool { service.checksEnabled && !nodeDone && identity != nil && identity == currentSession() }
     public func synchronize() {
         roleContent.synchronize()
         guard identity != currentSession() else { return }
@@ -39,6 +47,7 @@ import Observation
         if done { visible = false; review = nil }
     }
     public func probe(nodeDone: Bool) async {
+        guard !Task.isCancelled else { return }
         synchronize(); updateNodeDone(nodeDone)
         guard !nodeDone, !probed, !acting, !unknown, scope.isValid, topicID > 0, nodeID > 0,
               let session = identity else { return }
@@ -85,6 +94,7 @@ import Observation
     }
     public func cancelReview() { review = nil }
     public func confirm(_ approved: JourneyCheckReview) async {
+        guard !Task.isCancelled else { return }
         synchronize()
         guard available, review == approved, approved.session == identity, !acting,
               approved.topicID == topicID, approved.nodeID == nodeID,
