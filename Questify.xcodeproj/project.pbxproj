@@ -19154,6 +19154,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "C17E00050000000000000005";
 		};
+		"C17E00110000000000000011" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CityMonopolyService.swift";
+			"sourceTree" = "<group>";
+		};
+		"C17E00120000000000000012" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C17E00110000000000000011";
+		};
+		"C17E000D000000000000000D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CityMonopolyContracts.swift";
+			"sourceTree" = "<group>";
+		};
+		"C17E000E000000000000000E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C17E000D000000000000000D";
+		};
 		"893B72F8EFE4B123E2D1DE7A" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -41037,6 +41057,8 @@
 				"74B161E2FF3B0E230DC2C49C",
 				"C17E00030000000000000003",
 				"C17E00050000000000000005",
+				"C17E00110000000000000011",
+				"C17E000D000000000000000D",
 				"893B72F8EFE4B123E2D1DE7A",
 				"749AC63509B5FFD2D2423078",
 				"2F33D6B819E91A99924EFEBD",
@@ -46110,6 +46132,8 @@
 				"A55BAF216CD453105B805BDF",
 				"C17E00040000000000000004",
 				"C17E00060000000000000006",
+				"C17E00120000000000000012",
+				"C17E000E000000000000000E",
 				"007D01EA2B6308B7C4392F96",
 				"6D86DA4088F89CAA615C8850",
 				"10FCA2B8E8BB7BF2261E2ED2",
