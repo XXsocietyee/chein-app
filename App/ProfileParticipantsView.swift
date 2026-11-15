@@ -386,29 +386,31 @@ struct ProfileParticipantDetailView: View {
         if case .outcomeUnknown = coordinator.state { return true }; return false
     }
     var body: some View {
-        if let coordinator, usesManagement {
-            ParticipantManagementDetailView(id: id, reader: reader, coordinator: coordinator)
-                } else {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participant.detail", load: { try await reader.profileParticipant(id: id) }) { participant in
-            List {
-                Section("profile.participants.contact") {
-                    // Blank name or phone is unknown: em dash, never an invented value.
-                    LabeledContent("profile.participants.name") {
-                        Text(verbatim: ProfileParticipantDisplay.text(participant.fullName)).textSelection(.enabled)
-                    }
-                    LabeledContent("profile.participants.phone") {
-                        Text(verbatim: ProfileParticipantDisplay.text(participant.mobilePhone)).monospacedDigit().textSelection(.enabled)
+        Group {
+            if let coordinator, usesManagement {
+                ParticipantManagementDetailView(id: id, reader: reader, coordinator: coordinator)
+            } else {
+                ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participant.detail", load: { try await reader.profileParticipant(id: id) }) { participant in
+                    List {
+                        Section("profile.participants.contact") {
+                            // Blank name or phone is unknown: em dash, never an invented value.
+                            LabeledContent("profile.participants.name") {
+                                Text(verbatim: ProfileParticipantDisplay.text(participant.fullName)).textSelection(.enabled)
+                            }
+                            LabeledContent("profile.participants.phone") {
+                                Text(verbatim: ProfileParticipantDisplay.text(participant.mobilePhone)).monospacedDigit().textSelection(.enabled)
+                            }
+                        }
+                        if !participant.oneLineAddress.isEmpty {
+                            Section("profile.participants.savedAddress") {
+                                Text(verbatim: participant.oneLineAddress).textSelection(.enabled)
+                            }
+                        }
                     }
                 }
-                if !participant.oneLineAddress.isEmpty {
-                    Section("profile.participants.savedAddress") {
-                        Text(verbatim: participant.oneLineAddress).textSelection(.enabled)
-                    }
-                }
+                .appNavigationTitle("profile.participants.detail")
+                .navigationBarTitleDisplayMode(.inline)
             }
-        }
-        .appNavigationTitle("profile.participants.detail")
-        .navigationBarTitleDisplayMode(.inline)
         }
         .cyDomainScreen(ThemeDomain.player)
     }
