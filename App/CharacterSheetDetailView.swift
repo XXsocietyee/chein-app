@@ -121,6 +121,7 @@ import QuestifyCore
                             tone: item.isUnknown ? .warning : .info,
                             systemImage: item.icon
                         )
+                        .accessibilityIdentifier("characterSheet.environment.\(item.key)")
                     }
                 }
             }
@@ -130,6 +131,7 @@ import QuestifyCore
                     tone: .warning,
                     systemImage: "cloud.slash"
                 )
+                .accessibilityIdentifier("characterSheet.environment.unknown")
             }
         }
         .accessibilityElement(children: .contain)

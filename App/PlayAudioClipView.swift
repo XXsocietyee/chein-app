@@ -118,14 +118,17 @@ import SwiftUI
                 LabeledContent("playx.audioClip.minimum") {
                     Text(verbatim: "\(model.configuration.minDurationSeconds) s")
                 }
+                .accessibilityIdentifier("playx.audioClip.minimum")
                 LabeledContent("playx.audioClip.elapsed") {
                     Text(verbatim: "\(model.elapsedSeconds) s")
                 }
+                .accessibilityIdentifier("playx.audioClip.elapsed")
                 CYStatusChip(
-                    LocalizedStringKey("playx.audioClip.phase." + model.phase.rawValue),
+                    LocalizedStringKey(phaseKey),
                     tone: statusTone,
                     systemImage: statusIcon
                 )
+                .accessibilityIdentifier("playx.audioClip.phase")
             }
 
             Section {
@@ -134,29 +137,39 @@ import SwiftUI
                     if model.phase == .failed {
                         Text("playx.audioClip.retryHint")
                             .font(CYTypography.meta)
+                            .accessibilityIdentifier("playx.audioClip.retryHint")
                     }
                     CYPillButton("playx.audioClip.start") {
                         Task { await model.start() }
                     }
                     .disabled(!canWrite)
+                    .accessibilityLabel(Text("playx.audioClip.start"))
+                    .accessibilityHint(Text("playx.audioClip.start.hint"))
                     .accessibilityIdentifier("playx.audioClip.start")
                 case .recording:
                     CYPillButton("playx.audioClip.stopAndUpload") {
                         Task { await model.stopAndUpload(using: uploadAudio) }
                     }
                     .disabled(!canWrite || !model.meetsMinimumDuration)
+                    .accessibilityLabel(Text("playx.audioClip.stopAndUpload"))
+                    .accessibilityHint(Text("playx.audioClip.stop.hint"))
                     .accessibilityIdentifier("playx.audioClip.stop")
                     Button("playx.audioClip.cancel", role: .cancel) {
                         model.reset()
                     }
+                    .accessibilityLabel(Text("playx.audioClip.cancel"))
+                    .accessibilityIdentifier("playx.audioClip.cancel")
                 case .uploading:
-                    CYSkeleton().accessibilityLabel(Text("playx.loading"))
+                    CYSkeleton()
+                        .accessibilityLabel(Text("playx.loading"))
+                        .accessibilityIdentifier("playx.audioClip.uploading")
                 case .completed:
                     if let payload = model.sourcePayload {
                         CYPillButton("playx.review") {
                             onSubmit(payload)
                         }
                         .disabled(!canWrite)
+                        .accessibilityLabel(Text("playx.review"))
                         .accessibilityIdentifier("playx.audioClip.review")
                     }
                 }
@@ -185,6 +198,16 @@ import SwiftUI
         case .failed: return .danger
         case .recording, .uploading: return .info
         case .idle: return .neutral
+        }
+    }
+
+    private var phaseKey: String {
+        switch model.phase {
+        case .idle: return "playx.audioClip.phase.idle"
+        case .recording: return "playx.audioClip.phase.recording"
+        case .uploading: return "playx.audioClip.phase.uploading"
+        case .completed: return "playx.audioClip.phase.completed"
+        case .failed: return "playx.audioClip.phase.failed"
         }
     }
 

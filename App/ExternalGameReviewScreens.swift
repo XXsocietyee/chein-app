@@ -68,6 +68,8 @@ import QuestifyCore
                     showCreatorMonetization = true
                 }
                 .font(CYTypography.label)
+                .accessibilityLabel(W8Text.t("创作者定价与流量收益", "Creator Pricing & Traffic"))
+                .accessibilityHint(W8Text.t("打开创作者变现配置与节点绑定面板", "Open creator monetization and node binding sheet"))
                 .accessibilityIdentifier("externalGame.creatorMonetization")
             }
         }
@@ -106,11 +108,14 @@ import QuestifyCore
                         Task { _ = await model.purchaseGame(gameID: row.gameID, session: session) }
                     }
                     .font(CYTypography.label)
+                    .accessibilityLabel(W8Text.t("解锁购买 \(row.name)", "Purchase \(row.name)"))
+                    .accessibilityHint(W8Text.t("发起 TEST 环境模拟购买并解锁下载", "Trigger a test purchase to unlock download and play"))
                     .accessibilityIdentifier("externalGame.purchase.\(row.gameID)")
                 } else {
                     Text(verbatim: W8Text.t("付费内容 · 当前环境未开启支付", "Paid game · payments disabled here"))
                         .font(CYTypography.meta)
                         .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("externalGame.paymentsDisabled.\(row.gameID)")
                 }
             } else {
                 CurA11yTextButton(
@@ -400,24 +405,31 @@ import QuestifyCore
                     TextField(W8Text.t("外部游戏 gameId", "Game ID"), text: $gameID)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .accessibilityLabel(W8Text.t("外部游戏编号", "External game ID"))
+                        .accessibilityIdentifier("externalGame.monetization.gameID")
                     Picker(W8Text.t("定价模式", "Pricing Mode"), selection: $pricingMode) {
                         Text(W8Text.t("仅流量激励", "Traffic Only")).tag("TRAFFIC_ONLY")
                         Text(W8Text.t("付费购买 (TEST)", "Paid (TEST)")).tag("PAID")
                         Text(W8Text.t("免费无激励", "Free")).tag("FREE")
                     }
+                    .accessibilityIdentifier("externalGame.monetization.pricingMode")
                     if pricingMode == "PAID" {
                         TextField(W8Text.t("售价（元）", "Price (CNY)"), text: $priceYuanText)
                             .keyboardType(.decimalPad)
+                            .accessibilityLabel(W8Text.t("售价（元）", "Price in CNY"))
+                            .accessibilityIdentifier("externalGame.monetization.priceYuan")
                     }
                     Picker(W8Text.t("流量激励模式", "Traffic Mode"), selection: $trafficRewardMode) {
                         Text(W8Text.t("积分 (POINTS)", "Points")).tag("POINTS")
                         Text(W8Text.t("TEST 现金", "TEST Cash")).tag("TEST_MONEY")
                         Text(W8Text.t("关闭", "None")).tag("NONE")
                     }
+                    .accessibilityIdentifier("externalGame.monetization.trafficMode")
                     Picker(W8Text.t("通道手续费", "Channel Fee"), selection: $channelFeeBearer) {
                         Text(W8Text.t("创作者承担", "Creator")).tag(0)
                         Text(W8Text.t("平台承担", "Platform")).tag(1)
                     }
+                    .accessibilityIdentifier("externalGame.monetization.feeBearer")
                     Button(isSaving ? W8Text.t("提交中...", "Submitting...") : W8Text.t("保存并提交审核", "Save & Submit Review")) {
                         let yuan = Double(priceYuanText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
                         let fen = max(0, Int((yuan * 100.0).rounded()))
@@ -435,14 +447,19 @@ import QuestifyCore
                         }
                     }
                     .disabled(gameID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSaving)
+                    .accessibilityHint(W8Text.t("保存变现配置并提交审核", "Save monetization configuration and submit for review"))
                     .accessibilityIdentifier("externalGame.saveMonetization")
                 }
 
                 Section(W8Text.t("绑定到主题节点", "Bind to Journey Node")) {
                     TextField(W8Text.t("节点 ID (nodeId)", "Node ID"), text: $nodeIDText)
                         .keyboardType(.numberPad)
+                        .accessibilityLabel(W8Text.t("目标主题节点编号", "Target journey node ID"))
+                        .accessibilityIdentifier("externalGame.monetization.nodeID")
                     TextField(W8Text.t("最低通关分 (0 不限)", "Min Score"), text: $minScoreText)
                         .keyboardType(.numberPad)
+                        .accessibilityLabel(W8Text.t("最低通关分数", "Minimum passing score"))
+                        .accessibilityIdentifier("externalGame.monetization.minScore")
                     Button(W8Text.t("绑定外部游戏到此节点", "Bind Game to Node")) {
                         guard let nid = Int(nodeIDText.trimmingCharacters(in: .whitespacesAndNewlines)) else { return }
                         let minScore = Int(minScoreText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
@@ -456,12 +473,14 @@ import QuestifyCore
                         }
                     }
                     .disabled(gameID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || Int(nodeIDText) == nil)
+                    .accessibilityHint(W8Text.t("将所选外部游戏绑定到指定主题节点", "Bind the selected external game to the specified journey node"))
                     .accessibilityIdentifier("externalGame.bindNode")
                 }
 
                 if !model.notice.isEmpty {
                     Section {
                         Text(verbatim: model.notice).font(CYTypography.meta)
+                            .accessibilityIdentifier("externalGame.monetization.notice")
                     }
                 }
             }
@@ -469,8 +488,10 @@ import QuestifyCore
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(W8Text.t("关闭", "Close")) { dismiss() }
+                        .accessibilityIdentifier("externalGame.monetization.close")
                 }
             }
+            .accessibilityIdentifier("externalGame.monetizationSheet")
             .task {
                 if gameID.isEmpty, let first = model.catalog.first?.gameID {
                     gameID = first

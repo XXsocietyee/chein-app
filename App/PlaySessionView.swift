@@ -130,6 +130,7 @@ struct PlaySessionView: View {
                                         Text(verbatim: snapshot.lockReason(node) ?? CoreLoopCopy(locale: locale).t("等待对应天气或时段触发", "Waiting for weather condition"))
                                             .font(.caption)
                                             .foregroundStyle(CYColor.warningText)
+                                            .accessibilityIdentifier("play.node.weatherLock.\(node.id)")
                                     }
                                 }
                                 Spacer(minLength: 4)

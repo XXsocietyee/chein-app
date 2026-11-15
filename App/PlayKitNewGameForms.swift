@@ -16,6 +16,8 @@ extension PlayKitScreen {
                 selected = ["true"]
                 dirty = true
             }
+            .accessibilityLabel(Text(verbatim: appLocalized("playkit.trueFalse.true", locale: .current)))
+            .accessibilityAddTraits(selected.contains("true") ? .isSelected : [])
             .accessibilityIdentifier("playkit.trueFalse.true")
 
             CYChoiceRow(
@@ -30,6 +32,8 @@ extension PlayKitScreen {
                 selected = ["false"]
                 dirty = true
             }
+            .accessibilityLabel(Text(verbatim: appLocalized("playkit.trueFalse.false", locale: .current)))
+            .accessibilityAddTraits(selected.contains("false") ? .isSelected : [])
             .accessibilityIdentifier("playkit.trueFalse.false")
         }
         submitButton(
@@ -60,6 +64,7 @@ extension PlayKitScreen {
             artwork(raw["imageUrl"].text)
                 .blur(radius: blurRadius)
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .accessibilityLabel(Text("playkit.imageGuess.artworkLabel"))
                 .accessibilityIdentifier("playkit.imageGuess.artwork")
 
             HStack(spacing: CYSpacing.sm) {
@@ -68,9 +73,11 @@ extension PlayKitScreen {
                     tone: projection.complete ? .success : .info,
                     systemImage: projection.complete ? "eye.fill" : "sparkles"
                 )
+                .accessibilityIdentifier("playkit.imageGuess.revealPct")
                 if totalClues > 0 {
                     Text("playkit.imageGuess.cluesCount \(revealLevel) \(totalClues)")
                         .font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playkit.imageGuess.cluesCount")
                 }
             }
         }
@@ -85,6 +92,7 @@ extension PlayKitScreen {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(CYSpacing.md)
             .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.glassFill))
+            .accessibilityIdentifier("playkit.imageGuess.clues")
         }
 
         if totalClues > revealLevel && enabled {
@@ -93,12 +101,14 @@ extension PlayKitScreen {
                 HapticsService.shared.play(.selection)
                 prepare("SUBMIT_IMAGE_GUESS", ["action": .string("REVEAL_STEP")], {})
             }
+            .accessibilityLabel(Text("playkit.imageGuess.revealNext"))
             .accessibilityIdentifier("playkit.imageGuess.revealNext")
         }
 
         TextField("playkit.imageGuess.guessPlaceholder", text: textBinding(limit: 200))
             .cyField()
             .disabled(!enabled)
+            .accessibilityLabel(Text("playkit.imageGuess.guessPlaceholder"))
             .accessibilityIdentifier("playkit.imageGuess.input")
 
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -144,6 +154,7 @@ extension PlayKitScreen {
                     Text("playkit.scratch.revealedPlaceholder")
                         .font(CYTypography.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("playkit.scratchCard.placeholder")
                 }
                 if let url = raw["revealImageUrl"].text, !url.isEmpty {
                     artwork(url)

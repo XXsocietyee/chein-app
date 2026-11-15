@@ -179,6 +179,7 @@ enum DesignFixtureRegistry {
             if name.hasPrefix("cur8-"), let cur8 = CurFixtures8.make(name) { return cur8 }
             if name.hasPrefix("ugc-"), let ugc = UGCSafetyFixtures.make(name) { return ugc }
             if name.hasPrefix("premerge-"), let premerge = PremergeChineseFixtures.make(name) { return premerge }
+            if name.hasPrefix("hfeat-"), let hfeat = NewFeatureFixtures.make(name) { return hfeat }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }

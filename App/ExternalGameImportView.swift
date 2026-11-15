@@ -429,6 +429,7 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                             Text(verbatim: W8Text.t("结果已签名上报：+\(outcome.xpAwarded) 探索值\(medalText)\(nodeText)", "Signed result: +\(outcome.xpAwarded) XP\(medalText)\(nodeText)"))
                                 .font(CYTypography.meta)
                                 .foregroundStyle(CYColor.textPrimary)
+                                .accessibilityIdentifier("externalGame.signedResult")
                         } else if sessionTicket != nil {
                             Button(isSubmittingResult ? W8Text.t("正在签名提交...", "Submitting...") : W8Text.t("完成并签名上报结果", "Submit signed result")) {
                                 Task {
@@ -437,6 +438,8 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                             }
                             .font(CYTypography.label)
                             .disabled(isSubmittingResult)
+                            .accessibilityLabel(W8Text.t("完成并签名上报结果", "Submit signed result"))
+                            .accessibilityHint(W8Text.t("把本次外部游戏成绩签名提交给服务器结算", "Submit the signed external game result to the server"))
                             .accessibilityIdentifier("externalGame.submitSignedResult")
                         }
                         Spacer()

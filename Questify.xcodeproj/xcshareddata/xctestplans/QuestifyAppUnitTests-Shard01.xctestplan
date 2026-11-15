@@ -323,6 +323,7 @@
         "NearbyMapDiscoveryRecoveryTests",
         "NearbyMerchantNormalCompositionTests",
         "NetworkReachabilityAndRetryBackoffSectionViewTests",
+        "NewFeatureViewsAndModelsTests",
         "NicknameC6HostTests",
         "NonCashRewardDetailCompositionTests",
         "OfficialActionPresentationModelTests",

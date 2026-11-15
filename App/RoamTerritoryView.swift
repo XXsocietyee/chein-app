@@ -37,7 +37,25 @@ import SwiftUI
     var captureFix: (@MainActor () async throws -> RoamDeviceFix)? = nil
 
     @Environment(\.locale) private var locale
-    @State private var selectedTab: Tab = .nearby
+    @State private var selectedTab: Tab
+
+    init(
+        service: RoamTerritoryService?,
+        cityGameService: CityGameHTTPService? = nil,
+        boardId: String? = nil,
+        initialCoordinate: RoamCoordinate? = nil,
+        photoContext: RetainedImageSelectionContext? = nil,
+        captureFix: (@MainActor () async throws -> RoamDeviceFix)? = nil,
+        initialTab: Tab = .nearby
+    ) {
+        self.service = service
+        self.cityGameService = cityGameService
+        self.boardId = boardId
+        self.initialCoordinate = initialCoordinate
+        self.photoContext = photoContext
+        self.captureFix = captureFix
+        self._selectedTab = State(initialValue: initialTab)
+    }
     @State private var loading = false
     @State private var busyAction = false
     @State private var errorMessage: String?
@@ -69,16 +87,21 @@ import SwiftUI
                         detail: Text(verbatim: copy("请先登录并在已开放的城市区域中打开。", "Sign in inside an open CITY region to use merged territory.")),
                         primaryVerbatim: nil
                     )
+                    .accessibilityIdentifier("roamTerritory.unavailable")
                 } else {
                     tabBar
                     if let statusMessage {
                         CYNoteBanner(text: Text(verbatim: statusMessage), symbol: "checkmark.seal", tone: .success)
+                            .accessibilityIdentifier("roamTerritory.status")
                     }
                     if let errorMessage {
                         CYNoteBanner(text: Text(verbatim: errorMessage), symbol: "exclamationmark.triangle", tone: .warning)
+                            .accessibilityIdentifier("roamTerritory.error")
                     }
                     if loading {
                         CYSkeleton()
+                            .accessibilityLabel(Text(verbatim: copy("正在加载领地信息", "Loading territory data")))
+                            .accessibilityIdentifier("roamTerritory.loading")
                     }
                     if let item = claimingItem {
                         claimSheetCard(item)
@@ -100,14 +123,23 @@ import SwiftUI
                 selectedTab = .nearby
                 Task { await reloadAll() }
             }
+            .accessibilityLabel(Text(verbatim: copy("附近格子", "Nearby")))
+            .accessibilityAddTraits(selectedTab == .nearby ? .isSelected : [])
+            .accessibilityIdentifier("roamTerritory.tab.nearby")
             CYPillButton(verbatim: copy("我的领地", "Mine"), style: selectedTab == .mine ? .primary : .secondary, fullWidth: false) {
                 selectedTab = .mine
                 Task { await reloadAll() }
             }
+            .accessibilityLabel(Text(verbatim: copy("我的领地", "Mine")))
+            .accessibilityAddTraits(selectedTab == .mine ? .isSelected : [])
+            .accessibilityIdentifier("roamTerritory.tab.mine")
             CYPillButton(verbatim: copy("赛季排行", "Leaderboard"), style: selectedTab == .leaderboard ? .primary : .secondary, fullWidth: false) {
                 selectedTab = .leaderboard
                 Task { await reloadAll() }
             }
+            .accessibilityLabel(Text(verbatim: copy("赛季排行", "Leaderboard")))
+            .accessibilityAddTraits(selectedTab == .leaderboard ? .isSelected : [])
+            .accessibilityIdentifier("roamTerritory.tab.leaderboard")
         }
     }
 
@@ -128,16 +160,21 @@ import SwiftUI
                 Task { await loadNearby(useGPS: false) }
             }
             .disabled(loading || busyAction)
+            .accessibilityLabel(Text(verbatim: copy("刷新附近格子", "Refresh nearby spaces")))
+            .accessibilityIdentifier("roamTerritory.nearby.refresh")
             if captureFix != nil {
                 CYPillButton(verbatim: copy("用当前位置加载", "Use GPS"), style: .tertiary, systemImage: "location", fullWidth: false) {
                     Task { await loadNearby(useGPS: true) }
                 }
                 .disabled(loading || busyAction)
+                .accessibilityLabel(Text(verbatim: copy("用当前位置加载附近格子", "Load nearby spaces with GPS")))
+                .accessibilityIdentifier("roamTerritory.nearby.gps")
             }
         }
 
         if let items = nearby?.items, !items.isEmpty {
             ForEach(items) { item in
+                let resolvedOwner = item.ownerNickname ?? item.ownerMemberId.map { "#\($0)" }
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(verbatim: item.title ?? item.pointId ?? item.id)
                         .font(CYTypography.cardTitle)
@@ -151,7 +188,8 @@ import SwiftUI
                             CYStatusChip(verbatim: "\(Int(dist))m", tone: .neutral)
                         }
                     }
-                    CYFactRow(label: Text(verbatim: copy("地主", "Owner")), value: item.ownerNickname ?? (item.ownerMemberId.map { "#\($0)" } ?? "—"))
+                    CYFactRow(label: Text(verbatim: copy("地主", "Owner")), value: resolvedOwner ?? "—")
+                        .accessibilityLabel(Text(verbatim: copy("地主 \(resolvedOwner ?? copy("未知", "Unknown"))", "Owner \(resolvedOwner ?? copy("Unknown", "Unknown"))")))
                     CYFactRow(label: Text(verbatim: copy("打卡积分收益", "Check-in revenue (pts)")), value: "\(item.ownerRevenuePoints) pts")
                     CYFactRow(label: Text(verbatim: copy("访客过路积分", "Visitor toll (pts)")), value: "\(item.checkinTollPoints) pts")
                     HStack(spacing: CYSpacing.sm) {
@@ -161,26 +199,33 @@ import SwiftUI
                             errorMessage = nil
                         }
                         .disabled(busyAction || item.isProtected || photoContext == nil || captureFix == nil)
+                        .accessibilityLabel(Text(verbatim: copy("照片占领 \(item.title ?? item.pointId ?? item.id)", "Claim \(item.title ?? item.pointId ?? item.id) with photo")))
+                        .accessibilityIdentifier("roamTerritory.claim.\(item.id)")
 
                         if item.claimed {
                             CYPillButton(verbatim: copy("打卡 (+积分)", "Check in"), style: .secondary, fullWidth: false) {
                                 Task { await submitCheckin(item) }
                             }
                             .disabled(busyAction || captureFix == nil)
+                            .accessibilityLabel(Text(verbatim: copy("打卡 \(item.title ?? item.pointId ?? item.id)", "Check in at \(item.title ?? item.pointId ?? item.id)")))
+                            .accessibilityIdentifier("roamTerritory.checkin.\(item.id)")
                         }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                .accessibilityIdentifier("roamTerritory.nearby.card.\(item.id)")
             }
         } else if !loading {
             CYEmptyState(systemImage: "map", LocalizedStringKey(copy("附近暂无已映射棋盘格子", "No mapped board spaces nearby")))
+                .accessibilityIdentifier("roamTerritory.nearby.empty")
         }
     }
 
     @ViewBuilder private var myTerritoriesSection: some View {
         if myRows.isEmpty, !loading {
             CYEmptyState(systemImage: "flag", LocalizedStringKey(copy("暂未占领领地", "No claimed territories yet")))
+                .accessibilityIdentifier("roamTerritory.mine.empty")
         } else {
             ForEach(myRows) { row in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -188,11 +233,13 @@ import SwiftUI
                         .font(CYTypography.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                     CYFactRow(label: Text(verbatim: copy("状态", "Status")), value: row.status ?? "—")
+                        .accessibilityLabel(Text(verbatim: copy("状态 \(row.status ?? copy("未知", "Unknown"))", "Status \(row.status ?? "Unknown")")))
                     CYFactRow(label: Text(verbatim: copy("累计积分收益", "Total revenue (pts)")), value: "\(row.revenueTotalPoints ?? 0) pts")
                     CYFactRow(label: Text(verbatim: copy("打卡次数", "Check-ins")), value: "\(row.checkinCount ?? 0)")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                .accessibilityIdentifier("roamTerritory.mine.card.\(row.territoryId)")
             }
         }
     }
@@ -211,9 +258,11 @@ import SwiftUI
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                .accessibilityIdentifier("roamTerritory.leaderboard.card.\(leader.ownerMemberId)")
             }
         } else if !loading {
             CYEmptyState(systemImage: "trophy", LocalizedStringKey(copy("暂无赛季排行数据", "No leaderboard entries yet")))
+                .accessibilityIdentifier("roamTerritory.leaderboard.empty")
         }
 
         if let cityGameService, let resolvedBoardId = boardId ?? nearby?.boardId ?? leaderboard?.boardId {
@@ -224,10 +273,14 @@ import SwiftUI
                         Task { await rollUnifiedDice(service: cityGameService, boardId: resolvedBoardId) }
                     }
                     .disabled(busyAction)
+                    .accessibilityLabel(Text(verbatim: copy("统一掷骰", "Unified Roll")))
+                    .accessibilityIdentifier("roamTerritory.dice.roll")
                     CYPillButton(verbatim: copy("读取审计", "Load Audit"), style: .secondary, fullWidth: false) {
                         Task { await loadDiceAudit(service: cityGameService, boardId: resolvedBoardId) }
                     }
                     .disabled(busyAction)
+                    .accessibilityLabel(Text(verbatim: copy("读取骰子审计记录", "Load dice audit")))
+                    .accessibilityIdentifier("roamTerritory.dice.audit")
                 }
                 if let receipt = lastRollReceipt {
                     CYNoteBanner(
@@ -238,6 +291,7 @@ import SwiftUI
                         symbol: "dice",
                         tone: .success
                     )
+                    .accessibilityIdentifier("roamTerritory.dice.receipt")
                 }
                 if let audit = auditReport {
                     ForEach(audit.rolls.prefix(10)) { row in
@@ -248,6 +302,7 @@ import SwiftUI
                                 "face \(row.faceValue ?? 0) · pos \(row.previousPosition ?? 0)->\(row.newPosition ?? 0)"
                             )
                         )
+                        .accessibilityIdentifier("roamTerritory.dice.auditRow.\(row.id)")
                     }
                 }
             }
@@ -275,13 +330,18 @@ import SwiftUI
                     Task { await submitClaim(item) }
                 }
                 .disabled(busyAction || uploadedPhotoURL == nil || captureFix == nil)
+                .accessibilityLabel(Text(verbatim: copy("确认 GPS 占领", "Confirm Claim")))
+                .accessibilityIdentifier("roamTerritory.claimSheet.confirm")
                 CYPillButton(verbatim: copy("取消", "Cancel"), style: .tertiary, fullWidth: false) {
                     claimingItem = nil
                     uploadedPhotoURL = nil
                 }
+                .accessibilityLabel(Text(verbatim: copy("取消占领", "Cancel claim")))
+                .accessibilityIdentifier("roamTerritory.claimSheet.cancel")
             }
         }
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+        .accessibilityIdentifier("roamTerritory.claimSheet")
     }
 
     private func reloadAll() async {
