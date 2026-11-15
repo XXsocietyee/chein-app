@@ -117,7 +117,13 @@ import WebKit
             )
         }
         .sheet(item: $store.activeLaunchingGame) { game in
-            ExternalGameRunnerSheet(store: store, game: game, onReport: { reportGame = game })
+            ExternalGameRunnerSheet(
+                store: store,
+                game: game,
+                session: session,
+                review: review,
+                onReport: { reportGame = game }
+            )
         }
         .navigationDestination(isPresented: $showSubmissions) {
             ExternalGameSubmissionsScreen(model: review, session: session)
@@ -353,13 +359,28 @@ import WebKit
     }
 }
 
+struct ExternalGameNodePlayContext: Equatable, Sendable {
+    let nodeID: Int
+    let topicID: Int?
+    let activityID: Int?
+}
+
 @available(macOS 14.0, *)
-@MainActor private struct ExternalGameRunnerSheet: View {
+@MainActor struct ExternalGameRunnerSheet: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     let store: ExternalGameStore
     let game: InstalledExternalGame
+    var session: ExternalGameSessionBridge? = nil
+    var review: ExternalGameReviewModel? = nil
+    var nodeContext: ExternalGameNodePlayContext? = nil
+    var onResultSubmitted: ((ExternalGameResultOutcome) -> Void)? = nil
     var onReport: () -> Void = {}
     @State private var confirmsBlock = false
+    @State private var sessionTicket: ExternalGameSessionTicket?
+    @State private var startedAt = Date()
+    @State private var resultOutcome: ExternalGameResultOutcome?
+    @State private var isSubmittingResult = false
 
     var body: some View {
         NavigationStack {
@@ -399,12 +420,56 @@ import WebKit
                     systemImage: "safari"
                 )
                 #endif
+
+                if session != nil {
+                    HStack(spacing: CYSpacing.sm) {
+                        if let outcome = resultOutcome {
+                            let medalText = outcome.medalRank.map { W8Text.t(" · 勋章第\($0)名", " · Medal #\($0)") } ?? ""
+                            let nodeText = outcome.nodeCompleted ? W8Text.t(" · 节点已通关", " · Node done") : ""
+                            Text(verbatim: W8Text.t("结果已签名上报：+\(outcome.xpAwarded) 探索值\(medalText)\(nodeText)", "Signed result: +\(outcome.xpAwarded) XP\(medalText)\(nodeText)"))
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textPrimary)
+                        } else if sessionTicket != nil {
+                            Button(isSubmittingResult ? W8Text.t("正在签名提交...", "Submitting...") : W8Text.t("完成并签名上报结果", "Submit signed result")) {
+                                Task {
+                                    await reportSignedResult(passed: true, score: nil, digest: nil)
+                                }
+                            }
+                            .font(CYTypography.label)
+                            .disabled(isSubmittingResult)
+                            .accessibilityIdentifier("externalGame.submitSignedResult")
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, CYSpacing.md)
+                    .padding(.vertical, CYSpacing.xs)
+                    .background(CYColor.bgSurfaceSubtle)
+                }
+            }
+            .task {
+                startedAt = Date()
+                if let session, let review, sessionTicket == nil {
+                    sessionTicket = await review.startPlaySession(
+                        gameID: game.manifest.id,
+                        nodeID: nodeContext?.nodeID,
+                        topicID: nodeContext?.topicID,
+                        activityID: nodeContext?.activityID,
+                        session: session
+                    )
+                }
+            }
+            .onChange(of: store.lastBridgeResultByGameID[game.manifest.id]) { _, reported in
+                guard let reported, resultOutcome == nil else { return }
+                Task {
+                    await reportSignedResult(passed: reported.passed, score: reported.score, digest: reported.digest)
+                }
             }
             .navigationTitle(game.manifest.name)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("common.close", defaultValue: "Close", locale: locale))) {
                         store.activeLaunchingGame = nil
+                        dismiss()
                     }
                 }
                 // App Store 1.2 / 4.7: report and block the package and its creator from the runner itself.
@@ -433,6 +498,24 @@ import WebKit
                 Button(W8Text.t("屏蔽", "Block"), role: .destructive) { store.block(game.manifest) }
                 Button(W8Text.t("取消", "Cancel"), role: .cancel) {}
             }
+        }
+    }
+
+    private func reportSignedResult(passed: Bool, score: Int?, digest: String?) async {
+        guard let session, let review, let ticket = sessionTicket, !isSubmittingResult else { return }
+        isSubmittingResult = true
+        defer { isSubmittingResult = false }
+        let elapsed = max(0, Int64(Date().timeIntervalSince(startedAt) * 1000))
+        if let outcome = await review.submitSignedResult(
+            ticket: ticket,
+            passed: passed,
+            score: score,
+            durationMs: elapsed,
+            digest: digest,
+            session: session
+        ) {
+            resultOutcome = outcome
+            onResultSubmitted?(outcome)
         }
     }
 }

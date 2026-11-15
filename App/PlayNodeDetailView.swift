@@ -9,6 +9,12 @@ struct PlayNodeDetailView: View {
     @State private var answerReviewIssue: PlayLoadIssue?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.externalGameSession) private var externalGameSession
+    @State private var extGameStore = ExternalGameStore()
+    @State private var extReviewModel: ExternalGameReviewModel?
+    @State private var launchingExtGame: InstalledExternalGame?
+    @State private var isLaunchingExtGame = false
+    @State private var extGameIssue: String?
     init(nodeID: Int, model: PlayViewModel) {
         self.nodeID = nodeID; self.model = model
         _reviewOwner = StateObject(wrappedValue: PlayAnswerReviewPresentation(model: model))
@@ -48,6 +54,45 @@ struct PlayNodeDetailView: View {
         .onChange(of: nodeID) { _, _ in reviewOwner.reset(); answer = "" }
         .onChange(of: model.visibleSnapshot) { _, _ in answer = ""; answerReviewIssue = nil; reviewOwner.discardInvalidUnclaimedReview() }
         .onChange(of: reviewOwner.readGeneration) { _, _ in reviewOwner.discardInvalidUnclaimedReview() }
+        .sheet(item: $launchingExtGame) { game in
+            ExternalGameRunnerSheet(
+                store: extGameStore,
+                game: game,
+                session: externalGameSession,
+                review: ensuredExtModel(),
+                nodeContext: ExternalGameNodePlayContext(nodeID: nodeID, topicID: nil, activityID: nil),
+                onResultSubmitted: { outcome in
+                    if outcome.nodeCompleted {
+                        Task { await model.load(keepingReceipt: true) }
+                    }
+                }
+            )
+        }
+    }
+
+    private func ensuredExtModel() -> ExternalGameReviewModel {
+        if let extReviewModel { return extReviewModel }
+        let m = ExternalGameReviewModel(store: extGameStore)
+        extReviewModel = m
+        return m
+    }
+
+    private func launchBoundExternalGame(_ gameID: String) async {
+        guard !isLaunchingExtGame else { return }
+        isLaunchingExtGame = true
+        extGameIssue = nil
+        defer { isLaunchingExtGame = false }
+        let rm = ensuredExtModel()
+        if let installed = extGameStore.installedGames.first(where: { $0.manifest.id == gameID }) {
+            launchingExtGame = installed
+            return
+        }
+        await rm.install(gameID: gameID, session: externalGameSession)
+        if let installed = extGameStore.installedGames.first(where: { $0.manifest.id == gameID }) {
+            launchingExtGame = installed
+        } else {
+            extGameIssue = rm.notice.isEmpty ? W8Text.t("无法下载或解锁此游戏。", "Could not load external game.") : rm.notice
+        }
     }
     private func detail(_ node: PlayNode, snapshot: PlaySnapshot) -> some View {
         let availability = snapshot.answerAvailability(for: node)
@@ -87,6 +132,23 @@ struct PlayNodeDetailView: View {
                         if let duration = node.durationMinutes { LabeledContent("play.duration") { Text(verbatim: String(duration)) } }
                         if let players = node.players, !players.isEmpty { LabeledContent("play.players") { Text(verbatim: players) } }
                         if let difficulty = node.difficulty, !difficulty.isEmpty { LabeledContent("play.difficulty") { Text(verbatim: difficulty) } }
+                    }
+                }
+                if let ext = node.externalGame {
+                    Section(W8Text.t("节点挑战小游戏", "Node External Game")) {
+                        Text(verbatim: ext.gameName ?? ext.gameID).font(.headline)
+                        if let minScore = ext.minScore, minScore > 0 {
+                            Text(verbatim: W8Text.t("通关要求：得分 ≥ \(minScore)", "Min score: \(minScore)"))
+                                .font(CYTypography.meta)
+                        }
+                        if let extGameIssue {
+                            Text(verbatim: extGameIssue).font(CYTypography.meta).foregroundStyle(.red)
+                        }
+                        Button(isLaunchingExtGame ? W8Text.t("正在准备小游戏...", "Loading game...") : W8Text.t("启动外部小游戏", "Launch External Game")) {
+                            Task { await launchBoundExternalGame(ext.gameID) }
+                        }
+                        .disabled(isLaunchingExtGame || externalGameSession == nil)
+                        .accessibilityIdentifier("play.node.externalGame.launch")
                     }
                 }
                 if let question = node.question, !question.isEmpty {

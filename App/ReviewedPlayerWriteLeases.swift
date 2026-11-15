@@ -199,21 +199,44 @@ extension ReviewedProductionFormMutationRoute {
         return canonical.httpBody == body
     }
 
-    /// HTML/JS external games. A price or a monetization other than NONE is refused. GET may carry the signed download query.
+    /// HTML/JS external games. Package upload remains monetization=NONE; post-publish monetization & result callbacks use dedicated routes.
     static func admitsExternalGame(method: String, relative: String, request: URLRequest, grant: ReviewedPlayerWriteGrant) -> Bool {
         guard grant.play.paths.isSuperset(of: ReviewedProductionGateLeases.externalGamePaths) else { return false }
         let key = ChinaReviewedRouteCapability.externalGameGrantKey(ChinaReviewedRouteCapability.normalized("/" + relative))
         let folded = key.hasPrefix("/") ? String(key.dropFirst()) : key
+        // Paid order creation/confirm is TEST-only behind moneyPayments + ReleaseMoneyWriteSwitch.
+        if folded == "api/external-game/orders" || folded == "api/external-game/orders/{}/confirm-test" {
+            guard method == "POST",
+                  !ReleaseMoneyWriteSwitch.blocks("/" + folded),
+                  ReviewedAreaSwitch.moneyPayments(apiHost: request.url?.host),
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                  let body = request.httpBody, !body.isEmpty else { return false }
+            return true
+        }
         guard ReviewedProductionGateLeases.externalGamePaths.contains(folded) else { return false }
         if method == "GET" {
             return request.httpBody == nil || request.httpBody?.isEmpty == true
         }
+        if method == "DELETE" {
+            return folded == "api/external-game/nodes/{}/binding"
+        }
+        if method == "PUT" {
+            return (folded == "api/external-game/catalog/{}/monetization" || folded == "api/external-game/nodes/{}/binding")
+                && request.value(forHTTPHeaderField: "Content-Type") == "application/json"
+                && request.httpBody?.isEmpty == false
+        }
         guard method == "POST", let body = request.httpBody, !body.isEmpty else { return false }
-        let text = String(decoding: body, as: UTF8.self)
-        if text.contains("\"price\"") || text.contains("\"iap\"") || text.contains("StoreKit") { return false }
-        if relative == "api/external-game/reports" || relative.hasSuffix("/cancel") {
+        let jsonPostRoutes: Set<String> = [
+            "api/external-game/reports",
+            "api/external-game/submissions/{}/cancel",
+            "api/external-game/sessions/start",
+            "api/external-game/sessions/{}/result"
+        ]
+        if jsonPostRoutes.contains(folded) {
             return request.value(forHTTPHeaderField: "Content-Type") == "application/json"
         }
+        let text = String(decoding: body, as: UTF8.self)
+        if text.contains("\"price\"") || text.contains("\"iap\"") || text.contains("StoreKit") { return false }
         guard let contentType = request.value(forHTTPHeaderField: "Content-Type"), contentType.hasPrefix("multipart/form-data") else { return false }
         return text.contains("name=\"monetization\"") && text.contains("NONE") && !text.contains("name=\"monetization\"\r\n\r\nPAID")
     }
@@ -719,6 +742,9 @@ enum ReviewedPlayerReadRoute {
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
         "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
         "api/external-game/catalog", "api/external-game/catalog/{}", "api/external-game/catalog/{}/package",
+        "api/external-game/catalog/{}/monetization", "api/external-game/creator/summary",
+        "api/external-game/entitlements/mine", "api/external-game/nodes/{}/binding",
+        "api/external-game/sessions/start", "api/external-game/sessions/{}/result",
         "api/external-game/signing-key", "api/external-game/reports"
     ]
     /// G2 invoice writes. A grant without every one of them leaves the invoice write entries hidden.

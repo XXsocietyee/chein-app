@@ -120,6 +120,76 @@ final class ExternalGameReviewClientTests: XCTestCase {
             "/api/external-game/catalog/{}/package")
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/external-game/reports"))
         XCTAssertTrue(ChinaReviewedRouteCapability.externalGameOwnerGrant.contains("/api/external-game/signing-key"))
+        XCTAssertEqual(
+            ChinaReviewedRouteCapability.externalGameGrantKey("/api/external-game/sessions/EGS_abc/result"),
+            "/api/external-game/sessions/{}/result")
+    }
+
+    func testSignedSessionResultAndMoneyGateForOrders() async throws {
+        let wire = ExternalGameWire()
+        wire.handler = { request in
+            let path = request.url?.path ?? ""
+            if path.hasSuffix("/sessions/start") {
+                let body = #"{"code":200,"data":{"sessionId":"EGS_01","gameId":"rpg.one","nodeId":501,"nonce":"nonce99","issuedAtMs":1700000000000,"sessionSignature":"deadbeef"}}"#
+                return (Data(body.utf8), 200)
+            }
+            if path.hasSuffix("/sessions/EGS_01/result") {
+                let body = #"{"code":200,"data":{"sessionId":"EGS_01","gameId":"rpg.one","nodeId":501,"passed":true,"score":92,"xpAwarded":35,"medalRank":1,"nodeCompleted":true,"trafficEligible":true,"replayed":false}}"#
+                return (Data(body.utf8), 200)
+            }
+            if path.hasSuffix("/orders") {
+                let body = #"{"code":200,"data":{"orderNo":"EGO_01","gameId":"rpg.one","amountFen":1990,"creatorShareBps":7000,"channelFeeBearer":0,"channelFeeFen":12,"creatorNetFen":1381,"platformShareFen":597,"provider":"TEST_WALLET","state":"PAID","licenseStatus":"ACTIVE"}}"#
+                return (Data(body.utf8), 200)
+            }
+            return (Data("{}".utf8), 500)
+        }
+        let client = try make(wire)
+        let ticket = await client.startSession(gameID: "rpg.one", nodeID: 501, token: "session-token")
+        XCTAssertEqual(ticket?.sessionID, "EGS_01")
+        XCTAssertEqual(ticket?.nonce, "nonce99")
+        guard let ticket else { return XCTFail("expected ticket") }
+        let outcome = await client.submitSignedResult(ticket: ticket, passed: true, score: 92, durationMs: 12000, digest: "dig1", token: "session-token")
+        XCTAssertEqual(outcome?.xpAwarded, 35)
+        XCTAssertEqual(outcome?.medalRank, 1)
+        XCTAssertEqual(outcome?.nodeCompleted, true)
+
+        // Orders fail closed when ReleaseMoneyWriteSwitch is off (default)
+        let previousDerivation = ReleaseMoneyWriteSwitch.testDerivation
+        defer { ReleaseMoneyWriteSwitch.testDerivation = previousDerivation }
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        let closedOrder = await client.purchaseGame(gameID: "rpg.one", token: "session-token")
+        XCTAssertNil(closedOrder)
+        XCTAssertFalse(wire.requests.contains { $0.url?.path.hasSuffix("/orders") == true })
+
+        // With TEST payment derivation enabled, purchase hits /orders on non-production host
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .payment }
+        let paidOrder = await client.purchaseGame(gameID: "rpg.one", token: "session-token")
+        XCTAssertEqual(paidOrder?.orderNo, "EGO_01")
+        XCTAssertEqual(paidOrder?.creatorNetFen, 1381)
+    }
+
+    func testBridgeHandlerAndPlayNodeExternalGameBindingDecode() throws {
+        var progress: [String: String] = [:]
+        let manifest = ExternalGameManifest(
+            id: "rpg.one",
+            name: "One",
+            version: "1.0.0",
+            entry: "index.html",
+            permissions: ["storage"],
+            sha256: String(repeating: "a", count: 64),
+            signature: "sig"
+        )
+        let req = Data(#"{"apiVersion":1,"action":"submitResult","payload":{"passed":"true","score":"96","digest":"d1"}}"#.utf8)
+        let resp = ExternalGameBridgeHandler.handle(rawJSON: req, manifest: manifest, progressStore: &progress)
+        XCTAssertTrue(resp.ok)
+        XCTAssertEqual(resp.data?["passed"], "true")
+        XCTAssertEqual(resp.data?["score"], "96")
+
+        let nodeJSON = Data(#"{"nodeId":501,"name":"港口小游戏","externalGame":{"gameId":"rpg.one","gameName":"One","version":"1.0.0","minScore":80,"requirePass":true}}"#.utf8)
+        let node = try JSONDecoder().decode(PlayNode.self, from: nodeJSON)
+        XCTAssertEqual(node.externalGame?.gameID, "rpg.one")
+        XCTAssertEqual(node.externalGame?.minScore, 80)
+        XCTAssertEqual(node.externalGame?.requirePass, true)
     }
 
     private func make(_ wire: ExternalGameWire) throws -> ExternalGameReviewClient {
