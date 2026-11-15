@@ -54,12 +54,12 @@ public struct PlayKitHangmanProjection: Equatable {
         feedback = solved ? rawFeedback : ""
     }
 
-    /// `hangmanStationText`: kit title, else the station question, else the place name. Empty stays empty.
+    /// `hangmanStationText`: station question, else kit title, else the place name. Empty stays empty.
     public func stationTitle(question: String?, placeName: String?) -> String {
-        let kit = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !kit.isEmpty { return kit }
         let asked = question?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if !asked.isEmpty { return asked }
+        let kit = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !kit.isEmpty { return kit }
         return placeName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 

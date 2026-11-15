@@ -19,8 +19,12 @@ public struct RoamHistoryPlace: Codable, Equatable {
     public let cat: String?
     public let lat: Double
     public let lng: Double
+    public let isDemo: Bool?
+    public let demo: Bool?
+    public let source: String?
+    public var isDemoEntry: Bool { isDemo == true || demo == true || source == "demo" }
     public var point: RoamHistoryPoint { RoamHistoryPoint(coordinate: RoamCoordinate(latitude: lat, longitude: lng)!) }
-    enum CodingKeys: String, CodingKey { case id, name, cat, lat, lng }
+    enum CodingKeys: String, CodingKey { case id, name, cat, lat, lng, isDemo, demo, source }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let lat = c.roamNumber(.lat), let lng = c.roamNumber(.lng),
@@ -29,6 +33,9 @@ public struct RoamHistoryPlace: Codable, Equatable {
         id = try c.decodeIfPresent(Int.self, forKey: .id)
         name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
         cat = try c.decodeIfPresent(String.self, forKey: .cat)
+        isDemo = try c.decodeIfPresent(Bool.self, forKey: .isDemo)
+        demo = try c.decodeIfPresent(Bool.self, forKey: .demo)
+        source = try c.decodeIfPresent(String.self, forKey: .source)
     }
 }
 public struct RoamHistoryRecord: Codable, Equatable, Identifiable {
@@ -57,6 +64,19 @@ public struct RoamHistoryRecord: Codable, Equatable, Identifiable {
     public var recordedAt: Date? { ts > 0 ? Date(timeIntervalSince1970: Double(ts) / 1000) : nil }
     public var meaningfulZone: String? {
         guard let zone, !zone.isEmpty, zone != "这片街区" else { return nil }; return zone
+    }
+    /// `#846`: unique non-demo reached place count (`roam-history-metrics.js` `footprintCount`).
+    public var footprintCount: Int {
+        var seen = Set<String>()
+        for place in pois where !place.isDemoEntry {
+            if let id = place.id, id > 0 {
+                seen.insert("id:\(id)")
+            } else {
+                let clean = place.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                seen.insert(clean.isEmpty ? "coord:\(place.lat):\(place.lng)" : "name:\(clean):\(place.lat):\(place.lng)")
+            }
+        }
+        return seen.count
     }
     enum CodingKeys: String, CodingKey {
         case ts, serverSessionID, zone, date, dateLine, distance, explorePct, shops, time, durSec, photos, pois, track, medal, shopMedalName

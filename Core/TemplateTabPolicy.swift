@@ -57,10 +57,9 @@ public enum TemplateTabPolicy {
     }
 
     public enum StatusLabel: String, Equatable, Sendable { case experimentalPreview, experimentalTemplate }
-    /// `_statusText`: 实验预览 when previewOnly, 实验模板 when not VERIFIED.
+    /// `_statusText`: 实验预览 when previewOnly, 实验模板 only when EXPERIMENTAL.
     public static func statusLabel(previewOnly: Bool, templateStatus: String?) -> StatusLabel? {
         if previewOnly { return .experimentalPreview }
-        guard let templateStatus, !templateStatus.isEmpty else { return nil }
-        return templateStatus == "VERIFIED" ? nil : .experimentalTemplate
+        return templateStatus == "EXPERIMENTAL" ? .experimentalTemplate : nil
     }
 }

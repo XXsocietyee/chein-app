@@ -276,10 +276,20 @@ final class PlayerCapabilityRoutesTests: XCTestCase {
 
         stub.replies["api/search/unified"] = (#"{"code":200,"data":{"rows":[{"type":"topic","id":"3","name":"城墙"}],"total":20}}"#, 200)
         let page = try await service.unifiedSearch(keyword: "城", types: ["topic", "activity"], cityCode: "310100", page: 1)
+        XCTAssertEqual(stub.last.httpMethod, "GET")
         XCTAssertEqual(path(stub), "api/search/unified")
-        XCTAssertEqual(stub.lastForm, ["keyword": "城", "types": "topic,activity", "city_code": "310100", "pageNum": "1", "pageSize": "12"])
+        XCTAssertEqual(stub.query("keyword"), "城")
+        XCTAssertEqual(stub.query("types"), "topic,activity")
+        XCTAssertEqual(stub.query("city_code"), "310100")
+        XCTAssertEqual(stub.query("pageNum"), "1")
+        XCTAssertEqual(stub.query("pageSize"), "12")
         XCTAssertEqual(page.items.first?.title, "城墙")
         XCTAssertTrue(MapSearchPlayerService.hasMore(page, pageNumber: 1))
+        let guestService = MapSearchPlayerService(client: PlayerCapabilityClient(baseURL: URL(string: "https://example.invalid")!, token: "", transport: stub))
+        let guestPage = try await guestService.unifiedSearch(keyword: "城", types: ["topic"], cityCode: "310100", page: 1)
+        XCTAssertEqual(stub.last.httpMethod, "GET")
+        XCTAssertNil(stub.last.value(forHTTPHeaderField: "Authorization"))
+        XCTAssertEqual(guestPage.items.first?.title, "城墙")
         stub.replies["api/search/unified"] = (#"{"code":200,"data":{"rows":[{"type":"post","id":"3"}],"total":1}}"#, 200)
         do { _ = try await service.unifiedSearch(keyword: "城", types: ["topic"], cityCode: "", page: 1); XCTFail() }
         catch { XCTAssertEqual(error as? PlayerCapabilityFailure, .malformed) }

@@ -719,7 +719,7 @@ enum ReviewedPlayerReadRoute {
     static let capabilityReadPaths: Set<String> = [
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
         "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
-        "api/template/adoption-detail", "api/map/weather", "api/free-explore/bundle/exit-options",
+        "api/template/adoption-detail", "api/map/weather", "api/search/unified", "api/free-explore/bundle/exit-options",
         "api/free-explore/bundle/order/receipt",
         // G6 player reads on the same reviewed gate. Money, attribution, and order reads are not here.
         "api/ai/npc/profile", "api/ai/npc/event", "api/ai/theme/draft/recovery",

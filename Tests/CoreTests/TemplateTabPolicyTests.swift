@@ -32,7 +32,8 @@ final class TemplateTabPolicyTests: XCTestCase {
 
     func testStatusLabels() {
         XCTAssertEqual(TemplateTabPolicy.statusLabel(previewOnly: true, templateStatus: "VERIFIED"), .experimentalPreview)
-        XCTAssertEqual(TemplateTabPolicy.statusLabel(previewOnly: false, templateStatus: "DRAFT"), .experimentalTemplate)
+        XCTAssertEqual(TemplateTabPolicy.statusLabel(previewOnly: false, templateStatus: "EXPERIMENTAL"), .experimentalTemplate)
+        XCTAssertNil(TemplateTabPolicy.statusLabel(previewOnly: false, templateStatus: "DRAFT"))
         XCTAssertNil(TemplateTabPolicy.statusLabel(previewOnly: false, templateStatus: "VERIFIED"))
         XCTAssertNil(TemplateTabPolicy.statusLabel(previewOnly: false, templateStatus: nil))
     }

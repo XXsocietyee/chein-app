@@ -74,6 +74,11 @@ import SwiftUI
                 elapsed = 0; input = ""; expectedRevision = next
             }
         }
+        .onAppear {
+            if kind == .typeIn, input.isEmpty, let accepted = segment["acceptedInput"].text, !accepted.isEmpty {
+                input = accepted
+            }
+        }
         .onChange(of: active) { _, value in if !value { interrupt() } }
         .onChange(of: scenePhase) { _, value in if value != .active { interrupt() } }
         .onDisappear { mounted = false; interrupt() }

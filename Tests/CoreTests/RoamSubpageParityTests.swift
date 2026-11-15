@@ -174,6 +174,23 @@ import FoundationNetworking
         XCTAssertNil(emptyMedia.coverUrl)
         XCTAssertEqual(emptyMedia.fallbackTitle, "据点实景待补充")
     }
+
+    func testFootprintCountDeduplicatesAndExcludesDemoEntries() throws {
+        let rows = try records(#"""
+        [{
+          "ts": 1760857200000,
+          "pois": [
+            {"id": 11, "name": "Cafe A", "lat": 31.2, "lng": 121.4},
+            {"id": 11, "name": "Cafe A", "lat": 31.2, "lng": 121.4},
+            {"id": 12, "name": "Demo Place", "lat": 31.21, "lng": 121.41, "isDemo": true},
+            {"name": "Bookstore", "lat": 31.22, "lng": 121.42},
+            {"name": "Bookstore", "lat": 31.22, "lng": 121.42},
+            {"name": "Sample", "lat": 31.23, "lng": 121.43, "source": "demo"}
+          ]
+        }]
+        """#)
+        XCTAssertEqual(rows[0].footprintCount, 2)
+    }
 }
 
 private final class RoamParityTransport: HTTPTransport, @unchecked Sendable {

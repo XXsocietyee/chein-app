@@ -127,10 +127,11 @@ extension AppCompositionRoot {
 /// U02-01 "采用条件": only rows backed by a server fact (mini r2-create b4-u02-01). No rows -> no section.
 @MainActor struct TopicTemplateAdoptionConditionsSection: View {
     let delivery: TopicTemplateContentDelivery?
+    var canViewEvidence: Bool = false
     @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        let rows = TopicTemplateAdoptionConditions.rows(delivery)
+        let rows = TopicTemplateAdoptionConditions.rows(delivery, canViewEvidence: canViewEvidence)
         if !rows.isEmpty {
             Section {
                 ForEach(rows) { row in
