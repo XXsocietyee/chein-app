@@ -16,14 +16,28 @@ private final class TopicTransport: HTTPTransport {
     }
 }
 private final class TopicSuspendedTransport: HTTPTransport {
-    var continuation: CheckedContinuation<(Data, Int), Error>?
-    var requests: [URLRequest] = []
+    private let lock = NSLock()
+    private var _continuation: CheckedContinuation<(Data, Int), Error>?
+    private var _requests: [URLRequest] = []
+    var continuation: CheckedContinuation<(Data, Int), Error>? {
+        lock.withLock { _continuation }
+    }
+    var requests: [URLRequest] {
+        lock.withLock { _requests }
+    }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
-        requests.append(request)
-        return try await withCheckedThrowingContinuation { continuation = $0 }
+        lock.withLock { _requests.append(request) }
+        return try await withCheckedThrowingContinuation { cont in
+            lock.withLock { _continuation = cont }
+        }
     }
     func finish(_ json: String, status: Int = 200) {
-        continuation?.resume(returning: (Data(json.utf8), status)); continuation = nil
+        let cont = lock.withLock {
+            let current = _continuation
+            _continuation = nil
+            return current
+        }
+        cont?.resume(returning: (Data(json.utf8), status))
     }
 }
 final class TopicTests: XCTestCase {

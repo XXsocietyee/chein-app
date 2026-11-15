@@ -146,7 +146,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                 systemImage: "person.crop.circle.badge.exclamationmark",
                 "storeCharacter.gate.loginTitle",
                 tableName: "StoreCharacter",
-                subtitle: "storeCharacter.gate.loginReason"
+                detail: "storeCharacter.gate.loginReason"
             )
             .accessibilityIdentifier("aiNPC.gate.login")
         case .denied(let reason):

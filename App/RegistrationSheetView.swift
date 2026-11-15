@@ -158,119 +158,65 @@ struct RegistrationSheetView: View {
             }
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
-            .sheet(isPresented: $showingTicketSheet) {
-                CYOptionSheet(
-                    title: PlayCloseCopy.text("选择票种", "Select ticket", locale),
-                    items: flow.activity.tickets.map { ticket in
-                        CYOptionSheetItem(
-                            id: ticket.id,
-                            title: ticket.name,
-                            subtitle: gatedPayAmount(ticket.price),
-                            systemImage: "ticket"
-                        )
-                    },
-                    selectedID: flow.selectedTicketID,
-                    closeIdentifier: cyAccessibilityID(id: "registration.ticketSheet.close"),
-                    onSelect: { id in
-                        showingTicketSheet = false
-                        if flow.selectTicket(id: id) { Task { await flow.requestQuote() } }
-                    },
-                    onClose: { showingTicketSheet = false }
-                )
-                .cyDomainSheet(detents: [.half, .full])
-            }
-            .sheet(isPresented: $showingParticipantSheet) {
-                CYOptionSheet(
-                    title: PlayCloseCopy.text("选择参与人信息", "Select participant", locale),
-                    items: flow.participants.map { row in
-                        CYOptionSheetItem(id: row.id, title: row.fullName, subtitle: row.phone, systemImage: "person")
-                    },
-                    selectedID: flow.selectedParticipantID,
-                    closeIdentifier: cyAccessibilityID(id: "registration.participantSheet.close"),
-                    onSelect: { id in
-                        showingParticipantSheet = false
-                        flow.selectParticipant(id: id)
-                        toastMessage = PlayCloseCopy.text("已选择参与人", "Participant selected", locale)
-                    },
-                    onClose: { showingParticipantSheet = false }
-                )
-                .cyDomainSheet(detents: [.half, .full])
-            }
-            .onChange(of: flow.waitlistCancellation) { _, value in
-                if value == nil { showingWaitlistCancellation = false }
-            }
-            .task(id: flow.identity) {
-                flow.open()
-                // Independent reads: a slow participant list must not hide the quote form.
-                async let participants: Void = flow.loadParticipants()
-                async let quote: Void = flow.requestQuote()
-                _ = await (participants, quote)
-            }
-            .task(id: flow.waitlistReadKey) { await flow.loadWaitlist() }
-            .task(id: flow.waitlistStatus?.expiresAt) {
-                guard let deadline = flow.waitlistStatus?.expiresAt else { return }
-                while deadline > Date() {
-                    do { try await Task.sleep(for: .seconds(min(deadline.timeIntervalSinceNow, 86_400))) } catch { return }
-                }
-                flow.checkWaitlistDeadline()
-            }
-            .sheet(item: $orderDestination) { visit in
-                if let orderReader {
-                    RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
-                        isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
-                            destination: flow.waitlistOrderDestination, isActive: scenePhase == .active) })
-                        .cyPlayerSheetGlass()
-                }
-            }
-            .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
-            .onChange(of: flow.waitlistOrderDestination) { _, _ in orderDestination = nil }
-            .sheet(item: $resultOrderDestination) { presentation in
-                if let orderReader {
-                    RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
-                        isCurrent: { resultOrderDestination == presentation &&
-                            flow.resultOrderDestination == presentation.destination && scenePhase == .active })
-                        .cyPlayerSheetGlass()
-                }
-            }
-            .sheet(item: $recoveredOrderDestination) { presentation in
-                if let orderReader {
-                    RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
-                        isCurrent: { recoveredOrderDestination == presentation &&
-                            flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
-                        .cyPlayerSheetGlass()
-                }
-            }
-            .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
-            .onChange(of: flow.resultOrderDestination) { _, _ in resultOrderDestination = nil }
-            .onChange(of: scenePhase) { _, phase in
-                if phase == .background { orderDestination = nil; resultOrderDestination = nil; recoveredOrderDestination = nil; flow.retireResultOrderNavigation() }
-            }
-            .sheet(isPresented: $showingAddParticipant) {
-                if let participantReader, let participantCoordinator {
-                    NavigationStack {
-                        ParticipantFormView(reader: participantReader, coordinator: participantCoordinator,
-                            onSaved: { if participantCoordinator.savedParticipant == nil { Task { await flow.loadParticipants() } } },
-                            onCreated: { row, identity in Task { await flow.selectCreatedParticipant(row, identity: identity) } })
-                    }
-                    .cyPlayerSheetGlass()
-                }
-            }
-            .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
-            .onChange(of: flow.participantsIdentity) { _, _ in
-                showingAddParticipant = false
-                flow.synchronizeParticipantIdentity()
-                guard scenePhase == .active, flow.hasCurrentSession else { return }
-                Task { await flow.loadParticipants() }
-            }
-            .onChange(of: flow.confirmation) { _, value in
-                if value == nil { showingConfirmation = false; showingNonRefundable = false }
-            }
-            .onChange(of: flow.quoteState) { _, _ in nonRefundableConfirmed = false }
-            .onDisappear { flow.leave() }
+            .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
+            .sheet(isPresented: $showingParticipantSheet) { participantSheetContent }
+            .modifier(RegistrationOrderAndLifecycleModifier(
+                flow: flow,
+                orderReader: orderReader,
+                participantReader: participantReader,
+                participantCoordinator: participantCoordinator,
+                scenePhase: scenePhase,
+                orderDestination: $orderDestination,
+                resultOrderDestination: $resultOrderDestination,
+                recoveredOrderDestination: $recoveredOrderDestination,
+                showingAddParticipant: $showingAddParticipant,
+                showingWaitlistCancellation: $showingWaitlistCancellation,
+                showingConfirmation: $showingConfirmation,
+                showingNonRefundable: $showingNonRefundable,
+                nonRefundableConfirmed: $nonRefundableConfirmed
+            ))
         }
         .cyPlayerSheetGlass()
         .accessibilityIdentifier("registration.form.sheet")
         .cyDomainScreen(.player)
+    }
+    private var ticketSheetContent: some View {
+        CYOptionSheet(
+            title: PlayCloseCopy.text("选择票种", "Select ticket", locale),
+            items: flow.activity.tickets.map { ticket in
+                CYOptionSheetItem(
+                    id: ticket.id,
+                    title: ticket.name,
+                    subtitle: gatedPayAmount(ticket.price),
+                    systemImage: "ticket"
+                )
+            },
+            selectedID: flow.selectedTicketID,
+            closeIdentifier: cyAccessibilityID(id: "registration.ticketSheet.close"),
+            onSelect: { id in
+                showingTicketSheet = false
+                if flow.selectTicket(id: id) { Task { await flow.requestQuote() } }
+            },
+            onClose: { showingTicketSheet = false }
+        )
+        .cyDomainSheet(detents: [.half, .full])
+    }
+    private var participantSheetContent: some View {
+        CYOptionSheet(
+            title: PlayCloseCopy.text("选择参与人信息", "Select participant", locale),
+            items: flow.participants.map { row in
+                CYOptionSheetItem(id: row.id, title: row.fullName, subtitle: row.mobilePhone, systemImage: "person")
+            },
+            selectedID: flow.selectedParticipantID,
+            closeIdentifier: cyAccessibilityID(id: "registration.participantSheet.close"),
+            onSelect: { id in
+                showingParticipantSheet = false
+                flow.selectParticipant(id: id)
+                toastMessage = PlayCloseCopy.text("已选择参与人", "Participant selected", locale)
+            },
+            onClose: { showingParticipantSheet = false }
+        )
+        .cyDomainSheet(detents: [.half, .full])
     }
     @ViewBuilder private var recoveredOrderSection: some View {
         if let destination = flow.recoveredOrderDestination, let orderReader {
@@ -435,7 +381,7 @@ struct RegistrationSheetView: View {
                 confirmIdentifier: "registration.form.confirm",
                 onCancel: { showingConfirmation = false; flow.cancelConfirmation() },
                 onConfirm: {
-                    let isPaidRegistration = review.quote.payAmount > 0
+                    let isPaidRegistration = review.quote.payAmount.map { $0 > .zero } ?? true
                     showingConfirmation = false
                     Task {
                         if isPaidRegistration {
@@ -1023,5 +969,97 @@ private struct RegistrationUncertainOrdersCheck: View {
             Text("registration.w206.matchNotProof").font(.caption).foregroundStyle(.secondary)
         case .notApplicable?, nil: EmptyView()
         }
+    }
+}
+
+@MainActor
+private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
+    let flow: RegistrationUIFlow
+    let orderReader: (any ProfileReading)?
+    let participantReader: (any ProfileReading)?
+    let participantCoordinator: ParticipantMutationCoordinator?
+    let scenePhase: ScenePhase
+    @Binding var orderDestination: RegistrationWaitlistOrderVisit?
+    @Binding var resultOrderDestination: RegistrationResultOrderPresentation?
+    @Binding var recoveredOrderDestination: RegistrationRecoveredOrderPresentation?
+    @Binding var showingAddParticipant: Bool
+    @Binding var showingWaitlistCancellation: Bool
+    @Binding var showingConfirmation: Bool
+    @Binding var showingNonRefundable: Bool
+    @Binding var nonRefundableConfirmed: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: flow.waitlistCancellation) { _, value in
+                if value == nil { showingWaitlistCancellation = false }
+            }
+            .task(id: flow.identity) {
+                flow.open()
+                // Independent reads: a slow participant list must not hide the quote form.
+                async let participants: Void = flow.loadParticipants()
+                async let quote: Void = flow.requestQuote()
+                _ = await (participants, quote)
+            }
+            .task(id: flow.waitlistReadKey) { await flow.loadWaitlist() }
+            .task(id: flow.waitlistStatus?.expiresAt) {
+                guard let deadline = flow.waitlistStatus?.expiresAt else { return }
+                while deadline > Date() {
+                    do { try await Task.sleep(for: .seconds(min(deadline.timeIntervalSinceNow, 86_400))) } catch { return }
+                }
+                flow.checkWaitlistDeadline()
+            }
+            .sheet(item: $orderDestination) { visit in
+                if let orderReader {
+                    RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
+                        isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
+                            destination: flow.waitlistOrderDestination, isActive: scenePhase == .active) })
+                        .cyPlayerSheetGlass()
+                }
+            }
+            .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
+            .onChange(of: flow.waitlistOrderDestination) { _, _ in orderDestination = nil }
+            .sheet(item: $resultOrderDestination) { presentation in
+                if let orderReader {
+                    RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
+                        isCurrent: { resultOrderDestination == presentation &&
+                            flow.resultOrderDestination == presentation.destination && scenePhase == .active })
+                        .cyPlayerSheetGlass()
+                }
+            }
+            .sheet(item: $recoveredOrderDestination) { presentation in
+                if let orderReader {
+                    RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
+                        isCurrent: { recoveredOrderDestination == presentation &&
+                            flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
+                        .cyPlayerSheetGlass()
+                }
+            }
+            .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
+            .onChange(of: flow.resultOrderDestination) { _, _ in resultOrderDestination = nil }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { orderDestination = nil; resultOrderDestination = nil; recoveredOrderDestination = nil; flow.retireResultOrderNavigation() }
+            }
+            .sheet(isPresented: $showingAddParticipant) {
+                if let participantReader, let participantCoordinator {
+                    NavigationStack {
+                        ParticipantFormView(reader: participantReader, coordinator: participantCoordinator,
+                            onSaved: { if participantCoordinator.savedParticipant == nil { Task { await flow.loadParticipants() } } },
+                            onCreated: { row, identity in Task { await flow.selectCreatedParticipant(row, identity: identity) } })
+                    }
+                    .cyPlayerSheetGlass()
+                }
+            }
+            .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
+            .onChange(of: flow.participantsIdentity) { _, _ in
+                showingAddParticipant = false
+                flow.synchronizeParticipantIdentity()
+                guard scenePhase == .active, flow.hasCurrentSession else { return }
+                Task { await flow.loadParticipants() }
+            }
+            .onChange(of: flow.confirmation) { _, value in
+                if value == nil { showingConfirmation = false; showingNonRefundable = false }
+            }
+            .onChange(of: flow.quoteState) { _, _ in nonRefundableConfirmed = false }
+            .onDisappear { flow.leave() }
     }
 }

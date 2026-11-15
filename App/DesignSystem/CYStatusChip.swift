@@ -6,6 +6,7 @@ enum CYStatusTone { case neutral, success, warning, danger, info, rare }
 struct CYStatusChip: View {
     private let text: LocalizedStringKey
     private let verbatim: String?
+    private let tableName: String?
     private let tone: CYStatusTone
     private let systemImage: String?
     private let isSelected: Bool
@@ -14,9 +15,10 @@ struct CYStatusChip: View {
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
 
-    init(_ text: LocalizedStringKey, tone: CYStatusTone = .neutral, systemImage: String? = nil, isSelected: Bool = false) {
+    init(_ text: LocalizedStringKey, tone: CYStatusTone = .neutral, systemImage: String? = nil, isSelected: Bool = false, tableName: String? = nil) {
         self.text = text
         self.verbatim = nil
+        self.tableName = tableName
         self.tone = tone
         self.systemImage = systemImage
         self.isSelected = isSelected
@@ -27,6 +29,7 @@ struct CYStatusChip: View {
         let shown = text.trimmingCharacters(in: .whitespacesAndNewlines)
         self.text = ""
         self.verbatim = shown.isEmpty ? "—" : shown
+        self.tableName = nil
         self.tone = tone
         self.systemImage = systemImage
         self.isSelected = isSelected
@@ -43,7 +46,7 @@ struct CYStatusChip: View {
                     .font(CYTypography.caption.weight(.semibold))
             }
             Group {
-                if let verbatim { Text(verbatim: verbatim) } else { Text(text) }
+                if let verbatim { Text(verbatim: verbatim) } else { Text(text, tableName: tableName) }
             }
             .font(CYTypography.micro.weight(.semibold))
         }

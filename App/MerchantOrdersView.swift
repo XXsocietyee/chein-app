@@ -18,9 +18,9 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
     var body: some View {
         ZStack {
             if !reader.isConfigured {
-                CYEmptyState(systemImage: "network.slash", "merchant.orders", subtitle: "auth.notConfigured")
+                CYEmptyState(systemImage: "network.slash", "merchant.orders", detail: "auth.notConfigured")
             } else if !reader.isSignedIn {
-                CYEmptyState(systemImage: "lock", "merchant.orders", subtitle: "merchant.signIn")
+                CYEmptyState(systemImage: "lock", "merchant.orders", detail: "merchant.signIn")
             } else if model.loadedRevision == reader.sessionRevision, let rows = model.value {
                 List {
                     Section {

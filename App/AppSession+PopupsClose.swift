@@ -26,122 +26,116 @@ extension EnvironmentValues {
 
 extension AppSession {
     func popupCloseActions() -> PopupCloseEnvironmentActions {
-        let attendanceService: OfficialAttendanceService? = (isConfigured && isSignedIn)
-            ? regionalConfiguration?.apiConfiguration.map { OfficialAttendanceService(configuration: $0, transport: compositionTransport) }
-            : nil
-
-        return PopupCloseEnvironmentActions(
-            graduateBetaTopic: (isConfigured && isSignedIn) ? { [weak self] topicID in
-                guard let self, let context = self.publisherLifecycleContext else {
+        guard isConfigured && isSignedIn else { return PopupCloseEnvironmentActions() }
+        var actions = PopupCloseEnvironmentActions()
+        if let apiConfig = regionalConfiguration?.apiConfiguration {
+            let service = OfficialAttendanceService(configuration: apiConfig, transport: compositionTransport)
+            actions.loadAttendance = { [weak self] eventID, organizer in
+                guard let self, self.isSignedIn else { return nil }
+                return try? await service.fetchAttendance(eventID: eventID, organizer: organizer, token: self.token)
+            }
+            actions.loadOfficialContact = { [weak self] activityID in
+                guard let self, self.isSignedIn else { return nil }
+                return await service.fetchContact(activityID: activityID, token: self.token)
+            }
+            actions.sendAttendanceCommand = { [weak self] eventID, action, fields in
+                guard let self, self.isSignedIn else { return nil }
+                return try? await service.sendCommand(eventID: eventID, action: action, fields: fields, token: self.token)
+            }
+        }
+        actions.graduateBetaTopic = { [weak self] topicID in
+            guard let self, let context = self.publisherLifecycleContext else {
+                return .failure(PublisherLifecycleError.unavailable)
+            }
+            do {
+                _ = try PublishedResource(kind: .topic, value: topicID)
+                let coordinator = context.coordinator
+                let review = try await coordinator.prepare(.graduate(topicID: topicID))
+                let outcome = await coordinator.confirm(review, consequentialApproval: true)
+                switch outcome {
+                case .acknowledged(let msg, _):
+                    return .success(msg ?? "")
+                case .rejected(let msg):
+                    return .failure(PublisherLifecycleError.rejected(msg))
+                case .notSent, .unknown:
                     return .failure(PublisherLifecycleError.unavailable)
                 }
-                do {
-                    _ = try PublishedResource(kind: .topic, value: topicID)
-                    let coordinator = context.coordinator
-                    let review = try await coordinator.prepare(.graduate(topicID: topicID))
-                    let outcome = await coordinator.confirm(review, consequentialApproval: true)
-                    switch outcome {
-                    case .acknowledged(let msg, _):
-                        return .success(msg ?? "")
-                    case .rejected(let msg):
-                        return .failure(PublisherLifecycleError.rejected(msg))
-                    case .notSent, .unknown:
-                        return .failure(PublisherLifecycleError.unavailable)
-                    }
-                } catch {
-                    return .failure(error)
-                }
-            } : nil,
-            loadTransferClubs: (isConfigured && isSignedIn) ? { [weak self] in
-                guard let self else { return [] }
-                switch await self.loadSettingsClubEntry() {
-                case .chooseClub(let clubs): return clubs
-                case .openClub(let club): return [club]
-                case .applyForHost, .failed: return []
-                }
-            } : nil,
-            transferTopicToClub: (isConfigured && isSignedIn) ? { [weak self] topicID, clubID in
-                guard let self, let context = self.publisherLifecycleContext else {
+            } catch {
+                return .failure(error)
+            }
+        }
+        actions.loadTransferClubs = { [weak self] in
+            guard let self else { return [] }
+            switch await self.loadSettingsClubEntry() {
+            case .chooseClub(let clubs): return clubs
+            case .openClub(let club): return [club]
+            case .applyForHost, .failed: return []
+            }
+        }
+        actions.transferTopicToClub = { [weak self] topicID, clubID in
+            guard let self, let context = self.publisherLifecycleContext else {
+                return .failure(PublisherLifecycleError.unavailable)
+            }
+            do {
+                _ = try PublishedResource(kind: .topic, value: topicID)
+                let coordinator = context.coordinator
+                let review = try await coordinator.prepare(.transfer(topicID: topicID, clubID: clubID))
+                let outcome = await coordinator.confirm(review, consequentialApproval: true)
+                switch outcome {
+                case .acknowledged(_, let newTopicID):
+                    return .success(newTopicID)
+                case .rejected(let msg):
+                    return .failure(PublisherLifecycleError.rejected(msg))
+                case .notSent, .unknown:
                     return .failure(PublisherLifecycleError.unavailable)
                 }
-                do {
-                    _ = try PublishedResource(kind: .topic, value: topicID)
-                    let coordinator = context.coordinator
-                    let review = try await coordinator.prepare(.transfer(topicID: topicID, clubID: clubID))
-                    let outcome = await coordinator.confirm(review, consequentialApproval: true)
-                    switch outcome {
-                    case .acknowledged(_, let newTopicID):
-                        return .success(newTopicID)
-                    case .rejected(let msg):
-                        return .failure(PublisherLifecycleError.rejected(msg))
-                    case .notSent, .unknown:
-                        return .failure(PublisherLifecycleError.unavailable)
-                    }
-                } catch {
-                    return .failure(error)
-                }
-            } : nil,
-            saveUserPhoneAndName: (isConfigured && isSignedIn) ? { [weak self] realName, phone in
-                guard let self, let config = self.regionalConfiguration?.apiConfiguration,
-                      let token = self.token, AuthRequestBuilder.isValidToken(token) else {
-                    return .failure(APIError.notConfigured)
-                }
-                let trimmedName = realName.trimmingCharacters(in: .whitespacesAndNewlines)
-                let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !trimmedName.isEmpty, !trimmedPhone.isEmpty else {
-                    return .failure(APIError.invalidRequest)
-                }
-                var req = URLRequest(url: config.baseURL.appendingPathComponent("api/user/update"))
-                req.httpMethod = "POST"
-                req.timeoutInterval = 15
-                req.setValue("application/json", forHTTPHeaderField: "Accept")
-                req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                req.setValue(token, forHTTPHeaderField: "Authorization")
-                req.httpBody = try? JSONSerialization.data(withJSONObject: ["realName": trimmedName, "phonenumber": trimmedPhone], options: [.sortedKeys])
-                do {
-                    let (_, status) = try await self.compositionTransport.send(req)
-                    return (200..<300).contains(status) ? .success(()) : .failure(APIError.httpStatus(status))
-                } catch {
-                    return .failure(error)
-                }
-            } : nil,
-            loadAttendance: attendanceService.map { service in
-                { [weak self] eventID, organizer in
-                    guard let self, self.isSignedIn else { return nil }
-                    return try? await service.fetchAttendance(eventID: eventID, organizer: organizer, token: self.token)
-                }
-            },
-            loadOfficialContact: attendanceService.map { service in
-                { [weak self] activityID in
-                    guard let self, self.isSignedIn else { return nil }
-                    return await service.fetchContact(activityID: activityID, token: self.token)
-                }
-            },
-            sendAttendanceCommand: attendanceService.map { service in
-                { [weak self] eventID, action, fields in
-                    guard let self, self.isSignedIn else { return nil }
-                    return try? await service.sendCommand(eventID: eventID, action: action, fields: fields, token: self.token)
-                }
-            },
-            loadPlanFallback: (isConfigured && isSignedIn) ? { [weak self] activityID, expectedRevision in
-                guard let self, let api = self.regionalConfiguration?.apiConfiguration,
-                      let token = self.token, AuthRequestBuilder.isValidToken(token) else { return nil }
-                let service = PlayExperienceService(configuration: api, transport: self.runtimeHTTPTransport, enabled: [.reads, .directorCommands])
-                return try? await service.planFallbackStatus(activityID: activityID, expectedRevision: expectedRevision, token: token)
-            } : nil,
-            submitPlanFallback: (isConfigured && isSignedIn) ? { [weak self] activityID, expectedRevision, reason in
-                guard let self, let api = self.regionalConfiguration?.apiConfiguration,
-                      let token = self.token, AuthRequestBuilder.isValidToken(token) else {
-                    return .failure(PlayExperienceError.disabled)
-                }
-                let service = PlayExperienceService(configuration: api, transport: self.runtimeHTTPTransport, enabled: [.reads, .directorCommands])
-                do {
-                    let result = try await service.submitPlanFallback(activityID: activityID, expectedRevision: expectedRevision, reason: reason, token: token)
-                    return .success(result)
-                } catch {
-                    return .failure(error)
-                }
-            } : nil
-        )
+            } catch {
+                return .failure(error)
+            }
+        }
+        actions.saveUserPhoneAndName = { [weak self] realName, phone in
+            guard let self, let config = self.regionalConfiguration?.apiConfiguration,
+                  let token = self.token, AuthRequestBuilder.isValidToken(token) else {
+                return .failure(APIError.notConfigured)
+            }
+            let trimmedName = realName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedName.isEmpty, !trimmedPhone.isEmpty else {
+                return .failure(APIError.invalidRequest)
+            }
+            var req = URLRequest(url: config.baseURL.appendingPathComponent("api/user/update"))
+            req.httpMethod = "POST"
+            req.timeoutInterval = 15
+            req.setValue("application/json", forHTTPHeaderField: "Accept")
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.setValue(token, forHTTPHeaderField: "Authorization")
+            req.httpBody = try? JSONSerialization.data(withJSONObject: ["realName": trimmedName, "phonenumber": trimmedPhone], options: [.sortedKeys])
+            do {
+                let (_, status) = try await self.compositionTransport.send(req)
+                return (200..<300).contains(status) ? .success(()) : .failure(APIError.httpStatus(status))
+            } catch {
+                return .failure(error)
+            }
+        }
+        actions.loadPlanFallback = { [weak self] activityID, expectedRevision in
+            guard let self, let api = self.regionalConfiguration?.apiConfiguration,
+                  let token = self.token, AuthRequestBuilder.isValidToken(token) else { return nil }
+            let service = PlayExperienceService(configuration: api, transport: self.runtimeHTTPTransport, enabled: [.reads, .directorCommands])
+            return try? await service.planFallbackStatus(activityID: activityID, expectedRevision: expectedRevision, token: token)
+        }
+        actions.submitPlanFallback = { [weak self] activityID, expectedRevision, reason in
+            guard let self, let api = self.regionalConfiguration?.apiConfiguration,
+                  let token = self.token, AuthRequestBuilder.isValidToken(token) else {
+                return .failure(PlayExperienceError.disabled)
+            }
+            let service = PlayExperienceService(configuration: api, transport: self.runtimeHTTPTransport, enabled: [.reads, .directorCommands])
+            do {
+                let result = try await service.submitPlanFallback(activityID: activityID, expectedRevision: expectedRevision, reason: reason, token: token)
+                return .success(result)
+            } catch {
+                return .failure(error)
+            }
+        }
+        return actions
     }
 }

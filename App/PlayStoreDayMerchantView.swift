@@ -42,11 +42,11 @@ import SwiftUI
             case .game:
                 gameSheet
                     .cyDomainSheet(detents: [.half, .full])
-                    .themeDomain(.play)
+                    .themeDomain(.player)
             case .task:
                 taskSheet
                     .cyDomainSheet(detents: [.half])
-                    .themeDomain(.play)
+                    .themeDomain(.player)
             }
         }
         .cyModalConfirm(

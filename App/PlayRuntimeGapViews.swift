@@ -168,7 +168,7 @@ import SwiftUI
                     .sheet(isPresented: $showing) {
                         sheet(setup)
                             .cyDomainSheet(detents: [.half, .full])
-                            .themeDomain(.play)
+                            .themeDomain(.player)
                     }
                 }
             }

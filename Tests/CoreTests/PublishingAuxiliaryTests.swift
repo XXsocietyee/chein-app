@@ -105,7 +105,7 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
         let prepareOnly = try OperationEndpointApproval(baseURL: config().baseURL, namespace: s.namespace, accountID: s.accountID, paths: ["api/ai/theme/draft/prepare"])
         let prepareOnlyClient = try PublishingAuxiliaryService(configuration: config(), transport: t, approval: prepareOnly, journal: PublishingAuxJournal(), credentials: { credential })
         let halfGranted = try prepareOnlyClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: s)
-        XCTAssertEqual(await prepareOnlyClient.confirm(halfGranted), .notSent)
+        let halfDenied = await prepareOnlyClient.confirm(halfGranted); XCTAssertEqual(halfDenied, .notSent)
         let themePath = try OperationEndpointApproval(baseURL: config().baseURL, namespace: s.namespace, accountID: s.accountID, paths: ["api/ai/theme/draft/prepare", "api/ai/theme/draft/execute"])
         let noJournalClient = try PublishingAuxiliaryService(configuration: config(), transport: t, approval: themePath, credentials: { credential })
         let second = try noJournalClient.prepare(.themeForProduct(idea: "Synthetic", product: .city), session: s)
