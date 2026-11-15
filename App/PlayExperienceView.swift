@@ -702,6 +702,13 @@ import SwiftUI
     @State private var showUnsavedDiscard = false
     @State private var nodeToastMessage: String?
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
+    private var activeDispatchedTask: PlayRandomDispatchedTask? {
+        if let reward = model.reward, reward["nodeId"].tolerantInteger == nodeID,
+           let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
+            return dispatched
+        }
+        return model.extras[nodeID]?.dispatchedTask
+    }
     private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
     var body: some View {
         let context = model.interactionContext
@@ -792,6 +799,14 @@ import SwiftUI
                     verdict = .init(kind: .fail, text: message)
                 }
             }
+            .onChange(of: model.reward) { _, reward in
+                guard let reward, reward["nodeId"].tolerantInteger == nodeID else { return }
+                if let drop = PlayRewardDrop.fromReward(reward) {
+                    nodeToastMessage = drop.toastMessage(locale: locale)
+                } else if let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
+                    nodeToastMessage = dispatched.revealTitle(locale: locale)
+                }
+            }
             .cyPlayVerdict($verdict)
             .modifier(JourneyCheckReviewPresentation(model: journey))
             // The optional check initially renders no rows, so its probe belongs to this stable host.
@@ -829,6 +844,33 @@ import SwiftUI
                                    reference: model.arrivalFailure?.nodeID == nodeID ? model.arrivalFailure?.guardReference : nil)
             if let reading = model.arrivalReading, model.reward?["nodeId"].tolerantInteger == nodeID {
                 PlayArrivalReadingSection(reading: reading)
+            }
+            if let dispatched = activeDispatchedTask {
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYStatusChip(
+                            verbatim: CoreLoopCopy(locale: locale).t("今日盲盒任务", "Today's Mystery Task"),
+                            tone: .info,
+                            systemImage: "shippingbox.fill"
+                        )
+                        Text(verbatim: dispatched.displayName)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(palette.textPrimary)
+                        if let rule = dispatched.ruleInstructions, !rule.isEmpty {
+                            Text(verbatim: rule)
+                                .font(CYTypography.bodyCompact)
+                                .foregroundStyle(palette.textSecondary)
+                        }
+                        if dispatched.nodeID != nodeID, let openNode {
+                            Button(CoreLoopCopy(locale: locale).t("前往盲盒任务", "Open Mystery Task")) {
+                                openNode(dispatched.nodeID)
+                            }
+                            .buttonStyle(.questifyPrimary)
+                            .accessibilityIdentifier("playx.random.openDispatched")
+                        }
+                    }
+                    .accessibilityIdentifier("playx.random.dispatchedTask")
+                }
             }
             if let node {
                 nodeSections(node: node, context: context)
@@ -1213,6 +1255,30 @@ struct PlayExperienceIssueView: View {
             }
             if let xp = reward["xp"].tolerantInteger ?? reward["score"].tolerantInteger { LabeledContent("playx.reward.xp") { Text(verbatim: String(xp)) } }
             if let score = reward["puzzleScore"].tolerantInteger { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
+            if let drop = PlayRewardDrop.fromReward(reward) {
+                LabeledContent {
+                    Text(verbatim: drop.detailText(locale: locale))
+                } label: {
+                    CYStatusChip(
+                        verbatim: CoreLoopCopy(locale: locale).t("随机掉落", "Bonus Drop"),
+                        tone: .success,
+                        systemImage: "sparkles"
+                    )
+                }
+                .accessibilityIdentifier("playx.reward.drop")
+            }
+            if let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
+                LabeledContent {
+                    Text(verbatim: dispatched.displayName)
+                } label: {
+                    CYStatusChip(
+                        verbatim: CoreLoopCopy(locale: locale).t("今日盲盒任务", "Mystery Task"),
+                        tone: .info,
+                        systemImage: "shippingbox.fill"
+                    )
+                }
+                .accessibilityIdentifier("playx.reward.dispatchedTask")
+            }
             if let medal = reward["medalName"].text { Text(verbatim: medal) }
             PlayRewardBadgeRows(targets: PlayRewardBadgeTarget.targets(in: reward), destination: collectionDestination)
                 .id(PlayRewardBadgeTarget.targets(in: reward))

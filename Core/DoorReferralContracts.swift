@@ -78,9 +78,12 @@ public struct DoorScanResult: Decodable, Equatable {
     public let topicID: Int?
     public let activityID: Int?
     public let nodeID: Int?
-    enum CodingKeys: String, CodingKey { case action, topicID = "topicId", activityID = "activityId", nodeID = "nodeId" }
-    public init(action: String, topicID: Int?, activityID: Int? = nil, nodeID: Int? = nil) {
-        self.action = action; self.topicID = topicID; self.activityID = activityID; self.nodeID = nodeID
+    public let dispatchedTask: PlayRandomDispatchedTask?
+    enum CodingKeys: String, CodingKey {
+        case action, topicID = "topicId", activityID = "activityId", nodeID = "nodeId", dispatchedTask
+    }
+    public init(action: String, topicID: Int?, activityID: Int? = nil, nodeID: Int? = nil, dispatchedTask: PlayRandomDispatchedTask? = nil) {
+        self.action = action; self.topicID = topicID; self.activityID = activityID; self.nodeID = nodeID; self.dispatchedTask = dispatchedTask
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -91,6 +94,7 @@ public struct DoorScanResult: Decodable, Equatable {
             return nil
         }
         topicID = id(.topicID); activityID = id(.activityID); nodeID = id(.nodeID)
+        dispatchedTask = try? c.decodeIfPresent(PlayRandomDispatchedTask.self, forKey: .dispatchedTask)
     }
     public var destination: DoorDestination? {
         guard let topicID, topicID > 0 else { return nil }
