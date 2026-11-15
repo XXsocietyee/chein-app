@@ -124,12 +124,12 @@ import SwiftUI
 
     @ViewBuilder private var nearbySection: some View {
         HStack(spacing: CYSpacing.sm) {
-            CYPillButton(verbatim: copy("刷新附近", "Refresh nearby"), style: .secondary, fullWidth: false, systemImage: "arrow.clockwise") {
+            CYPillButton(verbatim: copy("刷新附近", "Refresh nearby"), style: .secondary, systemImage: "arrow.clockwise", fullWidth: false) {
                 Task { await loadNearby(useGPS: false) }
             }
             .disabled(loading || busyAction)
             if captureFix != nil {
-                CYPillButton(verbatim: copy("用当前位置加载", "Use GPS"), style: .tertiary, fullWidth: false, systemImage: "location") {
+                CYPillButton(verbatim: copy("用当前位置加载", "Use GPS"), style: .tertiary, systemImage: "location", fullWidth: false) {
                     Task { await loadNearby(useGPS: true) }
                 }
                 .disabled(loading || busyAction)
@@ -220,7 +220,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYSectionHeader(LocalizedStringKey(copy("统一骰子与审计", "Unified Dice & Audit")))
                 HStack(spacing: CYSpacing.sm) {
-                    CYPillButton(verbatim: copy("统一掷骰", "Unified Roll"), style: .primary, fullWidth: false, systemImage: "dice") {
+                    CYPillButton(verbatim: copy("统一掷骰", "Unified Roll"), style: .primary, systemImage: "dice", fullWidth: false) {
                         Task { await rollUnifiedDice(service: cityGameService, boardId: resolvedBoardId) }
                     }
                     .disabled(busyAction)
