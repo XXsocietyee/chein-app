@@ -37,6 +37,18 @@ Pop-up CSV breakdown (`POP-*`, 1,114 rows):
 | `docs/parity/popups-merchant.csv` | `POP-MER` | 334 | 101 | 312 | 747 |
 | `docs/parity/popups-play.csv` | `POP-PLAY` | 66 | 2 | 165 | 233 |
 
+## Sources read
+
+Refresh 5 re-measured the rows on `ee0383296` and live TEST 8120 (header above). The row baseline it builds on is the
+RM-02 refresh 4 matrix, whose sources were (kept from that refresh; `OWN-OPT-001`):
+
+- App `origin/ui/main` `3ac970ec20191014b4b9a8779a3a94b961e99c9c` (`3ac970ec2`).
+- App route graph: capgraph `app-uimain-3ac970ec2.json` (1335 client paths, `registry-only: 97`, `fixture-only: 0`, `with screens: 499`) generated from `/data/workspace/capgraph/tools` on VPS `work`.
+- Backend: hengyin `integration/backend-app-r2` `5c2017eefaafa1e13377bc82fc78db344e8c994d` (`5c2017eef`); capgraph `backend-5c2017eef.json` (2305 routes, 319 controllers, 0 unresolved); `true-missing-3ac970ec2.tsv` (`app_called_paths: 1233`, `SERVED: 1164`, `PREFIX-SERVED: 59`, `PREFIX-PARTIAL: 8`, `MISSING: 2` — `/api/merchant/payout-account/save` in test-only guard `Core/OwnerDecisionGuards.swift:226` and `/api/workshop/purchased` in legacy static table `Core/RePoint10Routes.swift:32`, both non-live).
+- Owner pack `origin/ui/owner-handover` `15a7ddad1aa7629bcbab3d49d28bf29c9c5c0ee2` (`docs/owner-handover/SUPPLEMENT.md`, `docs/release/completeness-next.md`, `docs/release/completeness-missing.md`).
+- Mini-program `liboyang42-cpu/hengyin` `chengyinhub-xcx` master `1ca6d3215beee96afdcdfd300dd9176f2d0ac5b3` and `docs/parity/page-map.csv` on `3ac970ec2`.
+- Unmerged branch tips (28 `origin/ui/*` remote branches + local `ui/h-e2e-ids` `25db611f6`), release receipts in `docs/release/receipts/`, and unit/contract tests on `3ac970ec2`.
+
 ## Key Deltas in Refresh 5
 
 - **Re-evaluation of existing 1,251 rows**: Fixed 43 stale/parenthetical `file:line` citations (`OPTTriageClosureTests.swift:N`, `WP09PresetsTeamAfterSaleTests.swift:173,187`, 5 `wp-0105` payout rows, 3 `PAGE-*` parentheticals). Downgraded **7 `PAGE-*`** rows (`TicketWalletView` skeleton regression + 6 compile/bind regressions) and **15 `API-*`** rows (`HTTP 404` retired v1 `/api/workshop/purchased`, `501` subscription templates x3, `500` WxACode QR x4, `500 OUTCOME_UNKNOWN` IM media x2, `500` voice ASR x1, `403` NPC chat disabled x1, `500` AppID mismatch x1, `500` CRM broadcast x1, `401 US_SESSION_INVALID` x1) to `IN-PROGRESS`.
