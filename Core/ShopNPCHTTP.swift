@@ -44,13 +44,26 @@ public extension ShopNPCHTTPTransport {
         append("\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"requestId\"\r\n\r\n\(requestID.uuidString)\r\n--\(boundary)--\r\n")
         return try await dispatch(path: "/api/ai/npc/voice-chat", type: "multipart/form-data; boundary=\(boundary)", body: data, scope: scope, voice: true)
     }
+    public func dialogue(topicID: Int, activityID: Int, npcID: Int, utterance: String, routeActionID: String, scope: ShopNPCScope, requestID: UUID = UUID()) async throws -> ShopNPCDialogueReceipt {
+        struct Body: Encodable { let topicId: Int; let activityId: Int; let npcId: Int; let utterance: String; let routeActionId: String }
+        let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard topicID > 0, activityID >= 0, npcID > 0, !trimmed.isEmpty, !routeActionID.isEmpty else { throw ShopNPCFailure.invalid }
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        let bytes = try encoder.encode(Body(topicId: topicID, activityId: activityID, npcId: npcID, utterance: trimmed, routeActionId: routeActionID))
+        let response = try await performRaw(path: "/api/ai/npc/dialogue", type: "application/json", body: bytes, scope: scope)
+        return try ShopNPCDialogueReceipt.decode(response.body, requestID: requestID, npcID: npcID, routeActionID: routeActionID)
+    }
     private func dispatch(path: String, type: String, body: Data, scope: ShopNPCScope, voice: Bool) async throws -> ShopNPCReply {
+        let response = try await performRaw(path: path, type: type, body: body, scope: scope)
+        return try ShopNPCReply.decode(response.body, voice: voice)
+    }
+    private func performRaw(path: String, type: String, body: Data, scope: ShopNPCScope) async throws -> ShopNPCHTTPResponse {
         let response: ShopNPCHTTPResponse
         do { response = try await transport.perform(.init(path: path, method: "POST", contentType: type, body: body, scope: scope)) }
         catch let failure as ShopNPCFailure where failure == .disabled || failure == .stale || failure == .invalid { throw failure }
         catch { throw ShopNPCFailure.unknownOutcome }
         if response.status == 429 { throw ShopNPCFailure.rateLimited }
         guard (200..<300).contains(response.status) else { throw ShopNPCFailure.unknownOutcome }
-        return try ShopNPCReply.decode(response.body, voice: voice)
+        return response
     }
 }

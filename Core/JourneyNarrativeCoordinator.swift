@@ -23,6 +23,7 @@ public struct JourneyAskReview: Identifiable, Equatable {
     private var storedDocument: JourneyNarrativeDocument?
     private var storedReview: JourneyAskReview?
     private var storedReceipt: JourneyAskReceipt?
+    private var storedDialogueReceipt: JourneyDialogueReceipt?
     private var storedPending = Set<String>()
     // A caller cannot observe the previous owner's data between an authentication
     // callback and the next SwiftUI task/synchronize pass.
@@ -30,6 +31,7 @@ public struct JourneyAskReview: Identifiable, Equatable {
     public var document: JourneyNarrativeDocument? { hasCurrentOwner ? storedDocument : nil }
     public var review: JourneyAskReview? { hasCurrentOwner ? storedReview : nil }
     public var receipt: JourneyAskReceipt? { hasCurrentOwner ? storedReceipt : nil }
+    public var dialogueReceipt: JourneyDialogueReceipt? { hasCurrentOwner ? storedDialogueReceipt : nil }
     public var pending: Set<String> { hasCurrentOwner ? storedPending : [] }
     public private(set) var busy = false
     public private(set) var issue: String?
@@ -48,9 +50,9 @@ public struct JourneyAskReview: Identifiable, Equatable {
         self.currentSession = currentSession; unauthorized = onUnauthorized
     }
     public func synchronize() {
-        if owner != currentSession() { generation &+= 1; owner = currentSession(); storedDocument = nil; storedReview = nil; storedReceipt = nil; storedPending = []; issue = nil; busy = false }
+        if owner != currentSession() { generation &+= 1; owner = currentSession(); storedDocument = nil; storedReview = nil; storedReceipt = nil; storedDialogueReceipt = nil; storedPending = []; issue = nil; busy = false }
     }
-    public func dismiss() { generation &+= 1; storedReview = nil; storedReceipt = nil; storedDocument = nil; busy = false }
+    public func dismiss() { generation &+= 1; storedReview = nil; storedReceipt = nil; storedDialogueReceipt = nil; storedDocument = nil; busy = false }
     public func cancelReview() { guard !busy else { return }; generation &+= 1; storedReview = nil }
     public func load() async {
         synchronize(); guard !busy else { return }; generation &+= 1; let revision = generation
@@ -108,11 +110,42 @@ public struct JourneyAskReview: Identifiable, Equatable {
             // Readback failure must not erase the acknowledged answer or replay the action.
             do { let refreshed = try await service.read(query, scope: scope, token: approved.session.token); try check(approved.session, revision); storedDocument = refreshed }
             catch { try check(approved.session, revision); storedDocument = nil; issue = "journey.record.readbackFailed"; if error as? PlayExperienceError == .unauthorized { unauthorized(approved.session) } }
-        } catch {
+            } catch {
             if revision == generation, currentSession() == approved.session {
                 storedReview = nil; storedDocument = nil
                 issue = dispatched ? "journey.record.unknown" : "journey.record.stale"
                 if error as? PlayExperienceError == .unauthorized { unauthorized(approved.session) }
+            }
+        }
+    }
+    public func sendDialogue(npcID: Int, utterance: String, routeActionID: String = UUID().uuidString) async {
+        synchronize()
+        guard available, service.asksEnabled, !busy, let captured = currentSession(), owner == captured else {
+            issue = "journey.record.disabled"; return
+        }
+        let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard npcID > 0, !trimmed.isEmpty, !routeActionID.isEmpty, routeActionID.count <= 64 else {
+            issue = "journey.record.unavailableAction"; return
+        }
+        generation &+= 1; let revision = generation; busy = true; issue = nil
+        defer { if revision == generation { busy = false } }
+        do {
+            let result = try await service.dialogue(scope: scope, npcID: npcID, utterance: trimmed, routeActionID: routeActionID, token: captured.token)
+            try check(captured, revision)
+            storedDialogueReceipt = result; acknowledgedRevision &+= 1
+            do {
+                let refreshed = try await service.read(query, scope: scope, token: captured.token)
+                try check(captured, revision)
+                storedDocument = refreshed
+            } catch {
+                try check(captured, revision)
+                storedDocument = nil; issue = "journey.record.readbackFailed"
+                if error as? PlayExperienceError == .unauthorized { unauthorized(captured) }
+            }
+        } catch {
+            if revision == generation, currentSession() == captured {
+                issue = error as? PlayExperienceError == .disabled ? "journey.record.disabled" : "journey.record.unknown"
+                if error as? PlayExperienceError == .unauthorized { unauthorized(captured) }
             }
         }
     }
