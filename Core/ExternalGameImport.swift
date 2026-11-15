@@ -626,6 +626,28 @@ public enum ExternalGameBridgeHandler {
                 }
             }
             return ExternalGameBridgeResponse(ok: true, data: ["triggered": "true"])
+        case "submitResult":
+            let payload = req.payload ?? [:]
+            guard Set(payload.keys).isSubset(of: ["passed", "score", "digest"]),
+                  let rawPassed = payload["passed"] else {
+                return ExternalGameBridgeResponse(ok: false, error: "INVALID_ARGUMENTS")
+            }
+            let lower = rawPassed.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let passed: Bool
+            if lower == "true" || lower == "1" { passed = true }
+            else if lower == "false" || lower == "0" { passed = false }
+            else { return ExternalGameBridgeResponse(ok: false, error: "INVALID_ARGUMENTS") }
+            var score: Int?
+            if let rawScore = payload["score"] {
+                guard let parsed = Int(rawScore.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+                    return ExternalGameBridgeResponse(ok: false, error: "INVALID_ARGUMENTS")
+                }
+                score = parsed
+            }
+            var data: [String: String] = ["accepted": "true", "passed": passed ? "true" : "false"]
+            if let score { data["score"] = String(score) }
+            if let digest = payload["digest"], !digest.isEmpty, digest.count <= 128 { data["digest"] = digest }
+            return ExternalGameBridgeResponse(ok: true, data: data)
         default:
             return ExternalGameBridgeResponse(ok: false, error: "ACTION_NOT_ALLOWLISTED")
         }
@@ -681,6 +703,22 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
 }
 
 @available(macOS 14.0, *)
+public struct ExternalGameBridgeResult: Codable, Equatable, Sendable {
+    public let gameID: String
+    public let passed: Bool
+    public let score: Int?
+    public let digest: String?
+    public let reportedAt: Date
+
+    public init(gameID: String, passed: Bool, score: Int?, digest: String?, reportedAt: Date = Date()) {
+        self.gameID = gameID
+        self.passed = passed
+        self.score = score
+        self.digest = digest
+        self.reportedAt = reportedAt
+    }
+}
+
 @MainActor @Observable public final class ExternalGameStore {
     public let rootDirectory: URL
     /// 32-byte Ed25519 public key from the server. Empty until `GET /api/external-game/signing-key` succeeds.
@@ -688,6 +726,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
     public private(set) var installedGames: [InstalledExternalGame] = []
     public var pendingConfirmation: ExternalGamePendingConfirmation?
     public var activeLaunchingGame: InstalledExternalGame?
+    public var lastBridgeResultByGameID: [String: ExternalGameBridgeResult] = [:]
     public private(set) var lastError: String = ""
     /// FP-H4. Local, device-only blocklist of package ids and creator names. It is not a server block and
     /// not a report; it only stops this device from importing or running the blocked package or creator.
@@ -1006,6 +1045,17 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         let response = ExternalGameBridgeHandler.handle(rawJSON: rawJSON, manifest: game.manifest, progressStore: &progress)
         progressByGameID[gameID] = progress
         saveProgressToDisk(for: gameID, progress: progress)
+        if response.ok, let passedStr = response.data?["passed"] {
+            let parsedScore = response.data?["score"].flatMap { Int($0) }
+            let result = ExternalGameBridgeResult(
+                gameID: gameID,
+                passed: passedStr == "true",
+                score: parsedScore,
+                digest: response.data?["digest"],
+                reportedAt: Date()
+            )
+            lastBridgeResultByGameID[gameID] = result
+        }
         return response
     }
 

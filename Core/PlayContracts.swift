@@ -12,6 +12,18 @@ public enum PlaySessionScope: Hashable {
     }
 }
 
+public struct PlayNodeExternalGameBinding: Decodable, Equatable, Sendable {
+    public let gameID: String
+    public let gameName: String?
+    public let version: String?
+    public let minScore: Int?
+    public let requirePass: Bool?
+
+    private enum CodingKeys: String, CodingKey {
+        case gameID = "gameId", gameName, version, minScore, requirePass
+    }
+}
+
 /// Optional facts stay optional: missing completion, arrival, XP or duration is not zero.
 /// Strings are plain server text, never Markdown/HTML, instructions or navigation.
 public struct PlayNode: Decodable, Equatable, Identifiable {
@@ -66,13 +78,14 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let sensorType: String?
     /// Retain unknown configuration rather than silently bypassing its prerequisite.
     public let advancedConfig: PlayJSONValue?
+    public let externalGame: PlayNodeExternalGameBinding?
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
         case needScan, needAnswer, needGps, question, passText, questionImg, questionAudio, options, description
         case hookText, storyText, gameTitle, ruleInstructions, rule, requiredMaterials, duration, difficulty
         case players, photoRequireDesc, photoDesc, businessTime, openStatus, crowded, inStoreLoad, serviceCapacity, expectedWaitMinutes, quantityUnavailable, routeNodeState, lockReason, weatherLocked
-        case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
+        case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson, externalGame
     }
     private enum ServiceCapacityKeys: String, CodingKey { case perHour }
     public init(from decoder: Decoder) throws {
@@ -130,6 +143,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         completionMode = try c.decodeIfPresent(String.self, forKey: .completionMode)
         sensorType = try c.decodeIfPresent(String.self, forKey: .sensorType)
         advancedConfig = try c.decodeIfPresent(PlayJSONValue.self, forKey: .advancedConfigJson)
+        externalGame = try? c.decodeIfPresent(PlayNodeExternalGameBinding.self, forKey: .externalGame)
     }
     public var hasAdvancedPrerequisite: Bool {
         guard let advancedConfig else { return false }

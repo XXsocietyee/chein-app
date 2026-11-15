@@ -638,17 +638,26 @@ public enum ChinaReviewedRouteCapability {
         "/api/external-game/catalog",
         "/api/external-game/catalog/{}",
         "/api/external-game/catalog/{}/package",
+        "/api/external-game/catalog/{}/monetization",
+        "/api/external-game/creator/summary",
+        "/api/external-game/entitlements/mine",
+        "/api/external-game/nodes/{}/binding",
+        "/api/external-game/sessions/start",
+        "/api/external-game/sessions/{}/result",
         "/api/external-game/signing-key",
         "/api/external-game/reports"
     ]
 
-    /// Replaces the catalog game-id segment. Numeric submission ids are already `{}` from `normalized`.
+    /// Replaces the non-numeric identifier segment for catalog game ids, session ids, and order numbers.
     public static func externalGameGrantKey(_ normalizedKey: String) -> String {
         let parts = normalizedKey.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
-        guard parts.count >= 5, parts[1] == "api", parts[2] == "external-game", parts[3] == "catalog" else { return normalizedKey }
-        var copy = parts
-        copy[4] = "{}"
-        return copy.joined(separator: "/")
+        guard parts.count >= 5, parts[1] == "api", parts[2] == "external-game" else { return normalizedKey }
+        if parts[3] == "catalog" || parts[3] == "sessions" || parts[3] == "orders" {
+            var copy = parts
+            copy[4] = "{}"
+            return copy.joined(separator: "/")
+        }
+        return normalizedKey
     }
 
     public static func admitsChinaProductionCall(_ url: URL) -> Bool {
@@ -2612,7 +2621,8 @@ public enum ReleaseMoneyWriteSwitch {
         switch key {
         case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create",
             "/api/merchant/commerce/order", "/api/merchant/commerce/order/status",
-            "/api/marketing/group-checkout/create", "/api/marketing/product/activate":
+            "/api/marketing/group-checkout/create", "/api/marketing/product/activate",
+            "/api/external-game/orders", "/api/external-game/orders/{}/confirm-test":
             return .payment
         case "/api/club/settlement/withdraw",
              "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind":
