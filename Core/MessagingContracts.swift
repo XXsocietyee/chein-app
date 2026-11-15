@@ -34,6 +34,14 @@ public struct MessagingCounterparty: Decodable, Equatable {
         bizKey = try c.decodeIfPresent(String.self, forKey: .bizKey)
         directoryContext = MessagingDirectoryFacts.context(c, channel: .channel_id, space: .guild_id, kind: .guild_kind)
     }
+    public init(id: Int? = 0, nickname: String?, avatar: String? = "", bizKey: String?,
+                directoryContext: MessagingDirectoryContext? = nil) {
+        self.id = id
+        self.nickname = nickname
+        self.avatar = avatar
+        self.bizKey = bizKey
+        self.directoryContext = directoryContext
+    }
 }
 
 /// Channel and space already present together. A conversation id is not a channel id.
@@ -111,6 +119,18 @@ public struct MessagingConversation: Decodable, Equatable, Identifiable {
         } else if let value = try? c.decode(String.self, forKey: .muted), value == "0" || value == "1" {
             muted = value == "1"
         } else { muted = nil }
+    }
+    public init(id: Int, type: Int? = 4, counterparty: MessagingCounterparty?,
+                lastMessageAt: String? = nil, unread: Int? = nil, muted: Bool? = nil) {
+        self.id = id
+        self.type = type
+        self.counterparty = counterparty
+        self.directoryContext = counterparty?.directoryContext
+        self.lastMessageType = nil
+        self.lastMessageText = nil
+        self.lastMessageAt = lastMessageAt
+        self.unread = unread
+        self.muted = muted
     }
 }
 

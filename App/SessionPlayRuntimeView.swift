@@ -53,6 +53,7 @@ import UIKit
                                 growthReader: session.growthCenterReader, isCurrent: { model.identity != nil }).id(session.profileReader.identity))
                         })
                         .environment(\.playThemeReplay, PlayThemeReplayBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
+                        .environment(\.inGameChannelHost, session.inGameChannelHost)
                         .task(id: session.cityPlayerReadIdentity) { await session.loadCityGamePlayRead() }
                         .environment(\.playRuntimeGap, PlayRuntimeGapBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
                         .task(id: session.sessionRevision) { await mountTeamAndFinish(scope: scope, model: model) }

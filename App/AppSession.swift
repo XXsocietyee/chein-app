@@ -6471,11 +6471,11 @@ final class AppSession: ObservableObject {
     // w2-20: IM safety (delete/report/block/unblock) and unread-total stay dormant
     // unless the reviewed business runtime grants each exact path.
     private var imSafetyOwners: [IMScope: IMSafetyCoordinator] = [:]
-    private var currentIMSafetySession: IMSafetySession? {
+    var currentIMSafetySession: IMSafetySession? {
         guard let account, let token else { return nil }
         return try? IMSafetySession(accountID: account.id, epoch: gate.currentStamp, token: token)
     }
-    private func imRuntimePaths(_ features: Set<BusinessRuntimeFeature>) -> (BusinessRuntimeFactory, APIConfiguration, Set<String>)? {
+    func imRuntimePaths(_ features: Set<BusinessRuntimeFeature>) -> (BusinessRuntimeFactory, APIConfiguration, Set<String>)? {
         guard let factory = businessRuntimeFactory, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
         let paths = Set(factory.routes(features).map(\.path))
         return paths.isEmpty ? nil : (factory, configuration, paths)

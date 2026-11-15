@@ -60,6 +60,15 @@ struct CityGamePanel: View {
                 else { lifecycleText(snapshot.lifecycle) }
             }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.boardNotice")
         }
+        if snapshot.team != nil {
+            InGameChannelRowButton(
+                scope: .cityTeam(teamID: nil, boardID: snapshot.boardId),
+                titleKey: "ingame.channel.city",
+                subtitleKey: "ingame.channel.citySubtitle",
+                accessibilityID: "ingame.channel.cityGame.entry",
+                reloadTrigger: snapshot.boardId
+            )
+        }
         if boardLayout { boardSection(snapshot) }
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             statTile("cityGame.rules.actions", value: { () -> String? in

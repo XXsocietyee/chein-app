@@ -351,6 +351,8 @@ POST,api/im/file/message/{}/preview,NO-BACKEND,Core/IMFileService.swift:89
 GET,api/im/file/receipt,NO-BACKEND,Core/IMFileService.swift:52
 POST,api/im/file/scan,NO-BACKEND,Core/IMFileService.swift:62
 POST,api/im/file/upload,NO-BACKEND,Core/IMFileService.swift:40
+POST,api/im/ingame/resolve,MATCH,Core/InGameChannels.swift:182
+GET,api/im/ingame/summary,MATCH,Core/InGameChannels.swift:183
 GET,api/im/interaction/request,NO-BACKEND,Core/NativeChannelChain.swift:228
 ?,api/im/members/{}/roles,NO-BACKEND,Core/NativeChannelRoleFlow.swift:301
 ?,api/im/message,PREFIX,Core/NativeChannelMessageFinalForward.swift:119

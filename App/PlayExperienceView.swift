@@ -115,6 +115,18 @@ import SwiftUI
                 actionRead: routeActionRead ?? heldRouteActionRead)
                 .cyPushedChrome(domain: .game)
         }
+        .toolbar {
+            if let scope = playChannelScope {
+                ToolbarItem(placement: .topBarTrailing) {
+                    InGameChannelToolbarButton(
+                        scope: scope,
+                        titleKey: playChannelTitleKey,
+                        accessibilityID: "ingame.channel.play.entry",
+                        reloadTrigger: model.snapshot?.result.teamID ?? 0
+                    )
+                }
+            }
+        }
         .cyModalConfirm(
             isPresented: confirmEnd,
             title: appLocalized("playx.run.end", locale: locale),
@@ -524,6 +536,23 @@ import SwiftUI
             }
         }
         .accessibilityIdentifier("playx.overview")
+    }
+    private var playChannelScope: InGameChannelScope? {
+        if let teamID = model.snapshot?.result.teamID, teamID > 0 {
+            return .team(id: teamID)
+        }
+        switch model.scope {
+        case .activity(let id):
+            return .activity(id: id)
+        case .topic(let id):
+            return .topic(id: id)
+        }
+    }
+    private var playChannelTitleKey: LocalizedStringKey {
+        if let teamID = model.snapshot?.result.teamID, teamID > 0 {
+            return "ingame.channel.team"
+        }
+        return "ingame.channel.activity"
     }
     /// Map-first play screen: static map ground, glass clock / route map / end on top, the one primary
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
