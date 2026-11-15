@@ -207,5 +207,80 @@ private final class NarrativeHTTP: HTTPTransport {
         try journal.save([], owner: captured, scope: scope, realm: "https://other.example", runID: 9, nodeID: 34)
         XCTAssertEqual(try journal.pending(owner: captured, scope: scope, realm: "https://fixture.example", runID: 9, nodeID: 34), ["q1"])
     }
+    func testDialogueEffectsRejectRewardKeysAndAcceptRelationAndTag() throws {
+        let validRelation: PlayWireValue = .object(["type": .string("INC"), "key": .string("relation.boss"), "delta": .int(1), "value": .int(2), "label": .string("Boss Trust")])
+        let validTag: PlayWireValue = .object(["type": .string("ADD_TAG"), "key": .string("tag.asked_secret"), "label": .string("Asked Secret")])
+        let effects = try JourneyDialogueEffect.decodeList(.array([validRelation, validTag]))
+        XCTAssertEqual(effects.count, 2)
+        XCTAssertEqual(effects[0].type, .inc)
+        XCTAssertEqual(effects[0].delta, 1)
+        XCTAssertEqual(effects[1].type, .addTag)
+
+        for rejected in [
+            PlayWireValue.object(["type": .string("INC"), "key": .string("reward.coin"), "delta": .int(1)]),
+            PlayWireValue.object(["type": .string("ADD_TAG"), "key": .string("tag.reward_unlock")]),
+            PlayWireValue.object(["type": .string("INC"), "key": .string("relation.boss"), "delta": .int(0)]),
+            PlayWireValue.object(["type": .string("INC"), "key": .string("relation.boss"), "delta": .int(99)])
+        ] {
+            XCTAssertThrowsError(try JourneyDialogueEffect.decodeList(.array([rejected])))
+        }
+    }
+    func testDialogueActionSendsScopedPayloadAndUpdatesReceipt() async throws {
+        let dialogueJSON = #"{"code":200,"data":{"npcId":7,"routeActionId":"act-1","reply":"Let us talk inside.","stateVersion":4,"effects":[{"type":"INC","key":"relation.boss","delta":1,"value":1,"label":"Boss"}],"relation":{"key":"relation.boss","name":"Shopkeeper","state":"ally","value":1,"line":"Trusted"}}}"#
+        let casebookJSON = #"{"code":200,"data":{"facts":[],"costs":[],"relations":[{"key":"relation.boss","name":"Shopkeeper","state":"ally","value":1,"line":"Trusted"}],"effects":[{"type":"INC","key":"relation.boss","delta":1,"value":1,"label":"Boss"}],"log":[],"found":0,"total":2}}"#
+        let http = NarrativeHTTP(); http.responses = [dialogueJSON, casebookJSON]
+        let captured = try owner(), scope = try target()
+        let model = JourneyNarrativeCoordinator(scope: scope, query: .casebook, service: try service(http), journal: journal(), currentSession: { captured })
+        await model.sendDialogue(npcID: 7, utterance: "Tell me about the lantern", routeActionID: "act-1")
+        XCTAssertEqual(http.requests.count, 2)
+        XCTAssertEqual(http.requests[0].url?.path, "/api/ai/npc/dialogue")
+        let receipt = try XCTUnwrap(model.dialogueReceipt)
+        XCTAssertEqual(receipt.reply, "Let us talk inside.")
+        XCTAssertEqual(receipt.relation?.state, "ally")
+        XCTAssertEqual(receipt.effects.count, 1)
+        if case .casebook(let doc) = model.document {
+            XCTAssertEqual(doc.relations.first?.state, "ally")
+            XCTAssertEqual(doc.effects.first?.key, "relation.boss")
+        } else {
+            XCTFail("Expected casebook document")
+        }
+    }
+    func testShopNPCReplyDecodesOptionalRelationAndEffectsAndCoordinates() async throws {
+        final class ShopTransport: ShopNPCHTTPTransport {
+            var responseBody: Data
+            init(_ body: Data) { self.responseBody = body }
+            func perform(_ request: ShopNPCHTTPRequest) async throws -> ShopNPCHTTPResponse {
+                .init(status: 200, body: responseBody)
+            }
+            func validateResume(scope: ShopNPCScope, grants: ShopNPCGrants) throws {}
+        }
+        let reqID = UUID()
+        let json = #"{"code":200,"data":{"requestId":"\#(reqID.uuidString)","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"Welcome back, friend.","relation":{"name":"Owner","state":"ally","value":2},"effects":[{"type":"INC","key":"relation.owner","delta":1,"label":"Trust"}]}}"#
+        let reply = try ShopNPCReply.decode(Data(json.utf8), voice: false)
+        XCTAssertEqual(reply.relation?.state, .ally)
+        XCTAssertEqual(reply.effects.count, 1)
+
+        var grants = ShopNPCGrants()
+        grants.server = true; grants.provider = true; grants.legal = true; grants.access = true
+        let node = try XCTUnwrap(ShopNPCNodeID(42))
+        let scope = ShopNPCScope(sessionID: "s1", accountID: "a1", roleID: "r1", accessRevision: 1, nodeID: node)
+        let badJSON = #"{"code":200,"data":{"requestId":"\#(UUID().uuidString)","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"Bad","effects":[{"type":"INC","key":"reward.badge","delta":1}]}}"#
+        XCTAssertThrowsError(try ShopNPCReply.decode(Data(badJSON.utf8), voice: false))
+
+        let client = ShopNPCHTTPClient(transport: ShopTransport(Data(json.utf8)))
+        let coordinator = ShopNPCCoordinator(scope: scope, grants: grants, client: client)
+        try coordinator.reviewText("Hello")
+        let review = try XCTUnwrap(coordinator.pending)
+        let matchingJSON = #"{"code":200,"data":{"requestId":"\#(review.id.uuidString)","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"Welcome back, friend.","relation":{"name":"Owner","state":"ally","value":2},"effects":[{"type":"INC","key":"relation.owner","delta":1,"label":"Trust"}]}}"#
+        let matchingClient = ShopNPCHTTPClient(transport: ShopTransport(Data(matchingJSON.utf8)))
+        let liveCoordinator = ShopNPCCoordinator(scope: scope, grants: grants, client: matchingClient)
+        try liveCoordinator.reviewText("Hello")
+        let liveReview = try XCTUnwrap(liveCoordinator.pending)
+        await liveCoordinator.transmit(reviewID: liveReview.id)
+        XCTAssertEqual(liveCoordinator.relation?.state, .ally)
+        XCTAssertEqual(liveCoordinator.lastEffects.first?.key, "relation.owner")
+        XCTAssertEqual(liveCoordinator.messages.last?.effects.count, 1)
+        _ = client
+    }
 
 }

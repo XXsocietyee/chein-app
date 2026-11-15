@@ -15,6 +15,13 @@ import SwiftUI
             if let receipt = model.receipt {
                 Section("journey.record.answer") { Text(verbatim: receipt.question); Text(verbatim: receipt.answer) }
             }
+            if let dialogueReceipt = model.dialogueReceipt {
+                Section("journey.record.dialogue") {
+                    Text(verbatim: dialogueReceipt.reply)
+                    if let relation = dialogueReceipt.relation { relationRow(relation) }
+                    effectRows(dialogueReceipt.effects)
+                }
+            }
             if let document = model.document { content(document) }
             Button("journey.record.refresh") { Task { await model.load() } }.disabled(model.busy || !model.available)
                 .accessibilityIdentifier("journey.record.refresh")
@@ -44,6 +51,9 @@ import SwiftUI
             progress(found: value.found, total: value.total)
             lines("journey.record.facts", value.facts)
             relations(value.relations)
+            if !value.effects.isEmpty {
+                Section("journey.record.effects") { effectRows(value.effects) }
+            }
             lines("journey.record.costs", value.costs)
             Section("journey.record.log") {
                 if value.log.isEmpty { Text("journey.record.empty") }
@@ -110,12 +120,65 @@ import SwiftUI
         Section("journey.record.relations") {
             if values.isEmpty { Text("journey.record.empty") }
             ForEach(Array(values.enumerated()), id: \.offset) { _, item in
-                VStack(alignment: .leading) {
-                    if let name = item.name { Text(verbatim: name).font(.headline) }
-                    Text(LocalizedStringKey("journey.record.relation." + item.state))
-                    if let line = item.line { Text(verbatim: line) }
+                relationRow(item)
+            }
+        }
+    }
+    private func relationRow(_ item: JourneyRecordRelation) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            HStack(spacing: CYSpacing.sm) {
+                if let name = item.name { Text(verbatim: name).font(.headline) }
+                Spacer(minLength: CYSpacing.xs)
+                CYStatusChip(
+                    LocalizedStringKey("journey.record.relation." + item.state),
+                    tone: relationTone(item.state),
+                    systemImage: relationSymbol(item.state)
+                )
+                .accessibilityIdentifier("journeyRelationBadge.\(item.state)")
+            }
+            if let line = item.line { Text(verbatim: line) }
+        }
+    }
+    @ViewBuilder private func effectRows(_ effects: [JourneyDialogueEffect]) -> some View {
+        ForEach(effects) { effect in
+            HStack(spacing: CYSpacing.sm) {
+                CYStatusChip(
+                    verbatim: effectChipText(effect),
+                    tone: effectTone(effect),
+                    systemImage: effectSymbol(effect)
+                )
+                .accessibilityIdentifier("journeyEffectReceipt.\(effect.key)")
+                if let label = effect.label, !label.isEmpty {
+                    Text(verbatim: label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
+        }
+    }
+    private func relationTone(_ state: String) -> CYStatusTone {
+        switch state { case "ally": return .success; case "guarded": return .warning; default: return .info }
+    }
+    private func relationSymbol(_ state: String) -> String {
+        switch state { case "ally": return "heart.fill"; case "guarded": return "shield.fill"; default: return "person.2" }
+    }
+    private func effectChipText(_ effect: JourneyDialogueEffect) -> String {
+        switch effect.type {
+        case .inc:
+            let delta = effect.delta ?? 0
+            return delta > 0 ? "\(effect.key) +\(delta)" : "\(effect.key) \(delta)"
+        case .addTag:
+            return effect.key
+        }
+    }
+    private func effectTone(_ effect: JourneyDialogueEffect) -> CYStatusTone {
+        switch effect.type {
+        case .inc: return (effect.delta ?? 0) >= 0 ? .success : .warning
+        case .addTag: return .info
+        }
+    }
+    private func effectSymbol(_ effect: JourneyDialogueEffect) -> String {
+        switch effect.type {
+        case .inc: return (effect.delta ?? 0) >= 0 ? "arrow.up.right.circle.fill" : "arrow.down.right.circle.fill"
+        case .addTag: return "tag.fill"
         }
     }
     @ViewBuilder private func ending(_ value: JourneyEndingDocument) -> some View {

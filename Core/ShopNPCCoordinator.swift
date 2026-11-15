@@ -31,6 +31,8 @@ public struct ShopNPCTransmissionIntent: Equatable {
     public private(set) var isSuspended = false
     public private(set) var scope: ShopNPCScope
     public private(set) var grants: ShopNPCGrants
+    public private(set) var relation: ShopNPCRelationBadge?
+    public private(set) var lastEffects: [ShopNPCDialogueEffect] = []
     private let client: ShopNPCHTTPClient
     private var epoch: UInt64 = 0
     var questionReuseGeneration: UInt64 { epoch }
@@ -62,6 +64,7 @@ public struct ShopNPCTransmissionIntent: Equatable {
         active = false; isSuspended = false; busy = false; pending = nil; messages = []; failure = nil; lastSend = nil
         serviceNotice = nil; serverRetryAt = nil; pendingIsTerminalServiceResponse = false
         pendingIsNonRetryableProcessing = false
+        relation = nil; lastEffects = []
     }
     /// Cancels local waiting only. The server may already have accepted the original request.
     /// Keep its exact review, content and request ID until explicit retry or discard.
@@ -198,6 +201,9 @@ public struct ShopNPCTransmissionIntent: Equatable {
             if let replacing = review.replacing {
                 guard !reply.text.isEmpty, let index = messages.firstIndex(where: { $0.id == replacing }) else { failure = .malformed; return }
                 messages[index].text = reply.text
+                messages[index].effects = reply.effects
+                if let nextRelation = reply.relation { relation = nextRelation }
+                lastEffects = reply.effects
             } else {
                 switch review.content {
                 case .text(let text): messages.append(.init(mine: true, text: text))
@@ -209,7 +215,11 @@ public struct ShopNPCTransmissionIntent: Equatable {
                 }
                 // Empty success is not fabricated AI speech or completion evidence.
                 if reply.text.isEmpty { failure = .malformed }
-                else { messages.append(.init(mine: false, text: reply.text)) }
+                else {
+                    messages.append(.init(mine: false, text: reply.text, effects: reply.effects))
+                    if let nextRelation = reply.relation { relation = nextRelation }
+                    lastEffects = reply.effects
+                }
             }
         } catch {
             guard active, !isSuspended, epoch == stamp, scope == review.scope else { return }

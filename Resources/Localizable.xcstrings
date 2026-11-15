@@ -72103,6 +72103,23 @@
         }
       }
     },
+    "journey.record.dialogue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Character Reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色回应"
+          }
+        }
+      }
+    },
     "journey.record.disabled": {
       "extractionState": "manual",
       "localizations": {
@@ -72133,6 +72150,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "可选发现"
+          }
+        }
+      }
+    },
+    "journey.record.effects": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relation & Tag Changes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关系与标签变化"
           }
         }
       }

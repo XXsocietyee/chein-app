@@ -38,7 +38,17 @@ import SwiftUI
                         CYAvatarView(name: name, size: .lg, isOnline: true)
                         VStack(alignment: .leading, spacing: 4) {
                             Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                            CYStatusChip(verbatim: ChannelCopy.text("AI 向导", "AI guide", locale: locale), tone: .info, systemImage: "sparkles")
+                            HStack(spacing: CYSpacing.xs) {
+                                CYStatusChip(verbatim: ChannelCopy.text("AI 向导", "AI guide", locale: locale), tone: .info, systemImage: "sparkles")
+                                if let relation = coordinator.relation {
+                                    CYStatusChip(
+                                        LocalizedStringKey("journey.record.relation." + relation.state.rawValue),
+                                        tone: relationTone(relation.state),
+                                        systemImage: relationSymbol(relation.state)
+                                    )
+                                    .accessibilityIdentifier("shopNPCRelationBadge.\(relation.state.rawValue)")
+                                }
+                            }
                         }
                     }.accessibilityElement(children: .combine)
                 }
@@ -80,6 +90,20 @@ import SwiftUI
                                         ShopNPCQuestionReuseButton(coordinator: coordinator, messageID: message.id, draft: $draft, enabled: canCompose)
                                     }
                                     if !message.mine {
+                                        if !message.effects.isEmpty {
+                                            ScrollView(.horizontal, showsIndicators: false) {
+                                                HStack(spacing: CYSpacing.xs) {
+                                                    ForEach(message.effects) { effect in
+                                                        CYStatusChip(
+                                                            verbatim: effectChipText(effect),
+                                                            tone: effectTone(effect),
+                                                            systemImage: effectSymbol(effect)
+                                                        )
+                                                        .accessibilityIdentifier("shopNPCEffectReceipt.\(effect.key)")
+                                                    }
+                                                }
+                                            }
+                                        }
                                         Button { typing = false; attempt { try coordinator.reviewRegeneration(answerID: message.id) } } label: {
                                             Label("shopNPC.regenerate", systemImage: "arrow.clockwise").font(CYTypography.label).frame(minHeight: 44).contentShape(Rectangle())
                                         }.buttonStyle(.plain).foregroundStyle(CYColor.textSecondary)
@@ -299,6 +323,42 @@ import SwiftUI
     }
     private func clearTransient() { cancelSensitiveConfirmation(); capture?.cancel(); typing = false; recording = false; draft = ""; localFailure = nil; revision += 1 }
     private func invalidate() { coordinator.invalidate(); clearTransient() }
+    private func relationTone(_ state: ShopNPCRelationState) -> CYStatusTone {
+        switch state { case .ally: return .success; case .guarded: return .warning; case .neutral: return .info }
+    }
+    private func relationSymbol(_ state: ShopNPCRelationState) -> String {
+        switch state { case .ally: return "heart.fill"; case .guarded: return "shield.fill"; case .neutral: return "person.2" }
+    }
+    private func effectChipText(_ effect: ShopNPCDialogueEffect) -> String {
+        if let label = effect.label, !label.isEmpty {
+            switch effect.type {
+            case .inc:
+                let delta = effect.delta ?? 0
+                return delta > 0 ? "\(label) +\(delta)" : "\(label) \(delta)"
+            case .addTag:
+                return label
+            }
+        }
+        switch effect.type {
+        case .inc:
+            let delta = effect.delta ?? 0
+            return delta > 0 ? "\(effect.key) +\(delta)" : "\(effect.key) \(delta)"
+        case .addTag:
+            return effect.key
+        }
+    }
+    private func effectTone(_ effect: ShopNPCDialogueEffect) -> CYStatusTone {
+        switch effect.type {
+        case .inc: return (effect.delta ?? 0) >= 0 ? .success : .warning
+        case .addTag: return .info
+        }
+    }
+    private func effectSymbol(_ effect: ShopNPCDialogueEffect) -> String {
+        switch effect.type {
+        case .inc: return (effect.delta ?? 0) >= 0 ? "arrow.up.right.circle.fill" : "arrow.down.right.circle.fill"
+        case .addTag: return "tag.fill"
+        }
+    }
 }
 
 /// Add to the authoritative free-explore node's detail. Host supplies fresh scoped bindings.
