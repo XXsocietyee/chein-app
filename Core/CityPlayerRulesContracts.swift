@@ -59,7 +59,7 @@ public struct CityPlayerRulesSection: Decodable, Equatable, Identifiable {
             "joinPolicy": ["INVITE_CODE"], "rosterPolicy": ["CAPTAIN_LOCK_THEN_EACH_MEMBER_CONFIRM"], "replacementPolicy": ["FORBIDDEN_AFTER_LOCK"],
             "reentryPolicy": ["RESUME_ORIGINAL_SESSION"], "roundPolicy": ["FIXED_PUBLISHED_ROUND"], "refillPolicy": ["NONE_WITHIN_ROUND"],
             "chargeTiming": ["COMMITTED_DICE_RESULT", "COMMITTED_ACTION_EFFECT"], "actionKind": ["DICE_ROLL", "DICE_ROLL_AND_ACQUIRE"],
-            "resultPolicy": ["RECORD_ONLY_NO_EFFECTS", "DICE_RECORD_ONLY_ACQUISITION_EXPLICIT_CONFIRM"],
+            "resultPolicy": ["RECORD_ONLY_NO_EFFECTS", "DICE_RECORD_ONLY_ACQUISITION_EXPLICIT_CONFIRM", "DICE_UNIFIED_TRACK_ACQUISITION_EXPLICIT_CONFIRM"],
             "evidenceAcceptance": ["MERCHANT_ATTESTED"], "evidencePolicy": ["ORIGINAL_TASK_EVIDENCE_VALID_AT_CONFIRM"],
             "releasePolicy": ["CURRENT_FROZEN_RELEASE_ONLY"], "termPolicy": ["RETAIN_TITLE_PENDING_REVIEW"], "pausePolicy": ["FREEZE_TERM_REVIEW_BEFORE_RESUME"]
         ]

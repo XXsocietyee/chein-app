@@ -257,5 +257,39 @@ extension AppSession {
             })
         }
     }
+    /// Standalone unified CITY HTTP client under the reviewed CITY lease (for `/api/city-game/dice/{roll,audit}`).
+    func makeUnifiedCityGameHTTPService() -> CityGameHTTPService? {
+        guard let context = currentRuntimeDependencyContext, let lease = composition.cityGameLease(context), lease.matches(context),
+              let api = try? APIConfiguration(baseURL: context.baseURL) else { return nil }
+        let viewer = cityParticipationRuntimeRevision
+        let current: () -> Bool = { [weak self, weak lease] in
+            guard let self, let lease, self.cityParticipationRuntimeRevision == viewer, let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityGameLease(live) === lease, lease.matches(live) else { return false }
+            return true
+        }
+        return try? CityGameHTTPService(configuration: api, token: context.session.token, lease: lease.lease,
+            transport: composition.makeTransport(), isCurrent: current, onUnauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    /// Merged Roam + CITY territory service under the reviewed CITY lease.
+    func makeRoamTerritoryService() -> RoamTerritoryService? {
+        guard let context = currentRuntimeDependencyContext, let lease = composition.cityGameLease(context), lease.matches(context),
+              let api = try? APIConfiguration(baseURL: context.baseURL) else { return nil }
+        let viewer = cityParticipationRuntimeRevision
+        let current: () -> Bool = { [weak self, weak lease] in
+            guard let self, let lease, self.cityParticipationRuntimeRevision == viewer, let live = self.currentRuntimeDependencyContext,
+                  ContentDraftContextFence.matches(context, live), context.session == live.session,
+                  self.composition.cityGameLease(live) === lease, lease.matches(live) else { return false }
+            return true
+        }
+        return try? RoamTerritoryService(configuration: api, token: context.session.token, lease: lease.lease,
+            transport: composition.makeTransport(), isCurrent: current, onUnauthorized: { [weak self] in
+                guard let self, current() else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
 }
 

@@ -32,7 +32,10 @@ public struct CityGameProductionLease: Equatable, Sendable {
         "/api/city-game/onsite-tasks/result/{}",
         "/api/city-game/arrival-evidence/state", "/api/city-game/arrival-evidence/merchant", "/api/city-game/arrival-evidence/command",
         "/api/city-game/arrival-evidence/request/{}", "/api/city-game/arrival-evidence/evidence/{}",
-        "/api/city-game/merchant/operations/availability", "/api/city-game/merchant/operations/request/{}"
+        "/api/city-game/merchant/operations/availability", "/api/city-game/merchant/operations/request/{}",
+        "/api/city-game/dice/roll", "/api/city-game/dice/audit",
+        "/api/roam/territory/nearby", "/api/roam/territory/claim", "/api/roam/territory/checkin",
+        "/api/roam/territory/leaderboard", "/api/roam/territory/my"
     ]
 
     public init?(host: String, regionID: String) {
@@ -53,14 +56,67 @@ public enum CityGameServiceError: Error, Equatable {
     case malformed
 }
 
-/// The five game-loop routes. Bodies come from the agent-H intent; nothing here prices,
-/// rolls or decides.
+/// Server-authoritative response for `POST /api/city-game/dice/roll`.
+public struct CityUnifiedDiceRollReceipt: Decodable, Equatable, Sendable {
+    public let requestId: String
+    public let boardId: String
+    public let action: String?
+    public let decision: String
+    public let currentVersion: Int64
+    public let reasonCode: String?
+    public let taskAttemptKept: Bool?
+    public let pointsCharged: Int64?
+    public let diceFace: Int64?
+    public let idempotentReplay: Bool?
+    public let teamId: String?
+    public let roundSeq: Int64?
+    public let faceIndex: Int?
+    public let faceValue: Int64?
+    public let previousPosition: Int?
+    public let newPosition: Int?
+    public let landedPropertyId: String?
+}
+
+public struct CityDiceAuditEntry: Decodable, Equatable, Sendable, Identifiable {
+    public let rollId: String
+    public let requestId: String?
+    public let teamId: String?
+    public let actorMemberId: Int64?
+    public let roundSeq: Int64?
+    public let diceId: String?
+    public let faceIndex: Int?
+    public let faceValue: Int64?
+    public let sourcePath: String?
+    public let randomTicket: Int?
+    public let totalWeight: Int?
+    public let previousPosition: Int?
+    public let newPosition: Int?
+    public let landedPropertyId: String?
+    public let beforeUnits: Int?
+    public let afterUnits: Int?
+    public let boardVersion: Int64?
+    public let rolledAtMillis: Int64?
+    public var id: String { rollId }
+}
+
+public struct CityDiceAuditReport: Decodable, Equatable, Sendable {
+    public let boardId: String
+    public let regionId: String?
+    public let teamId: String?
+    public let diceId: String?
+    public let rolls: [CityDiceAuditEntry]
+}
+
+/// The five game-loop routes plus unified dice roll/audit. Bodies come from the agent-H intent;
+/// nothing here prices, rolls or decides.
 public enum CityGameRoute: Equatable {
     case snapshot(boardId: String)
     case deltas(boardId: String, seasonId: String, after: Int64)
     case quote(action: CityActionKind, boardId: String, targetId: String)
     case action(body: Data)
     case receipt(requestId: String)
+    case unifiedDiceRoll(requestId: String, boardId: String?, regionId: String?, expectedVersion: Int64?)
+    case diceAudit(boardId: String?, regionId: String?, limit: Int?)
 
     public var path: String {
         switch self {
@@ -69,6 +125,8 @@ public enum CityGameRoute: Equatable {
         case .quote: return "api/city-game/game/quote"
         case .action: return "api/city-game/game/action"
         case .receipt(let requestId): return "api/city-game/game/action/" + requestId
+        case .unifiedDiceRoll: return "api/city-game/dice/roll"
+        case .diceAudit: return "api/city-game/dice/audit"
         }
     }
 
@@ -92,6 +150,37 @@ public enum CityGameRoute: Equatable {
             body = bytes
         case .receipt(let requestId):
             guard CityReadRoute.validID(requestId) else { throw APIError.invalidRequest }
+        case .unifiedDiceRoll(let requestId, let boardId, let regionId, let expectedVersion):
+            guard CityReadRoute.validID(requestId) else { throw APIError.invalidRequest }
+            var payload: [String: Any] = ["requestId": requestId]
+            if let boardId {
+                guard CityReadRoute.validID(boardId) else { throw APIError.invalidRequest }
+                payload["boardId"] = boardId
+            }
+            if let regionId {
+                guard CityReadRoute.validID(regionId) else { throw APIError.invalidRequest }
+                payload["regionId"] = regionId
+            }
+            if boardId == nil && regionId == nil { throw APIError.invalidRequest }
+            if let expectedVersion {
+                guard ReformWire.version(expectedVersion) else { throw APIError.invalidRequest }
+                payload["expectedVersion"] = expectedVersion
+            }
+            body = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        case .diceAudit(let boardId, let regionId, let limit):
+            if let boardId {
+                guard CityReadRoute.validID(boardId) else { throw APIError.invalidRequest }
+                query["boardId"] = boardId
+            }
+            if let regionId {
+                guard CityReadRoute.validID(regionId) else { throw APIError.invalidRequest }
+                query["regionId"] = regionId
+            }
+            if boardId == nil && regionId == nil { throw APIError.invalidRequest }
+            if let limit {
+                guard (1...200).contains(limit) else { throw APIError.invalidRequest }
+                query["limit"] = String(limit)
+            }
         }
         guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else {
             throw APIError.invalidConfiguration
@@ -160,6 +249,18 @@ public enum CityGameRoute: Equatable {
         } catch CityGameServiceError.rejected(status: 404, code: "CITY_RECEIPT_NOT_FOUND") {
             return nil
         }
+    }
+
+    /// Unified server-authoritative dice roll (`POST /api/city-game/dice/roll`).
+    public func rollUnifiedDice(requestId: String = UUID().uuidString.lowercased(),
+                                boardId: String,
+                                expectedVersion: Int64? = nil) async throws -> CityUnifiedDiceRollReceipt {
+        try await exchange(.unifiedDiceRoll(requestId: requestId, boardId: boardId, regionId: lease.regionID, expectedVersion: expectedVersion))
+    }
+
+    /// Server dice roll audit trail for the viewer's joined team (`GET /api/city-game/dice/audit`).
+    public func diceAudit(boardId: String, limit: Int? = 50) async throws -> CityDiceAuditReport {
+        try await exchange(.diceAudit(boardId: boardId, regionId: lease.regionID, limit: limit))
     }
 
     private struct Envelope<Payload: Decodable>: Decodable {

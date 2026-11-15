@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 struct RoamBrowserView: View {
     @Environment(\.analyticsEventClient) private var analytics
+    @Environment(\.locale) private var locale
     @State private var trackedRoamStart = false
     let reader: any RoamReading
     var nearbyEventsReader: RoamNearbyEventsReader? = nil
@@ -16,6 +17,7 @@ struct RoamBrowserView: View {
     var tileMemoryReader: RoamTileMemoryReader? = nil
     var sessionFactReader: RoamSessionFactReader? = nil
     var cityDestination: (() -> AnyView)? = nil
+    var territoryDestination: (() -> AnyView)? = nil
     var nearbyTeamsDestination: (() -> AnyView)? = nil
     var stampDestination: (() -> AnyView)? = nil
     var liveDestination: (() -> AnyView)? = nil
@@ -268,6 +270,7 @@ struct RoamBrowserView: View {
                             RoamExperienceHubView(reader: experienceReader, albumMetadataReader: albumMetadataReader, tileMemoryReader: tileMemoryReader, sessionFactReader: sessionFactReader, stampDestination: stampDestination, liveDestination: liveDestination, toolsReader: passportToolsReader ?? toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination)
                         }
                     case .city: cityDestination?()
+                    case .territory: territoryDestination?()
                     case .nearbyTeams: nearbyTeamsDestination?()
                     }
                 }
@@ -308,6 +311,16 @@ struct RoamBrowserView: View {
             if cityDestination != nil {
                 Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
                     .accessibilityIdentifier("roam.more.city")
+            }
+            if territoryDestination != nil {
+                Button { toolbarRoute = .territory } label: {
+                    Label {
+                        Text(verbatim: ChannelCopy.text("漫游领地", "Territory", locale: locale))
+                    } icon: {
+                        Image(systemName: "flag.2.crossed")
+                    }
+                }
+                .accessibilityIdentifier("roam.more.territory")
             }
             if nearbyTeamsDestination != nil {
                 Button { toolbarRoute = .nearbyTeams } label: { Label("nearby.title", systemImage: "person.3") }
@@ -645,7 +658,7 @@ struct RoamItemRow: View {
 
 /// Toolbar menu destinations; the menu cannot host NavigationLinks directly.
 private enum RoamBrowserToolbarRoute: Hashable, Identifiable {
-    case experience, city, nearbyTeams
+    case experience, city, territory, nearbyTeams
     var id: Self { self }
 }
 
