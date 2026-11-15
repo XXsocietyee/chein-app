@@ -51,7 +51,7 @@ struct InvoiceLaunchApplyIntent {
                 if overview.eligibleOrders.isEmpty {
                     Section { invoiceText("noOrders") } header: { invoiceText("orders") }
                 } else {
-                    ForEach(InvoiceIssuerGrouping.group(orders: overview.eligibleOrders)) { group in
+                    ForEach(InvoiceIssuerSelectionGuard.group(orders: overview.eligibleOrders)) { group in
                         Section {
                             ForEach(group.orders, id: \.orderId) { order in
                                 Toggle(isOn: Binding(
