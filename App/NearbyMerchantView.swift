@@ -27,6 +27,7 @@ extension EnvironmentValues {
     @State private var operation: Task<Void, Never>?
     @State private var publicHomeSelection: NearbyMerchantCoordinator.PublicHomeSelection?
     @State private var toastMessage: String?
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     var body: some View {
@@ -93,7 +94,13 @@ extension EnvironmentValues {
                                 .accessibilityIdentifier("nearbyMerchant.open.\(row.id)")
                         } else {
                             VStack(alignment: .leading) {
-                                card(row); Text("nearbyMerchant.unlisted").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                Button {
+                                    toastMessage = MerchantCloseCopy.text("这家还没在平台建档，先电话联系", "Not registered yet — call directly", locale)
+                                } label: {
+                                    card(row)
+                                }
+                                .buttonStyle(.plain)
+                                Text("nearbyMerchant.unlisted").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 // Source: unregistered leads with a server-released phone offer "电话联系" (system dialer only).
                                 if let phone = row.callablePhone, let url = URL(string: "tel:" + phone.filter { $0.isNumber || $0 == "+" }) {
                                     Link(destination: url) { Label("cooperation.nearby.call", systemImage: "phone") }

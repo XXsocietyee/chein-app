@@ -1,7 +1,7 @@
 mini-program file:line,trigger,title/copy,buttons/actions,native screen,native equivalent file:line,status
-components/cy/category-sheet/index.js:91,toast (toggleCategory),最多只能选择 ${num} 个分类,dismiss,App/ProjectEditView.swift (Category Picker),matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
-components/cy/category-sheet/index.js:97,toast (toggleCategory),最多只能选择 ${num} 个分类,dismiss,App/ProjectEditView.swift (Category Picker),matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
-components/cy/category-sheet/index.js:120,toast (onSave),最多只能选择 ${num} 个分类,dismiss,App/ProjectEditView.swift (Category Picker),matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+components/cy/category-sheet/index.js:91,toast (toggleCategory),最多只能选择 ${num} 个分类,dismiss,App/ProjectCategoryPicker.swift,ProjectCategoryPickerController.toggle/save (.cyToast limitToastMessage),DONE
+components/cy/category-sheet/index.js:97,toast (toggleCategory),最多只能选择 ${num} 个分类,dismiss,App/ProjectCategoryPicker.swift,ProjectCategoryPickerController.toggle (.cyToast limitToastMessage),DONE
+components/cy/category-sheet/index.js:120,toast (onSave),最多只能选择 ${num} 个分类,dismiss,App/ProjectCategoryPicker.swift,ProjectCategoryPickerController.save (.cyToast limitToastMessage),DONE
 components/cy/category-sheet/index.wxml:1,cy-sheet,选择分类,close / select,App/ProjectEditView.swift,App/ProjectEditView.swift:704 (ProjectEditCategoryField),DONE
 components/cy/publish-sheet/index.js:57,toast (chooseTopicMode),发布信息尚未就绪，请稍后重试,dismiss,App/PublishingModesViews.swift (Publish Sheet),matched zh-Hans string in App/*.swift,DONE
 components/cy/publish-sheet/index.js:67,toast (choosePro),当前身份不可发布主题,dismiss,App/PublishingModesViews.swift (Publish Sheet),App/PublishingModesViews.swift,DONE
@@ -108,8 +108,8 @@ pages/merchant/components/cy/tag-sheet/index.js:77,toast (onTap),最多选 ,dism
 pages/merchant/components/cy/tag-sheet/index.wxml:3,cy-sheet,"<cy-sheet show=""{{show}}"" handle closable=""{{false}}"" mask-closable=""{{!saving}}"" footer bind:close=",close / select,App/MerchantOperationsViews.swift,App/MerchantOperationsViews.swift (DesignSystem sheet/modal parity),DONE
 pages/merchant/components/cy/time-range/index.wxml:1,cy-date-sheet,{{title}},close / select,App/MerchantOnboardingView.swift,App/MerchantOnboardingView.swift (DesignSystem sheet/modal parity),DONE
 pages/merchant/components/merchant-claim-sheet/index.wxml:1,cy-sheet,认领已有门店,close / select,App/MerchantCityNodeHubView.swift,App/MerchantCityNodeHubView.swift (DesignSystem sheet/modal parity),DONE
-pages/merchant/crm-campaigns/index.js:104,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantBusinessViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
-pages/merchant/crm-campaigns/index.js:112,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantBusinessViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/merchant/crm-campaigns/index.js:104,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantBusinessViews.swift:464-468,App/MerchantBusinessViews.swift:464-468 (inline failureKey + action.retry),DONE
+pages/merchant/crm-campaigns/index.js:112,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantBusinessViews.swift:464-468,App/MerchantBusinessViews.swift:464-468 (inline failureKey + action.retry),DONE
 pages/merchant/crm-campaigns/index.wxml:44,cy-sheet,{{detail ? detail.titleText : ,close / select,App/MerchantBusinessViews.swift,App/MerchantBusinessViews.swift (DesignSystem sheet/modal parity),DONE
 pages/merchant/customer/detail/index.js:102,toast (loadDetail),客户详情刷新失败,dismiss,App/MerchantCustomerDetailSections.swift,App/MerchantCustomerDetailSections.swift,DONE
 pages/merchant/customer/detail/index.js:108,toast (loadDetail),客户详情加载失败，请重试,dismiss,App/MerchantCustomerDetailSections.swift,matched zh-Hans string (Resources/ClubOpsCustomer.xcstrings:clubOps.customer.failed),DONE
@@ -222,8 +222,8 @@ pages/merchant/index/index.wxml:345,cy-scene-sheet,{{sceneCurrent.title}},close 
 pages/merchant/index/index.wxml:350,cy-scene-sheet,{{sceneCurrent.title}},close / select,App/MerchantHomeView.swift / App/CityMerchantOperationsView.swift,App/NativeVerificationView.swift,DONE
 pages/merchant/index/index.wxml:354,cy-modal,放弃本轮修改,destructive 确认放弃 / 继续编辑,App/MerchantCoopFieldEntry.swift,App/MerchantCoopFieldEntry.swift:102 (.cyModalConfirm),DONE
 pages/merchant/ledger/index.js:698,toast (enableCoopSettleAlerts),已允许微信通知,dismiss,App/MerchantFinanceView.swift,App/MerchantBusinessViews.swift,DONE
-pages/merchant/payout-account/index.js:86,toast (loadAccount),刷新失败，稍后再试,dismiss,App/MerchantPayoutAccountView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
-pages/merchant/payout-account/index.js:95,toast (loadAccount),刷新失败，稍后再试,dismiss,App/MerchantPayoutAccountView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/merchant/payout-account/index.js:86,toast (loadAccount),刷新失败，稍后再试,dismiss,App/MerchantPayoutAccountView.swift,App/MerchantPayoutAccountView.swift (refresh failure .cyToast),DONE
+pages/merchant/payout-account/index.js:95,toast (loadAccount),刷新失败，稍后再试,dismiss,App/MerchantPayoutAccountView.swift,App/MerchantPayoutAccountView.swift (refresh failure .cyToast & .failed state),DONE
 pages/merchant/payout-account/index.js:104,toast (copySignUrl),已复制,dismiss,App/MerchantPayoutAccountView.swift,matched zh-Hans string in App/*.swift,DONE
 pages/merchant/predict/index.js:217,toast (onConfirmSettle),结算失败，请重试,dismiss,App/MerchantPredictionInboxView.swift / App/MerchantOfferWithdrawalView.swift,matched zh-Hans string in App/*.swift,DONE
 pages/merchant/predict/index.js:222,toast (onConfirmSettle),已公布 · ,dismiss,App/MerchantPredictionInboxView.swift / App/MerchantOfferWithdrawalView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:cityGame.properties.empty),DONE
@@ -256,7 +256,7 @@ pages/merchant/team/index.js:829,toast (acceptIncomingInvite),邀请处理失败
 pages/merchant/team/index.js:834,toast (acceptIncomingInvite),邀请处理失败,dismiss,App/MerchantOperatorRosterView.swift,App/MerchantBusinessViews.swift,DONE
 pages/merchant/team/index.wxml:97,cy-scene-sheet,{{roleSheet.mode === ,close / select,App/MerchantOperatorRolePermissionSection.swift,App/MerchantOperatorRolePermissionSection.swift (role sheet),DONE
 pages/merchant/team/index.wxml:117,cy-danger-confirm,"<cy-danger-confirm id=""dc"" bind:confirm=""confirmDanger"" bind:cancel=""cancelDanger"" />",confirm / cancel,App/MerchantOperatorRosterSections.swift,App/MerchantOperatorRosterSections.swift (danger confirm),DONE
-pages/merchant/verify-records/index.js:101,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantOperationsViews.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+pages/merchant/verify-records/index.js:101,toast (loadList),刷新失败，稍后再试,dismiss,App/MerchantOperationsViews.swift:259-260,App/MerchantOperationsViews.swift:259-260 (inline failure + action.retry),DONE
 pages/publish/activity/index.js:353,toast (removeTicket),至少保留一个票单,dismiss,App/PublishingModesViews.swift,App/PublishingModesViews.swift,DONE
 pages/publish/activity/index.js:479,toast (onContinueDisabledTap),cyToast(publisherIdentity.checkIdentityForm(this.activityIdentityForm()).message),dismiss,App/PublishingModesViews.swift,App/PublishingModesViews.swift,DONE
 pages/publish/activity/index.js:613,toast (registerActivityIdentity),if (!check.ok) { cyToast(check.message); return },dismiss,App/PublishingModesViews.swift,App/PublishingModesViews.swift,DONE
@@ -527,9 +527,9 @@ pages/publish/temp/index.js:1281,toast (addSortItem),排序最多 8 条,dismiss,
 pages/publish/temp/index.js:1286,toast (removeSortItem),排序至少 2 条,dismiss,App/TemplateAuthoringView.swift,App/PlayAreaPopupCloseSurfaces.swift,DONE
 pages/publish/temp/index.js:1293,toast (addMatchPair),连线最多 6 对,dismiss,App/TemplateAuthoringView.swift,App/PlayAreaPopupCloseSurfaces.swift,DONE
 pages/publish/temp/index.js:1303,toast (removeMatchPair),连线至少 2 对,dismiss,App/TemplateAuthoringView.swift,App/PlayAreaPopupCloseSurfaces.swift,DONE
-pages/publish/temp/index.js:1313,toast (addClassifyBin),分类最多 4 个类别,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+pages/publish/temp/index.js:1313,toast (addClassifyBin),分类最多 4 个类别,dismiss,App/TemplateMiniGameConfigurationView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:playkitAuthor.validation.classify.bins.count),DONE
 pages/publish/temp/index.js:1320,toast (removeClassifyBin),分类至少 2 个类别,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:playkitAuthor.validation.classify.bins.count),DONE
-pages/publish/temp/index.js:1333,toast (addClassifyItem),分类最多 10 条,dismiss,App/TemplateAuthoringView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:objects.limit),DONE
+pages/publish/temp/index.js:1333,toast (addClassifyItem),分类最多 10 条,dismiss,App/TemplateMiniGameConfigurationView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:playkitAuthor.validation.classify.items.count),DONE
 pages/publish/temp/index.js:1338,toast (removeClassifyItem),分类至少 2 条,dismiss,App/TemplateAuthoringView.swift,App/PlayAreaPopupCloseSurfaces.swift,DONE
 pages/publish/temp/index.js:1457,toast (success),商家权限没能读取,dismiss,App/TemplateAuthoringView.swift,App/PlayAreaPopupCloseSurfaces.swift,DONE
 pages/publish/temp/index.js:1463,toast (fail),商家权限没能读取,dismiss,App/TemplateAuthoringView.swift,App/PlayAreaPopupCloseSurfaces.swift,DONE
@@ -742,7 +742,7 @@ subpackageMember/mytemplate/mytemplate.js:134,toast (templateStatus),网络异�
 subpackageMember/mytemplate/mytemplate.js:136,toast (templateStatus),网络异常，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
 subpackageMember/mytemplate/mytemplate.js:138,toast (templateStatus),网络异常，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
 subpackageMember/mytemplate/mytemplate.js:141,toast (templateStatus),网络异常，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
-subpackageMember/mytemplate/mytemplate.js:343,toast (handleListError),刷新失败，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string (Resources/Localizable.xcstrings:im.readAll.readbackHint),DONE
+subpackageMember/mytemplate/mytemplate.js:343,toast (handleListError),刷新失败，请重试,dismiss,App/TemplateAuthoringMineView.swift:205-207,App/TemplateAuthoringMineView.swift:205-207 (templateOwnShelf.read.failedKept + retry),DONE
 subpackageMember/mytemplate/mytemplate.js:367,toast (success),删除成功,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string in App/*.swift,DONE
 subpackageMember/mytemplate/mytemplate.js:376,toast (success),网络错误，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE
 subpackageMember/mytemplate/mytemplate.js:380,toast (fail),网络错误，请重试,dismiss,App/TemplateAuthoringMineView.swift,matched zh-Hans string (Resources/CityGame.xcstrings:homeReturn.failure.network),DONE

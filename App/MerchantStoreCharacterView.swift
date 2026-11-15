@@ -26,7 +26,6 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
-    @State private var showIntroSheet = false
     @State private var toastMessage: String?
     init(coordinator: StoreCharacterCoordinator, reform: StoreCharacterReformContext? = nil, authorFlow: MerchantNPCKnowledgeAuthorFlow? = nil) {
         _model = StateObject(wrappedValue: .init(coordinator, reform: reform, authorFlow: authorFlow))
@@ -73,17 +72,9 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.merchant)
             }
-            .sheet(isPresented: $showIntroSheet) {
-                MerchantCloseSheetHost(
-                    title: MerchantCloseCopy.text("AI 店铺角色介绍", "AI Store Character", locale),
-                    closeIdentifier: "aiNPC.intro.close",
-                    onClose: { showIntroSheet = false }
-                ) {
-                    Text(MerchantCloseCopy.text("设置门店专属 NPC 的形象、人设与开场音色，供到店玩家互动。", "Customize store NPC avatar, persona, and voice for arriving players.", locale))
-                        .font(CYTypography.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .padding(.vertical, CYSpacing.sm)
-                }
+            .onChange(of: c.notice) { _, notice in
+                guard let notice else { return }
+                toastMessage = storeCharacterNoticeText(notice, locale: locale)
             }
             .cyToast(verbatimMessage: $toastMessage)
             .cyModalConfirm(
@@ -391,25 +382,33 @@ struct StoreCharacterPreview: View {
     }
 }
 
+private func storeCharacterNoticeText(_ notice: StoreCharacterCoordinator.Notice, locale: Locale) -> String {
+    let key: String.LocalizationValue
+    switch notice {
+    case .saved: key = "storeCharacter.notice.saved"
+    case .nameRequired: key = "storeCharacter.notice.nameRequired"
+    case .nameFirst: key = "storeCharacter.notice.nameFirst"
+    case .saveProfileFirst: key = "storeCharacter.notice.saveProfileFirst"
+    case .photoUnavailable: key = "storeCharacter.notice.photoUnavailable"
+    case .writesDisabled: key = "storeCharacter.notice.writesDisabled"
+    case .mapPointUnavailable: key = "storeCharacter.notice.mapPointUnavailable"
+    case .mapPointFailed(let message):
+        if let message { return message }
+        key = "storeCharacter.error.request"
+    case .mapPointUnknown: key = "storeCharacter.notice.mapPointUnknown"
+    case .readbackConfirmed: key = "storeCharacter.notice.readbackConfirmed"
+    case .readbackMismatch: key = "storeCharacter.notice.readbackMismatch"
+    }
+    return String(localized: LocalizedStringResource(key, table: "StoreCharacter", locale: locale))
+}
+
 struct StoreCharacterNoticeText: View {
+    @Environment(\.locale) private var locale
     let notice: StoreCharacterCoordinator.Notice
     var body: some View {
-        text.font(.subheadline).accessibilityIdentifier("aiNPC.notice")
-    }
-    private var text: Text {
-        switch notice {
-        case .saved: return t("storeCharacter.notice.saved")
-        case .nameRequired: return t("storeCharacter.notice.nameRequired")
-        case .nameFirst: return t("storeCharacter.notice.nameFirst")
-        case .saveProfileFirst: return t("storeCharacter.notice.saveProfileFirst")
-        case .photoUnavailable: return t("storeCharacter.notice.photoUnavailable")
-        case .writesDisabled: return t("storeCharacter.notice.writesDisabled")
-        case .mapPointUnavailable: return t("storeCharacter.notice.mapPointUnavailable")
-        case .mapPointFailed(let message): return message.map { Text(verbatim: $0) } ?? t("storeCharacter.error.request")
-        case .mapPointUnknown: return t("storeCharacter.notice.mapPointUnknown")
-        case .readbackConfirmed: return t("storeCharacter.notice.readbackConfirmed")
-        case .readbackMismatch: return t("storeCharacter.notice.readbackMismatch")
-        }
+        Text(verbatim: storeCharacterNoticeText(notice, locale: locale))
+            .font(.subheadline)
+            .accessibilityIdentifier("aiNPC.notice")
     }
 }
 

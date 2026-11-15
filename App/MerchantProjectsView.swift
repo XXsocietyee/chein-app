@@ -4,6 +4,7 @@ import SwiftUI
 struct MerchantProjectsView<Reader: MerchantReading>: View {
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.playGapAPIHost) private var playGapAPIHost
     @ObservedObject var reader: Reader
     var contentService: (any MerchantContentServing)? = nil
     var showsRecentEvents = true
@@ -14,8 +15,6 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     @State private var opsProject: MerchantProject?
     @State private var deleteProject: MerchantProject?
     @State private var cancelRefundProject: MerchantProject?
-    @State private var appealProject: MerchantProject?
-    @State private var appealReason = ""
     @State private var toastMessage: String?
     #if DEBUG
     @State private var summaryFixtureEvents: [String] = []
@@ -204,10 +203,10 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         }
         .sheet(item: $opsProject) { project in
             let isTopic = project.bizType == "topic"
+            let moneyOpen = MerchantCloseCopy.isReviewedMoneyOpen(host: playGapAPIHost)
             let options: [CYOptionSheetItem<String>] = [
                 CYOptionSheetItem(id: "open", title: MerchantCloseCopy.text("查看工作台", "Open summary", locale), systemImage: "rectangle.grid.1x2"),
-                CYOptionSheetItem(id: "appeal", title: MerchantCloseCopy.text("申诉", "Appeal", locale), systemImage: "exclamationmark.bubble"),
-                MerchantCloseCopy.isReviewedMoneyOpen
+                moneyOpen
                     ? CYOptionSheetItem(id: "cancelRefund", title: MerchantCloseCopy.text("取消并退款", "Cancel & refund", locale), systemImage: "arrow.uturn.backward", isDanger: true)
                     : nil,
                 CYOptionSheetItem(id: "delete", title: MerchantCloseCopy.text(isTopic ? "删除路线" : "删除场次", isTopic ? "Delete route" : "Delete session", locale), systemImage: "trash", isDanger: true)
@@ -222,11 +221,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         if let snapshot = model.value {
                             presentation.openSummary(project: project, snapshot: snapshot, context: context, permit: presentation.permit(snapshot: snapshot))
                         }
-                    case "appeal":
-                        appealReason = ""
-                        appealProject = project
                     case "cancelRefund":
-                        if MerchantCloseCopy.isReviewedMoneyOpen { cancelRefundProject = project }
+                        if MerchantCloseCopy.isReviewedMoneyOpen(host: playGapAPIHost) { cancelRefundProject = project }
                     case "delete":
                         deleteProject = project
                     default: break
@@ -244,16 +240,22 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     onCancel: { deleteProject = nil },
                     onUnpublishInstead: {
                         deleteProject = nil
-                        toastMessage = MerchantCloseCopy.text("请进入工作台执行下架操作", "Open workspace to unpublish instead", locale)
+                        if let snapshot = model.value {
+                            presentation.openSummary(project: project, snapshot: snapshot, context: context, permit: presentation.permit(snapshot: snapshot))
+                        }
+                        toastMessage = MerchantCloseCopy.text("请在工作台执行下架操作", "Open workspace to unpublish instead", locale)
                     },
                     onConfirm: {
                         deleteProject = nil
-                        toastMessage = MerchantCloseCopy.text("请进入具体项目详情页完成二次校验删除", "Confirm deletion from workspace readback", locale)
+                        if let snapshot = model.value {
+                            presentation.openSummary(project: project, snapshot: snapshot, context: context, permit: presentation.permit(snapshot: snapshot))
+                        }
+                        toastMessage = MerchantCloseCopy.text("请在项目工作台完成二次校验删除", "Confirm deletion in project workspace", locale)
                     }
                 )
             }
         }
-        .cyModalOverlay(isPresented: cancelRefundProject != nil && MerchantCloseCopy.isReviewedMoneyOpen) {
+        .cyModalOverlay(isPresented: cancelRefundProject != nil && MerchantCloseCopy.isReviewedMoneyOpen(host: playGapAPIHost)) {
             if let project = cancelRefundProject {
                 MerchantCancelAndRefundModal(
                     kind: project.bizType == "topic" ? .topic : .activity,
@@ -263,27 +265,6 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                     onConfirm: {
                         cancelRefundProject = nil
                         toastMessage = MerchantCloseCopy.text("退款与取消需由活动取消控制台提交", "Submit cancel & refund via host console", locale)
-                    }
-                )
-            }
-        }
-        .cyModalOverlay(isPresented: appealProject != nil) {
-            if appealProject != nil {
-                CYPromptModal(
-                    title: MerchantCloseCopy.text("申诉", "Appeal", locale),
-                    message: MerchantCloseCopy.text("填写申诉原因，提交后由平台复核处理。", "Enter appeal reason for platform review.", locale),
-                    text: $appealReason,
-                    placeholder: MerchantCloseCopy.text("请说明具体情况", "Describe details", locale),
-                    cancelTitle: MerchantAreaCopy.cancel(locale),
-                    confirmTitle: MerchantCloseCopy.text("提交申诉", "Submit appeal", locale),
-                    onCancel: { appealProject = nil },
-                    onConfirm: {
-                        guard !appealReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                            toastMessage = MerchantCloseCopy.text("请先填写申诉原因", "Enter appeal reason first", locale)
-                            return
-                        }
-                        appealProject = nil
-                        toastMessage = MerchantCloseCopy.text("申诉内容已记录", "Appeal recorded", locale)
                     }
                 )
             }

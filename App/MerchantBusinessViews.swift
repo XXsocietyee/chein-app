@@ -438,12 +438,6 @@ import SwiftUI
     @State private var pendingMutation: MerchantBusinessMutation?
     @State private var pendingMutationEditorID: UUID?
     @State private var reviewSourceDestination: MerchantReviewSourcePage?
-    @State private var showSaveSegmentPrompt = false
-    @State private var segmentNameText = ""
-    @State private var showCustomerToolsSheet = false
-    @State private var showCustomerFilterSheet = false
-    @State private var resultSheetTitle: String?
-    @State private var toastMessage: String?
     private let reviewSource: MerchantReviewSourcePage?
     init(reader: any MerchantBusinessReading, journal: any MerchantBusinessIntentStore, query: MerchantBusinessQuery, reviewSource: MerchantReviewSourcePage? = nil) {
         self.reader = reader; self.journal = journal; self.reviewSource = reviewSource
@@ -769,66 +763,6 @@ import SwiftUI
             .cyDomainSheet(detents: [.half, .full])
             .themeDomain(.merchant)
         }
-        .cyPromptModalOverlay(
-            isPresented: $showSaveSegmentPrompt,
-            title: MerchantCloseCopy.text("存为分群", "Save as Segment", locale),
-            text: $segmentNameText,
-            placeholder: MerchantCloseCopy.text("输入分群名称", "Enter segment name", locale),
-            cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-            confirmTitle: MerchantCloseCopy.text("保存", "Save", locale),
-            onCancel: { showSaveSegmentPrompt = false },
-            onConfirm: {
-                let name = segmentNameText.trimmingCharacters(in: .whitespacesAndNewlines)
-                showSaveSegmentPrompt = false
-                if !name.isEmpty {
-                    toastMessage = MerchantCloseCopy.text("已保存分群", "Segment saved", locale)
-                }
-            }
-        )
-        .sheet(isPresented: $showCustomerToolsSheet) {
-            MerchantCloseSheetHost(
-                title: MerchantCloseCopy.text("客资工具", "Customer Tools", locale),
-                closeIdentifier: cyAccessibilityID(id: "merchant.business.tools.close"),
-                onClose: { showCustomerToolsSheet = false }
-            ) {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Button(MerchantCloseCopy.text("存为分群", "Save as Segment", locale)) {
-                        showCustomerToolsSheet = false
-                        segmentNameText = keyword
-                        showSaveSegmentPrompt = true
-                    }
-                    Button(MerchantCloseCopy.text("筛选条件", "Filter Options", locale)) {
-                        showCustomerToolsSheet = false
-                        showCustomerFilterSheet = true
-                    }
-                }
-                .padding(.vertical, CYSpacing.sm)
-            }
-        }
-        .sheet(isPresented: $showCustomerFilterSheet) {
-            MerchantCloseSheetHost(
-                title: MerchantCloseCopy.text("筛选条件", "Filter Customers", locale),
-                closeIdentifier: cyAccessibilityID(id: "merchant.business.filter.close"),
-                onClose: { showCustomerFilterSheet = false }
-            ) {
-                Text(MerchantCloseCopy.text("按来源、标签与分群查看客资记录。", "Filter customer records by source, tag, and segment.", locale))
-                    .font(CYTypography.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .padding(.vertical, CYSpacing.sm)
-            }
-        }
-        .sheet(isPresented: Binding(get: { resultSheetTitle != nil }, set: { if !$0 { resultSheetTitle = nil } })) {
-            if let resultSheetTitle {
-                PlayCloseResultSheet(
-                    title: resultSheetTitle,
-                    message: MerchantCloseCopy.text("客资操作已完成。", "Customer action completed.", locale),
-                    detail: nil,
-                    closeIdentifier: cyAccessibilityID(id: "merchant.business.result.close"),
-                    onClose: { self.resultSheetTitle = nil }
-                )
-            }
-        }
-        .cyToast(verbatimMessage: $toastMessage)
         .background {
             if let capturedCustomerRoute, let customerQueryDestination {
                 MerchantCustomerQueryNavigationOwner(route: $customerQueryRoute,

@@ -148,7 +148,11 @@ extension EnvironmentValues {
                 if let captured = controller.confirmation, controller.admitConfirmation(captured) {
                     perform {
                         await controller.confirm(captured)
-                        toastMessage = MerchantCloseCopy.text("门店状态已更新", "Store status updated", locale)
+                        if controller.receipt != nil && controller.originalRejection == nil {
+                            toastMessage = MerchantCloseCopy.text("门店状态已更新", "Store status updated", locale)
+                        } else {
+                            toastMessage = String(localized: LocalizedStringResource(String.LocalizationValue(controller.messageKey), table: table, locale: locale))
+                        }
                     }
                 }
             }

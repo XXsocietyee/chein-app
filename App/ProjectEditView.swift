@@ -299,15 +299,14 @@ import SwiftUI
     @State private var submittedResource: ProjectEditModel.SubmissionDestination?
     @State private var handledSubmission: UUID?
     @State private var activeEditorModal: EditorParityModal?
-    @State private var showStoryOptionsSheet = false
-    @State private var selectedStoryOptionID: String?
-    @State private var showD20SettingsSheet = false
     @State private var toastMessage: String?
+    @State private var lastToastMessageKey: String?
+    @State private var lastToastCloudSaved = false
+    @State private var lastToastAcknowledged = false
     @FocusState private var focusedField: String?
 
     private enum EditorParityModal: String, Identifiable {
-        case unsavedStorage, draftConflict, clearLocalDraft, deleteTextBlock, copyReminder, prePublishTip, reselectChapter, oneMoreStep
-        case deleteD20Attribute, deleteD20Clock, removeD20Trait
+        case draftConflict, clearLocalDraft, prePublishTip
         var id: String { rawValue }
     }
     let sessionRevision: UInt64
@@ -554,15 +553,21 @@ import SwiftUI
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: CYSpacing.xs) {
-                    Menu {
-                        Button(MerchantCloseCopy.text("使用本地/已保存草稿", "Draft Version Choice", locale)) { activeEditorModal = .draftConflict }
-                        Button(MerchantCloseCopy.text("清空本地草稿", "Clear Local Draft", locale), role: .destructive) { activeEditorModal = .clearLocalDraft }
-                        Button(MerchantCloseCopy.text("剧情分支选项", "Story Options", locale)) { showStoryOptionsSheet = true }
-                        Button(MerchantCloseCopy.text("d20 与角色设定", "d20 & Character Settings", locale)) { showD20SettingsSheet = true }
-                        Button(MerchantCloseCopy.text("发布前提示", "Pre-publish Check", locale)) { activeEditorModal = .prePublishTip }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .accessibilityLabel(MerchantCloseCopy.text("草稿与规则弹窗", "Draft and rule actions", locale))
+                    if model.canRestore || model.canEdit || model.canReview {
+                        Menu {
+                            if model.canRestore {
+                                Button(MerchantCloseCopy.text("使用本地/已保存草稿", "Draft Version Choice", locale)) { activeEditorModal = .draftConflict }
+                            }
+                            if model.canEdit {
+                                Button(MerchantCloseCopy.text("清空本地草稿", "Clear Local Draft", locale), role: .destructive) { activeEditorModal = .clearLocalDraft }
+                            }
+                            if model.canReview {
+                                Button(MerchantCloseCopy.text("发布前提示", "Pre-publish Check", locale)) { activeEditorModal = .prePublishTip }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .accessibilityLabel(MerchantCloseCopy.text("草稿与规则弹窗", "Draft and rule actions", locale))
+                        }
                     }
                     EditButton().disabled(!model.fullEdit)
                 }
@@ -616,6 +621,23 @@ import SwiftUI
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
                 handledSubmission = next.id; submission = next
             }
+            let messageKey = model.coordinator.messageKey
+            if messageKey != lastToastMessageKey {
+                lastToastMessageKey = messageKey
+                if let messageKey {
+                    toastMessage = appLocalized(String.LocalizationValue(messageKey), locale: locale)
+                }
+            }
+            let cloudSaved = model.coordinator.savedCloudDraft
+            if cloudSaved && !lastToastCloudSaved {
+                toastMessage = appLocalized("cloudDraft.saved", locale: locale)
+            }
+            lastToastCloudSaved = cloudSaved
+            let acknowledged = model.coordinator.state == .acknowledged && !cloudSaved
+            if acknowledged && !lastToastAcknowledged {
+                toastMessage = MerchantCloseCopy.text("已提交审核", "Submitted for review", locale)
+            }
+            lastToastAcknowledged = acknowledged
         }
         .onChange(of: sessionRevision) { _, _ in issueNavigation.retire(); chapterRemoval.retire(); if let modePresentation { modeReview.dismiss(modePresentation) }; showingCopy = false; copiedCoordinator = nil; submission = nil; submittedResource = nil; handledSubmission = nil }
         .navigationDestination(isPresented: Binding(get: { showingCopy && copiedCoordinator === copiedTarget }, set: { showing in
@@ -679,72 +701,26 @@ import SwiftUI
                 editorParityModalView(modal)
             }
         }
-        .sheet(isPresented: $showStoryOptionsSheet) {
-            let storyItems: [CYOptionSheetItem<String>] = [
-                CYOptionSheetItem(id: "next", title: MerchantCloseCopy.text("顺延到下一章节", "Continue to Next Chapter", locale)),
-                CYOptionSheetItem(id: "branch", title: MerchantCloseCopy.text("跳转到指定节点", "Jump to Target Node", locale)),
-                CYOptionSheetItem(id: "end", title: MerchantCloseCopy.text("触发结局判断", "Trigger Ending Check", locale))
-            ]
-            CYOptionSheet(
-                title: MerchantCloseCopy.text("剧情选项", "Story Options", locale),
-                items: storyItems,
-                selectedID: selectedStoryOptionID,
-                closeIdentifier: cyAccessibilityID(id: "projectEdit.storyOptions.close"),
-                onSelect: { selectedID in
-                    selectedStoryOptionID = selectedID
-                    showStoryOptionsSheet = false
-                    toastMessage = storyItems.first(where: { $0.id == selectedID })?.title
-                },
-                onClose: { showStoryOptionsSheet = false }
-            )
-            .cyDomainSheet(detents: [.half])
-            .themeDomain(.topicEditor)
-        }
-        .sheet(isPresented: $showD20SettingsSheet) {
-            MerchantCloseSheetHost(
-                title: MerchantCloseCopy.text("d20 与角色设定", "d20 & Character Settings", locale),
-                closeIdentifier: cyAccessibilityID(id: "projectEdit.d20.close"),
-                onClose: { showD20SettingsSheet = false }
-            ) {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text(MerchantCloseCopy.text("管理角色属性、进度钟、特质与更多规则。", "Manage attributes, clocks, traits, and extended rules.", locale))
-                        .font(CYTypography.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                    Button(MerchantCloseCopy.text("删除属性", "Delete Attribute", locale), role: .destructive) {
-                        showD20SettingsSheet = false; activeEditorModal = .deleteD20Attribute
-                    }
-                    Button(MerchantCloseCopy.text("删除进度钟", "Delete Clock", locale), role: .destructive) {
-                        showD20SettingsSheet = false; activeEditorModal = .deleteD20Clock
-                    }
-                    Button(MerchantCloseCopy.text("移除特质", "Remove Trait", locale), role: .destructive) {
-                        showD20SettingsSheet = false; activeEditorModal = .removeD20Trait
-                    }
-                }
-                .padding(.vertical, CYSpacing.sm)
-            }
-            .themeDomain(.topicEditor)
-        }
         .cyToast(verbatimMessage: $toastMessage)
     }
     @ViewBuilder private func editorParityModalView(_ modal: EditorParityModal) -> some View {
         switch modal {
-        case .unsavedStorage:
-            CYModal(
-                title: MerchantCloseCopy.text("草稿还没有保存", "Draft Not Saved", locale),
-                message: MerchantCloseCopy.text("本机存储空间可能不足，直接返回会丢失本次修改。", "Local storage may be low. Leaving now discards these edits.", locale),
-                cancelTitle: MerchantCloseCopy.text("继续编辑", "Keep Editing", locale),
-                confirmTitle: MerchantCloseCopy.text("仍要返回", "Leave Anyway", locale),
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil; model.saveLocal() }
-            )
         case .draftConflict:
             CYModal(
                 title: MerchantCloseCopy.text("草稿版本选择", "Choose Draft Version", locale),
                 message: MerchantCloseCopy.text("检测到本机存在未上传的改动，请选择保留版本。", "Unsynced local changes detected. Choose which version to keep.", locale),
                 cancelTitle: MerchantCloseCopy.text("使用已保存版本", "Use Saved Version", locale),
                 confirmTitle: MerchantCloseCopy.text("使用本地草稿", "Use Local Draft", locale),
-                onCancel: { activeEditorModal = nil; model.discard() },
-                onConfirm: { activeEditorModal = nil; toastMessage = MerchantCloseCopy.text("已保留本地草稿", "Kept local draft", locale) }
+                onCancel: {
+                    activeEditorModal = nil
+                    if model.canRestore { model.discard() }
+                },
+                onConfirm: {
+                    activeEditorModal = nil
+                    guard model.canRestore else { return }
+                    model.restore()
+                    toastMessage = MerchantCloseCopy.text("已恢复本地草稿", "Local draft restored", locale)
+                }
             )
         case .clearLocalDraft:
             CYModal(
@@ -760,25 +736,6 @@ import SwiftUI
                     toastMessage = MerchantCloseCopy.text("已清空本地草稿", "Local draft cleared", locale)
                 }
             )
-        case .deleteTextBlock:
-            CYModal(
-                title: MerchantCloseCopy.text("删除这段文字？", "Delete This Text Block?", locale),
-                message: MerchantCloseCopy.text("前后的文字块会保持原样，不会自动合并。", "Surrounding blocks stay separate and will not merge automatically.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("删除", "Delete", locale),
-                isDestructive: true,
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil; toastMessage = MerchantCloseCopy.text("已删除文字块", "Text block deleted", locale) }
-            )
-        case .copyReminder:
-            CYModal(
-                title: MerchantCloseCopy.text("复制提醒", "Copy Reminder", locale),
-                message: MerchantCloseCopy.text("已基于当前项目创建副本草稿，请核对时间与站点配置。", "A draft copy has been prepared. Review schedule and station setup.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("知道了", "Got It", locale),
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil }
-            )
         case .prePublishTip:
             CYModal(
                 title: MerchantCloseCopy.text("发布前提示", "Pre-publish Reminder", locale),
@@ -786,55 +743,10 @@ import SwiftUI
                 cancelTitle: MerchantCloseCopy.text("再改改", "Keep Editing", locale),
                 confirmTitle: MerchantCloseCopy.text("继续发布", "Continue Publish", locale),
                 onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil; model.review(intent: .submitServerDraft) }
-            )
-        case .reselectChapter:
-            CYModal(
-                title: MerchantCloseCopy.text("请重新选择章节", "Reselect Chapter", locale),
-                message: MerchantCloseCopy.text("原目标章节已变更，请从最新章节列表中重新指定。", "The target chapter changed. Pick one from the latest chapter list.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("确定", "OK", locale),
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil }
-            )
-        case .oneMoreStep:
-            CYModal(
-                title: MerchantCloseCopy.text("还差一步", "One More Step", locale),
-                message: MerchantCloseCopy.text("请先补全节点属性与分支条件，再保存玩法结构。", "Complete node attributes and branch conditions before saving.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("知道了", "Got It", locale),
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil }
-            )
-        case .deleteD20Attribute:
-            CYModal(
-                title: MerchantCloseCopy.text("删除属性", "Delete Attribute", locale),
-                message: MerchantCloseCopy.text("用到它的检定将不再加上属性值。", "Checks referencing this attribute will no longer add its bonus.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("删除", "Delete", locale),
-                isDestructive: true,
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil; toastMessage = MerchantCloseCopy.text("已删除属性", "Attribute deleted", locale) }
-            )
-        case .deleteD20Clock:
-            CYModal(
-                title: MerchantCloseCopy.text("删除进度钟", "Delete Progress Clock", locale),
-                message: MerchantCloseCopy.text("用到它的条件和效果需要重新选择。", "Conditions and effects using this clock must be reselected.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("删除", "Delete", locale),
-                isDestructive: true,
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil; toastMessage = MerchantCloseCopy.text("已删除进度钟", "Clock deleted", locale) }
-            )
-        case .removeD20Trait:
-            CYModal(
-                title: MerchantCloseCopy.text("移除特质", "Remove Trait", locale),
-                message: MerchantCloseCopy.text("用到它的条件需要重新选择。", "Conditions referencing this trait must be reselected.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("移除", "Remove", locale),
-                isDestructive: true,
-                onCancel: { activeEditorModal = nil },
-                onConfirm: { activeEditorModal = nil; toastMessage = MerchantCloseCopy.text("已移除特质", "Trait removed", locale) }
+                onConfirm: {
+                    activeEditorModal = nil
+                    model.review(intent: model.coordinator.canSubmitServerDraft ? .submitServerDraft : .ordinary)
+                }
             )
         }
     }

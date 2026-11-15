@@ -7,8 +7,9 @@ enum MerchantCloseCopy {
         locale.language.languageCode?.identifier == "zh" ? zh : en
     }
 
-    static var isReviewedMoneyOpen: Bool {
-        ReviewedAreaSwitch.moneyPayments(apiHost: nil)
+    static func isReviewedMoneyOpen(host: String? = nil) -> Bool {
+        if let host { return ReviewedAreaSwitch.moneyPayments(host: host) }
+        return ReviewedAreaSwitch.moneyPayments
     }
 }
 

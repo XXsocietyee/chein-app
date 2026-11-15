@@ -9,6 +9,7 @@ import UIKit
     @EnvironmentObject private var session: AppSession
     @State private var state: PayoutPageState<MerchantPayoutAccount> = .loading
     @State private var copied = false
+    @State private var toastMessage: String?
 
     var body: some View {
         List {
@@ -19,8 +20,9 @@ import UIKit
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
         .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver"))
-        .refreshable { await load() }
-        .task { await load() }
+        .refreshable { await load(refreshing: true) }
+        .task { await load(refreshing: false) }
+        .cyToast(verbatimMessage: $toastMessage)
         .appSwitcherPrivacyShield()
     }
 
@@ -92,11 +94,21 @@ import UIKit
         switch raw { case "success": return .success; case "warning": return .warning; case "danger": return .danger; default: return .neutral }
     }
 
-    private func load() async {
-        state = .loading
+    private func load(refreshing: Bool = false) async {
+        let hadReady: Bool
+        if case .ready = state { hadReady = true } else { hadReady = false }
+        if !refreshing || !hadReady {
+            state = .loading
+        }
         do {
             let account = try await PayoutReceiverBridge.call(session) { try await $0.merchantPayoutAccount(token: $1) }
             state = .ready(account)
-        } catch { state = .failed(error as? PayoutReceiverIssue ?? .network) }
+        } catch {
+            if refreshing && hadReady {
+                toastMessage = MerchantCloseCopy.text("刷新失败，稍后再试", "Refresh failed, try again later", locale)
+            } else {
+                state = .failed(error as? PayoutReceiverIssue ?? .network)
+            }
+        }
     }
 }
