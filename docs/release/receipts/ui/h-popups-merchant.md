@@ -59,4 +59,40 @@ Local lints:
 
 ## 6. VPS Heavy Checks (`instabox exec work`)
 
-Pending VPS run after push.
+Ran in `/data/workspace/appcheck-ui-h-popups-merchant` at commit `722f4988dfbbf21d5b4087dca8d6a1c9aaf2d093` (command exit code `0`):
+
+```text
+VPS_HEAD=722f4988dfbbf21d5b4087dca8d6a1c9aaf2d093
+=== check_design_lint ===
+PASS design lint: scanned 1649 App Swift files outside DesignSystem and Theme; allowlist 28 files (43 existing violations)
+=== check_a11y ===
+PASS accessibility lint: 10 scoped screens, helper checked, 2 range views left, 3149 other App views not scanned
+LEFT ExternalGameCatalogLaunch, CYFloatingTabBarClearance
+=== check_scaffold ===
+missing_keys: 0
+untranslated_values: 0
+key_identifier_mismatches: 0
+gaps: 0
+missing_keys: 0
+wrong_table: 0
+incomplete_locales: 0
+missing: 0
+Release config check passed
+PASS privacy manifest: tracking off, 12 collected types, 3 required-reason categories match source
+PASS design lint: scanned 1649 App Swift files outside DesignSystem and Theme; allowlist 28 files (43 existing violations)
+PASS accessibility lint: 10 scoped screens, helper checked, 2 range views left, 3149 other App views not scanned
+LEFT ExternalGameCatalogLaunch, CYFloatingTabBarClearance
+PASS log redaction: App/ and Core/ log calls do not interpolate phone, OpenID, token, or street fields raw (0 findings)
+NOTE App/AppCompositionRoot.swift: 4171 < ratchet 4184; lower CEILINGS in tools/check_appsession_ratchet.py
+PASS appsession ratchet
+PASS page route table: 262 pages
+PASS structural checks: 4806 Swift source files, 16596 bilingual keys, references, scheme, read-only expected project equivalence
+SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence
+=== check_design_fixture_release_exclusion ===
+CB46 design-fixture release exclusion: source check only.
+Release was not compiled. xcodebuild was not run.
+App target Release excludes 44 design-fixture sources.
+Release projection contains none of the audited fixture symbols.
+=== contract_ratchet ===
+contract ratchet: 186 failing, baseline 186, new 0, fixed 0
+```
