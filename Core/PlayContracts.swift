@@ -57,6 +57,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let quantityUnavailable: Bool?
     public let routeNodeState: String?
     public let lockReason: String?
+    public let weatherLocked: Bool?
     public let unlockAfterNodeID: Int?
     public let chapterID: Int?
     public let xp: Int?
@@ -70,7 +71,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
         case needScan, needAnswer, needGps, question, passText, questionImg, questionAudio, options, description
         case hookText, storyText, gameTitle, ruleInstructions, rule, requiredMaterials, duration, difficulty
-        case players, photoRequireDesc, photoDesc, businessTime, openStatus, crowded, inStoreLoad, serviceCapacity, expectedWaitMinutes, quantityUnavailable, routeNodeState, lockReason
+        case players, photoRequireDesc, photoDesc, businessTime, openStatus, crowded, inStoreLoad, serviceCapacity, expectedWaitMinutes, quantityUnavailable, routeNodeState, lockReason, weatherLocked
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson
     }
     private enum ServiceCapacityKeys: String, CodingKey { case perHour }
@@ -122,6 +123,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         quantityUnavailable = try? c.playBool(.quantityUnavailable)
         routeNodeState = try c.decodeIfPresent(String.self, forKey: .routeNodeState)
         lockReason = try c.decodeIfPresent(String.self, forKey: .lockReason)
+        weatherLocked = try? c.playBool(.weatherLocked)
         unlockAfterNodeID = try c.playInt(.unlockAfterNodeId)
         chapterID = try c.playInt(.chapterId)
         xp = try c.playInt(.xp); puzzleScore = try c.playInt(.puzzleScore)
