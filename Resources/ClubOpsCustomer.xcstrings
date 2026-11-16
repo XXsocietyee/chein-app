@@ -1,6 +1,23 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "clubOps.customers.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading customers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载客户"
+          }
+        }
+      }
+    },
     "club.customerDetail.page.empty": {
       "localizations": {
         "en": { "stringUnit": { "state": "translated", "value": "No participation, tags, or note yet" } },

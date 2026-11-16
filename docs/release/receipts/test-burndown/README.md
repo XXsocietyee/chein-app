@@ -11,7 +11,14 @@ permission check, or deletion of user data stays red and is listed for a human.
 
 | run | Core tests | Core unique failing | AppUnit tests | AppUnit failing |
 |---|---:|---:|---:|---:|
-| baseline 5a93b4476 (Core 13:49, AppUnit from receipt) | 16926 | 99 | 7848 | 123 |
+| baseline 5a93b4476 (Core run here; AppUnit 4 shards run here, r1b) | 16926 | 99 | 7848 | 123 |
+| batch 1 6009e19f3 | 16926 | 27 | 7848 | 109 |
+
+AppUnit shards run through XcodeBuildMCP `test_sim` with per-shard xctestruns built from the shard test plans
+(`BurnShard0N.xctestrun`): `xcodebuild test` from the sandboxed shell cannot reach the testmanagerd socket.
+Shard 3 restarts its runner after a Swift runtime abort in `OwnAccountRefreshOrderingTests` ("freed pointer was not the
+last allocation"); shard 4 aborts once in `RoamMonthlyRecapRestoredHostTests` (index out of range after a failed hosted
+wait). Both are counted as open.
 
 ## Code fixes (production behaviour was wrong)
 

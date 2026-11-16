@@ -11,49 +11,58 @@
       "key": "club.gov.customers",
       "en": "Customers",
       "zh-Hans": "客户",
-      "accessibilityIdentifier": "club.gov.route.customer"
+      "accessibilityIdentifier": "club.gov.route.customer",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.sub.customers",
       "en": "People who have signed up",
       "zh-Hans": "报名过的客户",
-      "accessibilityIdentifier": "club.gov.route.customers"
+      "accessibilityIdentifier": "club.gov.route.customers",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.filter",
       "en": "Filter",
-      "zh-Hans": "筛选"
+      "zh-Hans": "筛选",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.filter.all",
       "en": "All",
-      "zh-Hans": "全部"
+      "zh-Hans": "全部",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.filter.repeat",
       "en": "Repeat",
-      "zh-Hans": "回头客"
+      "zh-Hans": "回头客",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.filter.new",
       "en": "New",
-      "zh-Hans": "新客"
+      "zh-Hans": "新客",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.filter.remark",
       "en": "Noted",
-      "zh-Hans": "有备注"
+      "zh-Hans": "有备注",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.keyword",
       "en": "Search",
-      "zh-Hans": "搜索"
+      "zh-Hans": "搜索",
+      "table": "Localizable"
     },
     {
       "key": "club.gov.customers.showAll",
       "en": "Show all customers",
       "zh-Hans": "查看全部客户",
-      "accessibilityIdentifier": "club.gov.customers.clearFilters"
+      "accessibilityIdentifier": "club.gov.customers.clearFilters",
+      "table": "Localizable"
     },
     {
       "key": "clubOps.customers.count %lld %lld",
@@ -167,7 +176,8 @@
       "key": "club.gov.malformed",
       "en": "Some information is missing. Refresh to check again",
       "zh-Hans": "部分信息缺失，请刷新重试",
-      "accessibilityIdentifier": "clubOps.customers.malformed"
+      "accessibilityIdentifier": "clubOps.customers.malformed",
+      "table": "Localizable"
     }
   ]
 }
