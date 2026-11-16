@@ -26,14 +26,10 @@ struct CYDomainPalette {
 
     var isDarkDomain: Bool { isDark }
 
-    /// verify-r1 N-05 / 2.1: button shape by domain. Player keeps the capsule; merchant and the editor use a 12 pt
-    /// rounded rectangle (Figma `182:7693`, `183:1731`, `237:43689`). `nil` means capsule.
-    var buttonCornerRadius: CGFloat? {
-        switch domain {
-        case .merchant, .topicEditor: return 12
-        case .player, .dark, .game: return nil
-        }
-    }
+    /// Button shape by domain. Owner default skill-r2 Q4 (accepted 2026-11-16): one capsule shape across player,
+    /// merchant and editor (Figma `Role Shape / button-radius` = 999 in every mode). This is the one place the shape
+    /// is decided; `nil` means capsule. Supersedes verify-r1 2.1 (radius 12 for merchant and editor).
+    var buttonCornerRadius: CGFloat? { nil }
 
     /// Merchant primary buttons are 46 pt high (merchant rule); everything else keeps 44.
     var buttonMinHeight: CGFloat { domain == .merchant ? 46 : 44 }

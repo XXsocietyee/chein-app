@@ -49,73 +49,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
             let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))
             List {
-                // Mini-program profile block: cover hero, name, then two meta lines —
-                // 「类型 · N 名成员」 and the join policy (公开加入 / 需审核加入).
+                // skill-r2 hand-off `204:24899` / `204:24850` (Club/Header, MC-22): cover banner, logo beside the name,
+                // one meta line 「类型 · N 名成员 · 公开加入」, the host line, and the viewer's status as a tag.
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            if club.joinPolicySupported {
-                                CYStatusChip(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
-                                             tone: club.needsApproval ? .warning : .success, systemImage: club.needsApproval ? "lock" : "checkmark.circle")
-                            }
-                            // Source profile block: square club logo beside the name.
-                            HStack(alignment: .center, spacing: CYSpacing.md) {
-                                if QuestifyCardArtwork.safeURL(club.logo) != nil, !typeSize.isAccessibilitySize {
-                                    ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: false)
-                                        .frame(width: 56, height: 56)
-                                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
-                                        .accessibilityIdentifier("club.detail.logo")
-                                }
-                                ClubName(value: club.name).font(.largeTitle.weight(.bold)).foregroundStyle(.white)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .accessibilityIdentifier("club.detail.name")
-                                    .cyHeroTitleRise()
-                            }
-                        }
-                        .padding(CYSpacing.lg).padding(.top, typeSize.isAccessibilitySize ? CYSpacing.lg : 120)
-                        .frame(maxWidth: .infinity, minHeight: typeSize.isAccessibilitySize ? 0 : 280, alignment: .bottomLeading)
-                        // Cover + scrim grow with the text so large type never spills out of the hero.
-                        .background {
-                            ZStack {
-                                ClubDetailCover(source: club.cover, seed: club.name + String(club.id), showsSymbol: !typeSize.isAccessibilitySize)
-                                LinearGradient(stops: [.init(color: .clear, location: 0.3), .init(color: .black.opacity(0.85), location: 1)], startPoint: .top, endPoint: .bottom)
-                            }.accessibilityHidden(true)
-                        }
-                        .clipped()
-                        HStack(spacing: CYSpacing.sm) {
-                            // 5 avatars + "+N"; an unknown count shows no stack (the meta line carries the em dash).
-                            if let known = club.sourceMemberCount, known > 0 {
-                                E3AvatarStack(seeds: (0..<min(known, 5)).map { "\(club.id)-m\($0)" }, extra: known > 5 ? known - 5 : nil, size: 28)
-                                    .accessibilityHidden(true)
-                            }
-                            Text(verbatim: headerMeta(club, count: facts.meta)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .padding(.horizontal, CYSpacing.lg)
-                        .accessibilityElement(children: .combine)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                }
-                // Viewer status only; the mini-program shows it through the join/quit controls.
-                if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
-                    Section {
-                        if club.isOwner { CYStatusChip("club.role.creator", tone: .neutral, systemImage: "person.crop.circle.badge.checkmark") }
-                        else if club.isJoined { CYStatusChip("club.membership.joined", tone: .success, systemImage: "checkmark.circle") }
-                        else if club.joinPending { CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock") }
-                        else if club.myJoinStatus == 2 {
-                            CYStatusChip("club.membership.rejected", tone: .danger, systemImage: "xmark.circle")
-                            if let reason = club.myJoinReviewReason {
-                                Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
-                                    .font(CYTypography.meta)
-                                    .foregroundStyle(CYColor.dangerText)
-                                    .accessibilityIdentifier("club.membership.rejectedReason")
-                            }
-                        }
-                        if club.viewerIsAdmin { CYStatusChip("club.viewerAdministrator", tone: .neutral, systemImage: "person.badge.shield.checkmark") }
-                    }
+                    ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                 }
                 if let actionCoordinator {
                     ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
@@ -255,15 +194,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Text(verbatim: description).textSelection(.enabled)
                         } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
                     }
-                    // 三宫格 (主理人 / 俱乐部类型 / 所在城市) from ClubDetailPageContent; unknown is `—`.
-                    Section {
-                        ClubOverviewFactsGrid(facts: [
-                            .init(id: ClubDetailPageAccessibility.leader, labelKey: "club.leader", value: facts.content?.leaderText ?? Self.dash(club.leaderName)),
-                            .init(id: "club.detail.fact.type", labelKey: "club.type", value: facts.content?.typeText ?? Self.dash(club.clubType ?? club.clubTypes)),
-                            .init(id: ClubDetailPageAccessibility.city, labelKey: "club.detail.cityFact", value: facts.content?.cityText ?? Self.dash(club.city ?? club.address)),
-                        ])
-                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.sm, bottom: CYSpacing.sm, trailing: CYSpacing.sm))
-                    }
+                    // 主理人 / 俱乐部类型 / 所在城市 now sit in the header (Club/Header host line, `204:24899`).
                     Section {
                         ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
                         ClubOptionalRow(title: "club.keywords", value: club.keywords)
@@ -375,16 +306,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .onChange(of: reader.clubIdentity) { _, _ in actionDetail = nil; actionIdentity = nil; manageGrant = nil; selectedTab = nil }
     }
 
-    private static func dash(_ value: String?) -> String {
-        let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return text.isEmpty ? "—" : text
-    }
-    private func headerMeta(_ club: ClubRecord, count: String) -> String {
-        let type = (club.clubType ?? club.clubTypes)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let type, !type.isEmpty else { return count }
-        return type + " · " + count
-    }
-
     /// Projects the decoded club through `ClubDetailPageModel`. `ClubRecord` stores a missing
     /// member count or level as 0, so only source-present facts are forwarded: unknown stays `—`.
     private func detailFacts(_ club: ClubRecord) -> (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?) {
@@ -447,28 +368,105 @@ private struct ClubDetailCover: View {
     }
 }
 
-/// Mini-program `.ov-facts`: three equal cells, value over label. Large type stacks the cells.
-private struct ClubOverviewFactsGrid: View {
-    let facts: [ClubDetailPageFact]
+/// Club/Header (skill-r2 `204:24899`, MC-22). Cover banner; logo 52 pt beside the name and one meta line; the host
+/// line 「主理人 X · 城市」 (known facts only, never an em dash); the viewer's role as a neutral tag. Large type drops the
+/// logo and lets every line wrap.
+private struct ClubDetailHeader: View {
+    let club: ClubRecord
+    let memberText: String
+    let content: ClubDetailPageContent?
+    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 148
+
+    private static func known(_ value: String?) -> String? {
+        let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty || text == ClubDetailPageModel.unknownMark ? nil : text
+    }
+    private var typeText: String? { Self.known(content?.typeText ?? club.clubType ?? club.clubTypes) }
+    private var leaderText: String? { Self.known(content?.leaderText ?? club.leaderName) }
+    private var cityText: String? { Self.known(content?.cityText ?? club.city ?? club.address) }
+
+    private var metaLine: String {
+        var parts: [String] = []
+        if let typeText { parts.append(typeText) }
+        if memberText != ClubDetailPageModel.unknownMark { parts.append(memberText) }
+        if club.joinPolicySupported {
+            parts.append(appLocalized(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open", locale: locale))
+        }
+        return parts.joined(separator: " · ")
+    }
+
     var body: some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
-        layout {
-            ForEach(facts, id: \.id) { fact in
-                VStack(spacing: CYSpacing.xs) {
-                    Text(verbatim: fact.value)
-                        .font(CYTypography.bodyMedium).foregroundStyle(fact.isUnknown ? CYColor.textTertiary : CYColor.textPrimary)
-                        .lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.center)
-                    Text(LocalizedStringKey(fact.labelKey)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            ClubDetailCover(source: club.cover, seed: club.name + String(club.id), showsSymbol: false)
+                .frame(height: typeSize.isAccessibilitySize ? 96 : bannerHeight)
+                .frame(maxWidth: .infinity)
+                .clipped()
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    if !typeSize.isAccessibilitySize {
+                        ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: QuestifyCardArtwork.safeURL(club.logo) == nil)
+                            .frame(width: 52, height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
+                            .accessibilityIdentifier("club.detail.logo")
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        ClubName(value: club.name).font(.title2.weight(.bold)).foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityIdentifier("club.detail.name")
+                            .cyHeroTitleRise()
+                        if !metaLine.isEmpty {
+                            Text(verbatim: metaLine).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("club.detail.fact.memberCount")
+                        }
+                    }
+                    Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, minHeight: 64)
-                .padding(CYSpacing.sm)
-                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgElevated))
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier(fact.id)
+                if leaderText != nil || cityText != nil {
+                    HStack(spacing: 4) {
+                        if let leaderText {
+                            Text(verbatim: appLocalized("club.leader", locale: locale) + " " + leaderText)
+                                .accessibilityIdentifier("club.detail.fact.leader")
+                        }
+                        if leaderText != nil, cityText != nil { Text(verbatim: "·").accessibilityHidden(true) }
+                        if let cityText { Text(verbatim: cityText).accessibilityIdentifier("club.detail.fact.city") }
+                    }
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("club.detail.factsGrid")
+                }
+                statusTags
+            }
+            .padding(.horizontal, CYSpacing.lg)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// The viewer's relation to the club: role tags are neutral; pending is amber, a declined request red with its reason.
+    @ViewBuilder private var statusTags: some View {
+        if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                HStack(spacing: CYSpacing.sm) {
+                    if club.isOwner { CYStatusChip("club.role.creator", tone: .neutral, systemImage: "person.crop.circle.badge.checkmark") }
+                    else if club.isJoined { CYStatusChip("club.membership.joined", tone: .neutral, systemImage: "checkmark.circle") }
+                    else if club.joinPending { CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock") }
+                    else if club.myJoinStatus == 2 { CYStatusChip("club.membership.rejected", tone: .danger, systemImage: "xmark.circle") }
+                    if club.viewerIsAdmin { CYStatusChip("club.viewerAdministrator", tone: .neutral, systemImage: "person.badge.shield.checkmark") }
+                }
+                if club.myJoinStatus == 2, let reason = club.myJoinReviewReason {
+                    Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.dangerText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("club.membership.rejectedReason")
+                }
             }
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(ClubDetailPageAccessibility.factsGrid)
     }
 }

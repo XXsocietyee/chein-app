@@ -87,10 +87,18 @@ final class MerchantOnboardingContractTests: XCTestCase {
         var fields = try XCTUnwrap(JSONSerialization.jsonObject(with: draft.jsonData()) as? [String: Any])
         XCTAssertNil(fields["realName"]); XCTAssertNil(fields["idCardNumber"])
         draft.idCardNumber = MerchantIdentityNumber("11010519491231002x")
-        XCTAssertNil(draft.blocker(step: 4))
+        // PIPL consent (Figma 182:7628): valid fields are still held back until the box is checked.
+        XCTAssertEqual(draft.blocker(step: 4), "merchant.onboarding.identity.required.consent")
         fields = try XCTUnwrap(JSONSerialization.jsonObject(with: draft.jsonData()) as? [String: Any])
+        XCTAssertNil(fields["realName"]); XCTAssertNil(fields["idCardNumber"]); XCTAssertNil(fields["identityConsent"])
+        draft.identityConsent = true
+        XCTAssertNil(draft.blocker(step: 4))
+        let body = try draft.jsonData()
+        fields = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
         XCTAssertEqual(fields["realName"] as? String, "示例商户")
         XCTAssertEqual(fields["idCardNumber"] as? String, "11010519491231002X")
+        // A JSON boolean, not the number 1 (Darwin bridges NSNumber 1 to Bool, so check the wire text).
+        XCTAssertTrue(String(decoding: body, as: UTF8.self).contains("\"identityConsent\":true"))
     }
     func testOnlyRejectedApplicationsBackfillTheirIDAndSourceFields() throws {
         for status in [0, 1] { XCTAssertThrowsError(try MerchantOnboardingDraft(reapplying: makeMerchantOnboardingApplication(status: status))) }

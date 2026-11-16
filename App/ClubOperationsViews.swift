@@ -188,9 +188,12 @@ struct ClubOperationsWorkspaceView: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: loading)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("club.ops.close") {
+                // verify-r1 2.2 (Figma `204:24591`): a round ✕, not a grey 关闭 text pill; the system draws the glass.
+                Button {
                     if dirty || state.locksForm { showDiscard = true } else { dismiss() }
-                }.accessibilityIdentifier("club.ops.close")
+                } label: { Image(systemName: "xmark") }
+                .accessibilityLabel(Text("club.ops.close"))
+                .accessibilityIdentifier("club.ops.close")
             }
         }
         .interactiveDismissDisabled(dirty || state.locksForm)

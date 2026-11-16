@@ -286,8 +286,21 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         .questifyBottomAction {
             Group {
                 if model.step < MerchantOnboardingSteps.review {
-                    CYPillButton("merchant.onboarding.next") { model.next() }
-                        .accessibilityIdentifier("merchant.onboarding.next")
+                    // Figma 182:7628: on the identity step 继续 waits for the consent box, with the reason above it.
+                    let needsConsent = model.step == MerchantOnboardingSteps.identity && !model.draft.identityConsent
+                    VStack(spacing: CYSpacing.sm) {
+                        if needsConsent {
+                            Text("merchant.onboarding.identity.required.consent")
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .accessibilityIdentifier("merchant.onboarding.identity.consentHint")
+                        }
+                        CYPillButton("merchant.onboarding.next") { model.next() }
+                            .disabled(needsConsent)
+                            .accessibilityHint(needsConsent ? Text("merchant.onboarding.identity.required.consent") : Text(verbatim: ""))
+                            .accessibilityIdentifier("merchant.onboarding.next")
+                    }
                 } else {
                     // HANDOFF-R1 MR-01 / MR-11: the primary stays enabled and jumps to what is missing.
                     VStack(spacing: CYSpacing.sm) {
@@ -297,7 +310,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                         CYPillButton("r1merchant.onboarding.submit", tableName: "DesignR1Merchant") {
-                            if model.draft.blocker() != nil || model.draft.identityBlocker() != nil {
+                            if model.draft.blocker() != nil || model.draft.identityBlocker() != nil || model.draft.consentBlocker() != nil {
                                 let step = firstIncompleteStep
                                 model.step = step
                                 model.errorKey = model.draft.blocker(step: step)
@@ -576,6 +589,70 @@ struct MerchantOnboardingIdentitySection: View {
         .onChange(of: focus) { old, _ in
             if old == .name { touchedName = true }
             if old == .idCard { touchedID = true; editingID = false }
+        }
+        consentSection
+    }
+
+    // MARK: PIPL consent (Figma `182:7628` unchecked, `406:9580` checked)
+
+    @Environment(\.locale) private var locale
+    @State private var showsRule = false
+    private static let ruleURL = URL(string: "questify-legal://merchant-identity-rule")!
+
+    /// 我已阅读并同意《个人信息处理规则》: the rule is a link; tapping anywhere else on the row toggles the box.
+    /// Starts unchecked; 继续 stays disabled with the hint 勾选同意后才能继续 until it is checked.
+    private var consentText: AttributedString {
+        var prefix = AttributedString(appLocalized("merchant.onboarding.identity.consent.prefix", locale: locale))
+        prefix.foregroundColor = palette.textSecondary
+        var rule = AttributedString(appLocalized("merchant.onboarding.identity.consent.rule", locale: locale))
+        rule.link = Self.ruleURL
+        rule.foregroundColor = palette.info
+        rule.underlineStyle = .single
+        return prefix + rule
+    }
+
+    private var consentSection: some View {
+        Section {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                Image(systemName: model.draft.identityConsent ? "checkmark.square.fill" : "square")
+                    .font(.title3)
+                    .foregroundStyle(model.draft.identityConsent ? palette.textPrimary : palette.textSecondary)
+                    .contentTransition(.symbolEffect(.replace))
+                Text(consentText)
+                    .font(CYTypography.meta)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
+            .onTapGesture { model.draft.identityConsent.toggle() }
+            .sensoryFeedback(.selection, trigger: model.draft.identityConsent)
+            .environment(\.openURL, OpenURLAction { url in
+                guard url == Self.ruleURL else { return .systemAction }
+                showsRule = true
+                return .handled
+            })
+            .accessibilityRepresentation {
+                Toggle(isOn: $model.draft.identityConsent) { Text("merchant.onboarding.identity.consent.label") }
+            }
+            .accessibilityAction(named: Text("merchant.onboarding.identity.consent.openRule")) { showsRule = true }
+            .accessibilityIdentifier("merchant.onboarding.identity.consent")
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.xs, bottom: 0, trailing: CYSpacing.xs))
+        }
+        .sheet(isPresented: $showsRule) {
+            NavigationStack {
+                SettingsLegalDocumentView(type: .privacyPolicy, market: RegionalLaunchConfiguration.market,
+                                          reader: SettingsBundledLegalReader(privacyPolicyApproved:
+                                            RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true))
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button { showsRule = false } label: { Image(systemName: "xmark") }
+                                .accessibilityLabel(Text("action.close"))
+                        }
+                    }
+            }
+            .presentationDragIndicator(.visible)
         }
     }
 

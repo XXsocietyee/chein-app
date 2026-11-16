@@ -1376,6 +1376,23 @@
           }
         }
       }
+    },
+    "editorKit.cover.editTitleHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edits the play's name on the cover"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在封面上修改玩法名称"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

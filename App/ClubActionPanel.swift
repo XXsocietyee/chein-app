@@ -49,6 +49,10 @@ struct ClubActionPanel: View {
         Group {
         if placement == .pageEnd {
             pageEndSection
+        } else if ownerHasNothingToDo(state) {
+            // Club/Header (skill-r2 `204:24899`): the creator's role is a tag in the header, so the
+            // 成员身份 group would only repeat 创建者不能退出自己的俱乐部. Nothing to act on, nothing drawn.
+            EmptyView()
         } else {
         Section {
             if coordinator.identity != identity || !identity.isSignedIn {
@@ -223,6 +227,11 @@ struct ClubActionPanel: View {
         case .unavailable: Text("club.action.readbackUnavailable").foregroundStyle(.secondary)
         default: EmptyView()
         }
+    }
+    private func ownerHasNothingToDo(_ state: ClubActionState) -> Bool {
+        guard case .owner = availability, state == .idle, rewardAction == nil, !isWorking, issueKey == nil,
+              coordinator.identity == identity, identity.isSignedIn, coordinator.isConfigured else { return false }
+        return true
     }
     private var availabilityKey: String {
         switch availability {

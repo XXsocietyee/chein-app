@@ -94,13 +94,22 @@ final class VerifyR2AppFixTests: XCTestCase {
         XCTAssertEqual(arbiter.requestedScheme, .dark)
     }
 
-    // N-05 · merchant and editor buttons are a 12 pt rounded rectangle; the player keeps the capsule.
+    // skill-r2 Q4 · one capsule shape for player, merchant and editor (button-radius 999 everywhere).
     func testButtonShapeFollowsTheDomain() {
         XCTAssertNil(CYDomainPalette(.player).buttonCornerRadius)
-        XCTAssertEqual(CYDomainPalette(.merchant).buttonCornerRadius, 12)
-        XCTAssertEqual(CYDomainPalette(.topicEditor).buttonCornerRadius, 12)
+        XCTAssertNil(CYDomainPalette(.merchant).buttonCornerRadius)
+        XCTAssertNil(CYDomainPalette(.topicEditor).buttonCornerRadius)
         XCTAssertEqual(CYDomainPalette(.merchant).buttonMinHeight, 46)
         XCTAssertEqual(CYDomainPalette(.player).buttonMinHeight, 44)
+    }
+
+    // Handbook sheet-header rule (verify-r1 Q10, skill-r2 hand-off): three styles, picked by the sheet's domain.
+    func testSheetHeaderStyleFollowsTheDomain() {
+        XCTAssertEqual(CYSheetHeaderStyle.forDomain(.topicEditor), .editor)
+        XCTAssertEqual(CYSheetHeaderStyle.forDomain(.merchant), .merchant)
+        XCTAssertEqual(CYSheetHeaderStyle.forDomain(.player), .player)
+        XCTAssertEqual(CYSheetHeaderStyle.automatic.resolved(in: .merchant), .merchant)
+        XCTAssertEqual(CYSheetHeaderStyle.player.resolved(in: .merchant), .player, "an explicit style wins")
     }
 
     // N-07 / Q4 · 7-day numbers instead of a hero of dashes.
@@ -142,6 +151,8 @@ final class VerifyR2AppFixTests: XCTestCase {
         XCTAssertEqual(draft.blocker(step: MerchantOnboardingSteps.identity), "merchant.onboarding.identity.required.realName")
         draft.realName = "示例商户"
         draft.idCardNumber = MerchantIdentityNumber("11010519491231002X")
+        XCTAssertEqual(draft.blocker(step: MerchantOnboardingSteps.identity), "merchant.onboarding.identity.required.consent")
+        draft.identityConsent = true
         XCTAssertNil(draft.blocker(step: MerchantOnboardingSteps.identity))
         XCTAssertEqual(draft.idCardNumber.masked, "110***********002X")
     }

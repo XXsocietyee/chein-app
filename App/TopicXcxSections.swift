@@ -51,7 +51,7 @@ struct TopicXcxHero: View {
     @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYStatusChip(topic.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering", tone: .info)
+            // skill-r2 hand-off / verify-r1 3.1 (`169:6954`): no blue type chip; the type is the eyebrow over the title.
             if !topic.categoryNames.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: CYSpacing.sm) {
@@ -72,51 +72,66 @@ struct TopicXcxHero: View {
     }
 }
 
+/// verify-r1 3.1 / PL-23 (`169:6954`): up to four equal stat cells in one card, value at 20 pt over a 13 pt label.
+/// Only known facts appear (a missing duration or distance is left out, never `—` or `0`).
 struct TopicXcxStatBar: View {
     let cells: [TopicXcxFacts.StatCell]
+    var stops: Int? = nil
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private struct Tile: Identifiable {
+        let id: String
+        let value: String
+        let label: LocalizedStringKey
+        var unit: LocalizedStringKey? = nil
+    }
+    private var tiles: [Tile] {
+        var out: [Tile] = []
+        for cell in cells {
+            switch cell {
+            case .rating(let value, _): out.append(Tile(id: "rating", value: String(format: "%.1f", value), label: "topicXcx.stat.rating"))
+            case .hours(let text): out.append(Tile(id: "hours", value: text, label: "topicXcx.stat.hours", unit: "topicXcx.stat.hoursUnit"))
+            case .open(let start, let end): out.append(Tile(id: "open", value: start + "-" + end, label: "topicXcx.stat.open"))
+            case .mileage(let text): out.append(Tile(id: "mileage", value: text, label: "topicXcx.stat.mileage", unit: "topicXcx.stat.mileageUnit"))
+            case .merchants(let count): out.append(Tile(id: "merchants", value: String(count), label: "topicXcx.stat.merchants"))
+            }
+        }
+        if let stops, stops > 0 {
+            out.insert(Tile(id: "stops", value: String(stops), label: "topicXcx.stat.stops"), at: min(out.count, 2))
+        }
+        return Array(out.prefix(4))
+    }
+
     var body: some View {
-        if !cells.isEmpty {
-            // Mini-program `statbar`: horizontal strip, hairline between cells, each "label / big number / unit".
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 0) {
-                    ForEach(Array(cells.enumerated()), id: \.offset) { index, cell in
-                        if index > 0 {
-                            Rectangle()
-                                .fill(palette.borderSubtle)
-                                .frame(width: 0.5)
-                                .padding(.vertical, CYSpacing.xs)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            switch cell {
-                            case .rating(let value, let stars):
-                                Text("topicXcx.stat.rating").font(CYTypography.micro).foregroundStyle(palette.textTertiary)
-                                Text(verbatim: String(format: "%.1f", value)).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
-                                HStack(spacing: 1) { ForEach(0..<stars, id: \.self) { _ in Image(systemName: "star.fill").font(.caption2).foregroundStyle(palette.warning) } }.accessibilityHidden(true)
-                            case .hours(let text):
-                                Text("topicXcx.stat.hours").font(CYTypography.micro).foregroundStyle(palette.textTertiary)
-                                Text(verbatim: text).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
-                                Text("topicXcx.stat.hoursUnit").font(CYTypography.micro).foregroundStyle(palette.textSecondary)
-                            case .open(let start, let end):
-                                Text("topicXcx.stat.open").font(CYTypography.micro).foregroundStyle(palette.textTertiary)
-                                Text(verbatim: start + "-" + end).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
-                            case .mileage(let text):
-                                Text("topicXcx.stat.mileage").font(CYTypography.micro).foregroundStyle(palette.textTertiary)
-                                Text(verbatim: text).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
-                                Text("topicXcx.stat.mileageUnit").font(CYTypography.micro).foregroundStyle(palette.textSecondary)
-                            case .merchants(let count):
-                                Text("topicXcx.stat.merchants").font(CYTypography.micro).foregroundStyle(palette.textTertiary)
-                                Text(verbatim: String(count)).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
-                                Text("topicXcx.stat.merchantsUnit").font(CYTypography.micro).foregroundStyle(palette.textSecondary)
+        let tiles = tiles
+        if !tiles.isEmpty {
+            let columns = typeSize.isAccessibilitySize ? 2 : tiles.count
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm, alignment: .topLeading), count: columns),
+                      alignment: .leading, spacing: CYSpacing.md) {
+                ForEach(tiles) { tile in
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text(verbatim: tile.value)
+                                .font(.title3.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(palette.textPrimary)
+                            if let unit = tile.unit {
+                                Text(unit).font(CYTypography.meta).foregroundStyle(palette.textPrimary)
                             }
                         }
-                        .padding(.horizontal, CYSpacing.md)
-                        .accessibilityElement(children: .combine)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        Text(tile.label).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .combine)
                 }
-                .padding(.vertical, CYSpacing.sm)
             }
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.xs)
+            .padding(.vertical, CYSpacing.md)
+            .padding(.horizontal, CYSpacing.lg)
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("topic.statBar")
         }
     }
@@ -197,8 +212,11 @@ struct TopicXcxLineup: View {
 }
 
 /// Source bottom bar. Purchase/sign-up keep their existing flows; nothing here dispatches a write.
+/// verify-r1 3.1 / PL-23 (`169:6954`): the sticky bar is the price on the left (with one caption line) and one
+/// primary on the right. 查看场次 is a quiet text action under the price; share and favourite live in the navigation bar.
 struct TopicXcxActionBar: View {
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     let topic: TopicDetail
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
@@ -208,20 +226,71 @@ struct TopicXcxActionBar: View {
     var shareTitle: String? = nil
     var isFavorited: Bool? = nil
     var onToggleFavorite: (() -> Void)? = nil
+
+    /// The cheapest known ticket, for 「¥X 起」 / 免费 on a sign-up topic. Unknown prices are left out.
+    private var lowestTicketPrice: Decimal? { topic.tickets.compactMap(\.price).min() }
+
+    @ViewBuilder private func priceText(_ amount: Decimal?) -> some View {
+        if let amount {
+            if amount == 0 { Text("topicXcx.bar.free") }
+            else { Text(amount, format: .currency(code: "CNY").precision(.fractionLength(0...2)).locale(locale)) }
+        }
+    }
+
+    @ViewBuilder private var priceColumn: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            switch TopicXcxFacts.action(topic) {
+            case .ticketWallet:
+                Text("topicXcx.bar.signedUp").font(.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
+            case .locked:
+                EmptyView()
+            case .selfPlay(let price):
+                priceText(price).font(.title3.weight(.bold)).foregroundStyle(palette.textPrimary).monospacedDigit()
+                Button(action: openSessions) {
+                    HStack(spacing: 2) {
+                        Text("topicXcx.cta.sessions")
+                        Image(systemName: "chevron.forward").font(.caption2.weight(.semibold)).accessibilityHidden(true)
+                    }
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .pageTemplateControl(label: Text("topicXcx.cta.sessions"), traits: .isButton)
+                .pageTemplateReadingOrder(2)
+                .accessibilityIdentifier("topic.cta.sessions")
+            case .signUp:
+                if let lowest = lowestTicketPrice {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        priceText(lowest).font(.title3.weight(.bold)).monospacedDigit()
+                        if lowest > 0 { Text("topicXcx.bar.from").font(CYTypography.meta) }
+                    }
+                    .foregroundStyle(palette.textPrimary)
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
     var body: some View {
         CYFooterBar {
             VStack(spacing: 6) {
                 if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
-                HStack {
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    priceColumn
+                    Spacer(minLength: CYSpacing.sm)
                     switch TopicXcxFacts.action(topic) {
                     case .ticketWallet:
                         if let openTickets {
                             Button(action: openTickets) {
-                                Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                                Label("topicXcx.bar.toTickets", systemImage: "ticket").frame(minWidth: 132)
                             }
+                            .buttonStyle(.cyPrimary)
+                            .accessibilityLabel(Text("topicXcx.cta.ticketWallet"))
                             .accessibilityIdentifier("topic.cta.tickets")
                         } else {
-                            Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
+                            Label("topicXcx.cta.ticketWallet", systemImage: "ticket").foregroundStyle(palette.textSecondary)
                         }
                     case .locked(let lifecycle):
                         if TopicXcxFacts.opensPricing(topic), let openPricing {
@@ -231,46 +300,50 @@ struct TopicXcxActionBar: View {
                         } else {
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                         }
-                    case .selfPlay(let price):
-                        Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }
-                            .buttonStyle(.bordered).frame(minHeight: 44)
-                            .pageTemplateControl(label: Text("topicXcx.cta.sessions"), traits: .isButton)
-                            .pageTemplateReadingOrder(2)
-                            .accessibilityIdentifier("topic.cta.sessions")
+                    case .selfPlay:
                         Button(action: openSelfPlay) {
-                            if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
-                            else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
+                            Text("topicXcx.cta.selfPlayNoPrice").frame(minWidth: 132)
                         }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
                             .accessibilityAddTraits(.isButton)
                             .pageTemplateReadingOrder(1)
                             .accessibilityIdentifier("topic.cta.selfPlay")
                     case .signUp:
-                        Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                        Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(minWidth: 132) }.buttonStyle(.cyPrimary)
                             .pageTemplateControl(label: Text("topicXcx.cta.signUp"), traits: .isButton)
                             .disabled(topic.merchantClosed)
                             .accessibilityIdentifier("topic.cta.signUp")
                     }
-                    if let onToggleFavorite {
-                        Button(action: onToggleFavorite) {
-                            Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
-                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                        }
-                        .buttonStyle(.bordered)
-                        .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
-                        .accessibilityIdentifier("topic.cta.favorite")
-                    }
-                    if let shareURL {
-                        ShareLink(item: shareURL, subject: shareTitle.map { Text(verbatim: $0) }) {
-                            Image(systemName: "square.and.arrow.up")
-                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                        }
-                        .buttonStyle(.bordered)
-                        .accessibilityLabel(Text("mp.common.share"))
-                        .accessibilityIdentifier("topic.cta.share")
-                    }
                 }
                 .controlSize(.large)
                 .accessibilityIdentifier("topic.actionBar")
+            }
+        }
+    }
+}
+
+/// Share and favourite for the topic, as glass circles in the navigation bar (`169:6954` top-trailing).
+struct TopicXcxToolbarActions: View {
+    var shareURL: URL?
+    var shareTitle: String?
+    var isFavorited: Bool? = nil
+    var onToggleFavorite: (() -> Void)? = nil
+    var body: some View {
+        HStack(spacing: 0) {
+            if let onToggleFavorite {
+                Button(action: onToggleFavorite) {
+                    Image(systemName: isFavorited == true ? "bookmark.fill" : "bookmark")
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityLabel(Text(isFavorited == true ? "roam.favorited" : "roamSub.w208.poi.favorite"))
+                .accessibilityIdentifier("topic.cta.favorite")
+            }
+            if let shareURL {
+                ShareLink(item: shareURL, subject: shareTitle.map { Text(verbatim: $0) }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityLabel(Text("mp.common.share"))
+                .accessibilityIdentifier("topic.cta.share")
             }
         }
     }

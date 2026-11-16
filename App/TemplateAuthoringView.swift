@@ -479,10 +479,7 @@ extension EnvironmentValues {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
             Section {
-                HStack(alignment: .bottom) {
-                    TemplateAuthoringField("title", text: $model.draft.title)
-                    TemplateBasicFieldClearButton(model: model, field: .title)
-                }
+                // verify-r1 2.9: the name is edited on the cover (header below); no separate 名称 row.
                 // CF-44: no raw URL field. The 16:9 tile above shows the cover; the shared picker crops and uploads it.
                 if makeCoverService != nil || environmentCover != nil {
                     ActivityCoverAuthoringSection(owner: cover, kind: .template)
@@ -496,7 +493,7 @@ extension EnvironmentValues {
                 }
             } header: {
                 // CF-44: a 16:9 cover with the title over its bottom edge.
-                TemplateAuthoringCoverHeader(imageURL: model.draft.imgUrl, title: model.draft.title)
+                TemplateAuthoringCoverHeader(imageURL: model.draft.imgUrl, title: $model.draft.title, editable: model.canEdit)
             }
             .id(EditorOutlineSection.info.anchor)
             Section("templateAuthor.basics") {
@@ -576,32 +573,30 @@ struct TemplateAuthoringField: View {
         "targetSeconds": .seconds, "audioDuration": .seconds, "bearing": .degrees, "tolerance": .degrees
     ]
     var body: some View {
+        if let unit = Self.units[key] {
+            numberBody(unit)
+        } else {
+            // verify-r1 3.5 / CF-10 (`237:43689`): text fields are the Editor kit field (label above, filled field,
+            // live counter at the limit). Number fields keep the suffix layout below.
+            EditorField(label: Text(LocalizedStringKey("templateAuthor.field." + key)), text: $text,
+                        kind: multiline ? .area : .line, limit: Self.limits[key],
+                        accessibilityID: accessibilityID ?? "templateAuthor.field." + key)
+                .textInputAutocapitalization(.sentences)
+                .padding(.vertical, 3)
+        }
+    }
+    private func numberBody(_ unit: EditorUnit) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(LocalizedStringKey("templateAuthor.field." + key))
-                    .font(CYTypography.label)
-                    .foregroundStyle(palette.textSecondary)
-                // CF-28: a live counter instead of a static "最多 N 字"; red at the limit. Text is never cut.
-                if let limit = Self.limits[key] {
-                    Spacer(minLength: CYSpacing.sm)
-                    let counter = EditorCounter(text: text, limit: limit)
-                    Text(verbatim: counter.text)
-                        .font(CYTypography.meta.monospacedDigit())
-                        .foregroundStyle(counter.isAtLimit ? palette.danger : palette.textSecondary)
-                        .contentTransition(.numericText())
-                        .accessibilityLabel(Text(verbatim: counter.text))
-                }
-            }
+            Text(LocalizedStringKey("templateAuthor.field." + key))
+                .font(CYTypography.label)
+                .foregroundStyle(palette.textSecondary)
             HStack(spacing: CYSpacing.s1_5) {
-                TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text, axis: multiline ? .vertical : .horizontal)
-                    .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
+                TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text)
+                    .lineLimit(1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
                     .font(CYTypography.bodyCompact)
-                    .textInputAutocapitalization(.sentences)
-                    .keyboardType(Self.units[key] == nil ? .default : .numbersAndPunctuation)
-                    .multilineTextAlignment(Self.units[key] == nil ? .leading : .trailing)
-                if let unit = Self.units[key] {
-                    EditorKitText.text(unit.key).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
-                }
+                    .keyboardType(.numbersAndPunctuation)
+                    .multilineTextAlignment(.trailing)
+                EditorKitText.text(unit.key).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
             }
         }.padding(.vertical, 3)
     }

@@ -41,6 +41,7 @@ struct TopicDetailView: View {
     @State private var resultSheetTitle: String?
     @State private var resultSheetMessage: String?
     @State private var topicToastMessage: String?
+    @State private var heroScrolledAway = false
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -55,10 +56,14 @@ struct TopicDetailView: View {
                 }
             }
         }
-        .appNavigationTitle("topic.detail")
+        // verify-r1 3.1 / 1.3: no 路线详情 over the hero; the topic's name appears inline once the hero has scrolled away.
+        .navigationTitle(heroScrolledAway ? (detail?.name ?? "") : "")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if let value = detail {
+                ToolbarItem(placement: .topBarTrailing) {
+                    TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     UGCSafetyMenuButton(
                         presentation: UGCReportPresentationTarget(
@@ -72,7 +77,7 @@ struct TopicDetailView: View {
             }
         }
         .environment(\.ugcSafetySubjectID, detail?.id ?? id)
-        .cyPushedChrome(domain: .player)
+        .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.topic")
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
@@ -238,32 +243,27 @@ struct TopicDetailView: View {
                         }
                     }.accessibilityElement(children: .combine)
                 } else {
-                    ZStack(alignment: .bottomLeading) {
-                        NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
-                        LinearGradient(
-                            stops: [
-                                .init(color: .clear, location: 0.35),
-                                .init(color: Color.black.opacity(0.88), location: 1)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .allowsHitTesting(false)
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
-                                .font(CYTypography.label.weight(.semibold))
-                                .foregroundStyle(palette.onCoverFgDim)
-                            Text(verbatim: value.name)
-                                .font(CYTypography.pageTitle)
-                                .foregroundStyle(palette.onCoverFg)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .padding(CYSpacing.lg)
-                        .allowsHitTesting(false)
+                    // verify-r1 3.1 / PL-23 (`169:6954`): the photo is the hero and carries no text, so a cover that
+                    // fails to load can never sit under the title. The title and its facts follow below.
+                    NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: CYSpacing.md, trailing: 0))
+                        .listRowBackground(Color.clear)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
+                            .font(CYTypography.meta.weight(.semibold))
+                            .foregroundStyle(palette.textSecondary)
+                        Text(verbatim: value.name)
+                            .font(CYTypography.pageTitle)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityIdentifier("topic.detail.title")
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                    .accessibilityElement(children: .combine)
+                    .listRowBackground(Color.clear)
                 }
-                TopicXcxHero(topic: value)
+                TopicXcxHero(topic: value).listRowBackground(Color.clear)
                 // P0-14 生成式 AI 内容显式标识 (`utils/aigc-label.js`): only for `publishMode == ai_simple`.
                 if AIGCDisclosure.isAIGenerated(publishMode: value.publishMode) { AIGCLabel() }
                 if value.betaFlag == 1 {
@@ -278,9 +278,12 @@ struct TopicDetailView: View {
                 }
                 // Design hand-off r1 PL-23: one hero, then the title and stats. The cover's 查看详情与报名 scroll button is
                 // gone: the pinned 详情 / 故事 / 路线 tabs and the sticky bar (price left, primary right) carry those paths.
-                TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
-                TopicXcxTabs(proxy: proxy, productType: value.productType)
+                TopicXcxStatBar(cells: TopicXcxFacts.statBar(value), stops: value.locationCount)
+                    .listRowBackground(Color.clear)
+                TopicXcxTabs(proxy: proxy, productType: value.productType).listRowBackground(Color.clear)
             }
+            // verify-r1 3.1 (`169:6954`): the hero block reads as one page header, not as list rows with dividers.
+            .listRowSeparator(.hidden)
             // 详情 tab (mini-program `det3`): title, one-line subtitle, venue card, then the audio guide.
             Section {
                 TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
@@ -463,17 +466,17 @@ struct TopicDetailView: View {
             TopicXcxRouteSection(topic: value).id(TopicXcxTab.route.anchor)
         }
         .listStyle(.insetGrouped)
+        .listSectionSpacing(.compact)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .cyTracksHeroScroll($heroScrolledAway, threshold: 280)
         .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }
         .safeAreaInset(edge: .bottom) {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { showsPricing = true },
-                              openTickets: ticketWalletDestination == nil ? nil : { showingTickets = true },
-                              shareURL: PublicContentShareLink.topic(id: value.id),
-                              shareTitle: value.name)
+                              openTickets: ticketWalletDestination == nil ? nil : { showingTickets = true })
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)

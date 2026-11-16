@@ -215,7 +215,7 @@ final class MerchantOnboardingModel: ObservableObject {
     func prepare() {
         guard !isBusy else { return }
         guard selectedBrandImage == nil else { errorKey = "merchant.onboardingBrand.uploadFirst"; return }
-        errorKey = draft.blocker() ?? draft.identityBlocker()
+        errorKey = draft.blocker() ?? draft.identityBlocker() ?? draft.consentBlocker()
         guard errorKey == nil else { return }
         do { confirmation = try coordinator.prepare(draft); revision += 1 }
         catch { errorKey = "merchant.onboarding.stateChanged" }

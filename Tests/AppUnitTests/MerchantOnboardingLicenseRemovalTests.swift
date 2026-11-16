@@ -25,7 +25,7 @@ import XCTest
         m.draft.license = try .init(serverURL: "https://fixtures.example/original.jpg")
         m.draft.brandImages = try .init(urls: ["https://fixtures.example/brand.jpg"])
         // Owner 2026-11-16 identity step: the GB 11643 worked example, a valid synthetic number.
-        m.draft.realName = "示例商户"; m.draft.idCardNumber = MerchantIdentityNumber("11010519491231002X")
+        m.draft.realName = "示例商户"; m.draft.idCardNumber = MerchantIdentityNumber("11010519491231002X"); m.draft.identityConsent = true
         m.step = 3
         return (m, server)
     }

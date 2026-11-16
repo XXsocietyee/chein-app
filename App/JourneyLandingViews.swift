@@ -461,6 +461,10 @@ struct JourneySeatsContent: Equatable {
     var actionError: String?
     /// Share link for the invite card once the server issued a seat token; nil hides "send to a friend".
     var inviteShareURL: URL?
+    /// 怎么玩 facts (Figma `204:15032`): stops and estimated minutes. The seats read does not return them today, so
+    /// they stay nil there and the card is hidden rather than printing "—".
+    var stopCount: Int? = nil
+    var estimatedMinutes: Int? = nil
 }
 
 enum JourneySeatsPhase: Equatable {
@@ -519,8 +523,9 @@ struct JourneySeatsView: View {
             }
         }
         .cyPushedChrome(domain: .player)
-        .navigationTitle(Text("mp.seats.title"))
-        .navigationBarTitleDisplayMode(.large)
+        // The eyebrow on the page says 开局大厅; the bar stays clear (Figma `204:15032`).
+        .navigationTitle(Text(verbatim: ""))
+        .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if let target = cancelTarget {
                 PlayAreaSeatCancelModal(seatNo: target.no, onConfirm: {
@@ -535,15 +540,26 @@ struct JourneySeatsView: View {
     private func ready(_ content: JourneySeatsContent) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                if let name = content.headName {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        if content.headCoverURL != nil {
-                            CYCachedAsyncImage(content.headCoverURL, role: .cover)
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        }
-                        Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                // verify-r1 3.3 / skill-r2 hand-off `204:15032`: eyebrow 开局大厅, the topic as a 28 pt title, a cover strip.
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("mp.seats.title").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    if let name = content.headName {
+                        Text(verbatim: name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
                     }
                 }
+                .accessibilityElement(children: .combine)
+                // The cover strip only when the read has a cover: a grey stand-in block would be a placeholder.
+                if content.headCoverURL != nil {
+                    CYCachedAsyncImage(content.headCoverURL, role: .cover)
+                        .frame(height: 112)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .accessibilityHidden(true)
+                }
+                if content.showsParty { party(content) }
+                JourneyLobbyHowToCard(stops: content.stopCount, minutes: content.estimatedMinutes)
                 if let me = content.me, !me.name.isEmpty {
                     Button(action: onEditMe) {
                         MPCard { MPRow(title: Text("mp.seats.playAs \(me.name)"), value: Text("mp.seats.edit"), chevron: true) }
@@ -551,7 +567,7 @@ struct JourneySeatsView: View {
                     .buttonStyle(.cyPressable)
                     .accessibilityIdentifier("journeySeats.editMe")
                 }
-                if content.showsParty { party(content) }
+
                 if content.multi && !content.tiles.isEmpty {
                     JourneyModeTilesView(tiles: content.tiles, active: .constant(nil), showsRules: false, selectable: false)
                 }
@@ -609,6 +625,9 @@ struct JourneySeatsView: View {
                 Text(verbatim: content.occupied.map { o in "\(o)/\(MPText.orDash(content.seatCount))" } ?? MPText.orDash(content.seatCount))
                     .font(CYTypography.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                 Spacer()
+                if content.openCount > 0 {
+                    CYStatusTag("mp.seats.waiting", state: .neutral).accessibilityIdentifier("journeySeats.waiting")
+                }
                 if content.canInvite || !content.invited.isEmpty {
                     Button("mp.seats.invite") { openInvite(content) }
                         .font(CYTypography.label).frame(minHeight: CYSpacing.minTouchTarget)
@@ -680,6 +699,38 @@ struct JourneySeatsView: View {
         guard content.canInvite else { return }
         if content.inviteShareURL == nil { onInvite() }
         inviteShown = true
+    }
+}
+
+/// 怎么玩 (Figma `204:15032`): N 站 · 约 N 分钟 · 需要到场. Rows with unknown facts are left out; with neither fact known the
+/// card is not drawn (the arrival row alone would not explain the play).
+struct JourneyLobbyHowToCard: View {
+    let stops: Int?
+    let minutes: Int?
+    var body: some View {
+        if stops != nil || minutes != nil {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                if let stops { row("point.topleft.down.to.point.bottomright.curvepath", Text("mp.seats.howTo.stops \(stops)"), Text("mp.seats.howTo.stopsNote")) }
+                if let minutes { row("clock", Text("mp.seats.howTo.minutes \(minutes)"), Text("mp.seats.howTo.minutesNote")) }
+                row("mappin", Text("mp.seats.howTo.arrive"), Text("mp.seats.howTo.arriveNote"))
+            }
+            .padding(CYSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("journeySeats.howTo")
+        }
+    }
+    private func row(_ symbol: String, _ title: Text, _ note: Text) -> some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            Image(systemName: symbol).font(.body).foregroundStyle(CYColor.textSecondary).frame(width: 24).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                title.font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                note.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -363,7 +363,8 @@ struct CYClubRowCard: View {
                         if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitled") }
                         else { Text(verbatim: name) }
                     }
-                    .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                    // skill-r2 `Club/List Card` (`210:8452`): name t-head 17, thumbnail 72 r12.
+                    .font(.headline).foregroundStyle(palette.textPrimary)
                     .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
                     .fixedSize(horizontal: false, vertical: true)
                     strip
@@ -397,8 +398,8 @@ struct CYClubRowCard: View {
                 PlayerFeedRemoteImage(url: logoURL, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
             }
         }
-        .frame(width: 56, height: 56)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .frame(width: 72, height: 72)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityHidden(true)
     }
 }

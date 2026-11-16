@@ -117,6 +117,10 @@ public struct MerchantOnboardingDraft: Equatable {
     /// application read does not return them.
     public var realName = ""
     public var idCardNumber = MerchantIdentityNumber()
+    /// PIPL consent for the identity step (Figma `182:7628` / `406:9580`): 我已阅读并同意《个人信息处理规则》.
+    /// Starts unchecked and is never restored on reapply; the backend refuses realName / idCardNumber without
+    /// `identityConsent: true`.
+    public var identityConsent = false
     public var license: MerchantOnboardingLicense?
     public var brandImages: MerchantOnboardingBrandImages?
     public private(set) var brandImagesSourceUnavailable = false
@@ -147,8 +151,13 @@ public struct MerchantOnboardingDraft: Equatable {
         if step == nil || step == 3 {
             if license == nil { return "merchant.onboarding.required.license" }
         }
-        if step == 4 { return identityBlocker() }
+        if step == 4 { return identityBlocker() ?? consentBlocker() }
         return nil
+    }
+
+    /// The consent row's problem: nil once 我已阅读并同意《个人信息处理规则》 is checked.
+    public func consentBlocker() -> String? {
+        identityConsent ? nil : "merchant.onboarding.identity.required.consent"
     }
 
     /// The identity step's first problem, as a string key; nil when 真实姓名 and a valid 身份证号 are present.
@@ -175,10 +184,11 @@ public struct MerchantOnboardingDraft: Equatable {
         ]
         if let brandImages { fields["derivatives"] = brandImages.wireValue }
         if let id { fields["id"] = id }
-        // Identity is sent only when the step is complete and valid; it is never partially sent.
-        if identityBlocker() == nil {
+        // Identity is sent only when the step is complete, valid and consented; it is never partially sent.
+        if identityBlocker() == nil, identityConsent {
             fields["realName"] = realName.merchantOnboardingTrimmed
             fields["idCardNumber"] = idCardNumber.normalized
+            fields["identityConsent"] = true
         }
         return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
     }

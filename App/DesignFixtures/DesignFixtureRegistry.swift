@@ -569,7 +569,9 @@ enum T5PageFixtures {
                 tiles: [],
                 canGoToStart: true,
                 actionError: nil,
-                inviteShareURL: nil
+                inviteShareURL: nil,
+                stopCount: 6,
+                estimatedMinutes: 90
             )
             return wrapPlayer(NavigationStack {
                 JourneySeatsView(phase: .ready(seats), onRetry: {}, onInvite: {}, onCancel: { _ in }, onStart: {}, onEditMe: {})

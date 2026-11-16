@@ -309,7 +309,24 @@ enum CYSheetKind: CaseIterable, Hashable {
 
 /// Header style. `.editor` is the TE header (✕ left, black 完成 pill right, title centred below);
 /// `.player` puts the 20 Bold title left and the round ✕ right.
-enum CYSheetHeaderStyle { case editor, player }
+/// The sheet-header rule (handbook; verify-r1 Q10 and skill-r2 hand-off, owner 2026-11-16): three styles, one per
+/// domain. Editor: ✕ leading, centred title, 完成 trailing. Player: title leading, ✕ trailing. Merchant: centred title,
+/// ✕ trailing. `.automatic` picks the style from the sheet's own theme domain, so a sheet follows the rule without
+/// naming it.
+enum CYSheetHeaderStyle {
+    case editor, player, merchant, automatic
+
+    static func forDomain(_ domain: ThemeDomain) -> CYSheetHeaderStyle {
+        switch domain {
+        case .topicEditor: return .editor
+        case .merchant: return .merchant
+        case .player, .dark, .game: return .player
+        }
+    }
+    func resolved(in domain: ThemeDomain) -> CYSheetHeaderStyle {
+        self == .automatic ? Self.forDomain(domain) : self
+    }
+}
 
 /// The one sheet header (Editor/Sheet Header and Player/Sheet): 36×5 grabber (drawn by the system when resizable),
 /// a 52 pt bar, a 32 pt grey ✕ circle in a 44 pt target, a 44 pt black 完成 pill, and a 20 Bold title.
@@ -351,8 +368,33 @@ struct CYSheetHeader: View {
     @ScaledMetric(relativeTo: .title3) private var titleSize: CGFloat = 20
 
     var body: some View {
+        let style = self.style.resolved(in: palette.domain)
         VStack(spacing: 0) {
-            if style == .editor {
+            if style == .merchant {
+                // Merchant: centred title, ✕ at the trailing edge (and 完成 when the sheet confirms).
+                ZStack {
+                    VStack(spacing: 2) {
+                        if let eyebrow { eyebrow.font(.footnote).foregroundStyle(palette.textTertiary) }
+                        if let title {
+                            title
+                                .font(.system(size: titleSize, weight: .bold))
+                                .foregroundStyle(palette.textPrimary)
+                                .accessibilityAddTraits(.isHeader)
+                        }
+                    }
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, CYSpacing.minTouchTarget + CYSpacing.lg)
+                    HStack {
+                        if showsBack { leading }
+                        Spacer(minLength: CYSpacing.sm)
+                        if !showsBack, onClose != nil { closeButton }
+                        if onDone != nil { trailing }
+                    }
+                }
+                .frame(minHeight: 52)
+                .padding(.horizontal, CYSpacing.lg)
+                .padding(.bottom, CYSpacing.sm)
+            } else if style == .editor {
                 HStack {
                     leading
                     Spacer(minLength: CYSpacing.sm)
@@ -501,7 +543,7 @@ struct CYResizableSheet<Content: View>: View {
         sizes: [CYSheetSize]? = nil,
         title: Text? = nil,
         eyebrow: Text? = nil,
-        headerStyle: CYSheetHeaderStyle = .player,
+        headerStyle: CYSheetHeaderStyle = .automatic,
         isDirty: Bool = false,
         primary: CYSheetPrimary? = nil,
         onDone: (() -> Void)? = nil,
@@ -649,7 +691,7 @@ extension View {
         isPresented: Binding<Bool>,
         kind: CYSheetKind,
         title: Text? = nil,
-        headerStyle: CYSheetHeaderStyle = .player,
+        headerStyle: CYSheetHeaderStyle = .automatic,
         isDirty: Bool = false,
         primary: CYSheetPrimary? = nil,
         onDone: (() -> Void)? = nil,
