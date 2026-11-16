@@ -14,10 +14,16 @@ class TemplateRuleEditorChecks(unittest.TestCase):
         for token in ['originalText = raw; storedText = raw', 'components(separatedBy: "\\n")', 'map(Self.sourceTrim)', 'joined(separator: "\\n")']:
             self.assertIn(token, self.core)
         self.assertNotIn('ruleInstructions =', self.model.split('func load()')[1].split('func changed()')[0])
-    def test_add_remove_are_bounded_but_reorder_is_not_invented(self):
+    def test_add_remove_are_bounded_and_reorder_is_one_guarded_move(self):
         for token in ['maximumRows = 12', 'rows.count < Self.maximumRows', 'rows.count > 1', 'EditError.lastRow', 'rows.remove(at: index)']:
             self.assertIn(token, self.core)
-        self.assertNotIn('.onMove', self.view)
+        # Design hand-off r1 (owner-approved drag-to-reorder for every list editor, CF-60): drag, the row
+        # "⋯" menu and VoiceOver all route through the one core move, which keeps the historical guard.
+        move = self.core.split('public mutating func move(fromOffsets', 1)[1].split('\n    }', 1)[0]
+        self.assertIn('guard isEditable else { throw EditError.historicalText }', move)
+        self.assertIn('EditorReorder.move(&rows', move)
+        self.assertIn('.onMove { model.moveRuleSteps(fromOffsets: $0, toOffset: $1) }', self.view)
+        self.assertIn('changeRuleSteps { try $0.move(fromOffsets: source, toOffset: destination) }', self.model)
         self.assertNotIn('func reorder', self.core)
     def test_ascii_only_limit_has_no_silent_truncation_or_unicode_claim(self):
         self.assertIn('maximumASCIILength = 60', self.core)
@@ -51,7 +57,7 @@ class TemplateRuleEditorChecks(unittest.TestCase):
                 self.assertTrue(catalog['templateRules.'+suffix]['localizations'][language]['stringUnit']['value'])
         self.assertIn('id: \\.element.id', self.view)
         self.assertIn('public let id: UUID', self.core)
-        self.assertIn('.accessibilityLabel(Text("templateRules.removeNumber', self.view)
+        self.assertIn('deleteTitle: Text("templateRules.removeNumber', self.view)
         self.assertIn('.accessibilityLabel(Text("templateRules.stepNumber', self.view)
     def test_authored_core_and_lifecycle_regressions_are_present(self):
         core_tests = (ROOT/'Tests/CoreTests/TemplateAuthoringRuleStepsTests.swift').read_text()

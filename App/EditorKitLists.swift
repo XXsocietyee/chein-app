@@ -10,6 +10,8 @@ struct EditorRowActionsMenu: View {
     let count: Int
     var actions: [EditorRowAction] = [.moveUp, .moveDown, .delete]
     var deleteTitle: Text? = nil
+    var menuID: String? = nil
+    var deleteID: String? = nil
     let onAction: (EditorRowAction) -> Void
 
     @Environment(\.cyPalette) private var palette
@@ -25,6 +27,7 @@ struct EditorRowActionsMenu: View {
                 Button(role: .destructive) { onAction(.delete) } label: {
                     Label { deleteTitle ?? title(.delete) } icon: { Image(systemName: "trash") }
                 }
+                .modifier(EditorOptionalIdentifier(identifier: deleteID))
             }
         } label: {
             Image(systemName: "ellipsis")
@@ -33,7 +36,7 @@ struct EditorRowActionsMenu: View {
                 .editorHitTarget()
         }
         .accessibilityLabel(EditorKitText.text("editorKit.more"))
-        .accessibilityIdentifier("editorKit.rowMenu.\(index)")
+        .accessibilityIdentifier(menuID ?? "editorKit.rowMenu.\(index)")
     }
 
     private func isAvailable(_ action: EditorRowAction) -> Bool {

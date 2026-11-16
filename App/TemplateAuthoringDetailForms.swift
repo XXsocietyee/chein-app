@@ -153,6 +153,7 @@ import SwiftUI
         .onDisappear { rewards.retire() }
         .onChange(of: model.mediaReviewGeneration) { _, _ in rewards.reload() }
         .onChange(of: model.draft.rewardEnabled) { _, _ in rewards.reload() }
+        .id(EditorOutlineSection.reward.anchor)
         Section("templateAuthor.story") {
             Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.storyEnabled)
             if model.draft.storyEnabled {
@@ -164,6 +165,7 @@ import SwiftUI
                 NavigationLink("templateAuthor.storyTimeline") { TemplateAuthoringStoryView(model: model) }.accessibilityIdentifier("templateStory.open")
             }
         }
+        .id(EditorOutlineSection.feedback.anchor)
         Section("templateAuthor.voice") {
             Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.voiceEnabled)
             if model.draft.voiceEnabled {

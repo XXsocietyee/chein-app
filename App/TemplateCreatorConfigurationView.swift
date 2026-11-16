@@ -76,6 +76,7 @@ import Combine
     let family: TemplateCreatorFamily
     let field: TemplateCreatorField
     let path: [TemplateCreatorPath]
+    static let units: [String: EditorUnit] = ["xp": .points, "seconds": .seconds, "durationSeconds": .seconds, "limitSeconds": .seconds]
     private var current: TemplateAuthoringJSON { model.draft.advanced.creatorValue(family, path: path) ?? field.initial }
     private var object: [String: TemplateAuthoringJSON] { model.draft.advanced.creatorValue(family, path: Array(path.dropLast()))?.object ?? [:] }
     private func write(_ entry: TemplateAuthoringJSON?) { model.draft.advanced.setCreatorValue(family, path: path, entry: entry) }
@@ -145,7 +146,13 @@ import Combine
             }
         case .number(let min, let max, let integer):
             VStack(alignment: .leading) {
-                TextField(LocalizedStringKey(field.labelKey), text: text).keyboardType(.numbersAndPunctuation)
+                HStack(spacing: CYSpacing.s1_5) {
+                    TextField(LocalizedStringKey(field.labelKey), text: text).keyboardType(.numbersAndPunctuation)
+                    // Design hand-off r1 CF-47 / CF-48: unit as a suffix; 积分 is the only currency.
+                    if let unit = TemplateCreatorFieldView.units[field.id] {
+                        EditorKitText.text(unit.key).font(.body).foregroundStyle(CYColor.textSecondary)
+                    }
+                }
                 if max < 1e15 { Text(verbatim: "\(min.formatted()) … \(max.formatted())").font(.caption).foregroundStyle(.secondary) }
                 if integer { Text("creator.integer").font(.caption).foregroundStyle(.secondary) }
                 if family == .hiddenObject && ["x", "y"].contains(field.id) {

@@ -137,6 +137,23 @@ import Combine
     }
     func addRuleStep() { changeRuleSteps { try $0.add() } }
     func removeRuleStep(_ id: UUID) { changeRuleSteps { try $0.remove(id: id) } }
+    /// Design hand-off r1 CF-33 / CF-60: drag, the row "⋯" menu and VoiceOver share one reorder rule.
+    func moveRuleSteps(fromOffsets source: IndexSet, toOffset destination: Int) {
+        changeRuleSteps { try $0.move(fromOffsets: source, toOffset: destination) }
+    }
+    func ruleStepAction(_ action: EditorRowAction, at index: Int) {
+        guard ruleSteps.rows.indices.contains(index) else { return }
+        switch action {
+        case .delete:
+            if ruleSteps.canRemove { removeRuleStep(ruleSteps.rows[index].id) }
+        case .moveUp, .moveDown:
+            if let destination = EditorReorder.destination(for: action, index: index, count: ruleSteps.rows.count) {
+                moveRuleSteps(fromOffsets: IndexSet(integer: index), toOffset: destination)
+            }
+        case .duplicate:
+            break
+        }
+    }
     private func changeRuleSteps(rejectedRowID: UUID? = nil, _ edit: (inout TemplateAuthoringRuleSteps) throws -> Void) {
         guard canEdit, ruleSteps.storedText == draft.ruleInstructions else { return }
         do {
@@ -207,6 +224,11 @@ import Combine
     @State private var preview = false
     @State private var discard = false
     @State private var toastMessage: String?
+    // Design hand-off r1 CF-44 / CF-45 / CF-17: outline, preview gate and jump-to-first-error.
+    @State private var outlineCurrent: EditorOutlineSection = .info
+    @State private var previewMissing = false
+    @State private var pendingJump = false
+    @State private var errorJumps = 0
     let sessionRevision: UInt64
     let metadataReader: (any DiscoveryReading)?
     private let onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)?
@@ -222,7 +244,18 @@ import Combine
         self.sessionRevision = sessionRevision; self.metadataReader = metadataReader
         self.onSavedDraft = onSavedDraft; self.canReturnSavedDraft = canReturnSavedDraft
     }
+    private var outline: EditorOutline {
+        EditorOutline(current: outlineCurrent, errors: EditorOutline.errors(forIssues: model.draft.publishIssues))
+    }
+    private func jump(to section: EditorOutlineSection, _ proxy: ScrollViewProxy) {
+        outlineCurrent = section
+        withAnimation(.easeOut(duration: EditorMotionSpec.pushSeconds)) { proxy.scrollTo(section.anchor, anchor: .top) }
+    }
+    private func jumpToFirstError(_ proxy: ScrollViewProxy) {
+        jump(to: outline.firstError ?? .info, proxy); errorJumps += 1
+    }
     var body: some View {
+        ScrollViewReader { proxy in
         Form {
             Section { CYHeroHeader("templateAuthor.title") }.e1HeroRow()
             if model.coordinator.session == nil {
@@ -265,32 +298,58 @@ import Combine
             }
         }
         .formStyle(.grouped).cyGroupedSurface().cyHeroScreen().cyPushedChrome(domain: .topicEditor)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if model.coordinator.session != nil, step == .edit {
+                EditorSectionBar(outline: outline) { jump(to: $0, proxy) }
+            }
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.coordinator.session != nil, step == .edit {
                 CYFooterBar {
                     let isAX = dynamicTypeSize.isAccessibilitySize
                     let layout = isAX ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
                     layout {
-                        Button { preview = true } label: {
-                            Label("templateAuthor.preview", systemImage: "play.circle")
+                        // CF-45: one preview entry. With missing data it opens on a state that says what is missing.
+                        Button { if model.draft.publishIssues.isEmpty { preview = true } else { previewMissing = true } } label: {
+                            Label { EditorKitText.text("editorKit.preview") } icon: { Image(systemName: "play.circle") }
                         }
                         .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: isAX, compact: true))
-                        .disabled(!model.canEdit || !model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference)
+                        .disabled(!model.canEdit || model.draft.validationMethod == .preference)
                         .accessibilityIdentifier("templateAuthor.preview")
 
                         if onSavedDraft == nil {
-                            Button { model.prepare(.publish) } label: {
+                            // CF-17: the primary stays enabled for missing data and jumps to the first problem.
+                            Button {
+                                if model.draft.publishIssues.isEmpty { model.prepare(.publish) } else { jumpToFirstError(proxy) }
+                            } label: {
                                 Text("templateAuthor.reviewPublish")
                             }
                             .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
-                            .disabled(!model.canEdit || !model.draft.publishIssues.isEmpty || model.draft.validationMethod.isLocalConfigurationOnly)
+                            .disabled(!model.canEdit || model.draft.validationMethod.isLocalConfigurationOnly)
                             .accessibilityIdentifier("templateAuthor.reviewPublish")
                         }
                     }
                 }
             }
         }
-        .modifier(TemplateAuthoringExitGuard(model: model, overlaysOpen: { preview || discard || media.review != nil }))
+        .onChange(of: pendingJump) { _, jumpNow in
+            if jumpNow { pendingJump = false; jumpToFirstError(proxy) }
+        }
+        }
+        .sensoryFeedback(.error, trigger: errorJumps)
+        .editorSheet(isPresented: $previewMissing, family: .nodePreview) {
+            EditorSheetPage(title: EditorKitText.text("editorKit.preview.missing.title"), leading: .close) {
+                EditorStateView(
+                    kind: .empty,
+                    title: EditorKitText.text("editorKit.preview.missing.title"),
+                    message: model.draft.publishIssues.sorted().first.map { Text(LocalizedStringKey($0)) },
+                    actionTitle: EditorKitText.text("editorKit.preview.missing.action"),
+                    accessibilityID: "editorKit.templatePreviewMissing"
+                ) { previewMissing = false; pendingJump = true }
+            }
+            .themeDomain(.topicEditor)
+        }
+        .modifier(TemplateAuthoringExitGuard(model: model, overlaysOpen: { preview || discard || previewMissing || media.review != nil }))
         .disabled(model.busy)
         .task { model.load(); media.reload() }
         .onChange(of: model.draft) { _, _ in model.changed() }
@@ -358,20 +417,15 @@ import Combine
     /// (game), reward and story, tools; then save draft, preview and publish.
     @ViewBuilder private var editor: some View {
         Group {
+            // CF-22: one save status, an icon plus two characters; details on tap.
             Section {
-                CYPublishStatusBar(
-                    stepTitles: templateStepTitles,
-                    currentStep: model.draft.publishIssues.isEmpty ? 3 : 1,
-                    saveState: templateSaveState,
-                    issues: templatePublishIssues,
-                    isSubmittingReview: model.busy,
-                    onSelectStep: { _ in },
-                    onSubmitReview: {
-                        if onSavedDraft == nil, model.canEdit, model.draft.publishIssues.isEmpty, !model.draft.validationMethod.isLocalConfigurationOnly {
-                            model.prepare(.publish)
-                        }
-                    }
-                )
+                HStack {
+                    EditorSaveChip(
+                        state: model.coordinator.locked ? .failed : .saved,
+                        detail: EditorKitText.text(model.coordinator.locked ? "editorKit.save.detail.pending" : "editorKit.save.detail.local")
+                    )
+                    Spacer(minLength: 0)
+                }
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
@@ -384,7 +438,11 @@ import Combine
                     TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
                     TemplateBasicFieldClearButton(model: model, field: .cover)
                 }
+            } header: {
+                // CF-44: a 16:9 cover with the title over its bottom edge.
+                TemplateAuthoringCoverHeader(imageURL: model.draft.imgUrl, title: model.draft.title)
             }
+            .id(EditorOutlineSection.info.anchor)
             Section("templateAuthor.basics") {
                 HStack(alignment: .bottom) {
                     TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
@@ -402,6 +460,7 @@ import Combine
             Section {
                 TemplateAuthoringRuleFields(model: model)
             }
+            .id(EditorOutlineSection.rules.anchor)
             Section("templateAuthor.finish") {
                 Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.finishEnabled)
                 if model.draft.finishEnabled {
@@ -412,11 +471,13 @@ import Combine
                     NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }.accessibilityIdentifier("creatorComposition.open")
                 }
             }
+            .id(EditorOutlineSection.gameplay.anchor)
             TemplateAuthoringRewardStoryFields(model: model)
             Section {
                 NavigationLink("templateModules.title") { TemplateOptionalModuleManager(model: model) }
                     .accessibilityIdentifier("templateModules.open")
             }
+            .id(EditorOutlineSection.tools.anchor)
             Section(String(localized: LocalizedStringResource("templateMedia.title", defaultValue: "Media", locale: locale))) {
                 TemplateMediaReviewFields(controller: media)
             }
@@ -441,28 +502,6 @@ import Combine
         }.disabled(!model.canEdit)
     }
 
-    private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
-
-    private var templateStepTitles: [String] {
-        isChinese ? ["信息", "规则", "玩法", "发布"] : ["Basics", "Rules", "Gameplay", "Publish"]
-    }
-
-    private var templateSaveState: CYPublishSaveState {
-        if model.coordinator.locked {
-            return .saveFailed(reason: isChinese ? "存在未确认请求" : "Pending request lock") { model.load() }
-        }
-        return .savedDraft(updatedAt: isChinese ? "本地草稿" : "Local draft")
-    }
-
-    private var templatePublishIssues: [CYPublishValidationIssue] {
-        Array(Set(model.draft.publishIssues)).sorted().prefix(5).map { key in
-            CYPublishValidationIssue(
-                id: key,
-                stepIndex: key.contains("rule") ? 1 : (key.contains("game") || key.contains("finish") ? 2 : 0),
-                message: appLocalized(String.LocalizationValue(key), locale: locale)
-            )
-        }
-    }
 }
 
 struct TemplateAuthoringField: View {
@@ -474,15 +513,27 @@ struct TemplateAuthoringField: View {
     init(_ key: String, text: Binding<String>, multiline: Bool = false, accessibilityID: String? = nil) {
         self.key = key; _text = text; self.multiline = multiline; self.accessibilityID = accessibilityID
     }
+    /// Design hand-off r1 CF-47 / CF-48: the unit is a suffix, not part of the label; 积分 is the only currency.
+    static let units: [String: EditorUnit] = [
+        "xp": .points, "seconds": .seconds, "holdSeconds": .seconds, "durationSeconds": .seconds,
+        "targetSeconds": .seconds, "audioDuration": .seconds, "bearing": .degrees, "tolerance": .degrees
+    ]
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(LocalizedStringKey("templateAuthor.field." + key))
                 .font(CYTypography.label)
                 .foregroundStyle(palette.textSecondary)
-            TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text, axis: multiline ? .vertical : .horizontal)
-                .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
-                .font(CYTypography.bodyCompact)
-                .textInputAutocapitalization(.sentences)
+            HStack(spacing: CYSpacing.s1_5) {
+                TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text, axis: multiline ? .vertical : .horizontal)
+                    .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
+                    .font(CYTypography.bodyCompact)
+                    .textInputAutocapitalization(.sentences)
+                    .keyboardType(Self.units[key] == nil ? .default : .numbersAndPunctuation)
+                    .multilineTextAlignment(Self.units[key] == nil ? .leading : .trailing)
+                if let unit = Self.units[key] {
+                    EditorKitText.text(unit.key).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                }
+            }
         }.padding(.vertical, 3)
     }
 }
