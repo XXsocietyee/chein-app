@@ -34,6 +34,7 @@ import SwiftUI
                                     completion: session.templateAuthoringCompletionContext,
                                     sessionRevision: session.sessionRevision, metadataReader: session,
                                     imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
+                                    .environment(\.templateCoverSource, .init(makeService: { session.makeActivityCoverService() }, session: { session.publishingSession }))
                                     .id(session.templateAuthoringViewIdentity))
                             })
             .navigationDestination(isPresented: $showEditor) {

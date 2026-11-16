@@ -180,7 +180,8 @@ enum PublishDesignFixtures {
     @StateObject private var state: Holder
     init(signedIn: Bool) { _state = StateObject(wrappedValue: Holder(signedIn: signedIn)) }
     var body: some View {
-        TemplateAuthoringView(coordinator: state.coordinator, sessionRevision: 1, metadataReader: state.reader)
+        // CF-44: the cover section with no upload service (as `publish-cover`): the picker is shown, opening is disabled.
+        TemplateAuthoringView(coordinator: state.coordinator, sessionRevision: 1, metadataReader: state.reader, makeCoverService: { nil })
     }
 
     @MainActor private final class Holder: ObservableObject {

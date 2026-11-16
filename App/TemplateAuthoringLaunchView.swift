@@ -50,6 +50,7 @@ extension AppSession {
                     completion: session.templateAuthoringCompletionContext,
                     sessionRevision: session.sessionRevision, metadataReader: session,
                     imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
+                    .environment(\.templateCoverSource, .init(makeService: { session.makeActivityCoverService() }, session: { session.publishingSession }))
                     .id(visit)
             }
         .cyDomainScreen(.topicEditor)

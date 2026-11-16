@@ -95,7 +95,8 @@ import SwiftUI
         case "pages/publish/simple/index", "pages/publish/activity/index":
             SessionPublishingModesView().environmentObject(session)
         case "pages/publish/temp/index":
-            TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session)
+            TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
+                                 makeCoverService: { session.makeActivityCoverService() }, coverSession: { session.publishingSession })
         case "subpackageMember/mytemplate/mytemplate":
             TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
                                       memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0).environmentObject(session)) },

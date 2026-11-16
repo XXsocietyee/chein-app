@@ -213,7 +213,22 @@ import Combine
 }
 
 /// Host within the existing navigation stack. Intro/name/edit are replacement steps.
+/// CF-44 (polish-d-r1): the signed-in session's 16:9 cover upload service for the template editor, supplied by the
+/// screens that hold the session (发布 tab, 我的 → 创作) so the intermediate save/launch flows need no new parameters.
+struct TemplateCoverSource {
+    let makeService: () -> ActivityCoverService?
+    let session: () -> PublishingSession?
+}
+private struct TemplateCoverSourceKey: EnvironmentKey { static let defaultValue: TemplateCoverSource? = nil }
+extension EnvironmentValues {
+    var templateCoverSource: TemplateCoverSource? {
+        get { self[TemplateCoverSourceKey.self] }
+        set { self[TemplateCoverSourceKey.self] = newValue }
+    }
+}
+
 @MainActor struct TemplateAuthoringView: View {
+    @Environment(\.templateCoverSource) private var environmentCover
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -229,6 +244,11 @@ import Combine
     @State private var previewMissing = false
     @State private var pendingJump = false
     @State private var errorJumps = 0
+    // CF-44 (polish-d-r1): the cover is chosen with the shared 16:9 picker/crop/upload, not typed as a URL.
+    @StateObject private var cover = ActivityCoverAuthoringOwner()
+    @Environment(\.scenePhase) private var scenePhase
+    private let makeCoverService: (() -> ActivityCoverService?)?
+    private let coverSession: () -> PublishingSession?
     let sessionRevision: UInt64
     let metadataReader: (any DiscoveryReading)?
     private let onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)?
@@ -236,7 +256,10 @@ import Combine
     init(coordinator: TemplateAuthoringCoordinator, sessionRevision: UInt64, metadataReader: (any DiscoveryReading)? = nil,
          imageSelectionApproved: @escaping () -> Bool = { false }, mediaFixtureMode: String? = nil,
          onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)? = nil,
-         canReturnSavedDraft: @escaping (TemplateAuthoringSavedDraft) -> Bool = { _ in false }) {
+         canReturnSavedDraft: @escaping (TemplateAuthoringSavedDraft) -> Bool = { _ in false },
+         makeCoverService: (() -> ActivityCoverService?)? = nil,
+         coverSession: @escaping () -> PublishingSession? = { nil }) {
+        self.makeCoverService = makeCoverService; self.coverSession = coverSession
         let value = TemplateAuthoringModel(coordinator: coordinator)
         value.mediaImageSelectionApproved = imageSelectionApproved; value.mediaFixtureMode = mediaFixtureMode
         _model = StateObject(wrappedValue: value)
@@ -255,6 +278,14 @@ import Combine
         jump(to: outline.firstError ?? .info, proxy); errorJumps += 1
     }
     var body: some View {
+        let _ = cover.bind(read: {
+            guard model.coordinator.session != nil, step == .edit else { return nil }
+            return .init(session: coverSession() ?? environmentCover?.session(), target: .template(model.coordinator.identity.draftID),
+                         draft: try? JSONEncoder().encode(model.draft), reference: model.draft.imgUrl ?? "", editable: model.canEdit)
+        }, apply: { reference in
+            guard model.canEdit else { return false }
+            model.draft.imgUrl = reference; return true
+        }, service: { (makeCoverService ?? environmentCover?.makeService)?() })
         ScrollViewReader { proxy in
         Form {
             Section { CYHeroHeader("templateAuthor.title") }.e1HeroRow()
@@ -354,7 +385,12 @@ import Combine
         .task { model.load(); media.reload() }
         .onChange(of: model.draft) { _, _ in model.changed() }
         .onChange(of: sessionRevision) { _, _ in preview = false; step = .intro; model.load(); media.reload() }
+        .onDisappear { if !cover.hasNativeSelection { cover.disappear() } }
         .onDisappear { media.retire(); model.leave() }
+        .onAppear { cover.appear(active: scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active) }
+        .background { ActivityCoverLifetime(owner: cover, departure: {}).frame(width: 0, height: 0) }
+        .background { RetainedImagePresenterHost(host: cover.pickerHost).frame(width: 0, height: 0) }
         .preference(key: TemplateAuthoringSavedResultPreferenceKey.self, value: TemplateAuthoringSavedResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .preference(key: TemplateAuthoringPublishResultPreferenceKey.self, value: TemplateAuthoringPublishResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .modifier(TemplateMediaReviewPresentation(controller: media))
@@ -434,9 +470,16 @@ import Combine
                     TemplateAuthoringField("title", text: $model.draft.title)
                     TemplateBasicFieldClearButton(model: model, field: .title)
                 }
-                HStack(alignment: .bottom) {
-                    TemplateAuthoringField("imgUrl", text: model.optional(\.imgUrl))
-                    TemplateBasicFieldClearButton(model: model, field: .cover)
+                // CF-44: no raw URL field. The 16:9 tile above shows the cover; the shared picker crops and uploads it.
+                if makeCoverService != nil || environmentCover != nil {
+                    ActivityCoverAuthoringSection(owner: cover, kind: .template)
+                        .accessibilityIdentifier("templateCover.section")
+                } else if model.draft.imgUrl?.isEmpty == false {
+                    HStack {
+                        Text("template.set", tableName: "ActivityCoverAuthoring").foregroundStyle(palette.textSecondary)
+                        Spacer(minLength: CYSpacing.sm)
+                        TemplateBasicFieldClearButton(model: model, field: .cover)
+                    }
                 }
             } header: {
                 // CF-44: a 16:9 cover with the title over its bottom edge.

@@ -187,11 +187,14 @@ import UIKit
 }
 
 @MainActor struct ActivityCoverAuthoringSection: View {
+    /// Which draft the cover belongs to; only the copy differs (活动封面 / 封面 and 保存活动 / 保存模板).
+    enum Kind { case activity, template }
     @ObservedObject var owner: ActivityCoverAuthoringOwner
+    var kind: Kind = .activity
     @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("boundary", tableName: "ActivityCoverAuthoring").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+            label("boundary").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
             if !owner.isOpen {
                 if let reference = owner.visiblePreviewReference {
                     DiscoveryArtwork(source: reference)
@@ -237,7 +240,11 @@ import UIKit
             }
         }.buttonStyle(.borderless)
     }
-    private func label(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "ActivityCoverAuthoring") }
+    private func label(_ key: String) -> Text {
+        let templated: Set<String> = ["boundary", "open", "apply", "remove"]
+        let resolved = kind == .template && templated.contains(key) ? "template." + key : key
+        return Text(LocalizedStringKey(resolved), tableName: "ActivityCoverAuthoring")
+    }
 }
 
 @MainActor struct ActivityCoverLifetime: UIViewControllerRepresentable {

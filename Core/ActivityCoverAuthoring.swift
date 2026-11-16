@@ -17,9 +17,16 @@ public struct ActivityCoverApproval: Equatable {
 public enum ActivityCoverTarget: Equatable {
     case newDraft(UUID)
     case existing(Int)
+    /// polish-d-r1 (CF-44): a gameplay-template draft's 16:9 cover. Its own replay key, so an uncertain template
+    /// upload never locks an activity cover and the other way round.
+    case template(UUID)
     var replayKey: String {
         // Unsaved draft recreation must not bypass an uncertain new-activity upload.
-        switch self { case .newDraft: return "activity.cover:new"; case .existing(let id): return "activity.cover:\(id)" }
+        switch self {
+        case .newDraft: return "activity.cover:new"
+        case .existing(let id): return "activity.cover:\(id)"
+        case .template(let id): return "template.cover:\(id.uuidString)"
+        }
     }
 }
 
