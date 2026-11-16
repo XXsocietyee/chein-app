@@ -425,7 +425,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         (1...3).first { model.draft.blocker(step: $0) != nil } ?? 4
     }
     private func reviewRow(_ key: String, _ value: String) -> some View {
-        CYListRow(LocalizedStringKey(key), trailing: .value(value.isEmpty ? "—" : value), card: true)
+        // polish-d-r1: plain rows inside the grouped section — one card with dividers, not a card per row.
+        CYListRow(LocalizedStringKey(key), trailing: .value(value.isEmpty ? "—" : value))
     }
     private var identitySection: some View {
         Section("merchant.onboarding.identity.title") {
