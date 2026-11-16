@@ -95654,13 +95654,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publisher identity registration"
+            "value": "Operator identity"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发布者实名登记"
+            "value": "经营者身份"
           }
         }
       }
@@ -277947,6 +277947,326 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开创作者项目与内容中心菜单。"
+          }
+        }
+      }
+    },
+    "club.ops.clubLimit.count %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have created %lld clubs. Each person can create up to 2. You can manage your existing clubs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已创建 %lld 个俱乐部，每人最多创建 2 个。可以去管理现有的俱乐部。"
+          }
+        }
+      }
+    },
+    "mp.seats.holdToStart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold to start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按住开始"
+          }
+        }
+      }
+    },
+    "mp.seats.holdCaption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teammates can still join after you start. You can pause on the way."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出发后队友仍可加入，途中可以暂停"
+          }
+        }
+      }
+    },
+    "mp.hold.tapNudge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold for 1 second to start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按住 1 秒开始"
+          }
+        }
+      }
+    },
+    "mp.seats.rowMore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation options"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请选项"
+          }
+        }
+      }
+    },
+    "templateAuthor.editNavTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit gameplay template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑玩法模板"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.step.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. Identity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. 身份信息"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.step.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5. Review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5. 预览确认"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.realName": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legal name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "真实姓名"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.idCard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resident ID number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份证号"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.idCardEntered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entered, hidden"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已填写，已隐藏"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.idCardEditHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap to edit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻点两下修改"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.privacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used only to review your merchant application. Stored encrypted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅用于商家资质审核，加密保存"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.required.realName": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your legal name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写真实姓名"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.invalid.realName": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name must be 2 to 30 characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "姓名需为 2 到 30 个字"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.required.idCard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your resident ID number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写身份证号"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.invalid.idCardLength": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The ID number has 18 characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份证号是 18 位"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.invalid.idCardCharacters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The first 17 are digits; the last is a digit or X"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前 17 位是数字，最后一位是数字或 X"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.identity.invalid.idCard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ID number is not valid. Check it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份证号不正确，请核对"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.progress %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %1$lld of %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 步，共 %2$lld 步"
           }
         }
       }

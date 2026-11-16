@@ -226,11 +226,12 @@ struct TopicDetailView: View {
                     // Source D3 (hengyin d31517215): no-cover header is the look gradient plus a small route mark.
                     CYCard(variant: .elevated, radius: CYRadius.lg, padding: CYSpacing.xl) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            // verify-r1 PL-14: the type is a fact, not a link or a status, so it is ink, not blue.
                             Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                                .font(.title2.weight(.semibold)).foregroundStyle(CYColor.brand)
+                                .font(.title2.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityHidden(true)
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
-                                .font(CYTypography.label).foregroundStyle(CYColor.brand)
+                                .font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
                             if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineLimit(1) }
                             else { Text("topicXcx.coverHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }

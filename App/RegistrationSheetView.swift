@@ -152,12 +152,9 @@ struct RegistrationSheetView: View {
             .cyDomainPageBackground()
             .appNavigationTitle("registration.form.title")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { flow.leave(); dismiss() }
-                        .accessibilityIdentifier("registration.form.close")
-                }
-            }
+            // verify-r1 3.9 / D-06 (Figma 169:5885, Player/Sheet; owner Q10 keeps three header styles): grabber, the
+            // 20 Bold title on the left, a round ✕ on the right. Not a 关闭 text pill with a centred title.
+            .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
             .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
@@ -1078,5 +1075,62 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
             }
             .onChange(of: flow.quoteState) { _, _ in nonRefundableConfirmed = false }
             .onDisappear { flow.leave() }
+    }
+}
+
+
+/// verify-r1 3.9: the player sheet header in the navigation bar — title leading, round ✕ trailing — and the grabber.
+private struct RegistrationPlayerSheetHeader: ViewModifier {
+    let onClose: () -> Void
+    @Environment(\.cyPalette) private var palette
+
+    func body(content: Content) -> some View {
+        let base = content
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("action.close", systemImage: "xmark", action: onClose)
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(RegistrationRoundCloseStyle())
+                        .accessibilityIdentifier("registration.form.close")
+                }
+            }
+            .presentationDragIndicator(.visible)
+        if #available(iOS 26, *) {
+            base
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) { title }
+                        .sharedBackgroundVisibility(.hidden)
+                }
+                .toolbar(removing: .title)
+        } else if #available(iOS 18, *) {
+            base
+                .toolbar { ToolbarItem(placement: .topBarLeading) { title } }
+                .toolbar(removing: .title)
+        } else {
+            base
+        }
+    }
+
+    private var title: some View {
+        Text("registration.form.title")
+            .font(.title3.weight(.bold))
+            .foregroundStyle(palette.textPrimary)
+            .accessibilityAddTraits(.isHeader)
+            .fixedSize()
+    }
+}
+
+/// 32 pt grey circle with a bold ✕, in a 44 pt target (Player/Sheet close).
+private struct RegistrationRoundCloseStyle: ButtonStyle {
+    @Environment(\.cyPalette) private var palette
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(palette.textSecondary)
+            .frame(width: 32, height: 32)
+            .background(Circle().fill(palette.bgElevated))
+            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Circle())
+            .opacity(configuration.isPressed ? 0.6 : 1)
     }
 }

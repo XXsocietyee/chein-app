@@ -50,3 +50,97 @@ final class DesignR1MerchantKitTests: XCTestCase {
         XCTAssertEqual(merchantR1Value(" "), "—")
     }
 }
+
+/// verify-r2 (round 2 app fixes): theme arbitration, merchant button shape, 7-day Today numbers, dates and money.
+@MainActor
+final class VerifyR2AppFixTests: XCTestCase {
+    private func point(_ date: String, _ amount: String?) throws -> MerchantRevenuePoint {
+        let json: [String: Any] = amount.map { ["date": date, "amount": $0] } ?? ["date": date]
+        return try JSONDecoder().decode(MerchantRevenuePoint.self, from: JSONSerialization.data(withJSONObject: json))
+    }
+
+    // N-01 · one source of truth for the window's scheme.
+    func testShellSchemeWithNoRequestFallsBackToTheRole() {
+        let arbiter = CYShellSchemeArbiter()
+        XCTAssertNil(arbiter.requestedScheme)
+    }
+
+    func testPushedLightPageWinsAndPopRestoresTheShell() {
+        let arbiter = CYShellSchemeArbiter()
+        let root = UUID(), editor = UUID()
+        arbiter.register(root, depth: 2, scheme: .dark)       // tab root page that themes itself .player
+        arbiter.register(editor, depth: 2, scheme: .light)    // editor pushed on top: same depth, more recent
+        XCTAssertEqual(arbiter.requestedScheme, .light)
+        arbiter.unregister(editor)                            // popped
+        XCTAssertEqual(arbiter.requestedScheme, .dark)
+    }
+
+    func testANestedCardDoesNotOverrideItsPage() {
+        let arbiter = CYShellSchemeArbiter()
+        arbiter.register(UUID(), depth: 2, scheme: .dark)     // the page
+        arbiter.register(UUID(), depth: 3, scheme: .light)    // a merchant-themed card inside it
+        XCTAssertEqual(arbiter.requestedScheme, .dark)
+    }
+
+    func testRootPageReturningToTheWindowAfterAPopIsMostRecent() {
+        let arbiter = CYShellSchemeArbiter()
+        let root = UUID(), editor = UUID()
+        arbiter.register(root, depth: 2, scheme: .dark)
+        arbiter.register(editor, depth: 2, scheme: .light)
+        arbiter.unregister(root)                              // root left the window under the push
+        XCTAssertEqual(arbiter.requestedScheme, .light)
+        arbiter.register(root, depth: 2, scheme: .dark)       // pop starts: root back in the window
+        arbiter.unregister(editor)
+        XCTAssertEqual(arbiter.requestedScheme, .dark)
+    }
+
+    // N-05 · merchant and editor buttons are a 12 pt rounded rectangle; the player keeps the capsule.
+    func testButtonShapeFollowsTheDomain() {
+        XCTAssertNil(CYDomainPalette(.player).buttonCornerRadius)
+        XCTAssertEqual(CYDomainPalette(.merchant).buttonCornerRadius, 12)
+        XCTAssertEqual(CYDomainPalette(.topicEditor).buttonCornerRadius, 12)
+        XCTAssertEqual(CYDomainPalette(.merchant).buttonMinHeight, 46)
+        XCTAssertEqual(CYDomainPalette(.player).buttonMinHeight, 44)
+    }
+
+    // N-07 / Q4 · 7-day numbers instead of a hero of dashes.
+    func testTodayCardShowsSevenDayNumbers() throws {
+        let points = try (10...16).map { try point("2026-11-\($0)", "10") }
+        let today = MerchantR1Today.make(revenue7d: points, pendingOrders: 3)
+        XCTAssertEqual(today.weekIncome, "¥70.00")
+        XCTAssertEqual(today.weekAverage, "¥10.00")
+        XCTAssertEqual(today.pending, "3")
+    }
+
+    func testSevenDayNumbersAreUnknownWhenAnyDayIsNotANumber() throws {
+        let today = MerchantR1Today.make(revenue7d: [try point("2026-11-15", "88"), try point("2026-11-16", nil)], pendingOrders: nil)
+        XCTAssertEqual(today.weekIncome, "—", "never a partial sum")
+        XCTAssertEqual(MerchantR1Today.make(revenue7d: [], pendingOrders: 1).weekIncome, "—")
+    }
+
+    // MC-02 · join dates as 11月16日, wall-clock fields kept.
+    func testJoinDateReadsAsMonthAndDay() {
+        let zh = Locale(identifier: "zh_Hans_CN")
+        XCTAssertEqual(ClubJoinDateDisplay.text("2026-11-16 05:46:11", locale: zh), "11月16日")
+        XCTAssertEqual(ClubJoinDateDisplay.text("2026-11-16 23:59:59", locale: zh), "11月16日", "no time-zone shift")
+        XCTAssertEqual(ClubJoinDateDisplay.text("not a date", locale: zh), "not a date")
+    }
+
+    // N-16 / Q8 · 账户余额 is ¥ with two decimals.
+    func testBalanceReadsAsYuan() {
+        let zh = Locale(identifier: "zh_Hans_CN")
+        XCTAssertEqual(MemberBalanceDisplay.text("560", locale: zh), "¥560.00")
+        XCTAssertEqual(MemberBalanceDisplay.text("560.5", locale: zh), "¥560.50")
+        XCTAssertEqual(MemberBalanceDisplay.text("—", locale: zh), "—")
+    }
+
+    // Identity step · masked display and the client-side GB 11643 check (owner 2026-11-16).
+    func testIdentityStepBlocksUntilValid() {
+        var draft = MerchantOnboardingDraft()
+        XCTAssertEqual(draft.blocker(step: MerchantOnboardingSteps.identity), "merchant.onboarding.identity.required.realName")
+        draft.realName = "示例商户"
+        draft.idCardNumber = MerchantIdentityNumber("11010519491231002X")
+        XCTAssertNil(draft.blocker(step: MerchantOnboardingSteps.identity))
+        XCTAssertEqual(draft.idCardNumber.masked, "110***********002X")
+    }
+}
