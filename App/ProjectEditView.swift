@@ -432,14 +432,36 @@ import SwiftUI
                 // tickets, chapters, the pending area, then the optional topic systems.
                 basicFields
                 ProjectTopicMediaHost(editor: model)
-                Section("projectEdit.tickets") {
-                    ForEach(model.draft.tickets) { ticket in
-                        NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
-                            ProjectEditName(value: ticket.name, fallback: "projectEdit.untitledTicket")
-                        }.accessibilityIdentifier("projectEdit.ticket." + ticket.id)
-                    }.onDelete { if model.fullEdit { model.draft.tickets.remove(atOffsets: $0) } }
+                // Design hand-off r1 CF-38: ticket rows show name, price in 积分 and stock; the section says
+                // `2 种票 · 39 积分起` or `还没设置`; rows reorder by drag or by the "⋯" menu.
+                Section {
+                    ForEach(Array(model.draft.tickets.enumerated()), id: \.element.id) { index, ticket in
+                        HStack(spacing: CYSpacing.xs) {
+                            NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
+                                HStack {
+                                    ProjectEditName(value: ticket.name, fallback: "projectEdit.untitledTicket")
+                                    Spacer(minLength: CYSpacing.sm)
+                                    ProjectEditTicketValue(ticket: ticket)
+                                }
+                            }.accessibilityIdentifier("projectEdit.ticket." + ticket.id)
+                            if model.fullEdit {
+                                EditorRowActionsMenu(index: index, count: model.draft.tickets.count) { action in
+                                    ticketAction(action, at: index)
+                                }
+                            }
+                        }
+                        .editorReorderAccessibility(index: index, count: model.draft.tickets.count) { ticketAction($0, at: index) }
+                    }
+                    .onDelete { if model.fullEdit { model.draft.tickets.remove(atOffsets: $0) } }
+                    .onMove { if model.fullEdit { model.draft.tickets.move(fromOffsets: $0, toOffset: $1) } }
                     Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                         .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
+                } header: {
+                    HStack {
+                        Text("projectEdit.tickets")
+                        Spacer(minLength: CYSpacing.sm)
+                        ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
+                    }
                 }
                 chapterStructure(opening: opening).id("project-issue-anchor-chapters")
                 ProjectEditPendingSection(model: model, controller: pending)
@@ -814,6 +836,17 @@ import SwiftUI
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("projectEdit.chapter.toggle." + chapter.id)
+
+                        // Design hand-off r1 CF-20 / CF-33 / CF-60: one "⋯" per chapter (上移, 下移, 删除 last)
+                        // and a trailing handle; long-press drag reorders through `.onMove`.
+                        if model.fullEdit {
+                            EditorRowActionsMenu(
+                                index: chapterIndex(chapter.id), count: model.draft.chapters.count,
+                                actions: removalCapture == nil ? [.moveUp, .moveDown] : [.moveUp, .moveDown, .delete],
+                                menuID: "projectEdit.chapter.menu." + chapter.id
+                            ) { chapterAction($0, chapterID: chapter.id, captured: removalCapture) }
+                            EditorDragHandle()
+                        }
                     }
 
                     if isExpanded {
@@ -870,6 +903,9 @@ import SwiftUI
                 }
                 .padding(.vertical, CYSpacing.xs)
                 .deleteDisabled(removalCapture == nil)
+                .editorReorderAccessibility(index: chapterIndex(chapter.id), count: model.draft.chapters.count) {
+                    chapterAction($0, chapterID: chapter.id, captured: removalCapture)
+                }
             }
             .onDelete { chapterRemoval.open(offsets: $0, captured: removalCapture) }
             .onMove { if model.fullEdit { model.draft.chapters.move(fromOffsets: $0, toOffset: $1) } }
@@ -879,6 +915,35 @@ import SwiftUI
                 starter.createChapter(lease: opening, name: name)
             }.buttonStyle(.borderless)
                 .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addChapter")
+        }
+    }
+    private func chapterIndex(_ id: String) -> Int { model.draft.chapters.firstIndex { $0.id == id } ?? 0 }
+    private func chapterAction(_ action: EditorRowAction, chapterID: String, captured: ProjectChapterRemovalController.Capture?) {
+        guard let index = model.draft.chapters.firstIndex(where: { $0.id == chapterID }) else { return }
+        switch action {
+        case .delete:
+            chapterRemoval.open(offsets: IndexSet(integer: index), captured: captured)
+        case .moveUp, .moveDown:
+            guard model.fullEdit, let destination = EditorReorder.destination(for: action, index: index, count: model.draft.chapters.count) else { return }
+            withAnimation(EditorKitMotion.move(reduceMotion: reduceMotion)) {
+                model.draft.chapters.move(fromOffsets: IndexSet(integer: index), toOffset: destination)
+            }
+        case .duplicate:
+            break
+        }
+    }
+    private func ticketAction(_ action: EditorRowAction, at index: Int) {
+        guard model.fullEdit, model.draft.tickets.indices.contains(index) else { return }
+        switch action {
+        case .delete:
+            model.draft.tickets.remove(at: index)
+        case .moveUp, .moveDown:
+            guard let destination = EditorReorder.destination(for: action, index: index, count: model.draft.tickets.count) else { return }
+            withAnimation(EditorKitMotion.move(reduceMotion: reduceMotion)) {
+                model.draft.tickets.move(fromOffsets: IndexSet(integer: index), toOffset: destination)
+            }
+        case .duplicate:
+            break
         }
     }
     private func chapterLabel(_ chapter: ProjectEditChapter) -> some View {
