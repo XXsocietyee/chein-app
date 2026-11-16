@@ -514,15 +514,28 @@ struct TemplateAuthoringField: View {
         self.key = key; _text = text; self.multiline = multiline; self.accessibilityID = accessibilityID
     }
     /// Design hand-off r1 CF-47 / CF-48: the unit is a suffix, not part of the label; 积分 is the only currency.
+    static let limits: [String: Int] = ["description": 30, "kicker": 32]
     static let units: [String: EditorUnit] = [
         "xp": .points, "seconds": .seconds, "holdSeconds": .seconds, "durationSeconds": .seconds,
         "targetSeconds": .seconds, "audioDuration": .seconds, "bearing": .degrees, "tolerance": .degrees
     ]
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey("templateAuthor.field." + key))
-                .font(CYTypography.label)
-                .foregroundStyle(palette.textSecondary)
+            HStack {
+                Text(LocalizedStringKey("templateAuthor.field." + key))
+                    .font(CYTypography.label)
+                    .foregroundStyle(palette.textSecondary)
+                // CF-28: a live counter instead of a static "最多 N 字"; red at the limit. Text is never cut.
+                if let limit = Self.limits[key] {
+                    Spacer(minLength: CYSpacing.sm)
+                    let counter = EditorCounter(text: text, limit: limit)
+                    Text(verbatim: counter.text)
+                        .font(CYTypography.meta.monospacedDigit())
+                        .foregroundStyle(counter.isAtLimit ? palette.danger : palette.textSecondary)
+                        .contentTransition(.numericText())
+                        .accessibilityLabel(Text(verbatim: counter.text))
+                }
+            }
             HStack(spacing: CYSpacing.s1_5) {
                 TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text, axis: multiline ? .vertical : .horizontal)
                     .lineLimit(multiline ? 3...10 : 1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)

@@ -229,6 +229,8 @@ import Combine
                             }.navigationTitle("creator.field.poemLines")
                         } label: { Text(verbatim: (rows[index].array ?? []).compactMap(\.string).joined(separator: " / ")) }
                     }.onDelete { indexes in var copy = rows; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write(.array(copy)) }
+                        // Design hand-off r1 CF-60: every list editor reorders by drag.
+                        .onMove { source, destination in var copy = rows; copy.move(fromOffsets: source, toOffset: destination); write(.array(copy)) }
                     Button("creator.add") { var copy = rows; copy.append(.array([.string("")])); write(.array(copy)) }.disabled(rows.count >= 60)
                 }.navigationTitle(LocalizedStringKey(field.labelKey))
                 }

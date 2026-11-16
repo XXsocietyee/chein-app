@@ -360,8 +360,8 @@
     "zh-Hans": "名称"
   },
   "templateAuthor.field.description": {
-    "en": "Description, up to 30 UTF-16 units",
-    "zh-Hans": "描述，不超过 30 个 UTF-16 字符单元"
+    "en": "Highlights",
+    "zh-Hans": "玩法看点"
   },
   "templateAuthor.field.players": {
     "en": "Players, e.g. 2–6",
@@ -496,8 +496,8 @@
     "zh-Hans": "图片引用，每行一个"
   },
   "templateAuthor.field.kicker": {
-    "en": "Title, up to 32 UTF-16 units",
-    "zh-Hans": "标题，不超过 32 个 UTF-16 字符单元"
+    "en": "Title",
+    "zh-Hans": "标题"
   },
   "templateAuthor.field.xp": {
     "en": "Reward",

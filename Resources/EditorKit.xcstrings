@@ -97,6 +97,22 @@
         }
       }
     },
+    "editorKit.answer.correctLetter %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案 %@"
+          }
+        }
+      }
+    },
     "editorKit.answer.notSelected": {
       "localizations": {
         "en": {

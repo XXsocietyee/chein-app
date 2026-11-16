@@ -211255,13 +211255,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Highlights (up to 30 characters)"
+            "value": "Highlights"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法看点（最多 30 字）"
+            "value": "玩法看点"
           }
         }
       }
@@ -211498,13 +211498,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Title (up to 32 characters)"
+            "value": "Title"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标题（最多 32 字）"
+            "value": "标题"
           }
         }
       }
@@ -253080,13 +253080,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generative AI filing: %@"
+            "value": "AI-generated content · Filing no. %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成式 AI 备案号：%@"
+            "value": "内容由 AI 生成 · 备案号 %@"
           }
         }
       }
