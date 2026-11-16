@@ -592,6 +592,38 @@
           }
         }
       }
+    },
+    "r1club.switch.joinReview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New members join only after an organiser approves them"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新成员需要组织者通过后才能加入"
+          }
+        }
+      }
+    },
+    "r1club.switch.prioritySignup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Members can sign up for activities before everyone else"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员可以比其他人更早报名活动"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

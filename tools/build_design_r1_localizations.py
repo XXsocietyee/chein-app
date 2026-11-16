@@ -49,6 +49,9 @@ CLUB = {
     'funds.withdrawViaSupport': ('Request withdrawal via support', '通过客服申请提现'),
     'funds.handOff.title': ('Withdrawals are handled by platform support', '提现由平台客服办理'),
     'funds.handOff.line': ('Open support and send the club name and amount. Support replies within 1 working day and pays out to your verified account.', '打开客服后发送俱乐部名称和金额，客服 1 个工作日内回复，款项打到你已核验的收款账户。'),
+    # MC-13 switch explanations
+    'switch.prioritySignup': ('Members can sign up for activities before everyone else', '成员可以比其他人更早报名活动'),
+    'switch.joinReview': ('New members join only after an organiser approves them', '新成员需要组织者通过后才能加入'),
     # MC-30 badges
     'badge.a11y.earned': ('%@, earned', '%@，已获得'),
     'badge.a11y.locked': ('%@, locked. %@', '%@，未解锁。%@'),

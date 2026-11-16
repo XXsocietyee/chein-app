@@ -298,3 +298,22 @@ struct ClubR1Group<Content: View>: View {
         }
     }
 }
+
+/// Switch label: the setting, then one explanation line (MC-13).
+struct ClubR1SwitchLabel: View {
+    let title: Text
+    let explanation: String
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            title
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textPrimary)
+            Text(verbatim: explanation)
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}

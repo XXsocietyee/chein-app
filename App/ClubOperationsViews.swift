@@ -1186,10 +1186,18 @@ private struct ClubOperationsProfileForm: View {
             }
         } else {
             Section("club.ops.signupSettings") {
-                Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
+                // HANDOFF-R1 MC-13: one neutral switch tint (owner Q-B) and one explanation line per switch.
+                Toggle(isOn: $draft.prioritySignupEnabled) {
+                    ClubR1SwitchLabel(title: Text("club.ops.prioritySignup"), explanation: clubR1("switch.prioritySignup", formLocale))
+                }
+                .tint(CYColor.textSecondary)
+                .accessibilityIdentifier("club.ops.prioritySignup")
                 if joinPolicySupported {
-                    Toggle("club.ops.joinReview", isOn: Binding(get: { draft.joinPolicy == 1 }, set: { draft.joinPolicy = $0 ? 1 : 0 }))
-                        .accessibilityIdentifier("club.ops.joinPolicy")
+                    Toggle(isOn: Binding(get: { draft.joinPolicy == 1 }, set: { draft.joinPolicy = $0 ? 1 : 0 })) {
+                        ClubR1SwitchLabel(title: Text("club.ops.joinReview"), explanation: clubR1("switch.joinReview", formLocale))
+                    }
+                    .tint(CYColor.textSecondary)
+                    .accessibilityIdentifier("club.ops.joinPolicy")
                 }
                 LabeledContent {
                     field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
