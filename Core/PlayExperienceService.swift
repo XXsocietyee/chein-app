@@ -279,13 +279,16 @@ public struct PlayExperienceService {
         // Journey actions have their own reviewed/journaled coordinators. They are
         // not classic node completion and must not borrow its dispatch capability.
         // Bind the capability in both directions, including the HTTP method.
-        let journeyRoutes: [(String, PlayExperienceCapability)] = [
+        let playJourneyRoutes: [(String, PlayExperienceCapability)] = [
             ("check/roll", .journeyChecks), ("check/reroll", .journeyChecks),
             ("check/settle", .journeyChecks), ("egg/collect", .journeyEggCollection),
             ("journey/ask", .journeyAsks), ("journey/opening/complete", .journeyOpening)
         ]
+        // NPC dialogue is a journey ask that lives under the AI namespace (h-sys-ainpc); same binding rules.
+        let journeyRoutes: [(String, PlayExperienceCapability)] = playJourneyRoutes.map { ("api/play/" + $0.0, $0.1) }
+            + [("api/ai/npc/dialogue", PlayExperienceCapability.journeyAsks)]
         let journeyCapability = journeyRoutes.first {
-            configuration.baseURL.appendingPathComponent("api/play/" + $0.0) == route.url
+            configuration.baseURL.appendingPathComponent($0.0) == route.url
         }?.1
         if let journeyCapability {
             guard capability == journeyCapability, request.httpMethod == "POST" else { throw PlayExperienceError.persistenceUnavailable }

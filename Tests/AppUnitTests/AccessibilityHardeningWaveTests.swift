@@ -15,6 +15,11 @@ import Core
 /// Accessibility and hardening wave (FP-A*, FP-M5..M7, FP-M12).
 @MainActor
 final class AccessibilityHardeningWaveTests: XCTestCase {
+    /// The hosted app (and hosted suites) publish a process-wide language choice that overrides an explicit locale.
+    /// These copy tests pass their locale explicitly, so run them without a leaked runtime choice.
+    private var savedLanguage: AppLanguage?
+    override func setUp() async throws { try await super.setUp(); savedLanguage = AppLanguageRuntime.active; AppLanguageRuntime.active = nil }
+    override func tearDown() async throws { AppLanguageRuntime.active = savedLanguage; try await super.tearDown() }
     // FP-A4
     func testLocationMapValueJoinsDistinctNonEmptyParts() {
         XCTAssertEqual(ActivityLocationAccessibility.value(name: "Park", addressName: "North Gate", address: "1 Main St"),

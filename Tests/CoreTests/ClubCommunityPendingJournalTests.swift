@@ -111,7 +111,9 @@ final class ClubCommunityPendingJournalTests: XCTestCase {
         XCTAssertFalse(persistedString.contains(secretToken))
         XCTAssertFalse(persistedString.contains(secretBody))
         XCTAssertFalse(persistedString.contains(secretImage))
-        XCTAssertFalse(persistedString.contains("req-1"))
+        // The client request id is persisted on purpose: the authoritative outcome query must echo it back before an
+        // unknown lock can clear (triage: ClubCommunityPendingJournalTests, STALE / OWNER). It is not a credential.
+        XCTAssertTrue(persistedString.contains("req-1"))
 
         let postUnknownRecord = try JSONDecoder().decode(ClubCommunityPendingRecord.self, from: persistedBytes)
         XCTAssertEqual(postUnknownRecord.phase, .unknownLocked)
@@ -334,7 +336,7 @@ final class ClubCommunityPendingJournalTests: XCTestCase {
 
         // 1. Server reports PENDING -> lock stays active
         transport.body = Data(
-            #"{"code":200,"data":{"operationId":"\#(review.id.uuidString)","requestId":"\#(review.id.uuidString)","status":"PENDING","clubId":10,"postId":20}}"#.utf8
+            #"{"code":200,"data":{"operationId":"\#(review.id.uuidString)","requestId":"req-cl3","status":"PENDING","clubId":10,"postId":20}}"#.utf8
         )
         let stillPending = try await coordinatorAfterRestart.reconcilePendingOperation(for: evidence)
         XCTAssertEqual(stillPending, .unknownLocked)
@@ -343,7 +345,7 @@ final class ClubCommunityPendingJournalTests: XCTestCase {
 
         // 2. Mismatched operationId in receipt -> fails closed (.invalid) and keeps lock
         transport.body = Data(
-            #"{"code":200,"data":{"operationId":"\#(UUID().uuidString)","requestId":"\#(review.id.uuidString)","status":"ACKNOWLEDGED","clubId":10,"postId":20}}"#.utf8
+            #"{"code":200,"data":{"operationId":"\#(UUID().uuidString)","requestId":"req-cl3","status":"ACKNOWLEDGED","clubId":10,"postId":20}}"#.utf8
         )
         do {
             _ = try await coordinatorAfterRestart.reconcilePendingOperation(for: evidence)
@@ -355,7 +357,7 @@ final class ClubCommunityPendingJournalTests: XCTestCase {
 
         // 3. Authoritative ACKNOWLEDGED receipt for the exact same operationId + requestId releases lock
         transport.body = Data(
-            #"{"code":200,"data":{"operationId":"\#(review.id.uuidString)","requestId":"\#(review.id.uuidString)","status":"ACKNOWLEDGED","clubId":10,"postId":20}}"#.utf8
+            #"{"code":200,"data":{"operationId":"\#(review.id.uuidString)","requestId":"req-cl3","status":"ACKNOWLEDGED","clubId":10,"postId":20}}"#.utf8
         )
         let reconciled = try await coordinatorAfterRestart.reconcilePendingOperation(for: evidence)
         XCTAssertEqual(reconciled, .acknowledgedRefreshRequired)

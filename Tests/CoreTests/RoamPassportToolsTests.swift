@@ -108,11 +108,17 @@ private actor RoamToolsWire: HTTPTransport {
         let page = try await service(wire).monthlyRecap(.init(month: "2026-10"), token: "t")
         XCTAssertEqual(page.items.map(\.id), ["9", "8", "7"])
         XCTAssertEqual(page.items.map(\.dateText), ["10/2", "10/9", "10/31"])
-        XCTAssertEqual(page.weeks.map(\.count), [1, 1, 0, 0, 1])
-        XCTAssertEqual(page.weeks.filter(\.isMax).map(\.index), [1, 2, 5])
+        // Weekly columns are drawn only when the collapsed rows add up to the server total (4 routes). A duplicate
+        // row leaves 3 of 4, so the week strip stays empty rather than undercounting (triage: STALE / OWNER).
+        XCTAssertTrue(page.weeks.isEmpty)
         XCTAssertEqual(page.counts, RoamRecapCounts(routes: 4, places: 1, stamps: 0))
         let url = await wire.requests[0].url?.absoluteString
         XCTAssertEqual(url, "https://tools.example/native/api/monthly-recap?kind=routes&limit=20&month=2026-10")
+        let complete = try await service(RoamToolsWire([recap(items: [record("9", "2026-10-02 09:00:00"), record("8", "2026-10-09 10:00:00"),
+                                                                     record("7", "2026-10-10 10:00:00"), record("6", "2026-10-31 23:59:59")])]))
+            .monthlyRecap(.init(month: "2026-10"), token: "t")
+        XCTAssertEqual(complete.weeks.map(\.count), [1, 2, 0, 0, 1])
+        XCTAssertEqual(complete.weeks.filter(\.isMax).map(\.index), [2])
     }
 
     func testRecapPartialMonthHasNoWeeksAndNextPageSendsBeforeID() async throws {

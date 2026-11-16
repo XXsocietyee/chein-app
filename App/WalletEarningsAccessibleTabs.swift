@@ -33,7 +33,18 @@ import UIKit
         self.accessibilityIdentifier = "wallet.earnings.tabs"
         addTarget(self, action: #selector(changed), for: .valueChanged)
         segments = (0..<2).map { WalletEarningsSegmentAccessibility(control: self, index: $0) }
-        accessibilityElements = segments
+    }
+    /// Once accessibility is active in the process (VoiceOver, Switch Control, XCUITest) UIKit's accessibility bundle
+    /// replaces `UISegmentedControl.accessibilityElements` with its own per-segment elements, so a value assigned in
+    /// `init` is dropped and the 44 pt elements and activation callback below disappear. Answer them from the subclass.
+    override var accessibilityElements: [Any]? {
+        get { segments }
+        set {}
+    }
+    override func accessibilityElementCount() -> Int { segments.count }
+    override func accessibilityElement(at index: Int) -> Any? { segments.indices.contains(index) ? segments[index] : nil }
+    override func index(ofAccessibilityElement element: Any) -> Int {
+        segments.firstIndex { $0 === element as AnyObject } ?? NSNotFound
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override var intrinsicContentSize: CGSize {

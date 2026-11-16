@@ -432,7 +432,7 @@ final class UGCContentSafetyServiceTests: XCTestCase {
             XCTAssertEqual(error, .invalidTarget)
         }
         do {
-            try await blocking.unblockUser(targetMemberID: 42, token: "bad token")
+            try await blocking.unblockUser(targetMemberID: 42, token: "bad\ntoken")
             XCTFail("token")
         } catch let error as UGCContentSafetyError {
             XCTAssertEqual(error, .signedOut)
@@ -530,7 +530,7 @@ final class UGCContentSafetyServiceTests: XCTestCase {
         XCTAssertNil(blank.message)
 
         do {
-            _ = try await service(idle).precheckContent(text: "hello", scene: "feed", token: "bad token")
+            _ = try await service(idle).precheckContent(text: "hello", scene: "feed", token: "bad\ntoken")
             XCTFail("signed out")
         } catch let error as UGCContentSafetyError {
             XCTAssertEqual(error, .signedOut)

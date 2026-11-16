@@ -192,8 +192,14 @@ final class CoopListPageReadyTests: XCTestCase {
         XCTAssertEqual(unknownSibling.invitationCountText, "0")
         XCTAssertEqual(unknownSibling.applicationCountText, "—")
 
-        XCTAssertThrowsError(try invites(#"{"received":[{"id":1,"gameId":4}],"slots":{"byGame":{"4":{"pending":"UNKNOWN","cap":1}}}}"#))
-        XCTAssertThrowsError(try invites(#"{"received":[{"id":1,"gameId":4}],"slots":{"byGame":{"4":{"pending":"0","cap":1}}}}"#))
+        // CooperationInviteCountFact (79dc714c2, shared with the invite detail page) decodes a numeric string or
+        // `UNKNOWN` count as an unknown em dash instead of rejecting the whole inbox. It is still never 0.
+        for raw in ["\"UNKNOWN\"", "\"0\""] {
+            let decoded = try invites(#"{"received":[{"id":1,"gameId":4}],"slots":{"byGame":{"4":{"pending":"# + raw + #","cap":1}}}}"#)
+            let slot = try XCTUnwrap(decoded.slots?.byGame?["4"])
+            XCTAssertNil(slot.pending); XCTAssertEqual(slot.pendingFact, .unknown)
+            XCTAssertEqual(slot.pendingFact.displayText, "—"); XCTAssertNil(decoded.occupancy(for: decoded.received[0]))
+        }
         let missing = try invites(#"{"received":[{"id":1,"gameId":4}],"slots":{"byGame":{"4":{"pending":null,"cap":0}}}}"#)
         XCTAssertNil(missing.occupancy(for: missing.received[0]))
         let projected = CoopListPageCoordinator.project(direction: .received, canRead: true, inbox: .success(

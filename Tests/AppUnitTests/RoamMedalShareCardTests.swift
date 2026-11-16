@@ -46,7 +46,7 @@ import ImageIO
     }
     func testRendererCreatesPortraitCardWithoutGPSMetadata() throws {
         let image = try XCTUnwrap(RoamMedalShareRenderer.render(selection().card))
-        XCTAssertEqual(image.cgImage?.width, 750); XCTAssertEqual(image.cgImage?.height, 1000)
+        XCTAssertEqual(image.cgImage?.width, 1080); XCTAssertEqual(image.cgImage?.height, 1920) // e3 share kit: 360x640 pt story artboard at 3x
         let data = try XCTUnwrap(image.pngData())
         let source = try XCTUnwrap(CGImageSourceCreateWithData(data as CFData, nil))
         let properties = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any])
@@ -56,7 +56,7 @@ import ImageIO
         let value = try selection(name: String(repeating: "城瘾 Café 🏅", count: 12), timestamp: 0)
         XCTAssertNil(value.card.recordedAt)
         let image = try XCTUnwrap(RoamMedalShareRenderer.render(value.card))
-        XCTAssertEqual(image.cgImage?.height, 1000)
+        XCTAssertEqual(image.cgImage?.height, 1920)
     }
     func testSaveUsesExactlyThePreviewImageAndDoesNotWriteTwice() async throws {
         let value = try selection(), reader = try reader(value), writer = Writer()

@@ -58,7 +58,10 @@ final class MerchantOperationsContractTests: XCTestCase {
     func testDecorPreservesHiddenFields() throws {
         var value = try decode(MerchantStoreDecor.self, MerchantOperationsFixtureData.storeJSON); value.slogan = "Edited"
         let fields = try value.fields()
-        XCTAssertEqual(fields["categoryId"] as? Int, 8); XCTAssertEqual(fields["locationVerified"] as? Int, 1)
+        // The reviewed multi-industry contract never echoes the legacy single `categoryId`; omitting `categoryIds`
+        // preserves the server's current industries (triage: MerchantOperationsContractTests, STALE / OWNER).
+        XCTAssertNil(fields["categoryId"]); XCTAssertNil(fields["categoryIds"]); XCTAssertEqual(value.selectedCategoryIDs, [8])
+        XCTAssertEqual(fields["locationVerified"] as? Int, 1)
         XCTAssertEqual(fields["serviceText"] as? String, "Preserved service text")
         XCTAssertEqual(fields["featuredId"] as? Int, 17)
     }
@@ -161,8 +164,14 @@ final class MerchantOperationsServiceTests: XCTestCase {
         for destination in [MerchantOperationsDestination.decor, .story, .gallery, .cooperation] {
             let t = MerchantOperationsTransport(); t.replies = [envelope(MerchantOperationsFixtureData.storeJSON)]
             _ = try await service(t).document(destination, access: access(), token: "synthetic-token")
-            XCTAssertEqual(t.requests[0].url?.path, "/prod-api/api/merchant/coop-profile")
-            XCTAssertEqual(t.requests[0].httpBody, Data("{}".utf8))
+            if destination == .decor {
+                // Decor reads the original merchant/info, which carries the complete industry set (empty multipart form).
+                XCTAssertEqual(t.requests[0].url?.path, "/prod-api/api/merchant/info")
+                XCTAssertTrue(t.requests[0].value(forHTTPHeaderField: "Content-Type")!.hasPrefix("multipart/form-data"))
+            } else {
+                XCTAssertEqual(t.requests[0].url?.path, "/prod-api/api/merchant/coop-profile")
+                XCTAssertEqual(t.requests[0].httpBody, Data("{}".utf8))
+            }
         }
     }
     func testNPCExplicitNullMeansUnconfiguredButMissingDataIsMalformed() async throws {

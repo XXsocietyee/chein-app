@@ -18,7 +18,7 @@ import UIKit
             XCTAssertTrue(request.image === image)
             XCTAssertEqual(request.selection.record, record); XCTAssertFalse(request.selection.includeRoute)
             XCTAssertTrue(request.isCurrent(reader: r.reader))
-            XCTAssertEqual(image.cgImage?.width, 750); XCTAssertEqual(image.cgImage?.height, 1000)
+            XCTAssertEqual(image.cgImage?.width, 1080); XCTAssertEqual(image.cgImage?.height, 1920) // e3 share kit: 360x640 pt story artboard at 3x
         }
         XCTAssertEqual(r.storage.rows, durable); XCTAssertEqual(r.storage.writes, 0); XCTAssertEqual(r.wire.calls, 0)
     }

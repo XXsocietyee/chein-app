@@ -283,7 +283,7 @@ public struct MessagingCard: Equatable {
 
     /// `bcId` is a positive integer. Anything else is not a click target.
     static func broadcastID(_ value: Any?) -> Int? {
-        if let number = value as? Int, number > 0 { return number }
+        // No `as? Int` first: on Darwin a JSON `true` bridges to Int 1. The NSNumber branch rejects CFBoolean.
         if let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
             let int = number.intValue
             guard int > 0, number.stringValue == String(int) else { return nil }

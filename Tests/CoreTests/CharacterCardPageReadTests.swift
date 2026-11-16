@@ -64,7 +64,8 @@ import FoundationNetworking
         XCTAssertNil(model.card?.breakdown.total)
         XCTAssertEqual(model.pageModel.breakdownTotalText, "—")
         XCTAssertNotEqual(model.pageModel.breakdownTotalText, "0")
-        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/play/character", "/api/play/rpg/status"])
+        // rpg/status without a party falls back to the read-only PLAYER projection (game/session/view since 6adbae522).
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, ["/api/play/character", "/api/play/rpg/status", "/api/game/session/view"])
         XCTAssertTrue(transport.requests.allSatisfy { $0.httpMethod == "GET" && $0.httpBody == nil })
         XCTAssertFalse(PlayWriteAvailability.current(for: .characterSheetSave).isAvailable)
     }

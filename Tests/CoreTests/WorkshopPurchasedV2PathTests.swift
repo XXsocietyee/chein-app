@@ -30,7 +30,7 @@ import FoundationNetworking
         XCTAssertEqual(listed.httpBody, Data())
         XCTAssertNil(listed.url?.query)
         var detailFailed = false
-        do { _ = try await service.detail(licenseId: "w18-paid-11", lifetime: lifetime) } catch { detailFailed = true }
+        do { _ = try await service.detail(licenseId: "WKO_0000000000000000000000000000000b", lifetime: lifetime) } catch { detailFailed = true }
         XCTAssertTrue(detailFailed)
         let detailed = try XCTUnwrap(wire.requests.last)
         XCTAssertEqual(detailed.httpMethod, "POST")
@@ -38,7 +38,7 @@ import FoundationNetworking
         XCTAssertEqual(detailed.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
         XCTAssertNil(detailed.url?.query)
         let body = String(data: detailed.httpBody ?? Data(), encoding: .utf8)
-        XCTAssertEqual(body, "license_id=w18-paid-11")
+        XCTAssertEqual(body, "license_id=WKO_0000000000000000000000000000000b")
         XCTAssertEqual(wire.requests.count, 2)
     }
 
@@ -63,7 +63,7 @@ import FoundationNetworking
         var listFailed = false
         var detailFailed = false
         do { _ = try await service.list(before: nil, lifetime: lifetime) } catch { listFailed = true }
-        do { _ = try await service.detail(licenseId: "w18-paid-11", lifetime: lifetime) } catch { detailFailed = true }
+        do { _ = try await service.detail(licenseId: "WKO_0000000000000000000000000000000b", lifetime: lifetime) } catch { detailFailed = true }
         XCTAssertTrue(listFailed)
         XCTAssertTrue(detailFailed)
         XCTAssertEqual(wire.requests.count, 2)

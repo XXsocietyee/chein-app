@@ -660,7 +660,8 @@ final class UGGameplayTests: XCTestCase {
     func testCoreSourcesCarryNoFixtureAnswerWalletOrLiveSession() throws {
         let root = try repoRoot()
         let sources = try FileManager.default.contentsOfDirectory(at: root.appendingPathComponent("Core"), includingPropertiesForKeys: nil)
-            .filter { $0.lastPathComponent.hasPrefix("UG") && $0.pathExtension == "swift" }
+            // `UGC*` (user-generated-content safety) shares the two-letter prefix but is not the UG gameplay feature.
+            .filter { $0.lastPathComponent.hasPrefix("UG") && !$0.lastPathComponent.hasPrefix("UGC") && $0.pathExtension == "swift" }
         XCTAssertEqual(sources.map(\.lastPathComponent).sorted(), ["UGGameplay.swift", "UGGameplayReader.swift"])
         let banned = ["URLSession", "ENDLESS", "GemWallet", "offersSkipButton = true", "mock", "fixture"]
         for source in sources {

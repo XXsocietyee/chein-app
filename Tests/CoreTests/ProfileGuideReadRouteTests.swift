@@ -47,21 +47,23 @@ import FoundationNetworking
     }
     func testDetailExplicitNullAndEmptyObjectAreRemovedButNotMissingWrongOrMalformedData()throws {
         let route=ProfileGuideReadRoute.detail(21)
-        for raw in [#"{"code":200,"data":null}"#,#"{"code":200,"data":{}}"#,#"{"code":200,"data":{"id":21,"title":"Guide","contents":"Safe text"}}"#] {
+        // c6 AjaxResult success(null) omits `data` for an absent detail row; production accepts that as removal
+        // (docs/parity/full-suite-triage.md, ProfileGuideReadRouteTests: STALE / OWNER).
+        for raw in [#"{"code":200}"#,#"{"code":200,"data":null}"#,#"{"code":200,"data":{}}"#,#"{"code":200,"data":{"id":21,"title":"Guide","contents":"Safe text"}}"#] {
             XCTAssertNoThrow(try route.validateResponse((Data(raw.utf8),200)))
         }
-        for raw in [#"{"code":200}"#,#"{"code":200,"data":[]}"#,#"{"code":200,"data":{"title":"Missing ID"}}"#,#"{"code":200,"data":{"id":22}}"#,#"{"code":200,"data":{"id":"21"}}"#,#"{"code":200,"data":{"id":true}}"#] {
+        for raw in [#"{"code":200,"data":[]}"#,#"{"code":200,"data":{"title":"Missing ID"}}"#,#"{"code":200,"data":{"id":22}}"#,#"{"code":200,"data":{"id":"21"}}"#,#"{"code":200,"data":{"id":true}}"#] {
             XCTAssertThrowsError(try route.validateResponse((Data(raw.utf8),200)))
         }
     }
     func testOriginalServiceOnlyInformationDetailRecognizesExplicitRemoval()async throws {
         let wire=Wire(),service=SocialAccountService(configuration:try .init(baseURL:base),transport:wire)
-        for body in [#"{"code":200,"data":null}"#,#"{"code":200,"data":{}}"#] {
+        for body in [#"{"code":200}"#,#"{"code":200,"data":null}"#,#"{"code":200,"data":{}}"#] {
             wire.body=body;let value=try await service.information(id:21,token:"synthetic-guide")
             XCTAssertTrue(value.isRemoved);XCTAssertEqual(value.id,0);XCTAssertTrue(value.title.isEmpty);XCTAssertNil(value.contents)
             do {_ = try await service.profile(memberID:21,token:"synthetic-guide");XCTFail()}catch{XCTAssertEqual(error as? APIError,.malformedResponse)}
         }
-        for body in [#"{"code":200}"#,#"{"code":200,"data":[]}"#,#"{"code":200,"data":{"id":22}}"#,#"{"code":200,"data":{"title":"No ID"}}"#] {
+        for body in [#"{"code":200,"data":[]}"#,#"{"code":200,"data":{"id":22}}"#,#"{"code":200,"data":{"title":"No ID"}}"#] {
             wire.body=body;do {_ = try await service.information(id:21,token:"synthetic-guide");XCTFail()}catch{XCTAssertEqual(error as? APIError,.malformedResponse)}
         }
     }

@@ -105,6 +105,7 @@ public enum PlayPackSkipPolicy {
 
     public static func canSkip(isPlaying: Bool, isOpen: Bool, startedAt: Date?, now: Date = Date()) -> Bool {
         guard isPlaying, !isOpen, let startedAt else { return false }
-        return now.timeIntervalSince(startedAt) >= guardInterval
+        // Compare whole milliseconds: Date(100) + 0.300 s measures back as 0.29999999999999716 s in Double.
+        return (now.timeIntervalSince(startedAt) * 1000).rounded() >= (guardInterval * 1000).rounded()
     }
 }

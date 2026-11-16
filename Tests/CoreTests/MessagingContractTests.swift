@@ -135,7 +135,8 @@ final class MessagingContractTests: XCTestCase {
         let notice = #"{"id":1,"conversationId":9,"status":0,"msgType":3,"content":"Notice","extraJson":"{\"bcId\":91,\"title\":\"Notice\"}"}"#
         let message = try JSONDecoder().decode(MessagingMessage.self, from: Data(notice.utf8))
         XCTAssertEqual(IMCardAction.displayed(for: message).map(\.label), ["im.full.details"])
-        let routed = #"{"id":1,"conversationId":9,"status":0,"msgType":3,"extraJson":"{\"cardType\":\"route\",\"topicId\":17,\"bcId\":91}"}"#
+        // A route card opens its topic only through IMRouteCardProjection, which needs the `[路线]` content line.
+        let routed = #"{"id":1,"conversationId":9,"status":0,"msgType":3,"content":"[路线] Route","extraJson":"{\"cardType\":\"route\",\"topicId\":17,\"bcId\":91}"}"#
         let route = try JSONDecoder().decode(MessagingMessage.self, from: Data(routed.utf8))
         XCTAssertEqual(IMCardAction.displayed(for: route).map(\.destination), [.topic(17)])
         let plain = #"{"id":1,"conversationId":9,"status":0,"msgType":3,"extraJson":"{\"title\":\"Notice\"}"}"#

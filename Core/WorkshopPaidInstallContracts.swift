@@ -9,6 +9,9 @@ public struct WorkshopPaidInstallTarget: Codable, Equatable, Identifiable {
     public let targetDraftId, targetRevision: Int64
     public let businessType, targetPayloadHash, title: String
     public var id: Int64 { targetDraftId }
+    /// The v2 contract installs every purchase as a private member-template copy; installed text and the professional
+    /// materialization that starts from it carry the same business type.
+    public static let businessTypeValue = "MEMBER_TEMPLATE"
     /// Kept as a local fact so private-copy installs are not treated as a published mode.
     public var mode: String { "UNRESOLVED" }
     public var destinationKind: String { "W18_PRIVATE_COMPONENT_ONLY" }
@@ -19,7 +22,7 @@ public struct WorkshopPaidInstallTarget: Codable, Equatable, Identifiable {
         targetDraftId = try c.decode(Int64.self, forKey: .targetDraftId); targetRevision = try c.decode(Int64.self, forKey: .targetRevision)
         businessType = try c.decode(String.self, forKey: .businessType); targetPayloadHash = try c.decode(String.self, forKey: .targetPayloadHash)
         title = try c.decode(String.self, forKey: .title)
-        guard targetDraftId > 0, targetRevision > 0, businessType == "MEMBER_TEMPLATE", WorkshopPurchasedWire.hash(targetPayloadHash),
+        guard targetDraftId > 0, targetRevision > 0, businessType == Self.businessTypeValue, WorkshopPurchasedWire.hash(targetPayloadHash),
               title.utf8.count <= 256, !title.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else { throw WorkshopPaidInstallIssue.malformed }
     }
     public func encode(to encoder: Encoder) throws {
@@ -55,7 +58,7 @@ public struct WorkshopPaidInstallCommand: Codable, Equatable, Identifiable {
               [purchasedVersionId].allSatisfy({ WorkshopPaidInstallWire.text($0, 128) }),
               planningRegion.range(of: #"\A[0-9]{6}\z"#, options: .regularExpression) != nil,
               [contentHash, termsHash, targetPayloadHash].allSatisfy(WorkshopPurchasedWire.hash), targetDraftId > 0, targetRevision > 0,
-              businessType == "MEMBER_TEMPLATE" else { throw WorkshopPaidInstallIssue.invalid }
+              businessType == WorkshopPaidInstallTarget.businessTypeValue else { throw WorkshopPaidInstallIssue.invalid }
         schema = Self.schemaValue; self.requestId = requestId; self.licenseId = licenseId; self.moduleId = moduleId
         self.purchasedVersionId = purchasedVersionId; self.contentHash = contentHash; self.termsHash = termsHash
         self.targetDraftId = targetDraftId; self.targetRevision = targetRevision; self.businessType = businessType

@@ -274,11 +274,15 @@ private final class NarrativeHTTP: HTTPTransport {
         let coordinator = ShopNPCCoordinator(scope: scope, grants: grants, client: client)
         try coordinator.reviewText("Hello")
         let review = try XCTUnwrap(coordinator.pending)
-        let matchingJSON = #"{"code":200,"data":{"requestId":"\#(review.id.uuidString)","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"Welcome back, friend.","relation":{"name":"Owner","state":"ally","value":2},"effects":[{"type":"INC","key":"relation.owner","delta":1,"label":"Trust"}]}}"#
-        let matchingClient = ShopNPCHTTPClient(transport: ShopTransport(Data(matchingJSON.utf8)))
-        let liveCoordinator = ShopNPCCoordinator(scope: scope, grants: grants, client: matchingClient)
+        // The reply must echo the live coordinator's own review id (it used the first coordinator's id, which the
+        // coordinator rightly refuses as a mismatched request).
+        let liveTransport = ShopTransport(Data())
+        let liveCoordinator = ShopNPCCoordinator(scope: scope, grants: grants, client: ShopNPCHTTPClient(transport: liveTransport))
         try liveCoordinator.reviewText("Hello")
         let liveReview = try XCTUnwrap(liveCoordinator.pending)
+        XCTAssertNotEqual(liveReview.id, review.id)
+        let matchingJSON = #"{"code":200,"data":{"requestId":"\#(liveReview.id.uuidString)","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","retryable":false,"safeText":"Welcome back, friend.","relation":{"name":"Owner","state":"ally","value":2},"effects":[{"type":"INC","key":"relation.owner","delta":1,"label":"Trust"}]}}"#
+        liveTransport.responseBody = Data(matchingJSON.utf8)
         await liveCoordinator.transmit(reviewID: liveReview.id)
         XCTAssertEqual(liveCoordinator.relation?.state, .ally)
         XCTAssertEqual(liveCoordinator.lastEffects.first?.key, "relation.owner")

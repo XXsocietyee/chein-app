@@ -121,7 +121,7 @@ import FoundationNetworking
         await model.load()
         let review = try model.review(nodeID: 701, evidence: .answer("synthetic answer"))
         let actionID = try XCTUnwrap(review.advance?.actionID)
-        let body = #"{"code":200,"data":{"nodeId":701,"routeActionId":""# + actionID + #"\"}}"#
+        let body = #"{"code":200,"data":{"nodeId":701,"routeActionId":""# + actionID + #""}}"# // was `\"}}`: an unterminated JSON string
         transport.responses["/api/play/action-receipt"] = .reply(Data(body.utf8), 200)
         await model.submit(review)
         XCTAssertNotEqual(model.phase, .failed)

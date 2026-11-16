@@ -265,14 +265,17 @@ import XCTest
         c.controller.setActive(true); let second = try open(c); second.reader.reload()
         XCTAssertEqual(second.reader.snapshot, original); c.model.leave()
         XCTAssertFalse(c.controller.isPresented(second)); await second.reader.checkStatus(original)
-        XCTAssertEqual(c.storage.data, before); XCTAssertTrue(c.source.requests.isEmpty)
+        // `ProjectEditModel.leave()` keeps an unconfirmed exit as one `project-editor.v1.` draft envelope (product
+        // value, triage group 3). The release journal itself must stay byte-identical.
+        XCTAssertEqual(releaseJournal(c.storage.data), releaseJournal(before)); XCTAssertTrue(c.source.requests.isEmpty)
     }
+    private func releaseJournal(_ data: [String: Data]) -> [String: Data] { data.filter { !$0.key.hasPrefix("project-editor.v1.") } }
     func testRestartReopensOriginalDurableIntentWithoutReplayOrMigration() async throws {
         let c = try await setup(), original = try seed(c), first = try open(c), before = c.storage.data
         first.reader.reload(); c.controller.close(first); c.model.leave()
         let restarted = try await setup(stored: c.storage), p = try open(restarted)
         p.reader.reload(); XCTAssertEqual(p.reader.snapshot, original)
-        XCTAssertEqual(c.storage.data, before); XCTAssertEqual(restarted.source.publishCalls, 0)
+        XCTAssertEqual(releaseJournal(c.storage.data), releaseJournal(before)); XCTAssertEqual(restarted.source.publishCalls, 0)
         XCTAssertTrue(restarted.source.requests.isEmpty)
     }
     func testLateOldCallbackCannotPersistOrCloseNewPresentation() async throws {

@@ -572,7 +572,9 @@ extension MerchantContentServiceTests {
         let t = ContentScriptTransport(), box = SessionBox()
         t.append(MerchantContentFixtureData.access)
         t.append(#"[{"id":42,"status":0,"chapterId":70}]"#)
+        // `perform` re-reads the exact baseline (access + list) before it dispatches the write.
         t.append(MerchantContentFixtureData.access)
+        t.append(#"[{"id":42,"status":0,"chapterId":70}]"#)
         t.append(#"{"applicationId":42,"approved":false}"#)
         let service = MerchantContentService(
             configuration: try APIConfiguration(baseURL: URL(string: "https://8120.example.test/")!),

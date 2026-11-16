@@ -1,0 +1,173 @@
+{
+  "page": "pages/club/customers/index",
+  "feature": "俱乐部客户名册",
+  "table": "ClubOpsCustomer",
+  "contract": "api/club/crm/customers/list",
+  "capability": "CUSTOMER_DIRECTORY",
+  "playerHomeVisible": false,
+  "unknownDisplay": "—",
+  "strings": [
+    {
+      "key": "club.gov.customers",
+      "en": "Customers",
+      "zh-Hans": "客户",
+      "accessibilityIdentifier": "club.gov.route.customer"
+    },
+    {
+      "key": "club.gov.sub.customers",
+      "en": "People who have signed up",
+      "zh-Hans": "报名过的客户",
+      "accessibilityIdentifier": "club.gov.route.customers"
+    },
+    {
+      "key": "club.gov.filter",
+      "en": "Filter",
+      "zh-Hans": "筛选"
+    },
+    {
+      "key": "club.gov.filter.all",
+      "en": "All",
+      "zh-Hans": "全部"
+    },
+    {
+      "key": "club.gov.filter.repeat",
+      "en": "Repeat",
+      "zh-Hans": "回头客"
+    },
+    {
+      "key": "club.gov.filter.new",
+      "en": "New",
+      "zh-Hans": "新客"
+    },
+    {
+      "key": "club.gov.filter.remark",
+      "en": "Noted",
+      "zh-Hans": "有备注"
+    },
+    {
+      "key": "club.gov.keyword",
+      "en": "Search",
+      "zh-Hans": "搜索"
+    },
+    {
+      "key": "club.gov.customers.showAll",
+      "en": "Show all customers",
+      "zh-Hans": "查看全部客户",
+      "accessibilityIdentifier": "club.gov.customers.clearFilters"
+    },
+    {
+      "key": "clubOps.customers.count %lld %lld",
+      "en": "%1$lld customers · %2$lld new this month",
+      "zh-Hans": "%1$lld 位 · 本月新增 %2$lld",
+      "accessibilityIdentifier": "clubOps.customers.count"
+    },
+    {
+      "key": "clubOps.customers.empty",
+      "en": "No customers yet",
+      "zh-Hans": "还没有客户",
+      "accessibilityIdentifier": "clubOps.customers.empty"
+    },
+    {
+      "key": "clubOps.customers.emptyDetail",
+      "en": "Once someone buys a ticket from this club, their visits and refunds are summarized here per person.",
+      "zh-Hans": "有人买过本俱乐部的票之后，这里会按人汇总他的到店与退款。",
+      "accessibilityIdentifier": "clubOps.customers.empty"
+    },
+    {
+      "key": "clubOps.customers.filteredEmpty",
+      "en": "No matching customers",
+      "zh-Hans": "没有符合条件的客户",
+      "accessibilityIdentifier": "clubOps.customers.empty"
+    },
+    {
+      "key": "clubOps.customers.filteredEmptyDetail",
+      "en": "Try another filter or keyword.",
+      "zh-Hans": "换个筛选或关键词试试",
+      "accessibilityIdentifier": "clubOps.customers.empty"
+    },
+    {
+      "key": "clubOps.customers.failed",
+      "en": "Couldn't load customers",
+      "zh-Hans": "客户名单加载失败",
+      "accessibilityIdentifier": "clubOps.failure.title"
+    },
+    {
+      "key": "clubOps.customers.forbidden",
+      "en": "Your role can't view customers",
+      "zh-Hans": "当前岗位没有客户查看权限",
+      "accessibilityIdentifier": "clubOps.customers.hidden"
+    },
+    {
+      "key": "clubOps.customers.forbiddenDetail",
+      "en": "Ask the club owner to adjust your role permissions.",
+      "zh-Hans": "请联系主理人调整角色权限",
+      "accessibilityIdentifier": "clubOps.customers.hidden"
+    },
+    {
+      "key": "clubOps.customers.retry",
+      "en": "Retry",
+      "zh-Hans": "重试加载",
+      "accessibilityIdentifier": "clubOps.failure.retry"
+    },
+    {
+      "key": "clubOps.customers.noName",
+      "en": "No name provided",
+      "zh-Hans": "未留姓名",
+      "accessibilityIdentifier": "club.gov.fact.displayName"
+    },
+    {
+      "key": "clubOps.customers.remarkBadge",
+      "en": "Note",
+      "zh-Hans": "备注",
+      "accessibilityIdentifier": "club.gov.route.customer"
+    },
+    {
+      "key": "clubOps.customers.metaPending %lld",
+      "en": "%lld tickets awaiting check-in",
+      "zh-Hans": "待核销 %lld 张",
+      "accessibilityIdentifier": "club.gov.route.customer"
+    },
+    {
+      "key": "clubOps.customers.metaPendingTopic %lld %@",
+      "en": "%1$lld tickets awaiting check-in · Recently joined “%2$@”",
+      "zh-Hans": "待核销 %1$lld 张 · 最近参加「%2$@」",
+      "accessibilityIdentifier": "club.gov.route.customer"
+    },
+    {
+      "key": "clubOps.customers.metaVerified %lld",
+      "en": "Checked in %lld times",
+      "zh-Hans": "核销 %lld 次",
+      "accessibilityIdentifier": "club.gov.route.customer"
+    },
+    {
+      "key": "clubOps.customers.metaVerifiedDay %lld %@",
+      "en": "Checked in %1$lld times · Last %2$@",
+      "zh-Hans": "核销 %1$lld 次 · 最近 %2$@",
+      "accessibilityIdentifier": "club.gov.route.customer"
+    },
+    {
+      "key": "clubOps.customers.unknown",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "clubOps.customers.unknown"
+    },
+    {
+      "key": "clubOps.customers.unknownLabel",
+      "en": "Customer count unavailable",
+      "zh-Hans": "客户人数未确认",
+      "accessibilityIdentifier": "clubOps.customers.unknown"
+    },
+    {
+      "key": "clubOps.customers.loading",
+      "en": "Loading customers",
+      "zh-Hans": "正在加载客户",
+      "accessibilityIdentifier": "club.gov.loading"
+    },
+    {
+      "key": "club.gov.malformed",
+      "en": "Some information is missing. Refresh to check again",
+      "zh-Hans": "部分信息缺失，请刷新重试",
+      "accessibilityIdentifier": "clubOps.customers.malformed"
+    }
+  ]
+}

@@ -145,7 +145,7 @@ public struct UGCContentSafetyHTTPService: UGCContentSafetyServing {
             url: configuration.baseURL.appendingPathComponent(ContentReportReasonRules.policyPath),
             resolvingAgainstBaseURL: false
         )
-        components?.queryItems = []
+        components?.queryItems = nil // `[]` leaves a bare "?" (empty query) on this Foundation
         guard let url = components?.url else { throw UGCContentSafetyError.invalidTarget }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"

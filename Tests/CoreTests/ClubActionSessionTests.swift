@@ -52,7 +52,7 @@ final class ClubActionSessionTests: XCTestCase {
             return (Data(json.utf8), 200)
         }
         let writer = ClubActionSessionWriter(service: service, currentSession: { snapshot })
-        let receipt = try await writer.perform(.apply, clubID: 7, expectedIdentity: snapshot.identity)
+        let receipt = try await writer.perform(.apply, clubID: 7, expectedIdentity: snapshot.identity, joinMessage: "Hello") // applications require a message
         XCTAssertEqual(receipt.state, "pending")
         XCTAssertEqual(paths, ["/fixture/api/club/detail", "/fixture/api/club/join"])
     }

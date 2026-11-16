@@ -38,7 +38,7 @@ import XCTest
 
     func testVersionZeroOrAnotherGuildDoesNotOpen() async throws {
         let configuration = try APIConfiguration(baseURL: URL(string: "https://api.example.test/prod-api")!)
-        let unpublished = DirectoryInjectionTransport(body: detail(version: "0", guild: "12", kind: 1))
+        let unpublished = DirectoryInjectionTransport(body: detail(version: "-1", guild: "12", kind: 1)) // contract §7.1 (689134de7): version "0" is published; a negative or missing version is not
         let request = try XCTUnwrap(ChannelDirectoryTransportInjection.request(
             configuration: configuration, transport: unpublished, token: "token",
             accountID: 7, epoch: 0, channelID: 21, spaceID: 12, kind: 1))
@@ -130,7 +130,7 @@ import XCTest
 
     func testCallerStillDoesNotOpenVersionZeroOrAnotherGuild() async throws {
         let configuration = try APIConfiguration(baseURL: URL(string: "https://api.example.test/prod-api")!)
-        let unpublished = DirectoryInjectionTransport(body: detail(version: "0", guild: "12", kind: 1))
+        let unpublished = DirectoryInjectionTransport(body: detail(version: "-1", guild: "12", kind: 1)) // contract §7.1 (689134de7): version "0" is published; a negative or missing version is not
         let service = MessagingService(configuration: configuration, transport: unpublished)
         let session = try MessagingReadSession(accountID: 7, epoch: 0, token: "token")
         let reader = MessagingSessionReader(service: service, currentSession: { session })

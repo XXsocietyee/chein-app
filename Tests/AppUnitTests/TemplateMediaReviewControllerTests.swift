@@ -150,9 +150,9 @@ import XCTest
     }
     func testComputedMediaLabelsUseTheRequestedLocale() {
         XCTAssertEqual(TemplateMediaReviewLabels.state(.ready, locale: Locale(identifier: "en")),
-                       "Ready for local review only. The saved reference is unchanged.")
+                       "Ready. Your saved media hasn't changed.") // shipped plain-language copy (triage: OWNER decision)
         XCTAssertEqual(TemplateMediaReviewLabels.state(.ready, locale: Locale(identifier: "zh-Hans")),
-                       "仅供本地审阅，已保存的引用保持不变。")
+                       "已就绪，已保存的媒体未改变。")
         XCTAssertEqual(TemplateMediaReviewLabels.title(.optionImage(.a), ordinal: 0, locale: Locale(identifier: "zh-Hans")), "选项图片 A")
     }
 }

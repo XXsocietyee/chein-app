@@ -268,5 +268,15 @@ public struct TemplateAuthoringPageReadiness: Equatable {
     private struct LibraryInfoEnvelope: Decodable {
         var code: TemplateAuthoringJSON?
         var data: TemplateAuthoringJSON?
+        private enum CodingKeys: String, CodingKey { case code, data }
+        /// A synthesized optional maps an explicit `"data":null` to nil, which reads as a missing field (unknown).
+        /// Keep the two apart: missing stays nil, explicit null is the server's empty answer.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            code = try c.decodeIfPresent(TemplateAuthoringJSON.self, forKey: .code)
+            if !c.contains(.data) { data = nil }
+            else if try c.decodeNil(forKey: .data) { data = .null }
+            else { data = try c.decode(TemplateAuthoringJSON.self, forKey: .data) }
+        }
     }
 }

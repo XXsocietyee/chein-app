@@ -35,10 +35,10 @@ final class MessagingVisibilityTests: XCTestCase {
   }
 }
 """#
-    private func row(status: Any?, type: Int = 3) throws -> MessagingMessage {
+    private func row(status: Any?, type: Int = 3, content: String = "https://private.example/PRIVATE-PAYLOAD") throws -> MessagingMessage {
         var fields: [String: Any] = ["id": 101, "conversationId": 9, "senderId": 7,
             "senderName": "PRIVATE-SENDER", "senderAvatar": "https://private.example/avatar",
-            "msgType": type, "content": "https://private.example/PRIVATE-PAYLOAD",
+            "msgType": type, "content": content,
             "extraJson": #"{"cardType":"route","topicId":42,"pollId":31,"title":"PRIVATE-TITLE","buttons":[{"text":"PRIVATE-ACTION","action":"/topic/42"}],"result":{"outcome":"PRIVATE-RESULT"}}"#]
         if let status { fields["status"] = status }
         return try JSONDecoder().decode(MessagingMessage.self, from: JSONSerialization.data(withJSONObject: fields))
@@ -77,7 +77,8 @@ final class MessagingVisibilityTests: XCTestCase {
         XCTAssertEqual(text.content, "https://private.example/PRIVATE-PAYLOAD")
         XCTAssertNoThrow(try SocialMessageMedia(message: row(status: 0, type: 2)))
         XCTAssertEqual(try row(status: 0, type: 3).card?.topicID, 42)
-        XCTAssertEqual(IMCardAction.actions(for: try row(status: 0, type: 3)).first?.destination, .topic(42))
+        // A route card opens its topic only through IMRouteCardProjection, which needs the `[路线]` content line.
+        XCTAssertEqual(IMCardAction.actions(for: try row(status: 0, type: 3, content: "[路线] PRIVATE-ROUTE")).first?.destination, .topic(42))
         XCTAssertEqual(try row(status: 0, type: 4).pollReference?.pollID, 31)
     }
     func testConversationSummaryWithoutStatusProvenanceDiscardsPreviewEvenIfClaimedNormal() throws {

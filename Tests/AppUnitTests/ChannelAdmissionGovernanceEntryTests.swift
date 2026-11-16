@@ -46,7 +46,7 @@ import XCTest
         XCTAssertEqual(page.kind, 1)
         XCTAssertEqual(page.spaceID, 12)
 
-        let unpublished = ParentDirectoryTransport(body: directoryDetail(version: "0", guild: "12"))
+        let unpublished = ParentDirectoryTransport(body: directoryDetail(version: "-1", guild: "12")) // contract §7.1 (689134de7): version "0" is published; a negative or missing version is not
         var opened = false
         do {
             _ = try await ChannelAdmissionParent.page(

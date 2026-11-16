@@ -49,7 +49,9 @@ import FoundationNetworking
         XCTAssertFalse(BusinessRuntimeFeature.projectRead.accepts(try .init(method: "GET", path: TopicPublicationPath.status)))
         let request = try TopicPublicationReadRoute.status(topicID: 9, owner: .personal).request(baseURL: base, token: "t0k")
         XCTAssertEqual(ProjectExactReadRoute(request: request, baseURL: base)?.feature, .projectPublicationRead)
-        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/topic/publish-status"), .missing)
+        // 2ea1db2c8 (backend-final-gaps catalog cleanup) marks the served call site live; the feature gate above still
+        // admits only the two GETs.
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/topic/publish-status"), .liveInProduction)
     }
 
     // MARK: publish-check

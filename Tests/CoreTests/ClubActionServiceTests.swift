@@ -12,7 +12,9 @@ final class ClubActionServiceTests: XCTestCase {
         for action in [ClubAction.join, .apply, .leave] {
             let t = ClubActionTestTransport()
             t.json = #"{"code":200,"data":{"state":"pending"},"msg":"  Source receipt  "}"#
-            let receipt = try await service(t).perform(action, clubID: 7, token: "fixture-token")
+            // An application now requires a non-empty reviewed message (ClubApplicationMessage.isValid,
+            // ClubApplicationRequiredMessageTests); join and leave still send none.
+            let receipt = try await service(t).perform(action, clubID: 7, token: "fixture-token", joinMessage: action == .apply ? "Hello" : "")
             XCTAssertEqual(receipt, ClubActionReceipt(state: "pending", message: "  Source receipt  "))
             let request = try XCTUnwrap(t.requests.first)
             XCTAssertEqual(request.url?.absoluteString, "https://example.com/fixture/api/club/" + (action == .leave ? "quit" : "join"))
@@ -25,7 +27,7 @@ final class ClubActionServiceTests: XCTestCase {
             XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
             XCTAssertNil(request.httpBodyStream)
             let data = try XCTUnwrap(request.httpBody)
-            let expectedBody = action == .apply ? #"{"id":7,"joinMessage":""}"# : #"{"id":7}"#
+            let expectedBody = action == .apply ? #"{"id":7,"joinMessage":"Hello"}"# : #"{"id":7}"#
             XCTAssertEqual(data, Data(expectedBody.utf8))
             let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
             XCTAssertEqual(json["id"] as? Int, 7)
@@ -108,7 +110,7 @@ final class ClubActionServiceTests: XCTestCase {
         }
     }
     func testApplicationMessagePreservesReviewedUnicodeAndJSONEscaping() async throws {
-        for message in ["", "   ", "  朋友推荐 👋\nA&B + \"quote\"  ", String(repeating: "😀", count: 30), String(repeating: "e\u{301}", count: 30)] {
+        for message in ["  朋友推荐 👋\nA&B + \"quote\"  ", String(repeating: "😀", count: 30), String(repeating: "e\u{301}", count: 30)] {
             let t = ClubActionTestTransport()
             _ = try await service(t).perform(.apply, clubID: 7, token: "fixture-token", joinMessage: message)
             let data = try XCTUnwrap(t.requests.first?.httpBody)
@@ -118,7 +120,7 @@ final class ClubActionServiceTests: XCTestCase {
         }
     }
     func testOverlongAndNonApplicationMessagesNeverDispatch() async throws {
-        for (action, message) in [(ClubAction.apply, String(repeating: "a", count: 61)), (.apply, String(repeating: "😀", count: 31)), (.join, "hello"), (.leave, "hello")] {
+        for (action, message) in [(ClubAction.apply, ""), (.apply, "   "), (.apply, String(repeating: "a", count: 61)), (.apply, String(repeating: "😀", count: 31)), (.join, "hello"), (.leave, "hello")] {
             let t = ClubActionTestTransport()
             do { _ = try await service(t).perform(action, clubID: 7, token: "fixture-token", joinMessage: message); XCTFail() }
             catch { XCTAssertEqual(error as? ClubActionWriteError, .notSent(.invalidRequest)) }

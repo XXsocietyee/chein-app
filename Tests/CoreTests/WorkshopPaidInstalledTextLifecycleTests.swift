@@ -38,7 +38,10 @@ import XCTest
         XCTAssertFalse(h.controller.refreshVisiblePermission(appearance))
         await (try XCTUnwrap(h.controller.resume(appearance)))()
         XCTAssertEqual(h.controller.phase, .loaded)
-        XCTAssertEqual(h.controller.content?.sourceJSON, WorkshopPaidTextFixture.source)
+        // v2 (fad470999) serves the member text as the `data` object itself, so the body is the served object, not the
+        // fixture's original key order: compare the JSON values.
+        let served = try JSONSerialization.jsonObject(with: Data(try XCTUnwrap(h.controller.content?.sourceJSON).utf8)) as? NSDictionary
+        XCTAssertEqual(served, try JSONSerialization.jsonObject(with: Data(WorkshopPaidTextFixture.source.utf8)) as? NSDictionary)
         XCTAssertEqual(h.controller.reference, reference); XCTAssertEqual(h.wire.requests.count, 2)
         let resumed = try XCTUnwrap(h.wire.requests.last)
         XCTAssertEqual(resumed.url, request.url); XCTAssertEqual(resumed.httpBody, request.httpBody)

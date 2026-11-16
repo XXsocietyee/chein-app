@@ -201,9 +201,10 @@ import FoundationNetworking
             XCTAssertFalse(pair.zhHans.contains("http://") || pair.zhHans.contains("https://"), key)
         }
         XCTAssertEqual(catalog.strings["title"]?.en, "Club badges")
-        XCTAssertEqual(catalog.strings["title"]?.zhHans, "俱乐部徽章")
+        // Shipped copy (Resources/ClubBadge.xcstrings and this page catalog) says 勋章, not 徽章.
+        XCTAssertEqual(catalog.strings["title"]?.zhHans, "俱乐部勋章")
         XCTAssertEqual(catalog.strings["empty"]?.en, "No club badges yet.")
-        XCTAssertEqual(catalog.strings["empty"]?.zhHans, "还没有俱乐部徽章。")
+        XCTAssertEqual(catalog.strings["empty"]?.zhHans, "还没有俱乐部勋章。")
         XCTAssertEqual(catalog.accessibilityIdentifiers["entry"], "club.badges.entry")
     }
 

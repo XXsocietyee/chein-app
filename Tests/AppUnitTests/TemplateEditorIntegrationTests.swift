@@ -357,8 +357,9 @@ import XCTest
         let description = TemplateBasicFieldClearController(model: f.model, field: .description)
         description.appear(sceneIsActive: true); description.clearAction()()
         XCTAssertEqual(f.model.draft.imgUrl, originalURL)
-        XCTAssertEqual(TemplateBasicClearField.cover.label(Locale(identifier: "en")), "Clear cover reference")
-        XCTAssertEqual(TemplateBasicClearField.cover.label(Locale(identifier: "zh-Hans")), "清空封面引用")
+        // Shipped plain-language copy (docs/parity/full-suite-triage.md: copy mismatch, OWNER decision).
+        XCTAssertEqual(TemplateBasicClearField.cover.label(Locale(identifier: "en")), "Clear cover")
+        XCTAssertEqual(TemplateBasicClearField.cover.label(Locale(identifier: "zh-Hans")), "清空封面")
     }
 }
 

@@ -75,7 +75,9 @@ import XCTest
             return XCTFail("sent coop page")
         }
         XCTAssertEqual(MPParityRoute(link: tapped), .coopList(.sent))
-        XCTAssertNil(push.intent(userInfo: ["page": "pages/roam/index"]))
+        // 71ca5fbef wired the page map's existing native pages into mini-program links, so the roam tab now opens.
+        guard case .miniProgramPage(let roam) = push.intent(userInfo: ["page": "pages/roam/index"]) else { return XCTFail("roam page") }
+        XCTAssertEqual(roam.page, "pages/roam/index"); XCTAssertTrue(roam.query.isEmpty)
         XCTAssertNil(push.intent(userInfo: ["type": "ROAM_RECALL", "page": ""]))
     }
 }

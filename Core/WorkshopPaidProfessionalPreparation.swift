@@ -26,7 +26,7 @@ import Foundation
             let page = try await installReader.targets(licenseId: reference.item.licenseId, before: cursor, lifetime: bridge)
             try lifetime.check()
             if let value = page.items.first(where: { $0.targetDraftId == body.originalTargetDraftID }) {
-                guard value.businessType == "TOPIC" else { throw WorkshopPaidProfessionalIssue.invalid }; return value
+                guard value.businessType == WorkshopPaidInstallTarget.businessTypeValue else { throw WorkshopPaidProfessionalIssue.invalid }; return value
             }
             guard let next = page.nextBeforeDraftId, next > body.originalTargetDraftID else { throw WorkshopPaidProfessionalIssue.unavailable }
             guard cursor == nil || next < cursor! else { throw WorkshopPaidProfessionalIssue.malformed }; cursor = next

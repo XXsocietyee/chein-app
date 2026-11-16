@@ -182,7 +182,7 @@ import Observation
             guard try self.store.load() == nil, let preparation = self.preparation else { throw WorkshopPaidProfessionalIssue.disabled }
             let body = try await preparation.body(self.reference, lifetime: life)
             try life.check()
-            guard body.matches(self.reference), body.originalBusinessType == "TOPIC", body.rights.adaptation == .localAdaptation else { throw WorkshopPaidProfessionalIssue.invalid }
+            guard body.matches(self.reference), body.originalBusinessType == WorkshopPaidInstallTarget.businessTypeValue, body.rights.adaptation == .localAdaptation else { throw WorkshopPaidProfessionalIssue.invalid }
             let page = try await self.service.targets(licenseId: body.licenseID, before: nil, lifetime: life)
             try life.check(); self.body = body; self.targets = page.items; self.nextTargetCursor = page.nextBeforeTopicId; self.phase = .targets
         }

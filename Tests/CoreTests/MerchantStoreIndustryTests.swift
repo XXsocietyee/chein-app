@@ -38,14 +38,16 @@ final class MerchantStoreIndustryContractTests: XCTestCase {
         XCTAssertNil(MerchantStoreIndustryChange(baseline: .gallery(before), draft: .gallery(after)))
         XCTAssertNil(MerchantStoreIndustryChange(baseline: nil, draft: .decor(after)))
     }
+    // Multi-industry contract (1...5 `categoryIds`, first is primary) replaced the single `categoryId` wire field
+    // (docs/parity/full-suite-triage.md, MerchantStoreIndustry*: STALE / OWNER).
     func testExistingDecorWireFieldAndOtherFactsArePreserved() throws {
-        let before = try industryDecor(); var after = before; after.categoryID = 9
+        let before = try industryDecor(); var after = before; try after.selectIndustries([9], catalog: industryCatalog().rows)
         let request = try XCTUnwrap(MerchantOperationsDraft.decor(after).previews().first)
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: request.json) as? [String: Any])
-        XCTAssertEqual(request.path, "api/merchant/decor/save"); XCTAssertEqual(body["categoryId"] as? Int, 9)
+        XCTAssertEqual(request.path, "api/merchant/decor/save"); XCTAssertEqual(body["categoryIds"] as? String, "9"); XCTAssertNil(body["categoryId"])
         XCTAssertEqual(body["featuredId"] as? Int, before.featuredID); XCTAssertEqual(body["gallery"] as? String, try MerchantStoreDecor.listString(before.gallery))
         XCTAssertEqual(body["tags"] as? String, try MerchantStoreDecor.listString(before.tags)); XCTAssertNil(body["categoryName"])
-        XCTAssertNil(body["categoryIds"]); XCTAssertNil(body["activityCategoryids"]); XCTAssertNil(body["type"])
+        XCTAssertNil(body["activityCategoryids"]); XCTAssertNil(body["type"])
     }
 }
 
@@ -81,9 +83,10 @@ final class MerchantStoreIndustryContractTests: XCTestCase {
         XCTAssertNil(flow.apply()); XCTAssertEqual(owner.draft, original); XCTAssertEqual(reader.fixture.saveCount, 0)
     }
     func testSingleSelectionChangesOnlyIndustryAndAppliesOnce() async throws {
-        let (reader, owner, flow) = try await setup(); await flow.reload(); flow.select(9); flow.select(10); flow.select(999)
-        XCTAssertEqual(flow.selectedID, 10)
-        let edited = try XCTUnwrap(flow.apply()); var expected = try industryDecor(); expected.categoryID = 10
+        // Selection toggles: deselect the saved 8, choose 10; an unknown 999 is ignored.
+        let (reader, owner, flow) = try await setup(); await flow.reload(); flow.select(8); flow.select(10); flow.select(999)
+        XCTAssertEqual(flow.selectedIDs, [10]); XCTAssertEqual(flow.selectedID, 10)
+        let edited = try XCTUnwrap(flow.apply()); var expected = try industryDecor(); try expected.selectIndustries([10], catalog: industryCatalog().rows)
         XCTAssertEqual(edited, expected); XCTAssertNil(flow.apply()); XCTAssertEqual(reader.fixture.saveCount, 0)
         owner.edit(.decor(edited)); XCTAssertTrue(owner.isDirty)
     }
@@ -95,7 +98,7 @@ final class MerchantStoreIndustryContractTests: XCTestCase {
         let (_, owner, flow) = try await setup(id: 999); let original = owner.draft
         await flow.reload(); XCTAssertTrue(flow.previousIsUnavailable); XCTAssertEqual(flow.selectedID, 999)
         XCTAssertFalse(flow.canApply); XCTAssertEqual(owner.draft, original)
-        flow.select(9); XCTAssertEqual(try XCTUnwrap(flow.apply()).categoryID, 9)
+        flow.select(999); flow.select(9); XCTAssertEqual(try XCTUnwrap(flow.apply()).selectedCategoryIDs, [9])
     }
     func testNoSavedIndustryDoesNotAutoselectFirstCatalogEntry() async throws {
         let (_, _, flow) = try await setup(id: nil); await flow.reload()
@@ -107,7 +110,7 @@ final class MerchantStoreIndustryContractTests: XCTestCase {
         reader.failure = nil; reader.catalog = try industryCatalog("[]"); await flow.reload()
         XCTAssertTrue(flow.loaded); XCTAssertNil(flow.issue); XCTAssertTrue(flow.rows.isEmpty); XCTAssertFalse(flow.canApply)
         reader.catalog = try industryCatalog(); await flow.reload(); flow.select(9); await flow.reload()
-        XCTAssertEqual(flow.selectedID, 9); XCTAssertTrue(flow.canApply)
+        XCTAssertEqual(flow.selectedIDs, [8, 9]); XCTAssertTrue(flow.canApply)
     }
     func testNewDocumentEditsInvalidateOldPicker() async throws {
         let (_, owner, flow) = try await setup(); await flow.reload()
@@ -182,13 +185,13 @@ private final class IndustryTransport: HTTPTransport {
         let (reader, journal) = try setup(transport, approved: true)
         let owner = MerchantOperationsCoordinator(reader: reader, destination: .decor); await owner.load()
         guard case .decor(var value) = owner.draft else { return XCTFail() }
-        value.categoryID = 9; owner.edit(.decor(value)); owner.prepare(); let review = try XCTUnwrap(owner.confirmation)
+        try value.selectIndustries([9], catalog: industryCatalog().rows); owner.edit(.decor(value)); owner.prepare(); let review = try XCTUnwrap(owner.confirmation)
         await owner.confirm(review)
         let saves = transport.requests.filter { $0.url?.path.hasSuffix("/decor/save") == true }; XCTAssertEqual(saves.count, 1)
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(saves.first?.httpBody)) as? [String: Any])
-        XCTAssertEqual(body["categoryId"] as? Int, 9); XCTAssertEqual(body["featuredId"] as? Int, 17)
+        XCTAssertEqual(body["categoryIds"] as? String, "9"); XCTAssertNil(body["categoryId"]); XCTAssertEqual(body["featuredId"] as? Int, 17)
         XCTAssertNil(body["categoryName"]); XCTAssertNil(body["type"]); XCTAssertNil(journal.record)
-        XCTAssertEqual(transport.requests.last?.url?.path, "/prod-api/api/merchant/coop-profile")
+        XCTAssertEqual(transport.requests.last?.url?.path, "/prod-api/api/merchant/info") // decor readback reads merchant/info
         if readbackFails {
             XCTAssertNil(owner.draft); XCTAssertNil(owner.document); XCTAssertFalse(owner.isLocked)
             XCTAssertEqual(owner.issue, .key("merchant.industry.readbackFailed"))

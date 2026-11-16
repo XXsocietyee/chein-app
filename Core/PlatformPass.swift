@@ -534,7 +534,8 @@ enum PlatformPassJSON {
     static func isBizOK(_ object: [String: Any]) -> Bool { code(object["code"]) == 200 }
 
     static func code(_ value: Any?) -> Int? {
-        if value is Bool || value is NSNull { return nil }
+        // No `value is Bool`: on Darwin a JSON NSNumber 0 or 1 bridges to Bool, which turned a real 0 or 1 into nil.
+        if value == nil || value is NSNull { return nil }
         if let number = value as? NSNumber {
             if CFGetTypeID(number) == CFBooleanGetTypeID() { return nil }
             let int = number.intValue
@@ -552,13 +553,14 @@ enum PlatformPassJSON {
     }
 
     static func flag(_ value: Any?) -> Bool {
-        if let bool = value as? Bool { return bool }
+        // Only a real JSON boolean; `as? Bool` would also accept the numbers 0 and 1 on Darwin.
         if let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() { return number.boolValue }
         return false
     }
 
     static func number(_ value: Any?) -> Double? {
-        if value == nil || value is NSNull || value is Bool { return nil }
+        // Booleans are rejected by their CFBoolean type below, not `is Bool` (which matches NSNumber 0 and 1 on Darwin).
+        if value == nil || value is NSNull { return nil }
         if let number = value as? NSNumber {
             if CFGetTypeID(number) == CFBooleanGetTypeID() { return nil }
             let double = number.doubleValue

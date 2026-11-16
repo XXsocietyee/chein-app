@@ -65,7 +65,7 @@ public struct WorkshopPaidProfessionalCommand: Codable, Equatable, Identifiable 
     public init(reference: WorkshopPaidInstalledTextReference, body: WorkshopPaidInstalledText,
                 currentDraft: WorkshopPaidInstallTarget, target: WorkshopPaidProfessionalTarget,
                 confirmedMode: WorkshopPaidProfessionalTarget.Mode, requestID: UUID = UUID()) throws {
-        guard body.matches(reference), body.originalBusinessType == "TOPIC", currentDraft.businessType == "TOPIC",
+        guard body.matches(reference), body.originalBusinessType == WorkshopPaidInstallTarget.businessTypeValue, currentDraft.businessType == WorkshopPaidInstallTarget.businessTypeValue,
               currentDraft.targetDraftId == body.originalTargetDraftID, confirmedMode == target.mode, confirmedMode != .unresolved,
               reference.item.status == .active, body.rights.adaptation.rawValue == "LOCAL_ADAPTATION" else { throw WorkshopPaidProfessionalIssue.invalid }
         try self.init(requestId: requestID.uuidString.lowercased(), installationRequestId: body.requestID, licenseId: body.licenseID,

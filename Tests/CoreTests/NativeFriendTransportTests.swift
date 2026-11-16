@@ -117,7 +117,9 @@ import FoundationNetworking
         let service = try NativeFriendService(context: c, approval: a, currentApproval: { a }, transport: transport, current: { c }, onUnauthorized: { expired.append($0) })
         let suite = "NativeFriend401Tests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite));defer { defaults.removePersistentDomain(forName: suite) }
-        let journal = OperationDefaultsJournal(defaults: defaults), flow = NativeFriendFlow(service: service, journal: journal, ownerKey: "owner-2")
+        // Writes now require the durable full-intent journal (NativeFriendFlow.canWrite needs `intentJournal`).
+        let journal = OperationDefaultsJournal(defaults: defaults), flow = NativeFriendFlow(service: service, journal: journal, ownerKey: "owner-2",
+            intentJournal: .init(storage: ProjectEditMemoryStorage(), ownerKey: "owner-2"))
         await flow.load();XCTAssertTrue(flow.canWrite)
         transport.status = 401;transport.reply = Data(#"{"code":401,"msg":"sign-in expired"}"#.utf8)
         await flow.perform(.init(peerID: 9, action: .request, message: "hello"))
@@ -159,7 +161,8 @@ import FoundationNetworking
     }
     private func reviewPayload(requestID: String, outcome: String = "PENDING_REVIEW", reviewID: Int64 = 71, action: String = "request", originalID: String? = nil, state: String? = nil) throws -> Data {
         try JSONSerialization.data(withJSONObject: ["code": 200, "data": [
-            "viewer_id": 2, "peer_id": 9, "action": action, "request_id": requestID, "outcome": outcome,
+            // Every non-UNKNOWN receipt now carries the server's 64-hex payload hash (NativeFriendService.validate).
+            "viewer_id": 2, "peer_id": 9, "action": action, "request_id": requestID, "outcome": outcome, "payload_hash": String(repeating: "a", count: 64),
             "relationship": ["viewer_id": 2, "peer_id": 9, "state": 0, "version": 0],
             "review": ["id": reviewID, "peer_id": 9, "request_id": originalID ?? requestID, "state": state ?? outcome, "version": 1, "msg": "private application", "expires_at_ms": 1_900_000_000_000]
         ]])

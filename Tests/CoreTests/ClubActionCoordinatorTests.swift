@@ -8,7 +8,8 @@ final class ClubActionCoordinatorTests: XCTestCase {
         return (ClubActionCoordinator(writer: store, reader: store), store)
     }
     private func prepare(_ coordinator: ClubActionCoordinator, _ store: ClubActionFakeStore, action: ClubAction = .join, id: Int = 7) async throws -> ClubActionConfirmation {
-        try await coordinator.prepare(clubID: id, action: action, expectedIdentity: store.clubIdentity)
+        // An application carries the now-required non-empty message; join and leave carry none.
+        try await coordinator.prepare(clubID: id, action: action, expectedIdentity: store.clubIdentity, joinMessage: action == .apply ? "Hello" : "")
     }
     func testFrozenApplicationMessageSurvivesUnknownReadbackWithoutReplay() async throws {
         let (c, s) = fixture(); s.detail = try clubActionFixture(["joinPolicy": 1])

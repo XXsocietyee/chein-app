@@ -356,7 +356,8 @@ import XCTest
     }
     private func cursors(_ h: Harness, field: String) throws -> [String] {
         try h.wire.requests.compactMap { request in
-            guard let data = request.httpBody, let values = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            // v2 installed-text/install reads are form-encoded; only the JSON professional reads carry cursors.
+            guard let data = request.httpBody, let values = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
                   let cursor = values[field] else { return nil }
             return String(describing: cursor)
         }
