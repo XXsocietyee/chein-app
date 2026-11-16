@@ -20,7 +20,7 @@ func merchantR1Value(_ value: String?) -> String {
 // MARK: - Buttons
 
 // HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Merchant/Button: radius 12, 46 high, full width. Primary black, secondary #EEEEEE, destructive red
+/// Merchant/Button: radius 12, 46 high, full width. Primary black, secondary light grey fill, destructive red
 /// (only for actions that cannot be undone). Press = scale .97, 80 ms, no haptic.
 struct MerchantR1ButtonStyle: ButtonStyle {
     enum Kind { case primary, secondary, destructive }
@@ -100,7 +100,7 @@ struct MerchantR1StatusTag: View {
 // MARK: - Chips
 
 // HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Merchant/Chip: 36 visual on a 44 target; unselected = #EEEEEE capsule with ink text; selected = black
+/// Merchant/Chip: 36 visual on a 44 target; unselected = light grey capsule with ink text; selected = black
 /// capsule with white text. Never bare text.
 struct MerchantR1Chip: View {
     let title: String
