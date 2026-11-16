@@ -26,7 +26,9 @@ import XCTest
         let server = Server();server.registered=registered
         let m=MerchantOnboardingModel(coordinator:.init(server:server));m.reset();await m.load();await m.checkIdentity()
         m.draft.name="Synthetic store";m.draft.phone="2025550100";m.draft.address="Example street";m.draft.businessTime="Stored hours"
-        m.draft.license=try .init(serverURL:"https://fixtures.example/license.jpg");return(m,server)
+        m.draft.license=try .init(serverURL:"https://fixtures.example/license.jpg")
+        m.draft.realName="示例商户";m.draft.idCardNumber=MerchantIdentityNumber("11010519491231002X") // identity step (synthetic, GB 11643 example)
+        return(m,server)
     }
     private func image() throws -> MerchantOnboardingImage { try .init(jpegData:Data([0xff,0xd8,0xff,0xd9])) }
     private func select(_ m:MerchantOnboardingModel) async throws { let image=try image();await m.selectBrandImage(load:{image}) }

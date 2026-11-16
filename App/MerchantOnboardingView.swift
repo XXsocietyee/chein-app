@@ -235,9 +235,13 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     }
     private var onboardingHero: some View {
         Section {
-            CYHeroHeader("merchant.onboarding.title", subtitle: heroSubtitle)
-                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                .listRowBackground(Color.clear)
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYHeroHeader("merchant.onboarding.title", subtitle: heroSubtitle)
+                // Figma 182:7693: a five-segment bar; the current and earlier segments are filled.
+                MerchantOnboardingProgressBar(step: model.step, count: MerchantOnboardingSteps.count)
+            }
+            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
         }
     }
     private var heroSubtitle: LocalizedStringKey {
@@ -245,7 +249,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         case 1: return "merchant.onboarding.step.1"
         case 2: return "merchant.onboarding.step.2"
         case 3: return "merchant.onboarding.step.3"
-        default: return "merchant.onboarding.step.4"
+        case MerchantOnboardingSteps.identity: return "merchant.onboarding.step.identity"
+        default: return "merchant.onboarding.step.review"
         }
     }
     private var applicationForm: some View {
@@ -256,6 +261,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             case 1: basicSection
             case 2: businessSection
             case 3: licenseSection
+            case MerchantOnboardingSteps.identity: MerchantOnboardingIdentitySection(model: model)
             default: reviewSection
             }
             if let error = model.errorKey {
@@ -278,7 +284,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         // Source wizard: one pinned primary action, 继续 on steps 1-3 and 提交申请 on step 4.
         .questifyBottomAction {
             Group {
-                if model.step < 4 {
+                if model.step < MerchantOnboardingSteps.review {
                     CYPillButton("merchant.onboarding.next") { model.next() }
                         .accessibilityIdentifier("merchant.onboarding.next")
                 } else {
@@ -290,7 +296,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                         CYPillButton("r1merchant.onboarding.submit", tableName: "DesignR1Merchant") {
-                            if model.draft.blocker() != nil {
+                            if model.draft.blocker() != nil || model.draft.identityBlocker() != nil {
                                 let step = firstIncompleteStep
                                 model.step = step
                                 model.errorKey = model.draft.blocker(step: step)
@@ -389,6 +395,11 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                         .foregroundStyle(CYColor.dangerText)
                 }
             } header: { reviewHeader(group: 3) }
+            // Owner 2026-11-16: the identity group, with the ID number masked (110***********1234).
+            Section {
+                reviewRow("merchant.onboarding.identity.realName", model.draft.realName)
+                reviewRow("merchant.onboarding.identity.idCard", model.draft.idCardNumber.masked)
+            } header: { reviewHeader(group: MerchantOnboardingSteps.identity) }
             if model.draft.brandImages?.urls.isEmpty == false {
                 Section("merchant.onboardingBrand.title") { MerchantOnboardingBrandImageRows(images: model.draft.brandImages) }
             }
@@ -422,7 +433,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     }
     /// The first step with a missing answer; 4 when the draft is complete.
     private var firstIncompleteStep: Int {
-        (1...3).first { model.draft.blocker(step: $0) != nil } ?? 4
+        (1...MerchantOnboardingSteps.identity).first { model.draft.blocker(step: $0) != nil } ?? MerchantOnboardingSteps.review
     }
     private func reviewRow(_ key: String, _ value: String) -> some View {
         // polish-d-r1: plain rows inside the grouped section — one card with dividers, not a card per row.
@@ -473,5 +484,133 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     private var refreshButton: some View {
         CYPillButton("merchant.onboarding.checkAgain", style: .tertiary) { Task { await model.load() } }
             .disabled(model.isBusy).accessibilityIdentifier("merchant.onboarding.refresh")
+    }
+}
+
+// MARK: - Identity step (owner 2026-11-16; verify-r1 Q2 changed)
+
+/// 真实姓名 and 身份证号. The ID field takes 18 characters (digits, last may be X), has no autofill or suggestions, and
+/// once you leave it shows only the masked form (110***********1234); tap to edit. Errors sit under the field they
+/// belong to. The value is never logged (see `MerchantIdentityNumber`) and is redacted in system snapshots.
+struct MerchantOnboardingIdentitySection: View {
+    @ObservedObject var model: MerchantOnboardingModel
+    private enum Field: Hashable { case name, idCard }
+    @FocusState private var focus: Field?
+    @State private var touchedName = false
+    @State private var touchedID = false
+    @Environment(\.cyPalette) private var palette
+
+    private var nameError: String? {
+        guard touchedName || isIdentityError else { return nil }
+        let key = model.draft.identityBlocker()
+        return key?.contains("realName") == true ? key : nil
+    }
+    private var idError: String? {
+        guard touchedID || isIdentityError else { return nil }
+        let key = model.draft.identityBlocker()
+        return key?.contains("idCard") == true ? key : nil
+    }
+    /// The wizard's 继续 / 提交 tapped with a problem here: show both fields' errors at once.
+    private var isIdentityError: Bool { model.errorKey?.hasPrefix("merchant.onboarding.identity.") == true && model.errorKey != "merchant.onboarding.identity.required" }
+
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                TextField("merchant.onboarding.identity.realName", text: $model.draft.realName)
+                    .textContentType(.name)
+                    .autocorrectionDisabled()
+                    .submitLabel(.next)
+                    .focused($focus, equals: .name)
+                    .onSubmit { touchedName = true; focus = .idCard }
+                    .accessibilityIdentifier("merchant.onboarding.identity.realName")
+                fieldError(nameError, id: "realName")
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                ZStack(alignment: .leading) {
+                    TextField("merchant.onboarding.identity.idCard", text: idBinding)
+                        .textContentType(nil)
+                        .keyboardType(.asciiCapable)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .font(.body.monospacedDigit())
+                        .focused($focus, equals: .idCard)
+                        .opacity(showsMasked ? 0 : 1)
+                        .accessibilityIdentifier("merchant.onboarding.identity.idCard")
+                    if showsMasked {
+                        Button { focus = .idCard } label: {
+                            HStack {
+                                Text(verbatim: model.draft.idCardNumber.masked)
+                                    .font(.body.monospacedDigit())
+                                    .foregroundStyle(palette.textPrimary)
+                                Spacer(minLength: CYSpacing.sm)
+                                Image(systemName: "pencil").foregroundStyle(palette.textSecondary).accessibilityHidden(true)
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("merchant.onboarding.identity.idCard"))
+                        .accessibilityValue(Text("merchant.onboarding.identity.idCardEntered"))
+                        .accessibilityHint(Text("merchant.onboarding.identity.idCardEditHint"))
+                        .accessibilityIdentifier("merchant.onboarding.identity.idCardMasked")
+                    }
+                }
+                .privacySensitive()
+                fieldError(idError, id: "idCard")
+            }
+        } header: {
+            Text("merchant.onboarding.identity.title")
+        } footer: {
+            Label { Text("merchant.onboarding.identity.privacy") } icon: { Image(systemName: "lock.fill") }
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .accessibilityIdentifier("merchant.onboarding.identity.privacy")
+        }
+        .onChange(of: focus) { old, _ in
+            if old == .name { touchedName = true }
+            if old == .idCard { touchedID = true }
+        }
+    }
+
+    private var showsMasked: Bool { focus != .idCard && !model.draft.idCardNumber.normalized.isEmpty }
+
+    /// Digits and X only, at most 18; lower-case x becomes X.
+    private var idBinding: Binding<String> {
+        Binding(get: { model.draft.idCardNumber.rawValue }, set: { new in
+            let cleaned = String(new.uppercased().filter { ($0.isASCII && $0.isNumber) || $0 == "X" }.prefix(18))
+            if cleaned != model.draft.idCardNumber.rawValue { model.draft.idCardNumber = MerchantIdentityNumber(cleaned) }
+        })
+    }
+
+    @ViewBuilder private func fieldError(_ key: String?, id: String) -> some View {
+        if let key {
+            Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.dangerText)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("merchant.onboarding.identity.error.\(id)")
+        }
+    }
+}
+
+/// Figma 182:7693: N equal segments, filled up to the current step. Announced as "第 4 步，共 5 步".
+struct MerchantOnboardingProgressBar: View {
+    let step: Int
+    let count: Int
+    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: CYSpacing.xs) {
+            ForEach(1...max(count, 1), id: \.self) { index in
+                Capsule(style: .continuous)
+                    .fill(index <= step ? palette.textPrimary : palette.borderSubtle)
+                    .frame(height: 4)
+            }
+        }
+        .animation(CYMotion.resolve(.easeOut(duration: 0.22), reduceMotion: reduceMotion), value: step)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("merchant.onboarding.progress \(min(step, count)) \(count)"))
+        .accessibilityIdentifier("merchant.onboarding.progress")
     }
 }

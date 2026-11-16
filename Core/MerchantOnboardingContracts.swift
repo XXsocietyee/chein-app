@@ -59,10 +59,64 @@ public struct MerchantOnboardingLicense: Equatable {
     }
 }
 
+/// Merchant identity (owner 2026-11-16, verify-r1 Q2 changed): registering a business in China needs the operator's
+/// real name and resident ID number. The number is held in a wrapper whose `description`, `debugDescription` and
+/// reflection only ever show the masked form, so it cannot reach a log through string interpolation or `dump`.
+/// It is sent once, in the application submit request (`realName`, `idCardNumber`).
+public struct MerchantIdentityNumber: Equatable, Sendable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    /// The raw text as typed. Read it only to build the request body or to bind the text field.
+    public var rawValue: String
+    public init(_ rawValue: String = "") { self.rawValue = rawValue }
+
+    /// Upper-case, no spaces: the form that is validated and sent.
+    public var normalized: String {
+        rawValue.filter { !$0.isWhitespace }.uppercased()
+    }
+
+    public enum Failure: Equatable, Sendable { case empty, length, characters, birthDate, checksum }
+
+    /// GB 11643-1999: 17 digits and a check character (0-9 or X), a real birth date, and the ISO 7064 MOD 11-2 check.
+    public var failure: Failure? {
+        let value = Array(normalized)
+        guard !value.isEmpty else { return .empty }
+        guard value.count == 18 else { return .length }
+        let body = value.prefix(17)
+        guard body.allSatisfy({ $0.isASCII && $0.isNumber }), let last = value.last, last.isASCII, last.isNumber || last == "X" else { return .characters }
+        let digits = body.compactMap { $0.wholeNumberValue }
+        let year = digits[6] * 1000 + digits[7] * 100 + digits[8] * 10 + digits[9]
+        let month = digits[10] * 10 + digits[11], day = digits[12] * 10 + digits[13]
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? calendar.timeZone
+        guard (1900...2100).contains(year), let date = calendar.date(from: DateComponents(year: year, month: month, day: day)),
+              calendar.component(.month, from: date) == month, calendar.component(.day, from: date) == day else { return .birthDate }
+        let weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+        let sum = zip(digits, weights).reduce(0) { $0 + $1.0 * $1.1 }
+        let checks: [Character] = ["1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"]
+        return checks[sum % 11] == last ? nil : .checksum
+    }
+
+    public var isValid: Bool { failure == nil }
+
+    /// `110***********1234`: the first three and last four characters, the rest masked. Short input is fully masked.
+    public var masked: String {
+        let value = Array(normalized)
+        guard value.count >= 8 else { return String(repeating: "*", count: value.count) }
+        return String(value.prefix(3)) + String(repeating: "*", count: value.count - 7) + String(value.suffix(4))
+    }
+
+    public var description: String { masked }
+    public var debugDescription: String { "MerchantIdentityNumber(\(masked))" }
+    public var customMirror: Mirror { Mirror(self, children: ["masked": masked], displayStyle: .struct) }
+}
+
 public struct MerchantOnboardingDraft: Equatable {
     public private(set) var id: Int?
     public var name = "", preference = "", phone = "", address = "", businessTime = "", description = ""
     public var wechat = ""
+    /// Owner 2026-11-16: 真实姓名 and 身份证号 for the identity step (step 4). Not restored on reapply: the
+    /// application read does not return them.
+    public var realName = ""
+    public var idCardNumber = MerchantIdentityNumber()
     public var license: MerchantOnboardingLicense?
     public var brandImages: MerchantOnboardingBrandImages?
     public private(set) var brandImagesSourceUnavailable = false
@@ -93,7 +147,23 @@ public struct MerchantOnboardingDraft: Equatable {
         if step == nil || step == 3 {
             if license == nil { return "merchant.onboarding.required.license" }
         }
+        if step == 4 { return identityBlocker() }
         return nil
+    }
+
+    /// The identity step's first problem, as a string key; nil when 真实姓名 and a valid 身份证号 are present.
+    /// Checked by the wizard (step 4 and before submit). `blocker()` with no step keeps its earlier meaning.
+    public func identityBlocker() -> String? {
+        let name = realName.merchantOnboardingTrimmed
+        if name.isEmpty { return "merchant.onboarding.identity.required.realName" }
+        if name.count < 2 || name.count > 30 { return "merchant.onboarding.identity.invalid.realName" }
+        switch idCardNumber.failure {
+        case .none: return nil
+        case .empty: return "merchant.onboarding.identity.required.idCard"
+        case .length: return "merchant.onboarding.identity.invalid.idCardLength"
+        case .characters: return "merchant.onboarding.identity.invalid.idCardCharacters"
+        case .birthDate, .checksum: return "merchant.onboarding.identity.invalid.idCard"
+        }
     }
     public func jsonData() throws -> Data {
         guard blocker() == nil, let license else { throw APIError.invalidRequest }
@@ -105,6 +175,11 @@ public struct MerchantOnboardingDraft: Equatable {
         ]
         if let brandImages { fields["derivatives"] = brandImages.wireValue }
         if let id { fields["id"] = id }
+        // Identity is sent only when the step is complete and valid; it is never partially sent.
+        if identityBlocker() == nil {
+            fields["realName"] = realName.merchantOnboardingTrimmed
+            fields["idCardNumber"] = idCardNumber.normalized
+        }
         return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
     }
 }

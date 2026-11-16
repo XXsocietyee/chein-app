@@ -54,6 +54,44 @@ final class MerchantOnboardingContractTests: XCTestCase {
         XCTAssertEqual(Set(fields.keys), Set(["name", "preference", "phone", "description", "address", "businessTime", "businessLicense", "wechat"]))
         XCTAssertNil(fields["id"]); XCTAssertNil(fields["ssn"]); XCTAssertNil(fields["ein"]); XCTAssertNil(fields["roleCode"])
     }
+    // Owner 2026-11-16 (verify-r1 Q2 changed): 真实姓名 + 身份证号, GB 11643 check, masked everywhere it is shown.
+    func testIdentityNumberFollowsGB11643() {
+        XCTAssertNil(MerchantIdentityNumber("11010519491231002X").failure, "the standard's worked example")
+        XCTAssertNil(MerchantIdentityNumber("11010519491231002x").failure, "lower-case x is accepted")
+        XCTAssertNil(MerchantIdentityNumber(" 110105 19491231 002X ").failure, "spaces are ignored")
+        XCTAssertEqual(MerchantIdentityNumber("").failure, .empty)
+        XCTAssertEqual(MerchantIdentityNumber("1101051949123100").failure, .length)
+        XCTAssertEqual(MerchantIdentityNumber("11010519491231002A").failure, .characters)
+        XCTAssertEqual(MerchantIdentityNumber("X1010519491231002X").failure, .characters)
+        XCTAssertEqual(MerchantIdentityNumber("110105194902300021").failure, .birthDate, "30 February")
+        XCTAssertEqual(MerchantIdentityNumber("110105194912310021").failure, .checksum)
+    }
+    func testIdentityNumberIsMaskedInEveryTextForm() {
+        let number = MerchantIdentityNumber("11010519491231002X")
+        XCTAssertEqual(number.masked, "110***********002X")
+        XCTAssertEqual("\(number)", "110***********002X")
+        XCTAssertFalse(String(reflecting: number).contains("19491231"))
+        var dumped = ""; dump(number, to: &dumped)
+        XCTAssertFalse(dumped.contains("19491231"), "dump shows only the mask")
+        var draft = MerchantOnboardingDraft(); draft.idCardNumber = number
+        XCTAssertFalse(String(describing: draft).contains("19491231"), "a draft printed whole does not leak the number")
+        XCTAssertEqual(MerchantIdentityNumber("1234").masked, "****")
+    }
+    func testIdentityStepBlocksAndIsSentOnlyWhenValid() throws {
+        var draft = try makeMerchantOnboardingDraft()
+        XCTAssertEqual(draft.blocker(step: 4), "merchant.onboarding.identity.required.realName")
+        draft.realName = "示例商户"
+        XCTAssertEqual(draft.blocker(step: 4), "merchant.onboarding.identity.required.idCard")
+        draft.idCardNumber = MerchantIdentityNumber("110105194912310021")
+        XCTAssertEqual(draft.blocker(step: 4), "merchant.onboarding.identity.invalid.idCard")
+        var fields = try XCTUnwrap(JSONSerialization.jsonObject(with: draft.jsonData()) as? [String: Any])
+        XCTAssertNil(fields["realName"]); XCTAssertNil(fields["idCardNumber"])
+        draft.idCardNumber = MerchantIdentityNumber("11010519491231002x")
+        XCTAssertNil(draft.blocker(step: 4))
+        fields = try XCTUnwrap(JSONSerialization.jsonObject(with: draft.jsonData()) as? [String: Any])
+        XCTAssertEqual(fields["realName"] as? String, "示例商户")
+        XCTAssertEqual(fields["idCardNumber"] as? String, "11010519491231002X")
+    }
     func testOnlyRejectedApplicationsBackfillTheirIDAndSourceFields() throws {
         for status in [0, 1] { XCTAssertThrowsError(try MerchantOnboardingDraft(reapplying: makeMerchantOnboardingApplication(status: status))) }
         XCTAssertThrowsError(try MerchantOnboardingDraft(reapplying: makeMerchantOnboardingApplication(status: 2, accountStatus: 2)))

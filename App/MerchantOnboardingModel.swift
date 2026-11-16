@@ -84,7 +84,8 @@ final class MerchantOnboardingModel: ObservableObject {
         if step == 3, selectedImage != nil { errorKey = "merchant.onboarding.uploadSelectedFirst"; return }
         errorKey = draft.blocker(step: step)
         guard errorKey == nil else { return }
-        step = min(4, step + 1)
+        // Owner 2026-11-16: five steps — 1 店铺, 2 营业, 3 资质, 4 身份, 5 预览确认.
+        step = min(MerchantOnboardingSteps.review, step + 1)
     }
     func select(_ item: PhotosPickerItem) async {
         guard !isBusy, coordinator.identityGate == .registered else { return }
@@ -214,7 +215,7 @@ final class MerchantOnboardingModel: ObservableObject {
     func prepare() {
         guard !isBusy else { return }
         guard selectedBrandImage == nil else { errorKey = "merchant.onboardingBrand.uploadFirst"; return }
-        errorKey = draft.blocker()
+        errorKey = draft.blocker() ?? draft.identityBlocker()
         guard errorKey == nil else { return }
         do { confirmation = try coordinator.prepare(draft); revision += 1 }
         catch { errorKey = "merchant.onboarding.stateChanged" }
@@ -268,4 +269,12 @@ private enum MerchantOnboardingPhotoAdapter {
         guard let jpeg = sanitized.jpegData(compressionQuality: 0.92) else { throw APIError.invalidRequest }
         return try MerchantOnboardingImage(jpegData: jpeg)
     }
+}
+
+
+/// The onboarding wizard's step numbers (owner 2026-11-16 added 身份信息 before the review).
+enum MerchantOnboardingSteps {
+    static let identity = 4
+    static let review = 5
+    static let count = 5
 }
