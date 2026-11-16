@@ -142,6 +142,8 @@ import UIKit
         old.wire.finish()
         for _ in 0..<10 { await Task.yield() }
         XCTAssertEqual(fresh.wire.cursors, [nil]); XCTAssertEqual(old.wire.cursors, [nil])
+        // Wait for the visible list cell (hidden reusable cells no longer count as on screen).
+        try await waitFor { self.find(label: "Fresh row", in: window) != nil }
         XCTAssertNotNil(find(label: "Fresh row", in: window)); XCTAssertNil(find(label: "Original row", in: window))
     }
     private func intent(_ intent: RoamAnniversaryListState.Intent, _ reader: any RoamPassportToolsReading,

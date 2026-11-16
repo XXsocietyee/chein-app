@@ -13,6 +13,7 @@ permission check, or deletion of user data stays red and is listed for a human.
 |---|---:|---:|---:|---:|
 | baseline 5a93b4476 (Core run here; AppUnit 4 shards run here, r1b) | 16926 | 99 | 7848 | 123 |
 | batch 1 6009e19f3 | 16926 | 27 | 7848 | 109 |
+| batch 2 73a06a74f | 16926 | 27 | 7848 | 73 |
 
 AppUnit shards run through XcodeBuildMCP `test_sim` with per-shard xctestruns built from the shard test plans
 (`BurnShard0N.xctestrun`): `xcodebuild test` from the sandboxed shell cannot reach the testmanagerd socket.
@@ -35,6 +36,18 @@ wait). Both are counted as open.
 | Wallet earnings segments | Once accessibility is on in the process, UIKit's accessibility bundle replaces `UISegmentedControl.accessibilityElements`, dropping the 44 pt elements and activation callback (also a VoiceOver bug). | Subclass answers its own elements. |
 | Page string catalogs | `docs/release/ui-strings-pages-{club-badges,club-customers,publish-simple}-index.json` were lost in a merge while their tests landed. | Restored from `cursor/cb238`, `cb241`, `cb232`. |
 
+## Hosted SwiftUI harness on the iOS 27 simulator (batch 2)
+
+These change how tests look at the screen, not what they assert.
+
+| cause | evidence | change |
+|---|---|---|
+| Scene-less `UIWindow(frame:)` | a diagnostic dump showed `windowScene=nil key=false` and only a refresh-control proxy in the tree | `hostedSceneWindow(frame:)` attaches the test window to the foreground scene (15 hosted suites that were failing) |
+| Hidden reusable list cells | removed rows were "found" inside `ListCollectionViewCell[h=true]` | every hosted finder skips hidden views (`hostedHiddenView`) |
+| Keychain -34018 on the unsigned test host | ProjectEdit load ended `projectEdit.loadFailed`, template editor ignored `change` | DEBUG `syntheticProjectEditStorage` (same pattern as `syntheticTemplateAuthoringStorage`); ProjectEdit/ZeroHP/Template shelf+metadata tests use memory stores |
+| Process-wide language choice leaked into copy tests | `ChannelCopy` honours `AppLanguageRuntime.active` before the passed locale | `AccessibilityHardeningWaveTests` clears and restores it |
+| Screen identifiers not exposed | `.accessibilityIdentifier` on a ScrollView/List screen is dropped unless it is a container | roam history, passport and hub screens use `.accessibilityElement(children: .contain)` (also helps XCUITest) |
+
 ## Tests updated to deliberately changed behaviour
 
 | test | old expectation | shipped behaviour | why |
@@ -56,6 +69,12 @@ wait). Both are counted as open.
 | PlayActionReceiptTests | receipt fixture `…\"}}` | valid JSON | unterminated string in the fixture |
 | JourneyNarrativeTests (shop NPC) | reply echoes another coordinator's review id | echoes the live review id | fixture used the wrong id |
 | NativeFriendTransportTests | receipts without `payload_hash`; flow without intent journal | 64-hex hash; durable intent journal required to write | hardened receipt and write contract |
+| RoamMedalShareCard/SystemShareSource | 750x1000 card | 1080x1920 (360x640 pt story artboard at 3x) | e3 share kit redesign |
+| TemplateMediaReview, TemplateCoverReferenceClear, TemplateLocalMediaClear, TemplateTimerOutcome | longer "reference/local" copy | shipped plain-language copy | triage: copy mismatch, OWNER |
+| ChannelAdmissionGovernanceEntry, ChannelDirectoryTransportInjection | `version "0"` is unpublished | `"0"` is published (contract §7.1, 689134de7); unpublished fixture uses `-1` | channels follow the server contract |
+| ApprovedReleaseOriginalRecovery (2) | whole store unchanged after `leave()` | release journal unchanged; one `project-editor.v1.` draft envelope kept | triage group 3 (product value) |
+| MPParityDeepLinkRoute | `pages/roam/index` push opens nothing | opens the roam tab | 71ca5fbef page map deep links |
+| RoamAnniversaryHostRestoration | menu id `roam.toolbar.more` | id `roam.more` (label key unchanged) | b85ae2741 one overflow menu |
 
 ## Left red for a human (money, points, security, permission, privacy)
 
