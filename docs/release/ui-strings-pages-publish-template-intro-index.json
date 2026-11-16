@@ -10,8 +10,8 @@
       "zh-Hans": "未命名示例"
     },
     "creatorIntro.loading": {
-      "en": "Loading featured examples…",
-      "zh-Hans": "正在加载精选示例…"
+      "en": "Loading featured examples",
+      "zh-Hans": "正在加载精选示例"
     },
     "creatorIntro.failed": {
       "en": "Featured examples could not be loaded.",

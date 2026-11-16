@@ -480,8 +480,8 @@
     "zh-Hans": "音频引用"
   },
   "templateAuthor.field.audioDuration": {
-    "en": "Audio duration in seconds",
-    "zh-Hans": "音频时长（秒）"
+    "en": "Audio duration",
+    "zh-Hans": "音频时长"
   },
   "templateAuthor.field.beatTag": {
     "en": "Story tag",
@@ -500,8 +500,8 @@
     "zh-Hans": "标题，不超过 32 个 UTF-16 字符单元"
   },
   "templateAuthor.field.xp": {
-    "en": "Reward points",
-    "zh-Hans": "奖励分"
+    "en": "Reward",
+    "zh-Hans": "奖励"
   },
   "templateAuthor.field.diceCount": {
     "en": "Dice count: 1 or 2",
@@ -524,8 +524,8 @@
     "zh-Hans": "启用挑战限时"
   },
   "templateAuthor.field.seconds": {
-    "en": "Duration in seconds",
-    "zh-Hans": "时长（秒）"
+    "en": "Duration",
+    "zh-Hans": "时长"
   },
   "templateAuthor.field.sub": {
     "en": "Supporting text",
@@ -536,8 +536,8 @@
     "zh-Hans": "到点时说什么"
   },
   "templateAuthor.field.targetSeconds": {
-    "en": "Target: 3–120 seconds",
-    "zh-Hans": "目标秒数：3–120"
+    "en": "Target (3–120)",
+    "zh-Hans": "目标时长（3 至 120）"
   },
   "templateAuthor.field.toleranceMs": {
     "en": "Tolerance: 50–5000 milliseconds",
@@ -548,8 +548,8 @@
     "zh-Hans": "次数：0–10，0 表示不限"
   },
   "templateAuthor.field.durationSeconds": {
-    "en": "Time limit: 10–86400 seconds",
-    "zh-Hans": "限时秒数：10–86400"
+    "en": "Time limit (10–86400)",
+    "zh-Hans": "限时（10 至 86400）"
   },
   "templateAuthor.field.heads.label": {
     "en": "Heads label",

@@ -304,8 +304,8 @@
     "zh-Hans": "模拟已完成，没有发布任何项目。"
   },
   "projectEdit.loading": {
-    "en": "Loading editor…",
-    "zh-Hans": "正在加载编辑器…"
+    "en": "Loading editor",
+    "zh-Hans": "正在加载编辑器"
   },
   "projectEdit.signIn": {
     "en": "Sign in to save an account-scoped draft. Unsaved guest edits stay on this screen only.",
@@ -404,8 +404,8 @@
     "zh-Hans": "无法加载项目或安全草稿，请重试后再编辑。"
   },
   "projectEdit.reload": {
-    "en": "Reload editor",
-    "zh-Hans": "重新加载"
+    "en": "Retry",
+    "zh-Hans": "重试"
   },
   "projectEdit.capabilityBlocked": {
     "en": "Publishing permission or available quota does not allow this new route.",
@@ -680,8 +680,8 @@
     "zh-Hans": "此已保存的日期设置无法在此修改，将原样保留。"
   },
   "projectEdit.fabu.loading": {
-    "en": "Loading editor…",
-    "zh-Hans": "正在加载编辑器…"
+    "en": "Loading editor",
+    "zh-Hans": "正在加载编辑器"
   },
   "projectEdit.fabu.empty": {
     "en": "—",

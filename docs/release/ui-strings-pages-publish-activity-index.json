@@ -99,8 +99,8 @@
       "zh-Hans": "请检查必填项、活动时间和票种履约窗口；发布还需要当前主理人身份。"
     },
     "publishModes.readFailed": {
-      "en": "Could not load this list. Check your connection and sign-in, then retry.",
-      "zh-Hans": "列表加载失败，请检查网络和登录状态后重试。"
+      "en": "The list didn't load. The network isn't connected. Try again.",
+      "zh-Hans": "列表没加载出来。网络没连上，请重试。"
     },
     "publishModes.clubOnly": {
       "en": "Only club leaders can publish activities.",

@@ -1042,13 +1042,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reward points"
+          "value": "Reward"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "奖励分"
+          "value": "奖励"
         }
       }
     }
@@ -1110,13 +1110,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Time limit in seconds (0 = none)"
+          "value": "Time limit (0 = none)"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "时限秒数（0 为不限）"
+          "value": "时限（0 为不限）"
         }
       }
     }
@@ -1178,13 +1178,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Duration in seconds"
+          "value": "Duration"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "时长秒数"
+          "value": "时长"
         }
       }
     }
@@ -2538,13 +2538,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Time limit in seconds"
+          "value": "Time limit"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "时限秒数"
+          "value": "时限"
         }
       }
     }

@@ -16,8 +16,8 @@
     "zh-Hans": "重试"
   },
   "creatorContent.loading": {
-    "en": "Loading…",
-    "zh-Hans": "加载中…"
+    "en": "Loading",
+    "zh-Hans": "正在加载"
   },
   "creatorContent.empty": {
     "en": "No published content",
@@ -104,8 +104,8 @@
     "zh-Hans": "连接失败，请重试。"
   },
   "creatorContent.failed": {
-    "en": "Unable to load. Try again.",
-    "zh-Hans": "加载失败，请重试。"
+    "en": "Content didn't load. The network isn't connected. Try again.",
+    "zh-Hans": "内容没加载出来。网络没连上，请重试。"
   },
   "creatorContent.status.not_applied": {
     "en": "Not applied",

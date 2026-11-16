@@ -11,8 +11,8 @@
       "zh-Hans": "暂无发布内容"
     },
     "creatorContent.failed": {
-      "en": "Unable to load. Try again.",
-      "zh-Hans": "加载失败，请重试。"
+      "en": "Content didn't load. The network isn't connected. Try again.",
+      "zh-Hans": "内容没加载出来。网络没连上，请重试。"
     },
     "creatorContent.filter.activity": {
       "en": "Activities",
@@ -71,8 +71,8 @@
       "zh-Hans": "主题"
     },
     "creatorContent.loading": {
-      "en": "Loading…",
-      "zh-Hans": "加载中…"
+      "en": "Loading",
+      "zh-Hans": "正在加载"
     },
     "creatorContent.network": {
       "en": "Connection failed. Try again.",

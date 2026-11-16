@@ -44,8 +44,8 @@
     "zh-Hans": "核对删除模板"
   },
   "templateAuthor.shelf.deleteReview": {
-    "en": "Delete this exact template from your own shelf? This may not be reversible.",
-    "zh-Hans": "确定删除此编号的我的模板？此操作可能无法撤销。"
+    "en": "Delete this template? This may not be undone.",
+    "zh-Hans": "删除这个模板？此操作可能无法撤销。"
   },
   "templateAuthor.shelf.addReview": {
     "en": "Set this exact template’s library status to 1 (in library).",
@@ -92,8 +92,8 @@
     "zh-Hans": "加载更多 / 重试"
   },
   "templateAuthor.shelf.moreFailed": {
-    "en": "Could not load the next page. Retry or refresh the list.",
-    "zh-Hans": "下一页加载失败，请重试或刷新列表。"
+    "en": "The next page didn't load. The network isn't connected. Try again.",
+    "zh-Hans": "下一页没加载出来。网络没连上，请重试。"
   },
   "templateAuthor.shelf.pageLimit": {
     "en": "Search limit reached. Narrow your search or refresh.",

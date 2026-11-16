@@ -236,7 +236,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片加载失败，请检查地址后重试。"
+            "value": "图片没加载出来，请检查地址后重试。"
           }
         }
       }

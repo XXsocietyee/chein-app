@@ -7,7 +7,7 @@
     {"key": "publishModes.quick.kicker.city", "en": "City orientation · gathered route", "zh-Hans": "城市定向 · 集合式路线", "accessibilityIdentifier": "publishModes.quick.kicker.city"},
     {"key": "publishModes.quick.kicker.free", "en": "Free explore · chapter-linked route", "zh-Hans": "自由探索 · 章节承接路线", "accessibilityIdentifier": "publishModes.quick.kicker.free"},
     {"key": "publishModes.quick.aiNote", "en": "AI only drafts. You confirm the places and everything you publish.", "zh-Hans": "AI 只协助起草，地点与发布内容终由你确认", "accessibilityIdentifier": "publishModes.quick.aiNote"},
-    {"key": "contextPublish.ai.title", "en": "AI route draft", "zh-Hans": "AI 路线草稿", "accessibilityIdentifier": "contextPublish.ai.open"},
+    {"key": "contextPublish.ai.title", "en": "AI quick create", "zh-Hans": "AI 快速创建", "accessibilityIdentifier": "contextPublish.ai.open"},
     {"key": "contextPublish.ai.remaining", "en": "Generations remaining", "zh-Hans": "剩余生成次数", "accessibilityIdentifier": "publishModes.quick.quota"},
     {"key": "contextPublish.ai.exhausted", "en": "AI quota is used up. You can still create a route manually.", "zh-Hans": "AI 次数已用完，仍可手动创建路线。", "accessibilityIdentifier": "publishModes.quick.quota"},
     {"key": "contextPublish.ai.unavailable", "en": "AI generation isn't available right now. You can still create manually.", "zh-Hans": "AI 生成暂不可用，仍可手动创建。", "accessibilityIdentifier": "contextPublish.ai.open"},
@@ -26,7 +26,7 @@
     {"key": "publishModes.restoreLocal", "en": "Restore saved draft", "zh-Hans": "恢复已保存草稿", "accessibilityIdentifier": "publishModes.quick.name"},
     {"key": "publishModes.quick.loading", "en": "Loading the draft quota", "zh-Hans": "正在读取草稿额度", "accessibilityIdentifier": "publishModes.quick.loading"},
     {"key": "publishModes.quick.emptyState", "en": "No stops yet", "zh-Hans": "还没有点位", "accessibilityIdentifier": "publishModes.quick.empty"},
-    {"key": "publishModes.quick.loadFailed", "en": "Could not load the draft quota.", "zh-Hans": "草稿额度加载失败。", "accessibilityIdentifier": "publishModes.quick.error"},
+    {"key": "publishModes.quick.loadFailed", "en": "The draft allowance didn't load. The network isn't connected. Try again.", "zh-Hans": "草稿额度没加载出来。网络没连上，请重试。", "accessibilityIdentifier": "publishModes.quick.error"},
     {"key": "publishModes.quick.unknownValue", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "publishModes.quick.unknown"},
     {"key": "publishModes.quick.hiddenState", "en": "Quick route setup is unavailable", "zh-Hans": "快速配置暂不可用", "accessibilityIdentifier": "publishModes.quick.hidden"}
   ],

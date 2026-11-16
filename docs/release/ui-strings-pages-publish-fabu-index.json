@@ -5,8 +5,8 @@
   "status": "gated",
   "strings": {
     "projectEdit.fabu.loading": {
-      "en": "Loading editor…",
-      "zh-Hans": "正在加载编辑器…",
+      "en": "Loading editor",
+      "zh-Hans": "正在加载编辑器",
       "accessibilityIdentifier": "projectEdit.fabu.loading"
     },
     "projectEdit.fabu.empty": {
